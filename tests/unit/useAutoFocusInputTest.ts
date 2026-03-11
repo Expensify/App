@@ -1,13 +1,27 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook} from '@testing-library/react-native';
+import type {TextInput} from 'react-native';
+import {InteractionManager} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
+import CONST from '@src/CONST';
+
+type TransitionEndListener = (event?: {data?: {closing?: boolean}}) => void;
 
 let capturedFocusEffect: (() => void | (() => void)) | undefined;
+let capturedTransitionEndListener: TransitionEndListener | undefined;
+
+const mockAddListener = jest.fn();
+const mockSidePanelState = {isSidePanelTransitionEnded: false, shouldHideSidePanel: false};
 
 jest.mock('@react-navigation/native', () => ({
     useFocusEffect: (callback: () => void | (() => void)) => {
         capturedFocusEffect = callback;
     },
+    useNavigation: () => ({
+        addListener: mockAddListener,
+    }),
 }));
 
 jest.mock('@hooks/useOnyx', () => ({
@@ -24,12 +38,7 @@ jest.mock('@src/SplashScreenStateContext', () => ({
 
 jest.mock('@hooks/useSidePanelState', () => ({
     __esModule: true,
-    default: () => ({isSidePanelTransitionEnded: false, shouldHideSidePanel: false}),
-}));
-
-jest.mock('@hooks/usePrevious', () => ({
-    __esModule: true,
-    default: () => false,
+    default: () => mockSidePanelState,
 }));
 
 jest.mock('@libs/ComposerFocusManager', () => ({
@@ -41,53 +50,247 @@ jest.mock('@libs/ComposerFocusManager', () => ({
 
 jest.mock('@libs/isWindowReadyToFocus', () => ({
     __esModule: true,
-    default: jest.fn(() => Promise.resolve(true)),
+    default: jest.fn(() => Promise.resolve()),
 }));
 
+const originalDocumentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
+let originalActiveElementDescriptor: PropertyDescriptor | undefined;
+let activeElement: unknown;
+
+function createDeferredPromise() {
+    let resolvePromise: (() => void) | undefined;
+    const promise = new Promise<void>((resolve) => {
+        resolvePromise = resolve;
+    });
+
+    return {
+        promise,
+        resolve: () => resolvePromise?.(),
+    };
+}
+
+function createInput() {
+    const focus = jest.fn();
+
+    return {
+        focus,
+        input: {focus} as unknown as TextInput,
+    };
+}
+
+async function flushPromises() {
+    await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+    });
+}
+
 describe('useAutoFocusInput', () => {
+    beforeAll(() => {
+        if (!globalThis.document) {
+            Object.defineProperty(globalThis, 'document', {
+                value: {body: {}, documentElement: {}} as Document,
+                configurable: true,
+            });
+        }
+
+        originalActiveElementDescriptor = Object.getOwnPropertyDescriptor(document, 'activeElement');
+        Object.defineProperty(document, 'activeElement', {
+            configurable: true,
+            get: () => activeElement as Element | null,
+        });
+    });
+
     beforeEach(() => {
         capturedFocusEffect = undefined;
+        capturedTransitionEndListener = undefined;
+        activeElement = document.body;
+        mockSidePanelState.isSidePanelTransitionEnded = false;
+        mockSidePanelState.shouldHideSidePanel = false;
+
         jest.clearAllMocks();
         jest.useFakeTimers();
+
+        mockAddListener.mockImplementation((eventName: string, callback: TransitionEndListener) => {
+            if (eventName === 'transitionEnd') {
+                capturedTransitionEndListener = callback;
+            }
+            return jest.fn();
+        });
+
+        jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation(((task?: (() => void) | {gen?: () => void}) => {
+            if (typeof task === 'function') {
+                task();
+            } else {
+                task?.gen?.();
+            }
+
+            return {
+                then: jest.fn(() => Promise.resolve()),
+                done: jest.fn(),
+                cancel: jest.fn(),
+            };
+        }) as unknown as typeof InteractionManager.runAfterInteractions);
     });
 
     afterEach(() => {
         act(() => {
             jest.runOnlyPendingTimers();
         });
+        jest.restoreAllMocks();
         jest.useRealTimers();
     });
 
-    it('schedules the initial focus transition only once across repeated focus callbacks', () => {
-        const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+    afterAll(() => {
+        if (originalActiveElementDescriptor) {
+            Object.defineProperty(document, 'activeElement', originalActiveElementDescriptor);
+        }
 
-        renderHook(() => useAutoFocusInput());
+        if (originalDocumentDescriptor) {
+            Object.defineProperty(globalThis, 'document', originalDocumentDescriptor);
+            return;
+        }
 
-        expect(typeof capturedFocusEffect).toBe('function');
+        Reflect.deleteProperty(globalThis as typeof globalThis & {document?: Document}, 'document');
+    });
 
-        let firstCleanup: void | (() => void) | undefined;
-        act(() => {
-            firstCleanup = capturedFocusEffect?.();
-        });
-        expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
-
-        act(() => {
-            jest.runOnlyPendingTimers();
-        });
-
-        const timeoutCallsAfterFirstRun = setTimeoutSpy.mock.calls.length;
-
-        let secondCleanup: void | (() => void) | undefined;
-        act(() => {
-            secondCleanup = capturedFocusEffect?.();
-        });
-
-        expect(setTimeoutSpy.mock.calls.length).toBe(timeoutCallsAfterFirstRun);
-        expect(secondCleanup).toBeUndefined();
+    it('autofocuses after transitionEnd when no other element owns focus', async () => {
+        const {focus, input} = createInput();
+        const {result} = renderHook(() => useAutoFocusInput());
 
         act(() => {
-            firstCleanup?.();
+            result.current.inputCallbackRef(input);
+            capturedFocusEffect?.();
         });
-        setTimeoutSpy.mockRestore();
+
+        expect(mockAddListener).toHaveBeenCalledWith('transitionEnd', expect.any(Function));
+
+        await act(async () => {
+            capturedTransitionEndListener?.({data: {closing: false}});
+        });
+        await flushPromises();
+
+        expect(focus).toHaveBeenCalledTimes(1);
+    });
+
+    it('autofocuses via timeout fallback when transitionEnd does not fire', async () => {
+        const {focus, input} = createInput();
+        const {result} = renderHook(() => useAutoFocusInput());
+
+        act(() => {
+            result.current.inputCallbackRef(input);
+            capturedFocusEffect?.();
+            jest.advanceTimersByTime(CONST.SCREEN_TRANSITION_END_TIMEOUT);
+        });
+        await flushPromises();
+
+        expect(focus).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-arms autofocus on a later screen focus', async () => {
+        const {focus, input} = createInput();
+        const {result} = renderHook(() => useAutoFocusInput());
+
+        act(() => {
+            result.current.inputCallbackRef(input);
+        });
+
+        let cleanup: void | (() => void) | undefined;
+        act(() => {
+            cleanup = capturedFocusEffect?.();
+        });
+
+        await act(async () => {
+            capturedTransitionEndListener?.({data: {closing: false}});
+        });
+        await flushPromises();
+
+        act(() => {
+            cleanup?.();
+            cleanup = capturedFocusEffect?.();
+        });
+
+        await act(async () => {
+            capturedTransitionEndListener?.({data: {closing: false}});
+        });
+        await flushPromises();
+
+        expect(focus).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not steal focus if another element becomes active before focus executes', async () => {
+        const deferred = createDeferredPromise();
+        jest.mocked(isWindowReadyToFocus).mockReturnValueOnce(deferred.promise);
+
+        const {focus, input} = createInput();
+        const otherFocusedElement = {} as HTMLElement;
+        const {result} = renderHook(() => useAutoFocusInput());
+
+        act(() => {
+            result.current.inputCallbackRef(input);
+            capturedFocusEffect?.();
+        });
+
+        await act(async () => {
+            capturedTransitionEndListener?.({data: {closing: false}});
+        });
+
+        activeElement = otherFocusedElement;
+
+        await act(async () => {
+            deferred.resolve();
+            await deferred.promise;
+        });
+
+        expect(focus).not.toHaveBeenCalled();
+    });
+
+    it('recovers after skipping focus while another element is active', async () => {
+        const {focus, input} = createInput();
+        const otherFocusedElement = {} as HTMLElement;
+        const {result} = renderHook(() => useAutoFocusInput());
+
+        act(() => {
+            result.current.inputCallbackRef(input);
+            capturedFocusEffect?.();
+        });
+
+        activeElement = otherFocusedElement;
+
+        await act(async () => {
+            capturedTransitionEndListener?.({data: {closing: false}});
+        });
+        await flushPromises();
+
+        expect(focus).not.toHaveBeenCalled();
+
+        activeElement = document.body;
+
+        await act(async () => {
+            capturedTransitionEndListener?.({data: {closing: false}});
+        });
+        await flushPromises();
+
+        expect(focus).toHaveBeenCalledTimes(1);
+    });
+
+    it('still autofocuses when the side panel finishes closing', async () => {
+        const {focus, input} = createInput();
+        const {result, rerender} = renderHook(() => useAutoFocusInput());
+
+        act(() => {
+            result.current.inputCallbackRef(input);
+        });
+
+        mockSidePanelState.shouldHideSidePanel = true;
+        rerender(undefined);
+
+        mockSidePanelState.isSidePanelTransitionEnded = true;
+        rerender(undefined);
+        await flushPromises();
+
+        expect(jest.mocked(ComposerFocusManager.isReadyToFocus)).toHaveBeenCalled();
+        expect(jest.mocked(isWindowReadyToFocus)).toHaveBeenCalled();
+        expect(focus).toHaveBeenCalledTimes(1);
     });
 });
