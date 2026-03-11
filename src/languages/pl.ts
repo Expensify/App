@@ -7751,11 +7751,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             prompt: 'Czy na pewno chcesz zatrzymać śledzenie GPS i przełączyć się na Expensify Classic?',
             confirm: 'Zatrzymaj i przełącz',
         },
-        switchAccountWarningTripInProgress: {
-            title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to stop GPS tracking and switch account?',
-            confirm: 'Stop and switch',
-        },
+        switchAccountWarningTripInProgress: {title: 'Trwa śledzenie GPS', prompt: 'Na pewno chcesz zatrzymać śledzenie GPS i przełączyć konto?', confirm: 'Zatrzymaj i przełącz'},
         locationServicesRequiredModal: {
             title: 'Wymagany dostęp do lokalizacji',
             confirm: 'Otwórz ustawienia',

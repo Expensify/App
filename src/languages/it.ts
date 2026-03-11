@@ -7785,9 +7785,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             confirm: 'Interrompi e cambia',
         },
         switchAccountWarningTripInProgress: {
-            title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to stop GPS tracking and switch account?',
-            confirm: 'Stop and switch',
+            title: 'Monitoraggio GPS in corso',
+            prompt: 'Sei sicuro di voler interrompere il tracciamento GPS e cambiare account?',
+            confirm: 'Interrompi e cambia',
         },
         locationServicesRequiredModal: {
             title: 'Accesso alla posizione richiesto',

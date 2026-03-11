@@ -7764,9 +7764,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             confirm: 'Stoppen en overschakelen',
         },
         switchAccountWarningTripInProgress: {
-            title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to stop GPS tracking and switch account?',
-            confirm: 'Stop and switch',
+            title: 'GPS-tracking bezig',
+            prompt: 'Weet je zeker dat je GPS-tracking wilt stoppen en van account wilt wisselen?',
+            confirm: 'Stoppen en overschakelen',
         },
         locationServicesRequiredModal: {
             title: 'Locatietoegang vereist',

@@ -7564,11 +7564,7 @@ ${reportName}
             confirm: '放弃并退出登录',
         },
         switchToODWarningTripInProgress: {title: '正在进行 GPS 跟踪', prompt: '您确定要停止 GPS 追踪并切换到 Expensify Classic 吗？', confirm: '停止并切换'},
-        switchAccountWarningTripInProgress: {
-            title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to stop GPS tracking and switch account?',
-            confirm: 'Stop and switch',
-        },
+        switchAccountWarningTripInProgress: {title: '正在进行 GPS 追踪', prompt: '确定要停止 GPS 跟踪并切换账号吗？', confirm: '停止并切换'},
         locationServicesRequiredModal: {
             title: '需要访问位置信息',
             confirm: '打开设置',

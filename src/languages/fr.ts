@@ -7821,11 +7821,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             prompt: 'Voulez-vous vraiment arrêter le suivi GPS et passer à Expensify Classic ?',
             confirm: 'Arrêter et changer',
         },
-        switchAccountWarningTripInProgress: {
-            title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to stop GPS tracking and switch account?',
-            confirm: 'Stop and switch',
-        },
+        switchAccountWarningTripInProgress: {title: 'Suivi GPS en cours', prompt: 'Voulez-vous vraiment arrêter le suivi GPS et changer de compte ?', confirm: 'Arrêter et changer'},
         locationServicesRequiredModal: {
             title: 'Accès à la localisation requis',
             confirm: 'Ouvrir les paramètres',
