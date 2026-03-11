@@ -174,6 +174,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             personalDetails,
             currentUserAccountID,
             privateIsArchivedMap,
+            policies,
         ],
     );
 
