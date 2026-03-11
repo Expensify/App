@@ -13177,8 +13177,10 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
         });
         const isTransactionOnHold = isOnHold(transaction);
 
-        // Optimistically update violations so they disappear immediately when the edited field resolves them
-        if (policy) {
+        // Optimistically update violations so they disappear immediately when the edited field resolves them.
+        // Skip for unreported expenses: they have no iouReport context so isSelfDM() returns false,
+        // which would incorrectly trigger policy-required violations (e.g. missingCategory).
+        if (policy && !isUnreportedExpense) {
             const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             let optimisticViolations =
                 transactionChanges.amount !== undefined || transactionChanges.created || transactionChanges.currency
