@@ -1,14 +1,14 @@
-import { hasSeenTourSelector } from '@selectors/Onboarding';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import type { OnyxCollection } from 'react-native-onyx';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import { usePersonalDetails } from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import { useSearchContext } from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
-import type { WorkspaceConfirmationSubmitFunctionParams } from '@components/WorkspaceConfirmationForm';
+import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -16,43 +16,43 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { createNewReport } from '@libs/actions/Report';
-import { changeTransactionsReport, setTransactionReport } from '@libs/actions/Transaction';
+import {createNewReport} from '@libs/actions/Report';
+import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { MoneyRequestNavigatorParamList } from '@libs/Navigation/types';
-import { getParticipantsOption } from '@libs/OptionsListUtils';
-import { getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils } from '@libs/ReportUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import {getParticipantsOption} from '@libs/OptionsListUtils';
+import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
-import { setCustomUnitRateID, setMoneyRequestParticipants } from '@userActions/IOU';
+import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Route } from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { PersonalDetails, Transaction } from '@src/types/onyx';
+import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
 
 function IOURequestStepUpgrade({
     route: {
-        params: { transactionID, action, reportID, shouldSubmitExpense, upgradePath, backTo },
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, backTo},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
 
-    const { translate } = useLocalize();
-    const { isOffline } = useNetwork();
+    const {translate, toLocaleDigit} = useLocalize();
+    const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, { canBeMissing: true });
-    const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, { canBeMissing: true });
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, { canBeMissing: true });
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+    const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
 
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
@@ -64,20 +64,21 @@ function IOURequestStepUpgrade({
     const isReporting = upgradePath === CONST.UPGRADE_PATHS.REPORTS;
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
-    const { isRestrictedPolicyCreation } = usePreferredPolicy();
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, { selector: hasSeenTourSelector });
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     // Hooks for bulk move functionality
-    const { selectedTransactions, clearSelectedTransactions } = useSearchContext();
+    const {selectedTransactions} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, { canBeMissing: true });
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, { canBeMissing: true });
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, { canBeMissing: true });
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, { canBeMissing: true });
-    const [session] = useOnyx(ONYXKEYS.SESSION, { canBeMissing: false });
-    const [betas] = useOnyx(ONYXKEYS.BETAS, { canBeMissing: true });
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     // Build transactions map from selectedTransactions (search results) instead of Onyx TRANSACTION collection
     // This ensures that transactions selected from search are properly included in the map passed to changeTransactionsReport
@@ -96,7 +97,7 @@ function IOURequestStepUpgrade({
         [selectedTransactions],
     );
 
-    const { isBetaEnabled } = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
@@ -140,6 +141,8 @@ function IOURequestStepUpgrade({
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
                 allTransactions,
+                translate,
+                toLocaleDigit,
             });
 
             clearSelectedTransactions();
@@ -174,10 +177,10 @@ function IOURequestStepUpgrade({
 
                 Navigation.goBack(backToRoute);
 
-                setTransactionReport(transactionID, { reportID: expenseReportID }, true);
+                setTransactionReport(transactionID, {reportID: expenseReportID}, true);
                 // Let the confirmation step decide the distance rate because policy data is not fully available at this step
                 setCustomUnitRateID(transactionID, '-1', undefined, undefined);
-                Navigation.setParams({ reportID: expenseReportID });
+                Navigation.setParams({reportID: expenseReportID});
 
                 navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, expenseReportID));
                 break;
@@ -220,6 +223,8 @@ function IOURequestStepUpgrade({
         ownerPersonalDetails,
         allTransactions,
         betas,
+        translate,
+        toLocaleDigit,
     ]);
 
     const participant = transaction?.participants?.[0];
@@ -260,7 +265,6 @@ function IOURequestStepUpgrade({
         setIsUpgraded(true);
         policyDataRef.current = policyData;
     };
-
 
     const handleConfirmUpgradeWarning = () => {
         setIsUpgradeWarningModalOpen(false);
