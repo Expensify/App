@@ -105,11 +105,8 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
         // Wrap each screen's render function with ScreenFreezeWrapper to freeze non-top screens.
         // This prevents off-screen components from re-rendering.
         // Persistent screens (e.g. sidebar) are excluded from freezing so they stay interactive.
-        const wrappedDescriptors = useMemo(() => {
-            if (!freezeNonTopScreens) {
-                return descriptors;
-            }
-
+        let wrappedDescriptors = descriptors;
+        if (freezeNonTopScreens) {
             const topRouteKey = state.routes[state.index]?.key;
             const result: typeof descriptors = {};
             for (const [key, descriptor] of Object.entries(descriptors)) {
@@ -121,8 +118,8 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     render: () => <ScreenFreezeWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</ScreenFreezeWrapper>,
                 };
             }
-            return result;
-        }, [descriptors, persistentScreens, state]);
+            wrappedDescriptors = result;
+        }
 
         const Content = useMemo(
             () => (
