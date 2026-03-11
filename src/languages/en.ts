@@ -495,6 +495,7 @@ const translations = {
         validate: 'Validate',
         downloadAsPDF: 'Download as PDF',
         downloadAsCSV: 'Download as CSV',
+        print: 'Print',
         help: 'Help',
         expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
@@ -562,6 +563,10 @@ const translations = {
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        concierge: {
+            sidePanelGreeting: 'Hi there, how can I help?',
+            showHistory: 'Show history',
+        },
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
         approver: 'Approver',
@@ -700,7 +705,11 @@ const translations = {
             biometricsTest: 'Biometrics test',
             authenticationSuccessful: 'Authentication successful',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `You’ve successfully authenticated using ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometrics (${registered ? 'Registered' : 'Not registered'})`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometrics (${status})`,
+            statusNeverRegistered: 'Never registered',
+            statusNotRegistered: 'Not registered',
+            statusRegisteredOtherDevice: () => ({one: 'Another device registered', other: 'Other devices registered'}),
+            statusRegisteredThisDevice: 'Registered',
             yourAttemptWasUnsuccessful: 'Your authentication attempt was unsuccessful.',
             youCouldNotBeAuthenticated: 'You couldn’t be authenticated',
             areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
@@ -738,12 +747,22 @@ const translations = {
         revoke: {
             revoke: 'Revoke',
             title: 'Face/fingerprint & passkeys',
-            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device.',
-            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device.",
+            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on that device.',
+            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on that device.",
+            confirmationPromptThisDevice: "Are you sure? You'll need a magic code for the next verification on this device.",
+            confirmationPromptMultiple: "Are you sure? You'll need a magic code for the next verification on those devices.",
+            confirmationPromptAll: "Are you sure? You'll need a magic code for the next verification on any device.",
             cta: 'Revoke access',
+            ctaAll: 'Revoke all',
             noDevices: "You don't have any devices registered for face/fingerprint or passkey verification. If you register any, you will be able to revoke that access here.",
             dismiss: 'Got it',
             error: 'Request failed. Try again later.',
+            thisDevice: 'This device',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} other ${otherDeviceCount === 1 ? 'device' : 'devices'}`;
+            },
         },
     },
     validateCodeModal: {
@@ -2005,7 +2024,7 @@ const translations = {
         restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.</muted-text-micro>`,
+        readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
         whatIsNew: "What's new",
         accountSettings: 'Account settings',
@@ -2675,7 +2694,7 @@ const translations = {
     },
     termsOfUse: {
         terms: `<muted-text-xs>By logging in, you agree to the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.</muted-text-xs>`,
-        license: `<muted-text-xs>Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenses</a>.</muted-text-xs>`,
+        license: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenses</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
@@ -7230,10 +7249,6 @@ const translations = {
         spendOverTime: 'Spend over time',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
-            editMultiple: 'Edit multiple',
-            editMultipleTitle: 'Edit multiple expenses',
-            // cspell:disable
-            editMultipleDescription: "Changes will be set for all selected expenses and will override any previously set values. Just sayin'.",
             approve: 'Approve',
             pay: 'Pay',
             delete: 'Delete',
