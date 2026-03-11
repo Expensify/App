@@ -5,12 +5,12 @@ import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
-function shouldUseDefaultExpensePolicy(iouType: IOUType, defaultExpensePolicy: OnyxInputOrEntry<Policy>, amountOwed: OnyxEntry<number>) {
+function shouldUseDefaultExpensePolicy(iouType: IOUType, defaultExpensePolicy: OnyxInputOrEntry<Policy>, amountOwed: OnyxEntry<number>, ownerBillingGraceEndPeriod: OnyxEntry<number>) {
     return (
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(defaultExpensePolicy) &&
         defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(defaultExpensePolicy.id, undefined, amountOwed)
+        !shouldRestrictUserBillableActions(defaultExpensePolicy.id, undefined, amountOwed, ownerBillingGraceEndPeriod)
     );
 }
 
