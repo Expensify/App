@@ -43,6 +43,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    if: ${{ github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
   comment_on_fork:
     name: Comment on all PRs that are forks
     # Only run on pull requests that *are* a fork
@@ -74,8 +82,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
   verify_android:
+    needs: [validate]
     name: Verify Android HybridApp builds on main
-    if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+    if: ${{ needs.validate.outputs.IS_AUTHORIZED == 'true' && !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/buildAndroid.yml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
@@ -83,8 +92,9 @@ jobs:
     secrets: inherit
 
   verify_ios:
+    needs: [validate]
     name: Verify iOS HybridApp builds on main
-    if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+    if: ${{ needs.validate.outputs.IS_AUTHORIZED == 'true' && !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/buildIOS.yml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
