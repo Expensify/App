@@ -698,14 +698,13 @@ function MoneyRequestConfirmationList({
             !isPolicyExpenseChat ||
             !transactionID ||
             !lastSelectedRate ||
-            isMovingTransactionFromTrackExpense ||
             !selectedParticipants.some((participant) => participant.policyID === policy?.id)
         ) {
             return;
         }
 
         setCustomUnitRateID(transactionID, lastSelectedRate, transaction, policy);
-    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants]);
+    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, transaction, policy, selectedParticipants]);
 
     const splitParticipants = useMemo(() => {
         if (!isTypeSplit) {
