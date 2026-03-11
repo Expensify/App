@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import type {Unit} from '@src/types/onyx/Policy';
 import CONST from '@src/CONST';
+import type {Unit} from '@src/types/onyx/Policy';
 
 /**
  * Manages distance unit state that syncs from a prop but can be overridden by user toggle.
