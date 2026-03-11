@@ -19,7 +19,7 @@ function MissingPersonalDetails() {
     }, []);
 
     if (isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MissingPersonalDetails', isLoading};
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MissingPersonalDetails'};
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 

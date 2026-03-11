@@ -333,7 +333,7 @@ function AttachmentModalBaseContent({
                 {isLoading && (
                     <FullScreenLoadingIndicator
                         testID="attachment-loading-spinner"
-                        reasonAttributes={{context: 'AttachmentModalBaseContent', isLoading}}
+                        reasonAttributes={{context: 'AttachmentModalBaseContent'}}
                     />
                 )}
                 {shouldShowNotFoundPage && !isLoading && (

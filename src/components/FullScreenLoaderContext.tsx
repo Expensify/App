@@ -50,7 +50,7 @@ function FullScreenLoaderContextProvider({children}: FullScreenLoaderContextProv
         <FullScreenLoaderActionsContext.Provider value={actionsContextValue}>
             <FullScreenLoaderStateContext.Provider value={stateContextValue}>
                 {children}
-                {isLoaderVisible && <FullScreenLoadingIndicator reasonAttributes={{context: 'FullScreenLoaderContext', isLoaderVisible}} />}
+                {isLoaderVisible && <FullScreenLoadingIndicator reasonAttributes={{context: 'FullScreenLoaderContext'}} />}
             </FullScreenLoaderStateContext.Provider>
         </FullScreenLoaderActionsContext.Provider>
     );
