@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
@@ -24,6 +25,7 @@ import FixPersonalCardConnection from './items/FixPersonalCardConnection';
 import Offer25off from './items/Offer25off';
 import Offer50off from './items/Offer50off';
 import ReviewCardFraud from './items/ReviewCardFraud';
+import ValidateAccount from './items/ValidateAccount';
 
 type BrokenAccountingConnection = {
     /** The policy ID associated with this connection */
@@ -66,6 +68,7 @@ function TimeSensitiveSection() {
     const adminPoliciesSelectorWrapper = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: adminPoliciesSelectorWrapper});
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -132,10 +135,12 @@ function TimeSensitiveSection() {
     const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
     const hasBrokenPersonalCards = brokenPersonalCardConnections.length > 0;
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
+    const shouldShowValidateAccount = !isUserValidated;
     // This guard must exactly match the conditions used to render each widget below.
     // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
     // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
+        shouldShowValidateAccount ||
         shouldShowReviewCardFraud ||
         shouldShowAddPaymentCard ||
         shouldShow50off ||
@@ -151,6 +156,7 @@ function TimeSensitiveSection() {
     }
 
     // Priority order:
+    // 0. Validate account
     // 1. Potential card fraud
     // 2. Add payment card (trial ended, no payment card)
     // 3. Broken bank connections (company cards)
@@ -162,6 +168,9 @@ function TimeSensitiveSection() {
     return (
         <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
+                {/* Priority 0: Validate account */}
+                {shouldShowValidateAccount && <ValidateAccount />}
+
                 {/* Priority 1: Card fraud alerts */}
                 {shouldShowReviewCardFraud &&
                     cardsWithFraud.map((card) => {
