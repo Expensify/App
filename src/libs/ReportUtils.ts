@@ -119,6 +119,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './Error
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import type {FormulaContext} from './Formula';
 import getBase62ReportID from './getBase62ReportID';
+import getIsNarrowLayout from './getIsNarrowLayout';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -6199,6 +6200,13 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined) {
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
     if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
         Navigation.dismissToSuperWideRHP();
+        return;
+    }
+    // On narrow layouts (mobile), calling dismissToSuperWideRHP() first dismisses the modal and briefly shows a blank screen before the async goBack fires. Use forceReplace navigate instead to atomically (same pattern as dismissModalWithReport).
+    if (getIsNarrowLayout()) {
+        Navigation.isNavigationReady().then(() => {
+            Navigation.navigate(backRoute, {forceReplace: true});
+        });
         return;
     }
     Navigation.dismissToSuperWideRHP();
