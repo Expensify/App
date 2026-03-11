@@ -861,7 +861,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {
             key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            translationPath: 'search.topSpenders',
+            translationPath: 'search.suggestedSearch.topSpenders',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.User,
             searchQuery: buildQueryStringFromFilterFormValues(
@@ -897,7 +897,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: createTopSearchMenuItem(
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-            'search.topCategories',
+            'search.suggestedSearch.topCategories',
             'Folder',
             CONST.SEARCH.GROUP_BY.CATEGORY,
             CONST.SEARCH.TOP_SEARCH_LIMIT,
@@ -905,7 +905,7 @@ function getSuggestedSearches(
         ),
         [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: createTopSearchMenuItem(
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-            'search.topMerchants',
+            'search.suggestedSearch.topMerchants',
             'Basket',
             CONST.SEARCH.GROUP_BY.MERCHANT,
             CONST.SEARCH.TOP_SEARCH_LIMIT,
@@ -913,7 +913,7 @@ function getSuggestedSearches(
         ),
         [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: {
             key: CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            translationPath: 'search.spendOverTime',
+            translationPath: 'search.suggestedSearch.spendOverTime',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'CalendarSolid',
             searchQuery: buildQueryStringFromFilterFormValues(
