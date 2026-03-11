@@ -387,10 +387,15 @@ function MoneyRequestConfirmationList({
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
+    // For the new manual expense flow (beta), track the latest amount/currency the user has typed
+    // using refs rather than state to avoid re-rendering 20+ Onyx-watching components on every
+    // keystroke. The refs are only read once on final submission to persist the value to Onyx.
+    const pendingAmountRef = useRef<number | null>(null);
+    const pendingCurrencyRef = useRef<string | null>(null);
 
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
+    const shouldCalculateDistanceAmount = !pendingAmountRef.current && isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
 
-    const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
+    const shouldCalculatePerDiemAmount = !pendingAmountRef.current && isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
 
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
@@ -401,9 +406,11 @@ function MoneyRequestConfirmationList({
 
     if (shouldCalculateDistanceAmount) {
         amountToBeUsed = distanceRequestAmount;
+        pendingCurrencyRef.current = currency;
     } else if (shouldCalculatePerDiemAmount) {
         const perDiemRequestAmount = computePerDiemExpenseAmount({subRates});
         amountToBeUsed = perDiemRequestAmount;
+        pendingCurrencyRef.current = currency;
     }
 
     const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
@@ -417,12 +424,6 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
     const [showMoreFields, setShowMoreFields] = useState(false);
-
-    // For the new manual expense flow (beta), track the latest amount/currency the user has typed
-    // using refs rather than state to avoid re-rendering 20+ Onyx-watching components on every
-    // keystroke. The refs are only read once on final submission to persist the value to Onyx.
-    const pendingAmountRef = useRef<number | null>(null);
-    const pendingCurrencyRef = useRef<string | null>(null);
 
     // Callbacks passed to the footer to capture the user's edits without triggering re-renders
     const handleAmountChange = useCallback((value: number | null) => {
@@ -1079,17 +1080,17 @@ function MoneyRequestConfirmationList({
             if (iouType !== CONST.IOU.TYPE.PAY) {
                 // validate the amount for distance expenses
                 const decimals = getCurrencyDecimals(iouCurrencyCode);
-                if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
+                if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(isNewManualExpenseFlowEnabled ? pendingAmountRef.current : iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
                     setFormError('common.error.invalidAmount');
                     return;
                 }
 
-                if (isDistanceRequest && Math.abs(iouAmount) > CONST.IOU.MAX_SAFE_AMOUNT) {
+                if (isDistanceRequest && Math.abs(isNewManualExpenseFlowEnabled ? (pendingAmountRef.current ?? 0) : iouAmount) > CONST.IOU.MAX_SAFE_AMOUNT) {
                     setFormError('iou.error.distanceAmountTooLarge');
                     return;
                 }
 
-                if (isTimeRequest && !isValidTimeExpenseAmount(iouAmount, iouCurrencyCode, decimals)) {
+                if (isTimeRequest && !isValidTimeExpenseAmount(isNewManualExpenseFlowEnabled ? (pendingAmountRef.current ?? 0) : iouAmount, iouCurrencyCode, decimals)) {
                     setFormError('iou.timeTracking.amountTooLargeError');
                     return;
                 }
