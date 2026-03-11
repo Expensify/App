@@ -7,6 +7,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -30,12 +31,13 @@ type DomainsListRowProps = {
 
 function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuItems}: DomainsListRowProps) {
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
 
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'ArrowRight', 'DotIndicator']);
 
     return (
-        <View style={[styles.flexRow, styles.highlightBG, styles.br3, styles.p5, styles.pr3, styles.alignItemsCenter, styles.gap3, isHovered && styles.hoveredComponentBG]}>
+        <View style={[styles.flexRow, styles.highlightBG, styles.br3, isLargeScreenWidth ? [styles.pv2, styles.ph3] : [styles.p5, styles.pr3], styles.alignItemsCenter, styles.gap3, isHovered && styles.hoveredComponentBG]}>
             <View style={[styles.flex1, styles.flexRow, styles.bgTransparent, styles.gap3, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <Icon
                     src={icons.Globe}

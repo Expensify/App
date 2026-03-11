@@ -6,6 +6,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -53,6 +54,7 @@ type DomainItem = {
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Globe']);
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isAdmin, isValidated, action} = item;
 
@@ -79,7 +81,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
         <OfflineWithFeedback
             key={`domain_${item.title}_${index}`}
             pendingAction={item.pendingAction}
-            style={[styles.mb2, styles.mh5]}
+            style={[isLargeScreenWidth ? styles.mb1 : styles.mb2, styles.mh5]}
             contentContainerStyle={item.errors ? styles.mb2 : undefined}
             errors={item?.errors}
             onClose={() => clearDomainErrors(item.accountID)}
