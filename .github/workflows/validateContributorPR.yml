@@ -90,3 +90,10 @@ jobs:
               pull_number: prNumber,
               state: 'closed',
             });
+
+            await github.rest.issues.lock({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              lock_reason: 'spam',
+            });
