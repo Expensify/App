@@ -290,6 +290,7 @@ function MoneyReportHeader({
         'ExpenseCopy',
         'Checkmark',
         'ReportCopy',
+        'Printer',
         'DocumentMerge',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
@@ -706,6 +707,7 @@ function MoneyReportHeader({
                     betas,
                     isSelfTourViewed,
                     userBillingGraceEndPeriods,
+                    amountOwed,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -742,6 +744,7 @@ function MoneyReportHeader({
             betas,
             isSelfTourViewed,
             userBillingGraceEndPeriods,
+            amountOwed,
         ],
     );
 
@@ -1196,7 +1199,7 @@ function MoneyReportHeader({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
                     if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
@@ -1449,6 +1452,18 @@ function MoneyReportHeader({
                 beginPDFExport(moneyRequestReport.reportID);
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.PRINT]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.PRINT,
+            text: translate('common.print'),
+            icon: expensifyIcons.Printer,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PRINT,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
+                openOldDotLink(CONST.OLDDOT_URLS.PRINTABLE_REPORT(moneyRequestReport.reportID));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.SUBMIT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
             text: translate('common.submit'),
@@ -1462,7 +1477,7 @@ function MoneyReportHeader({
                     showDWEModal();
                     return;
                 }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
+                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {

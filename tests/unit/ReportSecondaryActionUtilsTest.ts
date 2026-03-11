@@ -66,7 +66,12 @@ describe('getSecondaryAction', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = [CONST.REPORT.SECONDARY_ACTIONS.EXPORT, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
+        const result = [
+            CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+            CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+            CONST.REPORT.SECONDARY_ACTIONS.PRINT,
+            CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
+        ];
         expect(
             getSecondaryReportActions({
                 currentUserLogin: EMPLOYEE_EMAIL,
