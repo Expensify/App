@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
