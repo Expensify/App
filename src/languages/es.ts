@@ -4789,6 +4789,11 @@ ${amount} para ${merchant} - ${date}`,
         companyCards: {
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
+            fromOtherWorkspaces: 'De otros espacios de trabajo',
+            addWorkEmail: 'Añadir correo electrónico de trabajo',
+            addWorkEmailTitle: 'Añade tu correo de trabajo para usar esta fuente',
+            addWorkEmailDescription: 'Para poder usar fuentes en distintos espacios de trabajo, primero debes añadir tu correo de trabajo',
+            otherWorkspacesDescription: `<muted-text-label>Por favor, añade tu correo corporativo para reutilizar la fuente existente. <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">Ver instrucciones</a>.</muted-text-label>`,
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Error al cargar las fuentes de tarjetas del espacio de trabajo',
                 workspaceFeedsCouldNotBeLoadedMessage:

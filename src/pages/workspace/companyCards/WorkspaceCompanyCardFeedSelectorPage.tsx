@@ -1,10 +1,12 @@
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
@@ -231,7 +233,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                             />
                             {otherFeeds.length > 0 && (
                                 <>
-                                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
+                                    <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
                                     {otherFeeds.map((feed) => (
                                         <RadioListItem
                                             key={feed.value}
@@ -241,6 +243,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                                             onSelectRow={selectOtherFeed}
                                         />
                                     ))}
+                                    <View style={[styles.ph5, styles.mt2]}>
+                                        <RenderHTML html={translate('workspace.companyCards.otherWorkspacesDescription')} />
+                                    </View>
                                 </>
                             )}
                         </>

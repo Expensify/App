@@ -4920,6 +4920,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         companyCards: {
             addCards: 'Dodaj karty',
             selectCards: 'Wybierz karty',
+            fromOtherWorkspaces: 'Z innych przestrzeni roboczych',
+            addWorkEmail: 'Dodaj służbowy e‑mail',
+            addWorkEmailTitle: 'Dodaj służbowy e-mail, aby używać tego kanału',
+            addWorkEmailDescription: 'Aby używać kanałów w różnych przestrzeniach roboczych, najpierw dodaj swój służbowy e-mail',
+            otherWorkspacesDescription: `<muted-text-label>Dodaj służbowy adres e-mail firmy, aby ponownie użyć istniejącego kanału. <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">Zobacz instrukcje</a>.</muted-text-label>`,
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Nie można wczytać kanałów kart',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',

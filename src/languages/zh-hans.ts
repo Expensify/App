@@ -4823,6 +4823,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         companyCards: {
             addCards: '添加卡片',
             selectCards: '选择卡片',
+            fromOtherWorkspaces: '来自其他工作区',
+            addWorkEmail: '添加工作邮箱',
+            addWorkEmailTitle: '添加工作邮箱以使用此流水',
+            addWorkEmailDescription: '要跨工作区使用流水，您需要先添加工作邮箱',
+            otherWorkspacesDescription: `<muted-text-label>请添加您的公司邮箱地址以重复使用现有流水。<a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">查看说明</a>。</muted-text-label>`,
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片流水',
                 workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时发生错误。请重试或联系管理员。',

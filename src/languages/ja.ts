@@ -4896,6 +4896,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         companyCards: {
             addCards: 'カードを追加',
             selectCards: 'カードを選択',
+            fromOtherWorkspaces: '他のワークスペースから',
+            addWorkEmail: '勤務用メールアドレスを追加',
+            addWorkEmailTitle: 'このフィードを使用するには勤務用メールアドレスを追加してください',
+            addWorkEmailDescription: 'ワークスペース間でフィードを使用するには、まず勤務用メールアドレスを追加する必要があります',
+            otherWorkspacesDescription: `<muted-text-label>既存のフィードを再利用するには、会社のメールアドレスを追加してください。<a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">手順を見る</a>。</muted-text-label>`,
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースカードフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',

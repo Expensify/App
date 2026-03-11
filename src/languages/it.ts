@@ -4933,6 +4933,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         companyCards: {
             addCards: 'Aggiungi carte',
             selectCards: 'Seleziona carte',
+            fromOtherWorkspaces: 'Da altri spazi di lavoro',
+            addWorkEmail: 'Aggiungi email di lavoro',
+            addWorkEmailTitle: 'Aggiungi la tua email di lavoro per usare questo feed',
+            addWorkEmailDescription: 'Per usare i feed tra spazi di lavoro devi prima aggiungere la tua email di lavoro',
+            otherWorkspacesDescription: `<muted-text-label>Aggiungi il tuo indirizzo email aziendale per riutilizzare il feed esistente. <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">Vedi istruzioni</a>.</muted-text-label>`,
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed della carta',
                 workspaceFeedsCouldNotBeLoadedMessage:
