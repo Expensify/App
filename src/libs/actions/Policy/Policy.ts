@@ -393,9 +393,13 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     const filteredPolicies = Object.values(policies ?? {}).filter((p): p is Policy => p?.id !== policyID);
     const workspaceAccountID = policy?.workspaceAccountID;
 
-    // Filter out bank accounts associated with the policy being deleted
+    // Filter out bank accounts associated with the policy being deleted.
+    // Association can be tracked via additionalData.policyID (server-synced) or
+    // accountData.policyIDs (set optimistically by setWorkspaceReimbursement before the server responds).
     const filteredBankAccountList = Object.entries(bankAccountList ?? {}).reduce<BankAccountList>((acc, [key, bankAccount]) => {
-        if (bankAccount?.accountData?.additionalData?.policyID !== policyID) {
+        const isAssociatedByAdditionalData = bankAccount?.accountData?.additionalData?.policyID === policyID;
+        const isAssociatedByPolicyIDs = bankAccount?.accountData?.policyIDs?.includes(policyID);
+        if (!isAssociatedByAdditionalData && !isAssociatedByPolicyIDs) {
             acc[key] = bankAccount;
         }
         return acc;
