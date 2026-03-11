@@ -294,6 +294,7 @@ function ComposerWithSuggestions({
 
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     const previousEditingReportActionIDRef = useRef<string | null>(editingReportActionID ?? null);
+    const previousDraftSelectionRef = useRef<TextSelection | null>(null);
 
     const updateSelectionImperatively = useCallback((start: number, end: number) => {
         if (!isIOSNative) {
@@ -311,16 +312,18 @@ function ComposerWithSuggestions({
 
     type ApplyComposerValueOptions = {
         isEditingInComposer?: boolean;
-        shouldForceSelectionToEnd?: boolean;
+        shouldMoveSelectionToEnd?: boolean;
+        selection?: TextSelection | null;
     };
 
     const applyComposerValue = useCallback(
         (nextValue: string, options?: ApplyComposerValueOptions) => {
             const defaultSelection: TextSelection = {start: nextValue.length, end: nextValue.length};
             const shouldUseEditingSelection = options?.isEditingInComposer ?? false;
-            const shouldForceSelectionToEnd = options?.shouldForceSelectionToEnd ?? false;
+            const shouldForceSelectionToEnd = options?.shouldMoveSelectionToEnd ?? false;
+            const explicitSelection = options?.selection ?? null;
 
-            const selectionToApply = shouldUseEditingSelection && !shouldForceSelectionToEnd ? (currentEditMessageSelection ?? defaultSelection) : defaultSelection;
+            const selectionToApply = explicitSelection ?? (shouldUseEditingSelection && !shouldForceSelectionToEnd ? (currentEditMessageSelection ?? defaultSelection) : defaultSelection);
 
             commentRef.current = nextValue;
             emojisPresentBefore.current = extractEmojis(nextValue);
@@ -351,18 +354,22 @@ function ComposerWithSuggestions({
 
         if (!isEditing) {
             if (wasEditing.current && wasEditingInComposerRef.current) {
-                // Editing just ended in the composer – restore the draft comment.
+                // Editing just ended in the composer – restore the draft comment and its previous selection.
                 const nextValue = draftComment ?? '';
-                applyComposerValue(nextValue);
+                applyComposerValue(nextValue, {selection: previousDraftSelectionRef.current});
             }
 
             wasEditing.current = false;
             wasEditingInComposerRef.current = shouldUseNarrowLayout;
+            previousDraftSelectionRef.current = null;
             return;
         }
 
         // Editing just started.
         if (!wasEditing.current) {
+            // Store the draft selection before switching into edit mode so we can restore it later.
+            previousDraftSelectionRef.current = selection;
+
             wasEditing.current = true;
             wasEditingInComposerRef.current = shouldUseNarrowLayout;
 
@@ -373,7 +380,7 @@ function ComposerWithSuggestions({
             // In narrow layout we always show the message being edited.
             const nextValue = editingMessage ?? '';
             // When starting to edit in the composer, always place the cursor at the end of the message.
-            applyComposerValue(nextValue, {isEditingInComposer: true, shouldForceSelectionToEnd: true});
+            applyComposerValue(nextValue, {isEditingInComposer: true, shouldMoveSelectionToEnd: true});
             return;
         }
 
@@ -399,7 +406,7 @@ function ComposerWithSuggestions({
             const nextValue = draftComment ?? '';
             applyComposerValue(nextValue);
         }
-    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, getEditingState, shouldUseNarrowLayout]);
+    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, getEditingState, selection, shouldUseNarrowLayout, updateSelectionImperatively]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
