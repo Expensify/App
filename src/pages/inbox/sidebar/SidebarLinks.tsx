@@ -79,7 +79,9 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
 
     const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SidebarLinks',
-        isLoading: !!isLoading,
+        isLoadingReportData,
+        optionListItemsCount: optionListItems?.length
+
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,7 +99,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                     optionMode={viewMode}
                     onFirstItemRendered={setSidebarLoaded}
                 />
-                {!!isLoadingReportData && optionListItems?.length === 0 && (
+                {isLoadingReportData && optionListItems?.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
                         <OptionsListSkeletonView
                             shouldAnimate
