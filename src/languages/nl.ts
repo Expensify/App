@@ -1848,7 +1848,7 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Voor deze functie moet je je account verifiëren.',
         validateAccount: 'Valideer je account',
         helpText: ({email}: {email: string}) =>
-            `Voeg meer manieren toe om in te loggen en bonnetjes naar Expensify te sturen.<br/><br/>Voeg een e-mailadres toe om bonnetjes door te sturen naar <a href="mailto:${email}">${email}</a> of voeg een telefoonnummer toe om bonnetjes te sms'en naar 47777 (alleen voor Amerikaanse nummers).`,
+            `Voeg meer manieren toe om in te loggen en bonnetjes naar Expensify te sturen.<br/><br/>Voeg een e-mailadres toe om bonnetjes door te sturen naar <copy-text text="${email}">${email}</copy-text> of voeg een telefoonnummer toe om bonnetjes te sms'en naar 47777 (alleen voor Amerikaanse nummers).`,
         pleaseVerify: 'Verifieer deze contactmethode.',
         getInTouch: 'We gebruiken deze methode om contact met je op te nemen.',
         enterMagicCode: (contactMethod: string) => `Voer de magische code in die naar ${contactMethod} is verzonden. Deze zou binnen een minuut of twee moeten aankomen.`,

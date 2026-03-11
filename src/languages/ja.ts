@@ -1840,7 +1840,7 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'この機能を利用するには、アカウントの認証が必要です。',
         validateAccount: 'アカウントを認証する',
         helpText: ({email}: {email: string}) =>
-            `Expensify へのログイン方法とレシート送信方法をさらに追加しましょう。<br/><br/>レシートを <a href="mailto:${email}">${email}</a> に転送するメールアドレスを追加するか、レシートを 47777（米国の電話番号のみ）宛てにテキスト送信する電話番号を追加してください。`,
+            `Expensify へのログイン方法とレシート送信方法をさらに追加しましょう。<br/><br/>レシートを <copy-text text="${email}">${email}</copy-text> に転送するメールアドレスを追加するか、レシートを 47777（米国の電話番号のみ）宛てにテキスト送信する電話番号を追加してください。`,
         pleaseVerify: 'この連絡方法を確認してください。',
         getInTouch: '今後のご連絡にはこの方法を使用します。',
         enterMagicCode: (contactMethod: string) => `${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,

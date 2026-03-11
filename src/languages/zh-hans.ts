@@ -1815,7 +1815,7 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: '此功能需要您验证您的账户。',
         validateAccount: '验证您的账户',
         helpText: ({email}: {email: string}) =>
-            `添加更多登录方式并向 Expensify 发送收据。<br/><br/>添加一个电子邮箱地址，以便将收据转发到 <a href="mailto:${email}">${email}</a>，或者添加一个电话号码，以短信方式将收据发送到 47777（仅限美国号码）。`,
+            `添加更多登录方式并向 Expensify 发送收据。<br/><br/>添加一个电子邮箱地址，以便将收据转发到 <copy-text text="${email}">${email}</copy-text>，或者添加一个电话号码，以短信方式将收据发送到 47777（仅限美国号码）。`,
         pleaseVerify: '请验证此联系方法。',
         getInTouch: '我们将通过此方式联系你。',
         enterMagicCode: (contactMethod: string) => `请输入发送至 ${contactMethod} 的魔法验证码。它应会在一两分钟内送达。`,

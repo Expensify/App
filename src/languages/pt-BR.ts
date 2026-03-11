@@ -1845,7 +1845,7 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Este recurso exige que você valide sua conta.',
         validateAccount: 'Validar sua conta',
         helpText: ({email}: {email: string}) =>
-            `Adicione mais formas de entrar e enviar recibos para o Expensify.<br/><br/>Adicione um endereço de e-mail para encaminhar recibos para <a href="mailto:${email}">${email}</a> ou adicione um número de telefone para enviar recibos por SMS para 47777 (apenas números dos EUA).`,
+            `Adicione mais formas de entrar e enviar recibos para o Expensify.<br/><br/>Adicione um endereço de e-mail para encaminhar recibos para <copy-text text="${email}">${email}</copy-text> ou adicione um número de telefone para enviar recibos por SMS para 47777 (apenas números dos EUA).`,
         pleaseVerify: 'Verifique este método de contato.',
         getInTouch: 'Usaremos este método para entrar em contato com você.',
         enterMagicCode: (contactMethod: string) => `Insira o código mágico enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
