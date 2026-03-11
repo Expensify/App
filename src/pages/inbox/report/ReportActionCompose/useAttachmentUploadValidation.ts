@@ -54,6 +54,7 @@ function useAttachmentUploadValidation({
 }: AttachmentUploadValidationProps) {
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const personalPolicy = usePersonalPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
@@ -182,7 +183,7 @@ function useAttachmentUploadValidation({
 
     const onReceiptDropped = useCallback(
         (e: DragEvent) => {
-            if (policy && shouldRestrictUserBillableActions(policy.id)) {
+            if (policy && shouldRestrictUserBillableActions(policy.id, undefined, undefined, ownerBillingGraceEndPeriod)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
@@ -203,7 +204,7 @@ function useAttachmentUploadValidation({
             attachmentUploadType.current = 'receipt';
             validateFiles(files, items, {isValidatingReceipts: true});
         },
-        [policy, shouldAddOrReplaceReceipt, transactionID, validateFiles],
+        [policy, ownerBillingGraceEndPeriod, shouldAddOrReplaceReceipt, transactionID, validateFiles],
     );
 
     return {

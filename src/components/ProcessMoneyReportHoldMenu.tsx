@@ -129,6 +129,7 @@ function ProcessMoneyReportHoldMenu({
                 betas,
                 isSelfTourViewed,
                 userBillingGraceEndPeriods,
+                amountOwed,
             });
         }
         onClose();
