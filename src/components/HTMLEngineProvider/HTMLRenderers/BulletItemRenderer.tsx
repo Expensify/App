@@ -1,7 +1,7 @@
+import type {CustomRendererProps, TBlock} from '@native-html/render';
+import {TNodeChildrenRenderer} from '@native-html/render';
 import React from 'react';
 import {View} from 'react-native';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

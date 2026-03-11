@@ -1,6 +1,6 @@
+import {RenderHTMLConfigProvider, RenderHTMLSource} from '@native-html/render';
+import type {RenderersProps} from '@native-html/render';
 import React, {useMemo} from 'react';
-import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
-import type {RenderersProps} from 'react-native-render-html';
 import useHasTextAncestor from '@hooks/useHasTextAncestor';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Parser from '@libs/Parser';

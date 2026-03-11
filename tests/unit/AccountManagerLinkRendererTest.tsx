@@ -15,9 +15,9 @@ jest.mock('@components/HTMLEngineProvider/htmlEngineUtils', () => ({
     getFontSizeOfRBRChild: jest.fn(() => 15),
 }));
 
-jest.mock('react-native-render-html', () => {
+jest.mock('@native-html/render', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('react-native-render-html');
+    const actual = jest.requireActual('@native-html/render');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,

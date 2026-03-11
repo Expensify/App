@@ -1,7 +1,7 @@
+import type {CustomRendererProps, TPhrasing, TText} from '@native-html/render';
+import {TNodeChildrenRenderer} from '@native-html/render';
 import React from 'react';
 import {View} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

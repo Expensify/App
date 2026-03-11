@@ -1,5 +1,5 @@
+import type {TDefaultRenderer, TDefaultRendererProps, TPhrasing, TText} from '@native-html/render';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {TDefaultRenderer, TDefaultRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 type TTextOrTPhrasing = TText | TPhrasing;
 
