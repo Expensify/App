@@ -38,6 +38,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -294,6 +295,16 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
 
+    const isConciergeSidePanel = useMemo(() => isInSidePanel && isConciergeChatReport(report, conciergeReportID), [isInSidePanel, report, conciergeReportID]);
+
+    const {sessionStartTime} = useSidePanelState();
+
+    const hasUserSentMessage = useMemo(() => {
+        if (!isConciergeSidePanel || !sessionStartTime) {
+            return false;
+        }
+        return reportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
+    }, [isConciergeSidePanel, reportActions, currentUserAccountID, sessionStartTime]);
     const viewportOffsetTop = useViewportOffsetTop();
 
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
@@ -1060,11 +1071,15 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 report={report}
                                                 reportActions={reportActions}
                                                 isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                                hasOnceLoadedReportActions={reportMetadata?.hasOnceLoadedReportActions}
                                                 hasNewerActions={hasNewerActions}
                                                 hasOlderActions={hasOlderActions}
                                                 parentReportAction={parentReportAction}
                                                 transactionThreadReportID={transactionThreadReportID}
                                                 isReportTransactionThread={isTransactionThreadView}
+                                                isConciergeSidePanel={isConciergeSidePanel}
+                                                hasUserSentMessage={hasUserSentMessage}
+                                                sessionStartTime={sessionStartTime}
                                                 isConciergeProcessing={isConciergeProcessing}
                                                 conciergeReasoningHistory={conciergeReasoningHistory}
                                                 conciergeStatusLabel={conciergeStatusLabel}
@@ -1092,6 +1107,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                                 isInSidePanel={isInSidePanel}
+                                                shouldHideStatusIndicators={isConciergeSidePanel && !hasUserSentMessage}
                                                 kickoffWaitingIndicator={kickoffWaitingIndicator}
                                             />
                                         ) : null}

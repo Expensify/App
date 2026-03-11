@@ -1,7 +1,7 @@
 ---
 title: Manage Duplicate Expenses
 description: Learn how to identify and resolve potential duplicate expenses in New Expensify using the built-in Duplicate Detection tool.
-keywords: [New Expensify, duplicate expense, review duplicate, expense on hold, resolve duplicates, flagged request, Collect plan, Control plan]
+keywords: [New Expensify, duplicate expense, review duplicate, expense on hold, resolve duplicates, flagged request, Collect plan, Control plan, merge expenses, avoiding duplicates, duplicate detection]
 ---
 
 Duplicate Detection helps prevent accidental double-submission of expenses by flagging entries within a member's account that have the same **date** and **amount**. When a potential duplicate is found, a red dot appears in the navigation tabs (on the left on web, and at the bottom on mobile) or next to the chat where the expense lives, and the expense is placed on **hold**.
