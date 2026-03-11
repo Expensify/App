@@ -68,14 +68,7 @@ function buildOptimizedRoutes(routesToRender: StateRoutes, state: StackNavigatio
         // case would swap their positions in the array and cause a blank screen in the native stack.
         const hasIntermediateRenderedRoutes = routesBetween.some((routeBetween) => routesToRender.some((r) => r.key === routeBetween.key));
 
-        // Skip remap if there are routes of a different navigator type between existingRoute and
-        // currentRoute in the full navigation state. Without this guard, on platforms that only
-        // render one route at a time (web), the current route would be rendered under existingRoute's
-        // key and never mounted under its own key — so it would never receive embedded state,
-        // which breaks the URL and back navigation.
-        const hasIntermediateRoutesOfDifferentType = routesBetween.some((routeBetween) => routeBetween.name !== route.name);
-
-        if (hasIntermediateRenderedRoutes || hasIntermediateRoutesOfDifferentType) {
+        if (hasIntermediateRenderedRoutes) {
             return route;
         }
 

@@ -240,8 +240,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
         cleanPreservedNavigatorStates(state);
-
-        console.log('Navigation state changed', state);
     };
 
     const onReadyWithSentry = useCallback(() => {
