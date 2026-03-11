@@ -104,6 +104,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {PolicyTagLists, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -217,6 +218,7 @@ function IOURequestStepConfirmation({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const reportAttributesDerived = useReportAttributes();
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
@@ -688,7 +690,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     existingTransactionDraft,
-                    draftTransactionIDs: transactionIDs,
+                    draftTransactionIDs,
                     isSelfTourViewed,
                     betas,
                     personalDetails,
@@ -733,6 +735,7 @@ function IOURequestStepConfirmation({
             betas,
             personalDetails,
             isGPSDistanceRequest,
+            draftTransactionIDs,
         ],
     );
 
@@ -897,6 +900,7 @@ function IOURequestStepConfirmation({
                     quickAction,
                     recentWaypoints,
                     betas,
+                    draftTransactionIDs,
                     isSelfTourViewed,
                 });
             }
@@ -926,6 +930,7 @@ function IOURequestStepConfirmation({
             quickAction,
             recentWaypoints,
             betas,
+            draftTransactionIDs,
             isSelfTourViewed,
         ],
     );

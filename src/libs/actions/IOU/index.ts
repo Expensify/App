@@ -531,7 +531,7 @@ type RequestMoneyInformation = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
-    draftTransactionIDs: string[];
+    draftTransactionIDs: string[] | undefined;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -720,6 +720,7 @@ type CreateTrackExpenseParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    draftTransactionIDs: string[] | undefined;
     isSelfTourViewed: boolean;
 };
 
@@ -6203,7 +6204,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         quickAction,
         policyRecentlyUsedCurrencies,
         existingTransactionDraft,
-        draftTransactionIDs,
+        draftTransactionIDs = [],
         isSelfTourViewed,
         betas,
         personalDetails,
@@ -6486,6 +6487,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         quickAction,
         recentWaypoints = [],
         betas,
+        draftTransactionIDs = [],
         isSelfTourViewed,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -6819,7 +6821,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     if (shouldHandleNavigation) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+        InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
     }
 
     if (!params.isRetry) {

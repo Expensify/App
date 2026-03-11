@@ -159,6 +159,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     introSelected?: IntroSelected;
     activePolicyID?: string;
     privateIsArchived?: string;
+    draftTransactionIDs: string[] | undefined;
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
     gpsDistance?: number;
@@ -232,6 +233,7 @@ function createTransaction({
                 introSelected,
                 activePolicyID,
                 quickAction,
+                draftTransactionIDs,
                 recentWaypoints,
                 betas,
                 isSelfTourViewed,
@@ -580,6 +582,7 @@ function handleMoneyRequestStepDistanceNavigation({
     introSelected,
     activePolicyID,
     privateIsArchived,
+    draftTransactionIDs = [],
     selfDMReport,
     gpsCoordinates,
     gpsDistance,
@@ -673,6 +676,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
+                    draftTransactionIDs,
                     recentWaypoints,
                     betas,
                     isSelfTourViewed,
