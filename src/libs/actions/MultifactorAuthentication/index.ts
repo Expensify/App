@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 import {makeRequestWithSideEffects} from '@libs/API';
-import type {DenyTransactionParams} from '@libs/API/parameters';
+import type {DenyTransactionParams, RevokeMultifactorAuthenticationCredentialsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
@@ -86,6 +86,7 @@ async function registerAuthenticationKey({keyInfo, authenticationMethod}: Multif
 type RegistrationChallengeResponse = {
     httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
+    message: string | undefined;
     challenge: RegistrationChallenge | undefined;
     publicKeys: string[] | undefined;
 };
@@ -93,6 +94,7 @@ type RegistrationChallengeResponse = {
 type AuthenticationChallengeResponse = {
     httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
+    message: string | undefined;
     challenge: AuthenticationChallenge | undefined;
     publicKeys: string[] | undefined;
 };
@@ -189,37 +191,9 @@ async function troubleshootMultifactorAuthentication({signedChallenge, authentic
     }
 }
 
-async function revokeMultifactorAuthenticationCredentials() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
+async function revokeMultifactorAuthenticationCredentials(params: RevokeMultifactorAuthenticationCredentialsParams) {
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {}, {optimisticData, successData, failureData});
-
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, params ?? {}, {});
         const {jsonCode, message} = response ?? {};
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
