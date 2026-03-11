@@ -8330,6 +8330,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         switchAccount: 'Changer de compte :',
         copilotDelegatedAccess: 'Copilot : Accès délégué',
         copilotDelegatedAccessDescription: 'Autoriser les autres membres à accéder à votre compte.',
+        learnMoreAboutDelegatedAccess: "En savoir plus sur l'accès délégué",
         addCopilot: 'Ajouter un copilote',
         membersCanAccessYourAccount: 'Ces membres peuvent accéder à votre compte :',
         youCanAccessTheseAccounts: 'Vous pouvez accéder à ces comptes via le sélecteur de compte :',
