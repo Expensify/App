@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {AccessibilityInfo, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -123,15 +123,13 @@ function BaseValidateCodeForm({
     const [isCountdownRunning, setIsCountdownRunning] = useState(true);
 
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT, {
-        canBeMissing: true,
-    });
+    const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
@@ -197,6 +195,13 @@ function BaseValidateCodeForm({
 
         countdownRef.current?.resetCountdown();
     }, [isCountdownRunning]);
+
+    useEffect(() => {
+        if (!validateCodeSent) {
+            return;
+        }
+        AccessibilityInfo.announceForAccessibility(translate('validateCodeModal.successfulNewCodeRequest'));
+    }, [validateCodeSent, translate]);
 
     useEffect(() => {
         if (!validateCodeSent) {
@@ -331,14 +336,16 @@ function BaseValidateCodeForm({
                     </View>
                 )}
             </OfflineWithFeedback>
-            {!!validateCodeSent && (
-                <DotIndicatorMessage
-                    type="success"
-                    style={[styles.mt6, styles.flex0]}
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
-                />
-            )}
+            <View accessibilityLiveRegion="polite">
+                {!!validateCodeSent && (
+                    <DotIndicatorMessage
+                        type="success"
+                        style={[styles.mt6, styles.flex0]}
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
+                    />
+                )}
+            </View>
 
             <OfflineWithFeedback
                 shouldDisplayErrorAbove

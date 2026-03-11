@@ -690,7 +690,7 @@ function splitTextWithEmojis(text = ''): TextWithEmoji[] {
     do {
         regexResult = emojisRegex.exec(text);
 
-        if (regexResult?.indices) {
+        if (regexResult?.indices?.[0]) {
             const matchIndexStart = regexResult.indices[0][0];
             const matchIndexEnd = regexResult.indices[0][1];
 

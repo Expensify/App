@@ -2,6 +2,7 @@ import type {KeysOfUnion, ValueOf} from 'type-fest';
 import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
@@ -127,11 +128,11 @@ type Comment = {
     odometerEnd?: number;
 
     /** Both image fields are needed only locally because server receives only one merged image as receipt */
-    /** Odometer start image (File object on web, URI string on native) */
-    odometerStartImage?: File | string;
+    /** Odometer start image (File object with uri on web, URI string on native) */
+    odometerStartImage?: FileObject | string;
 
-    /** Odometer end image (File object on web, URI string on native) */
-    odometerEndImage?: File | string;
+    /** Odometer end image (File object with uri on web, URI string on native) */
+    odometerEndImage?: FileObject | string;
 };
 
 /** Model of transaction custom unit */
@@ -255,6 +256,9 @@ type ReceiptError = {
 
     /** Parameters required to retry the failed action */
     retryParams: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+
+    /** The type of receipt error */
+    error: typeof CONST.IOU.RECEIPT_ERROR;
 };
 
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
@@ -455,9 +459,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax value */
         taxValue?: string | undefined;
 
-        /** The transaction tax name */
-        taxName?: string;
-
         /** Whether the expense is billable */
         billable?: boolean;
 
@@ -653,6 +654,9 @@ type AdditionalTransactionChanges = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** The unit for the distance/quantity */
+    quantity?: number;
 };
 
 /** Model of transaction changes  */

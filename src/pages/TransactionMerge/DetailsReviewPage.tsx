@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -28,6 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getTransactionDetails} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -43,30 +44,25 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const styles = useThemeStyles();
     const {transactionID, isOnSearch, backTo} = route.params;
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
-        mergeTransaction,
-    });
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
+    const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
 
-    const conflictFields = useMemo(() => {
+    useEffect(() => {
         if (!transactionID || !targetTransaction || !sourceTransaction) {
-            return [];
+            return;
         }
 
-        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(
-            targetTransaction,
-            sourceTransaction,
-            localeCompare,
-            [targetTransactionReport, sourceTransactionReport],
-            targetTransactionPolicy,
-            sourceTransactionPolicy,
-        );
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, [
+            targetTransactionReport,
+            sourceTransactionReport,
+        ]);
 
         setMergeTransactionKey(transactionID, mergeableData);
-        return detectedConflictFields as MergeFieldKey[];
-    }, [targetTransaction, sourceTransaction, transactionID, localeCompare, sourceTransactionReport, targetTransactionReport, targetTransactionPolicy, sourceTransactionPolicy]);
+        setConflictFields(detectedConflictFields as MergeFieldKey[]);
+    }, [targetTransaction, sourceTransaction, transactionID, localeCompare, sourceTransactionReport, targetTransactionReport]);
 
     // Handle selection
     const handleSelect = useCallback(
@@ -82,14 +78,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
-            const updatedValues = getMergeFieldUpdatedValues({
-                transaction,
-                field,
-                fieldValue,
-                mergeTransaction,
-                searchReports: [targetTransactionReport, sourceTransactionReport],
-                policy: transaction.transactionID === targetTransaction?.transactionID ? targetTransactionPolicy : sourceTransactionPolicy,
-            });
+            const updatedValues = getMergeFieldUpdatedValues(transaction, field, fieldValue, [targetTransactionReport, sourceTransactionReport]);
 
             setMergeTransactionKey(transactionID, {
                 ...updatedValues,
@@ -99,7 +88,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction, transactionID, targetTransactionReport, sourceTransactionReport, targetTransaction?.transactionID, targetTransactionPolicy, sourceTransactionPolicy],
+        [mergeTransaction?.selectedTransactionByField, transactionID, targetTransactionReport, sourceTransactionReport],
     );
 
     // Handle continue
@@ -125,29 +114,19 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
-        () =>
-            buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate, [
-                targetTransactionReport,
-                sourceTransactionReport,
-            ]),
-        [
-            conflictFields,
-            targetTransaction,
-            sourceTransaction,
-            mergeTransaction,
-            targetTransactionReport,
-            sourceTransactionReport,
-            targetTransactionPolicy,
-            sourceTransactionPolicy,
-            translate,
-        ],
+        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate, [targetTransactionReport, sourceTransactionReport]),
+        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionReport, sourceTransactionReport, translate],
     );
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'TransactionMerge.DetailsReviewPage',
+            isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

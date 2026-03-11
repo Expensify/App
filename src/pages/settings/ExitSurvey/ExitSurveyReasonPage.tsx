@@ -33,7 +33,7 @@ const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => valu
 
 function ExitSurveyReasonPage() {
     const {isOffline} = useNetwork();
-    const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: draftResponseSelector, canBeMissing: true});
+    const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: draftResponseSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

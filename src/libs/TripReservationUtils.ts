@@ -157,7 +157,12 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
             for (const [index, flightDetails] of flightCoupons.sort((a, b) => a.legIdx - b.legIdx).entries()) {
                 const legIdx = flightDetails.legIdx;
                 const flightIdx = flightDetails.flightIdx;
-                const flightObject = pnrData.legs?.at(legIdx)?.flights.at(flightIdx);
+                const leg = pnrData.legs?.at(legIdx);
+                const flightObject = leg?.flights.at(flightIdx);
+
+                if (leg?.legStatus === CONST.LEG_STATUS.CANCELLED || isCancelledPnrStatus(flightObject?.flightStatus ?? '')) {
+                    continue;
+                }
 
                 const airlineCode = flightObject?.marketing.airlineCode;
                 const longAirlineName = airlineInfo.find((info) => info.airlineCode === airlineCode)?.airlineName ?? airlineCode;
@@ -254,14 +259,14 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserv
                 address: getAddressFromLocation(pnrData.hotelInfo.address),
                 longName: pnrData.hotelInfo.name,
                 shortName: pnrData.hotelInfo.chainCode,
-                cityName: pnrData.hotelInfo.chainName,
+                cityName: pnrData.hotelInfo.address.locality,
             },
             end: {
                 date: pnrData.checkOutDateTime?.iso8601,
                 address: getAddressFromLocation(pnrData.hotelInfo.address),
                 longName: pnrData.hotelInfo.name,
                 shortName: pnrData.hotelInfo.chainCode,
-                cityName: pnrData.hotelInfo.chainName,
+                cityName: pnrData.hotelInfo.address.locality,
             },
             type: CONST.RESERVATION_TYPE.HOTEL,
             company: {longName: pnrData.hotelInfo.chainName},
@@ -307,10 +312,12 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
             start: {
                 date: pnrData.pickupDateTime?.iso8601,
                 location: getAddressFromLocation(pickupLocation, CONST.RESERVATION_TYPE.CAR),
+                cityName: pickupLocation.locality,
             },
             end: {
                 date: pnrData.dropOffDateTime?.iso8601,
                 location: getAddressFromLocation(dropLocation, CONST.RESERVATION_TYPE.CAR),
+                cityName: dropLocation.locality,
             },
             type: CONST.RESERVATION_TYPE.CAR,
             confirmations,
@@ -392,12 +399,41 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
     return reservationList;
 }
 
+function isCancelledPnrStatus(status: string): boolean {
+    return status === CONST.PNR_STATUS.CANCELLED || status === CONST.PNR_STATUS.VOIDED;
+}
+
+function isPnrCancelled(pnr: Pnr): boolean {
+    const {data} = pnr;
+
+    if (data.bookingStatus && isCancelledPnrStatus(data.bookingStatus)) {
+        return true;
+    }
+
+    if (data.hotelPnr) {
+        return isCancelledPnrStatus(data.hotelPnr.pnrStatus);
+    }
+    if (data.carPnr) {
+        return isCancelledPnrStatus(data.carPnr.pnrStatus);
+    }
+    if (data.airPnr) {
+        return data.airPnr.legs.length > 0 && data.airPnr.legs.every((leg) => leg.legStatus === CONST.LEG_STATUS.CANCELLED);
+    }
+    if (data.railPnr) {
+        const {outwardJourney, inwardJourney} = data.railPnr;
+        return isCancelledPnrStatus(outwardJourney.journeyStatus) && isCancelledPnrStatus(inwardJourney.journeyStatus);
+    }
+
+    return false;
+}
+
 function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripData): ReservationData[] {
     if (!tripData?.pnrs) {
         return [];
     }
 
     const reservations: ReservationData[] = tripData.pnrs
+        .filter((pnr) => !isPnrCancelled(pnr))
         .flatMap((pnr) => {
             const travelers = pnr.data.pnrTravelers ?? [];
 
@@ -515,5 +551,6 @@ export {
     formatAirportInfo,
     getPNRReservationDataFromTripReport,
     getAirReservations,
+    isPnrCancelled,
 };
 export type {ReservationData};

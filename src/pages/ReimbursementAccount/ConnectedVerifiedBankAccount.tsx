@@ -2,7 +2,6 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
-import {Bank, Close} from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
@@ -11,7 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -67,6 +66,7 @@ function ConnectedVerifiedBankAccount({
     const pendingAction = reimbursementAccount?.pendingAction;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const {asset: ThumbsUpStars} = useMemoizedLazyAsset(() => loadIllustration('ThumbsUpStars' as IllustrationName));
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
     const policyID = reimbursementAccount?.achData?.policyID;
     const currency = reimbursementAccount?.achData?.currency;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
@@ -131,7 +131,7 @@ function ConnectedVerifiedBankAccount({
                         />
                         <MenuItem
                             title={translate('workspace.bankAccount.disconnectBankAccount')}
-                            icon={Close}
+                            icon={icons.Close}
                             onPress={requestResetBankAccount}
                             outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                             disabled={!!pendingAction || !isEmptyObject(errors)}

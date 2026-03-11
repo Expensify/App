@@ -20,10 +20,10 @@ import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMappedPolicies from '@hooks/useMappedPolicies';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useMappedPolicies from '@hooks/useMappedPolicies';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -57,6 +57,7 @@ import {
     isPolicyExpenseChat,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
 import {closeReactNativeApp} from '@userActions/HybridApp';
@@ -70,6 +71,7 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -132,28 +134,37 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isRestrictedToPreferredPolicy, isRestrictedPolicyCreation} = usePreferredPolicy();
+
+    const workspaceChatsSelector = useCallback(
+        (reports: OnyxCollection<OnyxTypes.Report>) => {
+            return getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports);
+        },
+        [activePolicyID, session?.accountID],
+    );
+
+    const [policyChatsForActivePolicy = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector}, [activePolicyID, session?.accountID]);
+
     const policyChatForActivePolicy = useMemo(() => {
         if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
             return {} as OnyxTypes.Report;
         }
-        const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], allReports);
         return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
-    }, [activePolicy, activePolicyID, session?.accountID, allReports]);
+    }, [activePolicy, policyChatsForActivePolicy]);
+
     const quickActionPolicyID = quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM && quickAction?.perDiemPolicyID ? quickAction?.perDiemPolicyID : quickActionReport?.policyID;
-    const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`, {canBeMissing: true});
+    const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`);
     const [allPolicies] = useMappedPolicies(policyMapper);
-    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -167,24 +178,24 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const prevIsFocused = usePrevious(isFocused);
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isOffline} = useNetwork();
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const {isBetaEnabled} = usePermissions();
-    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountPrimaryLoginSelector, canBeMissing: true});
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountPrimaryLoginSelector});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
-        canBeMissing: true,
     });
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector});
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
     const reportID = useMemo(() => generateReportID(), []);
@@ -199,7 +210,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         ONYXKEYS.COLLECTION.POLICY,
         {
             selector: groupPaidPoliciesWithChatEnabled,
-            canBeMissing: true,
         },
         [session?.email],
     );
@@ -222,7 +232,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
     const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
 
     const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
 
@@ -305,19 +315,19 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const quickActionSubtitle = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return !hideQABSubtitle ? (getReportName(quickActionReport, quickActionPolicy, undefined, personalDetails) ?? translate('quickAction.updateDestination')) : '';
+        return !hideQABSubtitle ? (getReportName({report: quickActionReport, policy: quickActionPolicy, personalDetails}) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
-            if (shouldRestrictAction && quickActionReport?.policyID && shouldRestrictUserBillableActions(quickActionReport.policyID)) {
+            if (shouldRestrictAction && quickActionReport?.policyID && shouldRestrictUserBillableActions(quickActionReport.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReport.policyID));
                 return;
             }
             onSelected();
         },
-        [quickActionReport?.policyID],
+        [quickActionReport?.policyID, ownerBillingGraceEndPeriod],
     );
 
     const showRedirectToExpensifyClassicModal = useCallback(async () => {
@@ -351,16 +361,21 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const startQuickScan = useCallback(() => {
         interceptAnonymousUser(() => {
-            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                 return;
             }
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
+            // Scan shortcut span: green receipt button (web sidebar) and camera FAB (narrow/mobile)
+            startSpan(CONST.TELEMETRY.SPAN_SCAN_SHORTCUT, {
+                name: CONST.TELEMETRY.SPAN_SCAN_SHORTCUT,
+                op: CONST.TELEMETRY.SPAN_SCAN_SHORTCUT,
+            });
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts, true);
         });
-    }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);
+    }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts, ownerBillingGraceEndPeriod]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -505,7 +520,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         if (!isEmptyObject(policyChatForActivePolicy)) {
             const onSelected = () => {
                 interceptAnonymousUser(() => {
-                    if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+                    if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                         return;
                     }
@@ -521,7 +536,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     icon: icons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    description: getReportName(policyChatForActivePolicy),
+                    description: getReportName({report: policyChatForActivePolicy}),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
                     rightIconReportID: policyChatForActivePolicy?.reportID,
@@ -556,6 +571,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         reportID,
         allTransactionDrafts,
         allBetas,
+        ownerBillingGraceEndPeriod,
     ]);
 
     const isTravelEnabled = useMemo(() => {
@@ -609,13 +625,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
                               const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
-                              if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                              if (
+                                  !workspaceIDForReportCreation ||
+                                  (shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod) &&
+                                      groupPoliciesWithChatEnabled.length > 1)
+                              ) {
                                   // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
                                   Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                                   return;
                               }
 
-                              if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                              if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod)) {
                                   // Check if empty report confirmation should be shown
                                   if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                                       openFabCreateReportConfirmation();

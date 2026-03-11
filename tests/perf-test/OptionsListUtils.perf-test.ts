@@ -1,8 +1,8 @@
 import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
-import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -270,6 +270,7 @@ describe('OptionsListUtils', () => {
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
+                {},
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 mockedPersonalDetails,
                 true,
@@ -283,6 +284,6 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
     });
 });

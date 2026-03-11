@@ -7,7 +7,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -20,12 +19,14 @@ import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
 import useHtmlPaste from '@hooks/useHtmlPaste';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -199,6 +200,7 @@ function BaseTextInput({
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
     const hasValueRef = useRef(initialValue.length > 0);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled'] as const);
     const inputValue = value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
@@ -287,6 +289,10 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BaseTextInput.isLoading',
+        isLoading: !!inputProps.isLoading,
+    };
 
     return (
         <>
@@ -300,7 +306,6 @@ function BaseTextInput({
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
-                    accessibilityLabel={accessibilityLabel}
                     style={[
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&
@@ -377,6 +382,7 @@ function BaseTextInput({
                                 // eslint-disable-next-line
                                 {...inputProps}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityHint={errorText || inputProps.accessibilityHint}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
@@ -442,6 +448,7 @@ function BaseTextInput({
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
+                                    reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
@@ -454,7 +461,7 @@ function BaseTextInput({
                                     accessibilityLabel={translate('common.visible')}
                                 >
                                     <Icon
-                                        src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                                        src={passwordHidden ? icons.Eye : icons.EyeDisabled}
                                         fill={theme.icon}
                                     />
                                 </Checkbox>

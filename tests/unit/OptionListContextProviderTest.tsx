@@ -5,7 +5,7 @@ import OptionListContextProvider, {useOptionsList} from '@components/OptionListC
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
-import {createOptionFromReport, createOptionList} from '@libs/OptionsListUtils';
+import {createOptionFromReport, createOptionList, processReport} from '@libs/OptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
@@ -28,6 +28,7 @@ jest.mock('@components/OnyxListItemProvider', () => ({
 }));
 
 const mockCreateOptionList = createOptionList as jest.MockedFunction<typeof createOptionList>;
+const mockProcessReport = processReport as jest.MockedFunction<typeof processReport>;
 const mockCreateOptionFromReport = createOptionFromReport as jest.MockedFunction<typeof createOptionFromReport>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 const mockUsePersonalDetails = usePersonalDetails as jest.MockedFunction<typeof usePersonalDetails>;
@@ -122,6 +123,59 @@ describe('OptionListContextProvider', () => {
         expect(mockCreateOptionList).toHaveBeenCalledTimes(1);
     });
 
+    it('calls processReport with privateIsArchived when reports change', () => {
+        const reportID = '1';
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const report = {reportID};
+
+        const {result, rerender} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.initializeOptions();
+        });
+
+        mockProcessReport.mockClear();
+
+        onyxState = {
+            ...onyxState,
+            [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
+        };
+        onyxSourceValues = {
+            ...onyxSourceValues,
+            [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
+        };
+        rerender({shouldInitialize: false});
+
+        expect(mockProcessReport).toHaveBeenCalled();
+    });
+
+    it('calls processReport with privateIsArchived when report actions change', () => {
+        const reportID = '2';
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+
+        const {result, rerender} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.initializeOptions();
+        });
+
+        mockProcessReport.mockClear();
+
+        onyxSourceValues = {
+            ...onyxSourceValues,
+            [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[reportActionsKey]: {someAction: {}}},
+        };
+        rerender({shouldInitialize: false});
+
+        expect(mockProcessReport).toHaveBeenCalled();
+    });
+
     it('passes privateIsArchived to createOptionFromReport when personal details change', () => {
         const reportID = '1';
         const accountID = '12345';
@@ -169,6 +223,154 @@ describe('OptionListContextProvider', () => {
         mockUsePersonalDetails.mockReturnValue(updatedPersonalDetails);
         rerender({shouldInitialize: false});
 
-        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, expect.any(Number), 'true', undefined, {showPersonalDetails: true});
+        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, expect.any(Number), undefined, 'true', undefined, {showPersonalDetails: true});
+    });
+
+    it('passes resolved chatReport to processReport when changed reports have chatReportID', () => {
+        const reportID = '1';
+        const chatReportID = '2';
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+        const report = {reportID, chatReportID, participants: {}} as unknown as Report;
+        const chatReport = {reportID: chatReportID, participants: {}} as unknown as Report;
+
+        const {result, rerender} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.initializeOptions();
+        });
+
+        mockProcessReport.mockClear();
+
+        onyxState = {
+            ...onyxState,
+            [ONYXKEYS.COLLECTION.REPORT]: {
+                [reportKey]: report,
+                [chatReportKey]: chatReport,
+            },
+        };
+        onyxSourceValues = {
+            ...onyxSourceValues,
+            [ONYXKEYS.COLLECTION.REPORT]: {
+                [reportKey]: report,
+                [chatReportKey]: chatReport,
+            },
+        };
+
+        rerender({shouldInitialize: false});
+
+        expect(mockProcessReport).toHaveBeenCalledWith(report, {}, undefined, expect.any(Number), chatReport, undefined);
+    });
+
+    it('passes resolved chatReport to processReport when report actions change', () => {
+        const reportID = '1';
+        const chatReportID = '2';
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+        const report = {reportID, chatReportID, participants: {}} as unknown as Report;
+        const chatReport = {reportID: chatReportID, participants: {}} as unknown as Report;
+
+        onyxState = {
+            ...onyxState,
+            [ONYXKEYS.COLLECTION.REPORT]: {
+                [reportKey]: report,
+                [chatReportKey]: chatReport,
+            },
+        };
+        onyxSourceValues = {
+            ...onyxSourceValues,
+            [ONYXKEYS.COLLECTION.REPORT]: {
+                [reportKey]: report,
+                [chatReportKey]: chatReport,
+            },
+        };
+
+        const mockReportOption = {reportID, item: report, text: 'Report', keyForList: reportID} as unknown as SearchOption<Report>;
+        mockCreateOptionList.mockReturnValue({
+            reports: [mockReportOption],
+            personalDetails: [],
+        } as OptionList);
+
+        const {result, rerender} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.initializeOptions();
+        });
+
+        mockProcessReport.mockClear();
+
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+        onyxSourceValues = {
+            ...onyxSourceValues,
+            [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {
+                [reportActionsKey]: {someAction: {reportActionID: '100'}},
+            },
+        };
+
+        rerender({shouldInitialize: false});
+
+        expect(mockProcessReport).toHaveBeenCalledWith(report, {}, undefined, expect.any(Number), chatReport, undefined);
+    });
+
+    it('passes resolved chatReport to createOptionFromReport when personal details change and report has chatReportID', () => {
+        const reportID = '1';
+        const chatReportID = '2';
+        const accountID = '12345';
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+        const report = {
+            reportID,
+            chatReportID,
+            participants: {[accountID]: {notificationPreference: 'always'}},
+        };
+        const chatReport = {reportID: chatReportID, participants: {}} as unknown as Report;
+
+        const initialPersonalDetails = {[accountID]: {accountID: Number(accountID), firstName: 'John', lastName: 'Doe', login: 'john@test.com', displayName: 'John Doe'}};
+        mockUsePersonalDetails.mockReturnValue(initialPersonalDetails);
+
+        onyxState = {
+            ...onyxState,
+            [ONYXKEYS.COLLECTION.REPORT]: {
+                [reportKey]: report,
+                [chatReportKey]: chatReport,
+            },
+        };
+        onyxSourceValues = {
+            ...onyxSourceValues,
+            [ONYXKEYS.COLLECTION.REPORT]: {
+                [reportKey]: report,
+                [chatReportKey]: chatReport,
+            },
+        };
+
+        const mockReportOption = {reportID, item: report, text: 'John Doe', keyForList: reportID} as unknown as SearchOption<Report>;
+        mockCreateOptionList.mockReturnValue({
+            reports: [mockReportOption],
+            personalDetails: [],
+        } as OptionList);
+        mockCreateOptionFromReport.mockReturnValue(mockReportOption);
+
+        const {result, rerender} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.initializeOptions();
+        });
+
+        mockCreateOptionFromReport.mockClear();
+
+        const updatedPersonalDetails = {[accountID]: {accountID: Number(accountID), firstName: 'Jane', lastName: 'Doe', login: 'john@test.com', displayName: 'Jane Doe'}};
+        mockUsePersonalDetails.mockReturnValue(updatedPersonalDetails);
+        rerender({shouldInitialize: false});
+
+        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, expect.any(Number), chatReport, undefined, undefined, {showPersonalDetails: true});
     });
 });

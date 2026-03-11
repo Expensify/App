@@ -13,11 +13,13 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
+import useUserToInviteReports from '@hooks/useUserToInviteReports';
+import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {
     formatSectionsFromSearchTerm,
@@ -62,14 +64,15 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const policy = usePolicy(activePolicyID);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const reportAttributesDerived = useReportAttributes();
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -123,7 +126,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     });
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
+        searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     let orderedAvailableOptions;
@@ -151,6 +154,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         };
     }
 
+    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(orderedAvailableOptions?.userToInvite);
+
     const shouldShowErrorMessage = selectedOptions.length < 1;
 
     const handleConfirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
@@ -161,7 +166,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         onFinish(CONST.IOU.TYPE.SUBMIT);
     };
 
-    const showLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
     const getFooterContent = () => {
         if (!shouldShowErrorMessage && !selectedOptions.length) {
@@ -204,6 +209,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             initialSelectedOptions,
             orderedAvailableOptions.recentReports,
             orderedAvailableOptions.personalDetails,
+            privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
             true,
@@ -249,8 +255,17 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [orderedAvailableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              currentUserAccountID,
+                              personalDetails,
+                              userToInviteExpenseReport,
+                              userToInviteChatReport,
+                              reportAttributesDerived,
+                          )
                         : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 sectionIndex: 3,
@@ -269,7 +284,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
     const optionLength = !areOptionsInitialized ? 0 : sections.reduce((acc, section) => acc + (section.data?.length ?? 0), 0);
 
-    const shouldShowListEmptyContent = optionLength === 0 && !showLoadingPlaceholder;
+    const shouldShowListEmptyContent = optionLength === 0 && !shouldShowLoadingPlaceholder;
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
@@ -291,12 +306,11 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             }}
             footerContent={footerContent}
             isLoadingNewOptions={!!isSearchingForReports}
-            showLoadingPlaceholder={showLoadingPlaceholder}
-            showListEmptyContent={shouldShowListEmptyContent}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onEndReached={onListEndReached}
-            disableMaintainingScrollPosition
             shouldSingleExecuteRowSelect
             shouldShowTextInput
             canSelectMultiple
