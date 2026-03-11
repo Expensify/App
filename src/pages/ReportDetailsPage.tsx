@@ -166,6 +166,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -452,7 +453,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector({
+                    (createDraftTransactionAndNavigateToParticipantSelector)({
                         transactionID: iouTransactionID,
                         reportID: actionReportID,
                         actionName: CONST.IOU.ACTION.SUBMIT,
@@ -462,6 +463,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         activePolicy,
                         userBillingGraceEndPeriodCollection,
                         amountOwed,
+                        ownerBillingGraceEndPeriod,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                     });
@@ -485,6 +487,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriodCollection,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
                         });
                     },
                 });
@@ -505,6 +508,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriodCollection,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
                         });
                     },
                 });

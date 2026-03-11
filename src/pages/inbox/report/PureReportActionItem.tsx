@@ -542,6 +542,7 @@ function PureReportActionItem({
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
 
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -948,6 +949,7 @@ function PureReportActionItem({
                             activePolicy,
                             userBillingGraceEndPeriodCollection,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                         });
@@ -971,6 +973,7 @@ function PureReportActionItem({
                                 activePolicy,
                                 userBillingGraceEndPeriodCollection,
                                 amountOwed,
+                                ownerBillingGraceEndPeriod,
                             });
                         },
                     },
@@ -988,6 +991,7 @@ function PureReportActionItem({
                                 activePolicy,
                                 userBillingGraceEndPeriodCollection,
                                 amountOwed,
+                                ownerBillingGraceEndPeriod,
                             });
                         },
                     },

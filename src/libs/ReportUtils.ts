@@ -11200,6 +11200,7 @@ type CreateDraftTransactionParams = {
     activePolicy: OnyxEntry<Policy>;
     userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
+    ownerBillingGraceEndPeriod?: OnyxEntry<number>;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
 };
@@ -11214,6 +11215,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     activePolicy,
     userBillingGraceEndPeriodCollection,
     amountOwed,
+    ownerBillingGraceEndPeriod,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID,
 }: CreateDraftTransactionParams): void {
@@ -11279,7 +11281,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriodCollection, amountOwed)) {
+        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriodCollection, amountOwed, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
             return;
         }
