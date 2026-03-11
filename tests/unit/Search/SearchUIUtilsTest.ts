@@ -2664,6 +2664,152 @@ describe('SearchUIUtils', () => {
             expect(result?.at(0)?.primaryAvatar?.source).toBe(apiAvatarUrl);
         });
 
+        it('should use onyxPersonalDetailsList for report manager (toDetails) when API personalDetailsList is absent', () => {
+            const managerDisplayName = 'Manager From Onyx';
+
+            const submittedReportWithDistinctManager = {
+                ...report2,
+                managerID: approverAccountID,
+                ownerAccountID: adminAccountID,
+            };
+
+            const dataWithoutManager: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`report_${reportID2}`]: submittedReportWithDistinctManager,
+            };
+            const personalDetails = searchResults.data.personalDetailsList?.[adminAccountID];
+            if (personalDetails) {
+                dataWithoutManager.personalDetailsList = {[adminAccountID]: personalDetails};
+            }
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [approverAccountID]: {
+                    accountID: approverAccountID,
+                    avatar: 'https://example.com/manager-avatar.png',
+                    displayName: managerDisplayName,
+                    login: approverEmail,
+                },
+            };
+
+            const [resultWithoutOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutManager,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+            }) as [TransactionReportGroupListItemType[], number];
+
+            const reportWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID2);
+            expect(reportWithoutOnyx?.to?.displayName).not.toBe(managerDisplayName);
+
+            const [resultWithOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutManager,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            const reportWithOnyx = resultWithOnyx.find((item) => item.reportID === reportID2);
+            expect(reportWithOnyx?.to?.displayName).toBe(managerDisplayName);
+        });
+
+        it('should use onyxPersonalDetailsList for transaction from field (within report group) when API personalDetailsList is absent', () => {
+            const actorDisplayName = 'Actor From Onyx';
+
+            const dataWithoutActor: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                personalDetailsList: {}, // actor intentionally absent
+            };
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    avatar: 'https://example.com/actor-avatar.png',
+                    displayName: actorDisplayName,
+                    login: adminEmail,
+                },
+            };
+
+            const [resultWithoutOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutActor,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+            }) as [TransactionReportGroupListItemType[], number];
+
+            const reportGroupWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID);
+            const txWithoutOnyx = reportGroupWithoutOnyx?.transactions?.find((t) => t.transactionID === transactionID);
+            expect(txWithoutOnyx?.from?.displayName).not.toBe(actorDisplayName);
+
+            const [resultWithOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutActor,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            const reportGroupWithOnyx = resultWithOnyx.find((item) => item.reportID === reportID);
+            const txWithOnyx = reportGroupWithOnyx?.transactions?.find((t) => t.transactionID === transactionID);
+            expect(txWithOnyx?.from?.displayName).toBe(actorDisplayName);
+        });
+
+        it('should prefer API personalDetailsList for transaction from field over onyxPersonalDetailsList', () => {
+            const onyxDisplayName = 'Actor From Onyx';
+            const apiDisplayName = 'Actor From API';
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    avatar: 'https://example.com/onyx-actor.png',
+                    displayName: onyxDisplayName,
+                    login: adminEmail,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: {
+                    ...searchResults.data,
+                    personalDetailsList: {
+                        [adminAccountID]: {
+                            accountID: adminAccountID,
+                            avatar: 'https://example.com/api-actor.png',
+                            displayName: apiDisplayName,
+                            login: adminEmail,
+                        },
+                    },
+                },
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            const reportGroup = result.find((item) => item.reportID === reportID);
+            const tx = reportGroup?.transactions?.find((t) => t.transactionID === transactionID);
+            expect(tx?.from?.displayName).toBe(apiDisplayName);
+        });
+
         it('should handle data where transaction keys appear before report keys in getReportSections', () => {
             const testDataTransactionFirst = {
                 // Transaction keys first
