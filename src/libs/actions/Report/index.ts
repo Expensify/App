@@ -1213,6 +1213,7 @@ function getGuidedSetupDataForOpenReport(
         engagementChoice: choice,
         onboardingMessage,
         companySize: introSelected?.companySize as OnboardingCompanySize,
+        isSelfTourViewed,
     });
 
     if (!onboardingData) {
