@@ -56,7 +56,7 @@ function ConfirmationPrompt({workspaceName, checkboxRef, onLinkPress}: {workspac
 
 export default function useCreateEmptyReportConfirmation({policyName, onConfirm, onCancel}: UseCreateEmptyReportConfirmationParams): UseCreateEmptyReportConfirmationResult {
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const workspaceDisplayName = policyName?.trim().length ? policyName : translate('report.newReport.genericWorkspaceName');
 
     const onConfirmRef = useRef(onConfirm);
@@ -70,7 +70,7 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
         const checkboxRef = {current: false};
 
         const handleLinkPress = () => {
-            onCancelRef.current?.();
+            closeModal();
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
         };
 
