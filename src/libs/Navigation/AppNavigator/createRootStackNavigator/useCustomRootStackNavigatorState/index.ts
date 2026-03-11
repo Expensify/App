@@ -18,8 +18,5 @@ export default function useCustomRootStackNavigatorState({state}: CustomStateHoo
     const routesToRender = state.routes.slice(indexToSlice, state.routes.length);
     const remappedRoutes = buildOptimizedRoutes(routesToRender, state);
 
-    console.log('to render');
-    console.log({...state, routes: remappedRoutes, index: remappedRoutes.length - 1});
-
     return {...state, routes: remappedRoutes, index: remappedRoutes.length - 1};
 }
