@@ -122,8 +122,8 @@ jobs:
             echo "BUILD_TARGETS=[\"true\"]" >> "$GITHUB_OUTPUT"
           fi
 
-  buildReactNativeiOSArtifacts:
-    name: Build React Native iOS Artifacts
+  buildSlice:
+    name: Build iOS Slice
     runs-on: macos-15-xlarge
     needs: verifyPatches
     if: needs.verifyPatches.outputs.build_targets != ''
@@ -131,9 +131,13 @@ jobs:
       fail-fast: false
       matrix:
         is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+        flavor: ['Debug', 'Release']
+        # Upstream RN also builds 'mac-catalyst' but we don't use it
+        platform: ['ios', 'ios-simulator']
     concurrency:
-      group: ${{ github.workflow }}-build-${{ matrix.is_hybrid }}
+      group: ${{ github.workflow }}-slice-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-${{ matrix.platform }}
       cancel-in-progress: true
+    # Hardcoded Xcode path — must be updated when Xcode is upgraded on the runner (same approach as buildIOS.yml)
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
@@ -150,61 +154,94 @@ jobs:
 
       - name: Setup prebuild workspace
         working-directory: node_modules/react-native
-        run: node scripts/ios-prebuild.js -s -f Debug
+        run: node scripts/ios-prebuild.js -s -f ${{ matrix.flavor }}
 
-      - name: Build Debug slices
+      - name: Build slice
         working-directory: node_modules/react-native
-        run: |
-          for platform in ios ios-simulator mac-catalyst; do
-            echo "::group::Building Debug for $platform"
-            node scripts/ios-prebuild.js -b -f Debug -p "$platform"
-            echo "::endgroup::"
-          done
+        run: node scripts/ios-prebuild.js -b -f ${{ matrix.flavor }} -p ${{ matrix.platform }}
 
-      - name: Compose Debug XCFramework
-        working-directory: node_modules/react-native
-        run: node scripts/ios-prebuild.js -c -f Debug
-
-      - name: Re-setup for Release
-        working-directory: node_modules/react-native
-        run: node scripts/ios-prebuild.js -s -f Release
-
-      - name: Build Release slices
-        working-directory: node_modules/react-native
-        run: |
-          for platform in ios ios-simulator mac-catalyst; do
-            echo "::group::Building Release for $platform"
-            node scripts/ios-prebuild.js -b -f Release -p "$platform"
-            echo "::endgroup::"
-          done
-
-      - name: Compose Release XCFramework
-        working-directory: node_modules/react-native
-        run: node scripts/ios-prebuild.js -c -f Release
-
-      - name: Upload Debug artifact
+      - name: Upload slice artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ReactCoreDebug-${{ matrix.is_hybrid }}.xcframework.tar.gz
-          path: node_modules/react-native/.build/output/xcframeworks/Debug/React.xcframework.tar.gz
+          name: slice-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-${{ matrix.platform }}
+          path: node_modules/react-native/.build/output/spm/${{ matrix.flavor }}/Build/Products
 
-      - name: Upload Release artifact
+      - name: Upload headers
         uses: actions/upload-artifact@v4
         with:
-          name: ReactCoreRelease-${{ matrix.is_hybrid }}.xcframework.tar.gz
-          path: node_modules/react-native/.build/output/xcframeworks/Release/React.xcframework.tar.gz
+          name: headers-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-${{ matrix.platform }}
+          path: node_modules/react-native/.build/headers
+
+  composeXCFramework:
+    name: Compose XCFramework
+    runs-on: macos-15-xlarge
+    needs: [verifyPatches, buildSlice]
+    strategy:
+      fail-fast: false
+      matrix:
+        is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+        flavor: ['Debug', 'Release']
+    concurrency:
+      group: ${{ github.workflow }}-compose-${{ matrix.is_hybrid }}-${{ matrix.flavor }}
+      cancel-in-progress: true
+    # Hardcoded Xcode path — must be updated when Xcode is upgraded on the runner (same approach as buildIOS.yml)
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          submodules: ${{ matrix.is_hybrid }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+
+      - name: Download slice artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: slice-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-*
+          path: node_modules/react-native/.build/output/spm/${{ matrix.flavor }}/Build/Products
+          merge-multiple: true
+
+      - name: Download headers
+        uses: actions/download-artifact@v4
+        with:
+          pattern: headers-${{ matrix.is_hybrid }}-${{ matrix.flavor }}-*
+          path: node_modules/react-native/.build/headers
+          merge-multiple: true
+
+      - name: Compose XCFramework
+        working-directory: node_modules/react-native
+        run: node scripts/ios-prebuild.js -c -f ${{ matrix.flavor }}
+
+      - name: Rename XCFramework tarball
+        run: |
+          cd node_modules/react-native/.build/output/xcframeworks/${{ matrix.flavor }}
+          mv React.xcframework.tar.gz reactnative-core-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}.tar.gz
+
+      - name: Upload XCFramework artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reactnative-core-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}-${{ matrix.is_hybrid }}
+          path: node_modules/react-native/.build/output/xcframeworks/${{ matrix.flavor }}/reactnative-core-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}.tar.gz
 
   publishReactNativeiOSArtifacts:
     name: Publish React Native iOS Artifacts
     runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
-    needs: [verifyPatches, buildReactNativeiOSArtifacts]
+    needs: [verifyPatches, composeXCFramework]
     strategy:
       fail-fast: false
       matrix:
         is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
     concurrency:
+      # Using cancel-in-progress: false to prevent cancelling a publish mid-way
+      # (which could leave partial artifacts on Maven). Newer runs queue and wait,
+      # ensuring getNewPatchedRNVersion.sh reads the correct latest version sequentially.
       group: ${{ github.workflow }}-publish-${{ matrix.is_hybrid }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     steps:
       - name: Checkout Code
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
@@ -228,26 +265,12 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
           ARTIFACT_ID: react-native-artifacts
 
-      - name: Download Debug artifact
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ReactCoreDebug-${{ matrix.is_hybrid }}.xcframework.tar.gz
-          path: gradleUtils/ios-artifacts-publish/artifacts/debug
-
-      - name: Download Release artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ReactCoreRelease-${{ matrix.is_hybrid }}.xcframework.tar.gz
-          path: gradleUtils/ios-artifacts-publish/artifacts/release
-
-      - name: Prepare artifacts
-        run: |
-          ARTIFACTS_DIR="gradleUtils/ios-artifacts-publish/artifacts"
-          mv "${ARTIFACTS_DIR}/debug/React.xcframework.tar.gz" "${ARTIFACTS_DIR}/reactnative-core-debug.tar.gz"
-          mv "${ARTIFACTS_DIR}/release/React.xcframework.tar.gz" "${ARTIFACTS_DIR}/reactnative-core-release.tar.gz"
-          rm -rf "${ARTIFACTS_DIR}/debug" "${ARTIFACTS_DIR}/release"
-          echo "Prepared artifacts:"
-          ls -lh "${ARTIFACTS_DIR}"
+          pattern: reactnative-core-*-${{ matrix.is_hybrid }}
+          path: gradleUtils/ios-artifacts-publish/artifacts
+          merge-multiple: true
 
       - name: Publish to GitHub Packages Maven
         working-directory: gradleUtils/ios-artifacts-publish

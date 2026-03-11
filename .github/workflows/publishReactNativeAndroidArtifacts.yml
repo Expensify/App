@@ -133,9 +133,12 @@ jobs:
       matrix:
         # Dynamically build the matrix based on the build targets
         is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+    # Using cancel-in-progress: false to prevent cancelling a publish mid-way
+    # (which could leave partial artifacts on Maven). Newer runs queue and wait,
+    # ensuring getNewPatchedRNVersion.sh reads the correct latest version sequentially.
     concurrency:
       group: ${{ github.workflow }}-${{ github.job }}-${{ matrix.is_hybrid }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     steps:
       - name: Checkout Code
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
