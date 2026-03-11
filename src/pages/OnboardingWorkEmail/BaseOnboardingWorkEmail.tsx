@@ -103,7 +103,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         if (!shouldValidateOnChange) {
             setShouldValidateOnChange(true);
         }
-        const userEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL];
+        const userEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim();
 
         const errors = {};
         const emailParts = userEmail.split('@');
