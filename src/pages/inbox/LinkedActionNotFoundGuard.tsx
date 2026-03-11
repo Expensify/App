@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -51,25 +51,15 @@ function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
     });
 
     // --- Linked action status ---
-    const isLinkedActionDeleted = useMemo(() => {
-        if (!linkedAction) {
-            return false;
-        }
-        const actionReportID = linkedAction.reportID ?? reportID;
-        if (!actionReportID) {
-            return true;
-        }
-        return !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
-    }, [linkedAction, report, isReportArchived, reportID, visibleReportActionsData]);
+    const actionReportID = linkedAction?.reportID ?? reportID;
+    const isLinkedActionDeleted =
+        !!linkedAction && (!actionReportID || !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData));
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
     const [firstRender, setFirstRender] = useState(true);
     const lastReportActionIDFromRoute = usePrevious(!firstRender ? reportActionIDFromRoute : undefined);
 
-    const isLinkedActionInaccessibleWhisper = useMemo(
-        () => !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
-        [currentUserAccountID, linkedAction],
-    );
+    const isLinkedActionInaccessibleWhisper = !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
