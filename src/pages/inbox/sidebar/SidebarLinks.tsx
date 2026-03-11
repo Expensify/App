@@ -80,8 +80,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SidebarLinks',
         isLoadingReportData,
-        optionListItemsCount: optionListItems?.length
-
+        optionListItemsCount: optionListItems?.length,
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
