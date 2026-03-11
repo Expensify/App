@@ -60,6 +60,7 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
+    getAllReportActions,
     getIOUActionForReportID,
     getOriginalMessage,
     getReportActionHtml,
@@ -90,6 +91,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant, Attendee, Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
+import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -3553,6 +3555,15 @@ describe('actions/IOU', () => {
             expect(updatedTransactionThreadReport).toBeTruthy();
             expect(updatedTransactionThreadReport?.parentReportID).toBe(iouReport?.reportID);
             expect(updatedTransactionThreadReport?.parentReportActionID).toBe(iouReportActionID);
+
+            // Also, the fromReportID of movedTransactionAction should be CONST.REPORT.UNREPORTED_REPORT_ID
+            const updatedTransactionThreadReportActions = getAllReportActions(transactionThreadReport?.reportID);
+            const movedTransactionAction = Object.values(updatedTransactionThreadReportActions ?? {}).find(
+                (reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+            );
+            expect(movedTransactionAction).toBeTruthy();
+            const originalMessage = getOriginalMessage(movedTransactionAction) as OriginalMessageMovedTransaction | undefined;
+            expect(originalMessage?.fromReportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
         });
 
         it('creates new chat report when participant does not match existing chat report participants', () => {
