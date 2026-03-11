@@ -25,7 +25,7 @@ import isInputAutoFilled from '@libs/isInputAutoFilled';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import StringUtils from '@libs/StringUtils';
-import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
+import {isNumericWithSpecialChars, isValidEmailWithTLD} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import {useLoginActions, useLoginState} from '@pages/signin/SignInLoginContext';
 import {setDefaultData} from '@userActions/CloseAccount';
@@ -72,7 +72,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
             const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
-            if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
+            if (!isValidEmailWithTLD(loginTrim) && !parsedPhoneNumber.possible) {
                 if (isNumericWithSpecialChars(loginTrim)) {
                     setFormError('common.error.phoneNumber');
                 } else {
