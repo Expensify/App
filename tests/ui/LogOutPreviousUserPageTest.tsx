@@ -112,7 +112,7 @@ describe('LogOutPreviousUserPage', () => {
             });
         });
 
-        // When: Agent supportals into a different user for the first time
+        // When: Agent uses supportal to log into a different user for the first time
         renderPage({
             authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT,
             shortLivedAuthToken: 'new-short-lived-token',
