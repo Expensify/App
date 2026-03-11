@@ -28,13 +28,19 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
 
     const [initialReportID] = useState(() => {
+        // Deep links and REPORT_WITH_ID navigation pass the reportID in nested params,
+        // which lets us skip the O(n) findLastAccessedReport scan over all reports.
+        if (route.params?.screen === SCREENS.REPORT && route.params.params?.reportID) {
+            return route.params.params.reportID;
+        }
+
         const currentURL = getCurrentUrl();
-        // Determine if the current URL indicates a transition.
         const isTransitioning = currentURL.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
-        const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        const reportIdFromPath = currentURL ? new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1) : undefined;
         if (reportIdFromPath) {
             return reportIdFromPath;
         }
@@ -45,15 +51,13 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
             return '';
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom(), undefined, archivedReportsIdSet);
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, archivedReportsIdSet);
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
-
-    const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
 
     const reportScreenInitialParams = {
         reportID: initialReportID,

@@ -32,9 +32,11 @@ import {base64ToFile, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownl
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import variables from '@styles/variables';
 import {checkIfScanFileCanBeRead, replaceReceipt, setMoneyRequestReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -48,6 +50,7 @@ import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
 import useReceiptScan from './useReceiptScan';
+import useScanShortcutSpan from './useScanShortcutSpan';
 
 function IOURequestStepScan({
     report,
@@ -84,6 +87,8 @@ function IOURequestStepScan({
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
+
+    useScanShortcutSpan(initialTransaction);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
@@ -235,7 +240,6 @@ function IOURequestStepScan({
 
     useEffect(() => {
         if (!isMobile() || !isTabActive) {
-            setVideoConstraints(undefined);
             return;
         }
         navigator.permissions
@@ -254,9 +258,10 @@ function IOURequestStepScan({
             .finally(() => {
                 setIsQueriedPermissionState(true);
             });
-        // We only want to get the camera permission status when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isTabActive]);
+        return () => {
+            setVideoConstraints(undefined);
+        };
+    }, [isTabActive, requestCameraPermission]);
 
     // this effect will pre-fetch location in web if the location permission is already granted to optimize the flow
     useEffect(() => {
@@ -409,7 +414,7 @@ function IOURequestStepScan({
                     getScreenshotTimeoutRef.current = setTimeout(() => {
                         getScreenshot();
                         clearTorchConstraints();
-                    }, 2000);
+                    }, CONST.RECEIPT.FLASH_DELAY_MS);
                 });
             return;
         }
@@ -435,6 +440,13 @@ function IOURequestStepScan({
         [],
     );
 
+    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepScan',
+        cameraPermissionState,
+        isQueriedPermissionState,
+        hasVideoConstraints: !isEmptyObject(videoConstraints),
+    };
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -444,6 +456,7 @@ function IOURequestStepScan({
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
                         color={theme.textSupporting}
+                        reasonAttributes={cameraLoadingReasonAttributes}
                     />
                 )}
                 {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
@@ -504,8 +517,8 @@ function IOURequestStepScan({
                                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                                 >
                                     <Icon
-                                        height={16}
-                                        width={16}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
                                         src={lazyIcons.Bolt}
                                         fill={isFlashLightOn ? theme.white : theme.icon}
                                     />
@@ -538,8 +551,8 @@ function IOURequestStepScan({
                             sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                         >
                             <Icon
-                                height={32}
-                                width={32}
+                                height={variables.iconSizeMenuItem}
+                                width={variables.iconSizeMenuItem}
                                 src={lazyIcons.Gallery}
                                 fill={theme.textSupporting}
                             />
@@ -569,8 +582,8 @@ function IOURequestStepScan({
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                     >
                         <Icon
-                            height={32}
-                            width={32}
+                            height={variables.iconSizeMenuItem}
+                            width={variables.iconSizeMenuItem}
                             src={lazyIcons.ReceiptMultiple}
                             fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
                         />
@@ -585,8 +598,8 @@ function IOURequestStepScan({
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                     >
                         <Icon
-                            height={32}
-                            width={32}
+                            height={variables.iconSizeMenuItem}
+                            width={variables.iconSizeMenuItem}
                             src={isFlashLightOn ? lazyIcons.Bolt : lazyIcons.boltSlash}
                             fill={theme.textSupporting}
                         />
