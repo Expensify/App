@@ -57,14 +57,16 @@ function MapView({
     const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
 
     const [distanceUnit, setDistanceUnit] = useState(unit);
+    const userToggledUnit = useRef(false);
     useEffect(() => {
-        if (!unit || distanceUnit) {
+        if (!unit || userToggledUnit.current) {
             return;
         }
         setDistanceUnit(unit);
-    }, [unit, distanceUnit]);
+    }, [unit]);
 
     const toggleDistanceUnit = useCallback(() => {
+        userToggledUnit.current = true;
         setDistanceUnit((currentUnit) =>
             currentUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
         );
