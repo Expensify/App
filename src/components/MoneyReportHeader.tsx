@@ -677,6 +677,7 @@ function MoneyReportHeader({
                     isSelfTourViewed,
                     userBillingGraceEndPeriods,
                     amountOwed,
+                    ownerBillingGraceEndPeriod,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({

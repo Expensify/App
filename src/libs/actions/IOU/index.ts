@@ -866,6 +866,7 @@ type PayMoneyRequestFunctionParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     amountOwed: OnyxEntry<number>;
+    ownerBillingGraceEndPeriod?: OnyxEntry<number>;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -11131,8 +11132,9 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         betas,
         isSelfTourViewed,
         amountOwed,
+        ownerBillingGraceEndPeriod,
     } = params;
-    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
+    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
     }

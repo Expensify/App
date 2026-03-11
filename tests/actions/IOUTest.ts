@@ -7368,6 +7368,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 100,
+                ownerBillingGraceEndPeriod: pastDate,
             });
 
             await waitForBatchedUpdates();

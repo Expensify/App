@@ -132,6 +132,7 @@ function ProcessMoneyReportHoldMenu({
                 isSelfTourViewed,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
             });
         }
         onClose();
