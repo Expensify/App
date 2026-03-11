@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
@@ -549,20 +549,29 @@ function MoneyRequestReportPreviewContent({
         carouselTransactionsRef.current = carouselTransactions;
     }, [carouselTransactions]);
 
-    useFocusEffect(
-        useCallback(() => {
-            const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
+    const isFocused = useIsFocused();
+    const isFocusedRef = useRef(isFocused);
 
-            if (index < 0) {
+    useEffect(() => {
+        isFocusedRef.current = isFocused;
+    }, [isFocused]);
+
+    useEffect(() => {
+        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
+
+        if (index < 0) {
+            return;
+        }
+        const newTransaction = carouselTransactions.at(index);
+        setTimeout(() => {
+            if (!isFocusedRef.current) {
                 return;
             }
-            const newTransaction = carouselTransactions.at(index);
-            setTimeout(() => {
-                // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
-                // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
-                if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
-                    return;
-                }
+            // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
+            // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
+            if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
+                return;
+            }
 
                 carouselRef.current?.scrollToIndex({
                     index,
@@ -571,9 +580,8 @@ function MoneyRequestReportPreviewContent({
                 });
             }, CONST.ANIMATED_TRANSITION);
 
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [newTransactionIDs]),
-    );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newTransactionIDs]);
 
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
