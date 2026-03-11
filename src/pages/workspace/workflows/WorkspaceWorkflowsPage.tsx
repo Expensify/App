@@ -51,7 +51,7 @@ import {
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, filterAvailableMembersForNewWorkflow, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRulesSection';
@@ -100,21 +100,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         localeCompare,
     });
 
-    // Filter out members who are already assigned to a non-default approval workflow.
-    // This prevents them from appearing in the "Expenses from" picker when creating a new workflow.
-    // The edit flow is unaffected as it uses mergeWorkflowMembersWithAvailableMembers separately.
-    const availableMembersForNewWorkflow = useMemo(() => {
-        const membersInExistingWorkflows = new Set<string>();
-        for (const workflow of approvalWorkflows) {
-            if (workflow.isDefault) {
-                continue;
-            }
-            for (const member of workflow.members) {
-                membersInExistingWorkflows.add(member.email);
-            }
-        }
-        return availableMembers.filter((member) => !membersInExistingWorkflows.has(member.email));
-    }, [approvalWorkflows, availableMembers]);
+    const availableMembersForNewWorkflow = useMemo(() => filterAvailableMembersForNewWorkflow(approvalWorkflows, availableMembers), [approvalWorkflows, availableMembers]);
 
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
