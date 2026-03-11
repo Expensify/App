@@ -205,6 +205,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, currentPolicy);
     };
 
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
+
     const onSaveSplitExpense = () => {
         if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
             showConfirmModal({
@@ -304,7 +306,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             quickAction,
             iouReportNextStep,
             betas,
+            policyTags: policyTags ?? {},
             personalDetails,
+            transactionReport: draftTransactionReport,
+            expenseReport,
         });
     };
 
