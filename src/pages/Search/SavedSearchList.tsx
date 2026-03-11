@@ -110,8 +110,6 @@ function SavedSearchList({hash}: SavedSearchListProps) {
 
     const savedSearchesMenuItems = savedSearches ? Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item, key, index)) : [];
 
-    console.log({savedSearchesMenuItems});
-
     return (
         <MenuItemList
             menuItems={savedSearchesMenuItems}

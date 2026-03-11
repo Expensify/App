@@ -89,8 +89,6 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
         }
     }
 
-    console.log({savedSearches});
-
     if (savedSearches) {
         for (const [key, item] of Object.entries(savedSearches)) {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
