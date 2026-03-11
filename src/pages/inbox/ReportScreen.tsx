@@ -88,6 +88,7 @@ import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUt
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {
+    clearReportActionDrafts,
     createTransactionThreadReport,
     navigateToConciergeChat,
     openReport,
@@ -179,6 +180,19 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
+
+    // When the report screen is navigated away from, clear all report action edit drafts
+    useFocusEffect(
+        useCallback(() => {
+            if (!reportIDFromRoute) {
+                return;
+            }
+
+            return () => {
+                clearReportActionDrafts(reportIDFromRoute);
+            };
+        }, [reportIDFromRoute]),
+    );
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
