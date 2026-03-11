@@ -9,3 +9,29 @@ Contributors are eligible to be paid via Expensify 18 months after they were ass
 - View [Receive Payments](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments) for details on receiving payments in the US and internationally, including via Wise (formerly TransferWise), Paypal, Venmo and more.  
 
 After approval it can take between 1 business day and a week, depending on the country and service you use.  
+
+## For issues with deposits
+If you're having an issue with the deposit, ie. a report gets _stuck_ in a state like Approved, start a chat with Concierge. Ask them to create a Github issue using [this template](https://github.com/Expensify/Expensify/issues/new?template=MISSING_REIMBURSEMENT_TEMPLATE.md). Provide as many details below as possible
+
+### Please provide the following details:
+> - Report ID:
+> - Reimbursement ID:
+> - Amount of reimbursement:
+> - Date reimbursement was initiated:
+> - Date reimbursement was expected:
+> - Last 4-digits of the deposit account:
+> 
+> ### Is the missing reimbursement international (CAD > CAD, USD > GBP, etc.) or domestic?
+> 
+> ### If this is an international reimbursement, please provide the following details
+> - Location of reimbursement account (AUD, CAD, GBP, EUR, USD)
+> - Location/currency of deposit account
+> 
+> ### Have you received reimbursements to the connected deposit account successfully in the past?
+> - Yes or No
+> 
+> ### Please select which option best describes the scenario:
+> - The recipient connected a deposit account that was closed
+> - The recipient entered the bank details incorrectly when connecting their deposit account
+> - The recipient entered the correct bank details, but the reimbursement is still missing
+> - Something else (please describe below)

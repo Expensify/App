@@ -870,6 +870,7 @@ describe('MoneyRequest', () => {
             selfDMReport,
             betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
+            isSelfTourViewed: false,
             amountOwed: 0,
         };
         const splitShares: SplitShares = {
@@ -938,6 +939,9 @@ describe('MoneyRequest', () => {
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
+                activePolicyID: undefined,
+                introSelected: undefined,
+                isSelfTourViewed: false,
                 participantParams: {
                     payeeEmail: baseParams.currentUserLogin,
                     payeeAccountID: baseParams.currentUserAccountID,
@@ -965,6 +969,9 @@ describe('MoneyRequest', () => {
                     validWaypoints: undefined,
                     customUnitRateID: baseParams.customUnitRateID,
                     attendees: fakeTransaction?.comment?.attendees,
+                    gpsCoordinates: undefined,
+                    odometerStart: undefined,
+                    odometerEnd: undefined,
                 },
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
