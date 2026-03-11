@@ -12,18 +12,25 @@ import type {HitTestArgs} from './useChartInteractions';
 type LabelHitGeometry = {
     /** Constant vertical offset from chartBottom to the label Y baseline */
     labelYOffset: number;
+
     /** iconSize * sin(angle) — diagonal step from upper to lower corner */
     iconSin: number;
+
     /** Per-label: labelWidth * sin(angle) — left-corner offset for the 45° parallelogram */
     labelSins: number[];
+
     /** Per-label: labelWidth / 2 — half-extent for 0° and 90° hit bounds */
     halfWidths: number[];
+
     /** Per-label: rightUpperCorner.x = targetX + cornerAnchorDX[i] */
     cornerAnchorDX: number[];
+
     /** Per-label: rightUpperCorner.y = labelY + cornerAnchorDY[i] */
     cornerAnchorDY: number[];
+
     /** Per-label: yMin90 = labelY + yMin90Offsets[i] */
     yMin90Offsets: number[];
+
     /** Per-label: yMax90 = labelY + yMax90Offsets[i] */
     yMax90Offsets: number[];
 };
@@ -45,6 +52,7 @@ type UseLabelHitTestingParams = {
     labelRotation: LabelRotation;
     labelSkipInterval: number;
     chartBottom: SharedValue<number>;
+
     /**
      * Chart-specific geometry factory.
      * Receives font metrics, trig values, and per-label widths; returns the

@@ -14,12 +14,16 @@ const TOOLTIP_BAR_GAP = 8;
 type HitTestArgs = {
     /** Current raw X position of the cursor */
     cursorX: number;
+
     /** Current raw Y position of the cursor */
     cursorY: number;
+
     /** Calculated X position of the matched data point */
     targetX: number;
+
     /** Calculated Y position of the matched data point */
     targetY: number;
+
     /** The bottom boundary of the chart area */
     chartBottom: number;
 };
