@@ -6243,8 +6243,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             borderRadius: 8,
             paddingHorizontal: 16,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
-            height: shouldUseNarrowLayout ? 52 : 44,
-            alignItems: 'center' as const,
+            height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
+            alignItems: 'center',
         }),
     }) satisfies DynamicStyles;
 
