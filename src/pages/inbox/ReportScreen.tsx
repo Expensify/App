@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
@@ -22,7 +22,6 @@ import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -33,7 +32,6 @@ import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -45,7 +43,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -66,7 +63,6 @@ import {
 import {
     canEditReportAction,
     canUserPerformWriteAction,
-    findLastAccessedReport,
     getReportOfflinePendingActionAndErrors,
     getReportTransactions,
     isAdminRoom,
@@ -87,7 +83,6 @@ import {
 } from '@libs/ReportUtils';
 import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
-import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
@@ -113,6 +108,7 @@ import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
+import ReportRouteParamHandler from './ReportRouteParamHandler';
 import {ActionListContext} from './ReportScreenContext';
 
 type ReportScreenNavigationProps =
@@ -161,7 +157,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
-    const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
@@ -178,8 +173,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-
     const parentReportAction = useParentReportAction(reportOnyx);
 
     const deletedParentAction = isDeletedParentAction(parentReportAction);
@@ -189,37 +182,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
     const prevIsAnonymousUser = useRef(false);
-
-    useFocusEffect(
-        useCallback(() => {
-            // Don't update if there is a reportID in the params already
-            if (route.params.reportID) {
-                const reportActionID = route?.params?.reportActionID;
-                const isValidReportActionID = reportActionID && isNumeric(reportActionID);
-                if (reportActionID && !isValidReportActionID) {
-                    Navigation.isNavigationReady().then(() => navigation.setParams({reportActionID: ''}));
-                }
-                return;
-            }
-
-            const lastAccessedReportID = findLastAccessedReport(
-                !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
-                undefined,
-                archivedReportsIdSet,
-            )?.reportID;
-
-            // It's possible that reports aren't fully loaded yet
-            // in that case the reportID is undefined
-            if (!lastAccessedReportID) {
-                return;
-            }
-            Navigation.isNavigationReady().then(() => {
-                Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
-                navigation.setParams({reportID: lastAccessedReportID});
-            });
-        }, [archivedReportsIdSet, isBetaEnabled, navigation, route.params]),
-    );
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -1020,6 +982,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         testID={`report-screen-${reportID}`}
                     >
                         <DeleteTransactionNavigateBackHandler />
+                        <ReportRouteParamHandler
+                            route={route}
+                            navigation={navigation}
+                        />
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
                             subtitleKey={shouldShowNotFoundLinkedAction ? 'notFound.commentYouLookingForCannotBeFound' : 'notFound.noAccess'}
