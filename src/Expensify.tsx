@@ -92,11 +92,12 @@ function Expensify() {
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
-        bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
+        bootsplashSpan.current =
+            startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
                 name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
                 op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
                 parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-        }) ?? null;
+            }) ?? null;
 
         startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX, {
             name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
