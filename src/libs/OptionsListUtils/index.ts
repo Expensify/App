@@ -250,7 +250,9 @@ Onyx.connect({
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
-            // Cache one-transaction thread report IDs for O(1) lookup in renderItem
+            // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
+            // to the transaction thread or the report itself.
+            // Cache the result for O(1) lookup in renderItem.
             const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]]);
             cachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
 
