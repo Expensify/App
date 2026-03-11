@@ -5,9 +5,6 @@ import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx
 import BrowserNotifications from './BrowserNotifications';
 import type {LocalNotificationClickHandler, LocalNotificationModifiedExpenseParams, LocalNotificationModule} from './types';
 
-// Temporary subscriptions to resolve policy and policyTags for modified-expense notifications.
-// Will be removed once the Onyx.connect migration is complete and values flow from the React layer.
-// See: https://github.com/Expensify/App/issues/66336
 let allPolicies: OnyxCollection<Policy>;
 // eslint-disable-next-line rulesdir/no-onyx-connect -- temporary subscription for modified-expense notification; see comment above
 Onyx.connect({
