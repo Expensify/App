@@ -98,6 +98,7 @@ function WorkspaceCreateTaxPage({
                             enabledWhenOffline
                             shouldValidateOnBlur={false}
                             addBottomSafeAreaPadding
+                            shouldUseStrictHtmlTagValidation
                         >
                             <View style={styles.mhn5}>
                                 <InputWrapper
