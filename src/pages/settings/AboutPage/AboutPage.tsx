@@ -186,7 +186,7 @@ function AboutPage() {
                     </Section>
                 </View>
                 <View style={[styles.renderHTML, styles.pl5, styles.mb5]}>
-                    <RenderHTML html={`<muted-text-micro>${translate('initialSettingsPage.readTheTermsAndPrivacy')} ${translate('termsOfUse.license')}</muted-text-micro>`} />
+                    <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy')} />
                 </View>
             </ScrollView>
         </ScreenWrapper>
