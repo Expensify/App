@@ -112,6 +112,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.trackExpense).toHaveBeenCalledTimes(1);
@@ -150,6 +151,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SEND,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.requestMoney).toHaveBeenCalledTimes(1);
@@ -199,6 +201,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
                 files,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.trackExpense).toHaveBeenCalledTimes(files.length);
@@ -229,6 +232,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 files,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.requestMoney).toHaveBeenCalledWith(
@@ -247,6 +251,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 currentUserEmail: undefined,
+                allTransactionDrafts: {},
             });
 
             expect(IOU.requestMoney).toHaveBeenCalledWith(
@@ -285,6 +290,19 @@ describe('MoneyRequest', () => {
                 expect.objectContaining({
                     existingTransactionDraft: draftTransaction,
                     draftTransactionIDs: [draftTransaction.transactionID],
+                }),
+            );
+        });
+
+        it('should default draftTransactionIDs to empty array when allTransactionDrafts is undefined', () => {
+            createTransaction({
+                ...baseParams,
+                allTransactionDrafts: undefined,
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    draftTransactionIDs: [],
                 }),
             );
         });
@@ -438,6 +456,7 @@ describe('MoneyRequest', () => {
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
                 backTo,
+                allTransactionDrafts: {},
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -457,6 +476,7 @@ describe('MoneyRequest', () => {
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
                 isTestTransaction: true,
+                allTransactionDrafts: {},
                 personalDetails: {
                     ...baseParams.personalDetails,
                     [managerMcTestAccountID]: {
@@ -495,6 +515,7 @@ describe('MoneyRequest', () => {
                     ...baseParams.initialTransaction,
                     isFromGlobalCreate: false,
                 },
+                allTransactionDrafts: {},
             });
 
             await waitForBatchedUpdates();
@@ -886,6 +907,7 @@ describe('MoneyRequest', () => {
             recentWaypoints: [] as RecentWaypoint[],
             isSelfTourViewed: false,
             amountOwed: 0,
+            draftTransactionIDs: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -918,6 +940,17 @@ describe('MoneyRequest', () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 backTo,
+                draftTransactionIDs: [baseParams.transactionID],
+            });
+
+            expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
+        });
+
+        it('should default draftTransactionIDs to empty array when undefined is passed', () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                backTo,
+                draftTransactionIDs: undefined,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -935,6 +968,7 @@ describe('MoneyRequest', () => {
                 manualDistance: undefined,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
             });
 
             expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
@@ -946,6 +980,7 @@ describe('MoneyRequest', () => {
                 manualDistance: 20,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
@@ -984,8 +1019,8 @@ describe('MoneyRequest', () => {
                     customUnitRateID: baseParams.customUnitRateID,
                     attendees: fakeTransaction?.comment?.attendees,
                     gpsCoordinates: undefined,
-                    odometerStart: undefined,
                     odometerEnd: undefined,
+                    odometerStart: undefined,
                 },
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
@@ -993,6 +1028,7 @@ describe('MoneyRequest', () => {
                 quickAction: baseParams.quickAction,
                 recentWaypoints: baseParams.recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [baseParams.transactionID],
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
@@ -1005,6 +1041,7 @@ describe('MoneyRequest', () => {
                 manualDistance: undefined,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
             });
 
             await waitForBatchedUpdates();
@@ -1065,6 +1102,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 manualDistance: 20,
                 iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
             });
 
             expect(IOU.createDistanceRequest).toHaveBeenCalledWith(
@@ -1103,6 +1141,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 manualDistance: undefined,
                 iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
             });
 
             expect(IOU.createDistanceRequest).toHaveBeenCalledWith(
@@ -1140,6 +1179,7 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 shouldSkipConfirmation: false,
                 iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
             });
 
             await waitForBatchedUpdates();
@@ -1175,6 +1215,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy,
                 isAutoReporting: true,
                 iouType: CONST.IOU.TYPE.CREATE,
+                draftTransactionIDs: [baseParams.transactionID],
             });
             await waitForBatchedUpdates();
 
@@ -1215,6 +1256,7 @@ describe('MoneyRequest', () => {
                 report: undefined,
                 defaultExpensePolicy,
                 iouType: CONST.IOU.TYPE.CREATE,
+                draftTransactionIDs: [baseParams.transactionID],
             });
             await waitForBatchedUpdates();
 
@@ -1226,6 +1268,7 @@ describe('MoneyRequest', () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.CREATE,
+                draftTransactionIDs: [baseParams.transactionID],
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
