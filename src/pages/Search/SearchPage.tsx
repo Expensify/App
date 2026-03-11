@@ -13,7 +13,6 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
@@ -37,7 +36,7 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
@@ -58,7 +57,7 @@ function SearchPage({route}: SearchPageProps) {
         if (currentSearchResults.data) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
-    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+    }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults]);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -66,6 +65,7 @@ function SearchPage({route}: SearchPageProps) {
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
     const [isSorting, setIsSorting] = useState(false);
+
     let searchResults: SearchResults | undefined;
     if (currentSearchResults?.data !== undefined) {
         searchResults = currentSearchResults;
@@ -74,7 +74,7 @@ function SearchPage({route}: SearchPageProps) {
     }
 
     const metadata = searchResults?.search;
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
     const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
 
     useEffect(() => {
@@ -146,7 +146,7 @@ function SearchPage({route}: SearchPageProps) {
                 <DragAndDropProvider isDisabled={isDragDisabled}>
                     {PDFValidationComponent}
                     <SearchPageNarrow
-                        queryJSON={queryJSON}
+                        queryJSON={currentSearchQueryJSON}
                         metadata={metadata}
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -167,7 +167,7 @@ function SearchPage({route}: SearchPageProps) {
                 </DragAndDropProvider>
             ) : (
                 <SearchPageWide
-                    queryJSON={queryJSON}
+                    queryJSON={currentSearchQueryJSON}
                     searchResults={searchResults}
                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}

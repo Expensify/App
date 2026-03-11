@@ -3,15 +3,13 @@ import {useCallback, useEffect} from 'react';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {openSearch, search} from '@libs/actions/Search';
-import {getSuggestedSearches, isSearchDataLoaded} from '@libs/SearchUIUtils';
-import useCardFeedsForDisplay from './useCardFeedsForDisplay';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 
 /**
  * Handles page-level setup for Search that must happen before the Search component mounts:
- * - Sets the context hash/key so the Onyx subscription points to the correct snapshot
+ * - Clears selected transactions when the query changes
  * - Fires the search() API call so data starts loading alongside the skeleton
  * - Fires openSearch() to load bank account data
  * - Re-fires openSearch() when coming back online
@@ -19,34 +17,26 @@ import usePrevious from './usePrevious';
 function useSearchPageSetup(queryJSON: SearchQueryJSON | undefined) {
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const {setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, clearSelectedTransactions} = useSearchActionsContext();
-    const {shouldUseLiveData, currentSearchResults} = useSearchStateContext();
-    const {accountID} = useCurrentUserPersonalDetails();
-    const {defaultCardFeed} = useCardFeedsForDisplay();
+    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {shouldUseLiveData, currentSearchResults, currentSearchKey} = useSearchStateContext();
 
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeed?.id);
     const hash = queryJSON?.hash;
-    const recentSearchHash = queryJSON?.recentSearchHash;
-    const searchKey = recentSearchHash !== undefined ? Object.values(suggestedSearches).find((s) => s.recentSearchHash === recentSearchHash)?.key : undefined;
 
-    // useCallback is required here because useFocusEffect (React Navigation external API) compares callback references.
-    // React Compiler cannot optimize this — it doesn't know useFocusEffect's internal semantics.
-    const syncContextWithRoute = useCallback(() => {
-        if (hash === undefined || recentSearchHash === undefined || !queryJSON) {
+    // Clear selected transactions when navigating to a different search query
+    const clearOnHashChange = useCallback(() => {
+        if (hash === undefined) {
             return;
         }
         clearSelectedTransactions(hash);
-        setCurrentSearchHashAndKey(hash, recentSearchHash, searchKey);
-        setCurrentSearchQueryJSON(queryJSON);
-    }, [hash, recentSearchHash, searchKey, queryJSON, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON]);
+    }, [hash, clearSelectedTransactions]);
 
-    useFocusEffect(syncContextWithRoute);
+    useFocusEffect(clearOnHashChange);
 
     // useEffect supplements useFocusEffect: it handles both the initial mount
     // and cases where route params change without a navigation event (e.g. sorting).
-    useEffect(syncContextWithRoute, [syncContextWithRoute]);
+    useEffect(clearOnHashChange, [clearOnHashChange]);
 
-    // Fire search() when the query changes (hash/searchKey). This runs at the page level so the
+    // Fire search() when the query changes (hash). This runs at the page level so the
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.
     // currentSearchResults is intentionally read but not in deps — search should fire once per
     // query change, not re-trigger on every data update from Onyx.
@@ -57,8 +47,9 @@ function useSearchPageSetup(queryJSON: SearchQueryJSON | undefined) {
         if (isSearchDataLoaded(currentSearchResults, queryJSON) || currentSearchResults?.search?.isLoading) {
             return;
         }
-        search({queryJSON, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-    }, [hash, searchKey, isOffline, shouldUseLiveData, queryJSON]);
+        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hash, isOffline, shouldUseLiveData, queryJSON]);
 
     useEffect(() => {
         openSearch({includePartiallySetupBankAccounts: true});

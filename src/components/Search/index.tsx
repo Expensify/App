@@ -21,7 +21,6 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
-import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -51,7 +50,6 @@ import {
     getListItem,
     getSections,
     getSortedSections,
-    getSuggestedSearches,
     getValidGroupBy,
     getWideAmountIndicators,
     isGroupedItemArray,
@@ -215,7 +213,7 @@ function Search({
     searchRequestResponseStatusCode,
     onDEWModalOpen,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, recentSearchHash, similarSearchHash, groupBy, view} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -230,8 +228,17 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useWideRHPActions();
-    const {currentSearchHash, selectedTransactions, shouldTurnOffSelectionMode, lastSearchType, areAllMatchingItemsSelected, shouldResetSearchQuery, shouldUseLiveData} =
-        useSearchStateContext();
+    const {
+        currentSearchHash,
+        currentSearchKey,
+        selectedTransactions,
+        shouldTurnOffSelectionMode,
+        lastSearchType,
+        areAllMatchingItemsSelected,
+        shouldResetSearchQuery,
+        shouldUseLiveData,
+        suggestedSearches,
+    } = useSearchStateContext();
     const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
         useSearchActionsContext();
     const [offset, setOffset] = useState(0);
@@ -257,7 +264,6 @@ function Search({
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
-
         selector: selectFilteredReportActions,
     });
 
@@ -265,11 +271,8 @@ function Search({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    const {defaultCardFeed} = useCardFeedsForDisplay();
-    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
-    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key, [suggestedSearches, recentSearchHash]);
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, hash, offset === 0);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -353,7 +356,7 @@ function Search({
         transactions,
         previousTransactions,
         queryJSON,
-        searchKey,
+        searchKey: currentSearchKey,
         offset,
         shouldCalculateTotals,
         reportActions,
@@ -375,6 +378,7 @@ function Search({
             (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
             (hasErrors && searchRequestResponseStatusCode === null) ||
             isCardFeedsLoading);
+
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
     const loadMoreSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
@@ -411,7 +415,7 @@ function Search({
             bankAccountList,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
-            currentSearch: searchKey,
+            currentSearch: currentSearchKey,
             archivedReportsIDList: archivedReportsIdSet,
             queryJSON,
             isActionLoadingSet,
@@ -425,7 +429,7 @@ function Search({
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
-        searchKey,
+        currentSearchKey,
         isOffline,
         exportReportActions,
         validGroupBy,
@@ -555,7 +559,7 @@ function Search({
 
         handleSearch({
             queryJSON,
-            searchKey,
+            searchKey: currentSearchKey,
             offset,
             shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
@@ -564,7 +568,7 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals, validGroupBy]);
+    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -581,13 +585,13 @@ function Search({
         shouldRetrySearchWithTotalsOrGroupedRef.current = false;
         handleSearch({
             queryJSON,
-            searchKey,
+            searchKey: currentSearchKey,
             offset,
             shouldCalculateTotals: true,
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
-    }, [filteredDataLength, handleSearch, offset, queryJSON, searchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
+    }, [filteredDataLength, handleSearch, offset, queryJSON, currentSearchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -764,10 +768,22 @@ function Search({
 
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
+    const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));
 
     useEffect(
         () => () => {
             isUnmounted.current = true;
+
+            if (hasHadFirstLayout.current) {
+                return;
+            }
+
+            const activeNavigateToReportsSpan = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+            if (activeNavigateToReportsSpan !== navigateToReportsSpanOnMount.current) {
+                return;
+            }
+
+            cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         },
         [],
     );
@@ -949,7 +965,7 @@ function Search({
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 handleSearch({
                     queryJSON: item.transactionsQueryJSON,
-                    searchKey,
+                    searchKey: currentSearchKey,
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
@@ -1036,7 +1052,7 @@ function Search({
             markReportIDAsExpense,
             toggleTransaction,
             handleSearch,
-            searchKey,
+            currentSearchKey,
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
@@ -1320,8 +1336,8 @@ function Search({
             if (savedSearch.name !== savedSearch.query) {
                 chartTitle = savedSearch.name;
             }
-        } else if (searchKey && suggestedSearches[searchKey]) {
-            chartTitle = translate(suggestedSearches[searchKey].translationPath);
+        } else if (currentSearchKey && suggestedSearches[currentSearchKey]) {
+            chartTitle = translate(suggestedSearches[currentSearchKey].translationPath);
         }
 
         return (
