@@ -33,7 +33,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
-import {PinContextProvider} from '@pages/MissingPersonalDetails/PIN2Context';
+import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -51,12 +51,12 @@ const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calcul
 
 function MissingPersonalDetailsWithPinContext(props: Record<string, unknown>) {
     return (
-        <PinContextProvider>
+        <PINContextProvider>
             <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
             />
-        </PinContextProvider>
+        </PINContextProvider>
     );
 }
 
