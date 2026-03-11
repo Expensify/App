@@ -1,6 +1,7 @@
 import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {spanToJSON} from '@sentry/react-native';
+import {AppState} from 'react-native';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
@@ -15,6 +16,9 @@ type StartSpanExtraOptions = Partial<{
 }>;
 
 function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
+    if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE) {
+        return;
+    }
     // End any existing span for this name
     cancelSpan(spanId);
     Log.info(`[Sentry][${spanId}] Starting span`, undefined, {
@@ -77,6 +81,19 @@ function cancelSpansByPrefix(prefix: string) {
     }
 }
 
+/**
+ * Ends a span only if it's currently active. Unlike `endSpan`, this silently no-ops
+ * when the span doesn't exist, making it safe for render paths where the span
+ * may or may not have been started.
+ */
+function tryEndSpan(spanId: string): boolean {
+    if (!activeSpans.has(spanId)) {
+        return false;
+    }
+    endSpan(spanId);
+    return true;
+}
+
 function getSpan(spanId: string) {
     return activeSpans.get(spanId);
 }
@@ -87,4 +104,4 @@ function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAt
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, tryEndSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
