@@ -4,6 +4,7 @@ import {
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
     convertPolicyEmployeesToApprovalWorkflows,
+    filterAvailableMembersForNewWorkflow,
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
     mergeWorkflowMembersWithAvailableMembers,
@@ -1003,6 +1004,60 @@ describe('WorkflowUtils', () => {
             });
 
             expect(result).toBe('Reports above $1,000.00 forward to John Doe');
+        });
+    });
+
+    describe('filterAvailableMembersForNewWorkflow', () => {
+        it('Should return all members when there are no non-default workflows', () => {
+            const availableMembers = [buildMember(1), buildMember(2), buildMember(3)];
+            const workflows = [buildWorkflow([1, 2, 3], [1], {isDefault: true})];
+
+            const result = filterAvailableMembersForNewWorkflow(workflows, availableMembers);
+
+            expect(result).toEqual(availableMembers);
+        });
+
+        it('Should filter out members already in a non-default workflow', () => {
+            const availableMembers = [buildMember(1), buildMember(2), buildMember(3)];
+            const workflows = [buildWorkflow([1, 2, 3], [1], {isDefault: true}), buildWorkflow([2], [4])];
+
+            const result = filterAvailableMembersForNewWorkflow(workflows, availableMembers);
+
+            expect(result).toEqual([buildMember(1), buildMember(3)]);
+        });
+
+        it('Should filter out members from multiple non-default workflows', () => {
+            const availableMembers = [buildMember(1), buildMember(2), buildMember(3), buildMember(4)];
+            const workflows = [buildWorkflow([1, 2, 3, 4], [1], {isDefault: true}), buildWorkflow([1], [5]), buildWorkflow([3], [6])];
+
+            const result = filterAvailableMembersForNewWorkflow(workflows, availableMembers);
+
+            expect(result).toEqual([buildMember(2), buildMember(4)]);
+        });
+
+        it('Should return all members when workflows list is empty', () => {
+            const availableMembers = [buildMember(1), buildMember(2)];
+
+            const result = filterAvailableMembersForNewWorkflow([], availableMembers);
+
+            expect(result).toEqual(availableMembers);
+        });
+
+        it('Should return empty array when all members are in non-default workflows', () => {
+            const availableMembers = [buildMember(1), buildMember(2)];
+            const workflows = [buildWorkflow([1, 2], [3])];
+
+            const result = filterAvailableMembersForNewWorkflow(workflows, availableMembers);
+
+            expect(result).toEqual([]);
+        });
+
+        it('Should return empty array when available members list is empty', () => {
+            const workflows = [buildWorkflow([1], [2])];
+
+            const result = filterAvailableMembersForNewWorkflow(workflows, []);
+
+            expect(result).toEqual([]);
         });
     });
 
