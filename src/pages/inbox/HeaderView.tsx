@@ -73,6 +73,7 @@ import {
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import {joinRoom} from '@userActions/Report';
@@ -225,6 +226,12 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isLoading = !report?.reportID || !title;
     const isParentReportLoading = !!report?.parentReportID && !parentReport;
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'HeaderView',
+        hasReportID: !!report?.reportID,
+        hasTitle: !!title,
+    };
+
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDisplaySearchRouter = !isInSidePanel && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -265,7 +272,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
             >
                 <View style={[styles.appContentHeader, styles.pr3]}>
                     {isLoading ? (
-                        <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
+                        <ReportHeaderSkeletonView
+                            onBackButtonPress={onNavigationMenuButtonClicked}
+                            reasonAttributes={reasonAttributes}
+                        />
                     ) : (
                         <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
                             {shouldShowBackButton && (
