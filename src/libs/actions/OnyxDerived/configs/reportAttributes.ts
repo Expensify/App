@@ -103,7 +103,6 @@ export default createOnyxDerivedValueConfig({
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
-
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
 

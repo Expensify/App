@@ -146,7 +146,7 @@ import AnimatedSubmitButton from './AnimatedSubmitButton';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
@@ -279,6 +279,7 @@ function MoneyReportHeader({
         'ExpenseCopy',
         'Checkmark',
         'ReportCopy',
+        'Printer',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
@@ -397,6 +398,8 @@ function MoneyReportHeader({
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
+    const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
+
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
@@ -460,6 +463,19 @@ function MoneyReportHeader({
         isDistanceRequest(transaction) &&
         (isArchivedReport || isChatReportArchived || (activePolicyExpenseChat && (isDM(chatReport) || isSelfDM(chatReport))))
     );
+
+    const shouldDuplicateCloseModalOnSelect =
+        isDistanceExpenseUnsupportedForDuplicating ||
+        isPerDiemRequestOnNonDefaultWorkspace ||
+        hasCustomUnitOutOfPolicyViolation ||
+        activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
+
+    useEffect(() => {
+        if (!isDuplicateActive || shouldDuplicateCloseModalOnSelect) {
+            return;
+        }
+        dropdownMenuRef.current?.setIsMenuVisible(false);
+    }, [isDuplicateActive, shouldDuplicateCloseModalOnSelect]);
 
     const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
     const [rateErrorModalVisible, setRateErrorModalVisible] = useState(false);
@@ -660,6 +676,7 @@ function MoneyReportHeader({
                     betas,
                     isSelfTourViewed,
                     userBillingGraceEndPeriods,
+                    amountOwed,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -696,6 +713,7 @@ function MoneyReportHeader({
             betas,
             isSelfTourViewed,
             userBillingGraceEndPeriods,
+            amountOwed,
         ],
     );
 
@@ -724,7 +742,19 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, userBillingGraceEndPeriods, true);
+            approveMoneyRequest({
+                expenseReport: moneyRequestReport,
+                policy,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                full: true,
+            });
         }
     };
 
@@ -1138,7 +1168,7 @@ function MoneyReportHeader({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
                     if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
@@ -1389,6 +1419,18 @@ function MoneyReportHeader({
                 beginPDFExport(moneyRequestReport.reportID);
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.PRINT]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.PRINT,
+            text: translate('common.print'),
+            icon: expensifyIcons.Printer,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PRINT,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
+                openOldDotLink(CONST.OLDDOT_URLS.PRINTABLE_REPORT(moneyRequestReport.reportID));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.SUBMIT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
             text: translate('common.submit'),
@@ -1402,7 +1444,7 @@ function MoneyReportHeader({
                     showDWEModal();
                     return;
                 }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
+                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
@@ -1561,11 +1603,7 @@ function MoneyReportHeader({
 
                 duplicateExpenseTransaction([transaction]);
             },
-            shouldCloseModalOnSelect:
-                isDistanceExpenseUnsupportedForDuplicating ||
-                isPerDiemRequestOnNonDefaultWorkspace ||
-                hasCustomUnitOutOfPolicyViolation ||
-                activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID,
+            shouldCloseModalOnSelect: shouldDuplicateCloseModalOnSelect,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT]: {
             text: translate('common.duplicateReport'),
@@ -1741,7 +1779,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -1955,6 +1993,7 @@ function MoneyReportHeader({
                                 onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
+                                dropdownMenuRef={dropdownMenuRef}
                                 ref={kycWallRef}
                             />
                         )}
@@ -1999,6 +2038,7 @@ function MoneyReportHeader({
                                 onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
+                                dropdownMenuRef={dropdownMenuRef}
                                 ref={kycWallRef}
                             />
                         )}
