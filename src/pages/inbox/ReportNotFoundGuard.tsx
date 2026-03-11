@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo, useState} from 'react';
+import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
@@ -47,8 +47,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [firstRender, setFirstRender] = useState(true);
-
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
@@ -76,47 +74,12 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
 
     const currentReportIDFormRoute = (route.params as {reportID?: string} | undefined)?.reportID;
 
+    const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
+    const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!reportMetadata?.isLoadingInitialReportActions);
+    const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo((): boolean => {
-        const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
-        const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!reportMetadata?.isLoadingInitialReportActions);
-        const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
-
-        if (deleteTransactionNavigateBackUrl) {
-            return false;
-        }
-        if (isDeletedTransactionThread) {
-            return true;
-        }
-        if (isInvalidReportPath) {
-            return true;
-        }
-        if (isLoading) {
-            return false;
-        }
-        if (firstRender) {
-            return false;
-        }
-        return !reportExists;
-    }, [
-        isLoadingApp,
-        isLoadingReportData,
-        isOffline,
-        reportMetadata?.isLoadingInitialReportActions,
-        reportID,
-        isOptimisticDelete,
-        userLeavingStatus,
-        currentReportIDFormRoute,
-        firstRender,
-        deleteTransactionNavigateBackUrl,
-        isDeletedTransactionThread,
-    ]);
-
-    // --- Track firstRender ---
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setFirstRender(false);
-    }, []);
+    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isDeletedTransactionThread || isInvalidReportPath || (!isLoading && !reportExists));
 
     return (
         <FullPageNotFoundView
@@ -127,9 +90,9 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
             onBackButtonPress={Navigation.goBack}
             shouldDisplaySearchRouter
         >
-            <DragAndDropProvider isDisabled={isEditingDisabled}>
-                <LinkedActionNotFoundGuard>{children}</LinkedActionNotFoundGuard>
-            </DragAndDropProvider>
+            <LinkedActionNotFoundGuard>
+                <DragAndDropProvider isDisabled={isEditingDisabled}>{children}</DragAndDropProvider>
+            </LinkedActionNotFoundGuard>
         </FullPageNotFoundView>
     );
 }
