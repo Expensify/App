@@ -2318,6 +2318,7 @@ ${amount} per ${merchant} - ${date}`,
         frozen: 'Bloccata',
         youFroze: ({date}: {date: string}) => `Hai bloccato questa carta il ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} ha bloccato questa carta il ${date}.`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `Questa carta è stata bloccata il ${date} da `,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Questa carta è stata bloccata da ${person}. Contatta un amministratore per sbloccarla.`,
     },
     workflowsPage: {

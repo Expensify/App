@@ -180,7 +180,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                 <ScrollView addBottomSafeAreaPadding>
                     {canManageCardFreeze && isCardFrozen(card) ? (
                         <FrozenCardHeader
-                            cardID={cardID}
+                            isWorkspaceAdmin={isAdmin}
+                            frozenByAccountID={card?.nameValuePairs?.frozen?.byAccountID}
+                            frozenDate={card?.nameValuePairs?.frozen?.date}
                             onUnfreezePress={handleUnfreezePress}
                             cardPreview={
                                 <View style={[styles.pRelative, styles.alignSelfCenter, StyleUtils.getWidthStyle(variables.cardPreviewWidth)]}>

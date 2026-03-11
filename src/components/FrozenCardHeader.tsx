@@ -1,4 +1,3 @@
-import {cardByIdSelector} from '@selectors/Card';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -9,21 +8,26 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import Icon from './Icon';
 import Text from './Text';
+import TextLink from './TextLink';
 
 type FrozenCardHeaderProps = {
-    cardID: string;
     cardPreview: React.ReactNode;
     onUnfreezePress: () => void;
     onAskToUnfreezePress: () => void;
     canUnfreezeCard: boolean;
+    isWorkspaceAdmin: boolean;
+    frozenByAccountID?: number;
+    frozenDate?: string;
 };
 
-function FrozenCardHeader({cardID, cardPreview, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard}: FrozenCardHeaderProps) {
+function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -31,21 +35,35 @@ function FrozenCardHeader({cardID, cardPreview, onUnfreezePress, onAskToUnfreeze
     const icons = useMemoizedLazyExpensifyIcons(['FreezeCard'] as const);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
-
-    const frozenByAccountID = card?.nameValuePairs?.frozen?.byAccountID;
-    const frozenDate = card?.nameValuePairs?.frozen?.date;
     const isCurrentUser = frozenByAccountID === session?.accountID;
 
     const frozenByName = frozenByAccountID ? getDisplayNameOrDefault(personalDetails?.[frozenByAccountID]) : '';
     const formattedDate = frozenDate ? DateUtils.formatWithUTCTimeZone(frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const adminFrozenTextPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedDate});
 
     const statusText = useMemo(() => {
         if (isCurrentUser) {
             return translate('cardPage.youFroze', {date: formattedDate});
         }
+        if (isWorkspaceAdmin) {
+            if (!frozenByAccountID || !frozenByName) {
+                return `${adminFrozenTextPrefix}${translate('common.someone')}`;
+            }
+
+            return (
+                <>
+                    {adminFrozenTextPrefix}
+                    <TextLink
+                        onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
+                        style={styles.link}
+                    >
+                        {frozenByName}
+                    </TextLink>
+                </>
+            );
+        }
         return translate('cardPage.frozenByAdminNeedsUnfreeze', {person: frozenByName || translate('common.someone')});
-    }, [isCurrentUser, formattedDate, frozenByName, translate]);
+    }, [adminFrozenTextPrefix, frozenByAccountID, frozenByName, formattedDate, isCurrentUser, isWorkspaceAdmin, styles.link, translate]);
 
     return (
         <View style={[styles.ph5, styles.pb5]}>

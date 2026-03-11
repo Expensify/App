@@ -2311,6 +2311,7 @@ ${amount} dla ${merchant} - ${date}`,
         frozen: 'Zamrożona',
         youFroze: ({date}: {date: string}) => `Zamroziłeś tę kartę ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} zamroził(a) tę kartę ${date}.`,
+        frozenByAdminPrefix: ({date}: {date: string}) => `Ta karta została zamrożona ${date} przez `,
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Ta karta została zamrożona przez ${person}. Skontaktuj się z administratorem, aby ją odmrozić.`,
     },
     workflowsPage: {

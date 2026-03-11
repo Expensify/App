@@ -39,6 +39,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {shouldShowMissingDetailsPage} from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -171,18 +172,20 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isAccountLocked;
     const canUnfreezeCard = canManageCardFreeze && frozenByAccountID === session?.accountID;
 
-    const policyIDSelector = useCallback(
-        (allPolicies: OnyxCollection<Policy>): string | undefined => {
+    const policySelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>): Policy | undefined => {
             const workspaceAccountID = Number(currentCard?.fundID);
             if (!workspaceAccountID || Number.isNaN(workspaceAccountID)) {
                 return undefined;
             }
 
-            return Object.values(allPolicies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID)?.id;
+            return Object.values(allPolicies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID);
         },
         [currentCard?.fundID],
     );
-    const [policyIDForCurrentCard] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyIDSelector}, [policyIDSelector]);
+    const [policyForCurrentCard] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector}, [policySelector]);
+    const policyIDForCurrentCard = policyForCurrentCard?.id;
+    const isWorkspaceAdmin = isPolicyAdmin(policyForCurrentCard, session?.email);
 
     const scarfOverlayStyle = useMemo<ViewStyle>(
         () => ({
@@ -251,7 +254,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
             <ScrollView>
                 {canManageCardFreeze && isCardFrozen(currentCard) ? (
                     <FrozenCardHeader
-                        cardID={cardID}
+                        isWorkspaceAdmin={isWorkspaceAdmin}
+                        frozenByAccountID={currentCard?.nameValuePairs?.frozen?.byAccountID}
+                        frozenDate={currentCard?.nameValuePairs?.frozen?.date}
                         canUnfreezeCard={canUnfreezeCard}
                         onAskToUnfreezePress={handleAskToUnfreezePress}
                         onUnfreezePress={handleUnfreezePress}
