@@ -159,18 +159,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const {
-        all: {shouldShowRBR},
         personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
-
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     let walletBrickRoadIndicator;
     if (
-        hasPaymentMethodError(bankAccountList, fundList, allCards) ||
+        hasPaymentMethodError(bankAccountList, fundList, allCards, session, policies) ||
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
         !isEmptyObject(unsharedBankAccount?.errors) ||
-        shouldShowRBR ||
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
