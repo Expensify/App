@@ -7,7 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {useAccountingContext} from '@pages/workspace/accounting/AccountingContext';
+import {useAccountingState} from '@pages/workspace/accounting/AccountingContext';
 import {getInitialSubPageForNetsuiteTokenInput} from '@pages/workspace/accounting/netsuite/utils';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
@@ -26,7 +26,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
 
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const {popoverAnchorRefs} = useAccountingContext();
+    const {popoverAnchorRefs} = useAccountingState();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy'] as const);

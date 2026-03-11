@@ -59,8 +59,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     addBottomSafeAreaPadding,
     isLoadingNewOptions,
     canSelectMultiple = false,
-    showLoadingPlaceholder = false,
-    showListEmptyContent = true,
+    shouldShowLoadingPlaceholder = false,
+    shouldShowListEmptyContent = true,
     shouldShowTooltips = true,
     disableKeyboardShortcuts = false,
     shouldShowTextInput,
@@ -71,6 +71,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldScrollToFocusedIndex = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldDisableHoverStyle = false,
+    setShouldDisableHoverStyle = () => {},
     canShowProductTrainingTooltip,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
@@ -131,6 +133,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused: isScreenFocused,
+        onArrowUpDownCallback: () => setShouldDisableHoverStyle(true),
     });
 
     const getFocusedItem = (): TItem | undefined => {
@@ -271,17 +274,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 dataLength={flattenedData.length}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
-                showLoadingPlaceholder={showLoadingPlaceholder}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
         );
     };
 
     const renderListEmptyContent = () => {
-        if (showLoadingPlaceholder) {
+        if (shouldShowLoadingPlaceholder) {
             return <OptionsListSkeletonView />;
         }
-        if (showListEmptyContent) {
+        if (shouldShowListEmptyContent) {
             return listEmptyContent;
         }
     };
@@ -330,6 +333,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
+                        shouldDisableHoverStyle={shouldDisableHoverStyle}
                     />
                 );
             }
@@ -345,7 +349,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         >
             {textInputComponent()}
             {customHeaderContent}
-            {itemsCount === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
+            {itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <FlashList

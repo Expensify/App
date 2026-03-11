@@ -2,17 +2,9 @@ import type {ImageStyle} from 'expo-image';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
-import type SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import type TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton | typeof CardRowSkeleton;
-type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
-type HeaderMedia = string | IconAsset | DotLottieAnimation;
+type HeaderMedia = IconAsset;
 type EmptyStateButton = {
     buttonText?: string;
     buttonAction?: () => void;
@@ -27,9 +19,8 @@ type EmptyStateButton = {
     >;
 };
 
-type SharedProps<TMediaType> = {
-    SkeletonComponent?: ValidSkeletons;
-    skeletonReasonAttributes?: SkeletonSpanReasonAttributes;
+type EmptyStateComponentProps = {
+    headerMedia: IconAsset;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
     subtitle?: string;
@@ -39,29 +30,11 @@ type SharedProps<TMediaType> = {
     cardStyles?: StyleProp<ViewStyle>;
     cardContentStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
-    headerMediaType: TMediaType;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
-    lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
     subtitleText?: React.ReactNode;
 };
 
-type MediaType<THeaderMedia, TMediaType extends MediaTypes> = SharedProps<TMediaType> & {
-    headerMedia: THeaderMedia;
-};
+type GenericEmptyStateComponentProps = EmptyStateComponentProps;
 
-type VideoProps = MediaType<string, 'video'>;
-type IllustrationProps = MediaType<IconAsset, 'illustration'>;
-type AnimationProps = MediaType<DotLottieAnimation, 'animation'>;
-
-type EmptyStateComponentProps = VideoProps | IllustrationProps | AnimationProps;
-type GenericEmptyStateComponentProps = SharedProps<MediaTypes> & {headerMedia: HeaderMedia};
-
-type VideoLoadedEventType = {
-    srcElement: {
-        videoWidth: number;
-        videoHeight: number;
-    };
-};
-
-export type {EmptyStateComponentProps, VideoLoadedEventType, EmptyStateButton, GenericEmptyStateComponentProps, MediaTypes, HeaderMedia};
+export type {EmptyStateComponentProps, EmptyStateButton, GenericEmptyStateComponentProps, HeaderMedia};
