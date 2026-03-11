@@ -1095,6 +1095,13 @@ Onyx.connect({
     callback: (value) => (allPolicyDrafts = value),
 });
 
+let allReportsViolations: OnyxCollection<ReportViolations>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportsViolations = value),
+});
+
 let allReports: OnyxCollection<Report>;
 let reportsByPolicyID: ReportByPolicyMap;
 Onyx.connect({
