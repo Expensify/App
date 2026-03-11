@@ -6,8 +6,8 @@ import MagicCodeInput from '@components/MagicCodeInput';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isValidPin} from '@libs/ValidationUtils';
-import {usePin} from '@pages/MissingPersonalDetails/PinContext';
+import {isValidPIN} from '@libs/ValidationUtils';
+import {usePIN} from '@pages/MissingPersonalDetails/PINContext';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,45 +16,45 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * PIN entry step for UK/EU Expensify Card ordering flow.
  * Implements a flow where user enters PIN, then needs to verify it.
  */
-function Pin({onNext}: CustomSubPageProps) {
+function PIN({onNext}: CustomSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {pin: savedPin, setPin, isConfirmStep, setIsConfirmStep, isPinHidden, togglePinVisibility} = usePin();
-    const [enteredPin, setEnteredPin] = useState(savedPin);
-    const [confirmPin, setConfirmPin] = useState(savedPin);
+    const {PIN: savedPIN, setPIN, isConfirmStep, setIsConfirmStep, isPINHidden, togglePINVisibility} = usePIN();
+    const [enteredPIN, setEnteredPIN] = useState(savedPIN);
+    const [confirmPIN, setConfirmPIN] = useState(savedPIN);
     const [error, setError] = useState('');
 
-    const handlePinChange = useCallback(
+    const handlePINChange = useCallback(
         (value: string) => {
             setError('');
             if (isConfirmStep) {
-                setConfirmPin(value);
+                setConfirmPIN(value);
             } else {
-                setEnteredPin(value);
+                setEnteredPIN(value);
             }
         },
         [isConfirmStep],
     );
 
-    const validatePin = useCallback((): string => {
-        const pinToValidate = isConfirmStep ? confirmPin : enteredPin;
+    const validatePIN = useCallback((): string => {
+        const PINToValidate = isConfirmStep ? confirmPIN : enteredPIN;
 
-        if (pinToValidate.length !== CONST.EXPENSIFY_CARD.PIN.LENGTH) {
+        if (PINToValidate.length !== CONST.EXPENSIFY_CARD.PIN.LENGTH) {
             return translate('cardPage.pinMustBeFourDigits');
         }
 
-        if (isConfirmStep && confirmPin !== enteredPin) {
+        if (isConfirmStep && confirmPIN !== enteredPIN) {
             return translate('cardPage.pinMismatch');
         }
 
-        if (!isValidPin(pinToValidate)) {
+        if (!isValidPIN(PINToValidate)) {
             return translate('cardPage.invalidPin');
         }
         return '';
-    }, [isConfirmStep, confirmPin, enteredPin, translate]);
+    }, [isConfirmStep, confirmPIN, enteredPIN, translate]);
 
     const handleSubmit = useCallback(() => {
-        const validationError = validatePin();
+        const validationError = validatePIN();
         if (validationError) {
             setError(validationError);
             return;
@@ -68,11 +68,11 @@ function Pin({onNext}: CustomSubPageProps) {
         }
 
         // PIN verified, save it and proceed
-        setPin(confirmPin);
+        setPIN(confirmPIN);
         onNext();
-    }, [validatePin, isConfirmStep, setPin, confirmPin, onNext, setIsConfirmStep]);
+    }, [validatePIN, isConfirmStep, setPIN, confirmPIN, onNext, setIsConfirmStep]);
 
-    const currentPin = isConfirmStep ? confirmPin : enteredPin;
+    const currentPIN = isConfirmStep ? confirmPIN : enteredPIN;
     const title = isConfirmStep ? translate('cardPage.confirmYourPin') : translate('cardPage.setYourPin');
 
     return (
@@ -92,20 +92,20 @@ function Pin({onNext}: CustomSubPageProps) {
                         key={`pin-${isConfirmStep}`}
                         autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                         name="pin"
-                        value={currentPin}
+                        value={currentPIN}
                         maxLength={CONST.EXPENSIFY_CARD.PIN.LENGTH}
-                        onChangeText={handlePinChange}
+                        onChangeText={handlePINChange}
                         hasError={!!error}
                         autoFocus
-                        secureTextEntry={isPinHidden}
+                        secureTextEntry={isPINHidden}
                     />
                     {!!error && <Text style={[styles.formError, styles.mt2]}>{error}</Text>}
                 </View>
 
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb4, styles.alignItemsCenter, styles.w100]}>
                     <Button
-                        text={isPinHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
-                        onPress={togglePinVisibility}
+                        text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
+                        onPress={togglePINVisibility}
                         medium
                     />
                 </View>
@@ -114,6 +114,6 @@ function Pin({onNext}: CustomSubPageProps) {
     );
 }
 
-Pin.displayName = 'Pin';
+PIN.displayName = 'PIN';
 
-export default Pin;
+export default PIN;

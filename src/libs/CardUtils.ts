@@ -144,16 +144,13 @@ function isExpensifyCard(card?: Card) {
 }
 
 /**
- * Checks if the card is a UK/EU Expensify card (supports PIN management features).
- * UK/EU cards have feedCountry set to 'GB' which indicates the UK/EU card program.
+ * Checks if the card supports PIN management features.
  * @param card - The card to check.
  * @returns boolean
  */
-function isExpensifyCardUkEuSupported(card: Card | null | undefined): boolean {
-    if (!card) {
-        return false;
-    }
-    return card.nameValuePairs?.feedCountry === CONST.COUNTRY.GB && isExpensifyCard(card);
+function supportsPINManagementFeatures(card: Card | null | undefined): boolean {
+    //  Use of PINs is based on card program. UK/EU (feedCountry GB) are the only program currently that supports these features.
+    return isExpensifyCard(card ?? undefined) && card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
 }
 
 /**
@@ -1409,7 +1406,7 @@ export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
-    isExpensifyCardUkEuSupported,
+    supportsPINManagementFeatures,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,

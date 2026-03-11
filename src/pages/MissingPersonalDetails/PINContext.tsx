@@ -1,15 +1,15 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 
-type PinContextType = {
+type PINContextType = {
     /** The current PIN value */
-    pin: string;
+    PIN: string;
 
     /** Set the PIN value */
-    setPin: (pin: string) => void;
+    setPIN: (PIN: string) => void;
 
     /** Clear the PIN and reset verification status */
-    clearPin: () => void;
+    clearPIN: () => void;
 
     /** Whether the user is on the PIN confirmation step */
     isConfirmStep: boolean;
@@ -18,25 +18,25 @@ type PinContextType = {
     setIsConfirmStep: (isConfirmStep: boolean) => void;
 
     /** Whether the PIN input is hidden */
-    isPinHidden: boolean;
+    isPINHidden: boolean;
 
     /** Toggle PIN visibility */
-    togglePinVisibility: () => void;
+    togglePINVisibility: () => void;
 };
 
-const defaultPinContext: PinContextType = {
-    pin: '',
-    setPin: () => {},
-    clearPin: () => {},
+const defaultPINContext: PINContextType = {
+    PIN: '',
+    setPIN: () => {},
+    clearPIN: () => {},
     isConfirmStep: false,
     setIsConfirmStep: () => {},
-    isPinHidden: true,
-    togglePinVisibility: () => {},
+    isPINHidden: true,
+    togglePINVisibility: () => {},
 };
 
-const PinContext = createContext<PinContextType>(defaultPinContext);
+const PINContext = createContext<PINContextType>(defaultPINContext);
 
-type PinContextProviderProps = {
+type PINContextProviderProps = {
     children: ReactNode;
 };
 
@@ -45,57 +45,57 @@ type PinContextProviderProps = {
  * PIN is stored in React Context instead of Onyx for PCI compliance -
  * PINs should never be persisted to storage.
  */
-function PinContextProvider({children}: PinContextProviderProps) {
-    const [pin, setPin] = useState('');
+function PINContextProvider({children}: PINContextProviderProps) {
+    const [PIN, setPIN] = useState('');
     const [isConfirmStep, setIsConfirmStepInternal] = useState(false);
-    const [isPinHidden, setIsPinHidden] = useState(true);
+    const [isPINHidden, setIsPINHidden] = useState(true);
 
     const setIsConfirmStep = useCallback((value: boolean) => {
         setIsConfirmStepInternal(value);
-        setIsPinHidden(true);
+        setIsPINHidden(true);
     }, []);
 
-    const clearPin = useCallback(() => {
-        setPin('');
+    const clearPIN = useCallback(() => {
+        setPIN('');
         setIsConfirmStep(false);
     }, [setIsConfirmStep]);
 
-    const togglePinVisibility = useCallback(() => {
-        setIsPinHidden((prev) => !prev);
+    const togglePINVisibility = useCallback(() => {
+        setIsPINHidden((prev) => !prev);
     }, []);
 
     // Clear PIN when the context provider unmounts (user leaves the flow)
     useEffect(() => {
         return () => {
-            clearPin();
+            clearPIN();
         };
-    }, [clearPin]);
+    }, [clearPIN]);
 
     const value = useMemo(
         () => ({
-            pin,
-            setPin,
-            clearPin,
+            PIN,
+            setPIN,
+            clearPIN,
             isConfirmStep,
             setIsConfirmStep,
-            isPinHidden,
-            togglePinVisibility,
+            isPINHidden,
+            togglePINVisibility,
         }),
-        [pin, clearPin, isConfirmStep, setIsConfirmStep, isPinHidden, togglePinVisibility],
+        [PIN, clearPIN, isConfirmStep, setIsConfirmStep, isPINHidden, togglePINVisibility],
     );
 
-    return <PinContext.Provider value={value}>{children}</PinContext.Provider>;
+    return <PINContext.Provider value={value}>{children}</PINContext.Provider>;
 }
 
 /**
  * Hook to access the PIN context.
- * Must be used within a PinContextProvider.
+ * Must be used within a PINContextProvider.
  */
-function usePin(): PinContextType {
-    return useContext(PinContext);
+function usePIN(): PINContextType {
+    return useContext(PINContext);
 }
 
-PinContextProvider.displayName = 'PinContextProvider';
+PINContextProvider.displayName = 'PINContextProvider';
 
-export {PinContextProvider, usePin};
-export type {PinContextType};
+export {PINContextProvider, usePIN};
+export type {PINContextType};

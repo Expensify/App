@@ -54,7 +54,6 @@ import {
     isDirectFeed as isDirectFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
-    isExpensifyCardUkEuSupported,
     isMatchingCard,
     isPersonalCard,
     lastFourNumbersFromCardName,
@@ -62,6 +61,7 @@ import {
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
     splitMaskedCardNumber,
+    supportsPINManagementFeatures,
 } from '@src/libs/CardUtils';
 import type {
     BankAccountList,
@@ -2646,7 +2646,7 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('isExpensifyCardUkEuSupported', () => {
+    describe('supportsPINManagementFeatures', () => {
         it('should return true for UK/EU Expensify Card with feedCountry GB', () => {
             const card: Card = {
                 accountID: 18439984,
@@ -2663,7 +2663,7 @@ describe('CardUtils', () => {
                     feedCountry: CONST.COUNTRY.GB,
                 } as Card['nameValuePairs'],
             };
-            expect(isExpensifyCardUkEuSupported(card)).toBe(true);
+            expect(supportsPINManagementFeatures(card)).toBe(true);
         });
 
         it('should return false for US Expensify Card (no feedCountry)', () => {
@@ -2679,7 +2679,7 @@ describe('CardUtils', () => {
                 lastUpdated: '',
                 state: 2,
             };
-            expect(isExpensifyCardUkEuSupported(card)).toBe(false);
+            expect(supportsPINManagementFeatures(card)).toBe(false);
         });
 
         it('should return false for US Expensify Card (feedCountry US)', () => {
@@ -2698,11 +2698,11 @@ describe('CardUtils', () => {
                     feedCountry: CONST.COUNTRY.US,
                 } as Card['nameValuePairs'],
             };
-            expect(isExpensifyCardUkEuSupported(card)).toBe(false);
+            expect(supportsPINManagementFeatures(card)).toBe(false);
         });
 
         it('should return false for undefined card', () => {
-            expect(isExpensifyCardUkEuSupported(undefined)).toBe(false);
+            expect(supportsPINManagementFeatures(undefined)).toBe(false);
         });
 
         it('should return false for non-Expensify Card even with feedCountry GB', () => {
@@ -2721,7 +2721,7 @@ describe('CardUtils', () => {
                     feedCountry: CONST.COUNTRY.GB,
                 } as Card['nameValuePairs'],
             };
-            expect(isExpensifyCardUkEuSupported(card)).toBe(false);
+            expect(supportsPINManagementFeatures(card)).toBe(false);
         });
     });
 

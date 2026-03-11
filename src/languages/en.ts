@@ -765,7 +765,7 @@ const translations = {
             },
         },
         setPin: {
-            didNotShipCard: 'We didn’t ship your card. Please try again.',
+            didNotShipCard: "We didn't ship your card. Please try again.",
         },
     },
     validateCodeModal: {

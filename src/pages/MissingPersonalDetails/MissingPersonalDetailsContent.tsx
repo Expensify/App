@@ -23,13 +23,13 @@ import ROUTES from '@src/ROUTES';
 import {isExpensifyCardUkEuSupportedSelector} from '@src/selectors/Card';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
-import {usePin} from './PinContext';
+import {usePIN} from './PINContext';
 import Address from './subPages/Address';
 import Confirmation from './subPages/Confirmation';
 import DateOfBirth from './subPages/DateOfBirth';
 import LegalName from './subPages/LegalName';
 import PhoneNumber from './subPages/PhoneNumber';
-import Pin from './subPages/Pin';
+import PINStep from './subPages/PIN';
 import type {CustomSubPageProps} from './types';
 import {getInitialSubPage, getSubPageValues} from './utils';
 
@@ -57,7 +57,7 @@ const baseFormPages = [
     {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PHONE_NUMBER, component: PhoneNumber},
 ];
 
-const pinPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN, component: Pin};
+const PINPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN, component: PINStep};
 const confirmPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation};
 
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID, isCardOrderFlow = false}: MissingPersonalDetailsContentProps) {
@@ -68,33 +68,33 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const isUKEUCardSelector = useCallback((cardList: OnyxEntry<CardList>) => isExpensifyCardUkEuSupportedSelector(cardList, cardID), [cardID]);
     const [isUKEUCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: isUKEUCardSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const {pin, isConfirmStep, setIsConfirmStep} = usePin();
-    const shouldCollectPin = isCardOrderFlow && !!isUKEUCard;
+    const {PIN, isConfirmStep, setIsConfirmStep} = usePIN();
+    const shouldCollectPIN = isCardOrderFlow && !!isUKEUCard;
 
     // Build form pages dynamically based on whether this is a UK/EU card
     const formPages = useMemo(() => {
-        if (shouldCollectPin) {
-            return [...baseFormPages, pinPage, confirmPage];
+        if (shouldCollectPIN) {
+            return [...baseFormPages, PINPage, confirmPage];
         }
         return [...baseFormPages, confirmPage];
-    }, [shouldCollectPin]);
+    }, [shouldCollectPIN]);
 
-    const stepIndexList = shouldCollectPin ? CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST;
+    const stepIndexList = shouldCollectPIN ? CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST;
 
     const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => {
-        const initialPage = getInitialSubPage(values, shouldCollectPin, pin);
+        const initialPage = getInitialSubPage(values, shouldCollectPIN, PIN);
         return findPageIndex<CustomSubPageProps>(formPages, initialPage);
-    }, [formPages, values, shouldCollectPin, pin]);
+    }, [formPages, values, shouldCollectPIN, PIN]);
 
     const handleFinishStep = () => {
-        if (shouldCollectPin) {
+        if (shouldCollectPIN) {
             if (isOffline || !cardID) {
                 return;
             }
 
-            if (!pin) {
+            if (!PIN) {
                 Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN));
                 return;
             }
@@ -102,7 +102,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             const personalDetailsParams: Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
             executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD, {
                 ...personalDetailsParams,
-                pin,
+                pin: PIN,
                 cardID,
             });
         } else {
@@ -165,7 +165,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 onMove={moveTo}
                 currentPageName={currentPageName}
                 personalDetailsValues={values}
-                shouldCollectPin={shouldCollectPin}
+                shouldCollectPin={shouldCollectPIN}
             />
         </ScreenWrapper>
     );

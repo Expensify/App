@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isExpensifyCard, isExpensifyCardUkEuSupported, isPersonalCard} from '@libs/CardUtils';
+import {isCard, isCardHiddenFromSearch, isExpensifyCard, isPersonalCard, supportsPINManagementFeatures} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,7 +90,7 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
 
 /** Checks whether the Expensify card matching the given cardID supports UK/EU features (e.g. PIN management). */
 const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID: string): boolean =>
-    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && isExpensifyCardUkEuSupported(card));
+    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && supportsPINManagementFeatures(card ?? undefined));
 
 export {
     filterCardsHiddenFromSearch,
