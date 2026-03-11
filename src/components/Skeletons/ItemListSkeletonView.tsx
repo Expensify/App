@@ -15,6 +15,7 @@ type ListItemSkeletonProps = {
     itemViewHeight?: number;
     speed?: number;
     style?: StyleProp<ViewStyle>;
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 const getVerticalMargin = (style: StyleProp<ViewStyle>): number => {
@@ -39,6 +40,7 @@ function ItemListSkeletonView({
     itemViewHeight = CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT,
     speed,
     style,
+    onLayout,
 }: ListItemSkeletonProps) {
     const theme = useTheme();
     const themeStyles = useThemeStyles();
@@ -49,6 +51,8 @@ function ItemListSkeletonView({
 
     const handleLayout = useCallback(
         (event: LayoutChangeEvent) => {
+            onLayout?.(event);
+
             if (fixedNumItems) {
                 return;
             }
@@ -59,7 +63,7 @@ function ItemListSkeletonView({
                 setNumItems(newNumItems);
             }
         },
-        [fixedNumItems, numItems, totalItemHeight],
+        [fixedNumItems, numItems, onLayout, totalItemHeight],
     );
 
     const skeletonViewItems = useMemo(() => {

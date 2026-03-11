@@ -45,6 +45,9 @@ type DatePresetFilterBaseProps = {
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
 
+    /** Callback when a date value changes (e.g. preset click or calendar save) */
+    onDateValueChange?: (values: SearchDateValues) => void;
+
     /** The ref handle */
     ref: Ref<DatePresetFilterBaseHandle>;
 };
@@ -59,7 +62,15 @@ type DatePresetFilterBaseProps = {
  * - On save: if a date modifier is selected (i.e. user clicked save at the calendar picker) you should `setDateValueOfSelectedDateModifier` otherwise `getDateValues`
  * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
  */
-function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, isSearchAdvancedFiltersFormLoading, ref}: DatePresetFilterBaseProps) {
+function DatePresetFilterBase({
+    defaultDateValues,
+    selectedDateModifier,
+    onSelectDateModifier,
+    presets,
+    isSearchAdvancedFiltersFormLoading,
+    onDateValueChange,
+    ref,
+}: DatePresetFilterBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -77,27 +88,35 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSearchAdvancedFiltersFormLoading]);
 
-    const setDateValue = useCallback((dateModifier: SearchDateModifier, value: string | undefined) => {
-        setDateValues((prevDateValues) => {
-            if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {
-                return {
-                    [CONST.SEARCH.DATE_MODIFIERS.ON]: value,
-                    [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-                    [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-                };
-            }
+    const setDateValue = useCallback(
+        (dateModifier: SearchDateModifier, value: string | undefined) => {
+            setDateValues((prevDateValues) => {
+                let newValues: SearchDateValues;
 
-            if (dateModifier !== CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(prevDateValues[CONST.SEARCH.DATE_MODIFIERS.ON])) {
-                return {
-                    ...prevDateValues,
-                    [dateModifier]: value,
-                    [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
-                };
-            }
+                if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {
+                    newValues = {
+                        [CONST.SEARCH.DATE_MODIFIERS.ON]: value,
+                        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+                        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+                    };
+                } else if (dateModifier !== CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(prevDateValues[CONST.SEARCH.DATE_MODIFIERS.ON])) {
+                    newValues = {
+                        ...prevDateValues,
+                        [dateModifier]: value,
+                        [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
+                    };
+                } else {
+                    newValues = {...prevDateValues, [dateModifier]: value};
+                }
 
-            return {...prevDateValues, [dateModifier]: value};
-        });
-    }, []);
+                // Call the callback immediately with the new values so parents don't need to depend on async state updates or refs
+                onDateValueChange?.(newValues);
+
+                return newValues;
+            });
+        },
+        [onDateValueChange],
+    );
 
     const dateDisplayValues = useMemo<SearchDateValues>(() => {
         const dateOn = dateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
