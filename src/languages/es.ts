@@ -8,6 +8,7 @@ import type {
     MultifactorAuthenticationTranslationParams,
     UpdatedPolicyTagParams,
     ViolationsRterParams,
+    WorkspaceUpgradeNoteParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
