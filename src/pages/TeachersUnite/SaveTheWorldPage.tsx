@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PaymentCardDetails from '@components/PaymentCardDetails';
 import ConfirmModal from '@components/ConfirmModal';
@@ -40,12 +40,10 @@ function SaveTheWorldPage() {
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [isDisablePersonalKarmaModalVisible, setIsDisablePersonalKarmaModalVisible] = useState(false);
-    const [isAddPaymentCardModalVisible, setIsAddPaymentCardModalVisible] = useState(false);
-    const shouldRevertPersonalKarmaOnAddCardModalHideRef = useRef(false);
+    const pendingPersonalKarmaEnableRef = useRef(false);
     const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
     const personalKarmaTitle = translate('teachersUnitePage.personalKarma.title');
     const personalKarmaDescription = translate('teachersUnitePage.personalKarma.description');
-    const personalKarmaAddPaymentCardPrompt = translate('teachersUnitePage.personalKarma.addPaymentCardPrompt');
     const personalKarmaStopDonationsPrompt = translate('teachersUnitePage.personalKarma.stopDonationsPrompt');
     const billingCard = useMemo(() => {
         const userBillingCard = userBillingFundID ? fundList?.[`${userBillingFundID}`] : undefined;
@@ -80,26 +78,15 @@ function SaveTheWorldPage() {
         }));
     }, [translate, waitForNavigate, styles]);
 
+    useEffect(() => {
+        if (pendingPersonalKarmaEnableRef.current && billingCard) {
+            pendingPersonalKarmaEnableRef.current = false;
+            updatePersonalKarma(true);
+        }
+    }, [billingCard]);
+
     const handleDisablePersonalKarma = () => {
         setIsDisablePersonalKarmaModalVisible(false);
-        updatePersonalKarma(false);
-    };
-
-    const openAddPaymentCardPage = () => {
-        shouldRevertPersonalKarmaOnAddCardModalHideRef.current = false;
-        setIsAddPaymentCardModalVisible(false);
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
-    };
-
-    const closeAddPaymentCardModal = () => {
-        setIsAddPaymentCardModalVisible(false);
-    };
-
-    const handleAddPaymentCardModalHide = () => {
-        if (!shouldRevertPersonalKarmaOnAddCardModalHideRef.current) {
-            return;
-        }
-        shouldRevertPersonalKarmaOnAddCardModalHideRef.current = false;
         updatePersonalKarma(false);
     };
 
@@ -113,11 +100,12 @@ function SaveTheWorldPage() {
             return;
         }
 
-        updatePersonalKarma(true);
         if (!billingCard) {
-            shouldRevertPersonalKarmaOnAddCardModalHideRef.current = true;
-            setIsAddPaymentCardModalVisible(true);
+            pendingPersonalKarmaEnableRef.current = true;
+            Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD);
+            return;
         }
+        updatePersonalKarma(true);
     };
 
     return (
@@ -183,16 +171,6 @@ function SaveTheWorldPage() {
                     </Section>
                 </View>
             </ScrollView>
-            <ConfirmModal
-                title={personalKarmaTitle}
-                isVisible={isAddPaymentCardModalVisible}
-                onConfirm={openAddPaymentCardPage}
-                onCancel={closeAddPaymentCardModal}
-                onModalHide={handleAddPaymentCardModalHide}
-                prompt={personalKarmaAddPaymentCardPrompt}
-                confirmText={translate('subscription.cardSection.addCardButton')}
-                cancelText={translate('common.cancel')}
-            />
             <ConfirmModal
                 title={personalKarmaTitle}
                 isVisible={isDisablePersonalKarmaModalVisible}

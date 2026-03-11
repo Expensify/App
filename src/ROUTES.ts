@@ -632,6 +632,7 @@ const ROUTES = {
     },
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
+    SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD: 'settings/teachersunite/add-payment-card',
 
     KEYBOARD_SHORTCUTS: {
         route: 'keyboard-shortcuts',
