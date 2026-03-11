@@ -6,7 +6,7 @@ index c4f9b5b..fa32056 100644
      var children = hasStickyHeaderIndices || pagingEnabled ? React.Children.map(this.props.children, (child, i) => {
        var isSticky = hasStickyHeaderIndices && stickyHeaderIndices.indexOf(i) > -1;
        if (child != null && (isSticky || pagingEnabled)) {
-+        var stickyItemIndex = (this.props.children.length - 1) - i + 10
++        var stickyItemIndex = (this.props.children.length - 1) - i + 10;
          return /*#__PURE__*/React.createElement(View, {
 -          style: [isSticky && styles.stickyHeader, pagingEnabled && styles.pagingEnabledChild]
 +          style: [isSticky && styles.stickyHeader, pagingEnabled && styles.pagingEnabledChild, isSticky && {zIndex: stickyItemIndex}]
@@ -32,9 +32,9 @@ index 42c4984..caf22bb 100644
 +  // reverse push order logic when props.inverted = true
 +  pushOrUnshift(input, item) {
 +    if (this.props.inverted) {
-+      input.unshift(item)
++      input.unshift(item);
 +    } else {
-+      input.push(item)
++      input.push(item);
 +    }
 +  }
 +  
