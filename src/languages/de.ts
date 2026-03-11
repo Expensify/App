@@ -2114,6 +2114,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen verlangt eine Zwei-Faktor-Authentifizierung.',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden',
         twoFactorAuthRequired: 'Die Zwei-Faktor-Authentifizierung (2FA) ist für Ihre Xero-Verbindung erforderlich und kann nicht deaktiviert werden.',
+        replaceDevice: 'Gerät ersetzen',
+        replaceDeviceTitle: 'Zwei-Faktor-Gerät ersetzen',
+        verifyOldDeviceTitle: 'Altes Gerät verifizieren',
+        verifyOldDeviceDescription: 'Gib den sechsstelligen Code aus deiner aktuellen Authenticator-App ein, um zu bestätigen, dass du Zugriff darauf hast.',
+        verifyNewDeviceTitle: 'Neues Gerät einrichten',
+        verifyNewDeviceDescription: 'Scanne den QR-Code mit deinem neuen Gerät und gib dann den Code ein, um die Einrichtung abzuschließen.',
     },
     recoveryCodeForm: {
         error: {
