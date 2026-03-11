@@ -257,6 +257,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowBlockingPage}
+                shouldForceFullScreen
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={goBackFromInvalidPolicy}
                 onLinkPress={goBackFromInvalidPolicy}
