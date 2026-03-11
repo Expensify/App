@@ -37,7 +37,7 @@ import type {
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -199,6 +199,7 @@ import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
+    calculateTaxAmount,
     getAmount,
     getCategoryTaxCodeAndAmount,
     getClearedPendingFields,
@@ -206,6 +207,7 @@ import {
     getDistanceInMeters,
     getMerchant,
     getRateID,
+    getTaxValue,
     getUpdatedTransaction,
     getWaypoints,
     hasAnyTransactionWithoutRTERViolation,
@@ -13082,6 +13084,10 @@ function updateMultipleMoneyRequests(
         }
         if (changes.taxCode && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
             transactionChanges.taxCode = changes.taxCode;
+            const taxValue = getTaxValue(policy, transaction, changes.taxCode);
+            const decimals = getCurrencyDecimals(getCurrency(transaction));
+            const taxAmount = calculateTaxAmount(taxValue, Math.abs(getAmount(transaction)), decimals);
+            transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
         }
         if (changes.billable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.BILLABLE)) {
             transactionChanges.billable = changes.billable;
@@ -13113,6 +13119,9 @@ function updateMultipleMoneyRequests(
         }
         if (transactionChanges.taxCode) {
             updates.taxCode = transactionChanges.taxCode;
+        }
+        if (transactionChanges.taxAmount !== undefined) {
+            updates.taxAmount = transactionChanges.taxAmount;
         }
         if (transactionChanges.amount !== undefined) {
             updates.amount = transactionChanges.amount;
