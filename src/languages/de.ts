@@ -54,6 +54,7 @@ import type {
     ReportArchiveReasonsRemovedFromPolicyParams,
     ResolutionConstraintsParams,
     ShareParams,
+    SizeExceededParams,
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
@@ -1637,10 +1638,10 @@ const translations: TranslationDeepObject<typeof en> = {
         viewPhoto: 'Foto ansehen',
         imageUploadFailed: 'Bildupload fehlgeschlagen',
         deleteWorkspaceError: 'Entschuldigung, beim Löschen deines Arbeitsbereichsavatars ist ein unerwartetes Problem aufgetreten',
-        sizeExceeded: (maxUploadSizeInMB) => `Das ausgewählte Bild überschreitet die maximale Uploadgröße von ${maxUploadSizeInMB} MB.`,
+        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Das ausgewählte Bild überschreitet die maximale Uploadgröße von ${maxUploadSizeInMB} MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Bitte laden Sie ein Bild hoch, das größer als ${minHeightInPx}x${minWidthInPx} Pixel und kleiner als ${maxHeightInPx}x${maxWidthInPx} Pixel ist.`,
-        notAllowedExtension: (allowedExtensions) => `Das Profilbild muss einer der folgenden Typen sein: ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `Das Profilbild muss einer der folgenden Typen sein: ${allowedExtensions.join(', ')}.`,
     },
     avatarPage: {
         title: 'Profilbild bearbeiten',

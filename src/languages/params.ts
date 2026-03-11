@@ -56,6 +56,8 @@ type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string
 
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
 
+type SizeExceededParams = {maxUploadSizeInMB: number};
+
 type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
 type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
@@ -313,6 +315,7 @@ export type {
     CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ResolutionConstraintsParams,
+    SizeExceededParams,
     StepCounterParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
