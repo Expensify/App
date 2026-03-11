@@ -169,7 +169,7 @@ function SearchEditMultiplePage() {
         ? policyTagLists.flatMap((tagList, tagListIndex) => {
               const tagName = tagsArray.at(tagListIndex) ?? '';
               const tagTitle = tagName ? getCleanedTagName(tagName) : '';
-              const description = policyTagLists.length > 1 ? tagList.name : translate('common.tag');
+              const description = tagList.name || translate('common.tag');
               let shouldShow = true;
 
               if (hasDependentTags) {
