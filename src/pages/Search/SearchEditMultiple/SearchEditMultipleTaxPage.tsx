@@ -10,7 +10,7 @@ import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
-import {getTaxName} from '@libs/TransactionUtils';
+import {transformedTaxRates} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -28,7 +28,7 @@ function SearchEditMultipleTaxPage() {
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const selectedTaxRate = draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : '';
+    const selectedTaxRate = draftTransaction?.taxCode ? (Object.values(transformedTaxRates(policy)).find((rate) => rate.code === draftTransaction.taxCode)?.modifiedName ?? '') : '';
 
     const onSubmit = (taxes: TaxRatesOption) => {
         const nextTaxCode = taxes.code ?? '';
