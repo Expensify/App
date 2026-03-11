@@ -83,7 +83,11 @@ function ReportFooter() {
 
     // Happy path — user can compose
     if (!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth)) {
-        return <ReportActionCompose reportID={report.reportID} />;
+        return (
+            <View style={styles.chatFooter}>
+                <ReportActionCompose reportID={report.reportID} />
+            </View>
+        );
     }
 
     // Archived room
