@@ -475,6 +475,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validar',
         downloadAsPDF: 'Baixar como PDF',
         downloadAsCSV: 'Baixar como CSV',
+        print: 'Imprimir',
         help: 'Ajuda',
         expenseReport: 'Relatório de despesas',
         expenseReports: 'Relatórios de despesas',
@@ -514,8 +515,6 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
-        approvalLimit: 'Limite de aprovação',
-        overLimitForwardTo: 'Encaminhar se exceder o limite',
         merge: 'Mesclar',
         none: 'Nenhum',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
@@ -545,6 +544,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Delegado de férias',
         expensifyLogo: 'Logo da Expensify',
         duplicateReport: 'Duplicar relatório',
+        approver: 'Aprovador',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -680,7 +680,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: 'Teste de biometria',
             authenticationSuccessful: 'Autenticação bem-sucedida',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Você se autenticou com sucesso usando ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometria (${registered ? 'Registrado' : 'Não registrado'})`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometria (${status})`,
             yourAttemptWasUnsuccessful: 'Sua tentativa de autenticação não foi bem-sucedida.',
             youCouldNotBeAuthenticated: 'Não foi possível autenticar você',
             areYouSureToReject: 'Tem certeza? A tentativa de autenticação será rejeitada se você fechar esta tela.',
@@ -696,6 +696,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: 'Nunca registrado',
+            statusNotRegistered: 'Não registrado',
+            statusRegisteredThisDevice: 'Registrado',
+            statusRegisteredOtherDevice: () => ({one: 'Outro dispositivo registrado', other: 'Outros dispositivos registrados'}),
         },
         pleaseEnableInSystemSettings: {
             start: 'Ative a verificação por rosto/digital ou defina um código de acesso do dispositivo no seu',
@@ -715,15 +719,25 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Ative uma verificação rápida e segura usando seu rosto ou impressão digital. Nenhuma senha ou código é necessário.',
         },
         revoke: {
-            title: 'Face/digital & passkeys',
+            title: 'Reconhecimento facial/digital e passkeys',
             explanation:
-                'A verificação por rosto/digital ou por chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo.',
-            confirmationPrompt: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação em qualquer dispositivo.',
+                'A verificação por rosto/digital ou chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico na próxima verificação nesse dispositivo.',
+            confirmationPrompt: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação nesse dispositivo.',
             cta: 'Revogar acesso',
-            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se registrar algum, você poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
             error: 'Falha na solicitação. Tente novamente mais tarde.',
             revoke: 'Revogar',
+            confirmationPromptAll: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação em qualquer dispositivo.',
+            ctaAll: 'Revogar tudo',
+            thisDevice: 'Este dispositivo',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['Um', 'Dois', 'Três', 'Quatro', 'Cinco', 'Seis', 'Sete', 'Oito', 'Nove'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} outro(a) ${otherDeviceCount === 1 ? 'dispositivo' : 'dispositivos'}`;
+            },
+            confirmationPromptThisDevice: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação neste dispositivo.',
+            confirmationPromptMultiple: 'Você tem certeza? Você vai precisar de um código mágico para a próxima verificação nesses dispositivos.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',
@@ -1352,7 +1366,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `não aprovado`,
         automaticallyForwarded: `aprovado por meio das <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         forwarded: `aprovado`,
-        rejectedThisReport: 'rejeitou este relatório',
+        rejectedThisReport: 'rejeitou',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `iniciou o pagamento, mas está aguardando ${submitterDisplayName} adicionar uma conta bancária.`,
         adminCanceledRequest: 'cancelou o pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) => `cancelou o pagamento de ${amount} porque ${submitterDisplayName} não ativou a Carteira Expensify em 30 dias`,
@@ -1444,6 +1458,10 @@ const translations: TranslationDeepObject<typeof en> = {
         explainHold: () => ({
             one: 'Explique por que você está retendo esta despesa.',
             other: 'Explique por que você está segurando essas despesas.',
+        }),
+        explainHoldApprover: () => ({
+            one: 'Explique o que você precisa antes de aprovar esta despesa.',
+            other: 'Explique o que você precisa antes de aprovar estas despesas.',
         }),
         retracted: 'retraído',
         retract: 'Retrair',
@@ -1539,7 +1557,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Despesas retidas são deixadas para trás quando você aprova um relatório inteiro.',
             rejectExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
             reasonPageTitle: 'Rejeitar despesa',
-            reasonPageDescription: 'Explique por que você está rejeitando esta despesa.',
+            reasonPageDescription: 'Explique por que você não aprovará esta despesa.',
             rejectReason: 'Motivo da rejeição',
             markAsResolved: 'Marcar como resolvido',
             rejectedStatus: 'Esta despesa foi rejeitada. Estamos aguardando você corrigir os problemas e marcá-la como resolvida para permitir o envio.',
@@ -1566,7 +1584,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Escolha um workspace',
-        routedDueToDEW: (to: string) => `relatório encaminhado para ${to} devido ao fluxo de aprovação personalizado`,
+        routedDueToDEW: (to: string, reason?: string) => `relatório encaminhado para ${to}${reason ? ` porque ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hora' : 'horas'} @ ${rate} / hora`,
             hrs: 'h',
@@ -1948,7 +1966,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: 'Restaurar login armazenado',
         signOutConfirmationText: 'Você perderá quaisquer alterações offline se sair.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>Leia os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e a <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Política de Privacidade</a>.</muted-text-micro>`,
+        readTheTermsAndPrivacy: `Leia os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e a <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Política de Privacidade</a>.`,
         help: 'Ajuda',
         whatIsNew: 'Novidades',
         accountSettings: 'Configurações da conta',
@@ -2067,6 +2085,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: 'Escaneie o código QR usando seu',
         authenticatorApp: 'aplicativo autenticador',
         addKey: 'Ou adicione esta chave secreta ao seu app autenticador:',
+        secretKey: 'chave secreta',
         enterCode: 'Em seguida, insira o código de seis dígitos gerado pelo seu app autenticador.',
         stepSuccess: 'Concluído',
         enabled: 'Autenticação em duas etapas ativada',
@@ -2170,12 +2189,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Adicionar cartão pessoal',
+        addCompanyCard: 'Adicionar cartão corporativo',
+        lookingForCompanyCards: 'Precisa adicionar cartões corporativos?',
+        lookingForCompanyCardsDescription: 'Conecte seus próprios cartões de mais de 10.000 bancos no mundo todo.',
+        personalCardAdded: 'Cartão pessoal adicionado!',
+        personalCardAddedDescription: 'Parabéns, começaremos a importar transações do seu cartão.',
+        isPersonalCard: 'Este é um cartão pessoal?',
+        thisIsPersonalCard: 'Este é um cartão pessoal',
+        thisIsCompanyCard: 'Este é um cartão corporativo',
+        askAdmin: 'Pergunte ao administrador',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Se sim, ótimo! Mas se for um cartão <strong>corporativo</strong>, ${isAdmin ? 'atribua-o no seu espaço de trabalho.' : 'peça ao administrador para atribuí-lo a você no espaço de trabalho.'}`,
+        bankConnectionError: 'Problema de conexão com o banco',
+        bankConnectionDescription: 'Tente adicionar seus cartões novamente. Caso contrário, você pode',
+        connectWithPlaid: 'conectar via Plaid.',
         fixCard: 'Corrigir cartão',
         brokenConnection: 'A conexão do seu cartão está com problema.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `A conexão do seu cartão ${cardName} está com problemas. <a href="${connectionLink}">Acesse seu banco</a> para corrigir o cartão.`
                 : `A conexão do seu cartão ${cardName} está com problemas. Acesse seu banco para corrigir o cartão.`,
+        addAdditionalCards: 'Adicionar outros cartões',
+        upgradeDescription: 'Precisa adicionar mais cartões? Crie um espaço de trabalho para adicionar cartões pessoais ou atribuir cartões corporativos a toda a equipe.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Disponível no plano Collect por <strong>${formattedPrice}</strong> por membro por mês.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Crie um espaço de trabalho para acessar este recurso ou <a href="${subscriptionLink}">saiba mais</a> sobre nossos planos e preços.</muted-text>`,
+        workspaceCreated: 'Espaço de trabalho criado',
+        newWorkspace: 'Você criou um espaço de trabalho!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Tudo pronto para adicionar outros cartões. <a href="${subscriptionLink}">Ver sua assinatura</a> para mais detalhes.</centered-text>`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -2606,7 +2650,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>Ao entrar, você concorda com os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e a <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidade</a>.</muted-text-xs>`,
-        license: `<muted-text-xs>A transmissão de dinheiro é fornecida por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de acordo com suas <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenças</a>.</muted-text-xs>`,
+        license: `A transmissão de dinheiro é fornecida por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (ID NMLS:2017010) de acordo com suas <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenças</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Não recebeu um código mágico?',
@@ -2983,8 +3027,6 @@ ${
                 '# Vamos configurar tudo para você\n👋 Olá! Sou o seu especialista de configuração do Expensify. Já criei um workspace para ajudar a gerenciar seus recibos e despesas. Para aproveitar ao máximo sua avaliação gratuita de 30 dias, basta seguir as etapas de configuração restantes abaixo!',
             onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
             onboardingAdminMessage: 'Saiba como gerenciar o workspace da sua equipe como administrador e enviar suas próprias despesas.',
-            onboardingLookingAroundMessage:
-                'A Expensify é mais conhecida por gerenciamento de despesas, viagens e cartões corporativos, mas fazemos muito mais do que isso. Me diga no que você tem interesse e vou ajudar você a começar.',
             onboardingTestDriveReceiverMessage: '*Você ganhou 3 meses grátis! Comece abaixo.*',
         },
         workspace: {
@@ -5219,6 +5261,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         learnHow: 'Saiba como.',
                         subsections: {
                             currentTravelSpendLabel: 'Gasto atual com viagens',
+                            currentTravelSpendPaymentQueued: (amount: string) => `O pagamento de ${amount} está na fila e será processado em breve.`,
                             currentTravelSpendCta: 'Pagar saldo',
                             currentTravelLimitLabel: 'Limite de viagem atual',
                             settlementAccountLabel: 'Conta de liquidação',
@@ -5237,6 +5280,16 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         body: 'Você ainda tem um saldo de viagem pendente. Pague esse saldo primeiro.',
                         confirm: 'Entendi',
                     },
+                    payBalanceModal: {
+                        title: (amount: string) => `Pagar saldo de ${amount}?`,
+                        body: 'O pagamento será colocado em fila e processado em breve. Essa ação não poderá ser desfeita depois de iniciada.',
+                    },
+                    exportToPDF: 'Exportar para PDF',
+                    exportToCSV: 'Exportar para CSV',
+                    selectDateRangeError: 'Selecione um intervalo de datas para exportar',
+                    invalidDateRangeError: 'A data de início deve ser anterior à data de término',
+                    enabled: 'Faturamento centralizado ativado!',
+                    enabledDescription: 'Todos os gastos de viagem neste workspace agora serão centralizados em uma fatura mensal.',
                 },
                 personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',
             },
@@ -7601,6 +7654,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         notActivated: 'Não ativado',
         outOfPocket: 'Reembolsável',
         companySpend: 'Não reembolsável',
+        personalCard: 'Cartão pessoal',
+        companyCard: 'Cartão corporativo',
+        expensifyCard: 'Cartão Expensify',
     },
     distance: {
         addStop: 'Adicionar parada',
@@ -7704,6 +7760,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
         },
         fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
+        liveActivity: {subtitle: 'Rastreamento de distância', button: 'Ver progresso'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Boletim perdido ou danificado',
@@ -8450,7 +8507,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         goToDomain: 'Ir para o domínio',
         samlLogin: {
             title: 'Login SAML',
-            subtitle: `<muted-text>Configure o login de membros com <a href="${CONST.SAML_HELP_URL}">logon único SAML (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configure o login de membros com <a href="${CONST.SAML_HELP_URL}">logon único SAML (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'Ativar login SAML',
             allowMembers: 'Permitir que membros façam login com SAML.',
             requireSamlLogin: 'Exigir login SAML',

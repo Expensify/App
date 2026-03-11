@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -73,6 +73,14 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
+    const startListRenderSpan = () => {
+        startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER, {
+            name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER,
+            op: 'ui.render',
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
+        });
+    };
+
     const openSearchRouter = () => {
         if (isBrowserWithHistory) {
             window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
@@ -85,6 +93,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         close(
             () => {
                 endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT);
+                startListRenderSpan();
                 openSearch(setIsSearchRouterDisplayed);
                 searchRouterDisplayedRef.current = true;
             },
@@ -94,6 +103,8 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     };
 
     const closeSearchRouter = () => {
+        cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
+        cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
         closeSearch(setIsSearchRouterDisplayed);
         searchRouterDisplayedRef.current = false;
         if (isBrowserWithHistory) {
@@ -127,6 +138,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
                 searchPageInputRef.current.blur();
             } else {
                 startSearchRouterOpenSpan();
+                startListRenderSpan();
                 searchPageInputRef.current.focus();
             }
         } else if (searchRouterDisplayedRef.current) {

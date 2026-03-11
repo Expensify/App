@@ -49,6 +49,7 @@ import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {openExternalLink, openOldDotLink} from '@userActions/Link';
@@ -219,6 +220,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             return;
         }
         if (isTrackingGPS) {
+            stopGpsTripNotification();
             stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
         }
         signOut(true);
