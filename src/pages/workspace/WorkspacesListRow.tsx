@@ -262,7 +262,7 @@ function WorkspacesListRow({
 
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, styles.br3]}>
-            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide ? styles.gap5 : styles.gap2, styles.p5, styles.pr3, animatedHighlightStyle]}>
+            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide ? styles.gap5 : styles.gap2, styles.pt3, styles.pr2, styles.pb3, styles.pl4, animatedHighlightStyle]}>
                 <PressableWithoutFeedback
                     accessible
                     accessibilityLabel={accessibilityLabel}
