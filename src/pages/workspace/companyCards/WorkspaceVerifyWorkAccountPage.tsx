@@ -1,16 +1,20 @@
 import React, {useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import {updateSelectedFeed} from '@userActions/Card';
+import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import {getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 type WorkspaceVerifyWorkAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL>;
 
@@ -24,6 +28,22 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
 
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
+    const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
+    const isWorkEmailValidated = workEmail ? !!loginList?.[workEmail]?.validatedDate : false;
+
+    const getFeedInfo = () => {
+        if (!feed || !cardFeedsByPolicy) {
+            return undefined;
+        }
+        for (const cardFeeds of Object.values(cardFeedsByPolicy)) {
+            const found = cardFeeds.find((item) => item.id === feed);
+            if (found) {
+                return found;
+            }
+        }
+        return undefined;
+    };
+    const feedInfo = getFeedInfo();
 
     const sendValidateCode = () => {
         if (!workEmail) {
@@ -38,13 +58,15 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
     };
 
     useEffect(() => {
-        if (!workEmail) {
+        if (!feedInfo) {
             return;
         }
-        if (loginList?.[workEmail]?.validatedDate) {
-            // execute link API for feed
+        if (isWorkEmailValidated) {
+            linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, 'CompanyCard', feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber);
+            updateSelectedFeed(feed, policyID);
+            Navigation.closeRHPFlow();
         }
-    });
+    }, [feedInfo, isWorkEmailValidated, policyID]);
 
     return (
         <ValidateCodeActionContent
