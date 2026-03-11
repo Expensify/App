@@ -372,6 +372,8 @@ const translations = {
         // @context Unit label for “mile.” Should be treated as a measurement unit and may require capitalization depending on locale conventions.
         mi: 'mile',
         km: 'kilometer',
+        milesAbbreviated: 'mi',
+        kilometersAbbreviated: 'km',
         copied: 'Copied!',
         someone: 'Someone',
         total: 'Total',
@@ -8271,6 +8273,7 @@ const translations = {
         switchAccount: 'Switch accounts:',
         copilotDelegatedAccess: 'Copilot: Delegated access',
         copilotDelegatedAccessDescription: 'Allow other members to access your account.',
+        learnMoreAboutDelegatedAccess: 'Learn more about delegated access',
         addCopilot: 'Add copilot',
         membersCanAccessYourAccount: 'These members can access your account:',
         youCanAccessTheseAccounts: 'You can access these accounts via the account switcher:',

@@ -239,7 +239,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
@@ -501,7 +501,7 @@ describe('actions/Report', () => {
             .then(waitForNetworkPromises)
             .then(() => {
                 // Given a test user that is subscribed to Pusher events
-                User.subscribeToUserEvents(USER_1_ACCOUNT_ID);
+                User.subscribeToUserEvents(USER_1_ACCOUNT_ID, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
@@ -850,7 +850,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
             .then(waitForBatchedUpdates)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -869,7 +869,159 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Ensure we show a notification for this new report action
-                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+            });
+    });
+
+    it('should pass conciergeReportID through to showReportActionNotification when provided', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const REPORT_ID = '1';
+        const CONCIERGE_REPORT_ID = '42';
+        const REPORT_ACTION = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        };
+
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
+            .then(waitForBatchedUpdates)
+            .then(() => {
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                PusherHelper.emitOnyxUpdate([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        value: {
+                            1: REPORT_ACTION,
+                        },
+                        shouldNotify: true,
+                    },
+                ]);
+                return SequentialQueue.getCurrentRequest().then(waitForBatchedUpdates);
+            })
+            .then(() => {
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
+            });
+    });
+
+    it('should pass conciergeReportID through when using shouldShowPushNotification flag', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const REPORT_ID = '1';
+        const CONCIERGE_REPORT_ID = '99';
+        const REPORT_ACTION = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        };
+
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
+            .then(waitForBatchedUpdates)
+            .then(() => {
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                PusherHelper.emitOnyxUpdate([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        value: {
+                            1: REPORT_ACTION,
+                        },
+                        shouldShowPushNotification: true,
+                    },
+                ]);
+                return SequentialQueue.getCurrentRequest().then(waitForBatchedUpdates);
+            })
+            .then(() => {
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
+            });
+    });
+
+    it('should pass conciergeReportID for multiple report actions across different reports', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const REPORT_ID_1 = '1';
+        const REPORT_ID_2 = '2';
+        const CONCIERGE_REPORT_ID = '55';
+        const REPORT_ACTION_1 = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        };
+        const REPORT_ACTION_2 = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        };
+
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
+            .then(waitForBatchedUpdates)
+            .then(() => {
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                PusherHelper.emitOnyxUpdate([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID_1}`,
+                        value: {
+                            1: REPORT_ACTION_1,
+                        },
+                        shouldNotify: true,
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID_2}`,
+                        value: {
+                            2: REPORT_ACTION_2,
+                        },
+                        shouldNotify: true,
+                    },
+                ]);
+                return SequentialQueue.getCurrentRequest().then(waitForBatchedUpdates);
+            })
+            .then(() => {
+                expect(Report.showReportActionNotification).toHaveBeenCalledTimes(2);
+                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID_1, REPORT_ACTION_1, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
+                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID_2, REPORT_ACTION_2, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
+            });
+    });
+
+    it('should pass conciergeReportID for multiple actions within a single report update', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const REPORT_ID = '1';
+        const CONCIERGE_REPORT_ID = '77';
+        const REPORT_ACTION_1 = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        };
+        const REPORT_ACTION_2 = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        };
+
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
+            .then(waitForBatchedUpdates)
+            .then(() => {
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                PusherHelper.emitOnyxUpdate([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        value: {
+                            1: REPORT_ACTION_1,
+                            2: REPORT_ACTION_2,
+                        },
+                        shouldNotify: true,
+                    },
+                ]);
+                return SequentialQueue.getCurrentRequest().then(waitForBatchedUpdates);
+            })
+            .then(() => {
+                expect(Report.showReportActionNotification).toHaveBeenCalledTimes(2);
+                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID, REPORT_ACTION_1, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
+                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID, REPORT_ACTION_2, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
             });
     });
 
@@ -907,7 +1059,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
@@ -1043,7 +1195,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
                 return waitForBatchedUpdates();
             })
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))

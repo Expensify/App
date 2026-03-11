@@ -148,7 +148,6 @@ function WorkspacesListPage() {
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
@@ -231,7 +230,6 @@ function WorkspacesListPage() {
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
-            bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
