@@ -83,6 +83,7 @@ function useReceiptScan({
     const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
     const selfDMReport = useSelfDMReport();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
@@ -150,6 +151,7 @@ function useReceiptScan({
                 taxAmount: transactionTaxAmount,
                 currency: initialTransaction?.currency,
                 isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
+                isFromFloatingActionButton: initialTransaction?.isFromFloatingActionButton,
                 participants: initialTransaction?.participants,
             },
             personalDetails,
@@ -178,6 +180,7 @@ function useReceiptScan({
             betas,
             recentWaypoints,
             allTransactionDrafts,
+            amountOwed,
         });
     }
 

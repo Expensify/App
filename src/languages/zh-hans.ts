@@ -362,6 +362,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: '每',
         mi: '英里',
         km: '千米',
+        milesAbbreviated: '英里',
+        kilometersAbbreviated: '千米',
         copied: '已复制！',
         someone: '某人',
         total: '总计',
@@ -475,6 +477,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: '验证',
         downloadAsPDF: '下载为 PDF',
         downloadAsCSV: '下载为 CSV',
+        print: '打印',
         help: '帮助',
         expenseReport: '报销报告',
         expenseReports: '报销报告',
@@ -539,7 +542,9 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: '季度',
         vacationDelegate: '休假代理',
         expensifyLogo: 'Expensify徽标',
+        concierge: {sidePanelGreeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
         duplicateReport: '重复报销单',
+        approver: '审批人',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -670,9 +675,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         biometricsTest: {
             biometricsTest: '生物识别测试',
-            authenticationSuccessful: '验证成功',
+            authenticationSuccessful: '认证成功',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `您已成功使用 ${authType} 完成验证。`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `生物识别（${registered ? '已注册' : '未注册'}）`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `生物识别（${status}）`,
             yourAttemptWasUnsuccessful: '您的身份验证尝试未成功。',
             youCouldNotBeAuthenticated: '无法验证您的身份',
             areYouSureToReject: '您确定吗？如果您关闭此界面，此次身份验证尝试将被拒绝。',
@@ -688,6 +693,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: '从未注册',
+            statusNotRegistered: '未注册',
+            statusRegisteredThisDevice: '已注册',
+            statusRegisteredOtherDevice: () => ({one: '已注册另一台设备', other: '已注册的其他设备'}),
         },
         pleaseEnableInSystemSettings: {
             start: '请在您的设备中启用面部/指纹验证或设置设备密码',
@@ -708,13 +717,23 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             title: '面容/指纹和通行密钥',
-            explanation: '在一台或多台设备上已启用面容/指纹或通行密钥验证。撤销访问后，下次在任何设备上进行验证时都需要输入魔法验证码。',
-            confirmationPrompt: '确定吗？下一次在任何设备上进行验证时，你都需要输入魔法码。',
+            explanation: '一个或多个设备已启用面容/指纹或通行密钥验证。撤销访问权限后，该设备下次验证时将需要输入魔法验证码。',
+            confirmationPrompt: '你确定吗？你下次在该设备上验证时需要使用魔法验证码。',
             cta: '撤销访问权限',
-            noDevices: '您尚未注册用于面部 / 指纹或通行密钥验证的任何设备。如果您注册了设备，之后可以在此撤销该访问权限。',
-            dismiss: '明白了',
+            noDevices: '你还没有注册用于人脸 / 指纹或通行密钥验证的任何设备。如果你注册了设备，就可以在这里撤销其访问权限。',
+            dismiss: '知道了',
             error: '请求失败。请稍后重试。',
             revoke: '撤销',
+            confirmationPromptAll: '您确定吗？您在任何设备上进行下一次验证时都需要输入魔法验证码。',
+            ctaAll: '全部撤销',
+            thisDevice: '此设备',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} 个其他 ${otherDeviceCount === 1 ? '设备' : '设备'}`;
+            },
+            confirmationPromptThisDevice: '确定要这样做吗？下次在此设备上进行验证时，您需要输入魔法验证码。',
+            confirmationPromptMultiple: '确定吗？你下次在这些设备上验证时需要输入魔法验证码。',
         },
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',
@@ -891,8 +910,8 @@ const translations: TranslationDeepObject<typeof en> = {
     reportAction: {
         asCopilot: '作为副驾驶，用于',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) => `创建了此报销单，用于保存所有来自 <a href="${reportUrl}">${reportName}</a> 且无法按照你选择的频率提交的费用`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `从<a href="${reportUrl}">${reportName}</a>创建了此报表，用于查看任何被暂扣的报销费用`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted ? `为已删除报销单 #${reportID} 中的所有暂挂报销创建了此报销单` : `为从<a href="${reportUrl}">${reportName}</a>中被暂挂的任何报销创建了此报表`,
     },
     mentionSuggestions: {
         hereAlternateText: '通知此会话中的所有人',
@@ -1324,7 +1343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `未批准`,
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
         forwarded: `已批准`,
-        rejectedThisReport: '已拒绝此报表',
+        rejectedThisReport: '已拒绝',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
         adminCanceledRequest: '已取消付款',
         canceledRequest: (amount: string, submitterDisplayName: string) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify 钱包`,
@@ -1414,6 +1433,10 @@ const translations: TranslationDeepObject<typeof en> = {
         explainHold: () => ({
             one: '请解释你为何暂时保留这笔报销。',
             other: '请说明你为何保留这些报销。',
+        }),
+        explainHoldApprover: () => ({
+            one: '请说明在批准这笔报销之前你需要什么。',
+            other: '请说明在批准这些报销之前你需要什么。',
         }),
         retracted: '已撤回',
         retract: '撤回',
@@ -1507,7 +1530,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: '当你批准整份报销报告时，已搁置的报销会被保留在报告之外。',
             rejectExpenseTitle: '拒绝你不打算批准或报销的报销单。',
             reasonPageTitle: '拒绝报销',
-            reasonPageDescription: '请说明你拒绝此报销的原因。',
+            reasonPageDescription: '请说明你为何不会批准这笔报销。',
             rejectReason: '拒绝原因',
             markAsResolved: '标记为已解决',
             rejectedStatus: '该报销已被拒绝。请先修复问题并标记为已解决，然后才能提交。',
@@ -1534,7 +1557,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: '选择工作区',
-        routedDueToDEW: (to: string) => `报表因自定义审批流程被转交给 ${to}`,
+        routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'}，按 ${rate} / 小时`,
             hrs: '小时',
@@ -1561,6 +1584,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToSubmitViaDEW: (reason: string) => `报表提交失败。${reason}`,
         failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
+        cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
     },
     transactionMerge: {
         listPage: {
@@ -1914,7 +1938,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: '恢复暂存的登录',
         signOutConfirmationText: '如果你退出登录，所有离线更改都会丢失。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>阅读<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。</muted-text-micro>`,
+        readTheTermsAndPrivacy: `阅读<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。`,
         help: '帮助',
         whatIsNew: '最新动态',
         accountSettings: '账户设置',
@@ -2030,6 +2054,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: '使用你的 扫描二维码',
         authenticatorApp: '身份验证器应用',
         addKey: '或者将此密钥添加到你的验证器应用：',
+        secretKey: '密钥',
         enterCode: '然后输入您的身份验证器应用生成的六位数字代码。',
         stepSuccess: '已完成',
         enabled: '已启用双重身份验证',
@@ -2133,10 +2158,33 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: '添加个人卡',
+        addCompanyCard: '添加公司卡',
+        lookingForCompanyCards: '需要添加公司卡？',
+        lookingForCompanyCardsDescription: '从全球 10,000 多家银行添加您自己的卡。',
+        personalCardAdded: '个人卡已添加！',
+        personalCardAddedDescription: '恭喜，我们将开始导入您卡的交易记录。',
+        isPersonalCard: '这是个人卡吗？',
+        thisIsPersonalCard: '这是个人卡',
+        thisIsCompanyCard: '这是公司卡',
+        askAdmin: '请咨询您的管理员',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `如果是，那就太好了！但如果是<strong>公司</strong>卡，请 ${isAdmin ? '请从您的工作区分配。' : '请您的管理员从工作区将其分配给您。'}`,
+        bankConnectionError: '银行连接问题',
+        bankConnectionDescription: '请尝试重新添加您的银行卡。否则，您将无法',
+        connectWithPlaid: '通过 Plaid 连接。',
         fixCard: '修复卡片',
         brokenConnection: '您的银行卡连接已断开。',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink ? `您的 ${cardName} 卡连接已中断。<a href="${connectionLink}">登录您的网上银行</a>以修复该卡。` : `您的 ${cardName} 卡连接已中断。登录您的网上银行以修复该卡。`,
+        addAdditionalCards: '添加其他卡片',
+        upgradeDescription: '需要添加更多卡片吗？创建工作区以添加其他个人卡片或将公司卡片分配给整个团队。',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>此功能在 Collect 套餐中可用，每位成员每月费用为 <strong>${formattedPrice}</strong>。</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) => `<muted-text>创建工作区以使用此功能，或<a href="${subscriptionLink}">了解更多关于我们的套餐和定价的信息</a>。</muted-text>`,
+        workspaceCreated: '工作区已创建',
+        newWorkspace: '您已创建工作区！',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>您现在可以添加其他卡片了。<a href="${subscriptionLink}">查看您的订阅</a>了解更多详情。</centered-text>`,
     },
     walletPage: {
         balance: '余额',
@@ -2556,7 +2604,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>登录即表示你同意<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。</muted-text-xs>`,
-        license: `<muted-text-xs>资金传输服务由 ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）根据其<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">执照</a>提供。</muted-text-xs>`,
+        license: `资金汇款服务由 ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）根据其<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">许可证</a>提供。`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '没有收到验证码？',
@@ -2932,7 +2980,6 @@ ${
                 '# 让我们开始为你进行设置\n👋 你好，我是你的 Expensify 设置专家。我已经为你创建了一个工作区，用来管理你的收据和报销。要充分利用你的 30 天免费试用，只需按照下面剩余的设置步骤操作即可！',
             onboardingChatSplitMessage: '和朋友分摊账单就像发条消息一样简单。操作方法如下。',
             onboardingAdminMessage: '了解如何以管理员身份管理您团队的工作区，并提交您自己的报销。',
-            onboardingLookingAroundMessage: 'Expensify 以报销、差旅和公司卡管理而闻名，但我们的功能远不止于此。告诉我你感兴趣的内容，我会帮你开始使用。',
             onboardingTestDriveReceiverMessage: '*您已获得 3 个月的免费使用！请从下面开始。*',
         },
         workspace: {
@@ -5110,6 +5157,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         learnHow: '了解方法。',
                         subsections: {
                             currentTravelSpendLabel: '当前差旅支出',
+                            currentTravelSpendPaymentQueued: (amount: string) => `金额为 ${amount} 的付款已排队，稍后将被处理。`,
                             currentTravelSpendCta: '支付余额',
                             currentTravelLimitLabel: '当前出行限额',
                             settlementAccountLabel: '结算账户',
@@ -5119,6 +5167,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     },
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
                     outstandingBalanceModal: {title: '无法关闭差旅开票', body: '你仍有未结清的差旅余额。请先支付该余额。', confirm: '明白了'},
+                    payBalanceModal: {title: (amount: string) => `支付 ${amount} 的余额？`, body: '付款将被加入队列，并会在稍后处理。此操作一旦开始将无法撤销。'},
+                    exportToPDF: '导出为 PDF',
+                    exportToCSV: '导出为 CSV',
+                    selectDateRangeError: '请选择要导出的日期范围',
+                    invalidDateRangeError: '开始日期必须早于结束日期',
+                    enabled: '中央开票已启用！',
+                    enabledDescription: '此工作区的所有差旅支出现在将集中在一张月度发票中。',
                 },
                 personalDetailsDescription: '为预订行程，请输入您在政府签发的身份证件上显示的法定姓名。',
             },
@@ -7421,11 +7476,7 @@ ${reportName}
             tryDifferentEmail: '请尝试使用其他邮箱',
         },
     },
-    cardTransactions: {
-        notActivated: '未激活',
-        outOfPocket: '可报销',
-        companySpend: '不可报销',
-    },
+    cardTransactions: {notActivated: '未激活', outOfPocket: '可报销', companySpend: '不可报销', personalCard: '个人银行卡', companyCard: '公司卡', expensifyCard: 'Expensify 卡'},
     distance: {
         addStop: '添加站点',
         address: '地址',
@@ -7524,6 +7575,7 @@ ${reportName}
             prompt: '请在设备设置中允许访问位置信息，以开始使用 GPS 距离跟踪。',
         },
         fabGpsTripExplained: '前往 GPS 页面（浮动操作）',
+        liveActivity: {subtitle: '跟踪距离', button: '查看进度'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成绩单遗失或损坏',
@@ -8010,6 +8062,7 @@ ${reportName}
         switchAccount: '切换账户：',
         copilotDelegatedAccess: 'Copilot：委托访问',
         copilotDelegatedAccessDescription: '允许其他成员访问你的账户。',
+        learnMoreAboutDelegatedAccess: '了解更多关于委托访问的信息',
         addCopilot: '添加副驾',
         membersCanAccessYourAccount: '这些成员可以访问你的账户：',
         youCanAccessTheseAccounts: '您可以通过账户切换器访问这些账户：',

@@ -18,13 +18,13 @@ import {
     buildTransactionThread,
     getTransactionDetails,
 } from '@libs/ReportUtils';
-import {getRequestType, getTransactionType} from '@libs/TransactionUtils';
+import {getRequestType, getTransactionType, isDistanceRequest, isExpenseSplit} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, PerDiemExpenseInformation, RequestMoneyInformation} from '.';
+import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, RequestMoneyInformation} from '.';
 import {
     createDistanceRequest,
     getAllReportActionsFromIOU,
@@ -34,22 +34,12 @@ import {
     getCleanUpTransactionThreadReportOnyxData,
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
-    getPolicyTags,
     getUserAccountID,
     requestMoney,
-    submitPerDiemExpense,
     trackExpense,
 } from '.';
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file https://github.com/Expensify/App/issues/80049
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    const allPolicyTags = getPolicyTags();
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
+import type {PerDiemExpenseInformation} from './PerDiem';
+import {submitPerDiemExpense} from './PerDiem';
 
 function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
     const allReportActions = getAllReportActionsFromIOU();
@@ -507,6 +497,7 @@ type DuplicateExpenseTransactionParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
 function duplicateExpenseTransaction({
@@ -528,6 +519,7 @@ function duplicateExpenseTransaction({
     betas,
     personalDetails,
     recentWaypoints,
+    targetPolicyTags,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -544,6 +536,9 @@ function duplicateExpenseTransaction({
     // gets used as existingTransactionThreadReportID in getMoneyRequestInformation, which would cause the backend
     // to try to create a transaction thread report with an ID that already exists.
     const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
+
+    // We remove waypoints for split distance expenses in order to preserve the split's amount and distance.
+    const waypoints = !isExpenseSplit(transaction) ? (transactionDetails?.waypoints as WaypointCollection) : undefined;
 
     const params: RequestMoneyInformation = {
         report: targetReport,
@@ -571,7 +566,7 @@ function duplicateExpenseTransaction({
             originalTransactionID: undefined,
             receipt: undefined,
             source: undefined,
-            waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+            waypoints,
             type: transaction?.comment?.type,
             count: transaction?.comment?.units?.count,
             rate: transaction?.comment?.units?.rate,
@@ -592,6 +587,11 @@ function duplicateExpenseTransaction({
         personalDetails,
     };
 
+    // Since we remove waypoints for split distance expenses, we need to re-add the distance param here
+    if (isExpenseSplit(transaction) && isDistanceRequest(transaction)) {
+        params.transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
+    }
+
     // If no workspace is provided the expense should be unreported
     if (!targetPolicy) {
         const trackExpenseParams: CreateTrackExpenseParams = {
@@ -600,9 +600,21 @@ function duplicateExpenseTransaction({
                 ...(params.participantParams ?? {}),
                 participant: {accountID: userAccountID, selected: true},
             },
+            existingTransaction: {
+                ...(params.transactionParams ?? {}),
+                comment: {
+                    ...transaction.comment,
+                    originalTransactionID: undefined,
+                    source: undefined,
+                },
+                iouRequestType: getRequestType(transaction),
+                modifiedCreated: '',
+                reportID: '1',
+                transactionID: '1',
+            },
             transactionParams: {
                 ...(params.transactionParams ?? {}),
-                validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+                validWaypoints: waypoints,
             },
             report: undefined,
             isDraftPolicy: false,
@@ -611,15 +623,14 @@ function duplicateExpenseTransaction({
             quickAction,
             recentWaypoints,
             betas,
+            isSelfTourViewed,
         };
         return trackExpense(trackExpenseParams);
     }
 
     params.policyParams = {
         policy: targetPolicy,
-        // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80049
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
+        policyTagList: targetPolicyTags,
         policyCategories: targetPolicyCategories ?? {},
     };
 
@@ -632,7 +643,11 @@ function duplicateExpenseTransaction({
                 participants,
                 existingTransaction: {
                     ...(params.transactionParams ?? {}),
-                    comment: transaction.comment,
+                    comment: {
+                        ...transaction.comment,
+                        originalTransactionID: undefined,
+                        source: undefined,
+                    },
                     iouRequestType: getRequestType(transaction),
                     modifiedCreated: '',
                     reportID: '1',
@@ -641,7 +656,7 @@ function duplicateExpenseTransaction({
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
-                    validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+                    validWaypoints: waypoints,
                 },
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,

@@ -6,9 +6,8 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -16,9 +15,9 @@ import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
-import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -36,6 +35,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {turnOffMobileSelectionMode} from '@userActions/MobileSelectionMode';
@@ -130,6 +130,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const illustrations = useMemoizedLazyIllustrations(['PerDiem']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
+    const genericIllustration = useGenericEmptyStateIllustration();
 
     const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);
@@ -373,6 +374,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const isLoading = !isOffline && customUnit === undefined;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspacePerDiemPage', isOffline, isCustomUnitUndefined: customUnit === undefined};
 
     useEffect(() => {
         if (isMobileSelectionModeEnabled) {
@@ -459,6 +461,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
+                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {hasVisibleSubRates && !isLoading && (
@@ -476,7 +479,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeaderContent={headerContent}
-                        showListEmptyContent={false}
+                        shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress
                         shouldHeaderBeInsideList
@@ -485,15 +488,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 )}
                 {!hasVisibleSubRates && !isLoading && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                        <EmptyStateComponent
-                            SkeletonComponent={TableListItemSkeleton}
-                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                            headerMedia={LottieAnimations.GenericEmptyState}
+                        <GenericEmptyStateComponent
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...genericIllustration}
                             title={translate('workspace.perDiem.emptyList.title')}
                             subtitle={translate('workspace.perDiem.emptyList.subtitle')}
-                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                            headerContentStyles={styles.emptyStateFolderWebStyles}
+                            headerStyles={styles.emptyStateCardIllustrationContainer}
                             buttons={[
                                 {
                                     buttonText: translate('spreadsheet.importSpreadsheet'),

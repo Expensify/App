@@ -344,6 +344,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             interactive={false}
                                             titleStyle={styles.walletCardNumber}
                                             shouldShowRightComponent
+                                            shouldBeAccessible={isSignedInAsDelegate ? undefined : false}
                                             rightComponent={
                                                 !isSignedInAsDelegate ? (
                                                     <Button
@@ -438,6 +439,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 interactive={false}
                                                 titleStyle={styles.walletCardNumber}
                                                 shouldShowRightComponent
+                                                shouldBeAccessible={isSignedInAsDelegate ? undefined : false}
                                                 rightComponent={
                                                     !isSignedInAsDelegate ? (
                                                         <Button

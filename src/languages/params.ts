@@ -8,6 +8,8 @@ import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 type MultifactorAuthenticationTranslationParams = {
     authType?: string;
     registered?: boolean;
+    otherDeviceCount?: number;
+    status?: string;
 };
 
 type ZipCodeExampleFormatParams = {
@@ -64,6 +66,8 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
 type CreatedReportForUnapprovedTransactionsParams = {
     reportUrl: string;
     reportName: string;
+    reportID: string;
+    isReportDeleted: boolean;
 };
 
 type WorkspacesListRouteParams = {
