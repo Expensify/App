@@ -864,7 +864,7 @@ function initializePusherPingPong() {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined) {
+function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (!currentUserAccountIDParam) {
         return;
@@ -919,7 +919,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttri
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountIDParam, getReportAttributes());
+                triggerNotifications(pushJSON, currentUserAccountIDParam, getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
