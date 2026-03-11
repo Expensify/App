@@ -1,0 +1,88 @@
+/**
+ * Standalone Gradle project for publishing patched React Native iOS artifacts
+ * (React.xcframework) to GitHub Packages Maven repository.
+ *
+ * This mirrors how upstream React Native publishes iOS artifacts via
+ * ReactAndroid/external-artifacts/build.gradle.kts, but scoped to only
+ * the core xcframework (since our patches don't touch ReactNativeDependencies).
+ *
+ * Usage:
+ *   ./gradlew publish \
+ *     -PartifactsDir=/path/to/artifacts \
+ *     -PpatchedVersion=0.81.4-0 \
+ *     -PpatchesHash=abc123 \
+ *     -PpackageName=react-standalone
+ *
+ * Environment variables:
+ *   GH_PUBLISH_ACTOR - GitHub username
+ *   GH_PUBLISH_TOKEN - GitHub token with write:packages scope
+ */
+
+apply plugin: 'maven-publish'
+
+def artifactsDir = findProperty('artifactsDir') ?: error('artifactsDir property is required')
+def patchedVersion = findProperty('patchedVersion') ?: error('patchedVersion property is required')
+def patchesHash = findProperty('patchesHash') ?: error('patchesHash property is required')
+def packageName = findProperty('packageName') ?: error('packageName property is required')
+
+configurations.maybeCreate('iosArtifacts')
+
+def coreDebugArtifact = artifacts.add('iosArtifacts', file("${artifactsDir}/reactnative-core-debug.tar.gz")) {
+    type = 'tgz'
+    extension = 'tar.gz'
+    classifier = 'reactnative-core-debug'
+}
+
+def coreReleaseArtifact = artifacts.add('iosArtifacts', file("${artifactsDir}/reactnative-core-release.tar.gz")) {
+    type = 'tgz'
+    extension = 'tar.gz'
+    classifier = 'reactnative-core-release'
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = "com.expensify.${packageName}"
+            artifactId = 'react-native-artifacts'
+            version = patchedVersion
+
+            artifact(coreDebugArtifact)
+            artifact(coreReleaseArtifact)
+
+            pom {
+                name = 'react-native-artifacts'
+                description = 'Patched React Native iOS prebuilt artifacts for Expensify'
+                url = 'https://github.com/Expensify/App'
+
+                properties = [
+                    'patchesHash': patchesHash,
+                ]
+
+                developers {
+                    developer {
+                        id = 'expensify'
+                        name = 'Expensify'
+                    }
+                }
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://github.com/facebook/react-native/blob/HEAD/LICENSE'
+                        distribution = 'repo'
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url = 'https://maven.pkg.github.com/Expensify/App'
+            credentials {
+                username = System.getenv('GH_PUBLISH_ACTOR')
+                password = System.getenv('GH_PUBLISH_TOKEN')
+            }
+        }
+    }
+}

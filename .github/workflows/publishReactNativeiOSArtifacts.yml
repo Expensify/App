@@ -1,4 +1,4 @@
-name: Publish React Native Android Artifacts
+name: Publish React Native iOS Artifacts
 
 on:
   workflow_dispatch:
@@ -122,19 +122,88 @@ jobs:
             echo "BUILD_TARGETS=[\"true\"]" >> "$GITHUB_OUTPUT"
           fi
 
-  buildAndPublishReactNativeArtifacts:
-    name: Build and Publish React Native Artifacts
-    runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
+  buildReactNativeiOSArtifacts:
+    name: Build React Native iOS Artifacts
+    runs-on: macos-15-xlarge
     needs: verifyPatches
-    if: needs.verifyPatches.outputs.build_targets != '' 
+    if: needs.verifyPatches.outputs.build_targets != ''
     strategy:
-      # Disable fail-fast to prevent cancelling both jobs when only one needs to be stopped due to concurrency limits
       fail-fast: false
       matrix:
-        # Dynamically build the matrix based on the build targets
         is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
     concurrency:
-      group: ${{ github.workflow }}-${{ github.job }}-${{ matrix.is_hybrid }}
+      group: ${{ github.workflow }}-build-${{ matrix.is_hybrid }}
+      cancel-in-progress: true
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          submodules: ${{ matrix.is_hybrid }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+
+      - name: Setup prebuild workspace
+        working-directory: node_modules/react-native
+        run: node scripts/ios-prebuild.js -s -f Debug
+
+      - name: Build Debug slices
+        working-directory: node_modules/react-native
+        run: |
+          for platform in ios ios-simulator mac-catalyst; do
+            echo "::group::Building Debug for $platform"
+            node scripts/ios-prebuild.js -b -f Debug -p "$platform"
+            echo "::endgroup::"
+          done
+
+      - name: Compose Debug XCFramework
+        working-directory: node_modules/react-native
+        run: node scripts/ios-prebuild.js -c -f Debug
+
+      - name: Re-setup for Release
+        working-directory: node_modules/react-native
+        run: node scripts/ios-prebuild.js -s -f Release
+
+      - name: Build Release slices
+        working-directory: node_modules/react-native
+        run: |
+          for platform in ios ios-simulator mac-catalyst; do
+            echo "::group::Building Release for $platform"
+            node scripts/ios-prebuild.js -b -f Release -p "$platform"
+            echo "::endgroup::"
+          done
+
+      - name: Compose Release XCFramework
+        working-directory: node_modules/react-native
+        run: node scripts/ios-prebuild.js -c -f Release
+
+      - name: Upload Debug artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReactCoreDebug-${{ matrix.is_hybrid }}.xcframework.tar.gz
+          path: node_modules/react-native/.build/output/xcframeworks/Debug/React.xcframework.tar.gz
+
+      - name: Upload Release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReactCoreRelease-${{ matrix.is_hybrid }}.xcframework.tar.gz
+          path: node_modules/react-native/.build/output/xcframeworks/Release/React.xcframework.tar.gz
+
+  publishReactNativeiOSArtifacts:
+    name: Publish React Native iOS Artifacts
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
+    needs: [verifyPatches, buildReactNativeiOSArtifacts]
+    strategy:
+      fail-fast: false
+      matrix:
+        is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
+    concurrency:
+      group: ${{ github.workflow }}-publish-${{ matrix.is_hybrid }}
       cancel-in-progress: true
     steps:
       - name: Checkout Code
@@ -148,42 +217,47 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
 
-      - name: Get Java version
-        id: get-java-version
-        uses: ./.github/actions/composite/getJavaVersion
-
-      - name: Setup Java
-        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
-        with:
-          distribution: oracle
-          java-version: ${{ steps.get-java-version.outputs.version }}
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
-      
+
       - name: Determine new patched RN version
         id: getNewPatchedVersion
         run: echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
-          ARTIFACT_ID: react-android
+          ARTIFACT_ID: react-native-artifacts
 
-      - name: Build and publish React Native artifacts
-        working-directory: ${{ matrix.is_hybrid == 'true' && 'Mobile-Expensify/Android' || 'android' }}
+      - name: Download Debug artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ReactCoreDebug-${{ matrix.is_hybrid }}.xcframework.tar.gz
+          path: gradleUtils/ios-artifacts-publish/artifacts/debug
+
+      - name: Download Release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ReactCoreRelease-${{ matrix.is_hybrid }}.xcframework.tar.gz
+          path: gradleUtils/ios-artifacts-publish/artifacts/release
+
+      - name: Prepare artifacts
         run: |
-          echo "Starting artifacts build for ${{ matrix.is_hybrid == 'true' && 'HybridApp' || 'NewDot Standalone' }}"
-          echo "Version: ${{ env.PATCHED_VERSION }}"
-          echo "Patches hash: ${{ env.PATCHES_HASH }}"
-          export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
-          ./gradlew buildReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true -x lint -x test -x check
-          ./gradlew publishReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true
+          ARTIFACTS_DIR="gradleUtils/ios-artifacts-publish/artifacts"
+          mv "${ARTIFACTS_DIR}/debug/React.xcframework.tar.gz" "${ARTIFACTS_DIR}/reactnative-core-debug.tar.gz"
+          mv "${ARTIFACTS_DIR}/release/React.xcframework.tar.gz" "${ARTIFACTS_DIR}/reactnative-core-release.tar.gz"
+          rm -rf "${ARTIFACTS_DIR}/debug" "${ARTIFACTS_DIR}/release"
+          echo "Prepared artifacts:"
+          ls -lh "${ARTIFACTS_DIR}"
+
+      - name: Publish to GitHub Packages Maven
+        working-directory: gradleUtils/ios-artifacts-publish
+        run: ./gradlew publish -PartifactsDir="$(pwd)/artifacts" -PpatchedVersion="${PATCHED_VERSION}" -PpatchesHash="${PATCHES_HASH}" -PpackageName="${PACKAGE_NAME}"
         env:
           GH_PUBLISH_ACTOR: ${{ github.actor }}
           GH_PUBLISH_TOKEN: ${{ github.token }}
-          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
           PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
           PATCHES_HASH: ${{ matrix.is_hybrid == 'true' && needs.verifyPatches.outputs.hybrid_app_patches_hash || needs.verifyPatches.outputs.standalone_patches_hash }}
+          PACKAGE_NAME: ${{ matrix.is_hybrid == 'true' && 'react-hybrid' || 'react-standalone' }}
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
