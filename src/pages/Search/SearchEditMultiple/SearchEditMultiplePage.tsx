@@ -92,7 +92,7 @@ function SearchEditMultiplePage() {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTagLists = getTagLists(policyTags);
 
-    const isTaxTrackingEnabled = !hasPerDiemOrTimeTransaction && !!policy?.tax?.trackingEnabled;
+    const isTaxTrackingEnabled = !hasPerDiemOrTimeTransaction && selectedTransactionContexts.every(({transactionPolicy}) => !!transactionPolicy?.tax?.trackingEnabled);
     const areCategoriesEnabled = !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     const areTagsEnabled = !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
 
