@@ -3,7 +3,15 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UpdatedPolicyTagParams, ViolationsRterParams} from './params';
+import type {
+    ConciergeBrokenCardConnectionParams,
+    CreatedReportForUnapprovedTransactionsParams,
+    MultifactorAuthenticationTranslationParams,
+    PaidElsewhereParams,
+    UpdatedPolicyTagParams,
+    ViolationsRterParams,
+    WorkspaceUpgradeNoteParams,
+} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -340,6 +348,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validar',
         downloadAsPDF: 'Descargar como PDF',
         downloadAsCSV: 'Descargar como CSV',
+        print: 'Imprimir',
         help: 'Ayuda',
         expenseReport: 'Informe de Gastos',
         expenseReports: 'Informes de Gastos',
@@ -407,6 +416,10 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semana',
         year: 'Año',
         quarter: 'Trimestre',
+        concierge: {
+            sidePanelGreeting: 'Hola, ¿en qué puedo ayudarte?',
+            showHistory: 'Mostrar historial',
+        },
         vacationDelegate: 'Delegado de vacaciones',
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
@@ -543,8 +556,12 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Prueba de biometría',
             authenticationSuccessful: 'Autenticación exitosa',
-            successfullyAuthenticatedUsing: ({authType}) => `Te has autenticado exitosamente con ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}) => `Biometría (${registered ? 'Registrada' : 'No registrada'})`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Te has autenticado exitosamente con ${authType}.`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometría (${status})`,
+            statusNeverRegistered: 'Nunca registrado',
+            statusNotRegistered: 'No registrado',
+            statusRegisteredThisDevice: 'Registrado',
+            statusRegisteredOtherDevice: () => ({one: 'Otro dispositivo registrado', other: 'Otros dispositivos registrados'}),
             yourAttemptWasUnsuccessful: 'Tu intento de autenticación fue fallido.',
             youCouldNotBeAuthenticated: 'No se pudo autenticar',
             areYouSureToReject: '¿Estás seguro? El intento de autenticación será rechazado si cierras esta pantalla.',
@@ -583,13 +600,23 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Revocar',
             title: 'Reconocimiento facial/huella digital y claves de acceso',
             explanation:
-                'La verificación mediante reconocimiento facial, huella digital o clave de acceso está habilitada en uno o más dispositivos. Revocar el acceso requerirá un código mágico para la próxima verificación en cualquier dispositivo.',
-            confirmationPrompt: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en cualquier dispositivo.',
+                'La verificación mediante reconocimiento facial, huella digital o clave de acceso está habilitada en uno o más dispositivos. Revocar el acceso requerirá un código mágico para la próxima verificación en ese dispositivo.',
+            confirmationPrompt: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en ese dispositivo.',
+            confirmationPromptThisDevice: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en este dispositivo.',
+            confirmationPromptMultiple: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en esos dispositivos.',
+            confirmationPromptAll: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en cualquier dispositivo.',
             cta: 'Revocar acceso',
+            ctaAll: 'Revocar todo',
             noDevices:
                 'No tienes ningún dispositivo registrado para la verificación mediante reconocimiento facial, huella digital o clave de acceso. Si registras alguno, podrás revocar ese acceso aquí.',
             dismiss: 'Entendido',
             error: 'La solicitud ha fallado. Inténtalo de nuevo más tarde.',
+            thisDevice: 'Este dispositivo',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['Un', 'Dos', 'Tres', 'Cuatro', 'Cinco', 'Seis', 'Siete', 'Ocho', 'Nueve'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} ${otherDeviceCount === 1 ? 'otro dispositivo' : 'otros dispositivos'}`;
+            },
         },
     },
     validateCodeModal: {
@@ -1825,7 +1852,7 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.</muted-text-micro>`,
+        readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
         whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',
@@ -2495,7 +2522,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>Al iniciar sesión, estás accediendo a los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.</muted-text-xs>`,
-        license: `<muted-text-xs>El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licencias</a>.</muted-text-xs>`,
+        license: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licencias</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
@@ -7084,9 +7111,6 @@ ${amount} para ${merchant} - ${date}`,
         deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
-            editMultiple: 'Editar múltiples',
-            editMultipleTitle: 'Editar múltiples gastos',
-            editMultipleDescription: 'Los cambios se aplicarán a todos los gastos seleccionados y anularán cualquier valor previamente establecido.',
             approve: 'Aprobar',
             pay: 'Pagar',
             delete: 'Eliminar',
@@ -8745,7 +8769,7 @@ ${amount} para ${merchant} - ${date}`,
         goToDomain: 'Ir al dominio',
         samlLogin: {
             title: 'Inicio de sesión SAML',
-            subtitle: `<muted-text>Configura el inicio de sesión de los miembros con <a href="${CONST.SAML_HELP_URL}">Inicio de sesión único SAML (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configura el inicio de sesión de los miembros con <a href="${CONST.SAML_HELP_URL}">Inicio de sesión único SAML (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'Habilitar inicio de sesión SAML',
             allowMembers: 'Permitir que los miembros inicien sesión con SAML.',
             requireSamlLogin: 'Requerir inicio de sesión SAML',
