@@ -83,7 +83,6 @@ import {
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
     getOrCreateOptimisticSplitChatReport,
-    getPolicyTags,
     getReceiptError,
     getReportPreviewAction,
     getUpdateMoneyRequestParams,
@@ -119,7 +118,10 @@ type UpdateSplitTransactionsParams = {
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
+    policyTags: OnyxTypes.PolicyTagLists;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    transactionReport: OnyxEntry<OnyxTypes.Report>;
+    expenseReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 type SplitBillActionsParams = {
@@ -1046,11 +1048,9 @@ function updateSplitTransactions({
     betas,
     policyTags,
     personalDetails,
-}: UpdateSplitTransactionsParams & {policyTags: OnyxTypes.PolicyTagLists}) {
-    const transactionReport = getReportOrDraftReport(transactionData?.reportID);
-    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
-    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
-
+    transactionReport,
+    expenseReport,
+}: UpdateSplitTransactionsParams) {
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
@@ -1691,12 +1691,7 @@ function updateSplitTransactions({
 }
 
 function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransactionsParams) {
-    const transactionReport = getReportOrDraftReport(params.transactionData?.reportID);
-    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
-    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
-    const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
-
-    updateSplitTransactions({...params, isFromSplitExpensesFlow: true, policyTags});
+    updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
@@ -1711,7 +1706,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         params?.searchContext?.clearSelectedTransactions?.(true);
     }
 
-    if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
+    if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         Navigation.navigateBackToLastSuperWideRHPScreen();
 
         // After the modal is dismissed, remove the transaction thread report screen
@@ -1727,9 +1722,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         return;
     }
     if (getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
     }
-    Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
+    Navigation.dismissModalWithReport({reportID: params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
 
     // After the modal is dismissed, remove the transaction thread report screen
     // to avoid navigating back to a report removed by the split transaction.
