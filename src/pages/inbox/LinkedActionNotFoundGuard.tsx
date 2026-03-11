@@ -135,23 +135,20 @@ function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
         return null;
     }
 
-    if (shouldShowNotFoundLinkedAction) {
-        return (
-            <FullPageNotFoundView
-                shouldShow
-                subtitleKey="notFound.commentYouLookingForCannotBeFound"
-                onBackButtonPress={navigateToEndOfReport}
-                shouldShowLink
-                linkTranslationKey="notFound.goToChatInstead"
-                subtitleKeyBelowLink="notFound.contactConcierge"
-                onLinkPress={navigateToEndOfReport}
-                shouldDisplaySearchRouter
-            />
-        );
-    }
-
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return (
+        <FullPageNotFoundView
+            shouldShow={shouldShowNotFoundLinkedAction}
+            subtitleKey="notFound.commentYouLookingForCannotBeFound"
+            onBackButtonPress={navigateToEndOfReport}
+            shouldShowLink
+            linkTranslationKey="notFound.goToChatInstead"
+            subtitleKeyBelowLink="notFound.contactConcierge"
+            onLinkPress={navigateToEndOfReport}
+            shouldDisplaySearchRouter
+        >
+            {children}
+        </FullPageNotFoundView>
+    );
 }
 
 export default LinkedActionNotFoundGuard;
