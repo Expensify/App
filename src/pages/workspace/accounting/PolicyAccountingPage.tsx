@@ -47,6 +47,7 @@ import {
     settingsPendingAction,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -417,6 +418,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
         ];
 
+        const syncActivityReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'PolicyAccountingPage.connectionsMenuItems',
+            isSyncInProgress,
+        };
         return [
             {
                 ...iconProps,
@@ -429,7 +434,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldShowRedDotIndicator: true,
                 description: connectionMessage,
                 rightComponent: isSyncInProgress ? (
-                    <ActivityIndicator style={[styles.popoverMenuIcon]} />
+                    <ActivityIndicator
+                        style={[styles.popoverMenuIcon]}
+                        reasonAttributes={syncActivityReasonAttributes}
+                    />
                 ) : (
                     <ThreeDotsMenu
                         shouldSelfPosition
