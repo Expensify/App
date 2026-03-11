@@ -36,11 +36,22 @@ type LabelHitGeometry = {
 };
 
 type ComputeGeometryInput = {
+    /** The ascent of the font */
     ascent: number;
+
+    /** The descent of the font */
     descent: number;
+
+    /** The sine of the angle */
     sinA: number;
+
+    /** The angle in radians */
     angleRad: number;
+
+    /** The widths of the labels */
     labelWidths: number[];
+
+    /** The padding of the labels */
     padding: number;
 };
 
