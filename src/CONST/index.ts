@@ -775,7 +775,6 @@ const CONST = {
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
         ODOMETER_EXPENSES: 'odometerExpenses',
-        NEW_DOT_HOME: 'newDotHome',
         SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
@@ -1144,6 +1143,7 @@ const CONST = {
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
         POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
         SETTINGS_WALLET_URL: 'settings?param={%22section%22:%22creditcards%22}',
+        PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
     },
@@ -1209,6 +1209,7 @@ const CONST = {
             CANCEL_PAYMENT: 'cancelPayment',
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
+            PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
             VIEW_DETAILS: 'viewDetails',
@@ -1223,6 +1224,7 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
+            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1259,6 +1261,7 @@ const CONST = {
             REJECT_BULK: 'rejectBulk',
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
+            MOVE_EXPENSE: 'moveExpense',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
@@ -1748,6 +1751,9 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
+        BREADCRUMB_CATEGORY_MFA: 'mfa',
+        BREADCRUMB_CATEGORY_3DS_NAVIGATION: '3ds.navigation',
+        BREADCRUMB_CATEGORY_3DS_AUTHORIZE: '3ds.authorize',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
@@ -1779,6 +1785,8 @@ const CONST = {
         TAG_EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
         TAG_EXPENSE_COMMAND: 'expense_command',
         TAG_EXPENSE_JSON_CODE: 'expense_json_code',
+        TAG_MFA_SCENARIO: 'mfa_scenario',
+        TAG_MFA_ERROR_REASON: 'mfa_error_reason',
         TAG_BUILD_TYPE: 'build_type',
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
@@ -1792,10 +1800,10 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT: 'SearchRouter.ModalCloseWait',
         SPAN_SEARCH_ROUTER_OPTIONS_INIT: 'SearchRouter.OptionsInit',
-        SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS: 'SearchRouter.ComputeOptions',
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
+        SPAN_SCAN_SHORTCUT: 'ScanShortcut',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
@@ -1805,6 +1813,7 @@ const CONST = {
         SPAN_CONFIRMATION_RECEIPT_LOAD: 'ManualConfirmationReceiptLoad',
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
+        SPAN_SUBMIT_TO_DESTINATION_VISIBLE: 'ManualSubmitToDestinationVisible',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
@@ -1850,12 +1859,25 @@ const CONST = {
         ATTRIBUTE_SCENARIO: 'scenario',
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
+        /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
+        ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_COLD_START: 'cold_start',
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
+        SUBMIT_FOLLOW_UP_ACTION: {
+            DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
+            NAVIGATE_TO_SEARCH: 'navigate_to_search',
+            DISMISS_MODAL_ONLY: 'dismiss_modal_only',
+        },
+        /** Trigger for useSubmitToDestinationVisible: end span on focus vs on layout. */
+        SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER: {
+            FOCUS: 'focus',
+            LAYOUT: 'layout',
+        },
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
             REQUEST_MONEY_SCAN: 'request_money_scan',
@@ -1866,6 +1888,7 @@ const CONST = {
             SPLIT_GLOBAL: 'split_global',
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
+            SEND_MONEY: 'send_money',
         },
         // Event names
         EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
@@ -2391,6 +2414,7 @@ const CONST = {
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
+    CONCIERGE_GREETING_ACTION_ID: 'concierge-side-panel-greeting',
 
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
@@ -4140,6 +4164,7 @@ const CONST = {
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
         FIRST_SPACE: /.+?(?=\s)/,
         TRAILING_DOTS: /\.$/,
+        STARTS_WITH_PUNCTUATION: /^[.,!?]/,
 
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
@@ -5832,6 +5857,8 @@ const CONST = {
         NAVIGATION: 'navigation',
         /** Use for Tooltips */
         TOOLTIP: 'tooltip',
+        /** Use for dialog/modal elements */
+        DIALOG: 'dialog',
         /** Use for data table containers. */
         TABLE: 'table',
         /** Use for table rows. */
@@ -5867,6 +5894,8 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
+        REPLACE_VERIFY_OLD: 'REPLACE_VERIFY_OLD',
+        REPLACE_VERIFY_NEW: 'REPLACE_VERIFY_NEW',
     },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
@@ -8574,6 +8603,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
@@ -8595,6 +8625,7 @@ const CONST = {
             ADD_EXPENSE_UNREPORTED: 'MoreMenu-AddExpenseUnreported',
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
+            MOVE_EXPENSE: 'MoreMenu-MoveExpense',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
@@ -8794,6 +8825,7 @@ const CONST = {
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
+            IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
                 MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
@@ -8996,8 +9028,8 @@ const CONST = {
             CHECKBOX_RIGHT: 'UserListItem-CheckboxRight',
         },
         USER_LIST_ITEM_WITH_SECTIONS: {
-            CHECKBOX: 'UserListItemWithSections-Checkbox',
-            CHECKBOX_RIGHT: 'UserListItemWithSections-CheckboxRight',
+            LEFT_CHECKBOX: 'UserListItemWithSections-LeftCheckbox',
+            RIGHT_CHECKBOX: 'UserListItemWithSections-RightCheckbox',
         },
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
