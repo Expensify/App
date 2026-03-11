@@ -1,4 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -148,6 +149,7 @@ function IOURequestStepConfirmation({
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const transaction = useMemo(
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
@@ -413,6 +415,7 @@ function IOURequestStepConfirmation({
             // When starting to create an expense from the global FAB, If there is not an existing report yet, a random optimistic reportID is generated and used
             // for all of the routes in the creation flow.
             reportID ?? generateReportID(),
+            draftTransactionIDs,
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoadingTransaction]);

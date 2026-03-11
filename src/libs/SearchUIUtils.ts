@@ -3659,18 +3659,34 @@ function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string
     return !!matchedSearchKey && TODO_KEYS.includes(matchedSearchKey);
 }
 
-function createTypeMenuSections(
-    icons: Record<'Document' | 'Send' | 'ThumbsUp', IconAsset>,
-    currentUserEmail: string | undefined,
-    currentUserAccountID: number | undefined,
-    cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
-    defaultCardFeed: CardFeedForDisplay | undefined,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
-    isOffline: boolean,
-    defaultExpensifyCard: CardFeedForDisplay | undefined,
-    shouldRedirectToExpensifyClassic: boolean,
-): SearchTypeMenuSection[] {
+type TypeMenuSectionsParams = {
+    icons: Record<'Document' | 'Send' | 'ThumbsUp', IconAsset>;
+    currentUserEmail: string | undefined;
+    currentUserAccountID: number | undefined;
+    cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>;
+    defaultCardFeed: CardFeedForDisplay | undefined;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    savedSearches: OnyxEntry<OnyxTypes.SaveSearch>;
+    isOffline: boolean;
+    defaultExpensifyCard: CardFeedForDisplay | undefined;
+    shouldRedirectToExpensifyClassic: boolean;
+    draftTransactionIDs: string[] | undefined;
+};
+
+function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
+    const {
+        icons,
+        currentUserEmail,
+        currentUserAccountID,
+        cardFeedsByPolicy,
+        defaultCardFeed,
+        policies,
+        savedSearches,
+        isOffline,
+        defaultExpensifyCard,
+        shouldRedirectToExpensifyClassic,
+        draftTransactionIDs,
+    } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, icons);
@@ -3723,7 +3739,7 @@ function createTypeMenuSections(
                                               return;
                                           }
 
-                                          startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN);
+                                          startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
                                       });
                                   },
                               },

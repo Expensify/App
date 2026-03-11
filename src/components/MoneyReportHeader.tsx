@@ -1041,19 +1041,18 @@ function MoneyReportHeader({
 
     const addExpenseDropdownOptions = useMemo(
         () =>
-            getAddExpenseDropdownOptions(
+            getAddExpenseDropdownOptions({
                 translate,
-                expensifyIcons,
-                moneyRequestReport?.reportID,
+                icons: expensifyIcons,
+                iouReportID: moneyRequestReport?.reportID,
                 policy,
-                userBillingGraceEndPeriods,
+                userBillingGraceEndPeriodCollection: userBillingGraceEndPeriods,
+                draftTransactionIDs,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
-                undefined,
-                undefined,
                 lastDistanceExpenseType,
-            ),
-        [moneyRequestReport?.reportID, policy, userBillingGraceEndPeriods, amountOwed, lastDistanceExpenseType, expensifyIcons, translate, ownerBillingGraceEndPeriod],
+            }),
+        [moneyRequestReport?.reportID, policy, userBillingGraceEndPeriods, amountOwed, lastDistanceExpenseType, expensifyIcons, translate, ownerBillingGraceEndPeriod, draftTransactionIDs],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -1783,7 +1782,7 @@ function MoneyReportHeader({
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID, draftTransactionIDs);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
