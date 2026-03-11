@@ -49,6 +49,7 @@ import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
 import useReceiptScan from './useReceiptScan';
+import useScanShortcutSpan from './useScanShortcutSpan';
 
 function IOURequestStepScan({
     report,
@@ -85,6 +86,8 @@ function IOURequestStepScan({
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
+
+    useScanShortcutSpan(initialTransaction);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
@@ -287,6 +290,7 @@ function IOURequestStepScan({
             return;
         }
         for (const file of files) {
+            // eslint-disable-next-line no-param-reassign
             file.uri = URL.createObjectURL(file);
         }
 

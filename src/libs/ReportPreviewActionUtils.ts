@@ -20,7 +20,7 @@ import {
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
+import {hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -46,6 +46,10 @@ function canSubmit(
     }
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
+
+    if (hasSmartScanFailedWithMissingFields(transactions ?? [], report)) {
+        return false;
+    }
 
     if (transactions?.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
         return false;
@@ -215,6 +219,7 @@ function getReportPreviewAction({
     }
 
     // We want to have action displayed for either paid or approved animations
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (isPaidAnimationRunning || isApprovedAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }

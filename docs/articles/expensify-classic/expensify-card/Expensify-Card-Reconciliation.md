@@ -126,7 +126,7 @@ The filtered list will show expenses with settlement entries but no correspondin
 
 # Tips for Efficient Reconciliation
 
-- Enable [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/workspaces/reports/Scheduled-Submit) to ensure timely expense submissions.
+- Enable [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports) to ensure timely expense submissions.
 - Communicate with employees about unapproved expenses via the #announce room on [new.expensify.com](http://new.expensify.com).
 - Be aware that Expensify Card payments are posted to your general ledger immediately but may not be withdrawn from your bank until the next business day.
 - Consider accruing for Expensify Cards based on your internal policies.

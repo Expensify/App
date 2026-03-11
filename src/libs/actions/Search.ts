@@ -134,11 +134,19 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+                return;
+            }
             getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, personalPolicyID);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             if (isDelegateAccessRestricted) {
                 onDelegateAccessRestricted?.();
+                return;
+            }
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
             if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
@@ -148,6 +156,10 @@ function handleActionButtonPress({
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+                return;
+            }
             if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
                 return;
@@ -1313,6 +1325,7 @@ function handleBulkPayItemSelected(params: {
     isDelegateAccessRestricted: boolean;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     showDelegateNoAccessModal: () => void;
+    amountOwed: OnyxEntry<number>;
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
 }) {
     const {
@@ -1328,6 +1341,7 @@ function handleBulkPayItemSelected(params: {
         userBillingGraceEndPeriods,
         showDelegateNoAccessModal,
         confirmPayment,
+        amountOwed,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
@@ -1345,7 +1359,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (policy && shouldRestrictUserBillableActions(policy?.id, userBillingGraceEndPeriods)) {
+    if (policy && shouldRestrictUserBillableActions(policy?.id, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
