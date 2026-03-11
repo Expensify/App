@@ -76,7 +76,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                     }}
                     style={[styles.touchableButtonImage]}
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.close')}
+                    accessibilityLabel={`${translate('common.close')}, ${translate(`referralProgram.${referralContentType}.header`)}`}
                     sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.DISMISS_BUTTON}
                 >
                     <Icon
