@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/core';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Alert, AppState, Platform as RNPlatform, StyleSheet, View} from 'react-native';
+import {Alert, AppState, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
@@ -362,7 +362,7 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        const useSnapshot = RNPlatform.OS === 'android' && !(flash && hasFlash);
+        const useSnapshot = !(flash && hasFlash);
         const photoPromise = useSnapshot
             ? camera.current.takeSnapshot({quality: 100, path})
             : camera.current.takePhoto({
