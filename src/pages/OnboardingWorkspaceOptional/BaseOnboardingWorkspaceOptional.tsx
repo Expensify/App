@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -67,7 +68,8 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const ICON_SIZE = 48;
     const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'Tag', 'ReportReceipt']);
     const preferredCurrency = usePreferredCurrency();
-    const priceValue = getSubscriptionPrice(CONST.POLICY.TYPE.TEAM, preferredCurrency, CONST.SUBSCRIPTION.TYPE.ANNUAL, false);
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
+    const priceValue = getSubscriptionPrice(CONST.POLICY.TYPE.TEAM, preferredCurrency, CONST.SUBSCRIPTION.TYPE.ANNUAL, hasTeam2025Pricing);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
     const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price', price)}</muted-text-label></comment>`;
 
