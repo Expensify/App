@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
@@ -46,7 +47,9 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const [isImporting, setIsImporting] = useState(false);
+    const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
     const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
 
     const personalDetails = usePersonalDetails();
     const {setIsClosing} = useCloseImportPage();
@@ -100,6 +103,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
+        setShouldShowConfirmModal(false);
         closeImportPage();
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
@@ -212,7 +216,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 </PressableWithoutFeedback>
             </FixedFooter>
             <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
+                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
                 closeImportPageAndModal={closeImportPageAndModal}
                 shouldHandleNavigationBack={false}
             />
