@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import {flush} from '@libs/Network/SequentialQueue';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as App from './App';
+import {openApp, reconnectApp} from './App';
 
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 let isLoadingApp: OnyxEntry<boolean>;
@@ -32,10 +32,10 @@ function reconnect() {
 
     if (isLoadingApp) {
         Log.info('[Reconnect] App is still loading, calling openApp');
-        App.openApp();
+        openApp();
     } else {
         Log.info('[Reconnect] Calling reconnectApp');
-        App.reconnectApp(lastUpdateIDAppliedToClient);
+        reconnectApp(lastUpdateIDAppliedToClient);
     }
 
     // Flush the sequential queue to process any pending write requests

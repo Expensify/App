@@ -11,7 +11,9 @@ type UseNetwork = {isOffline: boolean; lastOfflineAt?: string};
 
 export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {}): UseNetwork {
     const callback = useRef(onReconnect);
-    callback.current = onReconnect;
+    useEffect(() => {
+        callback.current = onReconnect;
+    });
 
     const [network] = useOnyx(ONYXKEYS.NETWORK, {
         selector: networkStatusSelector,

@@ -14,7 +14,7 @@ const FailureTracking: Middleware = (response) =>
         .then((data) => {
             if (data?.jsonCode === 200) {
                 recordSuccess();
-            } else if (data?.jsonCode && data.jsonCode >= 500) {
+            } else if (data?.jsonCode && Number(data.jsonCode) >= 500) {
                 recordFailure();
             }
             return data;
