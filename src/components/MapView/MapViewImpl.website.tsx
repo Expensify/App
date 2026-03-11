@@ -295,6 +295,7 @@ function MapViewImpl({
                         latitude={distanceSymbolCoordinate.at(1) ?? 0}
                     >
                         <PressableWithoutFeedback
+                            sentryLabel="MapView-ToggleDistanceUnit"
                             accessibilityLabel={CONST.ROLE.BUTTON}
                             role={CONST.ROLE.BUTTON}
                             onPress={toggleDistanceUnit}
