@@ -6490,33 +6490,38 @@ describe('OptionsListUtils', () => {
             },
         };
 
+        const formatReport1: Report = {
+            reportID: formatReportID1,
+            reportName: 'Archived Format Chat',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: formatTestPolicyID,
+            ownerAccountID: formatOwnerAccountID,
+            participants: {
+                [formatOwnerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+
+        const formatReport2: Report = {
+            reportID: formatReportID2,
+            reportName: 'Active Format Chat',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: formatTestPolicyID,
+            ownerAccountID: formatMemberAccountID,
+            participants: {
+                [formatMemberAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+
+        const formatReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${formatReportID1}`]: formatReport1,
+            [`${ONYXKEYS.COLLECTION.REPORT}${formatReportID2}`]: formatReport2,
+        };
+
         beforeAll(async () => {
-            const report1: Report = {
-                reportID: formatReportID1,
-                reportName: 'Archived Format Chat',
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                policyID: formatTestPolicyID,
-                ownerAccountID: formatOwnerAccountID,
-                participants: {
-                    [formatOwnerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            };
-
-            const report2: Report = {
-                reportID: formatReportID2,
-                reportName: 'Active Format Chat',
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                policyID: formatTestPolicyID,
-                ownerAccountID: formatMemberAccountID,
-                participants: {
-                    [formatMemberAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${formatReportID1}`, report1);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${formatReportID2}`, report2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${formatReportID1}`, formatReport1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${formatReportID2}`, formatReport2);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${formatTestPolicyID}`, formatPolicy);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, formatPersonalDetails);
             await waitForBatchedUpdates();
@@ -6539,7 +6544,10 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, {shouldGetOptionDetails: true});
+            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, {
+                reports: formatReports,
+                shouldGetOptionDetails: true,
+            });
 
             expect(result.section.data).toHaveLength(1);
 
@@ -6594,7 +6602,10 @@ describe('OptionsListUtils', () => {
                 } as SearchOptionData,
             ];
 
-            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, {shouldGetOptionDetails: true});
+            const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, {
+                reports: formatReports,
+                shouldGetOptionDetails: true,
+            });
 
             expect(result.section.data).toHaveLength(2);
 
@@ -6650,6 +6661,7 @@ describe('OptionsListUtils', () => {
 
             // Pass empty filtered lists so the selected option is not deduplicated
             const result = formatSectionsFromSearchTerm('format', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, {
+                reports: formatReports,
                 shouldGetOptionDetails: true,
             });
 
