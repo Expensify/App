@@ -512,7 +512,6 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Aan',
         before: 'Vooraf',
         after: 'Na',
-        range: 'Bereik',
         reschedule: 'Opnieuw plannen',
         general: 'Algemeen',
         workspacesTabTitle: 'Werkruimtes',
@@ -7276,8 +7275,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 before: (date?: string) => `Voor ${date ?? ''}`,
                 after: (date?: string) => `Na ${date ?? ''}`,
                 on: (date?: string) => `Op ${date ?? ''}`,
-                customDate: 'Aangepaste datum',
-                customRange: 'Aangepast bereik',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Vorige maand',
@@ -7376,9 +7373,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         exportAll: {
             selectAllMatchingItems: 'Selecteer alle overeenkomende items',
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: 'Selecteer datums voor Van en Tot',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Van',

@@ -512,7 +512,6 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'オン',
         before: '前',
         after: '後',
-        range: '範囲',
         reschedule: '予定を変更',
         general: '一般',
         workspacesTabTitle: 'ワークスペース',
@@ -7218,8 +7217,6 @@ ${reportName}
                 before: (date?: string) => `${date ?? ''} より前`,
                 after: (date?: string) => `${date ?? ''} の後`,
                 on: (date?: string) => `${date ?? ''} に発生`,
-                customDate: 'カスタム日付',
-                customRange: 'カスタム範囲',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '決してない',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
@@ -7324,9 +7321,6 @@ ${reportName}
         exportAll: {
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: '開始日と終了日の両方を選択してください',
         },
         spendOverTime: '時間経過による支出',
     },

@@ -248,7 +248,6 @@ const CONST = {
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
     POPOVER_DATE_WIDTH: 338,
-    POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
     TOOLTIP_ANIMATION_DURATION: 500,
@@ -7517,7 +7516,6 @@ const CONST = {
             EQUAL_TO: 'eq',
             CONTAINS: 'contains',
             NOT_EQUAL_TO: 'neq',
-            RANGE: 'range',
             GREATER_THAN: 'gt',
             GREATER_THAN_OR_EQUAL_TO: 'gte',
             LOWER_THAN: 'lt',
@@ -7592,7 +7590,6 @@ const CONST = {
             ON_PREFIX: 'reportFieldOn-',
             AFTER_PREFIX: 'reportFieldAfter-',
             BEFORE_PREFIX: 'reportFieldBefore-',
-            RANGE_PREFIX: 'reportFieldRange-',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none',
@@ -7722,10 +7719,6 @@ const CONST = {
             ON: 'On',
             AFTER: 'After',
             BEFORE: 'Before',
-            RANGE: 'Range',
-        },
-        get CUSTOM_DATE_MODIFIERS() {
-            return [this.DATE_MODIFIERS.ON, this.DATE_MODIFIERS.BEFORE, this.DATE_MODIFIERS.AFTER] as const;
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
