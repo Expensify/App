@@ -84,7 +84,7 @@ type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string
 
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
-// type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
+type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
 
 type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
@@ -417,7 +417,7 @@ export type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     // CreatedReportForUnapprovedTransactionsParams,
-    // ResolutionConstraintsParams,
+    ResolutionConstraintsParams,
     SizeExceededParams,
     StepCounterParams,
     // UpdatedTheDistanceMerchantParams,
