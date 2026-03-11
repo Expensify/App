@@ -25,14 +25,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
-import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
+import {getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
-import ReportFooter from '@pages/inbox/report/ReportFooter';
+import ReportComposer from '@pages/inbox/ReportComposer';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -140,13 +140,11 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     }, [transactions, isOffline]);
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
 
     const parentReportAction = useParentReportAction(report);
 
-    const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest();
@@ -230,14 +228,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView />
                 <ReportActionsSkeletonView />
-                {shouldDisplayReportFooter ? (
-                    <ReportFooter
-                        report={report}
-                        lastReportAction={lastReportAction}
-                        // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
-                        transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
-                    />
-                ) : null}
+                {shouldDisplayReportFooter ? <ReportComposer /> : null}
             </View>
         );
     }
@@ -302,13 +293,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         )}
                         {shouldDisplayReportFooter ? (
                             <>
-                                <ReportFooter
-                                    report={report}
-                                    lastReportAction={lastReportAction}
-                                    reportTransactions={transactions}
-                                    // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
-                                    transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
-                                />
+                                <ReportComposer />
                                 <PortalHost name="suggestions" />
                             </>
                         ) : null}
