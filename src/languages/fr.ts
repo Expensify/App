@@ -2371,8 +2371,8 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} pour ${merchant} - ${date}`,
         },
-        setYourPin: 'Définir votre code PIN',
-        confirmYourPin: 'Confirmez votre code PIN',
+        setYourPin: 'Définir votre code PIN.',
+        confirmYourPin: 'Confirmez votre code PIN.',
         pinMustBeFourDigits: 'Le code PIN doit comporter exactement 4 chiffres.',
         invalidPin: 'Veuillez choisir un code PIN plus sécurisé.',
         pinMismatch: 'Les codes PIN ne correspondent pas. Veuillez réessayer.',

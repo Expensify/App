@@ -2360,8 +2360,8 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} voor ${merchant} - ${date}`,
         },
-        setYourPin: 'Stel je pincode in',
-        confirmYourPin: 'Bevestig je pincode',
+        setYourPin: 'Stel je pincode in.',
+        confirmYourPin: 'Bevestig je pincode.',
         pinMustBeFourDigits: 'Pincode moet precies 4 cijfers bevatten.',
         invalidPin: 'Kies alsjeblieft een veiligere pincode.',
         pinMismatch: 'Pincodes komen niet overeen. Probeer het opnieuw.',

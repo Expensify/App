@@ -2307,8 +2307,8 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount}，商户：${merchant} - 日期：${date}`,
         },
-        setYourPin: '设置您的 PIN',
-        confirmYourPin: '确认您的 PIN',
+        setYourPin: '设置您的 PIN.',
+        confirmYourPin: '确认您的 PIN.',
         pinMustBeFourDigits: 'PIN 必须正好为 4 位数字。',
         invalidPin: '请选择一个更安全的 PIN。',
         pinMismatch: 'PIN 不匹配。请重试。',

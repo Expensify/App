@@ -2,6 +2,7 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MagicCodeInput from '@components/MagicCodeInput';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -87,7 +88,7 @@ function PIN({onNext}: CustomSubPageProps) {
             <View style={[styles.flex1]}>
                 <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
 
-                <View style={[styles.mb4]}>
+                <View style={[styles.mb4, styles.ph8]}>
                     <MagicCodeInput
                         key={`pin-${isConfirmStep}`}
                         autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
@@ -104,6 +105,7 @@ function PIN({onNext}: CustomSubPageProps) {
 
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb4, styles.alignItemsCenter, styles.w100]}>
                     <Button
+                        icon={isPINHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
                         text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
                         onPress={togglePINVisibility}
                         medium

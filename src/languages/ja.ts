@@ -2343,8 +2343,8 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${date} の ${merchant} への ${amount}`,
         },
-        setYourPin: 'PIN を設定',
-        confirmYourPin: 'PIN を確認してください',
+        setYourPin: 'PIN を設定.',
+        confirmYourPin: 'PIN を確認してください.',
         pinMustBeFourDigits: 'PIN は 4 桁で入力してください。',
         invalidPin: 'より安全な暗証番号を選択してください。',
         pinMismatch: 'PIN が一致しません。もう一度お試しください。',
