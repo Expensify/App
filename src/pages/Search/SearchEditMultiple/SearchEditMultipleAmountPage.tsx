@@ -64,6 +64,11 @@ function SearchEditMultipleAmountPage() {
                 return false;
             }
 
+            // Self-DM track expenses have no IOU report — they always support negative amounts
+            if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                return true;
+            }
+
             const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             const iouReport =
                 transactionReport?.type === CONST.REPORT.TYPE.CHAT && transactionReport?.parentReportID
