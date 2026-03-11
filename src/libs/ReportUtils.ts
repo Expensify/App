@@ -3497,7 +3497,7 @@ function getParticipantsAccountIDsForDisplay(
     // For system chat, we want to display Expensify as the only participant
     const shouldExcludeCurrentUser = isOneOnOneChat(report) || isSystemChat(report) || shouldForceExcludeCurrentUser;
 
-    let participantsAccountIDs: number[] = [];
+    const participantsAccountIDs: number[] = [];
 
     for (const entry of Object.entries(reportParticipants)) {
         const [accountID] = entry;
@@ -3509,10 +3509,6 @@ function getParticipantsAccountIDsForDisplay(
         }
 
         const accountIDNumber = Number(accountID);
-
-        if (!isNumber(accountIDNumber)) {
-            continue;
-        }
 
         if (shouldExcludeCurrentUser && accountIDNumber === currentUserAccountID) {
             continue;
@@ -3529,12 +3525,8 @@ function getParticipantsAccountIDsForDisplay(
             continue;
         }
 
-        participantsAccountIDs.push(Number(accountID));
+        participantsAccountIDs.push(accountIDNumber);
     }
-
-    // if (shouldExcludeCurrentUser || shouldExcludeHidden || shouldExcludeDeleted) {
-    //     participantsIds = excludeParticipantsForDisplay(participantsIds, reportParticipants, reportMetadata, {shouldExcludeHidden, shouldExcludeDeleted, shouldExcludeCurrentUser});
-    // }
 
     return participantsAccountIDs;
 }
