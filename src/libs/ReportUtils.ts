@@ -543,7 +543,19 @@ type OptimisticReopenedReportAction = Pick<
 
 type OptimisticRetractedReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachmentOnly'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
+    | 'delegateAccountID'
 >;
 
 type OptimisticCancelPaymentReportAction = Pick<
@@ -4816,67 +4828,6 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 }
 
 /**
- * Checks if the user can edit multiple transactions
- */
-function canEditMultipleTransactions(
-    selectedTransactions: Transaction[],
-    reportActions: OnyxCollection<ReportActions>,
-    reports: OnyxCollection<Report>,
-    policies: OnyxCollection<Policy>,
-    areReportsSelected = false,
-): boolean {
-    if (areReportsSelected) {
-        return false;
-    }
-
-    if (selectedTransactions.length < 2) {
-        return false;
-    }
-
-    for (const transaction of selectedTransactions) {
-        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        if (isUnreportedExpense) {
-            return true;
-        }
-
-        // Do not allow editing split expenses in bulk
-        if (transaction.comment?.source === CONST.IOU.TYPE.SPLIT || transaction.comment?.splits) {
-            return false;
-        }
-
-        const reportAction = getIOUActionForTransactionID(Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {}), transaction.transactionID);
-        const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-
-        const isApproved = isReportApproved({report});
-
-        if (isApproved || isSettled(report)) {
-            return false;
-        }
-
-        const fieldsToCheck = [
-            CONST.EDIT_REQUEST_FIELD.AMOUNT,
-            CONST.EDIT_REQUEST_FIELD.MERCHANT,
-            CONST.EDIT_REQUEST_FIELD.CATEGORY,
-            CONST.EDIT_REQUEST_FIELD.TAG,
-            CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
-            CONST.EDIT_REQUEST_FIELD.DATE,
-            CONST.EDIT_REQUEST_FIELD.BILLABLE,
-            CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
-            CONST.EDIT_REQUEST_FIELD.TAX_RATE,
-        ];
-
-        const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest(reportAction, field, undefined, undefined, undefined, transaction, report, policy));
-
-        if (!isTransactionEditable) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
  * Checks if the current user can edit the provided property of an expense
  *
  */
@@ -4901,7 +4852,6 @@ function canEditFieldOfMoneyRequest(
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
         CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
-        CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
 
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, linkedTransaction)) {
@@ -4916,10 +4866,6 @@ function canEditFieldOfMoneyRequest(
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
     const transaction = linkedTransaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
-        return false;
-    }
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
@@ -6454,6 +6400,20 @@ function buildOptimisticAddCommentReportAction(
             delegateAccountID: delegateAccountDetails?.accountID,
         },
     };
+}
+
+function buildConciergeGreetingReportAction(reportID: string, greetingText: string, created: string): ReportAction {
+    return {
+        reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID,
+        reportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
+        created,
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: greetingText, text: greetingText}],
+        originalMessage: {html: greetingText, whisperedTo: []},
+        shouldShow: true,
+    } as ReportAction;
 }
 
 /**
@@ -8172,6 +8132,7 @@ function buildOptimisticRetractedReportAction(created = DateUtils.getDBTime()): 
         avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
+        delegateAccountID: getPersonalDetailByEmail(delegateEmail)?.accountID,
     };
 }
 
@@ -13071,6 +13032,7 @@ function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string,
 
 export {
     areAllRequestsBeingSmartScanned,
+    buildConciergeGreetingReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
     checkBulkRejectHydration,
@@ -13130,7 +13092,6 @@ export {
     canHoldUnholdReportAction,
     canEditReportPolicy,
     canEditFieldOfMoneyRequest,
-    canEditMultipleTransactions,
     canEditMoneyRequest,
     canEditReportAction,
     canEditReportDescription,
