@@ -10593,11 +10593,12 @@ function submitReport(
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
+    ownerBillingGraceEndPeriod?: OnyxEntry<number>,
 ) {
     if (!expenseReport) {
         return;
     }
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }

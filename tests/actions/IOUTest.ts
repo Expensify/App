@@ -10295,8 +10295,8 @@ describe('actions/IOU', () => {
             // Clear previous Navigation.navigate calls
             (Navigation.navigate as jest.Mock).mockClear();
 
-            // Submit with amountOwed > 0 should trigger restriction
-            submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, true, undefined, undefined, 100);
+            // Submit with amountOwed > 0 and overdue grace period should trigger restriction
+            submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, true, undefined, undefined, 100, pastDate);
 
             await waitForBatchedUpdates();
 
@@ -10392,7 +10392,8 @@ describe('actions/IOU', () => {
                 (Navigation.navigate as jest.Mock).mockClear();
 
                 const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, true, nextStep, undefined, 0);
+                const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+                submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, true, nextStep, undefined, 0, pastDate);
 
                 await waitForBatchedUpdates();
 

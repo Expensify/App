@@ -1169,7 +1169,18 @@ function MoneyReportHeader({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
+                    submitReport(
+                        moneyRequestReport,
+                        policy,
+                        accountID,
+                        email ?? '',
+                        hasViolations,
+                        isASAPSubmitBetaEnabled,
+                        nextStep,
+                        userBillingGraceEndPeriods,
+                        amountOwed,
+                        ownerBillingGraceEndPeriod,
+                    );
                     if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
@@ -1445,7 +1456,18 @@ function MoneyReportHeader({
                     showDWEModal();
                     return;
                 }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
+                submitReport(
+                    moneyRequestReport,
+                    policy,
+                    accountID,
+                    email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    nextStep,
+                    userBillingGraceEndPeriods,
+                    amountOwed,
+                    ownerBillingGraceEndPeriod,
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {

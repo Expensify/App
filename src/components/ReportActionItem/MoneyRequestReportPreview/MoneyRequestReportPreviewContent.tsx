@@ -761,6 +761,7 @@ function MoneyRequestReportPreviewContent({
                         iouReportNextStep,
                         userBillingGraceEndPeriods,
                         amountOwed,
+                        ownerBillingGraceEndPeriod,
                     );
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
