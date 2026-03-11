@@ -76,6 +76,9 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
 
     const scheduleHeaderFocus = useCallback(
         function schedule(headerIndex: number, attempt = 0) {
+            if (pendingHeaderFocusIndexRef.current !== headerIndex) {
+                return;
+            }
             if (focusHeaderAtIndex(headerIndex)) {
                 return;
             }
