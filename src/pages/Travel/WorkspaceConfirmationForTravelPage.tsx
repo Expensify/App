@@ -29,8 +29,6 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         createDraftWorkspace(introSelected, '', false, params.name, params.policyID, params.currency, params.avatarFile as File);
         createWorkspace({
-            policyOwnerEmail: '',
-            makeMeAdmin: false,
             policyName: params.name,
             policyID: params.policyID,
             engagementChoice: undefined,

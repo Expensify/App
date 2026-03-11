@@ -17,9 +17,11 @@ import type {
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 // eslint-disable-next-line no-restricted-imports
@@ -121,9 +123,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
-
-    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
-    shouldStopMouseLeavePropagation?: boolean;
 
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
@@ -491,6 +490,27 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The available actions that can be performed for the report */
         allActions?: SearchTransactionAction[];
+
+        /** Pre-computed total display spend amount */
+        totalDisplaySpend?: number;
+
+        /** Pre-computed non-reimbursable spend amount */
+        nonReimbursableSpend?: number;
+
+        /** Pre-computed reimbursable spend amount */
+        reimbursableSpend?: number;
+
+        /** Pre-computed flag indicating whether all transactions are scanning */
+        isAllScanning?: boolean;
+
+        /** Pre-computed primary avatar icon for the report */
+        primaryAvatar?: Icon;
+
+        /** Pre-computed secondary avatar icon for the report (workspace icon for subscript display) */
+        secondaryAvatar?: Icon;
+
+        /** Layout type for the report avatar, matching CONST.REPORT_ACTION_AVATARS.TYPE */
+        avatarType?: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails &
@@ -626,6 +646,9 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         testID?: string;
         /** Whether to show the default right hand side checkmark */
         shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+        /** Whether this list item should be an accessibility container. When false, VoiceOver navigates to individual children instead of grouping them. */
+        accessible?: false;
     };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -744,9 +767,6 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
 
-    /** The policies which the user has access to */
-    policies?: OnyxCollection<Policy>;
-
     /** The report data */
     report?: Report;
 
@@ -792,6 +812,7 @@ type LoadingPlaceholderComponentProps = {
     shouldStyleAsTable?: boolean;
     fixedNumItems?: number;
     speed?: number;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
@@ -917,7 +938,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     showScrollIndicator?: boolean;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** The component to show when the list is loading */
     LoadingPlaceholderComponent?: React.ComponentType<LoadingPlaceholderComponentProps>;
