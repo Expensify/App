@@ -109,7 +109,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.TRAVEL.WORKSPACE_ADDRESS,
             SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
         ],
-        getRoute: (country = '') => `country${country ? `?country=${country}` : ''}`,
+        getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
 } as const satisfies DynamicRoutes;

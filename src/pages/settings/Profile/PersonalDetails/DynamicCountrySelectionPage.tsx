@@ -22,7 +22,7 @@ type DynamicCountrySelectionPageProps = PlatformStackScreenProps<SettingsNavigat
 function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
-    const currentCountry = route.params?.country ?? '';
+    const currentCountry = route.params.country;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADDRESS_COUNTRY.path);
 
     const countries = useMemo(
@@ -68,7 +68,7 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
                 title={translate('common.country')}
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    Navigation.goBack(currentCountry ? appendParam(backPath, 'country', currentCountry) : (backPath as Route), {compareParams: false});
+                    Navigation.goBack(currentCountry ? appendParam(backPath, 'country', currentCountry) : backPath, {compareParams: false});
                 }}
             />
 
