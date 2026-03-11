@@ -3037,7 +3037,7 @@ ${
                 descriptionTwo: '経費を分類してタグ付けする',
                 descriptionThree: 'レポートを作成して共有',
             },
-            price: 'まずは30日間無料でお試しいただき、その後はわずか<strong>$5/ユーザー/月</strong>でアップグレードできます。',
+            price: (price?: string) => `まずは30日間無料でお試しいただき、その後はわずか<strong>${price ?? '$5'}/ユーザー/月</strong>でアップグレードできます。`,
             createWorkspace: 'ワークスペースを作成',
         },
         confirmWorkspace: {

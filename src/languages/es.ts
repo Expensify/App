@@ -2927,7 +2927,7 @@ ${amount} para ${merchant} - ${date}`,
                 descriptionTwo: 'Clasifica y etiqueta gastos',
                 descriptionThree: 'Crea y comparte informes',
             },
-            price: 'Pruébalo gratis durante 30 días y luego mejora por solo <strong>$5/usuario/mes</strong>.',
+            price: (price?: string) => `Pruébalo gratis durante 30 días y luego mejora por solo <strong>${price ?? '$5'}/usuario/mes</strong>.`,
             createWorkspace: 'Crear espacio de trabajo',
         },
         confirmWorkspace: {

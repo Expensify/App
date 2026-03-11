@@ -3055,7 +3055,7 @@ ${
                 descriptionTwo: 'Categoriseer en tag uitgaven',
                 descriptionThree: 'Rapporten maken en delen',
             },
-            price: 'Probeer het 30 dagen gratis, upgrade daarna voor slechts <strong>$5/gebruiker/maand</strong>.',
+            price: (price?: string) => `Probeer het 30 dagen gratis, upgrade daarna voor slechts <strong>${price ?? '$5'}/gebruiker/maand</strong>.`,
             createWorkspace: 'Werkruimte maken',
         },
         confirmWorkspace: {

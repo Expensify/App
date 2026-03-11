@@ -3104,7 +3104,7 @@ const translations = {
                 descriptionTwo: 'Categorize and tag expenses',
                 descriptionThree: 'Create and share reports',
             },
-            price: 'Try it free for 30 days, then upgrade for just <strong>$5/user/month</strong>.',
+            price: (price?: string) => `Try it free for 30 days, then upgrade for just <strong>${price ?? '$5'}/user/month</strong>.`,
             createWorkspace: 'Create workspace',
         },
         confirmWorkspace: {

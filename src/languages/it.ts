@@ -3056,7 +3056,7 @@ ${
                 descriptionTwo: 'Classifica e tagga le spese',
                 descriptionThree: 'Crea e condividi report',
             },
-            price: 'Provalo gratis per 30 giorni, poi passa al piano a soli <strong>$5/utente/mese</strong>.',
+            price: (price?: string) => `Provalo gratis per 30 giorni, poi passa al piano a soli <strong>${price ?? '$5'}/utente/mese</strong>.`,
             createWorkspace: 'Crea spazio di lavoro',
         },
         confirmWorkspace: {

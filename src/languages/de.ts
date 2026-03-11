@@ -3064,7 +3064,7 @@ ${
                 descriptionTwo: 'Ausgaben kategorisieren und taggen',
                 descriptionThree: 'Berichte erstellen und teilen',
             },
-            price: 'Teste es 30 Tage kostenlos und upgrade dann für nur <strong>5 $/Nutzer/Monat</strong>.',
+            price: (price?: string) => `Teste es 30 Tage kostenlos und upgrade dann für nur <strong>${price ?? '5 $'}/Nutzer/Monat</strong>.`,
             createWorkspace: 'Workspace erstellen',
         },
         confirmWorkspace: {
