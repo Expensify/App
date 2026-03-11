@@ -9,10 +9,7 @@ import {Animated, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import MoneyReportHeader from '@components/MoneyReportHeader';
-import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -35,7 +32,6 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -92,18 +88,17 @@ import {
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccountManagerBanner from './AccountManagerBanner';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
-import HeaderView from './HeaderView';
 import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
+import ReportHeader from './ReportHeader';
 import ReportLifecycleHandler from './ReportLifecycleHandler';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
 import {ActionListContext} from './ReportScreenContext';
@@ -264,7 +259,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [isConciergeSidePanel, reportActions, currentUserAccountID, sessionStartTime]);
     const viewportOffsetTop = useViewportOffsetTop();
 
-    const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
+    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 
@@ -316,84 +311,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         statusLabel: conciergeStatusLabel,
         kickoffWaitingIndicator,
     } = useAgentZeroStatusIndicator(String(report?.reportID ?? CONST.DEFAULT_NUMBER_ID), isConciergeChat);
-
-    const {closeSidePanel} = useSidePanelActions();
-
-    const backTo = route?.params?.backTo as string;
-    const onBackButtonPress = useCallback(
-        (prioritizeBackTo = false) => {
-            if (isInSidePanel) {
-                closeSidePanel();
-                return;
-            }
-            if (backTo === SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
-                Navigation.goBack();
-                return;
-            }
-            if (prioritizeBackTo && backTo) {
-                Navigation.goBack(backTo as Route);
-                return;
-            }
-            if (isInNarrowPaneModal) {
-                Navigation.goBack();
-                return;
-            }
-            if (backTo) {
-                Navigation.goBack(backTo as Route);
-                return;
-            }
-            Navigation.goBack();
-        },
-        [isInSidePanel, backTo, isInNarrowPaneModal, closeSidePanel],
-    );
-
-    const headerView = useMemo(() => {
-        if (isTransactionThreadView) {
-            return (
-                <MoneyRequestHeader
-                    report={report}
-                    policy={policy}
-                    parentReportAction={parentReportAction}
-                    onBackButtonPress={onBackButtonPress}
-                />
-            );
-        }
-
-        if (isMoneyRequestOrInvoiceReport) {
-            return (
-                <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    transactionThreadReportID={transactionThreadReportID}
-                    isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
-                    reportActions={reportActions}
-                    onBackButtonPress={onBackButtonPress}
-                />
-            );
-        }
-
-        return (
-            <HeaderView
-                reportID={reportIDFromRoute}
-                onNavigationMenuButtonClicked={onBackButtonPress}
-                report={report}
-                parentReportAction={parentReportAction}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
-            />
-        );
-    }, [
-        isTransactionThreadView,
-        isMoneyRequestOrInvoiceReport,
-        report,
-        policy,
-        parentReportAction,
-        onBackButtonPress,
-        transactionThreadReportID,
-        reportMetadata.isLoadingInitialReportActions,
-        reportActions,
-        reportIDFromRoute,
-        shouldUseNarrowLayout,
-    ]);
 
     useEffect(() => {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
@@ -957,14 +874,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             shouldDisplaySearchRouter
                         >
                             <DragAndDropProvider isDisabled={isEditingDisabled}>
-                                <OfflineWithFeedback
-                                    pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
-                                    errors={reportErrors}
-                                    shouldShowErrorMessages={false}
-                                    needsOffscreenAlphaCompositing
-                                >
-                                    {headerView}
-                                </OfflineWithFeedback>
+                                <ReportHeader />
                                 <AccountManagerBanner reportID={reportIDFromRoute} />
                                 <View style={[styles.flex1, styles.flexRow]}>
                                     {shouldShowWideRHP && (
