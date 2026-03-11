@@ -228,6 +228,9 @@ type Receipt = {
 
     /** Receipt is Test Drive testing receipt */
     isTestDriveReceipt?: true;
+
+    /** Local thumbnail URI for fast preview on confirmation page */
+    thumbnail?: string;
 };
 
 /** Model of route */

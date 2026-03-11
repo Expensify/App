@@ -1,3 +1,4 @@
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import ImageSize from 'react-native-image-size';
 import type {Orientation} from 'react-native-vision-camera';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
@@ -78,5 +79,18 @@ function cropImageToAspectRatio(
         .catch(() => image);
 }
 
+/**
+ * Generate a low-resolution thumbnail from an image URI.
+ * Used on native to avoid decoding the full 12MP camera photo on the confirmation page.
+ */
+function generateThumbnail(sourceUri: string, maxWidth = 512): Promise<string | undefined> {
+    return ImageManipulator.manipulate(sourceUri)
+        .resize({width: maxWidth})
+        .renderAsync()
+        .then((image) => image.saveAsync({compress: 0.8, format: SaveFormat.JPEG}))
+        .then((result) => result.uri)
+        .catch(() => undefined);
+}
+
 export type {ImageObject};
-export {calculateCropRect, cropImageToAspectRatio};
+export {calculateCropRect, cropImageToAspectRatio, generateThumbnail};

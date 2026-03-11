@@ -47,6 +47,7 @@ import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
+import {generateThumbnail} from './cropImageToAspectRatio';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
@@ -382,32 +383,35 @@ function IOURequestStepScan({
                 const transactionID = transaction?.transactionID ?? initialTransactionID;
                 const source = getPhotoSource(photo.path);
                 const filename = photo.path;
-                endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
 
-                const cameraFile = {
-                    uri: source,
-                    name: filename,
-                    type: 'image/jpeg',
-                    source,
-                };
+                return generateThumbnail(source).then((thumbnailUri) => {
+                    endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
 
-                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
+                    const cameraFile = {
+                        uri: source,
+                        name: filename,
+                        type: 'image/jpeg',
+                        source,
+                    };
 
-                if (isEditing) {
-                    updateScanAndNavigate(cameraFile as FileObject, source);
-                    return;
-                }
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg', false, false, thumbnailUri);
 
-                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
-                setReceiptFiles(newReceiptFiles);
+                    if (isEditing) {
+                        updateScanAndNavigate(cameraFile as FileObject, source);
+                        return;
+                    }
 
-                if (isMultiScanEnabled) {
-                    setDidCapturePhoto(false);
-                    isCapturingPhoto.current = false;
-                    return;
-                }
+                    const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
+                    setReceiptFiles(newReceiptFiles);
 
-                submitReceipts(newReceiptFiles);
+                    if (isMultiScanEnabled) {
+                        setDidCapturePhoto(false);
+                        isCapturingPhoto.current = false;
+                        return;
+                    }
+
+                    submitReceipts(newReceiptFiles);
+                });
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
