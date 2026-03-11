@@ -1,3 +1,4 @@
+import isEqual from 'lodash/isEqual';
 import {useEffect, useRef} from 'react';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -11,8 +12,10 @@ import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigat
  * would change the URL but leave the displayed screen unchanged.
  */
 function useNavigateOnParamsChange({navigation, parentRoute, state}: CustomEffectsHookProps) {
-    // Initialize with current params so we don't navigate on the first mount.
-    const lastHandledParamsRef = useRef(parentRoute?.params);
+    // Initialized to undefined (not the current params) so that the first render also checks
+    // whether the navigator's initial state matches the target screen. This is required for
+    // freshly-mounted navigators whose getInitialState may not navigate to the correct screen.
+    const lastHandledParamsRef = useRef<Record<string, unknown> | undefined>(undefined);
 
     // No dependency array — runs after every render.
     // The ref guard ensures we only act when params actually change.
@@ -31,13 +34,13 @@ function useNavigateOnParamsChange({navigation, parentRoute, state}: CustomEffec
             return;
         }
 
-        // Already showing the correct screen — nothing to do.
+        const screenParams = currentParams && 'params' in currentParams ? (currentParams.params as Record<string, unknown>) : undefined;
+
+        // Already showing the correct screen with the same params — nothing to do.
         const lastRoute = state.routes.at(-1);
-        if (lastRoute?.name === screenToNavigate) {
+        if (lastRoute?.name === screenToNavigate && isEqual(lastRoute?.params, screenParams)) {
             return;
         }
-
-        const screenParams = currentParams && 'params' in currentParams ? (currentParams.params as Record<string, unknown>) : undefined;
 
         navigation.navigate(screenToNavigate, screenParams);
     });

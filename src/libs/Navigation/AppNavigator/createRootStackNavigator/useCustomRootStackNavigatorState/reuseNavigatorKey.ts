@@ -59,16 +59,23 @@ function buildOptimizedRoutes(routesToRender: StateRoutes, state: StackNavigatio
             return route;
         }
 
+        const existingRouteIndexInFull = state.routes.findIndex((r) => r.key === existingRoute.key);
+        const currentRouteIndexInFull = state.routes.findIndex((r) => r.key === route.key);
+        const routesBetween = state.routes.slice(existingRouteIndexInFull + 1, currentRouteIndexInFull);
+
         // Prevent reordering of native views: skip remap if there are routes between existingRoute
         // and the current route in the full state that are also being rendered. Remapping in this
         // case would swap their positions in the array and cause a blank screen in the native stack.
-        const existingRouteIndexInFull = state.routes.findIndex((r) => r.key === existingRoute.key);
-        const currentRouteIndexInFull = state.routes.findIndex((r) => r.key === route.key);
-        const hasIntermediateRenderedRoutes = state.routes
-            .slice(existingRouteIndexInFull + 1, currentRouteIndexInFull)
-            .some((routeBetween) => routesToRender.some((r) => r.key === routeBetween.key));
+        const hasIntermediateRenderedRoutes = routesBetween.some((routeBetween) => routesToRender.some((r) => r.key === routeBetween.key));
 
-        if (hasIntermediateRenderedRoutes) {
+        // Skip remap if there are routes of a different navigator type between existingRoute and
+        // currentRoute in the full navigation state. Without this guard, on platforms that only
+        // render one route at a time (web), the current route would be rendered under existingRoute's
+        // key and never mounted under its own key — so it would never receive embedded state,
+        // which breaks the URL and back navigation.
+        const hasIntermediateRoutesOfDifferentType = routesBetween.some((routeBetween) => routeBetween.name !== route.name);
+
+        if (hasIntermediateRenderedRoutes || hasIntermediateRoutesOfDifferentType) {
             return route;
         }
 
