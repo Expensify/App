@@ -172,6 +172,7 @@ function SubmitDetailsPage({
                 quickAction,
                 recentWaypoints,
                 betas,
+                isSelfTourViewed,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);
