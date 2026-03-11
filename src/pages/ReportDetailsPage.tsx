@@ -49,13 +49,14 @@ import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
+import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
     canEditReportDescription as canEditReportDescriptionUtil,
+    canEditReportTitle,
     canJoinChat,
     canLeaveChat,
     canWriteInReport,
@@ -71,7 +72,6 @@ import {
     getReportDescription,
     getReportFieldKey,
     getReportForHeader,
-    isAdminOwnerApproverOrReportOwner,
     isArchivedNonExpenseReport,
     isCanceledTaskReport as isCanceledTaskReportUtil,
     isChatRoom as isChatRoomUtil,
@@ -165,6 +165,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const backTo = route.params.backTo;
 
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -327,13 +328,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const leaveChat = useCallback(() => {
         if (isRootGroupChat) {
-            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID);
+            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID, introSelected);
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, isWorkspaceMemberLeavingWorkspaceRoom);
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID]);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isWorkspaceMemberLeavingWorkspaceRoom);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -451,18 +452,19 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector(
-                        iouTransactionID,
-                        actionReportID,
-                        CONST.IOU.ACTION.SUBMIT,
-                        actionableWhisperReportActionID,
+                    createDraftTransactionAndNavigateToParticipantSelector({
+                        transactionID: iouTransactionID,
+                        reportID: actionReportID,
+                        actionName: CONST.IOU.ACTION.SUBMIT,
+                        reportActionID: actionableWhisperReportActionID,
                         introSelected,
                         allTransactionDrafts,
                         activePolicy,
-                        undefined,
+                        userBillingGraceEndPeriodCollection,
+                        amountOwed,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
-                    );
+                    });
                 },
             });
             if (Permissions.canUseTrackFlows()) {
@@ -473,16 +475,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(
-                            iouTransactionID,
-                            actionReportID,
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            actionableWhisperReportActionID,
+                        createDraftTransactionAndNavigateToParticipantSelector({
+                            transactionID: iouTransactionID,
+                            reportID: actionReportID,
+                            actionName: CONST.IOU.ACTION.CATEGORIZE,
+                            reportActionID: actionableWhisperReportActionID,
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
                             userBillingGraceEndPeriodCollection,
-                        );
+                            amountOwed,
+                        });
                     },
                 });
                 items.push({
@@ -492,16 +495,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(
-                            iouTransactionID,
-                            actionReportID,
-                            CONST.IOU.ACTION.SHARE,
-                            actionableWhisperReportActionID,
+                        createDraftTransactionAndNavigateToParticipantSelector({
+                            transactionID: iouTransactionID,
+                            reportID: actionReportID,
+                            actionName: CONST.IOU.ACTION.SHARE,
+                            reportActionID: actionableWhisperReportActionID,
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            undefined,
-                        );
+                            userBillingGraceEndPeriodCollection,
+                            amountOwed,
+                        });
                     },
                 });
             }
@@ -628,6 +632,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReport,
         reportActionsForOriginalReportID,
         userBillingGraceEndPeriodCollection,
+        amountOwed,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -828,8 +833,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const fieldKey = getReportFieldKey(titleField?.fieldID);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    const shouldShowEditableTitleField =
-        caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy) && isExpenseReport && isPaidGroupPolicy(policy);
+    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy);
 
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle

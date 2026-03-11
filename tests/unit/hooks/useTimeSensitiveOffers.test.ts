@@ -184,6 +184,7 @@ describe('useTimeSensitiveOffers', () => {
                 firstDayFreeTrial,
                 lastDayFreeTrial,
                 userBillingFundID,
+                {},
             );
         });
 

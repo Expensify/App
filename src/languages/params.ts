@@ -5,6 +5,8 @@ import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 type MultifactorAuthenticationTranslationParams = {
     authType?: string;
     registered?: boolean;
+    otherDeviceCount?: number;
+    status?: string;
 };
 
 type ZipCodeExampleFormatParams = {
@@ -61,6 +63,8 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
 type CreatedReportForUnapprovedTransactionsParams = {
     reportUrl: string;
     reportName: string;
+    reportID: string;
+    isReportDeleted: boolean;
 };
 
 type WorkspacesListRouteParams = {

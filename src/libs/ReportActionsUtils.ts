@@ -184,7 +184,6 @@ const deprecatedOldDotReportActions = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.DONATION,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
 ]);
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -566,6 +565,10 @@ function isReopenedAction(reportAction: OnyxEntry<ReportAction>): reportAction i
 
 function isRetractedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RETRACTED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED);
+}
+
+function isRejectedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER);
 }
 
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
@@ -1146,6 +1149,16 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    // Hide automatic TAKE_CONTROL actions created by OldDot's auto-pay workflow.
+    // When automaticAction is true and there are no mentionedAccountIDs, this indicates
+    // the TAKE_CONTROL was a side effect of auto-pay rather than a manual approver change.
+    if (actionName === CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) {
+        const originalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>);
+        if (originalMessage?.automaticAction && !originalMessage?.mentionedAccountIDs?.length) {
+            return false;
+        }
+    }
+
     if (isWhisperActionTargetedToOthers(reportAction)) {
         return false;
     }
@@ -1430,6 +1443,7 @@ function getFilteredReportActionsForReportView(actions: ReportAction[]) {
 function getDynamicExternalWorkflowRoutedAction(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> {
+    const originalMessage = getOriginalMessage(reportAction);
     return {
         reportActionID: `${reportAction.reportActionID}DEW`,
         created: DateUtils.addMillisecondsFromDateTime(reportAction.created, 1),
@@ -1437,7 +1451,8 @@ function getDynamicExternalWorkflowRoutedAction(
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
         message: [{html: 'DYNAMIC_EXTERNAL_WORKFLOW', type: 'COMMENT', text: ''}],
         originalMessage: {
-            to: getOriginalMessage(reportAction)?.to ?? '',
+            to: originalMessage?.to ?? '',
+            message: originalMessage?.message ?? '',
         },
     };
 }
@@ -4109,16 +4124,28 @@ function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, rep
     return translate('reportAction.harvestCreatedExpenseReport', reportUrl, reportName);
 }
 
-function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate): string {
+/**
+ * Check if the original report referenced by a report action is deleted.
+ */
+function isOriginalReportDeleted(action: OnyxEntry<ReportAction>, originalReport: OnyxEntry<Report>): boolean {
+    // isOriginalReportDeleted is set to true when the original report is deleted from the backend. We can fall back to check if the report is optimistically deleted on the frontend side.
+    return !!action?.isOriginalReportDeleted || originalReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, isReportDeleted: boolean, translate: LocalizedTranslate): string {
+    if (reportID === undefined) {
+        return '';
+    }
     const reportUrl = getReportURLForCurrentContext(reportID);
-    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName});
+    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName, reportID, isReportDeleted});
 }
 
 function getDynamicExternalWorkflowRoutedMessage(
     action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
     translate: LocaleContextProps['translate'],
 ) {
-    return translate('iou.routedDueToDEW', getOriginalMessage(action)?.to ?? '');
+    const originalMessage = getOriginalMessage(action);
+    return translate('iou.routedDueToDEW', originalMessage?.to ?? '', originalMessage?.message ?? '');
 }
 
 function getSettlementAccountLockedMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
@@ -4581,6 +4608,7 @@ export {
     getRoomChangeLogMessage,
     getActionableCard3DSTransactionApprovalMessage,
     shouldShowActivateCard,
+    isRejectedAction,
     isReopenedAction,
     isRetractedAction,
     getIntegrationSyncFailedMessage,
@@ -4605,6 +4633,7 @@ export {
     getWorkspaceCategoriesUpdatedMessage,
     getHarvestCreatedExpenseReportMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    isOriginalReportDeleted,
     isSystemUserMentioned,
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,
