@@ -3494,23 +3494,16 @@ function getParticipantsAccountIDsForDisplay(
     const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
 
     let participantsAccountIDs: number[] = [];
+
     for (const entry of Object.entries(reportParticipants)) {
         const [accountID] = entry;
         const personalDetail = allPersonalDetails?.[accountID];
 
         // We should not show participants that have an optimistic entry with the same login in the personal details
-        if (personalDetail?.login && !personalDetail.isOptimisticPersonalDetail) {
-            nonOptimisticLoginMap[personalDetail.login] = true;
+        if (personalDetail?.login && personalDetail.isOptimisticPersonalDetail) {
+            continue;
         }
     }
-
-    participantsEntries = participantsEntries.filter(([accountID]) => {
-        const personalDetail = allPersonalDetails?.[accountID];
-        if (personalDetail?.login && personalDetail.isOptimisticPersonalDetail) {
-            return !nonOptimisticLoginMap[personalDetail.login];
-        }
-        return true;
-    });
 
     let participantsIds = participantsEntries.map(([accountID]) => Number(accountID));
 
