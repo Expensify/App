@@ -5,7 +5,7 @@
 import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import type {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
-import type {MultifactorAuthenticationKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
+import type {NativeBiometricsKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
 import type {PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Passkeys/types';
 import type {PASSKEY_AUTH_TYPE} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
 import type {SignedChallenge} from './challengeTypes';
@@ -52,7 +52,7 @@ type MultifactorAuthenticationResponseMap = typeof VALUES.API_RESPONSE_MAP;
 type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationBaseParameters> = T &
     Pick<AllMultifactorAuthenticationBaseParameters, R> & {authenticationMethod: MarqetaAuthTypeName};
 
-type RegistrationKeyInfo = MultifactorAuthenticationKeyInfo | PasskeyRegistrationKeyInfo;
+type RegistrationKeyInfo = NativeBiometricsKeyInfo | PasskeyRegistrationKeyInfo;
 
 type ChallengeType = ValueOf<typeof VALUES.CHALLENGE_TYPE>;
 

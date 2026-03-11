@@ -2,7 +2,7 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo} from 
 import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {AuthorizeResult, RegisterResult} from '@components/MultifactorAuthentication/biometrics/common/types';
+import type {AuthorizeResult, RegisterResult} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useNetwork from '@hooks/useNetwork';
@@ -11,7 +11,7 @@ import getPlatform from '@libs/getPlatform';
 import type {ChallengeType, MultifactorAuthenticationCallbackInput, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@navigation/Navigation';
 import {clearLocalMFAPublicKeyList, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
-import {processPasskeyRegistration, processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
+import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -236,16 +236,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     return;
                 }
 
-                const registrationResponse = result.attestation
-                    ? await processPasskeyRegistration({
-                          attestation: result.attestation,
-                          authenticationMethod: result.authenticationMethod.marqetaValue,
-                      })
-                    : await processRegistration({
-                          publicKey: result.publicKey,
-                          authenticationMethod: result.authenticationMethod.marqetaValue,
-                          challenge: registrationChallenge.challenge,
-                      });
+                const registrationResponse = await processRegistration({
+                    keyInfo: result.keyInfo,
+                    authenticationMethod: result.authenticationMethod.marqetaValue,
+                });
 
                 if (!registrationResponse.success) {
                     dispatch({

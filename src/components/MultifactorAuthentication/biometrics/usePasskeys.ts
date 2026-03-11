@@ -18,8 +18,8 @@ import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
 import CONST from '@src/CONST';
 import type {LocalPasskeyCredentialsEntry, PasskeyCredential} from '@src/types/onyx';
-import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './common/types';
-import useServerCredentials from './common/useServerCredentials';
+import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
+import useServerCredentials from './shared/useServerCredentials';
 
 function getLocalCredentials(entry: OnyxEntry<LocalPasskeyCredentialsEntry>): PasskeyCredential[] {
     return entry ?? [];
@@ -37,9 +37,6 @@ function usePasskeys(): UseBiometricsReturn {
 
     const areLocalCredentialsKnownToServer = async () => {
         const credentials = getLocalCredentials(localPasskeyCredentials);
-        if (credentials.length === 0) {
-            return false;
-        }
         const serverSet = new Set(serverKnownCredentialIDs);
         return credentials.some((c) => serverSet.has(c.id));
     };
@@ -100,15 +97,17 @@ function usePasskeys(): UseBiometricsReturn {
         await onResult({
             success: true,
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
-            publicKey: credentialId,
+            keyInfo: {
+                rawId: credentialId,
+                type: CONST.PASSKEY_CREDENTIAL_TYPE,
+                response: {
+                    clientDataJSON,
+                    attestationObject,
+                },
+            },
             authenticationMethod: {
                 name: PASSKEY_AUTH_TYPE.NAME,
                 marqetaValue: PASSKEY_AUTH_TYPE.MARQETA_VALUE,
-            },
-            attestation: {
-                rawId: credentialId,
-                clientDataJSON,
-                attestationObject,
             },
         });
     };

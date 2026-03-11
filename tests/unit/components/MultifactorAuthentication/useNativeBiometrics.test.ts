@@ -199,6 +199,14 @@ describe('useNativeBiometrics hook', () => {
     });
 
     describe('register', () => {
+        const mockRegistrationChallenge = {
+            challenge: 'test-challenge-string',
+            rp: {id: 'expensify.com'},
+            user: {id: 'user-123', displayName: 'Test User'},
+            pubKeyCredParams: [{type: 'public-key' as const, alg: -8}],
+            timeout: 60000,
+        };
+
         beforeEach(() => {
             (generateKeyPair as jest.Mock).mockReturnValue({
                 publicKey: 'public-key-123',
@@ -219,15 +227,28 @@ describe('useNativeBiometrics hook', () => {
             });
         });
 
-        // Note: Challenge fetching is now done in Main.tsx, not in useNativeBiometrics
-        // These tests verify the register function with challenge passed as a parameter
+        it('should return failure when registrationChallenge is missing', async () => {
+            const {result} = renderHook(() => useNativeBiometrics());
+            const onResult = jest.fn();
+
+            await act(async () => {
+                await result.current.register(onResult);
+            });
+
+            expect(onResult).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: false,
+                    reason: VALUES.REASON.CHALLENGE.CHALLENGE_MISSING,
+                }),
+            );
+        });
 
         it('should generate key pair', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register(onResult);
+                await result.current.register(onResult, mockRegistrationChallenge);
             });
 
             expect(generateKeyPair).toHaveBeenCalled();
@@ -238,7 +259,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register(onResult);
+                await result.current.register(onResult, mockRegistrationChallenge);
             });
 
             // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -250,32 +271,38 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register(onResult);
+                await result.current.register(onResult, mockRegistrationChallenge);
             });
 
-            // Verify both stores were called
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(PrivateKeyStore.set).toHaveBeenCalled();
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(PublicKeyStore.set).toHaveBeenCalled();
         });
 
-        it('should handle successful registration flow', async () => {
+        it('should handle successful registration flow and return keyInfo', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register(onResult);
+                await result.current.register(onResult, mockRegistrationChallenge);
             });
 
-            // Verify the full flow was triggered
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(generateKeyPair).toHaveBeenCalled();
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(PrivateKeyStore.set).toHaveBeenCalled();
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(PublicKeyStore.set).toHaveBeenCalled();
-            expect(onResult).toHaveBeenCalled();
+            expect(onResult).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    keyInfo: expect.objectContaining({
+                        rawId: 'public-key-123',
+                        type: 'biometric',
+                    }),
+                }),
+            );
         });
     });
 

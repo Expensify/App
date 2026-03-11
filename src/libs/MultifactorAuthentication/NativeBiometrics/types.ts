@@ -31,7 +31,7 @@ type MultifactorKeyStoreOptions<T extends MultifactorAuthenticationKeyType> = T 
       }
     : void;
 
-type MultifactorAuthenticationKeyInfo = {
+type NativeBiometricsKeyInfo = {
     rawId: Base64URLString;
     type: typeof VALUES.ED25519_TYPE;
     response: {
@@ -43,4 +43,4 @@ type MultifactorAuthenticationKeyInfo = {
     };
 };
 
-export type {MultifactorAuthenticationKeyStoreStatus, MultifactorAuthenticationKeyType, MultifactorKeyStoreOptions, MultifactorAuthenticationKeyInfo};
+export type {MultifactorAuthenticationKeyStoreStatus, MultifactorAuthenticationKeyType, MultifactorKeyStoreOptions, NativeBiometricsKeyInfo};

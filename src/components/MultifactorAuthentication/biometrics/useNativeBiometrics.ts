@@ -4,10 +4,13 @@ import useLocalize from '@hooks/useLocalize';
 import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/NativeBiometrics/ED25519';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/NativeBiometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
+import type {NativeBiometricsKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
+import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
-import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './common/types';
-import useServerCredentials from './common/useServerCredentials';
+import Base64URL from '@src/utils/Base64URL';
+import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
+import useServerCredentials from './shared/useServerCredentials';
 
 /**
  * Clears local credentials to allow re-registration.
@@ -67,7 +70,15 @@ function useNativeBiometrics(): UseBiometricsReturn {
         await resetKeys(accountID);
     }, [accountID]);
 
-    const register = async (onResult: (result: RegisterResult) => Promise<void> | void) => {
+    const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge?: RegistrationChallenge) => {
+        if (!registrationChallenge) {
+            onResult({
+                success: false,
+                reason: VALUES.REASON.CHALLENGE.CHALLENGE_MISSING,
+            });
+            return;
+        }
+
         // Generate key pair
         const {privateKey, publicKey} = generateKeyPair();
 
@@ -109,11 +120,23 @@ function useNativeBiometrics(): UseBiometricsReturn {
             return;
         }
 
-        // Return success with keys - challenge is passed from Main.tsx
+        const clientDataJSON = JSON.stringify({challenge: registrationChallenge.challenge});
+        const keyInfo: NativeBiometricsKeyInfo = {
+            rawId: publicKey,
+            type: CONST.MULTIFACTOR_AUTHENTICATION.ED25519_TYPE,
+            response: {
+                clientDataJSON: Base64URL.encode(clientDataJSON),
+                biometric: {
+                    publicKey,
+                    algorithm: -8 as const,
+                },
+            },
+        };
+
         await onResult({
             success: true,
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
-            publicKey,
+            keyInfo,
             authenticationMethod: authType,
         });
     };

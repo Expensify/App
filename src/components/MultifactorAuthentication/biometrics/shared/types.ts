@@ -1,16 +1,9 @@
 import type {AuthenticationChallenge, RegistrationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
-import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
-
-type PasskeyAttestationResponse = {
-    rawId: string;
-    clientDataJSON: string;
-    attestationObject: string;
-};
+import type {AuthTypeInfo, MultifactorAuthenticationReason, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 type BaseRegisterResult = {
-    publicKey: string;
+    keyInfo: RegistrationKeyInfo;
     authenticationMethod: AuthTypeInfo;
-    attestation?: PasskeyAttestationResponse;
 };
 
 type RegisterResult =
@@ -67,4 +60,4 @@ type UseBiometricsReturn = {
     resetKeysForAccount: () => Promise<void>;
 };
 
-export type {BaseRegisterResult, RegisterResult, PasskeyAttestationResponse, AuthorizeParams, AuthorizeResultSuccess, AuthorizeResultFailure, AuthorizeResult, UseBiometricsReturn};
+export type {BaseRegisterResult, RegisterResult, AuthorizeParams, AuthorizeResultSuccess, AuthorizeResultFailure, AuthorizeResult, UseBiometricsReturn};

@@ -1,5 +1,5 @@
 import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
-import {processPasskeyRegistration, processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
+import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
 
 jest.mock('@userActions/MultifactorAuthentication');
 
@@ -16,34 +16,50 @@ describe('MultifactorAuthentication processing', () => {
             });
         });
 
-        // Given a registration request without a challenge
-        // When processRegistration is called with an empty challenge string
-        // Then it should return failure because a challenge is required to prove the registration request is legitimate and came from the server
-        it('should return failure when challenge is missing', async () => {
-            const result = await processRegistration({
-                publicKey: 'public-key-123',
-                authenticationMethod: 'BIOMETRIC_FACE',
-                challenge: '',
-            });
+        // Given a keyInfo object with biometric type (NativeBiometrics)
+        // When processRegistration is called
+        // Then it should forward keyInfo and authenticationMethod to registerAuthenticationKey
+        it('should call registerAuthenticationKey with the provided keyInfo', async () => {
+            const keyInfo = {
+                rawId: 'public-key-123',
+                type: 'biometric' as const,
+                response: {
+                    clientDataJSON: 'encoded-client-data',
+                    biometric: {publicKey: 'public-key-123', algorithm: -8 as const},
+                },
+            };
 
-            expect(result.success).toBe(false);
-        });
-
-        // Given all required registration parameters including a valid challenge
-        // When processRegistration is called with these parameters
-        // Then it should pass the correct keyInfo object and metadata to registerAuthenticationKey because the backend needs specific formatting for the public key and challenge to properly register the credential
-        it('should call registerAuthenticationKey with correct parameters', async () => {
             await processRegistration({
-                publicKey: 'public-key-123',
+                keyInfo,
                 authenticationMethod: 'BIOMETRIC_FACE',
-                challenge: 'challenge-123',
             });
 
             expect(registerAuthenticationKey).toHaveBeenCalledWith({
-                keyInfo: expect.objectContaining({
-                    rawId: 'public-key-123',
-                    type: 'biometric',
-                }),
+                keyInfo,
+                authenticationMethod: 'BIOMETRIC_FACE',
+            });
+        });
+
+        // Given a keyInfo object with public-key type (Passkeys)
+        // When processRegistration is called
+        // Then it should forward keyInfo and authenticationMethod to registerAuthenticationKey
+        it('should call registerAuthenticationKey with passkey keyInfo', async () => {
+            const keyInfo = {
+                rawId: 'passkey-raw-id',
+                type: 'public-key' as const,
+                response: {
+                    clientDataJSON: 'client-data-json-base64',
+                    attestationObject: 'attestation-object-base64',
+                },
+            };
+
+            await processRegistration({
+                keyInfo,
+                authenticationMethod: 'BIOMETRIC_FACE',
+            });
+
+            expect(registerAuthenticationKey).toHaveBeenCalledWith({
+                keyInfo,
                 authenticationMethod: 'BIOMETRIC_FACE',
             });
         });
@@ -51,16 +67,15 @@ describe('MultifactorAuthentication processing', () => {
         // Given a successful backend response with HTTP code 201
         // When processRegistration receives this 2xx status code
         // Then it should return success because 2xx status codes indicate the credential was successfully registered on the backend
-        it('should return success when HTTP response starts with 2xx', async () => {
+        it('should return success when HTTP response is 2xx', async () => {
             (registerAuthenticationKey as jest.Mock).mockResolvedValue({
                 httpStatusCode: 201,
                 reason: 'Created',
             });
 
             const result = await processRegistration({
-                publicKey: 'public-key-123',
+                keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: -8 as const}}},
                 authenticationMethod: 'BIOMETRIC_FACE',
-                challenge: 'challenge-123',
             });
 
             expect(result.success).toBe(true);
@@ -69,87 +84,14 @@ describe('MultifactorAuthentication processing', () => {
         // Given a failed backend response with HTTP code 400
         // When processRegistration receives this non-2xx status code
         // Then it should return failure because non-2xx status codes indicate the credential registration was rejected by the backend
-        it('should return failure when HTTP response does not start with 2xx', async () => {
+        it('should return failure when HTTP response is non-2xx', async () => {
             (registerAuthenticationKey as jest.Mock).mockResolvedValue({
                 httpStatusCode: 400,
                 reason: 'Bad request',
             });
 
             const result = await processRegistration({
-                publicKey: 'public-key-123',
-                authenticationMethod: 'BIOMETRIC_FACE',
-                challenge: 'challenge-123',
-            });
-
-            expect(result.success).toBe(false);
-        });
-    });
-
-    describe('processPasskeyRegistration', () => {
-        beforeEach(() => {
-            (registerAuthenticationKey as jest.Mock).mockResolvedValue({
-                httpStatusCode: 200,
-                reason: 'Registration successful',
-            });
-        });
-
-        // Given a passkey attestation response from the WebAuthn API
-        // When processPasskeyRegistration is called
-        // Then it should pass keyInfo with type 'public-key' and the attestationObject to registerAuthenticationKey
-        it('should call registerAuthenticationKey with passkey key info', async () => {
-            await processPasskeyRegistration({
-                attestation: {
-                    rawId: 'passkey-raw-id',
-                    clientDataJSON: 'client-data-json-base64',
-                    attestationObject: 'attestation-object-base64',
-                },
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
-
-            expect(registerAuthenticationKey).toHaveBeenCalledWith({
-                keyInfo: {
-                    rawId: 'passkey-raw-id',
-                    type: 'public-key',
-                    response: {
-                        clientDataJSON: 'client-data-json-base64',
-                        attestationObject: 'attestation-object-base64',
-                    },
-                },
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
-        });
-
-        // Given the backend returns a 2xx status code
-        // When processPasskeyRegistration receives the response
-        // Then it should return success
-        it('should return success when HTTP response is 2xx', async () => {
-            const result = await processPasskeyRegistration({
-                attestation: {
-                    rawId: 'passkey-raw-id',
-                    clientDataJSON: 'client-data-json-base64',
-                    attestationObject: 'attestation-object-base64',
-                },
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
-
-            expect(result.success).toBe(true);
-        });
-
-        // Given the backend returns a non-2xx status code
-        // When processPasskeyRegistration receives the response
-        // Then it should return failure
-        it('should return failure when HTTP response is non-2xx', async () => {
-            (registerAuthenticationKey as jest.Mock).mockResolvedValue({
-                httpStatusCode: 500,
-                reason: 'Server error',
-            });
-
-            const result = await processPasskeyRegistration({
-                attestation: {
-                    rawId: 'passkey-raw-id',
-                    clientDataJSON: 'client-data-json-base64',
-                    attestationObject: 'attestation-object-base64',
-                },
+                keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: -8 as const}}},
                 authenticationMethod: 'BIOMETRIC_FACE',
             });
 

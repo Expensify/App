@@ -37,9 +37,9 @@ function buildCreationOptions(challenge: RegistrationChallenge, excludeCredentia
             name: challenge.user.displayName,
             displayName: challenge.user.displayName,
         },
-        pubKeyCredParams: challenge.pubKeyCredParams.map((p) => ({
-            type: p.type,
-            alg: p.alg,
+        pubKeyCredParams: challenge.pubKeyCredParams.map((param) => ({
+            type: param.type,
+            alg: param.alg,
         })),
         authenticatorSelection: {
             userVerification: 'required',
