@@ -10,7 +10,6 @@ import type {
     PaidElsewhereParams,
     UpdatedPolicyTagParams,
     ViolationsRterParams,
-    WorkspaceUpgradeNoteParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
