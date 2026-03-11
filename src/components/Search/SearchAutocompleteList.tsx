@@ -30,7 +30,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -164,22 +164,10 @@ function SearchAutocompleteList({
 
     const {options, areOptionsInitialized} = useOptionsList();
 
-    const computeSpanStarted = useRef(false);
-    const spanHandoffDone = useRef(false);
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
-    // eslint-disable-next-line react-hooks/refs -- intentional: telemetry span must start during render to measure computation time
-    if (!computeSpanStarted.current && areOptionsInitialized && isRecentSearchesDataLoaded && getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER)) {
-        startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS, {
-            name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS,
-            op: 'function',
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
-        });
-        computeSpanStarted.current = true;
-    }
 
     useEffect(() => {
         return () => {
-            cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS);
             cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
         };
     }, []);
@@ -457,17 +445,6 @@ function SearchAutocompleteList({
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
             />
         );
-    }
-
-    // eslint-disable-next-line react-hooks/refs -- intentional: telemetry handoff must run during render to accurately mark compute→render transition
-    if (isInitialRender && computeSpanStarted.current && !spanHandoffDone.current) {
-        spanHandoffDone.current = true;
-        endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS);
-        startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER, {
-            name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER,
-            op: 'ui.render',
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
-        });
     }
 
     return (
