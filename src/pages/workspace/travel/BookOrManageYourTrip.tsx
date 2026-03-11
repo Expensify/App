@@ -37,8 +37,8 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {isBetaEnabled} = usePermissions();
     const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const primaryContactMethod = account?.primaryLogin ?? sessionEmail ?? '';
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
