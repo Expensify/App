@@ -154,6 +154,23 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
 };
 
 /**
+ * Returns the MIME type for a given file extension.
+ * Falls back to 'application/octet-stream' for unrecognized extensions.
+ */
+function getMimeType(fileExtension: string): string {
+    const ext = fileExtension.toLowerCase();
+    const MIME_TYPES: Record<string, string> = {
+        txt: CONST.SHARE_FILE_MIMETYPE.TEXT,
+        csv: CONST.SHARE_FILE_MIMETYPE.CSV,
+        pdf: CONST.SHARE_FILE_MIMETYPE.PDF,
+        html: CONST.SHARE_FILE_MIMETYPE.HTML,
+        xml: CONST.SHARE_FILE_MIMETYPE.XML,
+        zip: CONST.SHARE_FILE_MIMETYPE.ZIP,
+    };
+    return MIME_TYPES[ext] ?? 'application/octet-stream';
+}
+
+/**
  * Returns the filename replacing special characters with underscore
  */
 function cleanFileName(fileName: string): string {
@@ -469,6 +486,7 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
  * Reads image dimensions directly from the file header (JPEG SOF marker or PNG IHDR chunk).
  * This bypasses browser Image API which may downsample large images on mobile browsers.
  */
+// eslint-disable-next-line no-bitwise
 const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; height: number} | null> => {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -869,6 +887,7 @@ export {
     showPermissionErrorAlert,
     showCameraPermissionsAlert,
     splitExtensionFromFileName,
+    getMimeType,
     getFileName,
     getFileType,
     cleanFileName,
