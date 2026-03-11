@@ -8,57 +8,34 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
-import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
-import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanelState from '@hooks/useSidePanelState';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getFilteredReportActionsForReportView, isDeletedParentAction, isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
-    getCombinedReportActions,
-    getFilteredReportActionsForReportView,
-    getOneTransactionThreadReportID,
-    isCreatedAction,
-    isDeletedParentAction,
-    isMoneyRequestAction,
-    isReportActionVisible,
-    isSentMoneyReportAction,
-    isWhisperAction,
-} from '@libs/ReportActionsUtils';
-import {
-    canEditReportAction,
     canUserPerformWriteAction,
-    getReportOfflinePendingActionAndErrors,
     isAdminRoom,
     isAnnounceRoom,
-    isConciergeChatReport,
     isGroupChat,
-    isInvoiceReport,
     isMoneyRequest,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
-    isOneTransactionThread,
     isPolicyExpenseChat,
     isReportTransactionThread,
     isTaskReport,
@@ -73,13 +50,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccountManagerBanner from './AccountManagerBanner';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
-import ReportActionsView from './report/ReportActionsView';
-import ReportFooter from './report/ReportFooter';
+import ReportActionsList from './ReportActionsList';
+import ReportComposer from './ReportComposer';
 import ReportFetchController from './ReportFetchController';
 import ReportHeader from './ReportHeader';
 import ReportLifecycleHandler from './ReportLifecycleHandler';
@@ -132,8 +109,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [firstRender, setFirstRender] = useState(true);
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const isInSidePanel = useIsInSidePanel();
-
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
@@ -141,7 +116,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportOnyx?.policyID)}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
@@ -210,7 +184,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
     const reportID = report?.reportID;
 
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const lastReportIDFromRoute = usePrevious(reportIDFromRoute);
@@ -220,71 +193,20 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
-    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
 
-    const isConciergeSidePanel = useMemo(() => isInSidePanel && isConciergeChatReport(report, conciergeReportID), [isInSidePanel, report, conciergeReportID]);
-
-    const {sessionStartTime} = useSidePanelState();
-
-    const hasUserSentMessage = useMemo(() => {
-        if (!isConciergeSidePanel || !sessionStartTime) {
-            return false;
-        }
-        return reportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
-    }, [isConciergeSidePanel, reportActions, currentUserAccountID, sessionStartTime]);
     const viewportOffsetTop = useViewportOffsetTop();
-
-    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 
     const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
 
-    const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
-    const hasPendingDeletionTransaction = Object.values(allReportTransactions ?? {}).some((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-
-    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
-    // wrapping in useMemo because this is array operation and can cause performance issues
-    const visibleTransactions = useMemo(
-        () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        [reportTransactions, isOffline],
-    );
-    const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
-
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
-    const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
-    const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
-    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
-    const isTransactionThreadView = isReportTransactionThread(report);
-    const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
-    // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
-
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
-
-    const isConciergeChat = isConciergeChatReport(report);
-    const {
-        isProcessing: isConciergeProcessing,
-        reasoningHistory: conciergeReasoningHistory,
-        statusLabel: conciergeStatusLabel,
-        kickoffWaitingIndicator,
-    } = useAgentZeroStatusIndicator(String(report?.reportID ?? CONST.DEFAULT_NUMBER_ID), isConciergeChat);
-
-    useEffect(() => {
-        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
-            return;
-        }
-        navigation.setParams({reportActionID: ''});
-    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
 
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
+    const {isEditingDisabled} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const isLinkedActionDeleted = useMemo(() => {
         if (!linkedAction) {
@@ -549,15 +471,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const lastRoute = usePrevious(route);
 
-    // wrapping into useMemo to stabilize children re-renders as reportMetadata is changed frequently
-    const showReportActionsLoadingState = useMemo(
-        () => reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions,
-        [reportMetadata?.isLoadingInitialReportActions, reportMetadata?.hasOnceLoadedReportActions],
-    );
-
-    // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
-
     useSubmitToDestinationVisible(
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
         reportIDFromRoute,
@@ -611,51 +524,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                         testID="report-actions-view-wrapper"
                                     >
-                                        {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                        {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                            <ReportActionsView
-                                                report={report}
-                                                reportActions={reportActions}
-                                                isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                                                hasOnceLoadedReportActions={reportMetadata?.hasOnceLoadedReportActions}
-                                                hasNewerActions={hasNewerActions}
-                                                hasOlderActions={hasOlderActions}
-                                                parentReportAction={parentReportAction}
-                                                transactionThreadReportID={transactionThreadReportID}
-                                                isReportTransactionThread={isTransactionThreadView}
-                                                isConciergeSidePanel={isConciergeSidePanel}
-                                                hasUserSentMessage={hasUserSentMessage}
-                                                sessionStartTime={sessionStartTime}
-                                                isConciergeProcessing={isConciergeProcessing}
-                                                conciergeReasoningHistory={conciergeReasoningHistory}
-                                                conciergeStatusLabel={conciergeStatusLabel}
-                                            />
-                                        ) : null}
-                                        {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                            <MoneyRequestReportActionsList
-                                                report={report}
-                                                hasPendingDeletionTransaction={hasPendingDeletionTransaction}
-                                                policy={policy}
-                                                reportActions={reportActions}
-                                                transactions={visibleTransactions}
-                                                newTransactions={newTransactions}
-                                                hasOlderActions={hasOlderActions}
-                                                hasNewerActions={hasNewerActions}
-                                                showReportActionsLoadingState={showReportActionsLoadingState}
-                                                reportPendingAction={reportPendingAction}
-                                            />
-                                        ) : null}
-                                        {isCurrentReportLoadedFromOnyx ? (
-                                            <ReportFooter
-                                                report={report}
-                                                lastReportAction={lastReportAction}
-                                                reportTransactions={reportTransactions}
-                                                // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
-                                                transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
-                                                shouldHideStatusIndicators={isConciergeSidePanel && !hasUserSentMessage}
-                                                kickoffWaitingIndicator={kickoffWaitingIndicator}
-                                            />
-                                        ) : null}
+                                        <ReportActionsList />
+                                        <ReportComposer />
                                     </View>
                                 </View>
                                 <PortalHost name="suggestions" />
