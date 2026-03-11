@@ -6696,6 +6696,8 @@ ${reportName}
                     return `${enabled ? '已启用' : '已禁用'} 会计`;
                 case 'Expensify Cards':
                     return `${enabled ? '已启用' : '已禁用'} Expensify 卡`;
+                case 'Travel Invoicing':
+                    return `${enabled ? '已启用' : '已禁用'} 差旅发票`;
                 case 'company cards':
                     return `${enabled ? '已启用' : '已禁用'} 张公司卡`;
                 case 'invoicing':

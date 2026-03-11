@@ -6806,6 +6806,8 @@ ${reportName}
                     return `${enabled ? '有効' : '無効'} 会計`;
                 case 'Expensify Cards':
                     return `${enabled ? '有効' : '無効'} Expensify カード`;
+                case 'Travel Invoicing':
+                    return `${enabled ? '有効' : '無効'} トラベルインボイス`;
                 case 'company cards':
                     return `${enabled ? '有効' : '無効'} 件の会社カード`;
                 case 'invoicing':

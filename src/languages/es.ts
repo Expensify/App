@@ -6861,6 +6861,8 @@ ${amount} para ${merchant} - ${date}`,
                     return `${enabled ? 'activó' : 'desactivó'} la contabilidad`;
                 case 'Expensify Cards':
                     return `${enabled ? 'activó' : 'desactivó'} las tarjetas Expensify`;
+                case 'Travel Invoicing':
+                    return `${enabled ? 'activó' : 'desactivó'} la facturación de viajes`;
                 case 'company cards':
                     return `${enabled ? 'activó' : 'desactivó'} las tarjetas de empresa`;
                 case 'invoicing':

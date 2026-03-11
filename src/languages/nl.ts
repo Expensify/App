@@ -6858,6 +6858,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} boekhouding`;
                 case 'Expensify Cards':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Expensify Kaarten`;
+                case 'Travel Invoicing':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} reisfacturering`;
                 case 'company cards':
                     return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bedrijfskaarten`;
                 case 'invoicing':

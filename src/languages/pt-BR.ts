@@ -6852,6 +6852,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     return `Contabilidade ${enabled ? 'ativado' : 'desativado'}`;
                 case 'Expensify Cards':
                     return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
+                case 'Travel Invoicing':
+                    return `Faturamento de viagens ${enabled ? 'ativado' : 'desativado'}`;
                 case 'company cards':
                     return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
                 case 'invoicing':
