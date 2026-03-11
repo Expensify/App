@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import type {ListItem} from '@components/SelectionList/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import type {UnitItemType} from '@components/UnitPicker';
@@ -28,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CustomUnit} from '@src/types/onyx/Policy';
-import type {ListItem} from '@components/SelectionList/types';
 import UnitSelector from './UnitSelector';
 
 type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;

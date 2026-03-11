@@ -9,10 +9,10 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getTagLists} from '@libs/PolicyUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {OptionData} from '@libs/ReportUtils';
 
 type DebugTagPickerProps = {
     /** The policyID we are getting tags for */

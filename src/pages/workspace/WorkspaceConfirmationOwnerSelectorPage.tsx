@@ -3,6 +3,8 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -14,6 +16,7 @@ import {searchInServer} from '@libs/actions/Report';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
+import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -21,9 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {OptionWithKey} from '@libs/OptionsListUtils/types';
-import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 /**
  * Helper function to create a formatted user list item

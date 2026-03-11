@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +20,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyCustomUnitDefaultCategory} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ListItem} from '@components/SelectionList/types';
 import type SCREENS from '@src/SCREENS';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 
@@ -34,7 +34,7 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
     const [isCategoryPickerVisible, setIsCategoryPickerVisible] = useState(false);
     const {translate} = useLocalize();
     const customUnit = getPerDiemCustomUnit(policy);
-    const customUnitID = customUnit?.customUnitID ?? '';
+    const customUnitID = customUnit?.customUnitID;
 
     const defaultCategory = customUnit?.defaultCategory;
     const errorFields = customUnit?.errorFields;
@@ -42,7 +42,7 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
     const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
 
     const setNewCategory = (category: ListItem) => {
-        if (!category.searchText || !customUnit || defaultCategory === category.searchText) {
+        if (!category.searchText || !customUnit || defaultCategory === category.searchText || !customUnitID) {
             return;
         }
 
@@ -50,6 +50,9 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
+        if (!customUnitID) {
+            return;
+        }
         clearPolicyPerDiemRatesErrorFields(policyID, customUnitID, {...errorFields, [fieldName]: null});
     };
 

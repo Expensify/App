@@ -9,6 +9,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -27,7 +28,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {ListItem} from '@components/SelectionList/types';
 import type {BaseOnboardingAccountingProps} from './types';
 
 type Integration = {
