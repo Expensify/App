@@ -174,7 +174,7 @@ jobs:
           FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
         with:
           variant: ${{ inputs.variant }}
-          aab: true
+          aab: ${{ inputs.variant == 'Release' }}
           sign: true
           re-sign: true
           ad-hoc: ${{ inputs.variant == 'Adhoc' }}
@@ -234,7 +234,7 @@ jobs:
               echo "APK_FILENAME=Expensify.apk"
             } >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::No AAB file found (expected for remote-cache hits)"
+            echo "::warning::No AAB file found (expected for remote-cache hits on Adhoc builds)"
             echo "HAS_AAB=false" >> "$GITHUB_OUTPUT"
           fi
 
