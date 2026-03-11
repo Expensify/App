@@ -14,7 +14,7 @@ import {
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
-    isValidPin,
+    isValidPIN,
     isValidRegistrationNumber,
     isValidRoomName,
     isValidTwoFactorCode,
@@ -604,62 +604,62 @@ describe('ValidationUtils', () => {
         });
     });
 
-    describe('isValidPin', () => {
+    describe('isValidPIN', () => {
         test('Should return true for valid 4-digit PINs', () => {
-            expect(isValidPin('5739')).toBe(true);
-            expect(isValidPin('9021')).toBe(true);
-            expect(isValidPin('8642')).toBe(true);
-            expect(isValidPin('1357')).toBe(true);
+            expect(isValidPIN('5739')).toBe(true);
+            expect(isValidPIN('9021')).toBe(true);
+            expect(isValidPIN('8642')).toBe(true);
+            expect(isValidPIN('1357')).toBe(true);
         });
 
         test('Should return false for PINs that are not 4 digits', () => {
-            expect(isValidPin('')).toBe(false);
-            expect(isValidPin('1')).toBe(false);
-            expect(isValidPin('12')).toBe(false);
-            expect(isValidPin('123')).toBe(false);
-            expect(isValidPin('12345')).toBe(false);
+            expect(isValidPIN('')).toBe(false);
+            expect(isValidPIN('1')).toBe(false);
+            expect(isValidPIN('12')).toBe(false);
+            expect(isValidPIN('123')).toBe(false);
+            expect(isValidPIN('12345')).toBe(false);
         });
 
         test('Should return false for PINs with non-numeric characters', () => {
-            expect(isValidPin('abcd')).toBe(false);
-            expect(isValidPin('12ab')).toBe(false);
-            expect(isValidPin('!@#$')).toBe(false);
-            expect(isValidPin('12 4')).toBe(false);
+            expect(isValidPIN('abcd')).toBe(false);
+            expect(isValidPIN('12ab')).toBe(false);
+            expect(isValidPIN('!@#$')).toBe(false);
+            expect(isValidPIN('12 4')).toBe(false);
         });
 
         test('Should return false for invalid/weak PINs (all same digits)', () => {
-            expect(isValidPin('0000')).toBe(false);
-            expect(isValidPin('1111')).toBe(false);
-            expect(isValidPin('2222')).toBe(false);
-            expect(isValidPin('3333')).toBe(false);
-            expect(isValidPin('4444')).toBe(false);
-            expect(isValidPin('5555')).toBe(false);
-            expect(isValidPin('6666')).toBe(false);
-            expect(isValidPin('7777')).toBe(false);
-            expect(isValidPin('8888')).toBe(false);
-            expect(isValidPin('9999')).toBe(false);
+            expect(isValidPIN('0000')).toBe(false);
+            expect(isValidPIN('1111')).toBe(false);
+            expect(isValidPIN('2222')).toBe(false);
+            expect(isValidPIN('3333')).toBe(false);
+            expect(isValidPIN('4444')).toBe(false);
+            expect(isValidPIN('5555')).toBe(false);
+            expect(isValidPIN('6666')).toBe(false);
+            expect(isValidPIN('7777')).toBe(false);
+            expect(isValidPIN('8888')).toBe(false);
+            expect(isValidPIN('9999')).toBe(false);
         });
 
         test('Should return false for invalid/weak PINs (sequential patterns)', () => {
-            expect(isValidPin('1234')).toBe(false);
-            expect(isValidPin('2345')).toBe(false);
-            expect(isValidPin('3456')).toBe(false);
-            expect(isValidPin('4567')).toBe(false);
-            expect(isValidPin('5678')).toBe(false);
-            expect(isValidPin('6789')).toBe(false);
-            expect(isValidPin('7890')).toBe(false);
-            expect(isValidPin('0123')).toBe(false);
-            expect(isValidPin('4321')).toBe(false);
-            expect(isValidPin('9876')).toBe(false);
-            expect(isValidPin('3210')).toBe(false);
+            expect(isValidPIN('1234')).toBe(false);
+            expect(isValidPIN('2345')).toBe(false);
+            expect(isValidPIN('3456')).toBe(false);
+            expect(isValidPIN('4567')).toBe(false);
+            expect(isValidPIN('5678')).toBe(false);
+            expect(isValidPIN('6789')).toBe(false);
+            expect(isValidPIN('7890')).toBe(false);
+            expect(isValidPIN('0123')).toBe(false);
+            expect(isValidPIN('4321')).toBe(false);
+            expect(isValidPIN('9876')).toBe(false);
+            expect(isValidPIN('3210')).toBe(false);
         });
 
         test('Should return false for other commonly used weak PINs', () => {
-            expect(isValidPin('1212')).toBe(false);
-            expect(isValidPin('1004')).toBe(false);
-            expect(isValidPin('6969')).toBe(false);
-            expect(isValidPin('2000')).toBe(false);
-            expect(isValidPin('2015')).toBe(false);
+            expect(isValidPIN('1212')).toBe(false);
+            expect(isValidPIN('1004')).toBe(false);
+            expect(isValidPIN('6969')).toBe(false);
+            expect(isValidPIN('2000')).toBe(false);
+            expect(isValidPIN('2015')).toBe(false);
         });
     });
 });
