@@ -28,10 +28,15 @@ function getLocalCredentials(entry: OnyxEntry<LocalPasskeyCredentialsEntry>): Pa
 function usePasskeys(): UseBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const userId = String(accountID);
-    const {serverHasAnyCredentials, serverKnownCredentialIDs} = useServerCredentials();
+    const {serverHasAnyCredentials, serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
     const [localPasskeyCredentials] = useOnyx(getPasskeyOnyxKey(userId));
 
     const doesDeviceSupportBiometrics = () => isWebAuthnSupported();
+
+    const getLocalPublicKey = async (): Promise<string | undefined> => {
+        const credentials = getLocalCredentials(localPasskeyCredentials);
+        return credentials.at(0)?.id;
+    };
 
     const hasLocalCredentials = async () => getLocalCredentials(localPasskeyCredentials).length > 0;
 
@@ -175,6 +180,8 @@ function usePasskeys(): UseBiometricsReturn {
     return {
         serverHasAnyCredentials,
         serverKnownCredentialIDs,
+        haveCredentialsEverBeenConfigured,
+        getLocalPublicKey,
         doesDeviceSupportBiometrics,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,

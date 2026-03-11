@@ -11,16 +11,19 @@ function getMultifactorAuthenticationPublicKeyIDs(data: OnyxEntry<Account>) {
 type UseServerCredentialsReturn = {
     serverHasAnyCredentials: boolean;
     serverKnownCredentialIDs: string[];
+    haveCredentialsEverBeenConfigured: boolean;
 };
 
 function useServerCredentials(): UseServerCredentialsReturn {
     const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs});
     const serverKnownCredentialIDs = useMemo(() => multifactorAuthenticationPublicKeyIDs ?? [], [multifactorAuthenticationPublicKeyIDs]);
     const serverHasAnyCredentials = serverKnownCredentialIDs.length > 0;
+    const haveCredentialsEverBeenConfigured = multifactorAuthenticationPublicKeyIDs !== undefined;
 
     return {
         serverHasAnyCredentials,
         serverKnownCredentialIDs,
+        haveCredentialsEverBeenConfigured,
     };
 }
 

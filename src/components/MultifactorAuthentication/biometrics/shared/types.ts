@@ -41,6 +41,12 @@ type UseBiometricsReturn = {
     /** List of credential IDs known to server (from Onyx) */
     serverKnownCredentialIDs: string[];
 
+    /** Whether biometric credentials have ever been configured for this account */
+    haveCredentialsEverBeenConfigured: boolean;
+
+    /** Retrieve the public key / credential ID stored locally on this device */
+    getLocalPublicKey: () => Promise<string | undefined>;
+
     /** Check if device supports biometrics */
     doesDeviceSupportBiometrics: () => boolean;
 
