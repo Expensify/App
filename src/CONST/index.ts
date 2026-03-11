@@ -5857,6 +5857,8 @@ const CONST = {
         NAVIGATION: 'navigation',
         /** Use for Tooltips */
         TOOLTIP: 'tooltip',
+        /** Use for dialog/modal elements */
+        DIALOG: 'dialog',
         /** Use for data table containers. */
         TABLE: 'table',
         /** Use for table rows. */
