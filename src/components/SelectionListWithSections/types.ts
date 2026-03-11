@@ -50,7 +50,6 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type ChatListItem from './ChatListItem';
-import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionGroupListItem from './Search/TransactionGroupListItem';
@@ -788,7 +787,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type ValidListItem =
     | typeof RadioListItem
     | typeof UserListItem
-    | typeof InviteMemberListItem
     | typeof TransactionListItem
     | typeof TransactionGroupListItem
     | typeof ChatListItem

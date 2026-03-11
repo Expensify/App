@@ -2,11 +2,11 @@ import type {Meta} from '@storybook/react-webpack5';
 import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
 import withNavigationFallback from '@components/withNavigationFallback';
-import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 const SelectionListWithNavigation = withNavigationFallback(SelectionList);
 
@@ -216,6 +216,7 @@ WithAlternateText.args = {
 
 function MultipleSelection(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
+    const styles = useThemeStyles();
 
     const memo = useMemo(() => {
         const allIds: string[] = [];
@@ -237,8 +238,8 @@ function MultipleSelection(props: SelectionListWithSectionsProps<ListItem>) {
                     rightElement: isAdmin && (
                         <Badge
                             text="Admin"
-                            textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.alignSelfCenter}
+                            textStyles={styles.textStrong}
+                            badgeStyles={styles.alignSelfCenter}
                         />
                     ),
                 };
@@ -276,6 +277,7 @@ MultipleSelection.args = {
 
 function WithSectionHeader(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
+    const styles = useThemeStyles();
 
     const memo = useMemo(() => {
         const allIds: string[] = [];
@@ -297,8 +299,8 @@ function WithSectionHeader(props: SelectionListWithSectionsProps<ListItem>) {
                     rightElement: isAdmin && (
                         <Badge
                             text="Admin"
-                            textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.alignSelfCenter}
+                            textStyles={styles.textStrong}
+                            badgeStyles={styles.alignSelfCenter}
                         />
                     ),
                 };
@@ -335,6 +337,7 @@ WithSectionHeader.args = {
 
 function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
+    const styles = useThemeStyles();
 
     const memo = useMemo(() => {
         const allIds: string[] = [];
@@ -356,8 +359,8 @@ function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
                     rightElement: isAdmin && (
                         <Badge
                             text="Admin"
-                            textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.alignSelfCenter}
+                            textStyles={styles.textStrong}
+                            badgeStyles={styles.alignSelfCenter}
                         />
                     ),
                 };
