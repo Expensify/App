@@ -501,6 +501,13 @@ type GetSectionsParams = {
 };
 
 /**
+ * Search keys whose menu items stay selected even when the user manually
+ * changes the sort order.  Every other search key requires the current
+ * sortBy/sortOrder to match the menu item's defaults for it to be active.
+ */
+const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.CHATS]);
+
+/**
  * Creates a top search menu item with common structure for TOP_SPENDERS, TOP_CATEGORIES, and TOP_MERCHANTS
  */
 function createTopSearchMenuItem(
@@ -4823,5 +4830,6 @@ export {
     adjustTimeRangeToDateFilters,
     isEligibleForApproveSuggestion,
     applySelectionToItem,
+    GENERIC_SEARCH_KEYS,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection};

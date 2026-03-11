@@ -10,7 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getItemBadgeText, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, GENERIC_SEARCH_KEYS, getItemBadgeText, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -174,13 +174,20 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     ]);
 
     const activeItemIndex = useMemo(() => {
-        // If we have a suggested search, then none of the menu items are active
         if (isSavedSearchActive) {
             return -1;
         }
 
-        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
+        return flattenedMenuItems.findIndex((item) => {
+            if (item.similarSearchHash !== similarSearchHash) {
+                return false;
+            }
+            if (!GENERIC_SEARCH_KEYS.has(item.key) && (item.searchQueryJSON?.sortBy !== queryJSON.sortBy || item.searchQueryJSON?.sortOrder !== queryJSON.sortOrder)) {
+                return false;
+            }
+            return true;
+        });
+    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON.sortBy, queryJSON.sortOrder]);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
