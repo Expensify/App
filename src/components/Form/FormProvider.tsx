@@ -133,7 +133,7 @@ function FormProvider({
 
     if (!isLoadingDraftValues && draftValues !== previousDraftValues.current) {
         previousDraftValues.current = draftValues;
-        setInputValues({...draftValues});
+        setInputValues({...inputValues, ...draftValues});
     }
 
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
