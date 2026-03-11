@@ -71,8 +71,8 @@ This layer uses `@react-native-community/netinfo` to detect whether the device h
 The NetInfo listener also tracks `isInternetReachable` transitions. When `isInternetReachable` changes from `false`/`null` to `true`, it calls `NetworkState.onReachabilityRestored()` to clear the hard stop and trigger reconnection.
 
 **Platform behavior:**
-- **Mobile**: `useNativeReachability=true` (default) — NetInfo trusts native `isInternetReachable`, JS polling never starts. Recovery is detected through native state change events.
-- **Web**: No native module — NetInfo uses JS fetch polling against `api/Ping`. Polls every 5s when unreachable, every 60s when reachable. Recovery detected when Ping succeeds and `isInternetReachable` flips to `true`.
+
+We configure `useNativeReachability: false` so that NetInfo uses JS fetch polling (`api/Ping`) on **all platforms** instead of trusting native OS reachability. This aligns behavior across web and mobile: polls every 60s when reachable, every 5s when unreachable. Recovery is detected when Ping succeeds and `isInternetReachable` flips to `true`.
 
 ## Layer 2: Sustained Failure Detection
 
