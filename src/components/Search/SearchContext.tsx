@@ -1,20 +1,30 @@
-import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
+import {useNavigationState} from '@react-navigation/native';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
+import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import usePreviousDefined from '@hooks/usePreviousDefined';
 import useTodos from '@hooks/useTodos';
+import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResults} from '@src/types/onyx';
+import SCREENS from '@src/SCREENS';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchActionsContextValue, SearchContextData, SearchQueryJSON, SearchStateContextValue, SelectedTransactions} from './types';
+import type {SearchActionsContextValue, SearchContextData, SearchStateContextValue, SelectedTransactions} from './types';
+
+type SearchContextProps = {
+    children: React.ReactNode;
+};
 
 // Default search info when building from live data
 // Used for to-do searches where we build SearchResults from live Onyx data instead of API snapshots
@@ -31,8 +41,6 @@ const defaultSearchInfo: SearchResultsInfo = {
 };
 
 const defaultSearchContextData: SearchContextData = {
-    currentSearchHash: -1,
-    currentRecentSearchHash: -1,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
@@ -42,6 +50,9 @@ const defaultSearchContextData: SearchContextData = {
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
+    currentSearchHash: -1,
+    currentSimilarSearchHash: -1,
+    suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
 };
 
 const defaultSearchStateContext: SearchStateContextValue = {
@@ -56,8 +67,6 @@ const defaultSearchStateContext: SearchStateContextValue = {
 
 const defaultSearchActionsContext: SearchActionsContextValue = {
     setLastSearchType: () => {},
-    setCurrentSearchHashAndKey: () => {},
-    setCurrentSearchQueryJSON: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
@@ -70,32 +79,55 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
 const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
 
-function SearchContextProvider({children}: ChildrenProps) {
-    const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
+function SearchContextProvider({children}: SearchContextProps) {
+    const focusedScreen = useNavigationState((state) => getDeepestFocusedScreen(state));
+    const focusedScreenName = focusedScreen?.name;
+    const focusedScreenParams = focusedScreen?.params;
+
+    // Get the params for the search page so that we can derive the search query JSON from it
+    const params = useMemo(() => {
+        if (focusedScreenName !== SCREENS.SEARCH.ROOT) {
+            return undefined;
+        }
+
+        return focusedScreenParams as PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>['route']['params'];
+    }, [focusedScreenName, focusedScreenParams]);
+
+    const queryParam = params?.q;
+    const rawQueryParam = params?.rawQuery;
+    const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
+    const currentSearchQueryJSON = useMemo(() => buildSearchQueryJSON(definedQueryParam, rawQueryParam), [definedQueryParam, rawQueryParam]);
+
+    const areTransactionsEmpty = useRef(true);
+    const [lastSearchType, setLastSearchType] = useState<string>();
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
-    const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
-    const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
-    const areTransactionsEmpty = useRef(true);
+    const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
+    const [searchContextData, setSearchContextData] = useState({...defaultSearchContextData});
 
-    // Use a ref to access searchContextData in callbacks without causing callback reference changes
-    const searchContextDataRef = useRef(searchContextData);
+    const selectedReports = searchContextData.selectedReports;
+    const selectedTransactions = searchContextData.selectedTransactions;
+    const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
+    const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
+    const currentRecentSearchHash = currentSearchQueryJSON?.recentSearchHash ?? -1;
+    const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
 
-    useLayoutEffect(() => {
-        searchContextDataRef.current = searchContextData;
-    }, [searchContextData]);
-
-    const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContextData.currentSearchHash}`);
     const todoSearchResultsData = useTodos();
-    const currentSearchKey = searchContextData.currentSearchKey;
-    const currentRecentSearchHash = searchContextData.currentRecentSearchHash;
+    const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
+
+    const {defaultCardFeed} = useCardFeedsForDisplay();
     const {accountID} = useCurrentUserPersonalDetails();
-    const suggestedSearches = getSuggestedSearches(accountID);
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeed?.id);
+
+    const currentSearchKey = useMemo(() => {
+        return Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
+    }, [currentSimilarSearchHash, suggestedSearches]);
+
     const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentRecentSearchHash, suggestedSearches);
 
     // If viewing a to-do search, use live data from useTodos, otherwise return the snapshot data
     // We do this so that we can show the counters for the to-do search results without visiting the specific to-do page, e.g. show `Approve [3]` while viewing the `Submit` to-do search.
-    function getCurrentSearchResults(): SearchResults | undefined {
+    const currentSearchResults = useMemo(() => {
         if (shouldUseLiveData) {
             const liveData = todoSearchResultsData[currentSearchKey as keyof typeof todoSearchResultsData];
             const searchInfo: SearchResultsInfo = {
@@ -114,64 +146,34 @@ function SearchContextProvider({children}: ChildrenProps) {
         }
 
         return snapshotSearchResults ?? undefined;
-    }
+    }, [currentSearchKey, shouldUseLiveData, snapshotSearchResults, todoSearchResultsData]);
 
-    const currentSearchResults = getCurrentSearchResults();
-
-    const setCurrentSearchHashAndKey = (searchHash: number, recentHash: number, searchKey: SearchKey | undefined) => {
-        setSearchContextData((prevState) => {
-            if (searchHash === prevState.currentSearchHash && recentHash === prevState.currentRecentSearchHash && searchKey === prevState.currentSearchKey) {
-                return prevState;
-            }
-
-            return {
-                ...prevState,
-                currentSearchHash: searchHash,
-                currentRecentSearchHash: recentHash,
-                currentSearchKey: searchKey,
-            };
-        });
-    };
-
-    const setCurrentSearchQueryJSON = (searchQueryJSON: SearchQueryJSON | undefined) => {
-        setSearchContextData((prevState) => {
-            if (searchQueryJSON === prevState.currentSearchQueryJSON) {
-                return prevState;
-            }
-
-            return {
-                ...prevState,
-                currentSearchQueryJSON: searchQueryJSON,
-            };
-        });
-    };
-
-    const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (selectedTransactions, data = []) => {
-        if (selectedTransactions instanceof Array) {
-            if (!selectedTransactions.length && areTransactionsEmpty.current) {
+    const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (transactionIDs, data = []) => {
+        if (transactionIDs instanceof Array) {
+            if (!transactionIDs.length && areTransactionsEmpty.current) {
                 areTransactionsEmpty.current = true;
                 return;
             }
             areTransactionsEmpty.current = false;
             return setSearchContextData((prevState) => ({
                 ...prevState,
-                selectedTransactionIDs: selectedTransactions,
+                selectedTransactionIDs: transactionIDs,
             }));
         }
 
         // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
-        let selectedReports: SearchStateContextValue['selectedReports'] = [];
+        let matchingReports: SearchStateContextValue['selectedReports'] = [];
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
-            selectedReports = data
+            matchingReports = data
                 .filter((item) => {
                     if (!isMoneyRequestReport(item)) {
                         return false;
                     }
                     if (item.transactions.length === 0) {
-                        return !!item.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+                        return !!item.keyForList && transactionIDs[item.keyForList]?.isSelected;
                     }
-                    return item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected);
+                    return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
                 })
                 .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, chatReportID}) => ({
                     reportID,
@@ -183,8 +185,8 @@ function SearchContextProvider({children}: ChildrenProps) {
                     chatReportID,
                 }));
         } else if (data.length && data.every(isTransactionListItemType)) {
-            selectedReports = data
-                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
+            matchingReports = data
+                .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
                 .map((item) => {
                     const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
                     const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -203,40 +205,39 @@ function SearchContextProvider({children}: ChildrenProps) {
 
         setSearchContextData((prevState) => ({
             ...prevState,
-            selectedTransactions,
+            selectedReports: matchingReports,
+            selectedTransactions: transactionIDs,
             shouldTurnOffSelectionMode: false,
-            selectedReports,
         }));
     };
 
-    const clearSelectedTransactions: SearchActionsContextValue['clearSelectedTransactions'] = (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
-        if (typeof searchHashOrClearIDsFlag === 'boolean') {
-            setSelectedTransactions([]);
-            return;
-        }
+    const clearSelectedTransactions: SearchActionsContextValue['clearSelectedTransactions'] = useCallback(
+        (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
+            if (typeof searchHashOrClearIDsFlag === 'boolean') {
+                setSelectedTransactions([]);
+                return;
+            }
 
-        const data = searchContextDataRef.current;
+            if (searchHashOrClearIDsFlag === currentSearchHash) {
+                return;
+            }
 
-        if (searchHashOrClearIDsFlag === data.currentSearchHash) {
-            return;
-        }
+            if (selectedReports.length === 0 && isEmptyObject(selectedTransactions) && !searchContextData.shouldTurnOffSelectionMode) {
+                return;
+            }
+            setSearchContextData((prevState) => ({
+                ...prevState,
+                shouldTurnOffSelectionMode,
+                selectedTransactions: {},
+                selectedReports: [],
+            }));
 
-        if (data.selectedReports.length === 0 && isEmptyObject(data.selectedTransactions) && !data.shouldTurnOffSelectionMode) {
-            return;
-        }
-        setSearchContextData((prevState) => ({
-            ...prevState,
-            shouldTurnOffSelectionMode,
-            selectedTransactions: {},
-            selectedReports: [],
-        }));
-
-        // Unselect all transactions and hide the "select all matching items" option
-        setShouldShowSelectAllMatchingItems(false);
-        selectAllMatchingItems(false);
-    };
-
-    const {selectedTransactionIDs, selectedTransactions} = searchContextData;
+            // Unselect all transactions and hide the "select all matching items" option
+            setShouldShowSelectAllMatchingItems(false);
+            selectAllMatchingItems(false);
+        },
+        [currentSearchHash, searchContextData.shouldTurnOffSelectionMode, selectedReports.length, selectedTransactions],
+    );
 
     const removeTransaction: SearchActionsContextValue['removeTransaction'] = (transactionID) => {
         if (!transactionID) {
@@ -275,18 +276,21 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const searchStateContextValue: SearchStateContextValue = {
         ...searchContextData,
+        suggestedSearches,
+        currentSearchKey,
+        currentSearchHash,
+        currentSimilarSearchHash,
         currentSearchResults,
         shouldUseLiveData,
         shouldShowFiltersBarLoading,
         lastSearchType,
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
+        currentSearchQueryJSON,
     };
 
     const searchActionsContextValue: SearchActionsContextValue = {
         removeTransaction,
-        setCurrentSearchHashAndKey,
-        setCurrentSearchQueryJSON,
         setSelectedTransactions,
         clearSelectedTransactions,
         setShouldShowFiltersBarLoading,
