@@ -36,6 +36,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MultifactorAuthenticationTranslationParams,
     NextStepParams,
+    NotAllowedExtensionParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
@@ -1605,7 +1606,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `所选图片超过了最大上传大小 ${maxUploadSizeInMB} MB。`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `请上传尺寸大于 ${minHeightInPx}x${minWidthInPx} 像素且小于 ${maxHeightInPx}x${maxWidthInPx} 像素的图片。`,
-        notAllowedExtension: (allowedExtensions: string[]) => `头像必须为以下类型之一：${allowedExtensions.join(', ')}。`,
+        notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `头像必须为以下类型之一：${allowedExtensions.join(', ')}。`,
     },
     avatarPage: {
         title: '编辑头像',

@@ -36,6 +36,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MultifactorAuthenticationTranslationParams,
     NextStepParams,
+    NotAllowedExtensionParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
@@ -1647,7 +1648,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `L’image sélectionnée dépasse la taille maximale de téléversement de ${maxUploadSizeInMB} Mo.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Veuillez téléverser une image plus grande que ${minHeightInPx}x${minWidthInPx} pixels et plus petite que ${maxHeightInPx}x${maxWidthInPx} pixels.`,
-        notAllowedExtension: (allowedExtensions: string[]) => `La photo de profil doit être de l’un des types suivants : ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `La photo de profil doit être de l’un des types suivants : ${allowedExtensions.join(', ')}.`,
     },
     avatarPage: {
         title: 'Modifier la photo de profil',

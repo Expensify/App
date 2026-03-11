@@ -83,7 +83,7 @@ type SizeExceededParams = {maxUploadSizeInMB: number};
 
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
 
-// type NotAllowedExtensionParams = {allowedExtensions: string[]};
+type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
 type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
 
@@ -400,6 +400,7 @@ export type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    NotAllowedExtensionParams,
     ResolutionConstraintsParams,
     SizeExceededParams,
     StepCounterParams,
