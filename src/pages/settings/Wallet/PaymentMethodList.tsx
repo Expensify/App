@@ -30,6 +30,7 @@ import {
     isCardFrozen,
     isExpensifyCard,
     isExpensifyCardPendingAction,
+    isExpiredCard,
     isPersonalCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
@@ -214,7 +215,8 @@ function PaymentMethodList({
                     (card) =>
                         CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
                         (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
-                        card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+                        card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+                        (!isExpensifyCard(card) || !isExpiredCard(card)),
                 );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);

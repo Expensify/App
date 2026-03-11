@@ -42,6 +42,7 @@ import type {
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -1392,6 +1393,14 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     });
 }
 
+function isExpiredCard(card: Card): boolean {
+    if (!card.nameValuePairs?.validThru) {
+        return false;
+    }
+    const currentTime = DateUtils.getDBTime();
+    return card.nameValuePairs.validThru < currentTime;
+}
+
 export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
@@ -1482,6 +1491,7 @@ export {
     isCardFrozen,
     isCardWithPotentialFraud,
     getDisplayableExpensifyCards,
+    isExpiredCard,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};
