@@ -1602,7 +1602,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'L’importo totale è troppo alto. Riduci le ore o abbassa la tariffa.',
         },
         correctRateError: "Correggi l'errore di tariffa e riprova.",
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Spiega</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Spiega<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError: 'Non puoi duplicare le spese di diaria tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse tra gli spazi di lavoro.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'ha contrassegnato la spesa come "rimborsabile"' : 'ha contrassegnato la spesa come "non rimborsabile"'),
@@ -3056,7 +3056,7 @@ ${
                 descriptionTwo: 'Classifica e tagga le spese',
                 descriptionThree: 'Crea e condividi report',
             },
-            price: 'Provalo gratis per 30 giorni, poi passa al piano a soli <strong>$5/utente/mese</strong>.',
+            price: (price?: string) => `Provalo gratis per 30 giorni, poi passa al piano a soli <strong>${price ?? '$5'}/utente/mese</strong>.`,
             createWorkspace: 'Crea spazio di lavoro',
         },
         confirmWorkspace: {

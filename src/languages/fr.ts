@@ -1610,7 +1610,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Le montant total est trop élevé. Réduisez le nombre d’heures ou diminuez le taux.',
         },
         correctRateError: 'Corrigez l’erreur de taux et réessayez.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Expliquer<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Vous ne pouvez pas dupliquer les indemnités journalières entre plusieurs espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
         rulesModifiedFields: {
@@ -3069,7 +3069,7 @@ ${
                 descriptionTwo: 'Catégoriser et taguer les dépenses',
                 descriptionThree: 'Créer et partager des notes de frais',
             },
-            price: 'Essayez-le gratuitement pendant 30 jours, puis passez à l’offre supérieure pour seulement <strong>5 $/utilisateur/mois</strong>.',
+            price: (price?: string) => `Essayez-le gratuitement pendant 30 jours, puis passez à l’offre supérieure pour seulement <strong>${price ?? '5 $'}/utilisateur/mois</strong>.`,
             createWorkspace: 'Créer un espace de travail',
         },
         confirmWorkspace: {

@@ -1567,7 +1567,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
         correctRateError: '修复费率错误后请重试。',
-        AskToExplain: `。<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>说明</strong></a> &#x2728;`,
+        AskToExplain: `。<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">说明<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError: '您无法在不同工作区之间复制每日津贴报销，因为各工作区的补贴标准可能不同。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”'),
@@ -2995,7 +2995,7 @@ ${
                 descriptionTwo: '分类并标记报销费用',
                 descriptionThree: '创建并分享报告',
             },
-            price: '免费试用 30 天，之后仅需 <strong>$5/用户/月</strong> 即可升级。',
+            price: (price?: string) => `免费试用 30 天，之后仅需 <strong>${price ?? '$5'}/用户/月</strong> 即可升级。`,
             createWorkspace: '创建工作区',
         },
         confirmWorkspace: {
