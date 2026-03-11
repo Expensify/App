@@ -906,6 +906,61 @@ function dismissToSuperWideRHP() {
     navigateBackToLastSuperWideRHPScreen();
 }
 
+/**
+ * Replaces the currently visible fullscreen root route on wide layouts with the
+ * fullscreen route parsed from the destination path.
+ *
+ * This is a low-level helper used to prepare the screen underneath an open RHP.
+ * It intentionally replaces the fullscreen wrapper route from the parsed state,
+ * not the deepest focused leaf route.
+ */
+function replaceLastFullScreenRoute(route: Route) {
+    if (getIsNarrowLayout()) {
+        Log.warn('[Navigation] replaceLastFullScreenRoute should only be used on wide layouts.');
+        return;
+    }
+
+    if (!canNavigate('replaceLastFullScreenRoute', {route}) || !navigationRef.current) {
+        Log.hmmm(`[Navigation] Unable to replace last full screen route. Can't navigate.`, {route});
+        return;
+    }
+
+    const rootState = navigationRef.current.getRootState();
+    const fullScreenRouteToReplace = rootState.routes.findLast((stateRoute) => isFullScreenName(stateRoute.name));
+    const stateFromPath = getStateFromPath(route);
+    // We need the destination fullscreen wrapper here (for example SearchFullscreenNavigator),
+    // not the deepest leaf screen from the parsed route state.
+    const targetRoute = stateFromPath?.routes.findLast((stateRoute) => isFullScreenName(stateRoute.name));
+
+    if (!targetRoute || !fullScreenRouteToReplace) {
+        Log.hmmm(`[Navigation] Unable to replace last full screen route. Target route is undefined.`, {route});
+        return;
+    }
+
+    navigationRef.current.dispatch({
+        payload: targetRoute,
+        source: fullScreenRouteToReplace.key,
+        target: rootState.key,
+        type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+    });
+}
+
+/**
+ * Reveals the destination fullscreen route under the currently open RHP before dismissing it.
+ * This is currently used for the Search handoff so the user sees the target screen immediately
+ * as the modal closes, instead of dismissing first and navigating afterward.
+ */
+function revealRouteBeforeDismissingModal(route: Route) {
+    requestAnimationFrame(() => {
+        // First paint the destination fullscreen route underneath the RHP.
+        replaceLastFullScreenRoute(route);
+        // Wait one more paint before dismissing so the new fullscreen route is already visible under the closing RHP.
+        requestAnimationFrame(() => {
+            dismissModal();
+        });
+    });
+}
+
 function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
     if (!state) {
         return undefined;
@@ -963,6 +1018,8 @@ export default {
     isValidateLoginFlow,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
+    replaceLastFullScreenRoute,
+    revealRouteBeforeDismissingModal,
     getTopmostSearchReportID,
     getTopmostSuperWideRHPReportParams,
     getTopmostSuperWideRHPReportID,
