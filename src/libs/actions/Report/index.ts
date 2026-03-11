@@ -387,6 +387,7 @@ Onyx.connect({
 });
 
 let allPolicies: OnyxCollection<Policy>;
+// eslint-disable-next-line rulesdir/no-onyx-connect -- temporary subscription for modified-expense notification; see https://github.com/Expensify/App/issues/66336
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
@@ -396,6 +397,7 @@ Onyx.connect({
 });
 
 let allPolicyTags: OnyxCollection<PolicyTagLists>;
+// eslint-disable-next-line rulesdir/no-onyx-connect -- temporary subscription for modified-expense notification; see https://github.com/Expensify/App/issues/66336
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
