@@ -495,6 +495,7 @@ const translations = {
         validate: 'Validate',
         downloadAsPDF: 'Download as PDF',
         downloadAsCSV: 'Download as CSV',
+        print: 'Print',
         help: 'Help',
         expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
@@ -562,6 +563,10 @@ const translations = {
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        concierge: {
+            sidePanelGreeting: 'Hi there, how can I help?',
+            showHistory: 'Show history',
+        },
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
         approver: 'Approver',
@@ -700,7 +705,11 @@ const translations = {
             biometricsTest: 'Biometrics test',
             authenticationSuccessful: 'Authentication successful',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `You’ve successfully authenticated using ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometrics (${registered ? 'Registered' : 'Not registered'})`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometrics (${status})`,
+            statusNeverRegistered: 'Never registered',
+            statusNotRegistered: 'Not registered',
+            statusRegisteredOtherDevice: () => ({one: 'Another device registered', other: 'Other devices registered'}),
+            statusRegisteredThisDevice: 'Registered',
             yourAttemptWasUnsuccessful: 'Your authentication attempt was unsuccessful.',
             youCouldNotBeAuthenticated: 'You couldn’t be authenticated',
             areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
@@ -738,12 +747,22 @@ const translations = {
         revoke: {
             revoke: 'Revoke',
             title: 'Face/fingerprint & passkeys',
-            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device.',
-            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device.",
+            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on that device.',
+            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on that device.",
+            confirmationPromptThisDevice: "Are you sure? You'll need a magic code for the next verification on this device.",
+            confirmationPromptMultiple: "Are you sure? You'll need a magic code for the next verification on those devices.",
+            confirmationPromptAll: "Are you sure? You'll need a magic code for the next verification on any device.",
             cta: 'Revoke access',
+            ctaAll: 'Revoke all',
             noDevices: "You don't have any devices registered for face/fingerprint or passkey verification. If you register any, you will be able to revoke that access here.",
             dismiss: 'Got it',
             error: 'Request failed. Try again later.',
+            thisDevice: 'This device',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} other ${otherDeviceCount === 1 ? 'device' : 'devices'}`;
+            },
         },
     },
     validateCodeModal: {
@@ -1602,7 +1621,7 @@ const translations = {
             },
         },
         chooseWorkspace: 'Choose a workspace',
-        routedDueToDEW: (to: string) => `report routed to ${to} due to custom approval workflow`,
+        routedDueToDEW: (to: string, reason?: string) => `report routed to ${to}${reason ? ` because ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hour' : 'hours'} @ ${rate} / hour`,
             hrs: 'hrs',
@@ -2005,7 +2024,7 @@ const translations = {
         restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.</muted-text-micro>`,
+        readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
         whatIsNew: "What's new",
         accountSettings: 'Account settings',
@@ -2123,6 +2142,7 @@ const translations = {
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
         addKey: 'Or add this secret key to your authenticator app:',
+        secretKey: 'secret key',
         enterCode: 'Then enter the six-digit code generated from your authenticator app.',
         stepSuccess: 'Finished',
         enabled: 'Two-factor authentication enabled',
@@ -2674,7 +2694,7 @@ const translations = {
     },
     termsOfUse: {
         terms: `<muted-text-xs>By logging in, you agree to the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.</muted-text-xs>`,
-        license: `<muted-text-xs>Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenses</a>.</muted-text-xs>`,
+        license: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenses</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
@@ -5250,6 +5270,7 @@ const translations = {
                         learnHow: 'Learn how.',
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
+                            currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
                             currentTravelSpendCta: 'Pay balance',
                             currentTravelLimitLabel: 'Current travel limit',
                             settlementAccountLabel: 'Settlement account',
@@ -5267,6 +5288,14 @@ const translations = {
                         body: 'You still have an outstanding travel balance. Please pay your balance first.',
                         confirm: 'Got it',
                     },
+                    payBalanceModal: {
+                        title: (amount: string) => `Pay balance of ${amount}?`,
+                        body: 'The payment will be queued and processed shortly after. This action cannot be undone once started.',
+                    },
+                    exportToPDF: 'Export to PDF',
+                    exportToCSV: 'Export to CSV',
+                    selectDateRangeError: 'Please select a date range to export',
+                    invalidDateRangeError: 'The start date must be before the end date',
                     enabled: 'Central Invoicing enabled!',
                     enabledDescription: 'All travel spend on this workspace will now be centralized in a monthly invoice.',
                 },
@@ -7632,6 +7661,9 @@ const translations = {
         notActivated: 'Not activated',
         outOfPocket: 'Reimbursable',
         companySpend: 'Non-reimbursable',
+        personalCard: 'Personal card',
+        companyCard: 'Company card',
+        expensifyCard: 'Expensify Card',
     },
     distance: {
         addStop: 'Add stop',
@@ -7735,6 +7767,10 @@ const translations = {
             prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
         },
         fabGpsTripExplained: 'Go to GPS screen (Floating action)',
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',
@@ -8480,7 +8516,7 @@ const translations = {
         goToDomain: 'Go to domain',
         samlLogin: {
             title: 'SAML login',
-            subtitle: `<muted-text>Configure member sign-in with <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configure member sign-in with <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'Enable SAML login',
             allowMembers: 'Allow members to log in with SAML.',
             requireSamlLogin: 'Require SAML login',

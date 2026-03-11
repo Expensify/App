@@ -1149,6 +1149,16 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    // Hide automatic TAKE_CONTROL actions created by OldDot's auto-pay workflow.
+    // When automaticAction is true and there are no mentionedAccountIDs, this indicates
+    // the TAKE_CONTROL was a side effect of auto-pay rather than a manual approver change.
+    if (actionName === CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) {
+        const originalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>);
+        if (originalMessage?.automaticAction && !originalMessage?.mentionedAccountIDs?.length) {
+            return false;
+        }
+    }
+
     if (isWhisperActionTargetedToOthers(reportAction)) {
         return false;
     }
@@ -1433,6 +1443,7 @@ function getFilteredReportActionsForReportView(actions: ReportAction[]) {
 function getDynamicExternalWorkflowRoutedAction(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> {
+    const originalMessage = getOriginalMessage(reportAction);
     return {
         reportActionID: `${reportAction.reportActionID}DEW`,
         created: DateUtils.addMillisecondsFromDateTime(reportAction.created, 1),
@@ -1440,7 +1451,8 @@ function getDynamicExternalWorkflowRoutedAction(
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
         message: [{html: 'DYNAMIC_EXTERNAL_WORKFLOW', type: 'COMMENT', text: ''}],
         originalMessage: {
-            to: getOriginalMessage(reportAction)?.to ?? '',
+            to: originalMessage?.to ?? '',
+            message: originalMessage?.message ?? '',
         },
     };
 }
@@ -4132,7 +4144,8 @@ function getDynamicExternalWorkflowRoutedMessage(
     action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
     translate: LocaleContextProps['translate'],
 ) {
-    return translate('iou.routedDueToDEW', getOriginalMessage(action)?.to ?? '');
+    const originalMessage = getOriginalMessage(action);
+    return translate('iou.routedDueToDEW', originalMessage?.to ?? '', originalMessage?.message ?? '');
 }
 
 function getSettlementAccountLockedMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {

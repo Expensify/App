@@ -41,6 +41,7 @@ import type {
 } from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -100,7 +101,11 @@ const feedNamesMapping = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS.PEX,
 } satisfies Partial<Record<CardFeed, BankName | NonConnectableBankName | CardTypeName>>;
 
-const feedNamesMappingKeys = Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>;
+// Longest prefix first so e.g. AMEX_1205 matches before AMEX
+const feedNamesMappingKeysByLength = (Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>).sort((a, b) => b.length - a.length);
+
+const GET_BANK_NAME_CACHE_MAX_SIZE = 200;
+const getBankNameCache = new Map<string, string>();
 
 /**
  * @returns string with a month in MM format
@@ -152,11 +157,10 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
         return card.nameValuePairs?.cardTitle ?? card.cardName ?? '';
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
-    const isPersonal = isPersonalCard(card);
-    const bankName = isPlaid || isPersonal ? card?.cardName : getBankName(card.bank);
+    const bankName = isPlaid ? card?.cardName : getBankName(card.bank);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
-    return cardDescriptor && !isPlaid && !isPersonal ? `${humanReadableBankName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${humanReadableBankName}`;
+    return cardDescriptor && !isPlaid ? `${humanReadableBankName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
@@ -389,7 +393,10 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
     }
-    return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
+    return Object.values(bankAccountsList).filter(
+        (bankAccount) =>
+            bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit && !isBankAccountPartiallySetup(bankAccount?.accountData?.state),
+    );
 }
 
 function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
@@ -400,6 +407,7 @@ function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAcco
         (bankAccount) =>
             bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             bankAccount?.accountData?.allowDebit &&
+            !isBankAccountPartiallySetup(bankAccount?.accountData?.state) &&
             bankAccount?.bankCurrency === outputCurrency &&
             (CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
     );
@@ -584,18 +592,25 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
 }
 
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
+    const cacheKey = feedType ?? '';
+    const cached = getBankNameCache.get(cacheKey);
+    if (cached !== undefined) {
+        return cached;
+    }
+
+    let result: string;
     if (feedType?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
-        return CONST.COMPANY_CARDS.CARD_TYPE.CSV;
+        result = CONST.COMPANY_CARDS.CARD_TYPE.CSV;
+    } else {
+        const feedKey = feedNamesMappingKeysByLength.find((feed) => feedType?.startsWith(feed));
+        result = feedKey ? feedNamesMapping[feedKey] : '';
     }
 
-    // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
-    const feedKey = feedNamesMappingKeys.find((feed) => feedType?.startsWith(feed));
-
-    if (!feedKey) {
-        return '';
+    if (getBankNameCache.size >= GET_BANK_NAME_CACHE_MAX_SIZE) {
+        getBankNameCache.clear();
     }
-
-    return feedNamesMapping[feedKey];
+    getBankNameCache.set(cacheKey, result);
+    return result;
 }
 
 const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
