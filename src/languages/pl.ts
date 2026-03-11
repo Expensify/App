@@ -6849,7 +6849,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     return `${enabled ? 'włączone' : 'wyłączone'} księgowość`;
                 case 'Expensify Cards':
                     return `${enabled ? 'włączone' : 'wyłączone'} Karty Expensify`;
-                case 'Travel Invoicing':
+                case 'travel invoicing':
                     return `Fakturowanie podróży ${enabled ? 'włączone' : 'wyłączone'}`;
                 case 'company cards':
                     return `${enabled ? 'włączone' : 'wyłączone'} karty firmowe`;
