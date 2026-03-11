@@ -145,11 +145,11 @@ describe('useChartInteractions', () => {
         expect(result.current.isTooltipActive).toBe(false);
     });
 
-    it('accepts optional checkIsOverLabel and resolveLabelTouchX', () => {
+    it('accepts optional isCursorOverLabel and resolveLabelTouchX', () => {
         const {result} = renderHook(() =>
             useChartInteractions({
                 ...defaultProps,
-                checkIsOverLabel: () => false,
+                isCursorOverLabel: () => false,
                 resolveLabelTouchX: (x: number) => x,
             }),
         );

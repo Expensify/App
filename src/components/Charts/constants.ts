@@ -37,7 +37,7 @@ const ELLIPSIS = '...';
 const MIN_TRUNCATED_CHARS = 10;
 
 /** Radian threshold separating diagonal from vertical label hit-test */
-const DIAGONAL_ANGLE_RAD_THRESHOLD = 1;
+const DIAGONAL_ANGLE_RADIAN_THRESHOLD = 1;
 
 const PIE_CHART_TOOLTIP_RADIUS_DISTANCE = 2 / 3;
 
@@ -54,6 +54,6 @@ export {
     LABEL_PADDING,
     ELLIPSIS,
     MIN_TRUNCATED_CHARS,
-    DIAGONAL_ANGLE_RAD_THRESHOLD,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
     PIE_CHART_TOOLTIP_RADIUS_DISTANCE,
 };

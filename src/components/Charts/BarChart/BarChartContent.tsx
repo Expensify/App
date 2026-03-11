@@ -10,7 +10,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
-import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, DIAGONAL_ANGLE_RAD_THRESHOLD, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, DIAGONAL_ANGLE_RADIAN_THRESHOLD, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
@@ -40,7 +40,7 @@ const computeBarLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angl
     const halfLabelSins = labelWidths.map((w) => (w / 2) * sinA - variables.iconSizeExtraSmall / 3);
     const halfWidths = labelWidths.map((w) => w / 2);
     let additionalOffset = 0;
-    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RAD_THRESHOLD) {
+    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
         additionalOffset = variables.iconSizeExtraSmall / 1.5;
     } else if (angleRad > 1) {
         additionalOffset = variables.iconSizeExtraSmall / 3;
@@ -129,7 +129,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const chartBottom = useSharedValue(0);
     const yZero = useSharedValue(0);
 
-    const {checkIsOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
+    const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
         font,
         truncatedLabels,
         labelRotation,
@@ -169,7 +169,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
-        checkIsOverLabel,
+        isCursorOverLabel,
         resolveLabelTouchX: findLabelCursorX,
         chartBottom,
         yZero,

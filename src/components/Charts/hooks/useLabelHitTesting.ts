@@ -3,7 +3,7 @@ import {useMemo} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 import {useSharedValue} from 'react-native-reanimated';
 import type {Scale} from 'victory-native';
-import {DIAGONAL_ANGLE_RAD_THRESHOLD} from '@components/Charts/constants';
+import {DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
 import {isCursorOverChartLabel, measureTextWidth} from '@components/Charts/utils';
 import variables from '@styles/variables';
@@ -77,7 +77,7 @@ type UseLabelHitTestingParams = {
  * Shared hook for x-axis label hit-testing in cartesian charts.
  *
  * Encapsulates label width measurement, angle conversion, pre-computed hit geometry,
- * and the checkIsOverLabel / findLabelCursorX worklets — all of which are identical
+ * and the isCursorOverLabel / findLabelCursorX worklets — all of which are identical
  * between bar and line chart except for how the hit geometry is computed.
  *
  * Chart-specific geometry (45° corner anchor offsets, 90° vertical bounds) is supplied
@@ -117,7 +117,7 @@ function useLabelHitTesting({font, truncatedLabels, labelRotation, labelSkipInte
      * Hit-tests whether the cursor is over the x-axis label at `activeIndex`.
      * Supports 0°, ~45° (parallelogram), and 90° label orientations.
      */
-    const checkIsOverLabel = (args: HitTestArgs, activeIndex: number): boolean => {
+    const isCursorOverLabel = (args: HitTestArgs, activeIndex: number): boolean => {
         'worklet';
 
         if (!labelHitGeometry || activeIndex % labelSkipInterval !== 0) {
@@ -130,7 +130,7 @@ function useLabelHitTesting({font, truncatedLabels, labelRotation, labelSkipInte
         const labelY = args.chartBottom + labelYOffset;
 
         let corners45: Array<{x: number; y: number}> | undefined;
-        if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RAD_THRESHOLD) {
+        if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
             const labelSin = labelSins.at(activeIndex) ?? 0;
             const anchorDX = cornerAnchorDX.at(activeIndex) ?? 0;
             const anchorDY = cornerAnchorDY.at(activeIndex) ?? 0;
@@ -175,7 +175,7 @@ function useLabelHitTesting({font, truncatedLabels, labelRotation, labelSkipInte
             if (tickX === undefined) {
                 continue;
             }
-            if (checkIsOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom}, i)) {
+            if (isCursorOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom}, i)) {
                 return tickX;
             }
         }
@@ -187,7 +187,7 @@ function useLabelHitTesting({font, truncatedLabels, labelRotation, labelSkipInte
         tickXPositions.set(Array.from({length: dataLength}, (_, i) => xScale(i)));
     };
 
-    return {checkIsOverLabel, findLabelCursorX, updateTickPositions};
+    return {isCursorOverLabel, findLabelCursorX, updateTickPositions};
 }
 
 export default useLabelHitTesting;

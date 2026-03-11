@@ -42,7 +42,7 @@ type UseChartInteractionsProps = {
     checkIsOver: (args: HitTestArgs) => boolean;
 
     /** Worklet function to determine if the cursor is hovering over the label area */
-    checkIsOverLabel?: (args: HitTestArgs, activeIndex: number) => boolean;
+    isCursorOverLabel?: (args: HitTestArgs, activeIndex: number) => boolean;
 
     /**
      * Optional worklet that, when the cursor is in the label area, scans all label bounding
@@ -107,7 +107,7 @@ function findClosestPoint(xValues: number[], targetX: number): number {
  * Uses react native gesture handler gestures directly — no dependency on Victory's actionsRef/handleTouch.
  * Synchronizes high-frequency UI thread data to React state for tooltip display and navigation.
  */
-function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, resolveLabelTouchX, chartBottom, yZero}: UseChartInteractionsProps) {
+function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, resolveLabelTouchX, chartBottom, yZero}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState, isActive: isTooltipActiveState} = useChartInteractionState();
 
@@ -159,7 +159,7 @@ function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, resol
                 targetY,
                 chartBottom: currentChartBottom,
             }) ||
-            (checkIsOverLabel?.({cursorX, cursorY, targetX, targetY, chartBottom: currentChartBottom}, chartInteractionState.matchedIndex.get()) ?? false)
+            (isCursorOverLabel?.({cursorX, cursorY, targetX, targetY, chartBottom: currentChartBottom}, chartInteractionState.matchedIndex.get()) ?? false)
         );
     });
 

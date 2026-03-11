@@ -12,7 +12,15 @@ import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
-import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, DIAGONAL_ANGLE_RAD_THRESHOLD, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
+import {
+    AXIS_LABEL_GAP,
+    CHART_CONTENT_MIN_HEIGHT,
+    CHART_PADDING,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    X_AXIS_LINE_WIDTH,
+    Y_AXIS_LINE_WIDTH,
+    Y_AXIS_TICK_COUNT,
+} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
@@ -43,7 +51,7 @@ const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
 const computeLineLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angleRad, labelWidths, padding}) => {
     const iconThirdSin = (variables.iconSizeExtraSmall / 3) * sinA;
     let additionalOffset = 0;
-    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RAD_THRESHOLD) {
+    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
         additionalOffset = variables.iconSizeExtraSmall / 1.5;
     } else if (angleRad > 1) {
         additionalOffset = variables.iconSizeExtraSmall / 3;
@@ -148,7 +156,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         unitPosition: yAxisUnitPosition,
     });
 
-    const {checkIsOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
+    const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
         font,
         truncatedLabels,
         labelRotation,
@@ -175,7 +183,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handlePointPress,
         checkIsOver: checkIsOverDot,
-        checkIsOverLabel,
+        isCursorOverLabel,
         resolveLabelTouchX: findLabelCursorX,
         chartBottom,
     });
