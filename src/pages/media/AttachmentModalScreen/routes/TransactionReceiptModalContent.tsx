@@ -36,7 +36,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
-    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType} = route.params;
+    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType, isEditingConfirmation, backToReport} = route.params;
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -510,7 +510,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         onPress={() => {
                             const getDestinationRoute = () => {
                                 return isOdometerImage
-                                    ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType)
+                                    ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType, isEditingConfirmation, backToReport)
                                     : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                           action ?? CONST.IOU.ACTION.EDIT,
                                           iouType,
@@ -566,6 +566,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         transactionID,
         reportID,
         imageType,
+        isEditingConfirmation,
+        backToReport,
         draftTransactionID,
         transaction?.transactionID,
         report?.reportID,
