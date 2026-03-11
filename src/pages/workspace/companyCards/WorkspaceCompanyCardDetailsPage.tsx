@@ -30,6 +30,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -119,6 +120,11 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         }
         return format(getLocalDateFromDatetime(card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
+
+    const lastUpdatedActivityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceCompanyCardDetailsPage',
+        isLoadingLastUpdated: card?.isLoadingLastUpdated,
+    };
 
     // Don't show NotFoundPage if card is being unassigned or data is still loading
     if ((!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigningRef.current)) {
@@ -221,7 +227,12 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     ) : null}
                     <MenuItemWithTopDescription
                         shouldShowRightComponent={card?.isLoadingLastUpdated}
-                        rightComponent={<ActivityIndicator style={[styles.popoverMenuIcon]} />}
+                        rightComponent={
+                            <ActivityIndicator
+                                style={[styles.popoverMenuIcon]}
+                                reasonAttributes={lastUpdatedActivityReasonAttributes}
+                            />
+                        }
                         description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
                         title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
                         interactive={false}
