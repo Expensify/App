@@ -51,8 +51,8 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             return null;
         }
 
-        const previousApproverEmail = approvalChain[managerIndex - 1];
-        const details = getPersonalDetailByEmail(previousApproverEmail);
+        const previousApproverEmail = approvalChain.at(managerIndex - 1);
+        const details = getPersonalDetailByEmail(previousApproverEmail ?? '');
         if (!details?.accountID) {
             return null;
         }
@@ -85,7 +85,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         });
 
         return options;
-    }, [hasPreviousApprover, previousApprover, submitterAccountID, selectedTargetAccountID, translate]);
+    }, [hasPreviousApprover, previousApprover?.displayName, previousApprover?.accountID, submitterAccountID, selectedTargetAccountID, translate]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> => {
