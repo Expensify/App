@@ -117,13 +117,13 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled);
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled && isControlPolicy(policy));
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => {
         const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-        return policy?.arePerDiemRatesEnabled && !isEmptyObject(perDiemCustomUnit?.rates);
+        return policy?.arePerDiemRatesEnabled && isControlPolicy(policy) && !isEmptyObject(perDiemCustomUnit?.rates);
     });
 }
 

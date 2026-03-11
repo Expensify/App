@@ -25,6 +25,7 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import DistanceCounter from './DistanceCounter';
 import GPSButtons from './GPSButtons';
@@ -56,6 +57,7 @@ function IOURequestStepDistanceGPS({
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -121,6 +123,7 @@ function IOURequestStepDistanceGPS({
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
+            isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
         });
     };
