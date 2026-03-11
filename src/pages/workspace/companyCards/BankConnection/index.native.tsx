@@ -72,15 +72,17 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
 
-    const renderLoading = () => (
-        <FullScreenLoadingIndicator
-            reasonAttributes={
-                {
-                    context: 'BankConnection',
-                } satisfies SkeletonSpanReasonAttributes
-            }
-        />
-    );
+    const fullscreenReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BankConnection',
+    };
+    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BankConnection',
+        isAllFeedsResultLoading,
+        isBlockedToAddNewFeedsWithoutFeed: isBlockedToAddNewFeeds && !feed,
+        isConnectionCompleted,
+        isPlaid,
+    };
+    const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={fullscreenReasonAttributes} />;
 
     useEffect(() => {
         if (!policyID || !isBlockedToAddNewFeeds || feed) {
@@ -198,6 +200,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
+                        reasonAttributes={activityReasonAttributes}
                     />
                 )}
                 {isNewFeedHasError && (
