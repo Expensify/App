@@ -21,7 +21,7 @@ function stitchOdometerImages(image1: FileObject | string | undefined, image2: F
         });
 
     return Promise.all([loadImage(source1), loadImage(source2)]).then(([img1, img2]) => {
-        const {width, height, horizontal} = calculateStitchLayout(img1.width, img1.height, img2.width, img2.height);
+        const {width, height, img1Dest, img2Dest} = calculateStitchLayout(img1.width, img1.height, img2.width, img2.height);
 
         const offscreenCanvas = document.createElement('canvas');
         offscreenCanvas.width = width;
@@ -31,8 +31,8 @@ function stitchOdometerImages(image1: FileObject | string | undefined, image2: F
             throw new Error('Failed to get canvas context');
         }
 
-        ctx.drawImage(img1, 0, 0);
-        ctx.drawImage(img2, horizontal ? img1.width : 0, horizontal ? 0 : img1.height);
+        ctx.drawImage(img1, img1Dest.x, img1Dest.y, img1Dest.w, img1Dest.h);
+        ctx.drawImage(img2, img2Dest.x, img2Dest.y, img2Dest.w, img2Dest.h);
 
         return new Promise<FileObject | null>((resolve, reject) => {
             offscreenCanvas.toBlob((blob) => {

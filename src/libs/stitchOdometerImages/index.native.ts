@@ -27,7 +27,7 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
             throw new Error('Failed to decode odometer images');
         }
 
-        const {width, height, horizontal} = calculateStitchLayout(skImage1.width(), skImage1.height(), skImage2.width(), skImage2.height());
+        const {width, height, img1Dest, img2Dest} = calculateStitchLayout(skImage1.width(), skImage1.height(), skImage2.width(), skImage2.height());
 
         surface = Skia.Surface.MakeOffscreen(width, height);
         if (!surface) {
@@ -35,8 +35,9 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         }
 
         const canvas = surface.getCanvas();
-        canvas.drawImage(skImage1, 0, 0);
-        canvas.drawImage(skImage2, horizontal ? skImage1.width() : 0, horizontal ? 0 : skImage1.height());
+        const paint = Skia.Paint();
+        canvas.drawImageRect(skImage1, Skia.XYWHRect(0, 0, skImage1.width(), skImage1.height()), Skia.XYWHRect(img1Dest.x, img1Dest.y, img1Dest.w, img1Dest.h), paint);
+        canvas.drawImageRect(skImage2, Skia.XYWHRect(0, 0, skImage2.width(), skImage2.height()), Skia.XYWHRect(img2Dest.x, img2Dest.y, img2Dest.w, img2Dest.h), paint);
         surface.flush();
 
         snapshot = surface.makeImageSnapshot();
