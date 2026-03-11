@@ -33,10 +33,17 @@ type PingPongEvent = Record<string, string | number> & {
     pingTimestamp: number;
 };
 
+type ConciergeReasoningEvent = {
+    reasoning: string;
+    agentZeroRequestID: string;
+    loopCount: number;
+};
+
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
     [TYPE.PONG]: PingPongEvent;
+    [TYPE.CONCIERGE_REASONING]: ConciergeReasoningEvent;
 };
 
 type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
@@ -91,6 +98,7 @@ export type {
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
     PingPongEvent,
+    ConciergeReasoningEvent,
     EventData,
     EventCallbackError,
     ChunkedDataEvents,

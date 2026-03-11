@@ -20,11 +20,13 @@ import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints} from '@libs
 import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
+import {getRateID} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import DistanceCounter from './DistanceCounter';
 import GPSButtons from './GPSButtons';
@@ -56,11 +58,13 @@ function IOURequestStepDistanceGPS({
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const personalPolicy = usePersonalPolicy();
     const policy = usePolicy(report?.policyID);
     const isArchived = isArchivedReport(reportNameValuePairs);
@@ -71,8 +75,9 @@ function IOURequestStepDistanceGPS({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed);
 
+    const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
@@ -96,6 +101,7 @@ function IOURequestStepDistanceGPS({
             reportAttributesDerived,
             personalDetails,
             waypoints,
+            customUnitRateID,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
             backToReport,
@@ -120,6 +126,8 @@ function IOURequestStepDistanceGPS({
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
+            isSelfTourViewed: !!isSelfTourViewed,
+            amountOwed,
         });
     };
 
@@ -143,11 +151,7 @@ function IOURequestStepDistanceGPS({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
-            <DistanceCounter
-                report={report}
-                transaction={transaction}
-                iouType={iouType}
-            />
+            <DistanceCounter unit={unit} />
             <View style={[styles.w100, styles.pAbsolute, styles.b0, styles.r0, styles.l0]}>
                 <Waypoints />
                 <DotIndicatorMessage
@@ -160,6 +164,7 @@ function IOURequestStepDistanceGPS({
                     setShouldShowStartError={setShouldShowStartError}
                     setShouldShowPermissionsError={setShouldShowPermissionsError}
                     reportID={reportID}
+                    unit={unit}
                 />
             </View>
         </StepScreenWrapper>
