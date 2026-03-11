@@ -157,11 +157,10 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
         return card.nameValuePairs?.cardTitle ?? card.cardName ?? '';
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
-    const isPersonal = isPersonalCard(card);
-    const bankName = isPlaid || isPersonal ? card?.cardName : getBankName(card.bank);
+    const bankName = isPlaid ? card?.cardName : getBankName(card.bank);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
-    return cardDescriptor && !isPlaid && !isPersonal ? `${humanReadableBankName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${humanReadableBankName}`;
+    return cardDescriptor && !isPlaid ? `${humanReadableBankName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
@@ -1201,7 +1200,7 @@ function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExcl
         return undefined;
     }
 
-    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardConnectionBroken(card));
 }
 
 /** Extract feed from feed with domainID */
