@@ -35,8 +35,8 @@ import React from 'react';
 
 // eslint-disable-next-line import/first
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen/index.web';
-import type {NavigationFocusManagerModule} from '@libs/NavigationFocusManager/types';
 import type FocusUtilsModule from '@libs/focusUtils/types';
+import type {NavigationFocusManagerModule} from '@libs/NavigationFocusManager/types';
 
 // ============================================================================
 // Test-specific configurable mocks (kept inline as they need per-test values)
