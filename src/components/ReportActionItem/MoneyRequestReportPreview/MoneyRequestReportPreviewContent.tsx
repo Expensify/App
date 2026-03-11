@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useCallback, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
@@ -52,6 +53,7 @@ import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
+    canSubmitAndIsAwaitingForCurrentUser,
     getAddExpenseDropdownOptions,
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -65,18 +67,14 @@ import {
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
-    hasReportBeenReopened as hasReportBeenReopenedUtils,
-    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
-    isReportOwner,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
-    isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -195,6 +193,7 @@ function MoneyRequestReportPreviewContent({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
@@ -253,14 +252,12 @@ function MoneyRequestReportPreviewContent({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
 
-    const hasReportBeenRetracted = hasReportBeenReopenedUtils(iouReport, reportActions) || hasReportBeenRetractedUtils(iouReport, reportActions);
-
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
-    const isWaitingForSubmissionFromCurrentUser = useMemo(() => {
-        const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && hasReportBeenRetracted;
-        return isOwnAndReportHasBeenRetracted || isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy);
-    }, [chatReport, policy, hasReportBeenRetracted, iouReport]);
+    const isWaitingForSubmissionFromCurrentUser = useMemo(
+        () => canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, policy, transactions, transactionViolations, currentUserEmail, currentUserAccountID, reportActions),
+        [iouReport, chatReport, policy, transactions, transactionViolations, currentUserEmail, currentUserAccountID, reportActions],
+    );
 
     const confirmPayment = useCallback(
         ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
@@ -290,6 +287,7 @@ function MoneyRequestReportPreviewContent({
                         paymentMethod,
                         activePolicy,
                         betas,
+                        isSelfTourViewed,
                     });
                 } else {
                     payMoneyRequest({
@@ -302,7 +300,9 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                         policy,
                         betas,
+                        isSelfTourViewed,
                         userBillingGraceEndPeriods,
+                        amountOwed,
                     });
                 }
             }
@@ -321,7 +321,9 @@ function MoneyRequestReportPreviewContent({
             activePolicy,
             policy,
             betas,
+            isSelfTourViewed,
             userBillingGraceEndPeriods,
+            amountOwed,
         ],
     );
 
@@ -351,18 +353,19 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(
-                iouReport,
-                activePolicy,
-                currentUserAccountID,
-                currentUserEmail,
+            approveMoneyRequest({
+                expenseReport: iouReport,
+                policy: activePolicy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                iouReportNextStep,
+                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
                 userBillingGraceEndPeriods,
-                true,
-            );
+                amountOwed,
+                full: true,
+            });
         }
     };
 
@@ -509,6 +512,21 @@ function MoneyRequestReportPreviewContent({
     // undefined makes arrow buttons react on currentIndex changes when scrolling manually
     const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
     const carouselRef = useRef<FlashListRef<Transaction> | null>(null);
+    const prevTransactionCountForScroll = useRef(carouselTransactions.length);
+    const [carouselKey, setCarouselKey] = useState(0);
+
+    // Reset carousel when transitioning from empty to non-empty data.
+    // scrollToOffset doesn't clear RecyclerListView's internal layout cache on iOS mobile web,
+    // so we force a full re-mount via key to prevent new items from rendering off-screen.
+    useEffect(() => {
+        if (carouselTransactions.length > 0 && prevTransactionCountForScroll.current === 0) {
+            setCurrentIndex(0);
+            setOptimisticIndex(undefined);
+            setCarouselKey((prev) => prev + 1);
+        }
+        prevTransactionCountForScroll.current = carouselTransactions.length;
+    }, [carouselTransactions.length]);
+
     const visibleItemsOnEndCount = useMemo(() => {
         const lastItemWidth = transactions.length > MAX_PREVIEWS_NUMBER ? footerWidth : reportPreviewStyles.transactionPreviewCarouselStyle.width;
         const lastItemWithGap = lastItemWidth + styles.gap2.gap;
@@ -726,7 +744,17 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, userBillingGraceEndPeriods);
+                    submitReport(
+                        iouReport,
+                        policy,
+                        currentUserAccountID,
+                        currentUserEmail,
+                        hasViolations,
+                        isASAPSubmitBetaEnabled,
+                        iouReportNextStep,
+                        userBillingGraceEndPeriods,
+                        amountOwed,
+                    );
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
@@ -975,6 +1003,7 @@ function MoneyRequestReportPreviewContent({
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.minHeight42]}>
                                             <FlashList
+                                                key={carouselKey}
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
                                                 snapToOffsets={snapOffsets}
