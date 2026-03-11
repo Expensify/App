@@ -1,7 +1,6 @@
 import type {ImageSource} from 'expo-image';
 import {useEffect, useState} from 'react';
-
-const CACHE_NAME = 'auth-images';
+import CONST from '@src/CONST';
 
 function useCachedImageSource(source: ImageSource | undefined): ImageSource | null | undefined {
     const uri = typeof source === 'object' ? source.uri : undefined;
@@ -22,7 +21,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
 
         (async () => {
             try {
-                const cache = await caches.open(CACHE_NAME);
+                const cache = await caches.open(CONST.CACHE_NAME.AUTH_IMAGES);
                 const cachedResponse = await cache.match(uri);
 
                 if (cachedResponse) {
