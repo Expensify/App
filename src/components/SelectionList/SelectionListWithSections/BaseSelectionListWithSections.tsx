@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
+import type {Role, TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -26,6 +26,7 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
@@ -87,6 +88,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const triggerScrollEvent = useScrollEventEmitter();
+    const platform = getPlatform();
+    const isWeb = platform === CONST.PLATFORM.WEB;
 
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
@@ -353,6 +356,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 renderListEmptyContent()
             ) : (
                 <FlashList
+                    role={!canSelectMultiple && isWeb ? (CONST.ROLE.LISTBOX as Role) : undefined}
                     data={flattenedData}
                     renderItem={renderItem}
                     ref={listRef}

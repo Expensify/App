@@ -23,6 +23,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
@@ -160,6 +161,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
+    const platform = getPlatform();
+    const isWeb = platform === CONST.PLATFORM.WEB;
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
     const {isKeyboardShown} = useKeyboardState();
@@ -1037,7 +1040,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         renderScrollComponent={renderScrollComponent}
                         removeClippedSubviews={removeClippedSubviews}
                         ref={listRef}
-                        role={!canSelectMultiple ? (CONST.ROLE.LISTBOX as Role) : undefined}
+                        role={!canSelectMultiple && isWeb ? (CONST.ROLE.LISTBOX as Role) : undefined}
                         sections={slicedSections}
                         stickySectionHeadersEnabled={false}
                         renderSectionHeader={(arg) => (
