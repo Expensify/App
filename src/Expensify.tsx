@@ -93,10 +93,10 @@ function Expensify() {
 
     useEffect(() => {
         bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
-            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
-            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-        });
+                name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+                op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
+        }) ?? null;
 
         startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX, {
             name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,

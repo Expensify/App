@@ -16,7 +16,7 @@ type StartSpanExtraOptions = Partial<{
 }>;
 
 function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
-    if (AppState.currentState !== 'active') {
+    if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE) {
         return;
     }
     // End any existing span for this name
