@@ -21,13 +21,13 @@ type LocalNotificationModifiedExpenseParams = {
     onClick: LocalNotificationClickHandler;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
-    policyTags: OnyxEntry<PolicyTagLists>;
-    policy?: OnyxEntry<Policy>;
     currentUserLogin: string;
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {
     usesIcon?: boolean;
+    policyTags: OnyxEntry<PolicyTagLists>;
+    policy?: OnyxEntry<Policy>;
 };
 
 export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpenseParams, LocalNotificationModifiedExpensePushParams};
