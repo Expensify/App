@@ -79,7 +79,6 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
     // In case tab is not changed by tapping on a different tab we still
     // want to scroll to the selected tab to make sure it's in view
     useEffect(() => {
-        console.log({lastScrolledToTab: lastScrolledToTab.current, activeTabKey});
         if (!lastScrolledToTab.current || activeTabKey === lastScrolledToTab.current) {
             return;
         }
