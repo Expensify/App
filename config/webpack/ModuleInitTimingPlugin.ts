@@ -8,22 +8,6 @@ import dedent from '../../src/libs/StringUtils/dedent.ts';
 
 const PLUGIN_NAME = 'ModuleInitTimingPlugin';
 
-/**
- * Emits self.__moduleNames = { "535": "./src/styles/index.ts", ... } so that
- * numeric production module IDs are readable in Sentry breadcrumbs.
- * Only includes project source files (node_modules are excluded to keep bundle size small).
- */
-function createNamesRuntimeModule(names: Record<string, string>): webpack.RuntimeModule {
-    const mod = new webpack.RuntimeModule('module init names', webpack.RuntimeModule.STAGE_ATTACH);
-    const json = JSON.stringify(names);
-    mod.generate = (): string =>
-        dedent(`
-            if (typeof self !== 'undefined' && !self.__moduleNames) {
-                self.__moduleNames = ${json};
-            }`);
-    return mod;
-}
-
 function createTimingRuntimeModule(): webpack.RuntimeModule {
     const mod = new webpack.RuntimeModule('module init timing', webpack.RuntimeModule.STAGE_ATTACH);
 
@@ -64,9 +48,12 @@ class ModuleInitTimingPlugin {
             // Once webpack has processed that requirement, inject our RuntimeModule.
             compilation.hooks.runtimeRequirementInTree.for(webpack.RuntimeGlobals.interceptModuleExecution).tap(PLUGIN_NAME, (chunk: Chunk) => {
                 compilation.addRuntimeModule(chunk, createTimingRuntimeModule());
+            });
 
-                // Build a moduleId → file path map so numeric production IDs are readable in Sentry.
-                // Skip node_modules to keep the emitted JSON small.
+            // Emit a separate module-names.json asset (not part of the runtime chunk) so
+            // numeric production module IDs can be resolved to file paths for Sentry.
+            // Fetched lazily after first paint — zero startup cost.
+            compilation.hooks.processAssets.tap({name: PLUGIN_NAME, stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL}, () => {
                 const names: Record<string, string> = {};
                 for (const module of compilation.modules) {
                     const id = compilation.chunkGraph.getModuleId(module);
@@ -80,9 +67,8 @@ class ModuleInitTimingPlugin {
                     const relativePath = `./${path.relative(compiler.context, resource).replaceAll('\\', '/')}`;
                     names[String(id)] = relativePath;
                 }
-
                 if (Object.keys(names).length > 0) {
-                    compilation.addRuntimeModule(chunk, createNamesRuntimeModule(names));
+                    compilation.emitAsset('module-names.json', new webpack.sources.RawSource(JSON.stringify(names)));
                 }
             });
         });

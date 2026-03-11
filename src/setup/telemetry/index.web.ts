@@ -13,10 +13,19 @@ export default function (): void {
 
     requestAnimationFrame(() => {
         // webpack module timing path (ModuleInitTimingPlugin injected __moduleInitTimes).
-        // In dev mode, keys are relative file paths; in production they are numeric IDs.
         // Use typeof guard — bare identifier throws ReferenceError if ModuleInitTimingPlugin didn't run (e.g. Storybook, stale cache)
         const initTimes = typeof __moduleInitTimes !== 'undefined' ? (__moduleInitTimes as Record<string, number>) : undefined;
-        const moduleNames = typeof __moduleNames !== 'undefined' ? (__moduleNames as Record<string, string>) : undefined;
-        reportModuleInitTimes(initTimes, moduleNames, 1);
+
+        // Fetch the moduleId → path map emitted at build time as a separate asset.
+        // This avoids embedding the map in the runtime chunk (no startup cost).
+        fetch('/module-names.json')
+            .then((res) => res.json() as Promise<Record<string, string>>)
+            .then((moduleNames) => {
+                reportModuleInitTimes(initTimes, moduleNames, 1);
+            })
+            .catch(() => {
+                // Map unavailable (e.g. Storybook, local dev without asset) — fall back to numeric IDs.
+                reportModuleInitTimes(initTimes, undefined, 1);
+            });
     });
 }
