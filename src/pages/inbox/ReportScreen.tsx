@@ -1,65 +1,29 @@
 import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React from 'react';
 import type {ViewStyle} from 'react-native';
-// We use Animated for all functionality related to wide RHP to make it easier
-// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
-import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useParentReportAction from '@hooks/useParentReportAction';
-import usePrevious from '@hooks/usePrevious';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getFilteredReportActionsForReportView, isDeletedParentAction, isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
-import {
-    canUserPerformWriteAction,
-    isAdminRoom,
-    isAnnounceRoom,
-    isGroupChat,
-    isMoneyRequest,
-    isMoneyRequestReport,
-    isMoneyRequestReportPendingDeletion,
-    isPolicyExpenseChat,
-    isReportTransactionThread,
-    isTaskReport,
-    isValidReportIDFromPath,
-} from '@libs/ReportUtils';
-import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
-import {setShouldShowComposeInput} from '@userActions/Composer';
-import {navigateToConciergeChat, readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccountManagerBanner from './AccountManagerBanner';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
-import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsList from './ReportActionsList';
 import ReportComposer from './ReportComposer';
 import ReportFetchController from './ReportFetchController';
 import ReportHeader from './ReportHeader';
 import ReportLifecycleHandler from './ReportLifecycleHandler';
+import ReportNotFoundGuard from './ReportNotFoundGuard';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
 import {ActionListContext} from './ReportScreenContext';
 import WideRHPReceiptPanel from './WideRHPReceiptPanel';
@@ -70,406 +34,16 @@ type ReportScreenNavigationProps =
 
 type ReportScreenProps = ReportScreenNavigationProps;
 
-const defaultReportMetadata = {
-    hasOnceLoadedReportActions: false,
-    isLoadingInitialReportActions: true,
-    isLoadingOlderReportActions: false,
-    hasLoadingOlderReportActionsError: false,
-    isLoadingNewerReportActions: false,
-    hasLoadingNewerReportActionsError: false,
-    isOptimisticReport: false,
-};
-
-const reportDetailScreens = [
-    ...Object.values(SCREENS.REPORT_DETAILS),
-    ...Object.values(SCREENS.REPORT_SETTINGS),
-    ...Object.values(SCREENS.PRIVATE_NOTES),
-    ...Object.values(SCREENS.REPORT_PARTICIPANTS),
-];
-
-/**
- * Check is the report is deleted.
- * We currently use useMemo to memorize every properties of the report
- * so we can't check using isEmpty.
- *
- * @param report
- */
-function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
-    if (isEmptyObject(report)) {
-        return true;
-    }
-    return !Object.values(report).some((value) => value !== undefined && value !== '');
-}
-
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const reportActionIDFromRoute = route?.params?.reportActionID;
-    const isFocused = useIsFocused();
-    const [firstRender, setFirstRender] = useState(true);
-    const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
-
-    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportOnyx?.parentReportID}`);
-    const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
-    const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`);
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-
-    const parentReportAction = useParentReportAction(reportOnyx);
-
-    const deletedParentAction = isDeletedParentAction(parentReportAction);
-    const prevDeletedParentAction = usePrevious(deletedParentAction);
-
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-
-    /**
-     * Create a lightweight Report so as to keep the re-rendering as light as possible by
-     * passing in only the required props.
-     *
-     * Also, this plays nicely in contrast with Onyx,
-     * which creates a new object every time collection changes. Because of this we can't
-     * put this into onyx selector as it will be the same.
-     */
-    const report = useMemo(
-        () =>
-            reportOnyx && {
-                created: reportOnyx.created,
-                hasParentAccess: reportOnyx.hasParentAccess,
-                lastReadTime: reportOnyx.lastReadTime,
-                reportID: reportOnyx.reportID,
-                policyID: reportOnyx.policyID,
-                lastVisibleActionCreated: reportOnyx.lastVisibleActionCreated,
-                statusNum: reportOnyx.statusNum,
-                stateNum: reportOnyx.stateNum,
-                writeCapability: reportOnyx.writeCapability,
-                type: reportOnyx.type,
-                errorFields: reportOnyx.errorFields,
-                parentReportID: reportOnyx.parentReportID,
-                parentReportActionID: reportOnyx.parentReportActionID,
-                chatType: reportOnyx.chatType,
-                pendingFields: reportOnyx.pendingFields,
-                isDeletedParentAction: reportOnyx.isDeletedParentAction,
-                reportName: reportOnyx.reportName,
-                description: reportOnyx.description,
-                managerID: reportOnyx.managerID,
-                total: reportOnyx.total,
-                nonReimbursableTotal: reportOnyx.nonReimbursableTotal,
-                fieldList: reportOnyx.fieldList,
-                ownerAccountID: reportOnyx.ownerAccountID,
-                currency: reportOnyx.currency,
-                unheldTotal: reportOnyx.unheldTotal,
-                unheldNonReimbursableTotal: reportOnyx.unheldNonReimbursableTotal,
-                participants: reportOnyx.participants,
-                isWaitingOnBankAccount: reportOnyx.isWaitingOnBankAccount,
-                iouReportID: reportOnyx.iouReportID,
-                isOwnPolicyExpenseChat: reportOnyx.isOwnPolicyExpenseChat,
-                isPinned: reportOnyx.isPinned,
-                chatReportID: reportOnyx.chatReportID,
-                visibility: reportOnyx.visibility,
-                oldPolicyName: reportOnyx.oldPolicyName,
-                policyName: reportOnyx.policyName,
-                private_isArchived: reportNameValuePairsOnyx?.private_isArchived,
-                lastMentionedTime: reportOnyx.lastMentionedTime,
-                avatarUrl: reportOnyx.avatarUrl,
-                permissions: reportOnyx?.permissions,
-                invoiceReceiver: reportOnyx.invoiceReceiver,
-                policyAvatar: reportOnyx.policyAvatar,
-                nextStep: reportOnyx.nextStep,
-            },
-        [reportOnyx, reportNameValuePairsOnyx?.private_isArchived],
-    );
-    const reportID = report?.reportID;
-
-    const prevReport = usePrevious(report);
-    const prevUserLeavingStatus = usePrevious(userLeavingStatus);
-    const lastReportIDFromRoute = usePrevious(reportIDFromRoute);
-    const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
-
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
-    // wrapping in useMemo because this is array operation and can cause performance issues
-    const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
-
     const viewportOffsetTop = useViewportOffsetTop();
-    const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
-    const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
-
-    const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
-
-    const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
-
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const {isEditingDisabled} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
-
-    const isLinkedActionDeleted = useMemo(() => {
-        if (!linkedAction) {
-            return false;
-        }
-        const actionReportID = linkedAction.reportID ?? reportID;
-        if (!actionReportID) {
-            return true;
-        }
-        return !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
-    }, [linkedAction, report, isReportArchived, reportID, visibleReportActionsData]);
-
-    const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
-
-    const lastReportActionIDFromRoute = usePrevious(!firstRender ? reportActionIDFromRoute : undefined);
-
-    const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
-
-    const isLinkedActionInaccessibleWhisper = useMemo(
-        () => !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
-        [currentUserAccountID, linkedAction],
-    );
-    const {isParentActionMissingAfterLoad, isParentActionDeleted} = getParentReportActionDeletionStatus({
-        parentReportID: report?.parentReportID,
-        parentReportActionID: report?.parentReportActionID,
-        parentReportAction,
-        parentReportMetadata,
-        isOffline,
-    });
-    const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || isParentActionMissingAfterLoad);
-    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && isNavigatingToDeletedAction) ||
-        (!reportMetadata?.isLoadingInitialReportActions &&
-            !!reportActionIDFromRoute &&
-            !!sortedAllReportActions &&
-            sortedAllReportActions?.length > 0 &&
-            reportActions.length === 0 &&
-            !isLinkingToMessage);
-
-    const currentReportIDFormRoute = route.params?.reportID;
-
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo((): boolean => {
-        const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
-        const isLoading = isLoadingApp !== false || isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
-        const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
-
-        if (shouldShowNotFoundLinkedAction) {
-            return true;
-        }
-
-        if (deleteTransactionNavigateBackUrl) {
-            return false;
-        }
-
-        if (isDeletedTransactionThread) {
-            return true;
-        }
-
-        if (isInvalidReportPath) {
-            return true;
-        }
-
-        if (isLoading) {
-            return false;
-        }
-
-        if (firstRender) {
-            return false;
-        }
-
-        return !reportExists;
-    }, [
-        shouldShowNotFoundLinkedAction,
-        isLoadingApp,
-        isLoadingReportData,
-        reportMetadata?.isLoadingInitialReportActions,
-        reportID,
-        isOptimisticDelete,
-        userLeavingStatus,
-        currentReportIDFormRoute,
-        firstRender,
-        deleteTransactionNavigateBackUrl,
-        isDeletedTransactionThread,
-    ]);
-
-    useEffect(() => {
-        // We don't want this effect to run on the first render.
-        if (firstRender) {
-            setFirstRender(false);
-            return;
-        }
-
-        const onyxReportID = report?.reportID;
-        const prevOnyxReportID = prevReport?.reportID;
-        const wasReportRemoved = !!prevOnyxReportID && prevOnyxReportID === reportIDFromRoute && !onyxReportID;
-        const isRemovalExpectedForReportType =
-            isEmpty(report) &&
-            (isMoneyRequest(prevReport) ||
-                isMoneyRequestReport(prevReport) ||
-                isPolicyExpenseChat(prevReport) ||
-                isGroupChat(prevReport) ||
-                isAdminRoom(prevReport) ||
-                isAnnounceRoom(prevReport));
-        const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
-        const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
-        const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
-        // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
-        if (
-            // non-optimistic case
-            (!prevUserLeavingStatus && !!userLeavingStatus) ||
-            didReportClose ||
-            isRemovalExpectedForReportType ||
-            isClosedTopLevelPolicyRoom ||
-            (prevDeletedParentAction && !deletedParentAction)
-        ) {
-            const currentRoute = navigationRef.getCurrentRoute();
-            const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
-            const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
-            const isHoldScreenOpenInRHP =
-                currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
-            const isReportDetailOpenInRHP =
-                isTopMostReportId &&
-                reportDetailScreens.find((r) => r === currentRoute?.name) &&
-                !!currentRoute?.params &&
-                typeof currentRoute.params === 'object' &&
-                'reportID' in currentRoute.params &&
-                reportIDFromRoute === currentRoute.params.reportID;
-            // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
-            // Prevent auto navigation for report in RHP
-            if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {
-                return;
-            }
-            Navigation.dismissModal();
-            if (Navigation.getTopmostReportId() === prevOnyxReportID) {
-                Navigation.isNavigationReady().then(() => {
-                    Navigation.popToSidebar();
-                });
-            }
-            if (prevReport?.parentReportID) {
-                // Prevent navigation to the IOU/Expense Report if it is pending deletion.
-                if (isMoneyRequestReportPendingDeletion(prevReport.parentReportID)) {
-                    return;
-                }
-                Navigation.isNavigationReady().then(() => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
-                });
-                return;
-            }
-
-            Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
-            });
-            return;
-        }
-
-        // If you already have a report open and are deeplinking to a new report on native,
-        // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
-        // Therefore, we need to compare if the existing reportID is the same as the one in the route
-        // before deciding that we shouldn't call OpenReport.
-        if (reportIDFromRoute === lastReportIDFromRoute && (!onyxReportID || onyxReportID === reportIDFromRoute)) {
-            return;
-        }
-
-        setShouldShowComposeInput(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        route.name,
-        report,
-        prevReport?.reportID,
-        prevUserLeavingStatus,
-        userLeavingStatus,
-        prevReport?.statusNum,
-        prevReport?.parentReportID,
-        prevReport?.chatType,
-        prevReport,
-        reportIDFromRoute,
-        lastReportIDFromRoute,
-        isFocused,
-        deletedParentAction,
-        prevDeletedParentAction,
-    ]);
-
-    useEffect(() => {
-        if (!reportWasDeleted) {
-            return;
-        }
-
-        // Only redirect if focused
-        if (!isFocused) {
-            return;
-        }
-
-        // Try to navigate to parent report if available
-        if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
-            Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
-            });
-            return;
-        }
-
-        // Fallback to Concierge
-        Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID);
-        });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID]);
-
     const actionListValue = useActionListContextValue();
 
-    // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setIsLinkingToMessage(false);
-        });
-    }, [reportMetadata?.isLoadingInitialReportActions]);
-
-    const navigateToEndOfReport = useCallback(() => {
-        Navigation.setParams({reportActionID: ''});
-        // fetchReport is triggered automatically by ReportFetchController when reportActionID changes
-    }, []);
-
-    useEffect(() => {
-        // Only handle deletion cases when there's a deleted action
-        if (!isLinkedActionDeleted) {
-            setIsNavigatingToDeletedAction(false);
-            return;
-        }
-
-        // we want to do this distinguish between normal navigation and delete behavior
-        if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
-            setIsNavigatingToDeletedAction(true);
-            return;
-        }
-
-        // Clear params when action gets deleted while highlighting
-        if (!isNavigatingToDeletedAction && prevIsLinkedActionDeleted === false) {
-            Navigation.setParams({reportActionID: ''});
-        }
-    }, [isLinkedActionDeleted, prevIsLinkedActionDeleted, lastReportActionIDFromRoute, reportActionIDFromRoute, isNavigatingToDeletedAction]);
-
-    // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
-    // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
-    useEffect(() => {
-        if (!isLinkedActionInaccessibleWhisper) {
-            return;
-        }
-        Navigation.isNavigationReady().then(() => {
-            Navigation.setParams({reportActionID: ''});
-        });
-    }, [isLinkedActionInaccessibleWhisper]);
-
-    useEffect(() => {
-        if (!!report?.lastReadTime || !isTaskReport(report)) {
-            return;
-        }
-        // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
-        readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [report, reportMetadata?.hasOnceLoadedReportActions]);
-
-    const lastRoute = usePrevious(route);
+    const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
+    const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     useSubmitToDestinationVisible(
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
@@ -477,16 +51,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS,
     );
 
-    // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
-    // If we have cached reportActions, they will be shown immediately.
-    // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
-    if ((lastRoute !== route || lastReportActionIDFromRoute !== reportActionIDFromRoute) && isLinkingToMessage !== !!reportActionIDFromRoute) {
-        setIsLinkingToMessage(!!reportActionIDFromRoute);
-        return null;
-    }
-
     return (
-        // Wide RHP overlays should be rendered only for the report screen displayed in RHP
         <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
@@ -494,7 +59,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         navigation={navigation}
                         style={screenWrapperStyle}
                         shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
-                        testID={`report-screen-${reportID}`}
+                        testID={`report-screen-${reportIDFromRoute}`}
                     >
                         <DeleteTransactionNavigateBackHandler />
                         <ReportRouteParamHandler
@@ -503,34 +68,21 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         />
                         <ReportLifecycleHandler reportIDFromRoute={reportIDFromRoute} />
                         <ReportFetchController />
-                        <FullPageNotFoundView
-                            shouldShow={shouldShowNotFoundPage}
-                            subtitleKey={shouldShowNotFoundLinkedAction ? 'notFound.commentYouLookingForCannotBeFound' : 'notFound.noAccess'}
-                            subtitleStyle={[styles.textSupporting]}
-                            shouldShowBackButton={shouldUseNarrowLayout}
-                            onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
-                            shouldShowLink={shouldShowNotFoundLinkedAction}
-                            linkTranslationKey="notFound.goToChatInstead"
-                            subtitleKeyBelowLink={shouldShowNotFoundLinkedAction ? 'notFound.contactConcierge' : ''}
-                            onLinkPress={navigateToEndOfReport}
-                            shouldDisplaySearchRouter
-                        >
-                            <DragAndDropProvider isDisabled={isEditingDisabled}>
-                                <ReportHeader />
-                                <AccountManagerBanner reportID={reportIDFromRoute} />
-                                <View style={[styles.flex1, styles.flexRow]}>
-                                    <WideRHPReceiptPanel />
-                                    <View
-                                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                        testID="report-actions-view-wrapper"
-                                    >
-                                        <ReportActionsList />
-                                        <ReportComposer />
-                                    </View>
+                        <ReportNotFoundGuard>
+                            <ReportHeader />
+                            <AccountManagerBanner reportID={reportIDFromRoute} />
+                            <View style={[styles.flex1, styles.flexRow]}>
+                                <WideRHPReceiptPanel />
+                                <View
+                                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                    testID="report-actions-view-wrapper"
+                                >
+                                    <ReportActionsList />
+                                    <ReportComposer />
                                 </View>
-                                <PortalHost name="suggestions" />
-                            </DragAndDropProvider>
-                        </FullPageNotFoundView>
+                            </View>
+                            <PortalHost name="suggestions" />
+                        </ReportNotFoundGuard>
                     </ScreenWrapper>
                 </ReactionListWrapper>
             </ActionListContext.Provider>
