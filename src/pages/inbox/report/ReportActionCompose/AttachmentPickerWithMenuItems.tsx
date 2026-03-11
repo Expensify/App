@@ -160,6 +160,7 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const {isProduction} = useEnvironment();
@@ -178,14 +179,19 @@ function AttachmentPickerWithMenuItems({
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
-            if (shouldRestrictAction && policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && shouldRestrictUserBillableActions(policy.id)) {
+            if (
+                shouldRestrictAction &&
+                policy &&
+                policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+                shouldRestrictUserBillableActions(policy.id, undefined, undefined, ownerBillingGraceEndPeriod)
+            ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
 
             onSelected();
         },
-        [policy],
+        [policy, ownerBillingGraceEndPeriod],
     );
 
     const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
