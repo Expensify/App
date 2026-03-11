@@ -237,7 +237,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
-import {removeDraftTransaction, removeDraftTransactions, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
+import {getRemoveDraftTransactionsData, removeDraftTransaction, removeDraftTransactions, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction, IOUActionParams, IOUType, OdometerImageType} from '@src/CONST';
@@ -1352,9 +1352,20 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
-function clearMoneyRequest(transactionID: string, skipConfirmation = false, draftTransactions?: OnyxCollection<OnyxTypes.Transaction>) {
-    removeDraftTransactions(undefined, draftTransactions);
-    Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
+function clearMoneyRequest(
+    transactionID: string,
+    skipConfirmation = false,
+    draftTransactions?: OnyxCollection<OnyxTypes.Transaction>,
+    transactionDraftData?: Partial<OnyxTypes.Transaction>,
+) {
+    const onyxData: Record<string, null | boolean | Partial<OnyxTypes.Transaction>> = {
+        ...getRemoveDraftTransactionsData(undefined, draftTransactions),
+        [`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`]: skipConfirmation,
+    };
+    if (transactionDraftData) {
+        onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = transactionDraftData;
+    }
+    Onyx.multiSet(onyxData as Parameters<typeof Onyx.multiSet>[0]);
 }
 
 function startMoneyRequest(
@@ -1377,14 +1388,12 @@ function startMoneyRequest(
             [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: sourceRoute || 'unknown',
         },
     });
-    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
-    if (isFromFloatingActionButton) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
-            isFromFloatingActionButton,
-            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-            ...(requestType && {iouRequestType: requestType}),
-        });
-    }
+    clearMoneyRequest(
+        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        skipConfirmation,
+        draftTransactions,
+        isFromFloatingActionButton ? {isFromFloatingActionButton, transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ...(requestType && {iouRequestType: requestType})} : undefined,
+    );
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
@@ -1411,10 +1420,7 @@ function startDistanceRequest(
     backToReport?: string,
     isFromFloatingActionButton?: boolean,
 ) {
-    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation);
-    if (isFromFloatingActionButton) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
-    }
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, undefined, isFromFloatingActionButton ? {isFromFloatingActionButton} : undefined);
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.DISTANCE_MAP:
             Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
