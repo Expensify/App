@@ -3503,9 +3503,15 @@ function getParticipantsAccountIDsForDisplay(
         if (personalDetail?.login && personalDetail.isOptimisticPersonalDetail) {
             continue;
         }
-    }
 
-    let participantsIds = participantsEntries.map(([accountID]) => Number(accountID));
+        const accountIDNumber = Number(accountID);
+
+        if (!isNumber(accountIDNumber)) {
+            continue;
+        }
+
+        participantsAccountIDs.push(Number(accountID));
+    }
 
     // For 1:1 chat, we don't want to include the current user as a participant in order to not mark 1:1 chats as having multiple participants
     // For system chat, we want to display Expensify as the only participant
@@ -3515,7 +3521,7 @@ function getParticipantsAccountIDsForDisplay(
         participantsIds = excludeParticipantsForDisplay(participantsIds, reportParticipants, reportMetadata, {shouldExcludeHidden, shouldExcludeDeleted, shouldExcludeCurrentUser});
     }
 
-    return participantsIds.filter((accountID) => isNumber(accountID));
+    return participantsAccountIDs;
 }
 
 function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false, reportMetadata: OnyxEntry<ReportMetadata> = undefined): number[] {
