@@ -32,7 +32,7 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
     const containerRef = useRef<RNScrollView>(null);
     const containerLayoutRef = useRef<{x: number; width: number}>({x: 0, width: 0});
     const tabsRef = useRef<Record<string, {ref: HTMLDivElement | View | null; width: number; x: number}>>({});
-    const lastPressedTab = useRef('');
+    const lastScrolledToTab = useRef('');
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
         const width = event.nativeEvent.layout.width;
@@ -69,7 +69,7 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
             return;
         }
 
-        lastPressedTab.current = tabKey;
+        lastScrolledToTab.current = tabKey;
 
         const {x: tabX, width: tabWidth, ref: tabRef} = tabData;
 
@@ -79,9 +79,12 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
     // In case tab is not changed by tapping on a different tab we still
     // want to scroll to the selected tab to make sure it's in view
     useEffect(() => {
-        if (!lastPressedTab.current || activeTabKey === lastPressedTab.current) {
+        console.log({lastScrolledToTab: lastScrolledToTab.current, activeTabKey});
+        if (!lastScrolledToTab.current || activeTabKey === lastScrolledToTab.current) {
             return;
         }
+
+        lastScrolledToTab.current = activeTabKey;
 
         const tabData = tabsRef.current[activeTabKey];
 
