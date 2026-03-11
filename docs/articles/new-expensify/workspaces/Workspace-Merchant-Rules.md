@@ -36,7 +36,7 @@ To create a Workspace Merchant Rule:
 
 **Note:** Workspace Merchant Rules are only available after **Workspace Rules** are enabled for the workspace. If you don't see the Merchant Rules section, first [enable Workspace Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Rules#enable-workspace-rules).
 
-![Creating a Workspace Merchant Rule]({{site.url}}/assets/images/ExpensiHelp-MerchantRules-1.png){:width="100%"}
+9. Select **Save Rule**.
 
 ---
 
@@ -118,7 +118,7 @@ This ensures office-related purchases follow company coding standards.
 
 ## Who Can Enable Workspace Merchant Rules?
 
-Only **Workspace Admins** on the **Control** plan can create, edit, or delete Workspace Merchant Rules.
+## Who can enable Workspace Merchant Rules?
 
 ## What fields can Workspace Merchant Rules update?
 
@@ -126,7 +126,7 @@ Workspace Merchant Rules can update expense fields such as the category, tag, re
 
 ## Do Workspace Merchant Rules change how members submit expenses?
 
-No. Employees submit expenses the same way as before. Workspace Merchant Rules run automatically in the background.
+No. Members submit expenses the same way as before. Workspace Merchant Rules run automatically in the background.
 
 ## What happens if a personal expense rule and a Workspace Merchant Rule both apply?
 
