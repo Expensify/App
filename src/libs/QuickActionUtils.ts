@@ -7,7 +7,7 @@ import type QuickAction from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
-import {getPerDiemCustomUnit, isTimeTrackingEnabled} from './PolicyUtils';
+import {getPerDiemCustomUnit, isControlPolicy, isTimeTrackingEnabled} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (
@@ -111,7 +111,7 @@ const isQuickActionAllowed = (
     isRestrictedToPreferredPolicy = false,
 ) => {
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM || quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM) {
-        if (!quickActionPolicy?.arePerDiemRatesEnabled) {
+        if (!isControlPolicy(quickActionPolicy) || !quickActionPolicy?.arePerDiemRatesEnabled) {
             return false;
         }
         const perDiemCustomUnit = getPerDiemCustomUnit(quickActionPolicy);
