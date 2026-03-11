@@ -262,6 +262,17 @@ function DatePresetFilterBase({
 
     const [rangeEphemeralValues, setRangeEphemeralValues] = useState<{from?: string; to?: string}>(() => getRangeEphemeralValuesFromDateValues(normalizedDefaultDateValues));
 
+    // Synchronize dateValues when rangeEphemeralValues change, keeping the side effect
+    // out of the setRangeEphemeralValues state updater to avoid unpredictable batching on Android.
+    useEffect(() => {
+        if (selectedDateModifier !== CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(rangeEphemeralValues.from, rangeEphemeralValues.to) || undefined);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rangeEphemeralValues.from, rangeEphemeralValues.to]);
+
     // Used to discard unsaved range picks when the user leaves Range mode without saving.
     const rangeEntrySnapshotRef = useRef<string | undefined>(undefined);
 
@@ -432,18 +443,10 @@ function DatePresetFilterBase({
                 fromValue={rangeEphemeralValues.from}
                 toValue={rangeEphemeralValues.to}
                 onFromSelected={(date) => {
-                    setRangeEphemeralValues((prev) => {
-                        const nextValues = {...prev, from: date};
-                        setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(nextValues.from, nextValues.to) || undefined);
-                        return nextValues;
-                    });
+                    setRangeEphemeralValues((prev) => ({...prev, from: date}));
                 }}
                 onToSelected={(date) => {
-                    setRangeEphemeralValues((prev) => {
-                        const nextValues = {...prev, to: date};
-                        setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(nextValues.from, nextValues.to) || undefined);
-                        return nextValues;
-                    });
+                    setRangeEphemeralValues((prev) => ({...prev, to: date}));
                 }}
                 shouldShowError={shouldShowRangeError}
                 forceVertical={forceVerticalCalendars}

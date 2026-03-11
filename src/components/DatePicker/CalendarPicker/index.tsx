@@ -109,11 +109,9 @@ function CalendarPicker({
      * @param day - The day of the month that was selected.
      */
     const onDayPressed = (day: number) => {
-        setCurrentDateView((prev) => {
-            const newCurrentDateView = setDate(new Date(prev), day);
-            onSelected?.(format(new Date(newCurrentDateView), CONST.DATE.FNS_FORMAT_STRING));
-            return newCurrentDateView;
-        });
+        const newCurrentDateView = setDate(new Date(currentDateView), day);
+        setCurrentDateView(newCurrentDateView);
+        onSelected?.(format(newCurrentDateView, CONST.DATE.FNS_FORMAT_STRING));
     };
 
     /**
