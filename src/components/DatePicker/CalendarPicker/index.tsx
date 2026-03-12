@@ -109,11 +109,9 @@ function CalendarPicker({
      * @param day - The day of the month that was selected.
      */
     const onDayPressed = (day: number) => {
-        setCurrentDateView((prev) => {
-            const newCurrentDateView = setDate(new Date(prev), day);
-            onSelected?.(format(new Date(newCurrentDateView), CONST.DATE.FNS_FORMAT_STRING));
-            return newCurrentDateView;
-        });
+        const newCurrentDateView = setDate(new Date(currentDateView), day);
+        setCurrentDateView(newCurrentDateView);
+        onSelected?.(format(newCurrentDateView, CONST.DATE.FNS_FORMAT_STRING));
     };
 
     /**
@@ -181,6 +179,11 @@ function CalendarPicker({
     const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
     const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
     const headerPaddingStyle = headerContainerStyle ?? themeStyles.ph5;
+    // On mobile (isSmallScreenWidth is always true on native), the height animation is skipped
+    // so using Animated.View is unnecessary. Using a plain View avoids activating Reanimated's
+    // Fabric commit hook, which can interfere with React's reconciliation of child view styles
+    // on Android and prevent day-selection background changes from painting.
+    const CalendarBody = isSmallScreenWidth ? View : Animated.View;
 
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
 
@@ -261,7 +264,7 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            <Animated.View style={calendarContainerStyle}>
+            <CalendarBody style={calendarContainerStyle}>
                 {calendarDaysMatrix?.map((week) => (
                     <View
                         key={`week-${week.toString()}`}
@@ -317,7 +320,7 @@ function CalendarPicker({
                         })}
                     </View>
                 ))}
-            </Animated.View>
+            </CalendarBody>
             <YearPickerModal
                 isVisible={isYearPickerVisible}
                 years={years}

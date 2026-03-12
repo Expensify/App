@@ -396,12 +396,8 @@ function DatePresetFilterBase({
 
         return `${translate(`common.${customDateModifier.toLowerCase() as SearchDateModifierLower}`)} ${customDateValue}`;
     }, [customDateModifier, dateDisplayValues, translate]);
-    // Defer the ephemeral date update so it doesn't fire synchronously inside CalendarPicker's
-    // state updater, which causes unpredictable batching on Android.
     const handleSingleDateSelected = useCallback((date: string) => {
-        requestAnimationFrame(() => {
-            setEphemeralDateValue(date);
-        });
+        setEphemeralDateValue(date);
     }, []);
 
     const selectCustomDateMode = useCallback(() => selectDateModifier(customDateModifier), [customDateModifier, selectDateModifier]);
@@ -451,16 +447,10 @@ function DatePresetFilterBase({
                 fromValue={rangeEphemeralValues.from}
                 toValue={rangeEphemeralValues.to}
                 onFromSelected={(date) => {
-                    // Defer to avoid calling setState inside CalendarPicker's state updater,
-                    // which causes unpredictable batching on Android.
-                    requestAnimationFrame(() => {
-                        setRangeEphemeralValues((prev) => ({...prev, from: date}));
-                    });
+                    setRangeEphemeralValues((prev) => ({...prev, from: date}));
                 }}
                 onToSelected={(date) => {
-                    requestAnimationFrame(() => {
-                        setRangeEphemeralValues((prev) => ({...prev, to: date}));
-                    });
+                    setRangeEphemeralValues((prev) => ({...prev, to: date}));
                 }}
                 shouldShowError={shouldShowRangeError}
                 forceVertical={forceVerticalCalendars}
