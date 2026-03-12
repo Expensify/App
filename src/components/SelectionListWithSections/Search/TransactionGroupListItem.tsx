@@ -182,7 +182,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
-    const pressableStyle = [styles.transactionGroupListItemStyle, isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0}, isItemSelected && styles.activeComponentBG];
+    const pressableStyle = [
+        styles.transactionGroupListItemStyle,
+        isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0},
+        isItemSelected && styles.activeComponentBG,
+    ];
 
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
