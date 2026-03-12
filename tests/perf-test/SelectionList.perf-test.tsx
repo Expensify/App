@@ -2,6 +2,7 @@ import {fireEvent} from '@testing-library/react-native';
 import type {RenderResult} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import type {ComponentType} from 'react';
+import type ReactNative from 'react-native';
 import {measureRenders} from 'reassure';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
@@ -13,6 +14,14 @@ type SelectionListWrapperProps = {
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
 };
+
+// FlashList requires layout events to render items; mock it with FlatList for tests
+jest.mock('@shopify/flash-list', () => {
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        FlashList: RN.FlatList,
+    };
+});
 
 jest.mock('@components/Icon/Expensicons');
 
