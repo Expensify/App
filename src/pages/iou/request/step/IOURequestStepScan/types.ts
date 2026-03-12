@@ -52,6 +52,9 @@ type UseReceiptScanParams = {
 
     /** Callback to update multi-scan enabled state in parent */
     setIsMultiScanEnabled: ((value: boolean) => void) | undefined;
+
+    /** Whether the camera hardware is initialized and ready */
+    isCameraReady?: boolean;
 };
 
 type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &

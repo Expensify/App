@@ -19,10 +19,12 @@ import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import DateUtils from '@libs/DateUtils';
 import HapticFeedback from '@libs/HapticFeedback';
-import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
-import {setMoneyRequestReceipt} from '@userActions/IOU';
+import {setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {setTransactionReport} from '@userActions/Transaction';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +60,7 @@ function useReceiptScan({
     updateScanAndNavigate,
     getSource,
     setIsMultiScanEnabled,
+    isCameraReady = false,
 }: UseReceiptScanParams) {
     const {isBetaEnabled} = usePermissions();
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
@@ -113,6 +116,47 @@ function useReceiptScan({
         }
         setReceiptFiles([]);
     }, [isMultiScanEnabled]);
+
+    // Preload participants once the camera is initialized and the user is framing their receipt.
+    // By the time the shutter fires, participants are already in Onyx so navigation is instant.
+    useEffect(() => {
+        if (!isCameraReady || isEditing || !initialTransactionID || initialTransaction?.participants?.length) {
+            return;
+        }
+
+        const isFromReport = !initialTransaction?.isFromGlobalCreate && !initialTransaction?.isFromFloatingActionButton && !isArchived && iouType !== CONST.IOU.TYPE.CREATE;
+
+        if (isFromReport && report?.reportID) {
+            setMoneyRequestParticipantsFromReport(initialTransactionID, report, currentUserPersonalDetails.accountID);
+            return;
+        }
+
+        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
+            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+            const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
+            const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
+
+            setTransactionReport(initialTransactionID, {reportID: transactionReportID}, true);
+            setMoneyRequestParticipantsFromReport(initialTransactionID, targetReport, currentUserPersonalDetails.accountID);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        isCameraReady,
+        isEditing,
+        initialTransactionID,
+        initialTransaction?.participants?.length,
+        initialTransaction?.isFromGlobalCreate,
+        initialTransaction?.isFromFloatingActionButton,
+        isArchived,
+        iouType,
+        report?.reportID,
+        currentUserPersonalDetails.accountID,
+        defaultExpensePolicy?.id,
+        defaultExpensePolicy?.autoReporting,
+        personalPolicy?.autoReporting,
+        selfDMReport?.reportID,
+        amountOwed,
+    ]);
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({

@@ -1,7 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -285,6 +285,7 @@ function IOURequestStepConfirmation({
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
+    const [isNavigationTransitionComplete, setIsNavigationTransitionComplete] = useState(false);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -357,6 +358,14 @@ function IOURequestStepConfirmation({
     }, []);
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const handle = InteractionManager.runAfterInteractions(() => {
+            setIsNavigationTransitionComplete(true);
+        });
+        return () => handle.cancel();
+    }, []);
+
+    useEffect(() => {
         if (!isCreatingTrackExpense || policyID === undefined) {
             return;
         }
@@ -415,7 +424,7 @@ function IOURequestStepConfirmation({
             reportID ?? generateReportID(),
             draftTransactionIDs,
         );
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingTransaction]);
 
     useEffect(() => {
@@ -1554,11 +1563,12 @@ function IOURequestStepConfirmation({
                             />
                         ) : null}
                     </HeaderWithBackButton>
-                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
+                    {(!isNavigationTransitionComplete || isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
                         <FullScreenLoadingIndicator
                             reasonAttributes={{
                                 context: 'IOURequestStepConfirmation',
                                 isLoading,
+                                isNavigationTransitionComplete,
                                 isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
                             }}
                         />
@@ -1594,48 +1604,50 @@ function IOURequestStepConfirmation({
                             }}
                         />
                     )}
-                    <MoneyRequestConfirmationList
-                        transaction={transaction}
-                        selectedParticipants={participants}
-                        iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
-                        iouComment={transaction?.comment?.comment ?? ''}
-                        iouCurrencyCode={transaction?.currency}
-                        iouIsBillable={transaction?.billable}
-                        onToggleBillable={setBillable}
-                        iouCategory={transaction?.category}
-                        onConfirm={onConfirm}
-                        onSendMoney={sendMoney}
-                        showRemoveExpenseConfirmModal={() => {
-                            confirmRemoveCurrentTransaction();
-                        }}
-                        receiptPath={receiptPath}
-                        receiptFilename={receiptFilename}
-                        iouType={iouType}
-                        reportID={reportID}
-                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest}
-                        isPolicyExpenseChat={isPolicyExpenseChat}
-                        policyID={policyID}
-                        iouMerchant={transaction?.merchant}
-                        iouCreated={transaction?.created}
-                        isDistanceRequest={isDistanceRequest}
-                        isManualDistanceRequest={isManualDistanceRequest}
-                        isOdometerDistanceRequest={isOdometerDistanceRequest}
-                        isGPSDistanceRequest={isGPSDistanceRequest}
-                        isPerDiemRequest={isPerDiemRequest}
-                        shouldShowSmartScanFields={shouldShowSmartScanFields}
-                        action={action}
-                        isConfirmed={isConfirmed}
-                        isConfirming={isConfirming}
-                        iouIsReimbursable={transaction?.reimbursable}
-                        onToggleReimbursable={setReimbursable}
-                        expensesNumber={transactions.length}
-                        isReceiptEditable
-                        isTimeRequest={isTimeRequest}
-                        iouTimeCount={transaction?.comment?.units?.count}
-                        iouTimeRate={transaction?.comment?.units?.rate}
-                        shouldHideToSection={shouldHideToSection}
-                    />
+                    {isNavigationTransitionComplete && (
+                        <MoneyRequestConfirmationList
+                            transaction={transaction}
+                            selectedParticipants={participants}
+                            iouAmount={transaction?.amount ?? 0}
+                            iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
+                            iouComment={transaction?.comment?.comment ?? ''}
+                            iouCurrencyCode={transaction?.currency}
+                            iouIsBillable={transaction?.billable}
+                            onToggleBillable={setBillable}
+                            iouCategory={transaction?.category}
+                            onConfirm={onConfirm}
+                            onSendMoney={sendMoney}
+                            showRemoveExpenseConfirmModal={() => {
+                                confirmRemoveCurrentTransaction();
+                            }}
+                            receiptPath={receiptPath}
+                            receiptFilename={receiptFilename}
+                            iouType={iouType}
+                            reportID={reportID}
+                            shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest}
+                            isPolicyExpenseChat={isPolicyExpenseChat}
+                            policyID={policyID}
+                            iouMerchant={transaction?.merchant}
+                            iouCreated={transaction?.created}
+                            isDistanceRequest={isDistanceRequest}
+                            isManualDistanceRequest={isManualDistanceRequest}
+                            isOdometerDistanceRequest={isOdometerDistanceRequest}
+                            isGPSDistanceRequest={isGPSDistanceRequest}
+                            isPerDiemRequest={isPerDiemRequest}
+                            shouldShowSmartScanFields={shouldShowSmartScanFields}
+                            action={action}
+                            isConfirmed={isConfirmed}
+                            isConfirming={isConfirming}
+                            iouIsReimbursable={transaction?.reimbursable}
+                            onToggleReimbursable={setReimbursable}
+                            expensesNumber={transactions.length}
+                            isReceiptEditable
+                            isTimeRequest={isTimeRequest}
+                            iouTimeCount={transaction?.comment?.units?.count}
+                            iouTimeRate={transaction?.comment?.units?.rate}
+                            shouldHideToSection={shouldHideToSection}
+                        />
+                    )}
                 </View>
             </DragAndDropProvider>
         </ScreenWrapper>

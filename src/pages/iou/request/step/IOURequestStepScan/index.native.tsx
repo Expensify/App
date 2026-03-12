@@ -94,6 +94,7 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+    const [isCameraReady, setIsCameraReady] = useState(false);
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
@@ -149,6 +150,7 @@ function IOURequestStepScan({
             return;
         }
         cameraInitialized.current = true;
+        setIsCameraReady(true);
         // Only end camera init span if it was actually started
         if (cameraInitSpanStarted.current) {
             endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
@@ -314,6 +316,7 @@ function IOURequestStepScan({
         updateScanAndNavigate,
         getSource,
         setIsMultiScanEnabled,
+        isCameraReady,
     });
 
     const maybeCancelShutterSpan = useCallback(() => {
@@ -407,7 +410,9 @@ function IOURequestStepScan({
                     return;
                 }
 
-                submitReceipts(newReceiptFiles);
+                // Defer navigation by one frame so React renders the frozen camera
+                // state (didCapturePhoto=true) before the screen transitions away.
+                requestAnimationFrame(() => submitReceipts(newReceiptFiles));
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
