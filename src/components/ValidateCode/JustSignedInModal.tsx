@@ -23,14 +23,14 @@ function JustSignedInModal({is2FARequired}: JustSignedInModalProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
-    const illustrations = useMemoizedLazyIllustrations(['Safe', 'Abracadabra']);
+    const illustrations = useMemoizedLazyIllustrations(['Safe']);
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
                 <View style={styles.mb2}>
-                    {isReduceMotionEnabled ? (
+                    {isReduceMotionEnabled && is2FARequired ? (
                         <ImageSVG
-                            src={is2FARequired ? illustrations.Safe : illustrations.Abracadabra}
+                            src={illustrations.Safe}
                             style={styles.justSignedInModalAnimation(is2FARequired)}
                         />
                     ) : (

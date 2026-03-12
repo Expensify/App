@@ -7,14 +7,12 @@ import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
 import useKeyboardState from '@hooks/useKeyboardState';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Accessibility from '@libs/Accessibility';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -207,8 +205,6 @@ function FeatureTrainingModal({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const isReduceMotionEnabled = Accessibility.useReducedMotion();
-    const illustrations = useMemoizedLazyIllustrations(['Hands']);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [willShowAgain, setWillShowAgain] = useState(true);
@@ -305,20 +301,13 @@ function FeatureTrainingModal({
                 )}
                 {((!videoURL && !image) || (!!videoURL && videoStatus === 'animation')) && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, !!videoURL && {aspectRatio}, animationStyle]}>
-                        {isReduceMotionEnabled && !animation ? (
-                            <ImageSVG
-                                src={illustrations.Hands}
-                                style={styles.h100}
-                            />
-                        ) : (
-                            <Lottie
-                                source={animation ?? LottieAnimations.Hands}
-                                style={styles.h100}
-                                webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
-                                autoPlay
-                                loop
-                            />
-                        )}
+                        <Lottie
+                            source={animation ?? LottieAnimations.Hands}
+                            style={styles.h100}
+                            webStyle={shouldUseNarrowLayout ? styles.h100 : undefined}
+                            autoPlay
+                            loop
+                        />
                     </View>
                 )}
             </View>
@@ -342,8 +331,6 @@ function FeatureTrainingModal({
         videoStatus,
         animationStyle,
         animation,
-        isReduceMotionEnabled,
-        illustrations.Hands,
         shouldUseNarrowLayout,
     ]);
 
