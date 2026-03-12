@@ -6,8 +6,8 @@
  * The primary purpose is to optimize performance by reducing redundant computations. More info can be found in the README.
  */
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';

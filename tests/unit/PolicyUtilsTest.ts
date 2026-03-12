@@ -1000,7 +1000,11 @@ describe('PolicyUtils', () => {
             const currentUserAccountID = approverAccountID;
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}0`, {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID: approverAccountID, isPolicyExpenseChatEnabled: true});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}0`, {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`),
+                ownerAccountID: approverAccountID,
+                isPolicyExpenseChatEnabled: true,
+            });
 
             const result = isCurrentUserMemberOfAnyPolicy();
 
