@@ -749,6 +749,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `Ta akcja nie jest obsługiwana na Twoim urządzeniu. Pobierz aplikację Expensify z <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> lub <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Sklepu Google Play</a> i spróbuj ponownie.`,
         },
         verificationFailed: 'Weryfikacja nie powiodła się',
+        setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2354,6 +2355,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} dla ${merchant} - ${date}`,
         },
+        setYourPin: 'Ustaw swój PIN.',
+        confirmYourPin: 'Potwierdź swój PIN.',
+        pinMustBeFourDigits: 'PIN musi mieć dokładnie 4 cyfry.',
+        invalidPin: 'Wybierz proszę bardziej bezpieczny PIN.',
+        pinMismatch: 'Kody PIN nie są takie same. Spróbuj ponownie.',
+        revealPin: 'Pokaż PIN',
+        hidePin: 'Ukryj PIN',
+        pin: 'PIN',
         freezeCard: 'Zamroź kartę',
         unfreeze: 'Odmroź',
         unfreezeCard: 'Odmroź kartę',

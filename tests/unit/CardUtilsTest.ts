@@ -1,4 +1,4 @@
-import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
+import {buildFeedKeysWithAssignedCards, isExpensifyCardUkEuSupportedSelector} from '@selectors/Card';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
@@ -63,6 +63,7 @@ import {
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
     splitMaskedCardNumber,
+    supportsPINManagementFeatures,
 } from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import type {
@@ -2645,6 +2646,141 @@ describe('CardUtils', () => {
                 state: 3,
             };
             expect(isExpensifyCard(card)).toBe(false);
+        });
+    });
+
+    describe('supportsPINManagementFeatures', () => {
+        it('should return true for UK/EU Expensify Card with feedCountry GB', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+                nameValuePairs: {
+                    feedCountry: CONST.COUNTRY.GB,
+                } as Card['nameValuePairs'],
+            };
+            expect(supportsPINManagementFeatures(card)).toBe(true);
+        });
+
+        it('should return false for US Expensify Card (no feedCountry)', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            };
+            expect(supportsPINManagementFeatures(card)).toBe(false);
+        });
+
+        it('should return false for US Expensify Card (feedCountry US)', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+                nameValuePairs: {
+                    feedCountry: CONST.COUNTRY.US,
+                } as Card['nameValuePairs'],
+            };
+            expect(supportsPINManagementFeatures(card)).toBe(false);
+        });
+
+        it('should return false for undefined card', () => {
+            expect(supportsPINManagementFeatures(undefined)).toBe(false);
+        });
+
+        it('should return false for non-Expensify Card even with feedCountry GB', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 21310091,
+                cardName: '480801XXXXXX2554',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '2554',
+                lastScrape: '2024-11-27 11:00:53',
+                lastUpdated: '',
+                state: 3,
+                nameValuePairs: {
+                    feedCountry: CONST.COUNTRY.GB,
+                } as Card['nameValuePairs'],
+            };
+            expect(supportsPINManagementFeatures(card)).toBe(false);
+        });
+    });
+
+    describe('isExpensifyCardUkEuSupportedSelector', () => {
+        const ukEuCard: Card = {
+            accountID: 18439984,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            cardID: 21570657,
+            cardName: 'CREDIT CARD...5644',
+            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+            fraud: 'none',
+            lastFourPAN: '',
+            lastScrape: '',
+            lastUpdated: '',
+            state: 2,
+            nameValuePairs: {
+                feedCountry: CONST.COUNTRY.GB,
+            } as Card['nameValuePairs'],
+        };
+
+        const usCard: Card = {
+            accountID: 18439984,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            cardID: 21570658,
+            cardName: 'CREDIT CARD...1234',
+            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+            fraud: 'none',
+            lastFourPAN: '',
+            lastScrape: '',
+            lastUpdated: '',
+            state: 2,
+        };
+
+        const cardList: CardList = {
+            '21570657': ukEuCard,
+            '21570658': usCard,
+        };
+
+        it('should return true when cardID matches a UK/EU card', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '21570657')).toBe(true);
+        });
+
+        it('should return false when cardID matches a US card', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '21570658')).toBe(false);
+        });
+
+        it('should return false when cardID does not exist in card list', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '99999999')).toBe(false);
+        });
+
+        it('should return false when card list is empty', () => {
+            expect(isExpensifyCardUkEuSupportedSelector({}, '21570657')).toBe(false);
+        });
+
+        it('should return false when cardID is empty string', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '')).toBe(false);
         });
     });
 
