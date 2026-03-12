@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -327,6 +328,11 @@ function BaseTextInput({
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
     const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
+    const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BaseTextInput.isLoading',
+        isLoading: !!inputProps.isLoading,
+    };
+
     return (
         <>
             <View
@@ -527,6 +533,7 @@ function BaseTextInput({
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
+                                    reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
