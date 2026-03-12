@@ -8,13 +8,15 @@
  */
 const SCENARIO_NAMES = {
     BIOMETRICS_TEST: 'BIOMETRICS-TEST',
+    SET_PIN_ORDER_CARD: 'SET-PIN-ORDER-CARD',
+    AUTHORIZE_TRANSACTION: 'AUTHORIZE-TRANSACTION',
 } as const;
 
 /**
  * Prompt identifiers for multifactor authentication scenarios.
  */
 const PROMPT_NAMES = {
-    ENABLE_BIOMETRICS: 'enable-biometrics',
+    BIOMETRICS: 'biometrics',
 };
 
 export {SCENARIO_NAMES, PROMPT_NAMES};
