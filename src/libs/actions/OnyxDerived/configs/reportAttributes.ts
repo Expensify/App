@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -6,11 +6,12 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 let isFullyComputed = false;
 let previousDisplayNames: Record<string, string | undefined> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
+let previousPolicies: OnyxCollection<Policy>;
 
 const prepareReportKeys = (keys: string[]) => {
     return [
@@ -96,6 +97,14 @@ export default createOnyxDerivedValueConfig({
         // we need to recompute all report attributes on locale change because the report names are locale dependent
         if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || displayNamesChanged) {
             isFullyComputed = false;
+        }
+
+        // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
+        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
+            if (isFullyComputed && Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
+                isFullyComputed = false;
+            }
+            previousPolicies = policies;
         }
 
         // if we already computed the report attributes and there is no new reports data, return the current value
