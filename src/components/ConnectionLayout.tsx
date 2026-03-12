@@ -15,6 +15,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 import Text from './Text';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 
 type ConnectionLayoutProps = {
     /** Used to set the testID for tests */
@@ -112,6 +113,12 @@ function ConnectionLayout({
 
     const shouldBlockByConnection = shouldLoadForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
 
+    // Apply bottom safe area padding to prevent content (especially error messages) from being obscured by Android navigation buttons
+    const contentContainerStyleWithSafeArea = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        style: contentContainerStyle,
+    });
+
     const selectionContent = (
         <ConnectionLayoutContent
             title={title}
@@ -141,8 +148,7 @@ function ConnectionLayout({
                 />
                 {shouldUseScrollView ? (
                     <ScrollView
-                        contentContainerStyle={contentContainerStyle}
-                        addBottomSafeAreaPadding
+                        contentContainerStyle={contentContainerStyleWithSafeArea}
                     >
                         {selectionContent}
                     </ScrollView>

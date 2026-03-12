@@ -2815,8 +2815,12 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
         return false;
     }
 
-    if (isProcessingReport(moneyRequestReport) && isExpenseReport(moneyRequestReport)) {
-        return isAwaitingFirstLevelApproval(moneyRequestReport);
+    // Once a report is submitted (processing state), new expenses should not be added to it.
+    // New expenses should be added to a new/existing draft report instead.
+    // This fixes the issue where new expenses were being added to already submitted (outstanding) reports.
+    // Ref: https://github.com/Expensify/App/issues/85113
+    if (isProcessingReport(moneyRequestReport)) {
+        return false;
     }
 
     if (isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
