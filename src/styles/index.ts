@@ -376,7 +376,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 12,
             marginTop: 4,
             marginBottom: 4,
-            backgroundColor: theme.appBG,
+            backgroundColor: theme.highlightBG,
             justifyContent: 'center',
         },
 
