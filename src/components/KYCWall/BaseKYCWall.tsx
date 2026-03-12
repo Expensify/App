@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
@@ -62,6 +63,7 @@ function KYCWall({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const {formatPhoneNumber} = useLocalize();
@@ -167,7 +169,7 @@ function KYCWall({
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
-                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, betas, adminsChatReportID, policyID);
+                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, betas, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
                     }
@@ -207,6 +209,7 @@ function KYCWall({
             formatPhoneNumber,
             reportTransactions,
             lastPaymentMethod,
+            isSelfTourViewed,
             betas,
         ],
     );
@@ -255,6 +258,7 @@ function KYCWall({
                     return;
                 }
 
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (paymentMethod || policy) {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(paymentMethod, policy);
@@ -290,6 +294,7 @@ function KYCWall({
                     return;
                 }
 
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (policy || (paymentMethod && (!hasActivatedWallet || paymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT))) {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(paymentMethod, policy);
