@@ -1,5 +1,5 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-index 8b75322..aa740ea 100644
+index 8b75322..8ea7795 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 @@ -2,8 +2,8 @@
@@ -13,7 +13,7 @@ index 8b75322..aa740ea 100644
  import { ErrorMessages } from "../errors/ErrorMessages";
  import { WarningMessages } from "../errors/WarningMessages";
  import { areDimensionsNotEqual, measureFirstChildLayout, measureItemLayout, measureParentSize, } from "./utils/measureLayout";
-@@ -66,6 +66,65 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -66,6 +66,66 @@ const RecyclerViewComponent = (props, ref) => {
      // Hook to detect when scrolling reaches list bounds
      const { checkBounds } = useBoundDetection(recyclerViewManager, scrollViewRef);
      const isHorizontalRTL = I18nManager.isRTL && horizontal;
@@ -81,7 +81,7 @@ index 8b75322..aa740ea 100644
       * Initialize the RecyclerView by measuring and setting up the window size
       * This effect runs when the component mounts or when layout changes
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-index 34722d4..83a28db 100644
+index 34722d4..ea801d2 100644
 --- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 @@ -5,6 +5,7 @@
@@ -98,12 +98,12 @@ index 34722d4..83a28db 100644
    NativeSyntheticEvent,
 +  Platform,
  } from "react-native";
-
+ 
  import { FlashListRef } from "../FlashListRef";
-@@ -158,6 +160,80 @@ const RecyclerViewComponent = <T,>(
-
+@@ -158,6 +160,88 @@ const RecyclerViewComponent = <T,>(
+ 
    const isHorizontalRTL = I18nManager.isRTL && horizontal;
-
+ 
 +  /**
 +   * Web-only: Fix inverted scroll direction.
 +   * When a list is visually inverted via scaleY/scaleX: -1, the browser's native
