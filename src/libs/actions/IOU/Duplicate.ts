@@ -610,7 +610,7 @@ function duplicateExpenseTransaction({
                 iouRequestType: getRequestType(transaction),
                 modifiedCreated: '',
                 reportID: '1',
-                transactionID: '1',
+                transactionID: NumberUtils.rand64(),
             },
             transactionParams: {
                 ...(params.transactionParams ?? {}),
@@ -652,7 +652,7 @@ function duplicateExpenseTransaction({
                     iouRequestType: getRequestType(transaction),
                     modifiedCreated: '',
                     reportID: '1',
-                    transactionID: '1',
+                    transactionID: NumberUtils.rand64(),
                 },
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
