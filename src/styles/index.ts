@@ -3490,7 +3490,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchListHeaderContainerStyle: {
-            width: '100%',
             flexDirection: 'row',
             alignItems: 'center',
             ...userSelect.userSelectNone,
