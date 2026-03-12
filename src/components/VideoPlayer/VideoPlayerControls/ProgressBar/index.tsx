@@ -18,7 +18,7 @@ type ProgressBarProps = {
     seekPosition: (newPosition: number) => void;
 
     /** Callback when user starts dragging the slider. */
-    onSeekStart?: (shouldResumeAfterSeek: boolean) => void;
+    onSeekStart?: () => void;
 
     /** Callback when user finishes dragging the slider. */
     onSeekEnd?: (shouldResumeAfterSeek: boolean) => void;
@@ -62,7 +62,7 @@ function ProgressBar({duration, position, seekPosition, onSeekStart, onSeekEnd}:
                 shouldResumeAfterSeek = isPlaying;
                 onCheckIfVideoIsPlaying(isPlaying);
             });
-            onSeekStart?.(shouldResumeAfterSeek);
+            onSeekStart?.();
             pauseVideo();
             progressBarInteraction(event);
         })

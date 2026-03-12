@@ -75,9 +75,6 @@ function BaseVideoPlayer({
         opacity: controlsOpacity.get(),
     }));
     const [isSeeking, setIsSeeking] = useState(false);
-    const isSeekingRef = useRef(false);
-    const isEndedRef = useRef(false);
-    const shouldResumeAfterSeekRef = useRef(false);
     const allowSharedAutoPlayRef = useRef(true);
 
     /* eslint-disable no-param-reassign */
@@ -192,28 +189,20 @@ function BaseVideoPlayer({
     }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
-        if (isEndedRef.current || isSeekingRef.current) {
+        if (isEnded || isSeeking) {
             return;
         }
 
         controlsOpacity.set(
             withTiming(0, {duration: 500}, (finished) => {
-                if (!finished || isSeekingRef.current || isEndedRef.current) {
+                if (!finished) {
                     return;
                 }
                 scheduleOnRN(setControlStatusState, CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE);
             }),
         );
-    }, [controlsOpacity]);
+    }, [controlsOpacity, isEnded, isSeeking]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
-
-    useEffect(() => {
-        isSeekingRef.current = isSeeking;
-    }, [isSeeking]);
-
-    useEffect(() => {
-        isEndedRef.current = isEnded;
-    }, [isEnded]);
 
     useEffect(() => {
         if (canUseTouchScreen) {
@@ -238,7 +227,7 @@ function BaseVideoPlayer({
         }
 
         debouncedHideControl();
-    }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen]);
+    }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen, isSeeking]);
 
     useEffect(() => {
         if (!onTap || !controlStatusState) {
@@ -585,20 +574,16 @@ function BaseVideoPlayer({
                                         controlsStatus={controlStatusState}
                                         showPopoverMenu={showPopoverMenu}
                                         reportID={reportID}
-                                        onSeekStart={(shouldResumeAfterSeek) => {
-                                            shouldResumeAfterSeekRef.current = shouldResumeAfterSeek;
+                                        onSeekStart={() => {
                                             allowSharedAutoPlayRef.current = false;
-                                            isSeekingRef.current = true;
                                             debouncedHideControl.cancel();
                                             cancelAnimation(controlsOpacity);
                                             controlsOpacity.set(1);
                                             setIsSeeking(true);
                                         }}
                                         onSeekEnd={(shouldResumeAfterSeek) => {
-                                            isSeekingRef.current = false;
                                             setIsSeeking(false);
-
-                                            if (shouldResumeAfterSeekRef.current || shouldResumeAfterSeek) {
+                                            if (shouldResumeAfterSeek) {
                                                 allowSharedAutoPlayRef.current = true;
                                                 playVideo();
                                             }
