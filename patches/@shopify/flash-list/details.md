@@ -16,3 +16,10 @@
 - Upstream PR/issue: TBD
 - E/App issue: TBD
 - PR introducing patch: TBD
+
+### [@shopify+flash-list+2.3.0+003+fix-inverted-first-item-offset.patch](@shopify+flash-list+2.3.0+003+fix-inverted-first-item-offset.patch)
+
+- Reason: Fixes inverted lists rendering only a few items with white space on scroll. FlashList's `RecyclerView` measures `firstItemOffset` by calling `measureFirstChildLayout` relative to the outer container. When `inverted` is true, the outer container has `scaleY: -1`, which flips the coordinate system — causing the measured y-offset to equal the container height instead of 0. This makes all scroll offsets negative after adjustment (`adjustedOffset = scrollOffset - firstItemOffset`), so the viewport thinks it's in negative space where no items exist. Only items caught by the draw-distance buffer render. The fix forces `firstItemOffset` to 0 for inverted lists, since the transform already handles visual inversion.
+- Upstream PR/issue: TBD
+- E/App issue: TBD
+- PR introducing patch: TBD
