@@ -15,6 +15,7 @@ import {openUnreportedExpense} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const minModalHeight = 380;
@@ -29,6 +30,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'Plus'] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
@@ -46,7 +48,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId);
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs);
             },
         },
         {
@@ -61,7 +63,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, lastDistanceExpenseType);
+                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs, lastDistanceExpenseType);
             },
         },
         {

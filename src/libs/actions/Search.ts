@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
@@ -103,6 +103,22 @@ type HandleActionButtonPressParams = {
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
     amountOwed: OnyxEntry<number>;
+};
+
+type BulkDeleteReportsParams = {
+    reports: OnyxCollection<Report>;
+    selfDMReport: OnyxEntry<Report>;
+    hash: number;
+    selectedTransactions: Record<string, SelectedTransactionInfo>;
+    currentUserEmailParam: string;
+    currentUserAccountIDParam: number;
+    reportTransactions: Record<string, Transaction>;
+    transactionsViolations: Record<string, TransactionViolations>;
+    bankAccountList: OnyxEntry<BankAccountList>;
+    personalPolicy: Pick<Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'> | undefined;
+    translate: LocaleContextProps['translate'];
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
+    transactions?: OnyxCollection<Transaction>;
 };
 
 function handleActionButtonPress({
@@ -813,18 +829,21 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function bulkDeleteReports(
-    reports: OnyxCollection<Report>,
-    selfDMReport: OnyxEntry<Report>,
-    hash: number,
-    selectedTransactions: Record<string, SelectedTransactionInfo>,
-    currentUserEmailParam: string,
-    currentUserAccountIDParam: number,
-    reportTransactions: Record<string, Transaction>,
-    transactionsViolations: Record<string, TransactionViolations>,
-    bankAccountList: OnyxEntry<BankAccountList>,
-    transactions?: OnyxCollection<Transaction>,
-) {
+function bulkDeleteReports({
+    reports,
+    selfDMReport,
+    hash,
+    selectedTransactions,
+    currentUserEmailParam,
+    currentUserAccountIDParam,
+    reportTransactions,
+    transactionsViolations,
+    bankAccountList,
+    personalPolicy,
+    translate,
+    toLocaleDigit,
+    transactions,
+}: BulkDeleteReportsParams) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
 
@@ -854,7 +873,18 @@ function bulkDeleteReports(
     if (reportIDList.length > 0) {
         for (const reportID of reportIDList) {
             const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            deleteAppReport(report, selfDMReport, currentUserEmailParam, currentUserAccountIDParam, reportTransactions, transactionsViolations, bankAccountList);
+            deleteAppReport({
+                report,
+                selfDMReport,
+                currentUserEmailParam,
+                currentUserAccountIDParam,
+                reportTransactions,
+                allTransactionViolations: transactionsViolations,
+                bankAccountList,
+                personalPolicy,
+                translate,
+                toLocaleDigit,
+            });
         }
     }
 }

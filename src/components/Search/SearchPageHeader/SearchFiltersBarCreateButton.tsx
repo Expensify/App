@@ -1,4 +1,5 @@
 import {emailSelector} from '@selectors/Session';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -48,6 +49,7 @@ function SearchFiltersBarCreateButton() {
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const groupPaidPoliciesWithChatEnabledSelector = useCallback((policies: OnyxCollection<OnyxTypes.Policy>) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, email), [email]);
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabledSelector}, [email]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -141,7 +143,7 @@ function SearchFiltersBarCreateButton() {
                 text: translate('iou.createExpense'),
                 onSelected: () =>
                     interceptAnonymousUser(() => {
-                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
+                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
                     }),
             },
             {
@@ -149,7 +151,7 @@ function SearchFiltersBarCreateButton() {
                 text: translate('iou.trackDistance'),
                 onSelected: () =>
                     interceptAnonymousUser(() => {
-                        startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID());
+                        startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
                     }),
             },
             {
@@ -207,6 +209,7 @@ function SearchFiltersBarCreateButton() {
         [
             translate,
             expensifyIcons,
+            draftTransactionIDs,
             shouldRedirectToExpensifyClassic,
             showRedirectToExpensifyClassicModal,
             shouldNavigateToUpgradePath,
