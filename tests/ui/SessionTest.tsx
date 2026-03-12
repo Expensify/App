@@ -138,6 +138,9 @@ describe('Deep linking', () => {
 
         unmount();
         await waitForBatchedUpdatesWithAct();
+        
+        // Clear Onyx to ensure clean state for next test
+        await Onyx.clear();
     });
 
     it('should not reuse the last deep link and log in again when signing out', async () => {
@@ -153,6 +156,10 @@ describe('Deep linking', () => {
         // Unmount so we can prepare the deep link login
         unmount1();
 
+        await waitForBatchedUpdatesWithAct();
+        
+        // Clear Onyx state before remounting to prevent state leakage
+        await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
 
         const url = getInitialURL();
@@ -172,6 +179,12 @@ describe('Deep linking', () => {
         // In a failing scenario, remounting triggers the sign-in with the deep link again because it still remembers it.
         // However, we've implemented a fix so that it does not reuse the last deep link.
         unmount2();
+        await waitForBatchedUpdatesWithAct();
+        
+        // Clear Onyx state before final remount to ensure clean state
+        await Onyx.clear();
+        await waitForBatchedUpdatesWithAct();
+        
         const {unmount: unmount3} = render(<App />);
 
         await waitForBatchedUpdatesWithAct();
