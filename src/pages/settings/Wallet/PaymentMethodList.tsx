@@ -31,11 +31,12 @@ import {
     isCardFrozen,
     isExpensifyCard,
     isExpensifyCardPendingAction,
+    isExpiredCard,
     isPersonalCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@libs/CardUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
@@ -215,7 +216,8 @@ function PaymentMethodList({
                     (card) =>
                         CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
                         (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
-                        card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+                        card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+                        (!isExpensifyCard(card) || !isExpiredCard(card)),
                 );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
