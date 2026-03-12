@@ -123,17 +123,20 @@ describe('OnyxDerived', () => {
             const transaction = createRandomTransaction(1);
 
             // When the report attributes are recomputed with both report and transaction updates
-            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
-            const reportAttributesComputedValue = reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {
-                sourceValues: {
-                    [ONYXKEYS.COLLECTION.REPORT]: {
-                        [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`],
-                    },
-                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
+            const reportAttributesComputedValue = reportAttributes.compute(
+                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                {
+                    sourceValues: {
+                        [ONYXKEYS.COLLECTION.REPORT]: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`],
+                        },
+                        [ONYXKEYS.COLLECTION.TRANSACTION]: {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                        },
                     },
                 },
-            }).reports;
+            ).reports;
 
             // Then the computed report attributes should contain both reports
             expect(Object.keys(reportAttributesComputedValue)).toEqual([reportID1, reportID2]);
@@ -741,6 +744,7 @@ describe('OnyxDerived', () => {
                 const policyWithConnection = {
                     ...createMockPolicy(POLICY_WITH_CONNECTION_ID, {
                         role: CONST.POLICY.ROLE.ADMIN,
+                        exporter: CURRENT_USER_EMAIL,
                     }),
                     connections: {
                         // QuickBooks Online connection with auto-sync disabled
@@ -919,6 +923,54 @@ describe('OnyxDerived', () => {
                 expect(todos?.transactionsByReportID[reportID]).toHaveLength(1);
                 expect(todos?.transactionsByReportID[reportID]?.at(0)?.transactionID).toBe(transactionID);
             });
+        });
+
+        it('excludes export reports when user is connection-level exporter but not policy.exporter', async () => {
+            const EXPORT_POLICY_ID = 'policy_export_mismatch';
+            const reportID = 'export_mismatch_report';
+
+            const report = createMockReport(reportID, {
+                policyID: EXPORT_POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            });
+
+            const policy = {
+                ...createMockPolicy(EXPORT_POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    exporter: 'someone-else@mail.com',
+                }),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        lastSync: {
+                            isConnected: true,
+                            isSuccessful: true,
+                            isAuthenticationError: false,
+                            source: 'DIRECT',
+                        },
+                        config: {
+                            autoSync: {
+                                jobID: 'job123',
+                                enabled: false,
+                            },
+                            export: {
+                                exporter: CURRENT_USER_EMAIL,
+                            },
+                        },
+                    },
+                },
+            } as Policy;
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${EXPORT_POLICY_ID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+
+            await waitForBatchedUpdates();
+            const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+            expect(todos?.reportsToExport).toHaveLength(0);
         });
 
         describe('uses primary login from personalDetailsList', () => {
