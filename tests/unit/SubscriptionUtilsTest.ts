@@ -308,7 +308,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, 0, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
         });
 
         it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
@@ -324,7 +324,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, 8010, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
@@ -340,7 +340,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, 8010, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
         });
 
         it('should restrict when ownerBillingGraceEndPeriod is passed directly as 3rd param and is past due', async () => {
@@ -356,7 +356,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, 8010, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
@@ -372,7 +372,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, 8010, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
         });
 
         it('should restrict when ownerBillingGraceEndPeriod is passed directly as 4th param and is past due', async () => {
@@ -388,7 +388,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, 8010, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
         });
 
         it('should not restrict when ownerBillingGraceEndPeriod is passed directly as 4th param but is not past due', async () => {
@@ -404,7 +404,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(addDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, 8010, undefined, getUnixTime(addDays(new Date(), 3)))).toBeFalsy();
         });
 
         it('should not restrict when ownerBillingGraceEndPeriod is passed directly as 4th param but amount owed is 0', async () => {
@@ -420,7 +420,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, 0, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
         });
 
         it('should restrict when amountOwed is passed directly and is greater than 0', async () => {
