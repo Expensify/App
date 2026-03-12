@@ -109,6 +109,7 @@ const REASON = {
         ABORT: 'WebAuthn operation was aborted',
         NOT_SUPPORTED: 'WebAuthn algorithm or authenticator not supported',
         CONSTRAINT_ERROR: 'Authenticator does not meet required constraints',
+        REGISTRATION_REQUIRED: 'No matching passkey credentials found locally',
         UNEXPECTED_RESPONSE: 'WebAuthn credential response type is unexpected',
         GENERIC: 'An unknown WebAuthn error occurred',
     },
@@ -245,6 +246,7 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.WEBAUTHN.INVALID_STATE,
     REASON.WEBAUTHN.SECURITY_ERROR,
     REASON.WEBAUTHN.CONSTRAINT_ERROR,
+    REASON.WEBAUTHN.REGISTRATION_REQUIRED,
     REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
     REASON.WEBAUTHN.GENERIC,
 ]);

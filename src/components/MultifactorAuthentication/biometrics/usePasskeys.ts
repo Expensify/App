@@ -126,7 +126,7 @@ function usePasskeys(): UseBiometricsReturn {
         if (reconciled.length === 0) {
             onResult({
                 success: false,
-                reason: VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED,
+                reason: VALUES.REASON.WEBAUTHN.REGISTRATION_REQUIRED,
             });
             return;
         }
