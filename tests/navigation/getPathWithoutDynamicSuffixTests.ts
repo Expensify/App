@@ -1,4 +1,4 @@
-import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/getPathWithoutDynamicSuffix';
+import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 
 describe('getPathWithoutDynamicSuffix', () => {
     it('should remove a single-segment suffix from a simple path', () => {
@@ -35,5 +35,17 @@ describe('getPathWithoutDynamicSuffix', () => {
         const result = getPathWithoutDynamicSuffix('/settings/wallet/verify-account/', 'verify-account');
 
         expect(result).toBe('/settings/wallet');
+    });
+
+    it('should strip suffix-specific query params derived from DYNAMIC_ROUTES.getRoute', () => {
+        const result = getPathWithoutDynamicSuffix('/settings/profile/address/country?country=US', 'country');
+
+        expect(result).toBe('/settings/profile/address');
+    });
+
+    it('should strip only suffix-specific params and preserve base path params', () => {
+        const result = getPathWithoutDynamicSuffix('/settings/profile/address/country?baseParam=1&country=US', 'country');
+
+        expect(result).toBe('/settings/profile/address?baseParam=1');
     });
 });
