@@ -22,6 +22,7 @@ const lightTheme = {
     textSupporting: colors.productLight800,
     text: colors.productLight900,
     textColorfulBackground: colors.ivory,
+    textDarkColorfulBackground: colors.yellow800,
     textReceiptDropZone: colors.green700,
     textAttachmentDropZone: colors.blue700,
     syntax: colors.productLight800,

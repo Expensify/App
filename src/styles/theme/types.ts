@@ -28,6 +28,7 @@ type ThemeColors = {
     textSupporting: Color;
     text: Color;
     textColorfulBackground: Color;
+    textDarkColorfulBackground: Color;
     textReceiptDropZone: Color;
     textAttachmentDropZone: Color;
     syntax: Color;

@@ -22,6 +22,7 @@ const darkTheme = {
     textSupporting: colors.productDark800,
     text: colors.productDark900,
     textColorfulBackground: colors.ivory,
+    textDarkColorfulBackground: colors.yellow800,
     textReceiptDropZone: colors.green700,
     textAttachmentDropZone: colors.blue700,
     syntax: colors.productDark800,
