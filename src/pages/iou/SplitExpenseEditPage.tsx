@@ -97,7 +97,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const [draftTransactionWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const splitExpensesList = draftTransactionWithSplitExpenses?.comment?.splitExpenses;
 
-    const currentAmount = Number(splitExpenseDraftTransaction?.amount);
+    const splitExpenseItem = splitExpensesList?.find((item) => item.transactionID === splitExpenseTransactionID);
+    const originalSign = (splitExpenseItem?.amount ?? 0) < 0 ? -1 : 1;
+    const currentAmount = Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
     const shouldShowCategory = !!currentPolicy?.areCategoriesEnabled && !!policyCategories;
