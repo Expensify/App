@@ -72,7 +72,10 @@ function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DY
             return {
                 name: currentRoute ?? '',
                 path,
-                ...(parentRouteParams ? {params: parentRouteParams} : {}),
+                params: {
+                    ...params,
+                    ...(parentRouteParams ?? {}),
+                },
             };
         }
 
