@@ -1809,7 +1809,6 @@ const CONST = {
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
-        SPAN_SCAN_SHORTCUT: 'ScanShortcut',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
@@ -5898,8 +5897,6 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
-        REPLACE_VERIFY_OLD: 'REPLACE_VERIFY_OLD',
-        REPLACE_VERIFY_NEW: 'REPLACE_VERIFY_NEW',
     },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
