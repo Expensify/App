@@ -314,9 +314,10 @@ function PaymentMethodList({
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
                 const isTravelCard = !!card?.nameValuePairs?.isVirtual && !!card?.nameValuePairs?.isTravelCard;
+                const isPendingCard = card.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED || card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
-                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard && !isTravelCard) {
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.domainName === card.domainName) && !isAdminIssuedVirtualCard && !isTravelCard && !isPendingCard) {
                     const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
@@ -335,10 +336,10 @@ function PaymentMethodList({
                 const pressHandler = onPress as CardPressHandler;
 
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
+                const isGrouped = !isAdminIssuedVirtualCard && !isTravelCard && !isPendingCard;
+                const domainDisplayName = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
                 const cardDescription =
-                    card?.nameValuePairs?.issuedBy && card?.lastFourPAN
-                        ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`
-                        : getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
+                    !isGrouped && card?.nameValuePairs?.issuedBy && card?.lastFourPAN ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${domainDisplayName}` : domainDisplayName;
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -358,7 +359,7 @@ function PaymentMethodList({
                             cardID: card.cardID,
                         }),
                     cardID: card.cardID,
-                    isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
+                    isGroupedCardDomain: isGrouped,
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
