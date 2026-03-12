@@ -70,19 +70,13 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
+        ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies],
-        {currentValue, sourceValues, areAllConnectionsSet},
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
+        {currentValue, sourceValues},
     ) => {
-        if (!areAllConnectionsSet) {
-            return {
-                reports: {},
-                locale: null,
-            };
-        }
-
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -113,7 +107,6 @@ export default createOnyxDerivedValueConfig({
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
-
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
 
@@ -221,7 +214,18 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: report
-                    ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)
+                    ? computeReportName({
+                          report,
+                          reports,
+                          policies,
+                          transactions,
+                          allReportNameValuePairs: reportNameValuePairs,
+                          personalDetailsList: personalDetails,
+                          reportActions,
+                          currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                          currentUserLogin: session?.email ?? '',
+                          allPolicyTags: policyTags,
+                      })
                     : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,

@@ -5,12 +5,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -32,7 +32,6 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
@@ -69,9 +68,10 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-
+    const [reportViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`);
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
     const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
     const hasOtherViolations =
@@ -90,10 +90,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     }
 
     const goBack = () => {
-        if (isReportFieldTitle) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
-            return;
-        }
         Navigation.goBack(backTo);
     };
 
@@ -136,18 +132,19 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             goBack();
         } else {
             if (value !== '') {
-                updateReportField(
-                    {...report, reportID: report.reportID},
-                    {...reportField, value},
-                    reportField,
-                    policy as unknown as Policy,
+                updateReportField({
+                    report: {...report, reportID: report.reportID},
+                    reportField: {...reportField, value},
+                    previousReportField: reportField,
+                    policy: policy as unknown as Policy,
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    hasViolations,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    hasViolationsParam: hasViolations,
                     recentlyUsedReportFields,
-                    hasOtherViolations,
-                );
+                    reportViolations,
+                    shouldFixViolations: hasOtherViolations ?? false,
+                });
             }
             goBack();
         }
@@ -159,7 +156,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
 
     if (isReportFieldDeletable) {
         menuItems.push({
-            icon: Expensicons.Trashcan,
+            icon: icons.Trashcan,
             text: translate('common.delete'),
             onSelected: () => {
                 handleReportFieldDelete();

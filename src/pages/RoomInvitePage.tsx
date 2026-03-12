@@ -18,9 +18,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteToRoom, inviteToRoomAction, searchInServer} from '@libs/actions/Report';
+import {inviteToRoom, inviteToRoomAction, searchUserInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -37,8 +38,9 @@ import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportName, isHiddenForCurrentUser, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isHiddenForCurrentUser, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,6 +62,7 @@ function RoomInvitePage({
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
+    const reportAttributes = useReportAttributes();
     const {translate, formatPhoneNumber} = useLocalize();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -199,13 +202,12 @@ function RoomInvitePage({
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const backRoute = reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, reportAttributes);
 
     const ancestors = useAncestors(report);
 
     const inviteUsers = () => {
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
 
         if (selectedOptions.length === 0) {
             return;
@@ -251,7 +253,7 @@ function RoomInvitePage({
 
     useEffect(() => {
         updateUserSearchPhrase(debouncedSearchTerm);
-        searchInServer(debouncedSearchTerm);
+        searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     let subtitleKey: '' | TranslationPaths | undefined;
@@ -291,7 +293,7 @@ function RoomInvitePage({
                         onConfirm: inviteUsers,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    showLoadingPlaceholder={!areOptionsInitialized}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
                     shouldShowTextInput
                     canSelectMultiple

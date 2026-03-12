@@ -67,11 +67,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
 
     const selectedOptions: OptionData[] = selectedReportIDs.map((id) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
-        const report = getSelectedOptionData(
-            createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, currentUserAccountID, privateIsArchived, reportAttributesDerived),
-        );
+        const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
+        const report = getSelectedOptionData(createOptionFromReport({...reportData, reportID: id}, personalDetails, currentUserAccountID, privateIsArchived, reportAttributesDerived));
         const isReportArchived = !!privateIsArchived;
-        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, reportAttributesDerived);
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
+        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserEmail, policy, {}, undefined, undefined, reportAttributesDerived);
         return {...report, alternateText};
     });
 
@@ -105,6 +105,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
             false,
@@ -164,11 +165,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialReportIDs || !personalDetails;
+    const shouldShowLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialReportIDs || !personalDetails;
 
     const textInputOptions = {
         value: searchTerm,
-        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        label: translate('common.search'),
         onChangeText: setSearchTerm,
         headerMessage,
     };
@@ -183,7 +184,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             textInputOptions={textInputOptions}
             isLoadingNewOptions={isLoadingNewOptions}
-            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldShowTextInput
         />
     );

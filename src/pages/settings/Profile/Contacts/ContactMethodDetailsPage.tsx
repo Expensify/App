@@ -1,12 +1,13 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -61,7 +62,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {formatPhoneNumber, translate} = useLocalize();
@@ -94,10 +96,35 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [currentUserPersonalDetails, contactMethod, formatPhoneNumber, backTo]);
 
     /**
-     * Checks if the user is allowed to change their default contact method. This should only be allowed if:
-     * 1. The viewed contact method is not already their default contact method
-     * 2. The viewed contact method is validated
-     * 3. If the user is on a private domain, their security group must allow primary login switching
+     * Determines whether the user's primary login switching is restricted
+     * by their domain security group.
+     *
+     * If:
+     * - The user does not belong to a private domain security group → NOT restricted.
+     * - The security group exists and has `enableRestrictedPrimaryLogin` enabled → restricted.
+     */
+    const isRestrictedDefaultContactMethodSwitch = useMemo(() => {
+        const domainName = Str.extractEmailDomain(session?.email ?? '');
+        const primaryDomainSecurityGroupID = myDomainSecurityGroups?.[domainName];
+
+        // If there's no security group associated with the user for the primary domain,
+        // default to NOT restricting the user from switching their default contact method.
+        if (!primaryDomainSecurityGroupID) {
+            return false;
+        }
+
+        /// Restrict the user from switching their default contact method if their security group
+        // restricts primary login switching.
+        return !!securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.enableRestrictedPrimaryLogin;
+    }, [session?.email, myDomainSecurityGroups, securityGroups]);
+
+    /**
+     * Checks if the user is allowed to change their default contact method.
+     *
+     * This is allowed only if:
+     * 1. The viewed contact method is NOT already their default contact method.
+     * 2. The viewed contact method is validated.
+     * 3. The user's domain security group does NOT restrict primary login switching.
      */
     const canChangeDefaultContactMethod = useMemo(() => {
         // Cannot set this contact method as default if:
@@ -107,31 +134,41 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return false;
         }
 
-        const domainName = Str.extractEmailDomain(session?.email ?? '');
-        const primaryDomainSecurityGroupID = myDomainSecurityGroups?.[domainName];
-
-        // If there's no security group associated with the user for the primary domain,
-        // default to allowing the user to change their default contact method.
-        if (!primaryDomainSecurityGroupID) {
-            return true;
-        }
-
-        // Allow user to change their default contact method if they don't have a security group OR if their security group
-        // does NOT restrict primary login switching.
-        return !securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.enableRestrictedPrimaryLogin;
-    }, [isDefaultContactMethod, loginData?.validatedDate, session?.email, myDomainSecurityGroups, securityGroups]);
+        // If the domain restricts primary login switching,
+        // the user is not allowed to change their default contact method.
+        return !isRestrictedDefaultContactMethodSwitch;
+    }, [isDefaultContactMethod, loginData?.validatedDate, isRestrictedDefaultContactMethodSwitch]);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
+    const isFocused = useIsFocused();
+    const [shouldNavigateOnFocus, setShouldNavigateOnFocus] = useState(false);
+
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
 
-        // Navigate to methods page on successful magic code verification
-        // validatedDate property is responsible to decide the status of the magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        if (isFocused) {
+            // Navigate to methods page on successful magic code verification.
+            // The validatedDate property indicates successful magic code verification.
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        } else {
+            // Set flag to navigate when screen regains focus
+            setShouldNavigateOnFocus(true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
+
+    // Handle navigation when screen regains focus and flag is set
+    useEffect(() => {
+        if (!isFocused || !shouldNavigateOnFocus) {
+            return;
+        }
+        setShouldNavigateOnFocus(false);
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Only fire on focus transitions
+    }, [isFocused]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
@@ -243,7 +280,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     errorRowStyles={[themeStyles.ml8, themeStyles.mr5]}
                     onClose={() => clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                 >
-                    <Text style={[themeStyles.ph5, themeStyles.mv3]}>{translate('contacts.yourDefaultContactMethod')}</Text>
+                    <Text style={[themeStyles.ph5, themeStyles.mv3]}>
+                        {translate(isRestrictedDefaultContactMethodSwitch ? 'contacts.yourDefaultContactMethodRestrictedSwitch' : 'contacts.yourDefaultContactMethod')}
+                    </Text>
                 </OfflineWithFeedback>
             ) : (
                 <OfflineWithFeedback
@@ -330,7 +369,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        handleSubmitForm={(validateCode) => validateSecondaryLogin(currentUserPersonalDetails, loginList, contactMethod, validateCode, formatPhoneNumber)}
+                        handleSubmitForm={(validateCode) => validateSecondaryLogin(contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => {
                             // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.

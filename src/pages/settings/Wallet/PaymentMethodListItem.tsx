@@ -109,7 +109,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
     const isInSetupState = isAccountInSetupState(item);
-    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupState;
+    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems;
 
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
@@ -118,7 +118,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         !!(item.accountData?.additionalData?.plaidAccountID ?? item.accountData?.plaidAccountID);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress) || isInSetupState) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
@@ -138,10 +138,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 <Badge
                     text={translate('cardPage.frozen')}
                     icon={icons.FreezeCard}
-                    badgeStyles={[styles.descriptionBadge, styles.descriptionBadgeWithIcon]}
-                    textStyles={styles.descriptionBadgeText}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
                     iconStyles={[styles.mr1]}
-                    shouldUseXXSmallIcon
                 />
             );
         }
@@ -149,8 +148,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             return (
                 <Badge
                     text={translate('walletPage.cardInactive')}
-                    badgeStyles={[styles.descriptionBadge]}
-                    textStyles={styles.descriptionBadgeText}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
                 />
             );
         }
@@ -174,13 +173,14 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 plaidUrl={item.plaidUrl}
                 disabled={item.disabled}
                 iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
-                displayInDefaultIconColor
+                displayInDefaultIconColor={!item.iconFill}
                 iconHeight={item.iconHeight ?? item.iconSize}
                 iconWidth={item.iconWidth ?? item.iconSize}
                 iconStyles={item.iconStyles}
+                iconFill={item.iconFill}
                 badgeText={badgeText}
                 badgeIcon={isInSetupState ? icons.DotIndicator : undefined}
-                badgeSuccess={isInSetupState ? true : undefined}
+                isBadgeSuccess={isInSetupState ? true : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isInSetupState ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
