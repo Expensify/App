@@ -146,7 +146,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     );
     const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
     const isTextTooLong = customText && customText?.length > 6;
-    const dropdownAccessibilityHint = isMenuVisible ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND;
+    const dropdownAccessibilityHint = isMenuVisible ? CONST.ACCESSIBILITY_LABELS.EXPAND : CONST.ACCESSIBILITY_LABELS.COLLAPSE;
 
     const handlePress = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
