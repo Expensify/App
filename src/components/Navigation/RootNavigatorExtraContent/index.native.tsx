@@ -1,9 +1,8 @@
-import React from 'react';
-import TopLevelNavigationTabBar from '@components/Navigation/TopLevelNavigationTabBar';
 import type RootNavigatorExtraContentProps from './types';
 
-function RootNavigatorExtraContent({state}: RootNavigatorExtraContentProps) {
-    return <TopLevelNavigationTabBar state={state} />;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function RootNavigatorExtraContent(_props: RootNavigatorExtraContentProps) {
+    return null;
 }
 
 export default RootNavigatorExtraContent;

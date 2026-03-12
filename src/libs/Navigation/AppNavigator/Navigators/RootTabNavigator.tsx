@@ -2,7 +2,7 @@
  * Tab Navigator containing Home, Inbox (Reports), Search, Settings, and Workspaces pages.
  */
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import type {TabNavigationState} from '@react-navigation/native';
+import type {ParamListBase, TabNavigationState} from '@react-navigation/native';
 import React, {lazy, Suspense} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -23,7 +23,7 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NAVIGATION_TABS.WORKSPACES,
 };
 
-function RootTabNavigatorTabBar({state}: {state: TabNavigationState<RootTabNavigatorParamList>}) {
+function RootTabNavigatorTabBar({state}: {state: TabNavigationState<ParamListBase>}) {
     const selectedRouteName = state.routes[state.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
     return <NavigationTabBar selectedTab={selectedTab} />;
