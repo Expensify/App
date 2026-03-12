@@ -306,6 +306,10 @@ function MoneyRequestReportActionsList({
         });
     }, [originalSelectedTransactionsOptions, dismissedRejectUseExplanation, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
+    const shouldPopoverUseScrollView =
+        selectedTransactionsOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD ||
+        selectedTransactionsOptions.some((option) => (option.subMenuItems?.length ?? 0) >= CONST.DROPDOWN_SCROLL_THRESHOLD);
+
     const dismissRejectModalBasedOnAction = useCallback(() => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
@@ -800,6 +804,7 @@ function MoneyRequestReportActionsList({
                         customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
+                        shouldPopoverUseScrollView={shouldPopoverUseScrollView}
                         wrapperStyle={[styles.w100, styles.ph5]}
                     />
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>

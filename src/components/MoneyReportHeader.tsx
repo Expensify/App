@@ -1932,6 +1932,9 @@ function MoneyReportHeader({
     }, [originalSelectedTransactionsOptions, showDeleteModal, dismissedRejectUseExplanation, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
+    const shouldPopoverUseScrollView =
+        selectedTransactionsOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD ||
+        selectedTransactionsOptions.some((option) => (option.subMenuItems?.length ?? 0) >= CONST.DROPDOWN_SCROLL_THRESHOLD);
 
     if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
@@ -2023,6 +2026,8 @@ function MoneyReportHeader({
                                     })}
                                     isSplitButton={false}
                                     shouldAlwaysShowDropdownMenu
+                                    shouldPopoverUseScrollView={shouldPopoverUseScrollView}
+                                    wrapperStyle={styles.w100}
                                 />
                             </View>
                         )}
@@ -2040,6 +2045,7 @@ function MoneyReportHeader({
                             })}
                             isSplitButton={false}
                             shouldAlwaysShowDropdownMenu
+                            shouldPopoverUseScrollView={shouldPopoverUseScrollView}
                             wrapperStyle={styles.w100}
                         />
                     </View>
