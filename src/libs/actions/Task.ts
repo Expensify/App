@@ -615,6 +615,18 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
         },
     ];
 
+    if (title && report.parentReportID && report.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {
+                [report.parentReportActionID]: {
+                    childReportName: parsedTitle,
+                },
+            },
+        });
+    }
+
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -650,6 +662,18 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
             },
         },
     ];
+
+    if (title && report.parentReportID && report.parentReportActionID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {
+                [report.parentReportActionID]: {
+                    childReportName: report.reportName,
+                },
+            },
+        });
+    }
 
     const parameters: EditTaskParams = {
         taskReportID: report.reportID,
