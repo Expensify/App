@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {decodeWebAuthnError} from '@libs/MultifactorAuthentication/Passkeys/helpers';
@@ -17,13 +16,8 @@ import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
 import CONST from '@src/CONST';
-import type {LocalPasskeyCredentialsEntry, PasskeyCredential} from '@src/types/onyx';
 import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
 import useServerCredentials from './shared/useServerCredentials';
-
-function getLocalCredentials(entry: OnyxEntry<LocalPasskeyCredentialsEntry>): PasskeyCredential[] {
-    return entry ?? [];
-}
 
 function usePasskeys(): UseBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
@@ -34,16 +28,14 @@ function usePasskeys(): UseBiometricsReturn {
     const doesDeviceSupportBiometrics = () => isWebAuthnSupported();
 
     const getLocalPublicKey = async (): Promise<string | undefined> => {
-        const credentials = getLocalCredentials(localPasskeyCredentials);
-        return credentials.at(0)?.id;
+        return (localPasskeyCredentials ?? []).at(0)?.id;
     };
 
-    const hasLocalCredentials = async () => getLocalCredentials(localPasskeyCredentials).length > 0;
+    const hasLocalCredentials = async () => (localPasskeyCredentials?.length ?? 0) > 0;
 
     const areLocalCredentialsKnownToServer = async () => {
-        const credentials = getLocalCredentials(localPasskeyCredentials);
         const serverSet = new Set(serverKnownCredentialIDs);
-        return credentials.some((c) => serverSet.has(c.id));
+        return (localPasskeyCredentials ?? []).some((c) => serverSet.has(c.id));
     };
 
     const resetKeysForAccount = async () => {
