@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {createContext, useContext, useState} from 'react';
 import type {Dispatch, SetStateAction} from 'react';
 import type {TextSelection} from '@components/Composer/types';
+import useAncestors from '@hooks/useAncestors';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -49,10 +50,12 @@ type ReportActionEditMessageContextProviderProps = {
 function ReportActionEditMessageContextProvider({reportID, parentReportID, parentReportAction, children}: ReportActionEditMessageContextProviderProps) {
     const isFocused = useIsFocused();
 
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
     });
     const [reportActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
+    const ancestors = useAncestors(report);
 
     const [editingState, setEditingState] = useState<EditingState | null>(null);
     const [editingMessage, setEditingMessage] = useState<string | null>(null);
@@ -70,7 +73,33 @@ function ReportActionEditMessageContextProvider({reportID, parentReportID, paren
     let editingReportAction: OnyxTypes.ReportAction | null = null;
 
     if (isFocused) {
-        if (parentReportAction && parentReportDrafts?.[parentReportAction.reportActionID]) {
+        const ancestorWithDraft = [...ancestors]
+            .slice()
+            .reverse()
+            .find(({report: ancestorReport, reportAction}) => {
+                const ancestorDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${ancestorReport.reportID}`];
+                const ancestorDraft = ancestorDrafts?.[reportAction.reportActionID];
+
+                return ancestorDraft?.message !== undefined;
+            });
+
+        if (ancestorWithDraft) {
+            const {report: ancestorReport, reportAction: ancestorReportAction} = ancestorWithDraft;
+            const ancestorDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${ancestorReport.reportID}`];
+            const ancestorReportActionDraft = ancestorDrafts?.[ancestorReportAction.reportActionID];
+
+            editingReportID = ancestorReport.reportID;
+            editingReportActionID = ancestorReportAction.reportActionID;
+            editingReportAction = ancestorReportAction;
+            const nextMessage = ancestorReportActionDraft?.message ?? null;
+
+            if (editingState === null) {
+                setEditingState('editing');
+            }
+            if (editingMessage == null && editingMessage !== nextMessage) {
+                setEditingMessage(nextMessage);
+            }
+        } else if (parentReportAction && parentReportDrafts?.[parentReportAction.reportActionID]) {
             const parentReportActionDraft = parentReportDrafts[parentReportAction.reportActionID];
 
             editingReportID = parentReportID ?? null;
