@@ -165,6 +165,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is an odometer distance expense */
     isOdometerDistanceRequest?: boolean;
 
+    /** Whether the odometer receipt is currently being stitched */
+    isLoadingReceipt?: boolean;
+
     /** Whether the expense is a GPS distance expense */
     isGPSDistanceRequest: boolean;
 
@@ -236,6 +239,7 @@ function MoneyRequestConfirmationList({
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
+    isLoadingReceipt = false,
     isGPSDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
@@ -1309,6 +1313,7 @@ function MoneyRequestConfirmationList({
                 isDistanceRequest={isDistanceRequest}
                 isManualDistanceRequest={isManualDistanceRequest}
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
+                isLoadingReceipt={isLoadingReceipt}
                 isGPSDistanceRequest={isGPSDistanceRequest}
                 isPerDiemRequest={isPerDiemRequest}
                 isTimeRequest={isTimeRequest}

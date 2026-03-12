@@ -24,18 +24,16 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestDistance, setMoneyRequestOdometerReading, setMoneyRequestReceipt, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {setMoneyRequestDistance, setMoneyRequestOdometerReading, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import stitchOdometerImages from '@libs/stitchOdometerImages';
 import {getRateID} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -82,7 +80,6 @@ function IOURequestStepDistanceOdometer({
     const [startReading, setStartReading] = useState<string>('');
     const [endReading, setEndReading] = useState<string>('');
     const [formError, setFormError] = useState<string>('');
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     // Key to force TextInput remount when resetting state after tab switch
     const [inputKey, setInputKey] = useState<number>(0);
 
@@ -370,32 +367,13 @@ function IOURequestStepDistanceOdometer({
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     // Navigate to next page following Manual tab pattern
-    const navigateToNextPage = async () => {
+    const navigateToNextPage = () => {
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
         const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
         setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
         const distance = end - start;
         const calculatedDistance = roundToTwoDecimalPlaces(distance);
         setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
-
-        let stitchedImage: FileObject | null = null;
-        try {
-            stitchedImage = await stitchOdometerImages(odometerStartImage, odometerEndImage);
-        } catch (error) {
-            Log.warn('stitchOdometerImages failed', {error});
-            setFormError(translate('iou.error.stitchOdometerImagesFailed'));
-            return;
-        }
-
-        if (stitchedImage ?? odometerStartImage ?? odometerEndImage) {
-            const uri = stitchedImage?.uri ?? startImageSource ?? endImageSource ?? '';
-            const name =
-                stitchedImage?.name ??
-                (typeof odometerStartImage !== 'string' ? odometerStartImage?.name : odometerStartImage?.split('/').pop()) ??
-                (typeof odometerEndImage !== 'string' ? odometerEndImage?.name : odometerEndImage?.split('/').pop()) ??
-                '';
-            setMoneyRequestReceipt(transactionID, uri, name, isTransactionDraft);
-        }
 
         if (isEditing) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -497,10 +475,6 @@ function IOURequestStepDistanceOdometer({
 
     // Handle form submission with validation
     const handleNext = () => {
-        if (isSubmitting) {
-            return;
-        }
-
         // Validation: Start and end readings must not be empty
         if (!startReading || !endReading) {
             setFormError(translate('iou.error.invalidReadings'));
@@ -533,13 +507,7 @@ function IOURequestStepDistanceOdometer({
         }
 
         // When validation passes, call navigateToNextPage
-        setIsSubmitting(true);
-        navigateToNextPage()
-            .catch((error) => {
-                Log.warn('navigateToNextPage failed', {error});
-                setFormError(translate('common.genericErrorMessage'));
-            })
-            .finally(() => setIsSubmitting(false));
+        navigateToNextPage();
     };
 
     return (
@@ -659,7 +627,6 @@ function IOURequestStepDistanceOdometer({
                         success
                         allowBubble={!isEditing}
                         pressOnEnter
-                        isLoading={isSubmitting}
                         medium={isExtraSmallScreenHeight}
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100]}

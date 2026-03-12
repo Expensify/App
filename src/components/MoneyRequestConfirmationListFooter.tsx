@@ -55,6 +55,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ActivityIndicator from './ActivityIndicator';
 import Badge from './Badge';
 import Button from './Button';
 import ConfirmedRoute from './ConfirmedRoute';
@@ -138,6 +139,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is an odometer distance request */
     isOdometerDistanceRequest?: boolean;
+
+    /** Whether the receipt is currently being stitched */
+    isLoadingReceipt?: boolean;
 
     /** Flag indicating if it is a GPS distance request */
     isGPSDistanceRequest: boolean;
@@ -281,6 +285,7 @@ function MoneyRequestConfirmationListFooter({
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
+    isLoadingReceipt = false,
     isGPSDistanceRequest,
     isPerDiemRequest,
     isTimeRequest,
@@ -1268,7 +1273,21 @@ function MoneyRequestConfirmationListFooter({
                     </>
                 )}
             </View>
+            {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && !hasReceiptImageOrThumbnail && isLoadingReceipt && (
+                <View
+                    style={[
+                        styles.moneyRequestImage,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                        isCompactMode && compactReceiptContainerStyle ? compactReceiptContainerStyle : styles.expenseViewImageSmall,
+                    ]}
+                    onLayout={isCompactMode ? handleCompactReceiptContainerLayout : undefined}
+                >
+                    <ActivityIndicator />
+                </View>
+            )}
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) &&
+                !isLoadingReceipt &&
                 (hasReceiptImageOrThumbnail
                     ? receiptThumbnailContent
                     : showReceiptEmptyState && (

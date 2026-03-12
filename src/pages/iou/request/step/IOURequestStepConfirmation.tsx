@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
+import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
@@ -64,6 +65,7 @@ import {
     isReportOutstanding,
     isSelectedManagerMcTest,
 } from '@libs/ReportUtils';
+import stitchOdometerImages from '@libs/stitchOdometerImages';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
@@ -285,6 +287,8 @@ function IOURequestStepConfirmation({
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
+    const [isStitchingReceipt, setIsStitchingReceipt] = useState(false);
+    const [stitchError, setStitchError] = useState('');
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -381,6 +385,45 @@ function IOURequestStepConfirmation({
             openDraftWorkspaceRequest(senderPolicyID);
         }
     }, [isOffline, policy?.pendingAction, policyExpenseChatPolicyID, senderPolicyID]);
+
+    const odometerStartImage = transaction?.comment?.odometerStartImage;
+    const odometerEndImage = transaction?.comment?.odometerEndImage;
+
+    useEffect(() => {
+        if (!isOdometerDistanceRequest) {
+            return;
+        }
+
+        if (!odometerStartImage && !odometerEndImage) {
+            return;
+        }
+
+        setIsStitchingReceipt(true);
+        setStitchError('');
+
+        stitchOdometerImages(odometerStartImage, odometerEndImage)
+            .then((stitchedImage) => {
+                if (!(stitchedImage ?? odometerStartImage ?? odometerEndImage)) {
+                    return;
+                }
+                const uri =
+                    stitchedImage?.uri ??
+                    (typeof odometerStartImage === 'string' ? odometerStartImage : odometerStartImage?.uri) ??
+                    (typeof odometerEndImage === 'string' ? odometerEndImage : odometerEndImage?.uri) ??
+                    '';
+                const name =
+                    stitchedImage?.name ??
+                    (typeof odometerStartImage !== 'string' ? odometerStartImage?.name : odometerStartImage?.split('/').pop()) ??
+                    (typeof odometerEndImage !== 'string' ? odometerEndImage?.name : odometerEndImage?.split('/').pop()) ??
+                    '';
+                setMoneyRequestReceipt(currentTransactionID, uri, name, shouldUseTransactionDraft(action));
+            })
+            .catch((error: unknown) => {
+                Log.warn('stitchOdometerImages failed on confirmation page', {error});
+                setStitchError(translate('iou.error.stitchOdometerImagesFailed'));
+            })
+            .finally(() => setIsStitchingReceipt(false));
+    }, [isOdometerDistanceRequest, currentTransactionID, odometerStartImage, odometerEndImage, action, translate]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
@@ -1594,6 +1637,7 @@ function IOURequestStepConfirmation({
                             }}
                         />
                     )}
+                    {!!stitchError && <FormHelpMessage message={stitchError} />}
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
@@ -1621,6 +1665,7 @@ function IOURequestStepConfirmation({
                         isDistanceRequest={isDistanceRequest}
                         isManualDistanceRequest={isManualDistanceRequest}
                         isOdometerDistanceRequest={isOdometerDistanceRequest}
+                        isLoadingReceipt={isStitchingReceipt}
                         isGPSDistanceRequest={isGPSDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
