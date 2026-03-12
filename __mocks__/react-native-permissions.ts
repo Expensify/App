@@ -1,7 +1,16 @@
-import {PERMISSIONS, RESULTS} from 'react-native-permissions/dist/commonjs/permissions';
-import type {ValueOf} from 'type-fest';
+import {PERMISSIONS} from 'react-native-permissions/dist/commonjs/permissions';
 
-type Results = ValueOf<typeof RESULTS>;
+// RESULTS must be defined here rather than imported from 'react-native-permissions/dist/commonjs/results'
+// because that subpath lacks TypeScript declarations, and the 'permissions' subpath only exports PERMISSIONS.
+const RESULTS = {
+    UNAVAILABLE: 'unavailable',
+    BLOCKED: 'blocked',
+    DENIED: 'denied',
+    GRANTED: 'granted',
+    LIMITED: 'limited',
+} as const;
+
+type Results = (typeof RESULTS)[keyof typeof RESULTS];
 type ResultsCollection = Record<string, Results>;
 type NotificationSettings = Record<string, boolean>;
 type Notification = {status: Results; settings: NotificationSettings};
