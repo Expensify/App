@@ -17,6 +17,7 @@ import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -56,6 +57,7 @@ function TroubleshootPage() {
     const styles = useThemeStyles();
     const {isProduction, isDevelopment} = useEnvironment();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('initialSettingsPage.aboutPage.troubleshoot'));
     const [isLoading, setIsLoading] = useState(false);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);

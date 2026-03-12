@@ -19,6 +19,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -75,6 +76,7 @@ function SecuritySettingsPage() {
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('initialSettingsPage.security'));
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
