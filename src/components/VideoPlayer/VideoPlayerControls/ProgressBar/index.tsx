@@ -57,11 +57,7 @@ function ProgressBar({duration, position, seekPosition, onSeekStart, onSeekEnd}:
         .activateAfterLongPress(0)
         .onBegin((event) => {
             setIsSliderPressed(true);
-            let shouldResumeAfterSeek = false;
-            checkIfVideoIsPlaying((isPlaying) => {
-                shouldResumeAfterSeek = isPlaying;
-                onCheckIfVideoIsPlaying(isPlaying);
-            });
+            checkIfVideoIsPlaying(onCheckIfVideoIsPlaying);
             onSeekStart?.();
             pauseVideo();
             progressBarInteraction(event);
