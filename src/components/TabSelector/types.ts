@@ -65,8 +65,8 @@ type TabSelectorBaseProps = {
     /* Callback fired when tab is long pressed */
     onLongTabPress?: (key: string) => void;
 
-    /** Force onTabPress call when tab is already active */
-    forceOnTabPressWhenActive?: boolean;
+    /* Callback fired when active tab is pressed */
+    onActiveTabPress?: (key: string) => void;
 
     /** Animated position from a navigator (optional). */
     position?: Animated.AnimatedInterpolation<number>;

@@ -153,6 +153,15 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     const popoverMenuItems = savedSearchToModifyKey ? savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] : [];
     const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
 
+    const handleActiveTabPress = (tabKey: string) => {
+        const searchData = queryMap.get(tabKey);
+        if (!searchData) {
+            return;
+        }
+        onTabPress?.();
+        setSearchContext(false);
+    };
+
     const handleTabPress = (tabKey: string) => {
         const searchData = queryMap.get(tabKey);
         if (!searchData) {
@@ -185,7 +194,7 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
                 <TabSelectorBase
                     tabs={tabItems}
                     activeTabKey={activeKey}
-                    forceOnTabPressWhenActive
+                    onActiveTabPress={handleActiveTabPress}
                     onTabPress={handleTabPress}
                     onLongTabPress={handleLongTabPress}
                 />
