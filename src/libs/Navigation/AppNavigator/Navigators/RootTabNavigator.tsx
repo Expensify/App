@@ -20,6 +20,7 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NAVIGATION_TABS.SEARCH,
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.SETTINGS,
     [SCREENS.WORKSPACES_LIST]: NAVIGATION_TABS.WORKSPACES,
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NAVIGATION_TABS.WORKSPACES,
 };
 
 function RootTabNavigatorTabBar({state}: {state: TabNavigationState<RootTabNavigatorParamList>}) {
@@ -31,6 +32,7 @@ function RootTabNavigatorTabBar({state}: {state: TabNavigationState<RootTabNavig
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
 const LazySearchFullscreenNavigator = lazy(() => import('./SearchFullscreenNavigator'));
 const LazySettingsSplitNavigator = lazy(() => import('./SettingsSplitNavigator'));
+const LazyWorkspaceSplitNavigator = lazy(() => import('./WorkspaceSplitNavigator'));
 
 function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.LazyExoticComponent<React.ComponentType<P>>) {
     function SuspenseWrapper(props: P) {
@@ -47,6 +49,7 @@ function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.La
 const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator);
 const SearchFullscreenNavigatorScreen = withSuspense(LazySearchFullscreenNavigator);
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
+const WorkspaceSplitNavigatorScreen = withSuspense(LazyWorkspaceSplitNavigator);
 
 const Tab = createBottomTabNavigator<RootTabNavigatorParamList>();
 
@@ -82,6 +85,10 @@ function RootTabNavigator() {
             <Tab.Screen
                 name={SCREENS.WORKSPACES_LIST}
                 component={WorkspacesListPage}
+            />
+            <Tab.Screen
+                name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
+                component={WorkspaceSplitNavigatorScreen}
             />
         </Tab.Navigator>
     );

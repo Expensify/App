@@ -2105,68 +2105,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: {
-            // The path given as initialRouteName does not have route params.
-            // initialRouteName is not defined in this split navigator because in this case the initial route requires a policyID defined in its route params.
-            screens: {
-                [SCREENS.WORKSPACE.INITIAL]: {
-                    path: ROUTES.WORKSPACE_INITIAL.route,
-                },
-                [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_OVERVIEW.route,
-                [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
-                    path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
-                },
-                [SCREENS.WORKSPACE.COMPANY_CARDS]: {
-                    path: ROUTES.WORKSPACE_COMPANY_CARDS.route,
-                },
-                [SCREENS.WORKSPACE.PER_DIEM]: {
-                    path: ROUTES.WORKSPACE_PER_DIEM.route,
-                },
-                [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
-                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS.route,
-                },
-                [SCREENS.WORKSPACE.WORKFLOWS]: {
-                    path: ROUTES.WORKSPACE_WORKFLOWS.route,
-                },
-                [SCREENS.WORKSPACE.INVOICES]: {
-                    path: ROUTES.WORKSPACE_INVOICES.route,
-                },
-                [SCREENS.WORKSPACE.MEMBERS]: {
-                    path: ROUTES.WORKSPACE_MEMBERS.route,
-                },
-                [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
-                    path: ROUTES.POLICY_ACCOUNTING.route,
-                },
-                [SCREENS.WORKSPACE.CATEGORIES]: {
-                    path: ROUTES.WORKSPACE_CATEGORIES.route,
-                },
-                [SCREENS.WORKSPACE.MORE_FEATURES]: {
-                    path: ROUTES.WORKSPACE_MORE_FEATURES.route,
-                },
-                [SCREENS.WORKSPACE.TAGS]: {
-                    path: ROUTES.WORKSPACE_TAGS.route,
-                },
-                [SCREENS.WORKSPACE.TAXES]: {
-                    path: ROUTES.WORKSPACE_TAXES.route,
-                },
-                [SCREENS.WORKSPACE.REPORTS]: {
-                    path: ROUTES.WORKSPACE_REPORTS.route,
-                },
-                [SCREENS.WORKSPACE.DISTANCE_RATES]: {
-                    path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
-                },
-                [SCREENS.WORKSPACE.TRAVEL]: {
-                    path: ROUTES.WORKSPACE_TRAVEL.route,
-                },
-                [SCREENS.WORKSPACE.RULES]: {
-                    path: ROUTES.WORKSPACE_RULES.route,
-                },
-                [SCREENS.WORKSPACE.TIME_TRACKING]: {
-                    path: ROUTES.WORKSPACE_TIME_TRACKING.route,
-                },
-            },
-        },
-
         [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: {
             screens: {
                 [SCREENS.DOMAIN.INITIAL]: {
@@ -2287,6 +2225,65 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.WORKSPACES_LIST]: {
                     path: ROUTES.WORKSPACES_LIST.route,
                     exact: true,
+                },
+                [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: {
+                    screens: {
+                        [SCREENS.WORKSPACE.INITIAL]: {
+                            path: ROUTES.WORKSPACE_INITIAL.route,
+                        },
+                        [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_OVERVIEW.route,
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS.route,
+                        },
+                        [SCREENS.WORKSPACE.PER_DIEM]: {
+                            path: ROUTES.WORKSPACE_PER_DIEM.route,
+                        },
+                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
+                            path: ROUTES.WORKSPACE_RECEIPT_PARTNERS.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICES]: {
+                            path: ROUTES.WORKSPACE_INVOICES.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBERS]: {
+                            path: ROUTES.WORKSPACE_MEMBERS.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
+                            path: ROUTES.POLICY_ACCOUNTING.route,
+                        },
+                        [SCREENS.WORKSPACE.CATEGORIES]: {
+                            path: ROUTES.WORKSPACE_CATEGORIES.route,
+                        },
+                        [SCREENS.WORKSPACE.MORE_FEATURES]: {
+                            path: ROUTES.WORKSPACE_MORE_FEATURES.route,
+                        },
+                        [SCREENS.WORKSPACE.TAGS]: {
+                            path: ROUTES.WORKSPACE_TAGS.route,
+                        },
+                        [SCREENS.WORKSPACE.TAXES]: {
+                            path: ROUTES.WORKSPACE_TAXES.route,
+                        },
+                        [SCREENS.WORKSPACE.REPORTS]: {
+                            path: ROUTES.WORKSPACE_REPORTS.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
+                        },
+                        [SCREENS.WORKSPACE.TRAVEL]: {
+                            path: ROUTES.WORKSPACE_TRAVEL.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES]: {
+                            path: ROUTES.WORKSPACE_RULES.route,
+                        },
+                        [SCREENS.WORKSPACE.TIME_TRACKING]: {
+                            path: ROUTES.WORKSPACE_TIME_TRACKING.route,
+                        },
+                    },
                 },
             },
         },
