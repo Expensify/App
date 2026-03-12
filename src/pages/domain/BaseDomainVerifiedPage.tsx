@@ -34,15 +34,12 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifie
     const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
     const doesDomainExist = !!domain;
 
-    useEffect(
-        () => {
-            if (!doesDomainExist || domain?.validated) {
-                return;
-            }
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectToPath as Route, {forceReplace: true}));
-        },
-        [domain?.validated, doesDomainExist, redirectToPath] as React.DependencyList,
-    );
+    useEffect(() => {
+        if (!doesDomainExist || domain?.validated) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectToPath as Route, {forceReplace: true}));
+    }, [domain?.validated, doesDomainExist, redirectToPath]);
 
     if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
         return <FullScreenLoadingIndicator />;

@@ -56,21 +56,19 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
     }, [handleClose, navigateBackTo]);
 
     // Handle navigation once the user is validated
-    useEffect(
-        () => {
-            if (!isUserValidated) {
-                return;
-            }
+    useEffect(() => {
+        if (!isUserValidated) {
+            return;
+        }
 
         onValidationSuccess?.();
 
-            if (navigateForwardTo) {
-                Navigation.navigate(navigateForwardTo, {forceReplace: true});
-            } else {
-                handleCloseWithFallback();
-            }
-        }, [isUserValidated, navigateForwardTo, handleCloseWithFallback, handleClose, onValidationSuccess]
-    );
+        if (navigateForwardTo) {
+            Navigation.navigate(navigateForwardTo, {forceReplace: true});
+        } else {
+            handleCloseWithFallback();
+        }
+    }, [isUserValidated, navigateForwardTo, handleCloseWithFallback, handleClose, onValidationSuccess]);
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.
     if (isUserValidated) {

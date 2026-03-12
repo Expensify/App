@@ -725,9 +725,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, !!reportNameValuePairs?.private_isArchived);
 
-    const promotedActions = useMemo(
-        () => {
-            const result: PromotedAction[] = [];
+    const promotedActions = useMemo(() => {
+        const result: PromotedAction[] = [];
 
         if (canJoin) {
             result.push(PromotedActions.join(report, currentUserPersonalDetails.accountID));
@@ -739,10 +738,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
         result.push(PromotedActions.share(report, backTo));
 
-            return result;
-        },
-        [canJoin, report, backTo, currentUserPersonalDetails.accountID],
-    );
+        return result;
+    }, [canJoin, report, backTo, currentUserPersonalDetails.accountID]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
