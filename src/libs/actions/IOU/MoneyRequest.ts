@@ -1,7 +1,9 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -15,6 +17,7 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -86,7 +89,6 @@ type InitialTransactionParams = {
     taxCode: string;
     taxAmount: number;
     isFromGlobalCreate?: boolean;
-    isFromFloatingActionButton?: boolean;
     currency?: string;
     participants?: Participant[];
 };
@@ -363,9 +365,8 @@ function handleMoneyRequestStepScanParticipants({
     // If the user started this flow from using the + button in the composer inside a report
     // the participants can be automatically assigned from the report and the user can skip the participants step and go straight
     // to the confirmation step.
-    // If the user started this flow using the Create expense option (combined submit/track flow) or the green receipt FAB,
-    // they should be redirected to the participants page (or default policy flow), not the "from report" path.
-    if (!initialTransaction?.isFromGlobalCreate && !initialTransaction?.isFromFloatingActionButton && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
+    // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
+    if (!initialTransaction?.isFromGlobalCreate && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
         const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
 
         if (shouldSkipConfirmation) {
@@ -643,7 +644,6 @@ function handleMoneyRequestStepDistanceNavigation({
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-            setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
             const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
             const participant = participants.at(0);
             const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
@@ -657,6 +657,25 @@ function handleMoneyRequestStepDistanceNavigation({
 
             const validWaypoints = !isManualDistance && !isOdometerDistance ? getValidWaypoints(waypoints, true, isGPSDistance) : undefined;
 
+            let amount = 0;
+            let merchant = translate('iou.fieldPending');
+            if (isManualDistance && distance !== undefined && unit) {
+                const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
+                const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
+                amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
+                merchant = DistanceRequestUtils.getDistanceMerchant(
+                    true,
+                    distanceInMeters,
+                    unit,
+                    mileageRate?.rate ?? 0,
+                    mileageRate?.currency ?? transaction?.currency ?? CONST.CURRENCY.USD,
+                    translate,
+                    (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                    getCurrencySymbol,
+                    true,
+                );
+            }
+            setMoneyRequestMerchant(transactionID, merchant, false);
             if (isCreatingTrackExpense && participant) {
                 trackExpense({
                     report,
@@ -670,11 +689,11 @@ function handleMoneyRequestStepDistanceNavigation({
                         policy,
                     },
                     transactionParams: {
-                        amount: 0,
+                        amount,
                         distance,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
-                        merchant: translate('iou.fieldPending'),
+                        merchant,
                         receipt: {},
                         billable: false,
                         reimbursable: defaultReimbursable,
@@ -707,12 +726,12 @@ function handleMoneyRequestStepDistanceNavigation({
                 iouType,
                 existingTransaction: transaction,
                 transactionParams: {
-                    amount: 0,
+                    amount,
                     distance,
                     comment: '',
                     created: transaction?.created ?? '',
                     currency: transaction?.currency ?? 'USD',
-                    merchant: translate('iou.fieldPending'),
+                    merchant,
                     billable: !!policy?.defaultBillable,
                     reimbursable: defaultReimbursable,
                     validWaypoints,
