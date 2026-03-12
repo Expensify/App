@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompletedStepsForBankAccount, PERSONAL_INFO_STEP} from '@libs/BankAccountUtils';
+import {getCompletedStepsForBankAccount} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
@@ -101,29 +101,33 @@ function UpdatePersonalBankAccountPage() {
             return;
         }
 
-        const accountData: Partial<PersonalBankAccountForm> = {};
+        const existingData = bankAccountList?.[String(personalBankAccount.bankAccountID)]?.accountData?.additionalData;
+        const currentAddress = getCurrentAddress(privatePersonalDetails);
+        const [street1, street2] = getStreetLines(currentAddress?.street);
 
-        if (!completedSteps.includes(PERSONAL_INFO_STEP.NAME)) {
-            accountData.legalFirstName = personalBankAccountDraft?.legalFirstName ?? privatePersonalDetails?.legalFirstName;
-            accountData.legalLastName = personalBankAccountDraft?.legalLastName ?? privatePersonalDetails?.legalLastName;
-        }
-        if (!completedSteps.includes(PERSONAL_INFO_STEP.ADDRESS)) {
-            const currentAddress = getCurrentAddress(privatePersonalDetails);
-            const [street1, street2] = getStreetLines(currentAddress?.street);
-            accountData.addressStreet = (personalBankAccountDraft?.addressStreet ? personalBankAccountDraft.addressStreet : undefined) ?? homeAddressDraft?.addressLine1 ?? street1;
-            accountData.addressStreet2 = (personalBankAccountDraft?.addressStreet2 ? personalBankAccountDraft.addressStreet2 : undefined) ?? homeAddressDraft?.addressLine2 ?? street2;
-            accountData.addressCity = (personalBankAccountDraft?.addressCity ? personalBankAccountDraft.addressCity : undefined) ?? homeAddressDraft?.city ?? currentAddress?.city;
-            accountData.addressState = (personalBankAccountDraft?.addressState ? personalBankAccountDraft.addressState : undefined) ?? homeAddressDraft?.state ?? currentAddress?.state;
-            accountData.addressZipCode =
-                (personalBankAccountDraft?.addressZipCode ? personalBankAccountDraft.addressZipCode : undefined) ?? homeAddressDraft?.zipPostCode ?? currentAddress?.zip;
-        }
-        if (!completedSteps.includes(PERSONAL_INFO_STEP.PHONE)) {
-            const finalPhoneNumber = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
-            const parsed = parsePhoneNumber(finalPhoneNumber, {regionCode: CONST.COUNTRY.US});
-            accountData.phoneNumber = parsed.number?.significant ?? '';
-        }
+        const legalFirstName = personalBankAccountDraft?.legalFirstName ?? privatePersonalDetails?.legalFirstName ?? existingData?.firstName ?? '';
+        const legalLastName = personalBankAccountDraft?.legalLastName ?? privatePersonalDetails?.legalLastName ?? existingData?.lastName ?? '';
 
-        updatePersonalBankAccountInfo(personalBankAccount.bankAccountID, accountData);
+        const addressStreet = personalBankAccountDraft?.addressStreet ?? homeAddressDraft?.addressLine1 ?? street1 ?? existingData?.addressStreet ?? '';
+        const addressStreet2 = personalBankAccountDraft?.addressStreet2 ?? homeAddressDraft?.addressLine2 ?? street2 ?? '';
+        const addressCity = personalBankAccountDraft?.addressCity ?? homeAddressDraft?.city ?? currentAddress?.city ?? existingData?.addressCity ?? '';
+        const addressState = personalBankAccountDraft?.addressState ?? homeAddressDraft?.state ?? currentAddress?.state ?? existingData?.addressState ?? '';
+        const addressZipCode = personalBankAccountDraft?.addressZipCode ?? homeAddressDraft?.zipPostCode ?? currentAddress?.zip ?? existingData?.addressZipCode ?? '';
+
+        const rawPhone = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? existingData?.companyPhone ?? '';
+        const parsed = parsePhoneNumber(rawPhone, {regionCode: CONST.COUNTRY.US});
+        const phoneNumber = parsed.number?.significant ?? '';
+
+        updatePersonalBankAccountInfo(personalBankAccount.bankAccountID, {
+            legalFirstName,
+            legalLastName,
+            addressStreet,
+            addressStreet2,
+            addressCity,
+            addressState,
+            addressZipCode,
+            phoneNumber,
+        } as PersonalBankAccountForm);
     };
     const skipPageCandidates = getPageNamesForCompletedSteps(completedSteps);
     if (skipPageCandidates.length >= formPages.length) {

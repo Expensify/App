@@ -151,69 +151,36 @@ function clearPersonalBankAccountErrors() {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
 }
 
-function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Partial<PersonalBankAccountForm>) {
-    const formattedStreet = getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2);
-
-    type AdditionalDataUpdate = Partial<Pick<BankAccountAdditionalData, 'firstName' | 'lastName' | 'addressStreet' | 'addressCity' | 'addressState' | 'addressZipCode' | 'companyPhone'>>;
+function updatePersonalBankAccountInfo(bankAccountID: number, accountData: PersonalBankAccountForm) {
+    const formattedStreet = getFormattedStreet(accountData.addressStreet, accountData.addressStreet2);
 
     const bankAccountKey = String(bankAccountID);
     const prevData = bankAccountList?.[bankAccountKey]?.accountData?.additionalData;
 
-    const additionalDataUpdate: AdditionalDataUpdate = {
-        ...(accountData?.legalFirstName && {firstName: accountData.legalFirstName}),
-        ...(accountData?.legalLastName && {lastName: accountData.legalLastName}),
-        ...(formattedStreet && {addressStreet: formattedStreet}),
-        ...(accountData?.addressCity && {addressCity: accountData.addressCity}),
-        ...(accountData?.addressState && {addressState: accountData.addressState}),
-        ...(accountData?.addressZipCode && {addressZipCode: accountData.addressZipCode}),
-        ...(accountData?.phoneNumber && {companyPhone: accountData.phoneNumber}),
-    };
+    type AdditionalDataFields = Pick<BankAccountAdditionalData, 'firstName' | 'lastName' | 'addressStreet' | 'addressCity' | 'addressState' | 'addressZipCode' | 'companyPhone'>;
 
-    type AdditionalDataRollback = {[K in keyof AdditionalDataUpdate]: AdditionalDataUpdate[K] | null};
-
-    const bankAccountListUpdates: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {
-        [bankAccountKey]: {
-            accountData: {
-                additionalData: additionalDataUpdate,
-            },
-        },
-    };
-
-    const bankAccountListRollback: Record<string, {accountData: {additionalData: AdditionalDataRollback}}> = {
-        [bankAccountKey]: {
-            accountData: {
-                additionalData: {
-                    firstName: prevData?.firstName ?? null,
-                    lastName: prevData?.lastName ?? null,
-                    addressStreet: prevData?.addressStreet ?? null,
-                    addressCity: prevData?.addressCity ?? null,
-                    addressState: prevData?.addressState ?? null,
-                    addressZipCode: prevData?.addressZipCode ?? null,
-                    companyPhone: prevData?.companyPhone ?? null,
-                },
-            },
-        },
+    const additionalDataUpdate: AdditionalDataFields = {
+        firstName: accountData.legalFirstName,
+        lastName: accountData.legalLastName,
+        addressStreet: formattedStreet,
+        addressCity: accountData.addressCity,
+        addressState: accountData.addressState,
+        addressZipCode: accountData.addressZipCode,
+        companyPhone: accountData.phoneNumber,
     };
 
     const parameters: UpdatePersonalBankAccountInfoParams = {
         bankAccountID,
-        ...(accountData?.phoneNumber && {companyPhone: accountData.phoneNumber}),
-        ...(accountData?.legalFirstName && {legalFirstName: accountData.legalFirstName}),
-        ...(accountData?.legalLastName && {legalLastName: accountData.legalLastName}),
-        ...(formattedStreet && {addressStreet: formattedStreet}),
-        ...(accountData?.addressCity && {addressCity: accountData.addressCity}),
-        ...(accountData?.addressState && {addressState: accountData.addressState}),
-        ...(accountData?.addressZipCode && {addressZip: accountData.addressZipCode}),
+        companyPhone: accountData.phoneNumber,
+        legalFirstName: accountData.legalFirstName,
+        legalLastName: accountData.legalLastName,
+        addressStreet: formattedStreet,
+        addressCity: accountData.addressCity,
+        addressState: accountData.addressState,
+        addressZip: accountData.addressZipCode,
     };
 
-    const onyxData: OnyxData<
-        | typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT
-        | typeof ONYXKEYS.BANK_ACCOUNT_LIST
-        | typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
-        | typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT
-        | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM
-        | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT
-    > = {
+    const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.BANK_ACCOUNT_LIST> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -225,22 +192,14 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Parti
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM,
-                value: {
-                    errors: null,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
-                value: {
-                    errors: null,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                value: bankAccountListUpdates,
+                value: {
+                    [bankAccountKey]: {
+                        accountData: {
+                            additionalData: additionalDataUpdate,
+                        },
+                    },
+                },
             },
         ],
         successData: [
@@ -252,30 +211,6 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Parti
                     errors: null,
                     shouldShowSuccess: true,
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM,
-                value: {
-                    errors: null,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
-                value: {
-                    errors: null,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT,
-                value: null,
             },
         ],
         failureData: [
@@ -290,7 +225,21 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Parti
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                value: bankAccountListRollback,
+                value: {
+                    [bankAccountKey]: {
+                        accountData: {
+                            additionalData: {
+                                firstName: prevData?.firstName ?? null,
+                                lastName: prevData?.lastName ?? null,
+                                addressStreet: prevData?.addressStreet ?? null,
+                                addressCity: prevData?.addressCity ?? null,
+                                addressState: prevData?.addressState ?? null,
+                                addressZipCode: prevData?.addressZipCode ?? null,
+                                companyPhone: prevData?.companyPhone ?? null,
+                            },
+                        },
+                    },
+                },
             },
         ],
     };
