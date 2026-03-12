@@ -46,7 +46,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const feedCountry = getCardFeedCountry(cardSettings);
-    const settings = getCardSettings(cardSettings);
+    const settings = getCardSettings(cardSettings, feedCountry);
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`);
     const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);

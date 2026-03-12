@@ -30,7 +30,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const feedCountry = getCardFeedCountry(cardSettings);
-    const settings = getCardSettings(cardSettings);
+    const settings = getCardSettings(cardSettings, feedCountry);
 
     const shouldShowMonthlyOption = settings?.isMonthlySettlementAllowed ?? false;
     const selectedFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
