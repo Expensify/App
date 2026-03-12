@@ -65,6 +65,12 @@ const translations: TranslationDeepObject<typeof en> = {
         workspaces: 'Espacios de trabajo',
         inbox: 'Recibidos',
         yourReviewIsRequired: 'Se requiere tu revisión',
+        actionBadge: {
+            submit: 'Enviar',
+            approve: 'Aprobar',
+            pay: 'Pagar',
+            fix: 'Corregir',
+        },
         home: 'Inicio',
         group: 'Grupo',
         profile: 'Perfil',
