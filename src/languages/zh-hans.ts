@@ -1338,11 +1338,30 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursedOnBehalfOf: (actor: string) => `代表${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `从尾号为${debitBankAccount}的银行账户`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter}已添加银行账户，报告已解除搁置。报销已启动`,
-        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
-            `。资金正在转入${recipient}${creditBankAccount ? `的尾号为${creditBankAccount}的银行账户` : '的账户'}。预计报销将于${expectedDate}完成。`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) => `。资金正在转入${isCurrentUser ? '您' : submitterLogin}${creditBankAccount ? `的尾号为${creditBankAccount}的银行账户` : '的账户'}。预计报销将于${expectedDate}完成。`,
         reimbursedWithCheck: ' 通过支票。',
-        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
-            `。资金正在转入${recipient}${creditBankAccount ? `的尾号为${creditBankAccount}的银行账户` : '的账户'}（通过${paymentMethod}支付）。最多可能需要10个工作日。`,
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            paymentMethod,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            paymentMethod: string;
+        }) =>
+            `。资金正在转入${isCurrentUser ? '您' : submitterLogin}${creditBankAccount ? `的尾号为${creditBankAccount}的银行账户` : '的账户'}（通过${paymentMethod}支付）。最多可能需要10个工作日。`,
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` 通过直接存款（ACH）${creditBankAccount ? `转至尾号为${creditBankAccount}的银行账户。` : '。'}${expectedDate ? `预计报销将于${expectedDate}前完成。` : '通常需要4-5个工作日。'}`,
         noReimbursableExpenses: '此报表的金额无效',

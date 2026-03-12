@@ -184,8 +184,6 @@ const deprecatedOldDotReportActions = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.DONATION,
-    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
-    CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
 ]);
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -439,13 +437,7 @@ function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction:
     return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
 }
 
-function getReimbursedMessage(
-    translate: LocalizedTranslate,
-    reportAction: OnyxInputOrEntry<ReportAction>,
-    report: OnyxEntry<Report>,
-    personalDetails: OnyxEntry<PersonalDetails>,
-    currentUserAccountID: number,
-): string {
+function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxEntry<Report>, currentUserAccountID: number): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageReimbursed | undefined;
 
     // If no structured data, fall back to message fragments from backend (old actions)
@@ -464,29 +456,26 @@ function getReimbursedMessage(
 
     const {paymentMethod, debitBankAccountLast4, creditBankAccountLast4, expectedDate, isInvoiceOrBill, isSubmitterAddingBankAccount, stripePaymentType} = originalMessage;
 
-    // Resolve submitter email from report owner
+    // Resolve submitter from report owner
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const submitterLogin = getPersonalDetailsByIDs({accountIDs: [submitterAccountID], currentUserAccountID}).at(0)?.login ?? '';
+    const isCurrentUser = submitterAccountID === currentUserAccountID;
 
-    // Resolve actor email from action
+    // Resolve actor from action
     const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const actorLogin = getPersonalDetailsByIDs({accountIDs: [actorAccountID], currentUserAccountID}).at(0)?.login ?? '';
 
-    // Current user email
-    const currentUserLogin = personalDetails?.login ?? '';
-
     const isAutomation = !!reportAction?.delegateAccountID;
-    const recipient = submitterLogin === currentUserLogin ? 'your' : `${submitterLogin}'s`;
 
     let paymentSuffix = '';
     if (paymentMethod === 'Fast_ACH' && expectedDate && expectedDate !== '???') {
         const formattedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.FNS_FORMAT_STRING);
-        paymentSuffix = translate('iou.reimbursedWithFastACH', {recipient, creditBankAccount: creditBankAccountLast4 ?? '', expectedDate: formattedDate});
+        paymentSuffix = translate('iou.reimbursedWithFastACH', {isCurrentUser, submitterLogin, creditBankAccount: creditBankAccountLast4 ?? '', expectedDate: formattedDate});
     } else if (paymentMethod === 'Check') {
         paymentSuffix = translate('iou.reimbursedWithCheck');
     } else if (paymentMethod === 'StripeConnect') {
         const pmType = stripePaymentType === 'card' ? 'card' : 'bank account';
-        paymentSuffix = translate('iou.reimbursedWithStripeConnect', {recipient, creditBankAccount: creditBankAccountLast4 ?? '', paymentMethod: pmType});
+        paymentSuffix = translate('iou.reimbursedWithStripeConnect', {isCurrentUser, submitterLogin, creditBankAccount: creditBankAccountLast4 ?? '', paymentMethod: pmType});
     } else {
         let formattedDate: string | undefined;
         if (expectedDate) {

@@ -1374,11 +1374,35 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursedOnBehalfOf: (actor: string) => `au nom de ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `depuis le compte bancaire se terminant par ${debitBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} a ajouté un compte bancaire, libérant le rapport de l’attente. Le remboursement est lancé`,
-        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
-            `. L’argent est en route vers ${recipient}${creditBankAccount ? ` compte bancaire se terminant par ${creditBankAccount}` : ' compte'}. Le remboursement devrait être terminé le ${expectedDate}.`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. L’argent est en route vers votre${creditBankAccount ? ` compte bancaire se terminant par ${creditBankAccount}` : ' compte'}. Le remboursement devrait être terminé le ${expectedDate}.`
+                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''}. Le remboursement devrait être terminé le ${expectedDate}.`,
         reimbursedWithCheck: ' par chèque.',
-        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
-            `. L’argent est en route vers ${recipient}${creditBankAccount ? ` compte bancaire se terminant par ${creditBankAccount}` : ' compte'} (payé par ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`,
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            paymentMethod,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            paymentMethod: string;
+        }) =>
+            isCurrentUser
+                ? `. L’argent est en route vers votre${creditBankAccount ? ` compte bancaire se terminant par ${creditBankAccount}` : ' compte'} (payé par ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`
+                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''} (payé par ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`,
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` par dépôt direct (ACH)${creditBankAccount ? ` vers le compte bancaire se terminant par ${creditBankAccount}. ` : '. '}${expectedDate ? `Le remboursement devrait être terminé d’ici le ${expectedDate}.` : 'Cela prend généralement 4 à 5 jours ouvrables.'}`,
         noReimbursableExpenses: 'Cette note de frais a un montant non valide',

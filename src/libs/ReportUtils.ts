@@ -193,6 +193,7 @@ import {
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReimbursedMessage,
     getRenamedAction,
     getReportAction,
     getReportActionActorAccountID,
@@ -5699,8 +5700,11 @@ function getReportActionMessage({
         return translate('iou.reject.reportActions.markedAsResolved');
     }
 
-    if (isApprovedOrSubmittedReportAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+    if (isApprovedOrSubmittedReportAction(reportAction)) {
         return getReportActionMessageText(reportAction);
+    }
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+        return getReimbursedMessage(translate, reportAction, getReportOrDraftReport(reportID, reports), currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
     }
     if (isReimbursementQueuedAction(reportAction)) {
         return getReimbursementQueuedActionMessage({

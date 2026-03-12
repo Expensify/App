@@ -1360,11 +1360,31 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursedOnBehalfOf: (actor: string) => `${actor}の代わりに`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `末尾が${debitBankAccount}の銀行口座から`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter}が銀行口座を追加し、レポートの保留が解除されました。払い戻しが開始されました`,
-        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
-            `。${recipient}${creditBankAccount ? `の末尾が${creditBankAccount}の銀行口座` : 'の口座'}へ送金中です。払い戻しは${expectedDate}までに完了する予定です。`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            `。${isCurrentUser ? 'あなた' : submitterLogin}${creditBankAccount ? `の末尾が${creditBankAccount}の銀行口座` : 'の口座'}へ送金中です。払い戻しは${expectedDate}までに完了する予定です。`,
         reimbursedWithCheck: ' 小切手にて。',
-        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
-            `。${recipient}${creditBankAccount ? `の末尾が${creditBankAccount}の銀行口座` : 'の口座'}へ送金中です（${paymentMethod}経由）。最大10営業日かかる場合があります。`,
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            paymentMethod,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            paymentMethod: string;
+        }) =>
+            `。${isCurrentUser ? 'あなた' : submitterLogin}${creditBankAccount ? `の末尾が${creditBankAccount}の銀行口座` : 'の口座'}へ送金中です（${paymentMethod}経由）。最大10営業日かかる場合があります。`,
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` 銀行振込（ACH）${creditBankAccount ? `で末尾が${creditBankAccount}の銀行口座へ。` : 'にて。'}${expectedDate ? `払い戻しは${expectedDate}までに完了する予定です。` : '通常4〜5営業日かかります。'}`,
         noReimbursableExpenses: 'このレポートには無効な金額が含まれています',

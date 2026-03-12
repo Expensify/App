@@ -1372,11 +1372,35 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursedFromBankAccount: (debitBankAccount: string) => `vom Bankkonto mit der Endung ${debitBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) =>
             `${submitter} hat ein Bankkonto hinzugefügt und den Bericht aus der Warteschleife genommen. Die Rückerstattung wurde eingeleitet`,
-        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
-            `. Das Geld ist auf dem Weg zu ${recipient}${creditBankAccount ? ` Bankkonto mit der Endung ${creditBankAccount}` : ' Konto'}. Die Rückerstattung wird voraussichtlich am ${expectedDate} abgeschlossen.`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Das Geld ist auf dem Weg zu Ihrem${creditBankAccount ? ` Bankkonto mit der Endung ${creditBankAccount}` : ' Konto'}. Die Rückerstattung wird voraussichtlich am ${expectedDate} abgeschlossen.`
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''}. Die Rückerstattung wird voraussichtlich am ${expectedDate} abgeschlossen.`,
         reimbursedWithCheck: ' per Scheck.',
-        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
-            `. Das Geld ist auf dem Weg zu ${recipient}${creditBankAccount ? ` Bankkonto mit der Endung ${creditBankAccount}` : ' Konto'} (bezahlt per ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`,
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            paymentMethod,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            paymentMethod: string;
+        }) =>
+            isCurrentUser
+                ? `. Das Geld ist auf dem Weg zu Ihrem${creditBankAccount ? ` Bankkonto mit der Endung ${creditBankAccount}` : ' Konto'} (bezahlt per ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''} (bezahlt per ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`,
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` per Direktüberweisung (ACH)${creditBankAccount ? ` auf das Bankkonto mit der Endung ${creditBankAccount}. ` : '. '}${expectedDate ? `Die Rückerstattung wird voraussichtlich bis ${expectedDate} abgeschlossen.` : 'Dies dauert in der Regel 4–5 Werktage.'}`,
         noReimbursableExpenses: 'Dieser Bericht enthält einen ungültigen Betrag',

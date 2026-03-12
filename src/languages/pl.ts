@@ -1367,11 +1367,35 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursedOnBehalfOf: (actor: string) => `w imieniu ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `z konta bankowego kończącego się na ${debitBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} dodał konto bankowe, usuwając raport z zawieszenia. Zwrot środków został zainicjowany`,
-        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
-            `. Pieniądze są w drodze do ${recipient}${creditBankAccount ? ` konta bankowego kończącego się na ${creditBankAccount}` : ' konta'}. Zwrot środków powinien zostać zrealizowany do ${expectedDate}.`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Pieniądze są w drodze na twoje${creditBankAccount ? ` konto bankowe kończące się na ${creditBankAccount}` : ' konto'}. Zwrot środków powinien zostać zrealizowany do ${expectedDate}.`
+                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''}. Zwrot środków powinien zostać zrealizowany do ${expectedDate}.`,
         reimbursedWithCheck: ' czekiem.',
-        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
-            `. Pieniądze są w drodze do ${recipient}${creditBankAccount ? ` konta bankowego kończącego się na ${creditBankAccount}` : ' konta'} (płatność przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`,
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            paymentMethod,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            paymentMethod: string;
+        }) =>
+            isCurrentUser
+                ? `. Pieniądze są w drodze na twoje${creditBankAccount ? ` konto bankowe kończące się na ${creditBankAccount}` : ' konto'} (płatność przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`
+                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''} (płatność przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`,
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` przelewem bezpośrednim (ACH)${creditBankAccount ? ` na konto bankowe kończące się na ${creditBankAccount}. ` : '. '}${expectedDate ? `Oczekuje się, że zwrot środków zostanie zrealizowany do ${expectedDate}.` : 'Zazwyczaj zajmuje to 4-5 dni roboczych.'}`,
         noReimbursableExpenses: 'Ten raport ma nieprawidłową kwotę',

@@ -1369,11 +1369,35 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursedOnBehalfOf: (actor: string) => `per conto di ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `dal conto bancario che termina con ${debitBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} ha aggiunto un conto bancario, rimuovendo il rapporto dalla sospensione. Il rimborso è stato avviato`,
-        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
-            `. Il denaro è in arrivo a ${recipient}${creditBankAccount ? ` conto bancario che termina con ${creditBankAccount}` : ' conto'}. Si stima che il rimborso sarà completato il ${expectedDate}.`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Il denaro è in arrivo al tuo${creditBankAccount ? ` conto bancario che termina con ${creditBankAccount}` : ' conto'}. Si stima che il rimborso sarà completato il ${expectedDate}.`
+                : `. Il denaro è in arrivo al conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''}. Si stima che il rimborso sarà completato il ${expectedDate}.`,
         reimbursedWithCheck: ' tramite assegno.',
-        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
-            `. Il denaro è in arrivo a ${recipient}${creditBankAccount ? ` conto bancario che termina con ${creditBankAccount}` : ' conto'} (pagato tramite ${paymentMethod}). Potrebbe richiedere fino a 10 giorni lavorativi.`,
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            paymentMethod,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            paymentMethod: string;
+        }) =>
+            isCurrentUser
+                ? `. Il denaro è in arrivo al tuo${creditBankAccount ? ` conto bancario che termina con ${creditBankAccount}` : ' conto'} (pagato tramite ${paymentMethod}). Potrebbe richiedere fino a 10 giorni lavorativi.`
+                : `. Il denaro è in arrivo al conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''} (pagato tramite ${paymentMethod}). Potrebbe richiedere fino a 10 giorni lavorativi.`,
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` con deposito diretto (ACH)${creditBankAccount ? ` al conto bancario che termina con ${creditBankAccount}. ` : '. '}${expectedDate ? `Si stima che il rimborso sarà completato entro il ${expectedDate}.` : 'In genere richiede 4-5 giorni lavorativi.'}`,
         noReimbursableExpenses: 'Questo rendiconto contiene un importo non valido',

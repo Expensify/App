@@ -1399,11 +1399,35 @@ const translations = {
         reimbursedOnBehalfOf: (actor: string) => `on behalf of ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `from the bank account ending in ${debitBankAccount}`,
         reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} added a bank account, taking report off hold. Reimbursement is initiated`,
-        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
-            `. Money is on its way to ${recipient}${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'}. Reimbursement estimated to complete on ${expectedDate}.`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'}. Reimbursement estimated to complete on ${expectedDate}.`
+                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'}. Reimbursement estimated to complete on ${expectedDate}.`,
         reimbursedWithCheck: ' via check.',
-        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
-            `. Money is on its way to ${recipient}${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`,
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            paymentMethod,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            paymentMethod: string;
+        }) =>
+            isCurrentUser
+                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`
+                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`,
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` with direct deposit (ACH)${creditBankAccount ? ` to the bank account ending in ${creditBankAccount}. ` : '. '}${expectedDate ? `The reimbursement is estimated to complete by ${expectedDate}.` : 'This generally takes 4-5 business days.'}`,
         noReimbursableExpenses: 'This report has an invalid amount',
