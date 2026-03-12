@@ -781,8 +781,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                         policyTags,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
-                    // Strip HTML tags for plain text clipboard copy
-                    const modifyExpenseMessage = Parser.htmlToText(modifyExpenseMessageWithHTML);
+                    // Convert HTML to markdown for clipboard copy to preserve links and formatting
+                    const modifyExpenseMessage = Parser.htmlToMarkdown(modifyExpenseMessageWithHTML);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report);
