@@ -81,7 +81,7 @@ type UserSplitParams = {amount: string};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
-// type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
+type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
 
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
@@ -490,5 +490,6 @@ export type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyDefaultTitleParams,
+    MovedFromPersonalSpaceParams,
     MultifactorAuthenticationTranslationParams,
 };
