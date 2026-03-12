@@ -156,22 +156,22 @@ function TimeSensitiveSection() {
     }
 
     // Priority order:
-    // 0. Validate account
-    // 1. Potential card fraud
-    // 2. Add payment card (trial ended, no payment card)
-    // 3. Broken bank connections (company cards)
-    // 4. Broken bank connections (personal cards)
-    // 5. Broken accounting connections
-    // 6. Early adoption discount (50% or 25%)
-    // 7. Expensify card shipping
-    // 8. Expensify card activation
+    // 1. Validate account
+    // 2. Potential card fraud
+    // 3. Add payment card (trial ended, no payment card)
+    // 4. Broken bank connections (company cards)
+    // 5. Broken bank connections (personal cards)
+    // 6. Broken accounting connections
+    // 7. Early adoption discount (50% or 25%)
+    // 8. Expensify card shipping
+    // 9. Expensify card activation
     return (
         <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-                {/* Priority 0: Validate account */}
+                {/* Priority 1: Validate account */}
                 {shouldShowValidateAccount && <ValidateAccount />}
 
-                {/* Priority 1: Card fraud alerts */}
+                {/* Priority 2: Card fraud alerts */}
                 {shouldShowReviewCardFraud &&
                     cardsWithFraud.map((card) => {
                         if (!card.nameValuePairs?.possibleFraud) {
@@ -185,9 +185,9 @@ function TimeSensitiveSection() {
                         );
                     })}
 
-                {/* Priority 2: Add payment card (trial ended, no payment card) */}
+                {/* Priority 3: Add payment card (trial ended, no payment card) */}
                 {shouldShowAddPaymentCard && <AddPaymentCard />}
-                {/* Priority 3: Broken company card connections */}
+                {/* Priority 4: Broken company card connections */}
                 {brokenCompanyCardConnections.map((connection) => {
                     const card = cardFeedErrors.cardsWithBrokenFeedConnection[connection.cardID];
                     if (!card) {
@@ -203,7 +203,7 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 4: Broken personal card connections */}
+                {/* Priority 5: Broken personal card connections */}
                 {brokenPersonalCardConnections.map((connection) => {
                     const card = cardFeedErrors.personalCardsWithBrokenConnection[connection.cardID];
                     if (!card) {
@@ -217,7 +217,7 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 5: Broken accounting connections */}
+                {/* Priority 6: Broken accounting connections */}
                 {brokenAccountingConnections.map((connection) => (
                     <FixAccountingConnection
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
@@ -227,11 +227,11 @@ function TimeSensitiveSection() {
                     />
                 ))}
 
-                {/* Priority 6: Early adoption discount offers */}
+                {/* Priority 7: Early adoption discount offers */}
                 {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
                 {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
 
-                {/* Priority 7: Expensify card shipping */}
+                {/* Priority 8: Expensify card shipping */}
                 {shouldShowAddShippingAddress &&
                     cardsNeedingShippingAddress.map((card) => (
                         <AddShippingAddress
@@ -240,7 +240,7 @@ function TimeSensitiveSection() {
                         />
                     ))}
 
-                {/* Priority 8: Expensify card activation */}
+                {/* Priority 9: Expensify card activation */}
                 {shouldShowActivateCard &&
                     cardsNeedingActivation.map((card) => (
                         <ActivateCard
