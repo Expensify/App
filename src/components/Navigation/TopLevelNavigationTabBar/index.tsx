@@ -47,6 +47,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
         if (!shouldDisplayBottomBar) {
             // If the bottom tab is not visible, that means there is a screen covering it.
             // In that case we need to set the flag to true because there will be a transition for which we need to wait.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsAfterClosingTransition(false);
         } else {
             // If the bottom tab should be visible, we want to wait for transition to finish.
@@ -70,7 +71,13 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
             accessibilityElementsHidden={!isReadyToDisplayBottomBar}
             aria-hidden={!isReadyToDisplayBottomBar}
         >
-
+            {/* We are not rendering NavigationTabBar conditionally for two reasons
+                1. It's faster to hide/show it than mount a new when needed.
+                2. We need to hide tooltips as well if they were displayed. */}
+            <NavigationTabBar
+                selectedTab={selectedTab}
+                isTopLevelBar
+            />
         </View>
     );
 }
