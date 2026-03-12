@@ -49,7 +49,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, LoginList, Policy} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -511,14 +511,7 @@ function requestValidateCodeAction() {
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(
-    currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
-    loginList: OnyxEntry<LoginList>,
-    contactMethod: string,
-    validateCode: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    shouldResetActionCode?: boolean,
-) {
+function validateSecondaryLogin(contactMethod: string, validateCode: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], shouldResetActionCode?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -544,16 +537,7 @@ function validateSecondaryLogin(
             },
         },
     ];
-    const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.LOGIN_LIST
-            | typeof ONYXKEYS.ACCOUNT
-            | typeof ONYXKEYS.SESSION
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.VALIDATE_ACTION_CODE
-        >
-    > = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -578,70 +562,6 @@ function validateSecondaryLogin(
             },
         },
     ];
-    // If the primary login isn't validated yet, set the secondary login as the primary login
-    if (!loginList?.[currentEmail].validatedDate) {
-        successData.push(
-            ...[
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {
-                        primaryLogin: contactMethod,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.SESSION,
-                    value: {
-                        email: contactMethod,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            login: contactMethod,
-                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, currentUserPersonalDetails, formatPhoneNumber),
-                        },
-                    },
-                },
-            ],
-        );
-
-        for (const policy of Object.values(allPolicies ?? {})) {
-            if (!policy) {
-                continue;
-            }
-
-            let optimisticPolicyDataValue;
-
-            if (policy.employeeList) {
-                const currentEmployee = policy.employeeList[currentEmail];
-                optimisticPolicyDataValue = {
-                    employeeList: {
-                        [currentEmail]: null,
-                        [contactMethod]: currentEmployee,
-                    },
-                };
-            }
-
-            if (policy.ownerAccountID === currentUserAccountID) {
-                optimisticPolicyDataValue = {
-                    ...optimisticPolicyDataValue,
-                    owner: contactMethod,
-                };
-            }
-
-            if (optimisticPolicyDataValue) {
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                    value: optimisticPolicyDataValue,
-                });
-            }
-        }
-    }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
@@ -701,7 +621,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
-function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number) {
+function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number, conciergeReportID: string | undefined) {
     for (const update of onyxUpdates) {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             continue;
@@ -713,7 +633,7 @@ function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServe
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentEmail
-                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail);
+                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail, conciergeReportID);
             }
         }
     }
@@ -940,7 +860,7 @@ function initializePusherPingPong() {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountIDParam: number) {
+function subscribeToUserEvents(currentUserAccountIDParam: number, conciergeReportID: string | undefined) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (!currentUserAccountIDParam) {
         return;
@@ -995,7 +915,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number) {
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountIDParam);
+                triggerNotifications(pushJSON, currentUserAccountIDParam, conciergeReportID);
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1916,6 +1836,10 @@ function openTroubleshootSettingsPage() {
     API.read(READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE, null);
 }
 
+function openMultifactorAuthenticationRevokePage() {
+    API.read(READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE, null);
+}
+
 function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.merge(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
 }
@@ -1988,6 +1912,7 @@ export {
     updateDraftMerchantRule,
     clearDraftMerchantRule,
     openTroubleshootSettingsPage,
+    openMultifactorAuthenticationRevokePage,
 };
 
 export {type LockAccountOnyxKey};
