@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -25,6 +26,7 @@ import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -78,7 +80,7 @@ function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
                                 shouldShowRightIcon
                                 title={writeCapabilityText}
                                 description={translate('writeCapabilityPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(reportID, backTo))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
                             />
                         ) : (
                             <View style={[styles.ph5, styles.pv3]}>

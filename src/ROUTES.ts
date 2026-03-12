@@ -99,6 +99,10 @@ const DYNAMIC_ROUTES = {
         path: 'owner-selector',
         entryScreens: [],
     },
+    REPORT_SETTINGS_WRITE_CAPABILITY: {
+        path: 'settings/who-can-post',
+        entryScreens: [SCREENS.REPORT_DETAILS.ROOT, SCREENS.RIGHT_MODAL.REPORT_SETTINGS, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.SEARCH.ROOT],
+    },
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
@@ -804,12 +808,7 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/notification-preferences` as const, backTo),
     },
-    REPORT_SETTINGS_WRITE_CAPABILITY: {
-        route: 'r/:reportID/settings/who-can-post',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/who-can-post` as const, backTo),
-    },
     REPORT_SETTINGS_VISIBILITY: {
         route: 'r/:reportID/settings/visibility',
 
