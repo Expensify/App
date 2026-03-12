@@ -6,8 +6,8 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
-import ScrollableTabSelectorBase from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelectorBase';
-import ScrollableTabSelectorContextProvider from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelectorContext';
+import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
+import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -181,15 +181,15 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
             ref={menuAnchorRef}
             style={[styles.appBG]}
         >
-            <ScrollableTabSelectorContextProvider activeTabKey={activeKey}>
-                <ScrollableTabSelectorBase
+            <TabSelectorContextProvider activeTabKey={activeKey}>
+                <TabSelectorBase
                     tabs={tabItems}
                     activeTabKey={activeKey}
                     forceOnTabPressWhenActive
                     onTabPress={handleTabPress}
                     onLongTabPress={handleLongTabPress}
                 />
-            </ScrollableTabSelectorContextProvider>
+            </TabSelectorContextProvider>
             <PopoverMenu
                 onClose={() => setSavedSearchToModifyKey(null)}
                 onModalHide={() => setRestoreFocusType(undefined)}

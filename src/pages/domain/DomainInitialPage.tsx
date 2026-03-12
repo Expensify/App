@@ -152,7 +152,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 icon={item.icon}
                                 onPress={item.action}
                                 brickRoadIndicator={item.brickRoadIndicator}
-                                wrapperStyle={styles.sectionMenuItem}
+                                wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                 highlighted={!!item?.highlighted}
                                 focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 badgeText={item.badgeText}
