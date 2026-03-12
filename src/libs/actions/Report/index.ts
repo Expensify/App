@@ -317,7 +317,7 @@ type OpenReportActionParams = {
     /** The current user's account ID */
     currentUserAccountID?: number;
 
-    /** Beta features list */
+    /** Beta features list. TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417) */
     betas?: OnyxEntry<Beta[]>;
 };
 
@@ -1649,6 +1649,7 @@ function createGroupChat(
     currentUserLogin: string,
     introSelected: OnyxEntry<IntroSelected>,
     avatar?: File | CustomRNImageManipulatorResult,
+    // TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<Beta[]>,
 ) {
     const optimisticReport = {
@@ -1981,6 +1982,7 @@ function navigateToAndCreateGroupChat(
     introSelected: OnyxEntry<IntroSelected>,
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
+    // TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417)
     betas?: OnyxEntry<Beta[]>,
 ) {
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
