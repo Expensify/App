@@ -20,7 +20,6 @@ import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} fr
 import {updatePolicyRoomName as updatePolicyRoomNameReportAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/RoomNameForm';
 import type {Report} from '@src/types/onyx';
@@ -35,13 +34,12 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
     const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const reportID = report?.reportID;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const goBack = useCallback(() => {
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, navigateBackTo)));
-    }, [reportID, navigateBackTo]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(navigateBackTo));
+    }, [navigateBackTo]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
