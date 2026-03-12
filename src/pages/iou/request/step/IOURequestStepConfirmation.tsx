@@ -85,6 +85,7 @@ import type {GpsPoint} from '@userActions/IOU';
 import {
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
+    handleNavigateAfterExpenseCreate,
     requestMoney as requestMoneyIOUActions,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
@@ -681,9 +682,7 @@ function IOURequestStepConfirmation({
                             ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR}
                             : {}),
                     },
-                    shouldHandleNavigation: index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport,
-                    backToReport,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.email ?? '',
@@ -696,6 +695,17 @@ function IOURequestStepConfirmation({
                     betas,
                     personalDetails,
                 });
+                
+                // Handle navigation after expense creation
+                if (index === transactions.length - 1) {
+                    handleNavigateAfterExpenseCreate({
+                        activeReportID: backToReport ?? activeReportID,
+                        transactionID: iouReport?.reportID,
+                        isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
+                        isInvoice: false,
+                    });
+                }
+                
                 existingIOUReport = iouReport;
             }
         },
@@ -809,6 +819,14 @@ function IOURequestStepConfirmation({
                     betas,
                     personalDetails,
                 });
+                
+                // Handle navigation after expense creation
+                handleNavigateAfterExpenseCreate({
+                    activeReportID: report?.reportID,
+                    transactionID: undefined,
+                    isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                    isInvoice: false,
+                });
             }
         },
         [
@@ -892,7 +910,6 @@ function IOURequestStepConfirmation({
                     accountantParams: {
                         accountant: item.accountant,
                     },
-                    shouldHandleNavigation: index === transactions.length - 1,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -904,6 +921,16 @@ function IOURequestStepConfirmation({
                     draftTransactionIDs,
                     isSelfTourViewed,
                 });
+                
+                // Handle navigation after expense creation
+                if (index === transactions.length - 1) {
+                    handleNavigateAfterExpenseCreate({
+                        activeReportID,
+                        transactionID: undefined,
+                        isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
+                        isInvoice: false,
+                    });
+                }
             }
         },
         [

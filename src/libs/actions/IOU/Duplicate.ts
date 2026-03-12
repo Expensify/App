@@ -572,7 +572,6 @@ function duplicateExpenseTransaction({
             rate: transaction?.comment?.units?.rate,
             unit: transaction?.comment?.units?.unit,
         },
-        shouldHandleNavigation: false,
         shouldGenerateTransactionThreadReport: true,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam: userAccountID,

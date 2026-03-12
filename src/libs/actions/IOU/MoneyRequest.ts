@@ -44,6 +44,7 @@ import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
     getPolicyTags,
+    handleNavigateAfterExpenseCreate,
     requestMoney,
     setCustomUnitRateID,
     setMoneyRequestDistance,
@@ -228,7 +229,6 @@ function createTransaction({
                     gpsPoint,
                 },
                 ...(policyParams ?? {}),
-                shouldHandleNavigation: index === files.length - 1,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
@@ -240,6 +240,16 @@ function createTransaction({
                 betas,
                 isSelfTourViewed,
             });
+            
+            // Handle navigation after expense creation
+            if (index === files.length - 1) {
+                handleNavigateAfterExpenseCreate({
+                    activeReportID: backToReport ?? activeReportID,
+                    transactionID: undefined,
+                    isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                    isInvoice: false,
+                });
+            }
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
@@ -264,8 +274,6 @@ function createTransaction({
                     billable,
                     reimbursable,
                 },
-                shouldHandleNavigation: index === files.length - 1,
-                backToReport,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserAccountID,
@@ -278,6 +286,16 @@ function createTransaction({
                 isSelfTourViewed,
                 personalDetails,
             });
+            
+            // Handle navigation after expense creation
+            if (index === files.length - 1) {
+                handleNavigateAfterExpenseCreate({
+                    activeReportID: backToReport ?? activeReportID,
+                    transactionID: undefined,
+                    isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                    isInvoice: false,
+                });
+            }
         }
     }
 }

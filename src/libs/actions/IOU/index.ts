@@ -517,8 +517,6 @@ type RequestMoneyInformation = {
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
-    shouldHandleNavigation?: boolean;
-    backToReport?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
@@ -634,14 +632,12 @@ type CreateDistanceRequestInformation = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
-    backToReport?: string;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
-    shouldHandleNavigation?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
@@ -711,7 +707,6 @@ type CreateTrackExpenseParams = {
     accountantParams?: TrackExpenseAccountantParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
-    shouldHandleNavigation?: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -1110,19 +1105,18 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
  * If the expense is created from the global create button then:
  * - If it is created on the inbox tab, it will open the chat report containing that expense.
  * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
+ * Note: This function should be called from UI components after calling action functions.
  */
 function handleNavigateAfterExpenseCreate({
     activeReportID,
     transactionID,
     isFromGlobalCreate,
     isInvoice,
-    shouldHandleNavigation = true,
 }: {
     activeReportID?: string;
     transactionID?: string;
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
-    shouldHandleNavigation?: boolean;
 }) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
@@ -1130,9 +1124,7 @@ function handleNavigateAfterExpenseCreate({
     // we just need to dismiss the money request flow screens
     // and open the report chat containing the IOU report
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
-        if (shouldHandleNavigation) {
-            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice);
-        }
+        dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice);
         return;
     }
 
@@ -1140,10 +1132,6 @@ function handleNavigateAfterExpenseCreate({
 
     // We mark this transaction to be highlighted when opening the expense search route page
     mergeTransactionIdsHighlightOnSearchRoute(type, {[transactionID]: true});
-
-    if (!shouldHandleNavigation) {
-        return;
-    }
 
     // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
     // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
@@ -6323,8 +6311,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         gpsPoint,
         action,
-        shouldHandleNavigation = true,
-        backToReport,
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -6568,23 +6554,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
-    if (shouldHandleNavigation) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
 
-        const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
-        if (trackReport?.key) {
-            Navigation.removeScreenByKey(trackReport.key);
-        }
-    }
-
-    if (!requestMoneyInformation.isRetry) {
-        handleNavigateAfterExpenseCreate({
-            activeReportID: backToReport ?? activeReportID,
-            transactionID: transaction.transactionID,
-            isFromGlobalCreate,
-            shouldHandleNavigation,
-        });
+    const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
+    if (trackReport?.key) {
+        Navigation.removeScreenByKey(trackReport.key);
     }
 
     if (activeReportID && !isMoneyRequestReport) {
@@ -6611,7 +6586,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         existingTransaction,
         transactionParams: transactionData,
         accountantParams,
-        shouldHandleNavigation = true,
         shouldPlaySound = true,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
@@ -6954,19 +6928,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    if (shouldHandleNavigation) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
-    }
-
-    if (!params.isRetry) {
-        handleNavigateAfterExpenseCreate({
-            activeReportID,
-            transactionID: transaction?.transactionID,
-            isFromGlobalCreate,
-            shouldHandleNavigation,
-        });
-    }
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
 
     notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
 }
@@ -7555,14 +7518,12 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         existingTransaction,
         transactionParams,
         policyParams = {},
-        backToReport,
         isASAPSubmitBetaEnabled,
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
         recentWaypoints = [],
         customUnitPolicyID,
-        shouldHandleNavigation = true,
         personalDetails,
         betas,
     } = distanceRequestInformation;
@@ -7801,10 +7762,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
-
-    if (shouldHandleNavigation) {
-        handleNavigateAfterExpenseCreate({activeReportID: backToReport ?? activeReportID, isFromGlobalCreate, transactionID: parameters.transactionID});
-    }
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);
