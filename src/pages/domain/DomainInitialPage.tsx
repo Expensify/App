@@ -140,7 +140,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn]}>
+                <ScrollView contentContainerStyle={styles.flexColumn}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
@@ -154,7 +154,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 icon={item.icon}
                                 onPress={item.action}
                                 brickRoadIndicator={item.brickRoadIndicator}
-                                wrapperStyle={styles.sectionMenuItem}
+                                wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                 highlighted={!!item?.highlighted}
                                 focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 badgeText={item.badgeText}

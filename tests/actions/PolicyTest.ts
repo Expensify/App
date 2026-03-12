@@ -1311,6 +1311,180 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('setPolicyReimbursableMode', () => {
+        it('should update reimbursable mode to REIMBURSABLE_DEFAULT optimistically and succeed', async () => {
+            // Given a workspace with default reimbursable as false and disabled as true
+            const policy = {
+                ...createRandomPolicy(0),
+                defaultReimbursable: false,
+                disabledFields: {
+                    reimbursable: true,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When updating the reimbursable mode to REIMBURSABLE_DEFAULT
+            mockFetch.pause();
+            Policy.setPolicyReimbursableMode(policy.id, CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT, policy.defaultReimbursable, policy.disabledFields.reimbursable);
+            await waitForBatchedUpdates();
+
+            // Then defaultReimbursable is updated to true and disabledFields.reimbursable is updated to false
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.defaultReimbursable).toBe(true);
+            expect(updatedPolicy?.disabledFields?.reimbursable).toBe(false);
+            expect(updatedPolicy?.pendingFields?.defaultReimbursable).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedPolicy?.pendingFields?.disabledFields).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.defaultReimbursable).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.disabledFields).toBeUndefined();
+            expect(updatedPolicy?.errorFields).toBeUndefined();
+        });
+
+        it('should update reimbursable mode to NON_REIMBURSABLE_DEFAULT optimistically and succeed', async () => {
+            // Given a workspace with default reimbursable as true and disabled as true
+            const policy = {
+                ...createRandomPolicy(0),
+                defaultReimbursable: true,
+                disabledFields: {
+                    reimbursable: true,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When updating the reimbursable mode to NON_REIMBURSABLE_DEFAULT
+            mockFetch.pause();
+            Policy.setPolicyReimbursableMode(
+                policy.id,
+                CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT,
+                policy.defaultReimbursable,
+                policy.disabledFields.reimbursable,
+            );
+            await waitForBatchedUpdates();
+
+            // Then defaultReimbursable is updated to false and disabledFields.reimbursable is updated to false
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.defaultReimbursable).toBe(false);
+            expect(updatedPolicy?.disabledFields?.reimbursable).toBe(false);
+            expect(updatedPolicy?.pendingFields?.defaultReimbursable).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedPolicy?.pendingFields?.disabledFields).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.defaultReimbursable).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.disabledFields).toBeUndefined();
+            expect(updatedPolicy?.errorFields).toBeUndefined();
+        });
+
+        it('should update reimbursable mode to ALWAYS_REIMBURSABLE optimistically and succeed', async () => {
+            // Given a workspace with default reimbursable as false and disabled as false
+            const policy = {
+                ...createRandomPolicy(0),
+                defaultReimbursable: false,
+                disabledFields: {
+                    reimbursable: false,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When updating the reimbursable mode to ALWAYS_REIMBURSABLE
+            mockFetch.pause();
+            Policy.setPolicyReimbursableMode(policy.id, CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE, policy.defaultReimbursable, policy.disabledFields.reimbursable);
+            await waitForBatchedUpdates();
+
+            // Then defaultReimbursable is updated to true and disabledFields.reimbursable is updated to true
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.defaultReimbursable).toBe(true);
+            expect(updatedPolicy?.disabledFields?.reimbursable).toBe(true);
+            expect(updatedPolicy?.pendingFields?.defaultReimbursable).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedPolicy?.pendingFields?.disabledFields).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.defaultReimbursable).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.disabledFields).toBeUndefined();
+            expect(updatedPolicy?.errorFields).toBeUndefined();
+        });
+
+        it('should update reimbursable mode to ALWAYS_NON_REIMBURSABLE optimistically and succeed', async () => {
+            // Given a workspace with default reimbursable as true and disabled as false
+            const policy = {
+                ...createRandomPolicy(0),
+                defaultReimbursable: true,
+                disabledFields: {
+                    reimbursable: false,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When updating the reimbursable mode to ALWAYS_NON_REIMBURSABLE
+            mockFetch.pause();
+            Policy.setPolicyReimbursableMode(
+                policy.id,
+                CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE,
+                policy.defaultReimbursable,
+                policy.disabledFields.reimbursable,
+            );
+            await waitForBatchedUpdates();
+
+            // Then defaultReimbursable is updated to false and disabledFields.reimbursable is updated to true
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.defaultReimbursable).toBe(false);
+            expect(updatedPolicy?.disabledFields?.reimbursable).toBe(true);
+            expect(updatedPolicy?.pendingFields?.defaultReimbursable).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedPolicy?.pendingFields?.disabledFields).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.defaultReimbursable).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.disabledFields).toBeUndefined();
+            expect(updatedPolicy?.errorFields).toBeUndefined();
+        });
+
+        it('should revert reimbursable mode update when fail', async () => {
+            // Given a workspace with default reimbursable as true
+            const policy = {
+                ...createRandomPolicy(0),
+                defaultReimbursable: true,
+                disabledFields: {
+                    reimbursable: false,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When updating the reimbursable mode and fails
+            mockFetch.fail();
+            Policy.setPolicyReimbursableMode(
+                policy.id,
+                CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT,
+                policy.defaultReimbursable,
+                policy.disabledFields.reimbursable,
+            );
+            await waitForBatchedUpdates();
+
+            // Then defaultReimbursable is reverted to true and disabledFields.reimbursable is reverted to false
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.defaultReimbursable).toBe(true);
+            expect(updatedPolicy?.disabledFields?.reimbursable).toBe(false);
+            expect(updatedPolicy?.pendingFields?.defaultReimbursable).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.disabledFields).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.defaultReimbursable).not.toBeUndefined();
+        });
+    });
+
     describe('leaveWorkspace', () => {
         it("should remove all non-owned workspace chats and keep the user's own workspace chat when leaving a workspace", async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});

@@ -1,4 +1,3 @@
-import render from 'dom-serializer';
 import {DomUtils, parseDocument} from 'htmlparser2';
 import {getReportActionMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -54,7 +53,7 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
         const followupTextElement = DomUtils.getElementsByTagName('followup-text', followupEl, true).at(0);
         const followupResponseElement = DomUtils.getElementsByTagName('followup-response', followupEl, true).at(0);
         const text = followupTextElement ? DomUtils.textContent(followupTextElement) : '';
-        const response = followupResponseElement ? render(followupResponseElement.children) : undefined;
+        const response = followupResponseElement ? DomUtils.textContent(followupResponseElement) : undefined;
         return {text, response};
     });
 }
