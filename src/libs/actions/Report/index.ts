@@ -5380,6 +5380,9 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                pendingFields: {
+                    export: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
                 isExportedToIntegration: true,
             },
         });
@@ -5408,6 +5411,9 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                pendingFields: {
+                    export: null,
+                },
                 isExportedToIntegration: previousExportedValue,
             },
         });
