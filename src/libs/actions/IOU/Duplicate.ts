@@ -623,6 +623,7 @@ function duplicateExpenseTransaction({
             quickAction,
             recentWaypoints,
             betas,
+            draftTransactionIDs,
             isSelfTourViewed,
         };
         return trackExpense(trackExpenseParams);
