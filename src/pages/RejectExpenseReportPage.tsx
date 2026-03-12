@@ -3,10 +3,12 @@ import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -37,6 +39,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const policy = usePolicy(report?.policyID);
     const [selectedTargetAccountID, setSelectedTargetAccountID] = useState<string>('');
+    const [selectionError, setSelectionError] = useState<string>('');
 
     const previousApprover = useMemo(() => {
         if (!policy || !report) {
@@ -70,18 +73,28 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         const options = [];
 
         if (hasPreviousApprover) {
+            const previousApproverEmail = getLoginsByAccountIDs([previousApprover.accountID]).at(0) ?? '';
+            const isPreviousApproverSelected = selectedTargetAccountID === String(previousApprover.accountID);
             options.push({
                 text: `${previousApprover.displayName} (${translate('iou.rejectReport.lastApprover')})`,
+                alternateText: previousApproverEmail,
                 keyForList: String(previousApprover.accountID),
-                isSelected: selectedTargetAccountID === String(previousApprover.accountID),
+                accountID: previousApprover.accountID,
+                isSelected: false,
+                rightElement: <SelectCircle isChecked={isPreviousApproverSelected} />,
             });
         }
 
-        const submitterName = getDisplayNameOrDefault(getPersonalDetailByEmail(getLoginsByAccountIDs([submitterAccountID]).at(0) ?? ''));
+        const submitterEmail = getLoginsByAccountIDs([submitterAccountID]).at(0) ?? '';
+        const submitterName = getDisplayNameOrDefault(getPersonalDetailByEmail(submitterEmail));
+        const isSubmitterSelected = selectedTargetAccountID === String(submitterAccountID);
         options.push({
             text: `${submitterName} (${translate('iou.rejectReport.submitter')})`,
+            alternateText: submitterEmail,
             keyForList: String(submitterAccountID),
-            isSelected: selectedTargetAccountID === String(submitterAccountID),
+            accountID: submitterAccountID,
+            isSelected: false,
+            rightElement: <SelectCircle isChecked={isSubmitterSelected} />,
         });
 
         return options;
@@ -93,22 +106,23 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             if (!values[INPUT_IDS.COMMENT]) {
                 errors[INPUT_IDS.COMMENT] = translate('common.error.fieldRequired');
             }
-            if (hasPreviousApprover && !selectedTargetAccountID) {
-                errors[INPUT_IDS.TARGET_ACCOUNT_ID] = translate('iou.rejectReport.selectMemberError');
-            }
             return errors;
         },
-        [hasPreviousApprover, selectedTargetAccountID, translate],
+        [translate],
     );
 
     const onSubmit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
-            const targetAccountID = hasPreviousApprover ? Number(selectedTargetAccountID) : submitterAccountID;
+            if (hasPreviousApprover && !selectedTargetAccountID) {
+                setSelectionError(translate('iou.rejectReport.selectMemberError'));
+                return;
+            }
 
+            const targetAccountID = hasPreviousApprover ? Number(selectedTargetAccountID) : submitterAccountID;
             rejectExpenseReport(reportID, targetAccountID, values[INPUT_IDS.COMMENT]);
             Navigation.dismissModal();
         },
-        [hasPreviousApprover, reportID, selectedTargetAccountID, submitterAccountID],
+        [hasPreviousApprover, reportID, selectedTargetAccountID, submitterAccountID, translate],
     );
 
     return (
@@ -130,6 +144,8 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 isSubmitActionDangerous
+                shouldRenderFooterAboveSubmit
+                footerContent={selectionError ? <FormHelpMessage message={selectionError} /> : undefined}
             >
                 <View style={styles.mb6}>
                     <Text>{translate('iou.rejectReport.description')}</Text>
@@ -148,13 +164,18 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 </View>
                 {hasPreviousApprover && (
                     <View style={styles.mb6}>
-                        <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('iou.rejectReport.selectTarget')}</Text>
-                        <SelectionList
-                            data={targetOptions}
-                            ListItem={RadioListItem}
-                            onSelectRow={(item) => setSelectedTargetAccountID(item.keyForList ?? '')}
-                            initiallyFocusedOptionKey={selectedTargetAccountID}
-                        />
+                        <Text style={[styles.mb2]}>{translate('iou.rejectReport.selectTarget')}</Text>
+                        <View style={styles.mhn5}>
+                            <SelectionList
+                                data={targetOptions}
+                                ListItem={UserListItem}
+                                onSelectRow={(item) => {
+                                    setSelectedTargetAccountID(item.keyForList ?? '');
+                                    setSelectionError('');
+                                }}
+                                initiallyFocusedItemKey={selectedTargetAccountID}
+                            />
+                        </View>
                     </View>
                 )}
             </FormProvider>
