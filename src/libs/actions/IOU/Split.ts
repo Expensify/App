@@ -1498,13 +1498,62 @@ function updateSplitTransactions({
             },
         });
     } else {
+        // When reversing a split (deleting one split from a 2-split), restore the hold status from the remaining split to the original transaction
+        const remainingSplitExpense = splitExpenses.at(0);
+        const remainingSplitTransaction = remainingSplitExpense?.transactionID
+            ? allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${remainingSplitExpense.transactionID}`]
+            : undefined;
+        const isRemainingSplitOnHold = remainingSplitTransaction && isOnHold(remainingSplitTransaction);
+
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: {
                 errors: null,
+                // Restore hold status from the remaining split expense to the original transaction
+                ...(isRemainingSplitOnHold
+                    ? {
+                          comment: {
+                              hold: remainingSplitTransaction.comment?.hold,
+                          },
+                      }
+                    : {}),
             },
         });
+
+        // Restore hold violation if the remaining split expense is on hold
+        if (isRemainingSplitOnHold) {
+            const remainingSplitViolations =
+                allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${remainingSplitExpense.transactionID}`] ?? [];
+            const hasHoldViolation = remainingSplitViolations.some((violation) => violation.name === CONST.VIOLATIONS.HOLD);
+
+            if (hasHoldViolation) {
+                onyxData.optimisticData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`,
+                    value: remainingSplitViolations,
+                });
+
+                // Add failure data to restore original transaction's hold status if the API call fails
+                onyxData.failureData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+                    value: {
+                        comment: {
+                            hold: originalTransaction?.comment?.hold ?? null,
+                        },
+                    },
+                });
+
+                const originalTransactionViolations =
+                    allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`] ?? [];
+                onyxData.failureData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`,
+                    value: originalTransactionViolations,
+                });
+            }
+        }
         const isLastTransactionInReport = Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
         if (isLastTransactionInReport) {
             onyxData.optimisticData?.push({
