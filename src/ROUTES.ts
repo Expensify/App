@@ -97,6 +97,10 @@ const DYNAMIC_ROUTES = {
         path: 'owner-selector',
         entryScreens: [],
     },
+    SETTINGS_CONTACT_METHODS: {
+        path: 'contact-methods',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.ROOT],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {

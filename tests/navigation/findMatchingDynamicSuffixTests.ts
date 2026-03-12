@@ -32,4 +32,8 @@ describe('findMatchingDynamicSuffix', () => {
     it('should not match a suffix that appears in the middle of the path', () => {
         expect(findMatchingDynamicSuffix('/verify-account/settings/wallet')).toBeUndefined();
     });
+
+    it('should match contact-methods dynamic suffix', () => {
+        expect(findMatchingDynamicSuffix('settings/profile/contact-methods')).toBe('contact-methods');
+    });
 });

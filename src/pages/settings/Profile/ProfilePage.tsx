@@ -24,6 +24,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -33,7 +34,7 @@ import {getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/Us
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -84,7 +85,7 @@ function ProfilePage() {
                 .map((login) => login?.menuItemTitle)
                 .filter(Boolean)
                 .join(', '),
-            pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
+            action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CONTACT_METHODS.path)),
             brickRoadIndicator: contactMethodBrickRoadIndicator,
             testID: 'contact-method-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHODS,
@@ -239,7 +240,7 @@ function ProfilePage() {
                                     title={detail.title}
                                     description={detail.description}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={() => Navigation.navigate(detail.pageRoute)}
+                                    onPress={'action' in detail ? detail.action : () => Navigation.navigate(detail.pageRoute)}
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                     pressableTestID={detail?.testID}
                                     sentryLabel={detail.sentryLabel}
