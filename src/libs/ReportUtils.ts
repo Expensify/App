@@ -5065,7 +5065,11 @@ function canHoldUnholdReportAction(
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
-    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction) && (isSubmitted || isActionOwner);
+
+    // In multi-level approval, once the report has been forwarded past the first approver,
+    // the action owner (submitter) should no longer be able to place expenses on hold.
+    const isSubmitterHoldAllowed = isActionOwner && isSubmitted && !isRequestIOU ? isAwaitingFirstLevelApproval(report) : true;
+    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction) && (isSubmitted || isActionOwner) && isSubmitterHoldAllowed;
 
     const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
