@@ -52,4 +52,15 @@ function updateGpsTripNotificationDistance(_distanceInMeters: number) {}
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function updateGpsTripNotificationUnit(_translate: LocalizedTranslate, _unit: Unit) {}
 
-export {startGpsTripNotification, stopGpsTripNotification, updateGpsTripNotificationDistance, updateGpsTripNotificationUnit, checkAndCleanGpsNotification, shouldUpdateGpsNotificationUnit};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function updateGpsTripNotificationLanguage(_translate: LocalizedTranslate) {}
+
+export {
+    startGpsTripNotification,
+    stopGpsTripNotification,
+    updateGpsTripNotificationDistance,
+    updateGpsTripNotificationUnit,
+    updateGpsTripNotificationLanguage,
+    checkAndCleanGpsNotification,
+    shouldUpdateGpsNotificationUnit,
+};
