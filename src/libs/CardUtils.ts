@@ -1130,8 +1130,9 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
         return getMergedProgramSettings(feedCountry);
     }
 
-    // Auto-detect: try known card programs in priority order, then fall
-    // back to the flat root for legacy domains that haven't been migrated.
+    // Auto-detect: try known card programs in priority order.
+    // Newer domains have settings nested under US/GB, legacy ones under
+    // CURRENT. Fall back to the flat root for domains the backend sends as-is.
     return (
         getMergedProgramSettings(CONST.COUNTRY.US) ??
         getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ??
