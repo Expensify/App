@@ -146,8 +146,8 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
     const policyOwner = policy?.owner;
 
-    // Determine if we should filter Expensify team members (only for non-Expensify customers)
-    const shouldFilterExpensifyTeam = !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
+    // Determine if we should filter out Expensify team members (only for non-Expensify customers)
+    const shouldFilterOutExpensifyTeam = !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
 
     // Keep track of used approver emails to display hints in the UI
     const usedApproverEmails = new Set<string>();
@@ -161,7 +161,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         }
 
         // Filter out Expensify team members from appearing as workflow members
-        if (shouldFilterExpensifyTeam && isExpensifyTeam(email)) {
+        if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email)) {
             continue;
         }
 
@@ -176,7 +176,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         }
 
         // If submitsTo is an Expensify team member, find the first non-Expensify approver in the chain
-        const effectiveSubmitsTo = shouldFilterExpensifyTeam ? (findFirstNonExpensifyApprover(employees, submitsTo) ?? submitsTo) : submitsTo;
+        const effectiveSubmitsTo = shouldFilterOutExpensifyTeam ? (findFirstNonExpensifyApprover(employees, submitsTo) ?? submitsTo) : submitsTo;
 
         if (!employees[effectiveSubmitsTo]) {
             continue;
@@ -184,7 +184,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
 
         if (!approvalWorkflows[effectiveSubmitsTo]) {
             let approvers = calculateApprovers({employees, firstEmail: effectiveSubmitsTo, personalDetailsByEmail});
-            if (shouldFilterExpensifyTeam) {
+            if (shouldFilterOutExpensifyTeam) {
                 approvers = approvers.filter((approver) => !isExpensifyTeam(approver.email));
             }
             if (effectiveSubmitsTo !== firstApprover) {
