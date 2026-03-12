@@ -47,6 +47,7 @@ import {
     requestMoney,
     setCustomUnitRateID,
     setMoneyRequestDistance,
+    setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
@@ -653,6 +654,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     true,
                 );
             }
+            setMoneyRequestMerchant(transactionID, merchant, false);
             if (isCreatingTrackExpense && participant) {
                 trackExpense({
                     report,
