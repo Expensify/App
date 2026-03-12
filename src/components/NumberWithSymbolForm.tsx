@@ -1,13 +1,12 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseActions} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
@@ -158,7 +157,6 @@ function NumberWithSymbolForm({
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -374,12 +372,6 @@ function NumberWithSymbolForm({
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
 
-    // Calculate dynamic font size based on the total length of the amount display
-    const dynamicAmountStyle = useMemo(() => {
-        const totalLength = formattedNumber.length + (hideSymbol ? 0 : symbol.length) + (isNegative ? 1 : 0);
-        return StyleUtils.getAmountInputFontSize(totalLength);
-    }, [StyleUtils, formattedNumber.length, hideSymbol, symbol.length, isNegative]);
-
     if (displayAsTextInput) {
         return (
             <TextInput
@@ -451,8 +443,8 @@ function NumberWithSymbolForm({
             }}
             onKeyPress={textInputKeyPress}
             isSymbolPressable={isSymbolPressable && !shouldWrapInputInContainer}
-            symbolTextStyle={[symbolTextStyle, dynamicAmountStyle]}
-            style={[style, dynamicAmountStyle]}
+            symbolTextStyle={symbolTextStyle}
+            style={style}
             containerStyle={containerStyle}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
