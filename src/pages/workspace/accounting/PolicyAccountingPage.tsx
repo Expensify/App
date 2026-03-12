@@ -55,6 +55,7 @@ import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {adminPoliciesConnectedToSageIntacctSelector} from '@src/selectors/Policy';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
@@ -69,6 +70,7 @@ type RouteParams = {
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [hasPoliciesConnectedToSageIntacct = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -295,7 +297,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress && policyID) {
             return accountingIntegrations
                 .map((integration) => {
-                    const integrationData = getAccountingIntegrationData(integration, policyID, translate, undefined, undefined, undefined, undefined, undefined, accountingIcons);
+                    const integrationData = getAccountingIntegrationData(
+                        integration,
+                        policyID,
+                        translate,
+                        hasPoliciesConnectedToSageIntacct,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        accountingIcons,
+                    );
                     if (!integrationData) {
                         return undefined;
                     }
@@ -352,6 +365,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             connectedIntegration,
             policyID,
             translate,
+            hasPoliciesConnectedToSageIntacct,
             policy,
             undefined,
             undefined,
@@ -495,7 +509,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         );
         return otherIntegrations
             .map((integration) => {
-                const integrationData = getAccountingIntegrationData(integration, policyID, translate, undefined, undefined, undefined, undefined, undefined, accountingIcons);
+                const integrationData = getAccountingIntegrationData(
+                    integration,
+                    policyID,
+                    translate,
+                    hasPoliciesConnectedToSageIntacct,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    accountingIcons,
+                );
                 if (!integrationData) {
                     return undefined;
                 }
@@ -541,6 +566,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         connectedIntegration,
         policyID,
         translate,
+        hasPoliciesConnectedToSageIntacct,
         styles.justifyContentCenter,
         styles.sectionMenuItemTopDescription,
         isOffline,

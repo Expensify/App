@@ -6228,14 +6228,6 @@ function getAdminPolicies(): Policy[] {
     );
 }
 
-function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
-    return Object.values(deprecatedAllPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
-}
-
-function getAdminPoliciesConnectedToNetSuite(): Policy[] {
-    return Object.values(deprecatedAllPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
-}
-
 /**
  * Call the API to set default report title pattern for the given policy
  * @param policyID - id of the policy to apply the naming pattern to
@@ -7173,8 +7165,6 @@ export {
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
     getAdminPolicies,
-    getAdminPoliciesConnectedToNetSuite,
-    getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
     clearAllPolicies,
     enablePolicyRules,

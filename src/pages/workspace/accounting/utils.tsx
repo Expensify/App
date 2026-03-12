@@ -47,6 +47,7 @@ function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
+    hasPoliciesConnectedToSageIntacct: boolean,
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
@@ -57,7 +58,6 @@ function getAccountingIntegrationData(
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
-    const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
     const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
