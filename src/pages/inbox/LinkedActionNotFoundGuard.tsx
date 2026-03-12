@@ -21,12 +21,29 @@ type LinkedActionNotFoundGuardProps = {
 };
 
 /**
- * Guards against linking to deleted or inaccessible report actions.
- * Self-subscribes to high-frequency Onyx keys (VISIBLE_REPORT_ACTIONS, paginated actions)
- * so that these re-renders stay scoped here instead of propagating through the parent guard.
+ * Cheap outer guard — only calls useRoute().
+ * When there is no linked reportActionID (the common case), renders children directly
+ * and avoids mounting the heavy inner gate with its ~8-9 Onyx subscriptions.
  */
 // eslint-disable-next-line rulesdir/no-negated-variables
 function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
+    const route = useRoute();
+    const routeParams = route.params as {reportID?: string; reportActionID?: string} | undefined;
+    const reportActionIDFromRoute = routeParams?.reportActionID;
+
+    if (!reportActionIDFromRoute) {
+        return children;
+    }
+
+    return <LinkedActionNotFoundGate>{children}</LinkedActionNotFoundGate>;
+}
+
+/**
+ * Inner gate — subscribes to Onyx keys and manages linked action state.
+ * Only mounted when there is a reportActionID in the route.
+ */
+// eslint-disable-next-line rulesdir/no-negated-variables
+function LinkedActionNotFoundGate({children}: LinkedActionNotFoundGuardProps) {
     const route = useRoute();
     const routeParams = route.params as {reportID?: string; reportActionID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
