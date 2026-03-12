@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef} from 'react';
-import type {Role, TextInputKeyPressEvent} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -13,6 +13,7 @@ import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSy
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
 import type {ButtonOrCheckBoxRoles} from '@components/SelectionList/types';
+import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -26,7 +27,6 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -89,9 +89,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const triggerScrollEvent = useScrollEventEmitter();
-    const platform = getPlatform();
-    const isWeb = platform === CONST.PLATFORM.WEB;
-
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
@@ -361,7 +358,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 renderListEmptyContent()
             ) : (
                 <FlashList
-                    role={!canSelectMultiple && isWeb ? (CONST.ROLE.LISTBOX as Role) : undefined}
+                    role={getListboxRole(canSelectMultiple)}
                     data={flattenedData}
                     renderItem={renderItem}
                     ref={listRef}

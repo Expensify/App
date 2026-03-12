@@ -3,7 +3,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {Role, TextInputKeyPressEvent} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {Keyboard, View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -27,6 +27,7 @@ import useSearchFocusSync from './hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
 import ListItemRenderer from './ListItem/ListItemRenderer';
 import type {ButtonOrCheckBoxRoles, DataDetailsType, ListItem, SelectionListProps} from './types';
+import {getListboxRole} from './utils/getListboxRole';
 
 const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
@@ -550,7 +551,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 <>
                     {!shouldHeaderBeInsideList && header}
                     <FlashList
-                        role={!canSelectMultiple ? (CONST.ROLE.LISTBOX as Role) : undefined}
+                        role={getListboxRole(canSelectMultiple)}
                         data={data}
                         renderItem={renderItem}
                         ref={listRef}

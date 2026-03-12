@@ -2,7 +2,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, Role, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
+import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -10,6 +10,7 @@ import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
+import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -23,7 +24,6 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -162,8 +162,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
-    const platform = getPlatform();
-    const isWeb = platform === CONST.PLATFORM.WEB;
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
     const {isKeyboardShown} = useKeyboardState();
@@ -1047,7 +1045,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         renderScrollComponent={renderScrollComponent}
                         removeClippedSubviews={removeClippedSubviews}
                         ref={listRef}
-                        role={!canSelectMultiple && isWeb ? (CONST.ROLE.LISTBOX as Role) : undefined}
+                        role={getListboxRole(canSelectMultiple)}
                         sections={slicedSections}
                         stickySectionHeadersEnabled={false}
                         renderSectionHeader={(arg) => (
