@@ -23,7 +23,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCleanedTagName, isPolicyAdmin} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
@@ -1074,9 +1073,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     );
                     setClipboardMessage(displayMessage);
                 } else if (content) {
-                    const contentWithoutFollowups = stripFollowupListFromHtml(content) ?? content;
                     setClipboardMessage(
-                        contentWithoutFollowups.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
+                        content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
                             const modifiedContent = Str.removeSMSDomain(innerContent) || '';
                             return openTag + modifiedContent + closeTag || '';
                         }),
