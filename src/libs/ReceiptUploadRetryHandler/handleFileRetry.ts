@@ -2,6 +2,7 @@ import * as IOU from '@userActions/IOU';
 import {startSplitBill} from '@userActions/IOU/Split';
 import {clearError} from '@userActions/Transaction';
 import CONST from '@src/CONST';
+import type Transaction from '@src/types/onyx/Transaction';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 
 export default function handleFileRetry(message: ReceiptError, file: File, dismissError: () => void, setShouldShowErrorModal: (value: boolean) => void) {
@@ -43,6 +44,12 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             trackExpenseParams.transactionParams.receipt = file;
             trackExpenseParams.isRetry = true;
             trackExpenseParams.shouldPlaySound = false;
+            trackExpenseParams.shouldHandleNavigation = false;
+            // Reuse the existing transaction so retry errors appear on the same
+            // transaction the user is viewing instead of creating a new one.
+            if (message.transactionID) {
+                trackExpenseParams.existingTransaction = {transactionID: message.transactionID} as Transaction;
+            }
             IOU.trackExpense(trackExpenseParams);
             break;
         }
@@ -52,6 +59,12 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             requestMoneyParams.transactionParams.receipt = file;
             requestMoneyParams.isRetry = true;
             requestMoneyParams.shouldPlaySound = false;
+            requestMoneyParams.shouldHandleNavigation = false;
+            // Reuse the existing transaction so retry errors appear on the same
+            // transaction the user is viewing instead of creating a new one.
+            if (message.transactionID) {
+                requestMoneyParams.existingTransactionDraft = {transactionID: message.transactionID} as Transaction;
+            }
             IOU.requestMoney(requestMoneyParams);
             break;
         }

@@ -6781,7 +6781,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         existingTransactionID:
             isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
                 ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
-                : undefined,
+                : existingTransaction?.transactionID,
         participantParams: {
             participant,
             payeeAccountID,
