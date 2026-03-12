@@ -87,6 +87,7 @@ const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollectio
 
 const shouldRedirectToExpensifyClassicSelector = (policies: OnyxCollection<Policy>) => areAllGroupPoliciesExpenseChatDisabled(policies);
 
+// deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
 const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
     if (!policies) {
         return {};

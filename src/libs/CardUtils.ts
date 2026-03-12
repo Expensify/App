@@ -1201,7 +1201,7 @@ function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExcl
         return undefined;
     }
 
-    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardConnectionBroken(card));
 }
 
 /** Extract feed from feed with domainID */
