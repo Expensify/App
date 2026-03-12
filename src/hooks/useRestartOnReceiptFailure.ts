@@ -10,10 +10,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
 
 const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportID: string, iouType: IOUType, action: IOUAction) => {
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -22,7 +23,7 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
     useEffect(() => {
         let isScanFilesCanBeRead = true;
 
-        if (!transaction || action !== CONST.IOU.ACTION.CREATE) {
+        if (!transaction || action !== CONST.IOU.ACTION.CREATE || isLoadingOnyxValue(draftTransactionsMetadata)) {
             return;
         }
         const itemReceiptFilename = transaction.receipt?.filename;
@@ -51,7 +52,7 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
 
         // We want this hook to run on mounting only
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [draftTransactionsMetadata]);
 };
 
 export default useRestartOnReceiptFailure;
