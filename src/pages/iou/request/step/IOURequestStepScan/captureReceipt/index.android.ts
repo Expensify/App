@@ -10,7 +10,7 @@ const captureReceipt: CaptureReceipt = (camera, {flash, hasFlash, isPlatformMute
         });
     }
 
-    return camera.takeSnapshot({quality: 100, path});
+    return camera.takeSnapshot({quality: 85, path});
 };
 
 export default captureReceipt;
