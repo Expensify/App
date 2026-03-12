@@ -63,6 +63,7 @@ import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePersonalPolicy from './usePersonalPolicy';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -77,7 +78,7 @@ function getRestrictedPolicyID(items: Array<{policyID?: string}>, billingGracePe
 }
 
 function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, toLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -98,6 +99,7 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const personalPolicy = usePersonalPolicy();
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
     // Cache the last search results that had data, so the merge option remains available
@@ -469,16 +471,19 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
                 if (isExpenseReportType) {
                     for (const reportID of selectedReportIDs) {
                         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                        deleteAppReport(
+                        deleteAppReport({
                             report,
                             selfDMReport,
-                            currentUserPersonalDetails?.email ?? '',
-                            currentUserPersonalDetails?.accountID,
-                            validTransactions,
+                            currentUserEmailParam: currentUserPersonalDetails?.email ?? '',
+                            currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
+                            reportTransactions: validTransactions,
                             allTransactionViolations,
                             bankAccountList,
+                            personalPolicy,
+                            translate,
+                            toLocaleDigit,
                             hash,
-                        );
+                        });
                     }
                 } else {
                     const transactionsViolations = allTransactionViolations
@@ -494,8 +499,11 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
                         reportTransactions: validTransactions,
                         transactionsViolations,
                         bankAccountList,
-                        deleteTransactionsOnSearch,
+                        personalPolicy,
+                        translate,
+                        toLocaleDigit,
                         transactions,
+                        deleteTransactionsOnSearch,
                     });
                 }
 
@@ -513,14 +521,17 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
         accountID,
         selectedTransactions,
         bankAccountList,
+        personalPolicy,
         clearSelectedTransactions,
         transactions,
         allReports,
         selfDMReport,
         currentUserPersonalDetails?.email,
         currentUserPersonalDetails?.accountID,
+        toLocaleDigit,
         isExpenseReportType,
         selectedReportIDs,
+        deleteTransactionsOnSearch,
     ]);
 
     const onBulkPaySelected = useCallback(
