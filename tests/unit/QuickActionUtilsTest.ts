@@ -35,6 +35,7 @@ describe('QuickActionUtils', () => {
 
             beforeEach(() => {
                 jest.clearAllMocks();
+                mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
             });
 
             it('should return false when report contains Manager McTest', () => {
@@ -202,6 +203,30 @@ describe('QuickActionUtils', () => {
                     id: '1',
                     arePerDiemRatesEnabled: false,
                 } as unknown as Policy;
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
+            });
+            it('should not allow per diem action when policy is not a control workspace', () => {
+                const perDiemCustomUnit = {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    customUnitID: 'ABCDEF',
+                    enabled: true,
+                    rates: {
+                        London: {
+                            customUnitRateID: 'London',
+                            name: 'London',
+                        },
+                    },
+                };
+                mockedPolicyUtils.isControlPolicy.mockReturnValue(false);
+                mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(perDiemCustomUnit);
+                const policy = {
+                    id: '1',
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                } as unknown as Policy;
+
                 expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
             });
         });

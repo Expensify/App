@@ -17,8 +17,6 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
-    computePerDiemExpenseAmount,
-    isValidPerDiemExpenseAmount,
     setCustomUnitRateID,
     setMoneyRequestAmount,
     setMoneyRequestCategory,
@@ -28,6 +26,7 @@ import {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
 } from '@libs/actions/IOU';
+import {computePerDiemExpenseAmount, isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {adjustRemainingSplitShares, resetSplitShares, setIndividualShare, setSplitShares} from '@libs/actions/IOU/Split';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
@@ -56,6 +55,7 @@ import {
     hasRoute as hasRouteUtil,
     hasTaxRateWithMatchingValue,
     isMerchantMissing,
+    isScanning,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
@@ -405,7 +405,12 @@ function MoneyRequestConfirmationList({
         amountToBeUsed = perDiemRequestAmount;
     }
 
-    const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
+    let formattedAmount = convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
+    if (isDistanceRequestWithPendingRoute) {
+        formattedAmount = '';
+    } else if (isScanning(transaction)) {
+        formattedAmount = translate('iou.receiptStatusTitle');
+    }
     const formattedAmountPerAttendee =
         isDistanceRequestWithPendingRoute || isScanRequest
             ? ''
