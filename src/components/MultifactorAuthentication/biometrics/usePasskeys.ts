@@ -72,7 +72,11 @@ function usePasskeys(): UseBiometricsReturn {
         }
 
         if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
-            throw new Error('credential.response is not an AuthenticatorAttestationResponse');
+            onResult({
+                success: false,
+                reason: VALUES.REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
+            });
+            return;
         }
         const attestationResponse = credential.response;
         const credentialId = arrayBufferToBase64URL(credential.rawId);
@@ -142,7 +146,11 @@ function usePasskeys(): UseBiometricsReturn {
         }
 
         if (!(assertion.response instanceof AuthenticatorAssertionResponse)) {
-            throw new Error('assertion.response is not an AuthenticatorAssertionResponse');
+            onResult({
+                success: false,
+                reason: VALUES.REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
+            });
+            return;
         }
         const assertionResponse = assertion.response;
         const rawId = arrayBufferToBase64URL(assertion.rawId);
