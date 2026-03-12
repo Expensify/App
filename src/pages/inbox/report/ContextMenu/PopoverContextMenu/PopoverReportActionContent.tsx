@@ -234,6 +234,7 @@ function PopoverReportActionContent({
                     reportAction,
                     originalReport,
                     currentUserAccountID,
+                    introSelected,
                     hideAndRun,
                     translate,
                     chatBubbleReplyIcon: icons.ChatBubbleReply,
@@ -261,6 +262,7 @@ function PopoverReportActionContent({
                     originalReport,
                     reportAction,
                     currentUserPersonalDetails,
+                    introSelected,
                     hideAndRun,
                     translate,
                     conciergeIcon: icons.Concierge,
@@ -306,10 +308,30 @@ function PopoverReportActionContent({
             );
         }
         if (showJoinThread) {
-            visibleActions.push(createJoinThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, bellIcon: icons.Bell}));
+            visibleActions.push(
+                createJoinThreadAction({
+                    reportAction,
+                    originalReport,
+                    currentUserAccountID,
+                    introSelected,
+                    hideAndRun,
+                    translate,
+                    bellIcon: icons.Bell,
+                }),
+            );
         }
         if (showLeaveThread) {
-            visibleActions.push(createLeaveThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, exitIcon: icons.Exit}));
+            visibleActions.push(
+                createLeaveThreadAction({
+                    reportAction,
+                    originalReport,
+                    currentUserAccountID,
+                    introSelected,
+                    hideAndRun,
+                    translate,
+                    exitIcon: icons.Exit,
+                }),
+            );
         }
         if (showCopyMessage) {
             visibleActions.push(

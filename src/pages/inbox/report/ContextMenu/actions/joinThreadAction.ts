@@ -5,7 +5,7 @@ import {isActionableTrackExpense, isCreatedAction, isCreatedTaskReportAction, is
 import {getChildReportNotificationPreference, shouldDisableThread, shouldDisplayThreadReplies} from '@libs/ReportUtils';
 import {toggleSubscribeToChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {ReportAction, Report as ReportType} from '@src/types/onyx';
+import type {IntroSelected, ReportAction, Report as ReportType} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
@@ -13,6 +13,7 @@ type JoinThreadActionParams = BaseContextMenuActionParams & {
     reportAction: ReportAction;
     originalReport: OnyxEntry<ReportType>;
     currentUserAccountID: number;
+    introSelected: OnyxEntry<IntroSelected>;
     hideAndRun: (callback?: () => void) => void;
     bellIcon: IconAsset;
 };
@@ -49,7 +50,7 @@ function shouldShowJoinThreadAction({
     );
 }
 
-function createJoinThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, bellIcon}: JoinThreadActionParams): ContextMenuAction {
+function createJoinThreadAction({reportAction, originalReport, currentUserAccountID, introSelected, hideAndRun, translate, bellIcon}: JoinThreadActionParams): ContextMenuAction {
     return {
         id: 'joinThread',
         icon: bellIcon,
@@ -59,7 +60,7 @@ function createJoinThreadAction({reportAction, originalReport, currentUserAccoun
                 const childReportNotificationPreference = getChildReportNotificationPreference(reportAction);
                 hideAndRun(() => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, childReportNotificationPreference);
                 });
             }, false),
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,

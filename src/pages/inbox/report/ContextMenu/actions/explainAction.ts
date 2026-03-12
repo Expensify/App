@@ -4,7 +4,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 import {explain} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {ReportAction, Report as ReportType} from '@src/types/onyx';
+import type {IntroSelected, ReportAction, Report as ReportType} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
@@ -14,6 +14,7 @@ type ExplainActionParams = BaseContextMenuActionParams & {
     originalReport: OnyxEntry<ReportType>;
     reportAction: ReportAction;
     currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
+    introSelected: OnyxEntry<IntroSelected>;
     hideAndRun: (callback?: () => void) => void;
     conciergeIcon: IconAsset;
 };
@@ -25,7 +26,16 @@ function shouldShowExplainAction({reportAction, isArchivedRoom}: {reportAction: 
     return hasReasoning(reportAction);
 }
 
-function createExplainAction({childReport, originalReport, reportAction, currentUserPersonalDetails, hideAndRun, translate, conciergeIcon}: ExplainActionParams): ContextMenuAction {
+function createExplainAction({
+    childReport,
+    originalReport,
+    reportAction,
+    currentUserPersonalDetails,
+    introSelected,
+    hideAndRun,
+    translate,
+    conciergeIcon,
+}: ExplainActionParams): ContextMenuAction {
     return {
         id: 'explain',
         icon: conciergeIcon,
@@ -37,7 +47,15 @@ function createExplainAction({childReport, originalReport, reportAction, current
                 }
                 hideAndRun(() => {
                     KeyboardUtils.dismiss().then(() =>
-                        explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails?.timezone),
+                        explain(
+                            childReport,
+                            originalReport,
+                            reportAction,
+                            translate,
+                            currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                            introSelected,
+                            currentUserPersonalDetails?.timezone,
+                        ),
                     );
                 });
             }),

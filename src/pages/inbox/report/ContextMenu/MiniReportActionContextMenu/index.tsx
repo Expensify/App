@@ -258,6 +258,7 @@ function MiniReportActionContextMenu() {
                     reportAction,
                     originalReport,
                     currentUserAccountID,
+                    introSelected,
                     hideAndRun,
                     translate,
                     chatBubbleReplyIcon: icons.ChatBubbleReply,
@@ -285,6 +286,7 @@ function MiniReportActionContextMenu() {
                     originalReport,
                     reportAction,
                     currentUserPersonalDetails,
+                    introSelected,
                     hideAndRun,
                     translate,
                     conciergeIcon: icons.Concierge,
@@ -330,10 +332,30 @@ function MiniReportActionContextMenu() {
             );
         }
         if (showJoinThread) {
-            allVisibleActions.push(createJoinThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, bellIcon: icons.Bell}));
+            allVisibleActions.push(
+                createJoinThreadAction({
+                    reportAction,
+                    originalReport,
+                    currentUserAccountID,
+                    introSelected,
+                    hideAndRun,
+                    translate,
+                    bellIcon: icons.Bell,
+                }),
+            );
         }
         if (showLeaveThread) {
-            allVisibleActions.push(createLeaveThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, exitIcon: icons.Exit}));
+            allVisibleActions.push(
+                createLeaveThreadAction({
+                    reportAction,
+                    originalReport,
+                    currentUserAccountID,
+                    introSelected,
+                    hideAndRun,
+                    translate,
+                    exitIcon: icons.Exit,
+                }),
+            );
         }
         if (showCopyMessage) {
             allVisibleActions.push(

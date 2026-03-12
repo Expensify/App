@@ -11,6 +11,7 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {deleteTrackExpense} from '@libs/actions/IOU';
@@ -26,7 +27,8 @@ type ConfirmDeleteReportActionModalProps = ModalProps & {
 };
 
 function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID, actionSourceReportID}: ConfirmDeleteReportActionModalProps) {
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
+    const personalPolicy = usePersonalPolicy();
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {currentSearchHash} = useSearchStateContext();
 
@@ -94,7 +96,19 @@ function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID, a
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(childReport, selfDMReport, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
+            deleteAppReport({
+                report: childReport,
+                selfDMReport,
+                currentUserEmailParam: email ?? '',
+                currentUserAccountIDParam: currentUserAccountID,
+                reportTransactions,
+                allTransactionViolations,
+                bankAccountList,
+                personalPolicy,
+                translate,
+                toLocaleDigit,
+                hash: currentSearchHash,
+            });
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {

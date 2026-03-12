@@ -3,7 +3,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {shouldDisableThread} from '@libs/ReportUtils';
 import {navigateToAndOpenChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {ReportAction, Report as ReportType} from '@src/types/onyx';
+import type {IntroSelected, ReportAction, Report as ReportType} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
@@ -13,6 +13,7 @@ type ReplyInThreadActionParams = BaseContextMenuActionParams & {
     reportAction: ReportAction;
     originalReport: OnyxEntry<ReportType>;
     currentUserAccountID: number;
+    introSelected: OnyxEntry<IntroSelected>;
     hideAndRun: (callback?: () => void) => void;
     chatBubbleReplyIcon: IconAsset;
 };
@@ -39,6 +40,7 @@ function createReplyInThreadAction({
     reportAction,
     originalReport,
     currentUserAccountID,
+    introSelected,
     hideAndRun,
     translate,
     chatBubbleReplyIcon,
@@ -51,7 +53,7 @@ function createReplyInThreadAction({
             interceptAnonymousUser(() => {
                 hideAndRun(() => {
                     KeyboardUtils.dismiss().then(() => {
-                        navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID);
+                        navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected);
                     });
                 });
             }, false),

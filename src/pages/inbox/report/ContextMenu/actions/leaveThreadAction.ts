@@ -5,7 +5,7 @@ import {isActionableTrackExpense, isCreatedAction, isCreatedTaskReportAction, is
 import {getChildReportNotificationPreference, shouldDisplayThreadReplies} from '@libs/ReportUtils';
 import {toggleSubscribeToChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {ReportAction, Report as ReportType} from '@src/types/onyx';
+import type {IntroSelected, ReportAction, Report as ReportType} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
@@ -13,6 +13,7 @@ type LeaveThreadActionParams = BaseContextMenuActionParams & {
     reportAction: ReportAction;
     originalReport: OnyxEntry<ReportType>;
     currentUserAccountID: number;
+    introSelected: OnyxEntry<IntroSelected>;
     hideAndRun: (callback?: () => void) => void;
     exitIcon: IconAsset;
 };
@@ -47,7 +48,7 @@ function shouldShowLeaveThreadAction({
     );
 }
 
-function createLeaveThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, exitIcon}: LeaveThreadActionParams): ContextMenuAction {
+function createLeaveThreadAction({reportAction, originalReport, currentUserAccountID, introSelected, hideAndRun, translate, exitIcon}: LeaveThreadActionParams): ContextMenuAction {
     return {
         id: 'leaveThread',
         icon: exitIcon,
@@ -57,7 +58,7 @@ function createLeaveThreadAction({reportAction, originalReport, currentUserAccou
                 const childReportNotificationPreference = getChildReportNotificationPreference(reportAction);
                 hideAndRun(() => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, childReportNotificationPreference);
                 });
             }, false),
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,

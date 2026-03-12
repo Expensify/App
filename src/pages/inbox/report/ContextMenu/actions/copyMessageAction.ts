@@ -10,6 +10,7 @@ import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
 import Parser from '@libs/Parser';
 import {getCleanedTagName, isPolicyAdmin} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
@@ -526,8 +527,9 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
             );
             setClipboardMessage(displayMessage);
         } else if (content) {
+            const contentWithoutFollowups = stripFollowupListFromHtml(content) ?? content;
             setClipboardMessage(
-                content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
+                contentWithoutFollowups.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
                     const modifiedContent = Str.removeSMSDomain(innerContent) || '';
                     return openTag + modifiedContent + closeTag || '';
                 }),
