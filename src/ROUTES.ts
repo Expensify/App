@@ -600,8 +600,6 @@ const ROUTES = {
     },
     SETTINGS_2FA_DISABLED: 'settings/security/two-factor-auth/disabled',
     SETTINGS_2FA_DISABLE: 'settings/security/two-factor-auth/disable',
-    SETTINGS_2FA_REPLACE_VERIFY_OLD: 'settings/security/two-factor-auth/replace/verify-old',
-    SETTINGS_2FA_REPLACE_VERIFY_NEW: 'settings/security/two-factor-auth/replace/verify-new',
 
     SETTINGS_STATUS: 'settings/profile/status',
 
@@ -2997,7 +2995,7 @@ const ROUTES = {
         route: 'travel/public-domain-error',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error`, backTo),
+        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_WORKSPACE_CONFIRMATION: {
         route: 'travel/upgrade/workspace/confirmation',

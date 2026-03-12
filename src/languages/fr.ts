@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Activé',
         before: 'Avant',
         after: 'Après',
+        range: 'Intervalle',
         reschedule: 'Reprogrammer',
         general: 'Général',
         workspacesTabTitle: 'Espaces de travail',
@@ -1610,7 +1611,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Le montant total est trop élevé. Réduisez le nombre d’heures ou diminuez le taux.',
         },
         correctRateError: 'Corrigez l’erreur de taux et réessayez.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Expliquer<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Vous ne pouvez pas dupliquer les indemnités journalières entre plusieurs espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
         rulesModifiedFields: {
@@ -2121,12 +2122,6 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’authentification à deux facteurs.',
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: 'L’authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.',
-        replaceDevice: 'Remplacer l’appareil',
-        replaceDeviceTitle: 'Remplacer l’appareil d’authentification à deux facteurs',
-        verifyOldDeviceTitle: 'Vérifier l’ancien appareil',
-        verifyOldDeviceDescription: 'Saisissez le code à six chiffres depuis votre application d’authentification actuelle pour confirmer que vous y avez accès.',
-        verifyNewDeviceTitle: 'Configurer un nouvel appareil',
-        verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
     },
     recoveryCodeForm: {
         error: {
@@ -3077,7 +3072,7 @@ ${
                 descriptionTwo: 'Catégoriser et taguer les dépenses',
                 descriptionThree: 'Créer et partager des notes de frais',
             },
-            price: 'Essayez-le gratuitement pendant 30 jours, puis passez à l’offre supérieure pour seulement <strong>5 $/utilisateur/mois</strong>.',
+            price: (price?: string) => `Essayez-le gratuitement pendant 30 jours, puis passez à l’offre supérieure pour seulement <strong>${price ?? '5 $'}/utilisateur/mois</strong>.`,
             createWorkspace: 'Créer un espace de travail',
         },
         confirmWorkspace: {
@@ -6936,6 +6931,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     return `Comptabilité ${enabled ? 'activé' : 'Désactivé'}`;
                 case 'Expensify Cards':
                     return `${enabled ? 'activé' : 'Désactivé'} Cartes Expensify`;
+                case 'travel invoicing':
+                    return `Facturation de voyages ${enabled ? 'activé' : 'Désactivé'}`;
                 case 'company cards':
                     return `${enabled ? 'activé' : 'Désactivé'} cartes de société`;
                 case 'invoicing':
@@ -7339,6 +7336,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 before: (date?: string) => `Avant ${date ?? ''}`,
                 after: (date?: string) => `Après ${date ?? ''}`,
                 on: (date?: string) => `Le ${date ?? ''}`,
+                customDate: 'Date personnalisée',
+                customRange: 'Intervalle personnalisé',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
@@ -7449,6 +7448,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
         },
         spendOverTime: 'Dépenses dans le temps',
     },

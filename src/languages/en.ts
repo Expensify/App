@@ -532,6 +532,7 @@ const translations = {
         on: 'On',
         before: 'Before',
         after: 'After',
+        range: 'Range',
         reschedule: 'Reschedule',
         general: 'General',
         workspacesTabTitle: 'Workspaces',
@@ -1635,7 +1636,7 @@ const translations = {
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         correctRateError: 'Fix the rate error and try again.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explain<sparkles-icon/></a>`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),
@@ -2163,12 +2164,6 @@ const translations = {
         twoFactorAuthIsRequiredCompany: 'Your company requires two-factor authentication.',
         twoFactorAuthCannotDisable: 'Cannot disable 2FA',
         twoFactorAuthRequired: 'Two-factor authentication (2FA) is required for your Xero connection and cannot be disabled.',
-        replaceDevice: 'Replace device',
-        replaceDeviceTitle: 'Replace two-factor device',
-        verifyOldDeviceTitle: 'Verify old device',
-        verifyOldDeviceDescription: 'Enter the six-digit code from your current authenticator app to confirm you have access to it.',
-        verifyNewDeviceTitle: 'Set up new device',
-        verifyNewDeviceDescription: 'Scan the QR code with your new device, then enter the code to complete setup.',
     },
     recoveryCodeForm: {
         error: {
@@ -3114,7 +3109,7 @@ const translations = {
                 descriptionTwo: 'Categorize and tag expenses',
                 descriptionThree: 'Create and share reports',
             },
-            price: 'Try it free for 30 days, then upgrade for just <strong>$5/user/month</strong>.',
+            price: (price?: string) => `Try it free for 30 days, then upgrade for just <strong>${price ?? '$5'}/user/month</strong>.`,
             createWorkspace: 'Create workspace',
         },
         confirmWorkspace: {
@@ -7009,6 +7004,8 @@ const translations = {
                     return `${enabled ? 'enabled' : 'disabled'} accounting`;
                 case 'Expensify Cards':
                     return `${enabled ? 'enabled' : 'disabled'} Expensify Cards`;
+                case 'travel invoicing':
+                    return `${enabled ? 'enabled' : 'disabled'} travel invoicing`;
                 case 'company cards':
                     return `${enabled ? 'enabled' : 'disabled'} company cards`;
                 case 'invoicing':
@@ -7286,6 +7283,8 @@ const translations = {
                 before: (date?: string) => `Before ${date ?? ''}`,
                 after: (date?: string) => `After ${date ?? ''}`,
                 on: (date?: string) => `On ${date ?? ''}`,
+                customDate: 'Custom date',
+                customRange: 'Custom range',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
@@ -7396,6 +7395,9 @@ const translations = {
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
         },
     },
     genericErrorPage: {

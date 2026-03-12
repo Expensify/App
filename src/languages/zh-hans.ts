@@ -508,6 +508,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: '开打开',
         before: '之前',
         after: '之后',
+        range: '范围',
         reschedule: '重新安排',
         general: '常规',
         workspacesTabTitle: '工作区',
@@ -1567,7 +1568,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
         correctRateError: '修复费率错误后请重试。',
-        AskToExplain: `。<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>说明</strong></a> &#x2728;`,
+        AskToExplain: `。<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">说明<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError: '您无法在不同工作区之间复制每日津贴报销，因为各工作区的补贴标准可能不同。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”'),
@@ -2071,12 +2072,6 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
         twoFactorAuthCannotDisable: '无法禁用双重验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证（2FA），且无法将其禁用。',
-        replaceDevice: '更换设备',
-        replaceDeviceTitle: '更换双重验证设备',
-        verifyOldDeviceTitle: '验证旧设备',
-        verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您可以访问该应用。',
-        verifyNewDeviceTitle: '设置新设备',
-        verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码以完成设置。',
     },
     recoveryCodeForm: {
         error: {
@@ -3003,7 +2998,7 @@ ${
                 descriptionTwo: '分类并标记报销费用',
                 descriptionThree: '创建并分享报告',
             },
-            price: '免费试用 30 天，之后仅需 <strong>$5/用户/月</strong> 即可升级。',
+            price: (price?: string) => `免费试用 30 天，之后仅需 <strong>${price ?? '$5'}/用户/月</strong> 即可升级。`,
             createWorkspace: '创建工作区',
         },
         confirmWorkspace: {
@@ -6716,6 +6711,8 @@ ${reportName}
                     return `${enabled ? '已启用' : '已禁用'} 会计`;
                 case 'Expensify Cards':
                     return `${enabled ? '已启用' : '已禁用'} Expensify 卡`;
+                case 'travel invoicing':
+                    return `${enabled ? '已启用' : '已禁用'} 差旅发票`;
                 case 'company cards':
                     return `${enabled ? '已启用' : '已禁用'} 张公司卡`;
                 case 'invoicing':
@@ -7107,6 +7104,8 @@ ${reportName}
                 before: (date?: string) => `在 ${date ?? ''} 之前`,
                 after: (date?: string) => `在 ${date ?? ''} 之后`,
                 on: (date?: string) => `在 ${date ?? ''} 上`,
+                customDate: '自定义日期',
+                customRange: '自定义范围',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从不',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
@@ -7211,6 +7210,9 @@ ${reportName}
         exportAll: {
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选择所有匹配的项目',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
         spendOverTime: '随时间支出',
     },

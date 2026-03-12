@@ -385,6 +385,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'El',
         before: 'Antes',
         after: 'Después',
+        range: 'Rango',
         reschedule: 'Reprogramar',
         general: 'General',
         workspacesTabTitle: 'Espacios',
@@ -1477,7 +1478,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'El importe total es demasiado alto. Reduce las horas o disminuye la tasa.',
         },
         correctRateError: 'Corrige el error de la tasa y vuelve a intentarlo.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explicar<sparkles-icon/></a>`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"'),
             billable: (value: boolean) => (value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"'),
@@ -1988,12 +1989,6 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Tu empresa requiere el uso de autenticación de dos factores. Por favor, habilítala para seguir usando Expensify.',
         twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
         twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
-        replaceDevice: 'Reemplazar dispositivo',
-        replaceDeviceTitle: 'Reemplazar dispositivo de autenticación de dos factores',
-        verifyOldDeviceTitle: 'Verificar dispositivo anterior',
-        verifyOldDeviceDescription: 'Introduce el código de seis dígitos de tu aplicación de autenticación actual para confirmar que tienes acceso a ella.',
-        verifyNewDeviceTitle: 'Configurar nuevo dispositivo',
-        verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
     },
     recoveryCodeForm: {
         error: {
@@ -2937,7 +2932,7 @@ ${amount} para ${merchant} - ${date}`,
                 descriptionTwo: 'Clasifica y etiqueta gastos',
                 descriptionThree: 'Crea y comparte informes',
             },
-            price: 'Pruébalo gratis durante 30 días y luego mejora por solo <strong>$5/usuario/mes</strong>.',
+            price: (price?: string) => `Pruébalo gratis durante 30 días y luego mejora por solo <strong>${price ?? '$5'}/usuario/mes</strong>.`,
             createWorkspace: 'Crear espacio de trabajo',
         },
         confirmWorkspace: {
@@ -6884,6 +6879,8 @@ ${amount} para ${merchant} - ${date}`,
                     return `${enabled ? 'activó' : 'desactivó'} la contabilidad`;
                 case 'Expensify Cards':
                     return `${enabled ? 'activó' : 'desactivó'} las tarjetas Expensify`;
+                case 'travel invoicing':
+                    return `${enabled ? 'activó' : 'desactivó'} la facturación de viajes`;
                 case 'company cards':
                     return `${enabled ? 'activó' : 'desactivó'} las tarjetas de empresa`;
                 case 'invoicing':
@@ -7148,6 +7145,8 @@ ${amount} para ${merchant} - ${date}`,
                 before: (date) => `Antes de ${date ?? ''}`,
                 after: (date) => `Después de ${date ?? ''}`,
                 on: (date) => `En ${date ?? ''}`,
+                customDate: 'Fecha personalizada',
+                customRange: 'Rango personalizado',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
@@ -7250,6 +7249,9 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
     },
     genericErrorPage: {
