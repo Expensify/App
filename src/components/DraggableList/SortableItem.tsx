@@ -48,6 +48,7 @@ function SortableItem({id, children, disabled = false}: SortableItemProps) {
         <div
             ref={setNodeRef}
             style={style}
+            // Use capture phase to intercept Enter before inner MenuItem handles it
             onKeyDownCapture={handleKeyDown}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...attributes}
