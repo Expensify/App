@@ -11,7 +11,6 @@ import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

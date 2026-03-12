@@ -271,7 +271,7 @@ function ReportActionCompose({reportID, onComposerFocus, onComposerBlur}: Report
         }
         addComment({
             report: transactionThreadReport ?? report,
-            notifyReportID: report?.reportID ?? '',
+            notifyReportID: reportID,
             ancestors,
             text,
             timezoneParam: currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
