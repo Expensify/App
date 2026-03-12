@@ -91,6 +91,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
