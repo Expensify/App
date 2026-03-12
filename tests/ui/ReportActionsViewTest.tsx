@@ -3,7 +3,9 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {SidePanelStateContext} from '@components/SidePanel/SidePanelContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -54,8 +56,8 @@ jest.mock('@hooks/usePrevious', () => jest.fn());
 const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
 
 jest.mock('@pages/inbox/report/ReportActionsList', () =>
-    jest.fn(({sortedReportActions}: {sortedReportActions: OnyxTypes.ReportAction[]}) => {
-        if (sortedReportActions && sortedReportActions.length > 0) {
+    jest.fn(({sortedVisibleReportActions}: {sortedVisibleReportActions: OnyxTypes.ReportAction[]}) => {
+        if (sortedVisibleReportActions && sortedVisibleReportActions.length > 0) {
             return null; // Simulate normal content
         }
         return null;
@@ -118,11 +120,12 @@ const renderReportActionsView = (
         transactionThreadReportID?: string | null;
         hasNewerActions: boolean;
         hasOlderActions: boolean;
-        isConciergeSidePanel?: boolean;
-        hasUserSentMessage?: boolean;
+        isInSidePanel?: boolean;
         sessionStartTime?: string | null;
     }> = {},
 ) => {
+    const {isInSidePanel = false, sessionStartTime = null, ...componentProps} = props;
+
     const defaultProps = {
         report: mockReport,
         reportActions: mockReportActions,
@@ -131,11 +134,29 @@ const renderReportActionsView = (
         hasOnceLoadedReportActions: true,
         hasNewerActions: false,
         hasOlderActions: false,
-        ...props,
+        ...componentProps,
     };
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return render(<ReportActionsView {...defaultProps} />);
+    const sidePanelState = {
+        isSidePanelTransitionEnded: true,
+        isSidePanelHiddenOrLargeScreen: true,
+        shouldHideSidePanel: true,
+        shouldHideSidePanelBackdrop: true,
+        shouldHideHelpButton: true,
+        shouldHideToolTip: false,
+        sidePanelOffset: {current: {}},
+        sidePanelTranslateX: {current: {}},
+        sessionStartTime,
+    } as React.ComponentProps<typeof SidePanelStateContext.Provider>['value'];
+
+    return render(
+        <IsInSidePanelContext.Provider value={isInSidePanel}>
+            <SidePanelStateContext.Provider value={sidePanelState}>
+                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                <ReportActionsView {...defaultProps} />
+            </SidePanelStateContext.Provider>
+        </IsInSidePanelContext.Provider>,
+    );
 };
 
 describe('ReportActionsView', () => {
@@ -364,8 +385,7 @@ describe('ReportActionsView', () => {
             renderReportActionsView({
                 report: {...mockReport, reportID: CONCIERGE_REPORT_ID},
                 reportActions: oldReportActions,
-                isConciergeSidePanel: true,
-                hasUserSentMessage: false,
+                isInSidePanel: true,
                 sessionStartTime: DateUtils.getDBTime(),
             });
 
@@ -381,7 +401,7 @@ describe('ReportActionsView', () => {
             renderReportActionsView({
                 report: {...mockReport, reportID: CONCIERGE_REPORT_ID},
                 reportActions: oldReportActions,
-                isConciergeSidePanel: false,
+                isInSidePanel: false,
             });
 
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
@@ -393,7 +413,7 @@ describe('ReportActionsView', () => {
             renderReportActionsView({
                 report: {...mockReport, reportID: 'non-concierge-999'},
                 reportActions: oldReportActions,
-                isConciergeSidePanel: false,
+                isInSidePanel: false,
             });
 
             expect(mockReportActionItemCreated).not.toHaveBeenCalled();
@@ -423,8 +443,7 @@ describe('ReportActionsView', () => {
             renderReportActionsView({
                 report: {...mockReport, reportID: CONCIERGE_REPORT_ID},
                 reportActions: actionsWithNewMessage,
-                isConciergeSidePanel: true,
-                hasUserSentMessage: true,
+                isInSidePanel: true,
                 sessionStartTime: sessionStart,
             });
 

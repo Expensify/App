@@ -50,7 +50,7 @@ describe('HeaderView', () => {
     });
 
     beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
+        Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
         initOnyxDerivedValues();
         return waitForBatchedUpdates();
     });
@@ -114,6 +114,9 @@ describe('HeaderView', () => {
             reportName: 'Test Room',
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        await waitForBatchedUpdates();
 
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
