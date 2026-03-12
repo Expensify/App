@@ -151,7 +151,12 @@ function clearPersonalBankAccountErrors() {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
 }
 
-function updatePersonalBankAccountInfo(bankAccountID: number, accountData: PersonalBankAccountForm) {
+type PersonalBankAccountUpdateData = Pick<
+    PersonalBankAccountForm,
+    'legalFirstName' | 'legalLastName' | 'addressStreet' | 'addressStreet2' | 'addressCity' | 'addressState' | 'addressZipCode' | 'phoneNumber'
+>;
+
+function updatePersonalBankAccountInfo(bankAccountID: number, accountData: PersonalBankAccountUpdateData) {
     const formattedStreet = getFormattedStreet(accountData.addressStreet, accountData.addressStreet2);
 
     const bankAccountKey = String(bankAccountID);

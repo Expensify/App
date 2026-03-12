@@ -21,7 +21,6 @@ import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalBankAccountForm} from '@src/types/form/PersonalBankAccountForm';
 import type {BankAccountList} from '@src/types/onyx';
 import Address from './InternationalDepositAccount/PersonalInfo/substeps/AddressStep';
 import LegalName from './InternationalDepositAccount/PersonalInfo/substeps/LegalNameStep';
@@ -127,7 +126,7 @@ function UpdatePersonalBankAccountPage() {
             addressState,
             addressZipCode,
             phoneNumber,
-        } as PersonalBankAccountForm);
+        });
     };
     const skipPageCandidates = getPageNamesForCompletedSteps(completedSteps);
     if (skipPageCandidates.length >= formPages.length) {
