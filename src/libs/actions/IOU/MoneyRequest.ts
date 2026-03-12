@@ -159,6 +159,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     introSelected?: IntroSelected;
     activePolicyID?: string;
     privateIsArchived?: string;
+    draftTransactionIDs: string[] | undefined;
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
     gpsDistance?: number;
@@ -169,6 +170,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
     personalOutputCurrency?: string;
+    isSelfTourViewed: boolean;
     amountOwed: OnyxEntry<number>;
 };
 
@@ -231,8 +233,10 @@ function createTransaction({
                 introSelected,
                 activePolicyID,
                 quickAction,
+                draftTransactionIDs,
                 recentWaypoints,
                 betas,
+                isSelfTourViewed,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -578,6 +582,7 @@ function handleMoneyRequestStepDistanceNavigation({
     introSelected,
     activePolicyID,
     privateIsArchived,
+    draftTransactionIDs = [],
     selfDMReport,
     gpsCoordinates,
     gpsDistance,
@@ -589,6 +594,7 @@ function handleMoneyRequestStepDistanceNavigation({
     recentWaypoints,
     unit,
     personalOutputCurrency,
+    isSelfTourViewed,
     amountOwed,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
@@ -670,8 +676,10 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
+                    draftTransactionIDs,
                     recentWaypoints,
                     betas,
+                    isSelfTourViewed,
                 });
                 return;
             }

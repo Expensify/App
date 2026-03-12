@@ -7,25 +7,22 @@ import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, isEnabled = true}: UseDiscardChangesConfirmationOptions) {
+function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange, isEnabled = true}: UseDiscardChangesConfirmationOptions) {
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
     const {showConfirmModal} = useConfirmModal();
     const [shouldAllowNavigation, setShouldAllowNavigation] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
 
-    const shouldPrevent = isEnabled && isFocused && !shouldAllowNavigation;
+    const hasUnsavedChanges = isEnabled && isFocused && getHasUnsavedChanges();
+    const shouldPrevent = hasUnsavedChanges && !shouldAllowNavigation;
 
     usePreventRemove(
         shouldPrevent,
         useCallback(
             ({data}: {data: {action: NavigationAction}}) => {
-                if (!getHasUnsavedChanges()) {
-                    setShouldAllowNavigation(true);
-                    navigationRef.current?.dispatch(data.action);
-                    return;
-                }
                 blockedNavigationAction.current = data.action;
+                onVisibilityChange?.(true);
                 showConfirmModal({
                     title: translate('discardChangesConfirmation.title'),
                     prompt: translate('discardChangesConfirmation.body'),
@@ -33,6 +30,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, isEnabled = true}:
                     confirmText: translate('discardChangesConfirmation.confirmText'),
                     cancelText: translate('common.cancel'),
                 }).then((result) => {
+                    onVisibilityChange?.(false);
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
@@ -45,7 +43,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, isEnabled = true}:
                     }
                 });
             },
-            [getHasUnsavedChanges, showConfirmModal, translate],
+            [showConfirmModal, translate, onVisibilityChange],
         ),
     );
 }

@@ -12,13 +12,14 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled = true}: UseDiscardChangesConfirmationOptions) {
+function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, isEnabled = true}: UseDiscardChangesConfirmationOptions) {
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
+    const isDiscardModalOpenRef = useRef(false);
 
     const navigateBack = useCallback(() => {
         if (blockedNavigationAction.current) {
@@ -32,6 +33,8 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnable
     }, []);
 
     const showDiscardModal = useCallback(() => {
+        onVisibilityChange?.(true);
+        isDiscardModalOpenRef.current = true;
         showConfirmModal({
             title: translate('discardChangesConfirmation.title'),
             prompt: translate('discardChangesConfirmation.body'),
@@ -40,6 +43,8 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnable
             cancelText: translate('common.cancel'),
             shouldIgnoreBackHandlerDuringTransition: true,
         }).then((result) => {
+            isDiscardModalOpenRef.current = false;
+            onVisibilityChange?.(false);
             if (result.action === ModalActions.CONFIRM) {
                 setNavigationActionToMicrotaskQueue(navigateBack);
             } else {
@@ -48,7 +53,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnable
                 onCancel?.();
             }
         });
-    }, [showConfirmModal, translate, navigateBack, onCancel]);
+    }, [showConfirmModal, translate, navigateBack, onCancel, onVisibilityChange]);
 
     useBeforeRemove(
         useCallback(
@@ -59,7 +64,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnable
 
                 e.preventDefault();
                 blockedNavigationAction.current = e.data.action;
-                showDiscardModal();
+                navigateAfterInteraction(showDiscardModal);
             },
             [getHasUnsavedChanges, isFocused, isEnabled, showDiscardModal],
         ),
@@ -91,6 +96,19 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnable
 
         return unsubscribe;
     }, [navigation, getHasUnsavedChanges, isFocused, isEnabled, showDiscardModal]);
+
+    /**
+     * When the screen loses focus (or is disabled) while the discard modal is open,
+     * close the modal and reset refs so we don't leave the modal visible or stale state.
+     */
+    useEffect(() => {
+        if ((isFocused && isEnabled) || !isDiscardModalOpenRef.current) {
+            return;
+        }
+        closeModal();
+        blockedNavigationAction.current = undefined;
+        shouldNavigateBack.current = false;
+    }, [isFocused, isEnabled, closeModal]);
 }
 
 export default useDiscardChangesConfirmation;
