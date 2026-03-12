@@ -7,7 +7,7 @@ title: Announce dynamic content changes to assistive technology
 
 ### Reasoning
 
-Screen reader users cannot see visual changes — toast messages, success/error banners, loading completions, and counter updates are invisible unless explicitly announced. Cross-platform coverage requires **both** approaches: `accessibilityLiveRegion` works **only on Android** (TalkBack), while `AccessibilityInfo.announceForAccessibility()` works **only on iOS** (VoiceOver). Neither has a cross-platform equivalent — you must handle both platforms. (WCAG 4.1.3)
+Screen reader users cannot see visual changes — toast messages, success/error banners, loading completions, and counter updates are invisible unless explicitly announced. Cross-platform coverage requires **both** approaches: `accessibilityLiveRegion` works on Android and web (React Native Web maps it to `aria-live`), while `AccessibilityInfo.announceForAccessibility()` works only on iOS (VoiceOver). Use both together for full platform coverage. (WCAG 4.1.3)
 
 ### Incorrect
 

@@ -30,9 +30,7 @@ React Native components have no implicit semantic meaning — assistive technolo
 
 ```tsx
 <Pressable
-    accessible
     accessibilityRole="button"
-    accessibilityLabel={translate('common.submit')}
     onPress={handleSubmit}
 >
     <Text>Submit</Text>
