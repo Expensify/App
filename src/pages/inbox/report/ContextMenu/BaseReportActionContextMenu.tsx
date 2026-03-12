@@ -401,6 +401,7 @@ function BaseReportActionContextMenu({
                             translate,
                             harvestReport,
                             introSelected,
+                            betas,
                             isDelegateAccessRestricted,
                             showDelegateNoAccessModal,
                             currentUserAccountID: currentUserPersonalDetails?.accountID,
