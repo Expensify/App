@@ -268,6 +268,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     targetPolicyTags,
                 });
             }
+
+            // Close the dropdown menu after duplicating to prevent it from staying open
+            dropdownMenuRef.current?.setIsMenuVisible(false);
         },
         [
             activePolicyExpenseChat,
