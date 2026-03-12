@@ -218,6 +218,13 @@
 - E/App issue: [#83000](https://github.com/Expensify/App/issues/83000)
 - PR introducing patch: [#83256](https://github.com/Expensify/App/pull/83256)
 
+### [react-native+0.81.4+029+log-soft-exception-if-viewState-not-found.patch](react-native+0.81.4+029+log-soft-exception-if-viewState-not-found.patch)
+
+- Reason: This patch prevents app crashes by soft-logging the exception when JS try to send events to native views even if they are removed from view hierarchy. The approach follows existing patterns in the same file where similar events are already handled this way and is based on suggestions from other developers in upstream discussions.
+- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
+- E/App issue: [#82611](https://github.com/Expensify/App/issues/82611)
+- PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303)
+
 ### [react-native+0.81.4+029+fix-fabric-accessibility-expanded-collapsed.patch](react-native+0.81.4+029+fix-fabric-accessibility-expanded-collapsed.patch)
 
 - Reason: Fixes a bug in Fabric's (`RCTViewComponentView.mm`) accessibility state handling where the "collapsed" state is never announced by VoiceOver on iOS. The old architecture (`RCTView.m`) correctly handles both "expanded" and "collapsed", but Fabric only announced "expanded" (when `expanded=true`) and silently skipped announcing "collapsed" (when `expanded=false`). This patch changes the condition from `value_or(false)` to `has_value()` so that both states are properly announced.
