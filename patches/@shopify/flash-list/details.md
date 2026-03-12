@@ -1,6 +1,6 @@
 # `@shopify/flash-list` patches
 
-### [@shopify+flash-list+2.2.0.patch](@shopify+flash-list+2.2.0.patch)
+### [@shopify+flash-list+2.3.0+001+fix-horizontal-height-normalization.patch](@shopify+flash-list+2.3.0+001+fix-horizontal-height-normalization.patch)
 
 - Reason: Fixes height normalization in horizontal FlashList when items change. `LinearLayoutManager.normalizeLayoutHeights` had three issues:
   1. **Screen resize / item shrink**: When items shrink, `tallestItemHeight` was updated prematurely, causing the next cycle to skip re-normalization. Fixed by resetting tallest item tracking when `targetMinHeight === 0` so the next repaint re-detects the tallest item.
@@ -9,3 +9,10 @@
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/33725
 - PR introducing patch: https://github.com/Expensify/App/pull/81566
+
+### [@shopify+flash-list+2.3.0+002+fix-inverted-scroll-direction-on-web.patch](@shopify+flash-list+2.3.0+002+fix-inverted-scroll-direction-on-web.patch)
+
+- Reason: Fixes inverted scroll direction on web. FlashList uses `scaleY: -1` / `scaleX: -1` CSS transform to visually invert the list, but the browser's native wheel scroll doesn't flip accordingly — scrolling down visually scrolls up and vice versa. This patch adds a `useEffect` in `RecyclerView` that attaches a `wheel` event listener on web when `inverted` is true, intercepting the event, negating the scroll delta, and manually adjusting `scrollTop`/`scrollLeft`. Mirrors the same fix applied in react-native-web's `VirtualizedList`.
+- Upstream PR/issue: TBD
+- E/App issue: TBD
+- PR introducing patch: TBD
