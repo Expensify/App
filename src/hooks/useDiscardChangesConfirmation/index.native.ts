@@ -14,13 +14,17 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange
     const [shouldAllowNavigation, setShouldAllowNavigation] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
 
-    const hasUnsavedChanges = isEnabled && isFocused && getHasUnsavedChanges();
-    const shouldPrevent = hasUnsavedChanges && !shouldAllowNavigation;
+    const shouldPrevent = isEnabled && isFocused && !shouldAllowNavigation;
 
     usePreventRemove(
         shouldPrevent,
         useCallback(
             ({data}: {data: {action: NavigationAction}}) => {
+                if (!getHasUnsavedChanges()) {
+                    setShouldAllowNavigation(true);
+                    navigationRef.current?.dispatch(data.action);
+                    return;
+                }
                 blockedNavigationAction.current = data.action;
                 onVisibilityChange?.(true);
                 showConfirmModal({
@@ -43,7 +47,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange
                     }
                 });
             },
-            [showConfirmModal, translate, onVisibilityChange],
+            [getHasUnsavedChanges, onVisibilityChange, showConfirmModal, translate],
         ),
     );
 }
