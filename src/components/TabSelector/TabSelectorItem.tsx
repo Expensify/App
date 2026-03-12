@@ -58,8 +58,13 @@ function TabSelectorItem({
             accessibilityLabel={title}
             accessibilityState={accessibilityState}
             accessibilityRole={CONST.ROLE.TAB}
-            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, disabled, backgroundColor), styles.userSelectNone]}
-            wrapperStyle={[equalWidth ? styles.flex1 : styles.flexGrow1, isOfflinePendingAction && styles.offlineFeedbackPending]}
+            style={[
+                styles.tabSelectorButton,
+                styles.tabBackground(isHovered, isActive, disabled, backgroundColor),
+                styles.userSelectNone,
+                isOfflinePendingAction && styles.offlineFeedbackPending,
+            ]}
+            wrapperStyle={equalWidth ? styles.flex1 : styles.flexGrow1}
             onLongPress={onLongPress}
             onPress={() => {
                 scrollToTab(tabKey);
