@@ -47,7 +47,10 @@ function VacationDelegatePage() {
             });
 
             if (result.action === ModalActions.CONFIRM) {
-                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegateRef.current?.delegate);
+                const response = await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegateRef.current?.delegate);
+                if (!response?.jsonCode) {
+                    clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
+                }
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
                 return;
             }
