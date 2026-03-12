@@ -64,25 +64,12 @@ function ReportActionEditMessageContextProvider({reportID, parentReportID, paren
         editingStateRef.current = state;
     };
 
-    const updateActiveEditState = useCallback(
-        (activeEdit: ReportActionActiveEdit | null) => {
-            const newEditingReportActionID = activeEdit?.editingReportActionID ?? null;
-            const newEditingReportAction = activeEdit?.editingReportAction ?? null;
-            const newEditingMessage = activeEdit?.editingMessage ?? null;
+    const updateActiveEditState = (activeEdit: ReportActionActiveEdit | null) => {
         const newEditingReportID = activeEdit?.editingReportID ?? null;
+        const newEditingReportActionID = activeEdit?.editingReportActionID ?? null;
+        const newEditingReportAction = activeEdit?.editingReportAction ?? null;
+        const newEditingMessage = activeEdit?.editingMessage ?? null;
 
-            if (newEditingReportActionID !== editingReportActionID) {
-                setEditingReportActionID(newEditingReportActionID);
-            }
-            if (newEditingReportAction !== editingReportAction) {
-                setEditingReportAction(newEditingReportAction);
-            }
-            if (newEditingMessage !== editingMessage) {
-                setEditingMessage(newEditingMessage);
-            }
-        },
-        [editingReportActionID, editingReportAction, editingMessage],
-    );
         if (newEditingReportID !== editingReportID) {
             setEditingReportID(newEditingReportID);
         }
@@ -114,7 +101,7 @@ function ReportActionEditMessageContextProvider({reportID, parentReportID, paren
         editingStateRef.current = null;
         updateActiveEditState(null);
         setCurrentEditMessageSelection(null);
-    }, [updateActiveEditState, setCurrentEditMessageSelection]);
+    };
 
     // Initially set the editing report action state when the draft comments change
     useEffect(() => {
