@@ -52,9 +52,6 @@ type ReportActionItemMessageEditProps = {
     /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
-    /** Draft message */
-    draftMessage: string;
-
     /** ReportID that holds the comment we're editing */
     reportID: string | undefined;
 
@@ -84,17 +81,7 @@ const DEFAULT_MODAL_VALUE = {
     isVisible: false,
 };
 
-function ReportActionItemMessageEdit({
-    action,
-    draftMessage,
-    reportID,
-    originalReportID,
-    policyID,
-    index,
-    isGroupPolicyReport,
-    shouldDisableEmojiPicker = false,
-    ref,
-}: ReportActionItemMessageEditProps) {
+function ReportActionItemMessageEdit({action, reportID, originalReportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false, ref}: ReportActionItemMessageEditProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -108,14 +95,14 @@ function ReportActionItemMessageEdit({
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
     const emojisPresentBefore = useRef<Emoji[]>([]);
-    const [draft, setDraft] = useState(() => {
-        if (draftMessage) {
-            emojisPresentBefore.current = extractEmojis(draftMessage);
-        }
-        return draftMessage;
-    });
 
-    const {currentEditMessageSelection, setCurrentEditMessageSelection, setEditingMessage} = useReportActionActiveEdit();
+    const {currentEditMessageSelection, setCurrentEditMessageSelection, editingMessage, setEditingMessage} = useReportActionActiveEdit();
+    const [draft, setDraft] = useState(() => {
+        if (editingMessage) {
+            emojisPresentBefore.current = extractEmojis(editingMessage);
+        }
+        return editingMessage ?? '';
+    });
 
     const defaultSelection = useMemo(() => ({start: draft.length, end: draft.length, positionX: 0, positionY: 0}), [draft.length]);
     const [selection, setSelectionState] = useState<TextSelection>(() => currentEditMessageSelection ?? defaultSelection);
@@ -152,7 +139,7 @@ function ReportActionItemMessageEdit({
     const isCommentPendingSaved = useRef(false);
 
     useDraftMessageVideoAttributeCache({
-        draftMessage,
+        draftMessage: editingMessage ?? '',
         isEditing: true,
         editingReportAction: action,
         updateDraftMessage: setDraft,

@@ -1775,7 +1775,6 @@ function PureReportActionItem({
                                 {isEditingInline ? (
                                     <ReportActionItemMessageEdit
                                         action={action}
-                                        draftMessage={draftMessage}
                                         reportID={reportID}
                                         originalReportID={originalReportID}
                                         policyID={report?.policyID}
