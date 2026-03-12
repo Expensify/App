@@ -868,6 +868,7 @@ type PayMoneyRequestFunctionParams = {
     isSelfTourViewed: boolean | undefined;
     amountOwed: OnyxEntry<number>;
     ownerBillingGraceEndPeriod?: OnyxEntry<number>;
+    methodID?: number;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -1381,11 +1382,7 @@ function startMoneyRequest(
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
     if (isFromFloatingActionButton) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
-            isFromFloatingActionButton,
-            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-            ...(requestType && {iouRequestType: requestType}),
-        });
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
     }
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
@@ -9628,6 +9625,7 @@ function getPayMoneyRequestParams({
             optimisticHoldReportID,
             optimisticHoldActionID,
             optimisticHoldReportExpenseActionIDs,
+            ...(bankAccountID != null ? {bankAccountID} : {}),
             ...policyParams,
         },
         onyxData,
@@ -11273,6 +11271,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isSelfTourViewed,
         amountOwed,
         ownerBillingGraceEndPeriod,
+        methodID,
     } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -11296,6 +11295,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         currentUserAccountIDParam: currentUserAccountID,
         betas,
         isSelfTourViewed,
+        bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with

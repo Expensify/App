@@ -511,7 +511,6 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Ativado',
         before: 'Antes',
         after: 'Depois',
-        range: 'Intervalo',
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Espaços de trabalho',
@@ -748,6 +747,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.`,
         },
         verificationFailed: 'Falha na verificação',
+        setPin: {didNotShipCard: 'Não enviamos seu cartão. Tente novamente.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2105,12 +2105,6 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Sua empresa exige autenticação em duas etapas.',
         twoFactorAuthCannotDisable: 'Não é possível desativar a 2FA',
         twoFactorAuthRequired: 'A autenticação em duas etapas (2FA) é obrigatória para sua conexão com o Xero e não pode ser desativada.',
-        replaceDevice: 'Substituir dispositivo',
-        replaceDeviceTitle: 'Substituir dispositivo de autenticação em duas etapas',
-        verifyOldDeviceTitle: 'Verificar dispositivo antigo',
-        verifyOldDeviceDescription: 'Insira o código de seis dígitos do seu aplicativo autenticador atual para confirmar que você tem acesso a ele.',
-        verifyNewDeviceTitle: 'Configurar novo dispositivo',
-        verifyNewDeviceDescription: 'Escaneie o código QR com seu novo dispositivo e, em seguida, insira o código para concluir a configuração.',
     },
     recoveryCodeForm: {
         error: {
@@ -2359,6 +2353,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} para ${merchant} - ${date}`,
         },
+        setYourPin: 'Defina seu PIN.',
+        confirmYourPin: 'Confirme seu PIN.',
+        pinMustBeFourDigits: 'O PIN deve ter exatamente 4 dígitos.',
+        invalidPin: 'Escolha um PIN mais seguro.',
+        pinMismatch: 'Os PINs não coincidem. Tente novamente.',
+        revealPin: 'Revelar PIN',
+        hidePin: 'Ocultar PIN',
+        pin: 'PIN',
         freezeCard: 'Bloquear cartão',
         unfreeze: 'Desbloquear',
         unfreezeCard: 'Desbloquear cartão',
@@ -7268,8 +7270,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 before: (date?: string) => `Antes de ${date ?? ''}`,
                 after: (date?: string) => `Depois de ${date ?? ''}`,
                 on: (date?: string) => `Em ${date ?? ''}`,
-                customDate: 'Data personalizada',
-                customRange: 'Intervalo personalizado',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mês passado',
@@ -7380,9 +7380,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não tem despesas.',
             accessPlaceHolder: 'Abrir para ver detalhes',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: 'Selecione datas para De e Até',
         },
         spendOverTime: 'Gastos ao longo do tempo',
     },
