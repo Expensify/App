@@ -511,7 +511,6 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Ativado',
         before: 'Antes',
         after: 'Depois',
-        range: 'Intervalo',
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Espaços de trabalho',
@@ -2105,12 +2104,6 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Sua empresa exige autenticação em duas etapas.',
         twoFactorAuthCannotDisable: 'Não é possível desativar a 2FA',
         twoFactorAuthRequired: 'A autenticação em duas etapas (2FA) é obrigatória para sua conexão com o Xero e não pode ser desativada.',
-        replaceDevice: 'Substituir dispositivo',
-        replaceDeviceTitle: 'Substituir dispositivo de autenticação em duas etapas',
-        verifyOldDeviceTitle: 'Verificar dispositivo antigo',
-        verifyOldDeviceDescription: 'Insira o código de seis dígitos do seu aplicativo autenticador atual para confirmar que você tem acesso a ele.',
-        verifyNewDeviceTitle: 'Configurar novo dispositivo',
-        verifyNewDeviceDescription: 'Escaneie o código QR com seu novo dispositivo e, em seguida, insira o código para concluir a configuração.',
     },
     recoveryCodeForm: {
         error: {
@@ -7268,8 +7261,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 before: (date?: string) => `Antes de ${date ?? ''}`,
                 after: (date?: string) => `Depois de ${date ?? ''}`,
                 on: (date?: string) => `Em ${date ?? ''}`,
-                customDate: 'Data personalizada',
-                customRange: 'Intervalo personalizado',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mês passado',
@@ -7380,9 +7371,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não tem despesas.',
             accessPlaceHolder: 'Abrir para ver detalhes',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: 'Selecione datas para De e Até',
         },
         spendOverTime: 'Gastos ao longo do tempo',
     },

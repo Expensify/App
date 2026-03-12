@@ -532,7 +532,6 @@ const translations = {
         on: 'On',
         before: 'Before',
         after: 'After',
-        range: 'Range',
         reschedule: 'Reschedule',
         general: 'General',
         workspacesTabTitle: 'Workspaces',
@@ -2161,12 +2160,6 @@ const translations = {
         twoFactorAuthIsRequiredCompany: 'Your company requires two-factor authentication.',
         twoFactorAuthCannotDisable: 'Cannot disable 2FA',
         twoFactorAuthRequired: 'Two-factor authentication (2FA) is required for your Xero connection and cannot be disabled.',
-        replaceDevice: 'Replace device',
-        replaceDeviceTitle: 'Replace two-factor device',
-        verifyOldDeviceTitle: 'Verify old device',
-        verifyOldDeviceDescription: 'Enter the six-digit code from your current authenticator app to confirm you have access to it.',
-        verifyNewDeviceTitle: 'Set up new device',
-        verifyNewDeviceDescription: 'Scan the QR code with your new device, then enter the code to complete setup.',
     },
     recoveryCodeForm: {
         error: {
@@ -7278,8 +7271,6 @@ const translations = {
                 before: (date?: string) => `Before ${date ?? ''}`,
                 after: (date?: string) => `After ${date ?? ''}`,
                 on: (date?: string) => `On ${date ?? ''}`,
-                customDate: 'Custom date',
-                customRange: 'Custom range',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
@@ -7390,9 +7381,6 @@ const translations = {
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
         },
     },
     genericErrorPage: {

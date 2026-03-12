@@ -512,7 +512,6 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Włączone',
         before: 'Przed',
         after: 'PoPo',
-        range: 'Zakres',
         reschedule: 'Przełóż',
         general: 'Ogólne',
         workspacesTabTitle: 'Przestrzenie robocze',
@@ -2109,12 +2108,6 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Twoetapowe uwierzytelnianie jest wymagane przez Twoją firmę.',
         twoFactorAuthCannotDisable: 'Nie można wyłączyć 2FA',
         twoFactorAuthRequired: 'Dla połączenia z Xero wymagana jest weryfikacja dwuetapowa (2FA) i nie można jej wyłączyć.',
-        replaceDevice: 'Zastąp urządzenie',
-        replaceDeviceTitle: 'Wymień urządzenie uwierzytelniania dwuskładnikowego',
-        verifyOldDeviceTitle: 'Zweryfikuj stare urządzenie',
-        verifyOldDeviceDescription: 'Wprowadź sześciocyfrowy kod z bieżącej aplikacji uwierzytelniającej, aby potwierdzić, że masz do niej dostęp.',
-        verifyNewDeviceTitle: 'Skonfiguruj nowe urządzenie',
-        verifyNewDeviceDescription: 'Zeskanuj kod QR swoim nowym urządzeniem, a następnie wprowadź kod, aby zakończyć konfigurację.',
     },
     recoveryCodeForm: {
         error: {
@@ -7265,8 +7258,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 before: (date?: string) => `Przed ${date ?? ''}`,
                 after: (date?: string) => `Po ${date ?? ''}`,
                 on: (date?: string) => `Na ${date ?? ''}`,
-                customDate: 'Niestandardowa data',
-                customRange: 'Niestandardowy zakres',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nigdy',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'W zeszłym miesiącu',
@@ -7377,9 +7368,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         exportAll: {
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
             allMatchingItemsSelected: 'Zaznaczono wszystkie pasujące elementy',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: 'Wybierz daty dla Od i Do',
         },
         spendOverTime: 'Wydatki w czasie',
     },

@@ -385,7 +385,6 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'El',
         before: 'Antes',
         after: 'Después',
-        range: 'Rango',
         reschedule: 'Reprogramar',
         general: 'General',
         workspacesTabTitle: 'Espacios',
@@ -1986,12 +1985,6 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Tu empresa requiere el uso de autenticación de dos factores. Por favor, habilítala para seguir usando Expensify.',
         twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
         twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
-        replaceDevice: 'Reemplazar dispositivo',
-        replaceDeviceTitle: 'Reemplazar dispositivo de autenticación de dos factores',
-        verifyOldDeviceTitle: 'Verificar dispositivo anterior',
-        verifyOldDeviceDescription: 'Introduce el código de seis dígitos de tu aplicación de autenticación actual para confirmar que tienes acceso a ella.',
-        verifyNewDeviceTitle: 'Configurar nuevo dispositivo',
-        verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
     },
     recoveryCodeForm: {
         error: {
@@ -7140,8 +7133,6 @@ ${amount} para ${merchant} - ${date}`,
                 before: (date) => `Antes de ${date ?? ''}`,
                 after: (date) => `Después de ${date ?? ''}`,
                 on: (date) => `En ${date ?? ''}`,
-                customDate: 'Fecha personalizada',
-                customRange: 'Rango personalizado',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
@@ -7244,9 +7235,6 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
     },
     genericErrorPage: {
