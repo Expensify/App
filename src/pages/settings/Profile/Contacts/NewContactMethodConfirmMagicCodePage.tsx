@@ -4,19 +4,19 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearPendingContactActionErrors, requestValidateCodeAction, verifyAddSecondaryLoginCode} from '@libs/actions/User';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethod} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NewContactMethodConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE>;
 
 function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMagicCodePageProps) {
     const {translate} = useLocalize();
-    const navigateBackTo = route?.params?.backTo;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
@@ -27,8 +27,8 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
         if (!pendingContactAction?.isVerifiedValidateActionCode) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
-    }, [navigateBackTo, pendingContactAction?.isVerifiedValidateActionCode]);
+        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.route);
+    }, [pendingContactAction?.isVerifiedValidateActionCode]);
 
     return (
         <ValidateCodeActionContent
@@ -42,7 +42,7 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
                 clearPendingContactActionErrors();
             }}
             onClose={() => {
-                Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CONTACT_METHODS.path));
             }}
             isLoading={pendingContactAction?.isLoading}
         />

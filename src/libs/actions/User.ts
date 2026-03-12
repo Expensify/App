@@ -32,6 +32,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -47,7 +48,7 @@ import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
@@ -280,7 +281,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
     const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CONTACT_METHODS.path));
 }
 
 /**
@@ -1213,7 +1214,7 @@ function setContactMethodAsDefault(
         successData,
         failureData,
     });
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CONTACT_METHODS.path));
 }
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>) {

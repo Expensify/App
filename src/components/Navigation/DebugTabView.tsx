@@ -15,6 +15,7 @@ import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getRouteForCurrentStep as getReimbursementAccountRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -23,7 +24,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
@@ -72,9 +73,9 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return ROUTES.WORKSPACE_MEMBERS.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
-            return ROUTES.SETTINGS_CONTACT_METHODS.route;
+            return createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CONTACT_METHODS.path);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
-            return ROUTES.SETTINGS_CONTACT_METHODS.route;
+            return createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CONTACT_METHODS.path);
         case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:

@@ -20,7 +20,7 @@ function ImTeacherUpdateEmailPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const contactMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(ROUTES.I_AM_A_TEACHER)}`;
+    const contactMethodsRoute = `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CONTACT_METHODS.path)}`;
 
     return (
         <ScreenWrapper testID="ImTeacherUpdateEmailPage">
