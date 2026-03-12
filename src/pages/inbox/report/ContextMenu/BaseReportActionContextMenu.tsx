@@ -26,7 +26,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction, isMoneyRequestAction, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getHarvestOriginalReportID,
@@ -246,7 +246,13 @@ function BaseReportActionContextMenu({
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
-    const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequest(childReport), [childReport]);
+    const isMoneyRequest = useMemo(() => {
+        if (childReport) {
+            return ReportUtilsIsMoneyRequest(childReport);
+        }
+        // Fallback: check if reportAction is an IOU action (for cases where IOU action is shown in chat without a child report)
+        return isMoneyRequestAction(reportAction);
+    }, [childReport, reportAction]);
     const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
