@@ -41,8 +41,8 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
             style={[
                 styles.flexRow,
                 styles.highlightBG,
-                styles.br3,
-                isLargeScreenWidth ? [styles.pv2, styles.ph3] : [styles.p5, styles.pr3],
+                !isLargeScreenWidth && styles.br3,
+                isLargeScreenWidth ? [styles.pv2, styles.ph3, {borderRadius: 0, borderBottomWidth: 1, borderColor: theme.border}] : [styles.p5, styles.pr3],
                 styles.alignItemsCenter,
                 styles.gap3,
                 isHovered && styles.hoveredComponentBG,

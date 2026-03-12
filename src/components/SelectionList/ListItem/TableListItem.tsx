@@ -59,15 +59,15 @@ function TableListItem<TItem extends ListItem>({
             pressableStyle={[
                 styles.selectionListPressableItemWrapper,
                 styles.mh0,
-                isLargeScreenWidth && [styles.ph3, styles.pv2, {minHeight: variables.optionRowHeightCompact}],
+                isLargeScreenWidth && [styles.ph3, styles.pv2, {minHeight: variables.optionRowHeightCompact, borderRadius: 0}],
                 // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
                 item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
                 item.isSelected && styles.activeComponentBG,
                 item.cursorStyle,
             ]}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: 1, borderColor: theme.border}]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            containerStyle={isLargeScreenWidth ? styles.mb1 : styles.mb2}
+            containerStyle={!isLargeScreenWidth ? styles.mb2 : undefined}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}

@@ -527,7 +527,7 @@ function MoneyRequestReportTransactionList({
 
     const transactionListContent = (
         <View
-            style={[listHorizontalPadding, isLargeScreenWidth ? styles.gap1 : styles.gap2, styles.pb4]}
+            style={[listHorizontalPadding, !isLargeScreenWidth && styles.gap2, styles.pb4, isLargeScreenWidth && {borderRadius: 8, overflow: 'hidden' as const}]}
             onLayout={onLayout}
         >
             {shouldShowGroupedTransactions
@@ -542,7 +542,7 @@ function MoneyRequestReportTransactionList({
                       return (
                           <View
                               key={group.groupKey}
-                              style={isLargeScreenWidth ? styles.gap1 : styles.gap2}
+                              style={!isLargeScreenWidth ? styles.gap2 : undefined}
                           >
                               <MoneyRequestReportGroupHeader
                                   group={group}
@@ -606,7 +606,7 @@ function MoneyRequestReportTransactionList({
 
     const tableHeaderContent = (
         <OfflineWithFeedback pendingAction={reportPendingAction}>
-            <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter, styles.highlightBG]}>
                 <View style={[styles.dFlex, styles.flexRow, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                     <Checkbox
                         onPress={() => {

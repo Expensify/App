@@ -81,7 +81,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
         <OfflineWithFeedback
             key={`domain_${item.title}_${index}`}
             pendingAction={item.pendingAction}
-            style={[isLargeScreenWidth ? styles.mb1 : styles.mb2, styles.mh5]}
+            style={[!isLargeScreenWidth && styles.mb2, styles.mh5]}
             contentContainerStyle={item.errors ? styles.mb2 : undefined}
             errors={item?.errors}
             onClose={() => clearDomainErrors(item.accountID)}

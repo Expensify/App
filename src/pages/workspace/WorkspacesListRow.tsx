@@ -261,7 +261,7 @@ function WorkspacesListRow({
     );
 
     return (
-        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, styles.br3]}>
+        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, !isWide && styles.br3, isWide && {borderRadius: 0, borderBottomWidth: 1, borderColor: theme.border}]}>
             <Animated.View
                 style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide ? styles.gap5 : styles.gap2, styles.pt3, styles.pr2, styles.pb3, styles.pl4, animatedHighlightStyle]}
             >

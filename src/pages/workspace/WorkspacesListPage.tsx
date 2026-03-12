@@ -437,7 +437,7 @@ function WorkspacesListPage() {
                 errorRowStyles={[styles.ph5, styles.mt3]}
                 onClose={item.dismissError}
                 errors={item.errors}
-                style={styles.mb1}
+                style={!isLessThanMediumScreen ? undefined : styles.mb1}
                 shouldShowErrorMessages={item.policyID !== policyIDToDelete}
                 shouldHideOnDelete={false}
             >
@@ -623,7 +623,7 @@ function WorkspacesListPage() {
                 />
             )}
             {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
-                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.ph9, styles.appBG]}>
+                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.ph9, styles.highlightBG]}>
                     <View style={[styles.flexRow, styles.flex2]}>
                         <Text
                             numberOfLines={1}

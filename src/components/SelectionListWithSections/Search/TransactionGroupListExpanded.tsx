@@ -180,7 +180,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 </View>
             )}
             {visibleTransactions.map((transaction, index) => {
-                const shouldShowBottomBorder = !isLastTransaction(index) && !isLargeScreenWidth;
+                const shouldShowBottomBorder = !isLastTransaction(index);
                 const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
 
                 const transactionRow = (

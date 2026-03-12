@@ -182,7 +182,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
-    const pressableStyle = [styles.transactionGroupListItemStyle, isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact}, isItemSelected && styles.activeComponentBG];
+    const pressableStyle = [styles.transactionGroupListItemStyle, isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0}, isItemSelected && styles.activeComponentBG];
 
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
@@ -468,7 +468,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[isLargeScreenWidth ? styles.mb1 : styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[
+                    !isLargeScreenWidth && styles.mb2,
+                    styles.mh5,
+                    animatedHighlightStyle,
+                    styles.userSelectNone,
+                    isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: 1, borderColor: theme.border},
+                ]}
             >
                 {({hovered}) => (
                     <View style={styles.flex1}>

@@ -99,7 +99,7 @@ function TransactionListItem<TItem extends ListItem>({
     const pressableStyle = [
         styles.transactionListItemStyle,
         !isLargeScreenWidth && styles.pt3,
-        isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact},
+        isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0},
         item.isSelected && styles.activeComponentBG,
         isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
@@ -193,7 +193,14 @@ function TransactionListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[isLargeScreenWidth ? styles.mb1 : styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[
+                    !isLargeScreenWidth && styles.mb2,
+                    styles.mh5,
+                    styles.flex1,
+                    animatedHighlightStyle,
+                    styles.userSelectNone,
+                    isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: 1, borderColor: theme.border},
+                ]}
             >
                 {({hovered}) => (
                     <>

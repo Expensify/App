@@ -160,7 +160,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.selectionListPressableItemWrapper,
             isLargeScreenWidth ? styles.pv2 : styles.pv3,
             styles.ph3,
-            isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact},
+            isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0},
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
@@ -229,7 +229,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={isLargeScreenWidth ? [styles.mb1] : [styles.mb2]}
+            containerStyle={!isLargeScreenWidth ? [styles.mb2] : undefined}
             isFocused={isFocused}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
@@ -240,7 +240,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: 1, borderColor: theme.border}]}
             accessible={false}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}
