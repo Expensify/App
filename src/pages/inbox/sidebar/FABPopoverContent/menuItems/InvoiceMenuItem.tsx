@@ -13,6 +13,7 @@ import useRedirectToExpensifyClassic, {policyMapper} from '@pages/inbox/sidebar/
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.INVOICE;
@@ -28,7 +29,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const canSendInvoice = canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, sessionEmail);
 
     return (
@@ -44,7 +45,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
                         showRedirectToExpensifyClassicModal();
                         return;
                     }
-                    startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
+                    startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
                 })
             }
             shouldCallAfterModalHide={shouldRedirectToExpensifyClassic || shouldUseNarrowLayout}
