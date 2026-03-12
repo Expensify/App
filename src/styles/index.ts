@@ -5018,15 +5018,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.success,
         },
 
-        screenReaderOnly: {
-            position: 'absolute',
-            width: 1,
-            height: 1,
-            overflow: 'hidden',
-            opacity: 0,
-            pointerEvents: 'none',
-        },
-
         interactiveStepHeaderContainer: {
             flex: 1,
             alignSelf: 'center',
