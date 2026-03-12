@@ -35,7 +35,9 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
 
     // Check if country is valid
     const {street} = address ?? {};
-    const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
+    const [street1, legacyStreet2] = street ? street.split('\n') : [undefined, undefined];
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if explicit line 2 can be an empty string
+    const street2 = address?.street2 || legacyStreet2;
     const [currentCountry, setCurrentCountry] = useState(address?.country ?? defaultCountry);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);

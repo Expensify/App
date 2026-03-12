@@ -24,7 +24,8 @@ function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressP
         const tempAddress = policy?.address;
         const {streetLineOne, streetLineTwo} = getWorkspaceAddressStreetLines(tempAddress?.addressStreet, tempAddress?.addressStreet2);
         const result = {
-            street: streetLineTwo ? `${streetLineOne}\n${streetLineTwo}` : streetLineOne,
+            street: streetLineOne,
+            street2: streetLineTwo,
             city: tempAddress?.city?.trim() ?? '',
             state: tempAddress?.state?.trim() ?? '',
             zip: tempAddress?.zipCode?.trim().toUpperCase() ?? '',
