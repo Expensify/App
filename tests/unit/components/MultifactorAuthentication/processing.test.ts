@@ -1,5 +1,6 @@
 import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
+import CONST from '@src/CONST';
 
 jest.mock('@userActions/MultifactorAuthentication');
 
@@ -25,7 +26,7 @@ describe('MultifactorAuthentication processing', () => {
                 type: 'biometric' as const,
                 response: {
                     clientDataJSON: 'encoded-client-data',
-                    biometric: {publicKey: 'public-key-123', algorithm: -8 as const},
+                    biometric: {publicKey: 'public-key-123', algorithm: CONST.COSE_ALGORITHM.EDDSA},
                 },
             };
 
@@ -74,7 +75,7 @@ describe('MultifactorAuthentication processing', () => {
             });
 
             const result = await processRegistration({
-                keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: -8 as const}}},
+                keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: CONST.COSE_ALGORITHM.EDDSA}}},
                 authenticationMethod: 'BIOMETRIC_FACE',
             });
 
@@ -91,7 +92,7 @@ describe('MultifactorAuthentication processing', () => {
             });
 
             const result = await processRegistration({
-                keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: -8 as const}}},
+                keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: CONST.COSE_ALGORITHM.EDDSA}}},
                 authenticationMethod: 'BIOMETRIC_FACE',
             });
 

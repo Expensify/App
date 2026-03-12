@@ -110,7 +110,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
                 clientDataJSON: Base64URL.encode(clientDataJSON),
                 biometric: {
                     publicKey,
-                    algorithm: -8 as const,
+                    algorithm: CONST.COSE_ALGORITHM.EDDSA,
                 },
             },
         };

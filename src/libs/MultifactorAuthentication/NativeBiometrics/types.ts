@@ -3,6 +3,7 @@
  */
 import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationMethodCode, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
+import type CONST from '@src/CONST';
 import type VALUES from './VALUES';
 
 /**
@@ -38,7 +39,7 @@ type NativeBiometricsKeyInfo = {
         clientDataJSON: Base64URLString;
         biometric: {
             publicKey: Base64URLString;
-            algorithm: -8;
+            algorithm: typeof CONST.COSE_ALGORITHM.EDDSA;
         };
     };
 };
