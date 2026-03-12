@@ -2890,5 +2890,37 @@ describe('TripReservationUtils', () => {
             expect(isPnrCancelled(airPnrDirect)).toBe(false);
             expect(isPnrCancelled(railPnr)).toBe(false);
         });
+
+        it('should not crash when rail PNR has undefined inwardJourney (one-way trip)', () => {
+            const oneWayRail: Pnr = {
+                ...railPnr,
+                data: {
+                    ...railPnr.data,
+                    railPnr: {
+                        ...railPnrData,
+                        inwardJourney: undefined,
+                    },
+                },
+            };
+            expect(isPnrCancelled(oneWayRail)).toBe(false);
+        });
+
+        it('should return true when rail PNR has undefined inwardJourney and outwardJourney is cancelled', () => {
+            const cancelledOneWayRail: Pnr = {
+                ...railPnr,
+                data: {
+                    ...railPnr.data,
+                    railPnr: {
+                        ...railPnrData,
+                        inwardJourney: undefined,
+                        outwardJourney: {
+                            ...railPnrData.outwardJourney,
+                            journeyStatus: CONST.PNR_STATUS.CANCELLED,
+                        },
+                    },
+                },
+            };
+            expect(isPnrCancelled(cancelledOneWayRail)).toBe(true);
+        });
     });
 });
