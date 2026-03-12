@@ -10,6 +10,7 @@ import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
+import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -1044,6 +1045,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         renderScrollComponent={renderScrollComponent}
                         removeClippedSubviews={removeClippedSubviews}
                         ref={listRef}
+                        role={getListboxRole(canSelectMultiple)}
                         sections={slicedSections}
                         stickySectionHeadersEnabled={false}
                         renderSectionHeader={(arg) => (
