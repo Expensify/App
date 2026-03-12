@@ -257,7 +257,7 @@ describe('useTimeSensitiveOffers', () => {
 
             renderHook(() => useTimeSensitiveOffers());
 
-            expect(mockedShouldShowTrialEndedUI).toHaveBeenCalledWith(lastDayFreeTrial, userBillingFundID, {}, undefined, undefined);
+            expect(mockedShouldShowTrialEndedUI).toHaveBeenCalledWith(lastDayFreeTrial, userBillingFundID, {}, undefined, undefined, undefined);
         });
     });
 });

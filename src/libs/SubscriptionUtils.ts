@@ -600,11 +600,15 @@ function shouldShowTrialEndedUI(
     policies: OnyxCollection<Policy>,
     isGrandfatheredFree: boolean | undefined,
     isFromInternalDomain: boolean | undefined,
+    privateSubscriptionType: SubscriptionType | undefined,
 ): boolean {
     if (!getOwnedPaidPolicies(policies, currentUserAccountID)?.length) {
         return false;
     }
     if (isGrandfatheredFree || isFromInternalDomain) {
+        return false;
+    }
+    if (isSubscriptionTypeOfInvoicing(privateSubscriptionType)) {
         return false;
     }
     if (doesUserHavePaymentCardAdded(userBillingFundID)) {

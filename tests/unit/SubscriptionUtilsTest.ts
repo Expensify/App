@@ -1112,31 +1112,35 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return true for a regular user whose trial ended, no card, with owned workspace', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined)).toBeTruthy();
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, undefined)).toBeTruthy();
         });
 
         it('should return false if the user has no owned paid policies', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, {}, undefined, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, {}, undefined, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the user is grandfathered free', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, true, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, true, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the user is from an internal domain', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, true)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, true, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is on invoiced billing', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, CONST.SUBSCRIPTION.TYPE.INVOICING)).toBeFalsy();
         });
 
         it('should return false if the user has a payment card added', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, 8010, policies, undefined, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, 8010, policies, undefined, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the trial has not ended yet', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialActive, undefined, policies, undefined, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialActive, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if lastDayFreeTrial is undefined', () => {
-            expect(shouldShowTrialEndedUI(undefined, undefined, policies, undefined, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(undefined, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
         });
     });
 });
