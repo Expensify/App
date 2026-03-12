@@ -23,7 +23,7 @@ import {
     createDistanceRequest,
     deleteMoneyRequest,
     getDeleteTrackExpenseInformation,
-    getIOUReportActionToApproveOrPay,
+    getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
     getReportPreviewAction,
     getTrackExpenseInformation,
@@ -13315,7 +13315,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('getIOUReportActionToApproveOrPay', () => {
+    describe('getIOUReportActionWithBadge', () => {
         it('should exclude deleted actions', async () => {
             const reportID = '1';
             const policyID = '2';
@@ -13389,7 +13389,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, MOCK_REPORT_ACTIONS);
 
-            expect(getIOUReportActionToApproveOrPay(fakeReport, undefined, {}, undefined)).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
+            expect(getIOUReportActionWithBadge(fakeReport, undefined, {}, undefined)).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
         });
     });
 

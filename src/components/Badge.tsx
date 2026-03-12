@@ -85,11 +85,11 @@ function Badge({
             styles.defaultBadge,
             isCondensed && styles.condensedBadge,
             styles.alignSelfCenter,
-            styles.ml2,
+            styles.ml1,
             StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
             badgeStyles,
         ],
-        [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
+        [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml1, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
     );
 
     return (

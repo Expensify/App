@@ -191,6 +191,12 @@ const translations = {
         home: 'Home',
         inbox: 'Inbox',
         yourReviewIsRequired: 'Your review is required',
+        actionBadge: {
+            submit: 'Submit',
+            approve: 'Approve',
+            pay: 'Pay',
+            fix: 'Fix',
+        },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
         group: 'Group',
