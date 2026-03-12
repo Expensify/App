@@ -1,26 +1,17 @@
-import {PERMISSIONS} from 'react-native-permissions/dist/commonjs/permissions';
+import {PERMISSIONS, RESULTS} from 'react-native-permissions/dist/commonjs/permissions';
+import type {ValueOf} from 'type-fest';
 
-// RESULTS must be defined here rather than imported from 'react-native-permissions/dist/commonjs/results'
-// because that subpath lacks TypeScript declarations, and the 'permissions' subpath only exports PERMISSIONS.
-const RESULTS = {
-    UNAVAILABLE: 'unavailable',
-    BLOCKED: 'blocked',
-    DENIED: 'denied',
-    GRANTED: 'granted',
-    LIMITED: 'limited',
-} as const;
-
-type Results = (typeof RESULTS)[keyof typeof RESULTS];
+type Results = ValueOf<typeof RESULTS>;
 type ResultsCollection = Record<string, Results>;
 type NotificationSettings = Record<string, boolean>;
 type Notification = {status: Results; settings: NotificationSettings};
 
-const openLimitedPhotoLibraryPicker = jest.fn(() => Promise.resolve());
-const openSettings = jest.fn(() => Promise.resolve());
-const check = jest.fn(() => Promise.resolve(RESULTS.GRANTED as string));
-const request = jest.fn(() => Promise.resolve(RESULTS.GRANTED as string));
-const checkLocationAccuracy = jest.fn(() => Promise.resolve('full'));
-const requestLocationAccuracy = jest.fn(() => Promise.resolve('full'));
+const openLimitedPhotoLibraryPicker: jest.Mock<void> = jest.fn(() => {});
+const openSettings: jest.Mock<void> = jest.fn(() => {});
+const check = jest.fn(() => RESULTS.GRANTED as string);
+const request = jest.fn(() => RESULTS.GRANTED as string);
+const checkLocationAccuracy: jest.Mock<string> = jest.fn(() => 'full');
+const requestLocationAccuracy: jest.Mock<string> = jest.fn(() => 'full');
 
 const notificationOptions = new Set<string>(['alert', 'badge', 'sound', 'carPlay', 'criticalAlert', 'provisional']);
 
@@ -35,47 +26,39 @@ const notificationSettings: NotificationSettings = {
     notificationCenter: true,
 };
 
-const checkNotifications = jest.fn(() =>
-    Promise.resolve({
-        status: RESULTS.GRANTED,
-        settings: notificationSettings,
-    }),
+const checkNotifications: jest.Mock<Notification> = jest.fn(() => ({
+    status: RESULTS.GRANTED,
+    settings: notificationSettings,
+}));
+
+const requestNotifications: jest.Mock<Notification> = jest.fn((options: Record<string, string>) => ({
+    status: RESULTS.GRANTED,
+    settings: Object.keys(options)
+        .filter((option: string) => notificationOptions.has(option))
+        .reduce(
+            (acc: NotificationSettings, option: string) => {
+                acc[option] = true;
+                return acc;
+            },
+            {
+                lockScreen: true,
+                notificationCenter: true,
+            },
+        ),
+}));
+
+const checkMultiple: jest.Mock<ResultsCollection> = jest.fn((permissions: string[]) =>
+    permissions.reduce((acc: ResultsCollection, permission: string) => {
+        acc[permission] = RESULTS.GRANTED;
+        return acc;
+    }, {}),
 );
 
-const requestNotifications = jest.fn((options: Record<string, string>) =>
-    Promise.resolve({
-        status: RESULTS.GRANTED,
-        settings: Object.keys(options)
-            .filter((option: string) => notificationOptions.has(option))
-            .reduce(
-                (acc: NotificationSettings, option: string) => {
-                    acc[option] = true;
-                    return acc;
-                },
-                {
-                    lockScreen: true,
-                    notificationCenter: true,
-                },
-            ),
-    }),
-);
-
-const checkMultiple = jest.fn((permissions: string[]) =>
-    Promise.resolve(
-        permissions.reduce((acc: ResultsCollection, permission: string) => {
-            acc[permission] = RESULTS.GRANTED;
-            return acc;
-        }, {} as ResultsCollection),
-    ),
-);
-
-const requestMultiple = jest.fn((permissions: string[]) =>
-    Promise.resolve(
-        permissions.reduce((acc: ResultsCollection, permission: string) => {
-            acc[permission] = RESULTS.GRANTED;
-            return acc;
-        }, {} as ResultsCollection),
-    ),
+const requestMultiple: jest.Mock<ResultsCollection> = jest.fn((permissions: string[]) =>
+    permissions.reduce((acc: ResultsCollection, permission: string) => {
+        acc[permission] = RESULTS.GRANTED;
+        return acc;
+    }, {}),
 );
 
 export {
