@@ -189,14 +189,14 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     };
 
     const selectOtherFeed = (feed: CardFeedListItem) => {
-        if (!isUserFromPublicDomain) {
+        if (isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
             return;
         }
         if (!feed.fundID) {
             return;
         }
-        linkCardFeedToPolicy(feed.fundID, policyID, 'CompanyCard', feed?.country, feed.feed);
+        linkCardFeedToPolicy(feed.fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feed?.country, feed.feed);
         updateSelectedFeed(feed.value, policyID);
         goBack();
     };

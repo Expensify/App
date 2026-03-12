@@ -62,8 +62,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const isCommercialFeed = isCustomFeed(feedName);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
-    console.log('currentFeedData');
-    console.log(currentFeedData);
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);

@@ -12,6 +12,7 @@ import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import {getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
@@ -62,11 +63,11 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
             return;
         }
         if (isWorkEmailValidated) {
-            linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, 'CompanyCard', feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber);
+            linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber);
             updateSelectedFeed(feed, policyID);
             Navigation.closeRHPFlow();
         }
-    }, [feedInfo, isWorkEmailValidated, policyID]);
+    }, [feed, feedInfo, isWorkEmailValidated, policyID]);
 
     return (
         <ValidateCodeActionContent

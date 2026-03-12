@@ -3697,6 +3697,10 @@ const CONST = {
             MOCK_BANK: 'oauth.mockbank.com',
             UPLOAD: 'upload',
         },
+        LINK_FEED_TYPE: {
+            COMPANY_CARD: 'CompanyCard',
+            EXPENSIFY_CARD: 'ExpensifyCard',
+        },
         FEED_KEY_SEPARATOR: '#',
         CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
