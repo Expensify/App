@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'ホーム',
         inbox: '受信トレイ',
         yourReviewIsRequired: '確認が必要です',
+        actionBadge: {
+            submit: '送信',
+            approve: '承認する',
+            pay: '支払う',
+            fix: '修正',
+        },
         success: '成功しました',
         group: 'グループ',
         profile: 'プロフィール',

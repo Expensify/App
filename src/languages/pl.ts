@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Strona główna',
         inbox: 'Skrzynka odbiorcza',
         yourReviewIsRequired: 'Wymagana jest Twoja weryfikacja',
+        actionBadge: {
+            submit: 'Wyślij',
+            approve: 'Zatwierdź',
+            pay: 'Zapłać',
+            fix: 'Napraw',
+        },
         success: 'Sukces',
         group: 'Grupa',
         profile: 'Profil',
