@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({getHasUnsavedChanges, isEnabled = true}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange, isEnabled = true}: DiscardChangesConfirmationProps) {
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
     const [isVisible, setIsVisible] = useState(false);
@@ -16,12 +16,23 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, isEnabled = true}: Di
     const hasUnsavedChanges = isEnabled && isFocused && getHasUnsavedChanges();
     const shouldPrevent = hasUnsavedChanges && !shouldAllowNavigation.current;
 
+    const setModalVisible = useCallback(
+        (nextVisible: boolean) => {
+            setIsVisible(nextVisible);
+            onVisibilityChange?.(nextVisible);
+        },
+        [onVisibilityChange],
+    );
+
     usePreventRemove(
         shouldPrevent,
-        useCallback(({data}) => {
-            blockedNavigationAction.current = data.action;
-            setIsVisible(true);
-        }, []),
+        useCallback(
+            ({data}) => {
+                blockedNavigationAction.current = data.action;
+                setModalVisible(true);
+            },
+            [setModalVisible],
+        ),
     );
 
     return (
@@ -33,7 +44,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, isEnabled = true}: Di
             confirmText={translate('discardChangesConfirmation.confirmText')}
             cancelText={translate('common.cancel')}
             onConfirm={() => {
-                setIsVisible(false);
+                setModalVisible(false);
                 shouldAllowNavigation.current = true;
                 if (blockedNavigationAction.current) {
                     navigationRef.current?.dispatch(blockedNavigationAction.current);
@@ -43,7 +54,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, isEnabled = true}: Di
                 }
             }}
             onCancel={() => {
-                setIsVisible(false);
+                setModalVisible(false);
                 blockedNavigationAction.current = undefined;
             }}
             shouldHandleNavigationBack
