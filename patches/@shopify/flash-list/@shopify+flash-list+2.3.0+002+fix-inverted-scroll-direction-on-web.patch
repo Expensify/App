@@ -13,7 +13,7 @@ index 8b75322..aa740ea 100644
  import { ErrorMessages } from "../errors/ErrorMessages";
  import { WarningMessages } from "../errors/WarningMessages";
  import { areDimensionsNotEqual, measureFirstChildLayout, measureItemLayout, measureParentSize, } from "./utils/measureLayout";
-@@ -66,6 +66,50 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -66,6 +66,65 @@ const RecyclerViewComponent = (props, ref) => {
      // Hook to detect when scrolling reaches list bounds
      const { checkBounds } = useBoundDetection(recyclerViewManager, scrollViewRef);
      const isHorizontalRTL = I18nManager.isRTL && horizontal;
@@ -32,13 +32,18 @@ index 8b75322..aa740ea 100644
 +        }
 +        const wheelHandler = (ev) => {
 +            const target = ev.target;
++            const deltaX = ev.deltaX || ev.wheelDeltaX || 0;
++            const deltaY = ev.deltaY || ev.wheelDeltaY || 0;
++            // Compute scroll limits from the DOM node for overscroll recoil prevention.
++            const nodeScrollOffset = horizontal ? node.scrollLeft : node.scrollTop;
++            const nodeScrollLength = horizontal ? node.scrollWidth : node.scrollHeight;
++            const nodeClientLength = horizontal ? node.clientWidth : node.clientHeight;
++            const isOnScrollLimit = nodeScrollOffset <= 0 || Math.ceil(nodeScrollOffset) >= nodeScrollLength - nodeClientLength;
 +            const scrollOffset = horizontal ? target.scrollLeft : target.scrollTop;
 +            const scrollLength = horizontal ? target.scrollWidth : target.scrollHeight;
 +            const clientLength = horizontal ? target.clientWidth : target.clientHeight;
 +            const isEventTargetScrollable = scrollLength > clientLength;
-+            const delta = horizontal
-+                ? ev.deltaX || ev.wheelDeltaX || 0
-+                : ev.deltaY || ev.wheelDeltaY || 0;
++            const delta = horizontal ? deltaX : deltaY;
 +            let leftoverDelta = delta;
 +            if (isEventTargetScrollable) {
 +                leftoverDelta = delta < 0
@@ -47,14 +52,25 @@ index 8b75322..aa740ea 100644
 +            }
 +            const targetDelta = delta - leftoverDelta;
 +            if (horizontal) {
-+                target.scrollLeft += targetDelta;
-+                node.scrollLeft = node.scrollLeft - leftoverDelta;
++                if (Math.abs(deltaX) > Math.abs(deltaY)) {
++                    target.scrollLeft += targetDelta;
++                    node.scrollLeft = node.scrollLeft - leftoverDelta;
++                    ev.preventDefault();
++                    ev.stopPropagation();
++                }
 +            }
 +            else {
-+                target.scrollTop += targetDelta;
-+                node.scrollTop = node.scrollTop - leftoverDelta;
++                // Prevent overscroll recoil/rubber band at scroll boundaries.
++                if (isOnScrollLimit && Math.abs(deltaY) > 0) {
++                    ev.preventDefault();
++                }
++                if (Math.abs(deltaY) > Math.abs(deltaX)) {
++                    target.scrollTop += targetDelta;
++                    node.scrollTop = node.scrollTop - leftoverDelta;
++                    ev.preventDefault();
++                    ev.stopPropagation();
++                }
 +            }
-+            ev.preventDefault();
 +        };
 +        node.addEventListener("wheel", wheelHandler, { passive: false });
 +        return () => {
@@ -84,7 +100,7 @@ index 34722d4..83a28db 100644
  } from "react-native";
 
  import { FlashListRef } from "../FlashListRef";
-@@ -158,6 +160,67 @@ const RecyclerViewComponent = <T,>(
+@@ -158,6 +160,80 @@ const RecyclerViewComponent = <T,>(
 
    const isHorizontalRTL = I18nManager.isRTL && horizontal;
 
@@ -109,15 +125,23 @@ index 34722d4..83a28db 100644
 +    }
 +
 +    const wheelHandler = (ev: WheelEvent) => {
-+      // Determine scroll metrics for the event target (may be a nested scrollable)
 +      const target = ev.target as HTMLElement;
++      const deltaX = ev.deltaX || (ev as any).wheelDeltaX || 0;
++      const deltaY = ev.deltaY || (ev as any).wheelDeltaY || 0;
++
++      // Compute scroll limits from the DOM node for overscroll recoil prevention.
++      const nodeScrollOffset = horizontal ? node.scrollLeft : node.scrollTop;
++      const nodeScrollLength = horizontal ? node.scrollWidth : node.scrollHeight;
++      const nodeClientLength = horizontal ? node.clientWidth : node.clientHeight;
++      const isOnScrollLimit =
++        nodeScrollOffset <= 0 ||
++        Math.ceil(nodeScrollOffset) >= nodeScrollLength - nodeClientLength;
++
 +      const scrollOffset = horizontal ? target.scrollLeft : target.scrollTop;
 +      const scrollLength = horizontal ? target.scrollWidth : target.scrollHeight;
 +      const clientLength = horizontal ? target.clientWidth : target.clientHeight;
 +      const isEventTargetScrollable = scrollLength > clientLength;
-+      const delta = horizontal
-+        ? ev.deltaX || (ev as any).wheelDeltaX || 0
-+        : ev.deltaY || (ev as any).wheelDeltaY || 0;
++      const delta = horizontal ? deltaX : deltaY;
 +
 +      // Calculate how much delta the event target can consume vs leftover for parent
 +      let leftoverDelta = delta;
@@ -132,15 +156,28 @@ index 34722d4..83a28db 100644
 +      }
 +      const targetDelta = delta - leftoverDelta;
 +
-+      // Apply inverted scroll: negate the delta
++      // Only adjust scroll and consume the event when the dominant axis
++      // matches the list orientation. stopPropagation prevents parent
++      // inverted lists from also handling this event.
 +      if (horizontal) {
-+        target.scrollLeft += targetDelta;
-+        node.scrollLeft = node.scrollLeft - leftoverDelta;
++        if (Math.abs(deltaX) > Math.abs(deltaY)) {
++          target.scrollLeft += targetDelta;
++          node.scrollLeft = node.scrollLeft - leftoverDelta;
++          ev.preventDefault();
++          ev.stopPropagation();
++        }
 +      } else {
-+        target.scrollTop += targetDelta;
-+        node.scrollTop = node.scrollTop - leftoverDelta;
++        // Prevent overscroll recoil/rubber band at scroll boundaries.
++        if (isOnScrollLimit && Math.abs(deltaY) > 0) {
++          ev.preventDefault();
++        }
++        if (Math.abs(deltaY) > Math.abs(deltaX)) {
++          target.scrollTop += targetDelta;
++          node.scrollTop = node.scrollTop - leftoverDelta;
++          ev.preventDefault();
++          ev.stopPropagation();
++        }
 +      }
-+      ev.preventDefault();
 +    };
 +
 +    node.addEventListener("wheel", wheelHandler, { passive: false });
