@@ -17,8 +17,10 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import AccountManagerBanner from './AccountManagerBanner';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
+import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsList from './ReportActionsList';
+import ReportDragAndDropProvider from './ReportDragAndDropProvider';
 import ReportFetchController from './ReportFetchController';
 import ReportFooter from './ReportFooter';
 import ReportHeader from './ReportHeader';
@@ -70,20 +72,24 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         <ReportFetchController />
                         <ReportNavigateAwayHandler />
                         <ReportNotFoundGuard>
-                            <ReportLifecycleHandler reportIDFromRoute={reportIDFromRoute} />
-                            <ReportHeader />
-                            <AccountManagerBanner reportID={reportIDFromRoute} />
-                            <View style={[styles.flex1, styles.flexRow]}>
-                                <WideRHPReceiptPanel />
-                                <View
-                                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                    testID="report-actions-view-wrapper"
-                                >
-                                    <ReportActionsList />
-                                    <ReportFooter />
-                                </View>
-                            </View>
-                            <PortalHost name="suggestions" />
+                            <LinkedActionNotFoundGuard>
+                                <ReportDragAndDropProvider>
+                                    <ReportLifecycleHandler reportIDFromRoute={reportIDFromRoute} />
+                                    <ReportHeader />
+                                    <AccountManagerBanner reportID={reportIDFromRoute} />
+                                    <View style={[styles.flex1, styles.flexRow]}>
+                                        <WideRHPReceiptPanel />
+                                        <View
+                                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                            testID="report-actions-view-wrapper"
+                                        >
+                                            <ReportActionsList />
+                                            <ReportFooter />
+                                        </View>
+                                    </View>
+                                    <PortalHost name="suggestions" />
+                                </ReportDragAndDropProvider>
+                            </LinkedActionNotFoundGuard>
                         </ReportNotFoundGuard>
                     </ScreenWrapper>
                 </ReactionListWrapper>

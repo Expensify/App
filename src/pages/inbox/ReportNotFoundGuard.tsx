@@ -2,12 +2,9 @@ import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -16,7 +13,6 @@ import {isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUt
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 
 const defaultReportMetadata = {
     hasOnceLoadedReportActions: false,
@@ -35,7 +31,7 @@ type ReportNotFoundGuardProps = {
 /**
  * Owns not-found rendering logic. Renders FullPageNotFoundView or children.
  * Navigation-on-removal is handled by ReportNavigateAwayHandler (sibling).
- * Linked action not-found logic is delegated to LinkedActionNotFoundGuard (child).
+ * Linked action not-found logic is handled by LinkedActionNotFoundGuard (sibling, nested inside in ReportScreen).
  */
 // eslint-disable-next-line rulesdir/no-negated-variables
 function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
@@ -58,9 +54,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const parentReportAction = useParentReportAction(report);
     const reportID = report?.reportID;
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
-
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const {isEditingDisabled} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     // --- Parent action deletion status ---
     const {isParentActionMissingAfterLoad, isParentActionDeleted} = getParentReportActionDeletionStatus({
@@ -90,9 +83,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
             onBackButtonPress={Navigation.goBack}
             shouldDisplaySearchRouter
         >
-            <LinkedActionNotFoundGuard>
-                <DragAndDropProvider isDisabled={isEditingDisabled}>{children}</DragAndDropProvider>
-            </LinkedActionNotFoundGuard>
+            {children}
         </FullPageNotFoundView>
     );
 }
