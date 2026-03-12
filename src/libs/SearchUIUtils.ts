@@ -1778,6 +1778,7 @@ function getTransactionsSections({
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
                 category: isIOUReport ? '' : transactionItem?.category,
+                errors: undefined,
             };
 
             transactionsSections.push(transactionSection);
@@ -2446,6 +2447,7 @@ function getReportSections({
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 category: isIOUReport ? '' : transactionItem?.category,
+                errors: undefined,
             };
             if (reportIDToTransactions[reportKey]) {
                 const reportSection = reportIDToTransactions[reportKey];
@@ -2511,6 +2513,7 @@ function getMemberSections(
                 ...personalDetails,
                 ...memberGroup,
                 formattedFrom: formatPhoneNumber(getDisplayNameOrDefault(personalDetails)),
+                keyForList: key,
             };
         }
     }
@@ -2575,6 +2578,7 @@ function getCardSections(
                 ...cardGroup,
                 formattedCardName,
                 formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds),
+                keyForList: key,
             };
         }
     }
@@ -2608,6 +2612,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 transactionsQueryJSON,
                 ...withdrawalIDGroup,
                 formattedWithdrawalID: String(withdrawalIDGroup.entryID),
+                keyForList: key,
             };
         }
     }
@@ -2644,6 +2649,7 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
                 transactionsQueryJSON,
                 ...categoryGroup,
                 formattedCategory,
+                keyForList: key,
             };
         }
     }
@@ -2688,6 +2694,7 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
                 transactionsQueryJSON,
                 ...merchantGroup,
                 formattedMerchant,
+                keyForList: key,
             };
         }
     }
@@ -2729,6 +2736,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
                 transactionsQueryJSON,
                 ...tagGroup,
                 formattedTag,
+                keyForList: key,
             };
         }
     }
@@ -2762,6 +2770,7 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
                 transactions: [],
                 transactionsQueryJSON,
+                keyForList: key,
                 ...monthGroup,
                 formattedMonth,
                 sortKey: monthGroup.year * 100 + monthGroup.month,
@@ -2796,6 +2805,7 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 transactionsQueryJSON,
                 ...weekGroup,
                 formattedWeek,
+                keyForList: key,
             };
         }
     }
@@ -2827,6 +2837,7 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 ...yearGroup,
                 formattedYear,
                 sortKey: yearGroup.year,
+                keyForList: key,
             };
         }
     }
@@ -2856,6 +2867,7 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
                 ...quarterGroup,
                 formattedQuarter,
                 sortKey: quarterGroup.year * 10 + quarterGroup.quarter, // Sort by year*10 + quarter (e.g., 20241, 20242, etc.)
+                keyForList: key,
             };
         }
     }

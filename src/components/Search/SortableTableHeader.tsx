@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {SearchColumnType, SortOrder, TableColumnSize} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,7 +8,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SortableHeaderText from './SortableHeaderText';
-import type {SortableColumnName} from './types';
+import type {SearchColumnType, SortOrder, TableColumnSize} from './types';
 
 type ColumnConfig = {
     columnName: SearchColumnType;
@@ -21,7 +20,7 @@ type ColumnConfig = {
 
 type SearchTableHeaderProps = {
     columns: ColumnConfig[];
-    sortBy?: SortableColumnName;
+    sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
     shouldShowSorting: boolean;
     dateColumnSize: TableColumnSize;
@@ -33,7 +32,7 @@ type SearchTableHeaderProps = {
     taxAmountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
     shouldShowColumn: (columnName: SearchColumnType) => boolean;
-    onSortPress: (column: SortableColumnName, order: SortOrder) => void;
+    onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldRemoveTotalColumnFlex?: boolean;
 };
 

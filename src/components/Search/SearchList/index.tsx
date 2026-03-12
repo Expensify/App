@@ -446,6 +446,7 @@ function SearchList({
                         customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        keyForList={item.keyForList}
                     />
                 </Animated.View>
             );
