@@ -3,4 +3,6 @@ import type {NavigationRef} from './types';
 
 const navigationRef: NavigationRef = createNavigationContainerRef();
 
+// document.navigationRef = navigationRef;
+
 export default navigationRef;

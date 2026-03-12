@@ -75,7 +75,8 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
             const previousSameNavigator = rootState?.routes.filter((route) => route.name === parentRoute.name).at(-2);
 
             // If we have optimization for not rendering all split navigators, then last selected option may not be in the state. In this case state has to be read from the preserved state.
-            const previousSameNavigatorState = previousSameNavigator?.state ?? (previousSameNavigator?.key ? getPreservedNavigatorState(previousSameNavigator.key) : undefined);
+            const previousSameNavigatorKey = (previousSameNavigator as {originalKey?: string} | undefined)?.originalKey ?? previousSameNavigator?.key;
+            const previousSameNavigatorState = previousSameNavigator?.state ?? (previousSameNavigatorKey ? getPreservedNavigatorState(previousSameNavigatorKey) : undefined);
             const previousSelectedCentralScreen =
                 previousSameNavigatorState?.routes && previousSameNavigatorState.routes.length > 1 ? previousSameNavigatorState.routes.at(-1)?.name : undefined;
 
@@ -136,7 +137,8 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
         },
 
         getInitialState({routeNames, routeParamList, routeGetIdList}: RouterConfigOptions) {
-            const initialState = getPreservedNavigatorState(options.parentRoute.key) ?? stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
+            const parentRouteKey: string = (options.parentRoute as {originalKey?: string}).originalKey ?? options.parentRoute.key;
+            const initialState = getPreservedNavigatorState(parentRouteKey) ?? stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
             const maybeAdaptedState = adaptStateIfNecessary({state: initialState, options});
 
             // If we needed to modify the state we need to rehydrate it to get keys for new routes.

@@ -139,9 +139,8 @@ function handlePushFullscreenAction(
         return null;
     }
 
-    const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
-
     // Transitioning to all central screens in each split should be animated
+    const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
     if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
         screensWithEnteringAnimation.add(lastFullScreenRoute.key);
     }

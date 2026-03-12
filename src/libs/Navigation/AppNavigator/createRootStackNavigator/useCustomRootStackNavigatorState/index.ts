@@ -1,5 +1,6 @@
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {CustomStateHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import buildOptimizedRoutes from './reuseNavigatorKey';
 
 // This is an optimization to keep mounted only last few screens in the stack.
 export default function useCustomRootStackNavigatorState({state}: CustomStateHookProps) {
@@ -13,6 +14,12 @@ export default function useCustomRootStackNavigatorState({state}: CustomStateHoo
     if (hasPrevRoute && !isPrevFullScreen) {
         indexToSlice = lastSplitIndex - 1;
     }
+
     const routesToRender = state.routes.slice(indexToSlice, state.routes.length);
-    return {...state, routes: routesToRender, index: routesToRender.length - 1};
+    const remappedRoutes = buildOptimizedRoutes(routesToRender, state);
+
+    console.log('to render');
+    console.log({...state, routes: remappedRoutes, index: remappedRoutes.length - 1});
+
+    return {...state, routes: remappedRoutes, index: remappedRoutes.length - 1};
 }
