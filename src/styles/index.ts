@@ -5688,10 +5688,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 16,
             marginTop: 32,
         },
-        twoFactorAuthSecretBox: {
-            backgroundColor: theme.highlightBG,
-            borderRadius: 16,
-        },
         anonymousRoomFooter: {
             padding: 20,
             backgroundColor: theme.cardBG,
