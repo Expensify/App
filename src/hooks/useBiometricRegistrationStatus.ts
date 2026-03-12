@@ -4,7 +4,7 @@
  */
 import {useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
-import useNativeBiometrics from '@components/MultifactorAuthentication/biometrics/useNativeBiometrics';
+import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import Log from '@libs/Log';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/shared/VALUES';
 
@@ -30,7 +30,7 @@ type BiometricRegistrationStatus = {
 };
 
 function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
-    const {getLocalPublicKey, serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useNativeBiometrics();
+    const {getLocalPublicKey, serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useBiometrics();
     const [localPublicKey, setLocalPublicKey] = useState<string | undefined>();
 
     useEffect(() => {
