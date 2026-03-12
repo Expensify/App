@@ -13075,31 +13075,6 @@ function getLinkedIOUTransaction(reportAction: OnyxEntry<ReportAction | Optimist
     return transactionID ? transactions.find((item) => item.transactionID === transactionID) : undefined;
 }
 
-function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportViolations?: OnyxEntry<ReportViolations>): boolean {
-    if (!report || !policy?.fieldList || !policy?.areReportFieldsEnabled) {
-        return false;
-    }
-
-    if (!isPaidGroupPolicyExpenseReport(report) && !isInvoiceReport(report)) {
-        return false;
-    }
-
-    const {fieldsByName} = getReportFieldMaps(report, policy.fieldList);
-
-    return Object.values(fieldsByName).some((field) => {
-        if (field.target !== report.type) {
-            return false;
-        }
-        if (shouldHideSingleReportField(field)) {
-            return false;
-        }
-        if (isReportFieldDisabledForUser(report, field, policy)) {
-            return false;
-        }
-        return !!getFieldViolation(reportViolations, field);
-    });
-}
-
 export {
     areAllRequestsBeingSmartScanned,
     buildConciergeGreetingReportAction,
@@ -13286,7 +13261,6 @@ export {
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,
-    hasVisibleReportFieldViolations,
     hasWarningTypeViolations,
     hasNoticeTypeViolations,
     hasAnyViolations,
