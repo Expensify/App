@@ -1,0 +1,59 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index c6056a1..af012e5 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -69,6 +69,10 @@ const RecyclerViewComponent = (props, ref) => {
+         if (internalViewRef.current && firstChildViewRef.current) {
+             // Measure the outer and inner container layouts
+             const outerViewLayout = measureParentSize(internalViewRef.current);
++            if (outerViewLayout.width === 0 && outerViewLayout.height === 0) {
++                containerViewSizeRef.current = outerViewLayout;
++                return;
++            }
+             const firstChildViewLayout = measureFirstChildLayout(firstChildViewRef.current, internalViewRef.current);
+             containerViewSizeRef.current = outerViewLayout;
+             // Calculate offset of first item
+@@ -99,6 +103,10 @@ const RecyclerViewComponent = (props, ref) => {
+         if (pendingChildIds.size > 0) {
+             return;
+         }
++        if (((_a = containerViewSizeRef.current) === null || _a === void 0 ? void 0 : _a.width) === 0 &&
++            ((_b = containerViewSizeRef.current) === null || _b === void 0 ? void 0 : _b.height) === 0) {
++            return;
++        }
+         const layoutInfo = Array.from(refHolder, ([index, viewHolderRef]) => {
+             const layout = measureItemLayout(viewHolderRef.current, recyclerViewManager.tryGetLayout(index));
+             // comapre height with stored layout
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+index 73c9649..9e34907 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+@@ -159,6 +159,16 @@ const RecyclerViewComponent = <T,>(
+     if (internalViewRef.current && firstChildViewRef.current) {
+       // Measure the outer and inner container layouts
+       const outerViewLayout = measureParentSize(internalViewRef.current);
++      // Skip layout update when the container reports zero dimensions.
++      // This happens when a parent has `display: none` applied (e.g.,
++      // React's <Activity mode="hidden"> in navigation stacks). Accepting
++      // 0x0 would wipe the render stack and force a full re-initialization
++      // when the container becomes visible again.
++      if (outerViewLayout.width === 0 && outerViewLayout.height === 0) {
++        // Record the zero size so the item measurement effect also bails out.
++        containerViewSizeRef.current = outerViewLayout;
++        return;
++      }
+       const firstChildViewLayout = measureFirstChildLayout(
+         firstChildViewRef.current,
+         internalViewRef.current
+@@ -198,6 +208,11 @@ const RecyclerViewComponent = <T,>(
+     if (pendingChildIds.size > 0) {
+       return;
+     }
++    // Skip item measurement when the container is hidden (0x0).
++    // See the guard in the layout params effect above.
++    if (containerViewSizeRef.current?.width === 0 && containerViewSizeRef.current?.height === 0) {
++      return;
++    }
+     const layoutInfo = Array.from(refHolder, ([index, viewHolderRef]) => {
+       const layout = measureItemLayout(
+         viewHolderRef.current!,

@@ -2942,19 +2942,6 @@ function formatSectionsFromSearchTerm(
     };
 }
 
-/**
- * Helper method to get the `keyForList` for the first option in the OptionsList
- */
-function getFirstKeyForList(data?: Option[] | null) {
-    if (!data?.length) {
-        return '';
-    }
-
-    const firstNonEmptyDataObj = data.at(0);
-
-    return firstNonEmptyDataObj?.keyForList ? firstNonEmptyDataObj?.keyForList : '';
-}
-
 function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUserAccountID: number) {
     if (item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
@@ -3352,7 +3339,6 @@ export {
     getFilteredRecentAttendees,
     getCurrentUserSearchTerms,
     getEmptyOptions,
-    getFirstKeyForList,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
