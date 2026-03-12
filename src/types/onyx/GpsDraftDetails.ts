@@ -1,3 +1,5 @@
+import type {Unit} from './Policy';
+
 /**
  * Stores data from GPS trip (GPS distance request)
  */
@@ -34,6 +36,9 @@ type GpsDraftDetails = {
 
     /** reportID of the ongoing GPS trip */
     reportID: string;
+
+    /** Distance unit of the ongoing GPS trip */
+    unit: Unit;
 };
 
 export default GpsDraftDetails;

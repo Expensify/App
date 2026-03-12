@@ -167,7 +167,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                     <Badge
                         text={badgeText}
                         success={isSuccess}
-                        style={[styles.ml3]}
+                        badgeStyles={styles.ml3}
                     />
                 );
             }
@@ -320,7 +320,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                                 headerMessage: currentHeaderMessage,
                                             }}
                                             listEmptyContent={listEmptyContent}
-                                            showListEmptyContent={shouldShowListEmptyContent}
+                                            shouldShowListEmptyContent={shouldShowListEmptyContent}
                                         />
                                     </TabScreenWithFocusTrapWrapper>
                                 );
