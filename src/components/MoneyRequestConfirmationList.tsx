@@ -38,7 +38,7 @@ import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getTagLists, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
@@ -1036,9 +1036,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            const resolvedTaxCode = transaction.taxCode ? resolveCurrentTaxCode(policy, transaction.taxCode) : undefined;
-            const transactionForTaxCheck = resolvedTaxCode && resolvedTaxCode !== transaction.taxCode ? {...transaction, taxCode: resolvedTaxCode} : transaction;
-            if (shouldShowTax && !!transaction.taxCode && !hasTaxRateWithMatchingValue(policy, transactionForTaxCheck)) {
+            if (shouldShowTax && !!transaction.taxCode && !hasTaxRateWithMatchingValue(policy, transaction)) {
                 setFormError('violations.taxOutOfPolicy');
                 return;
             }

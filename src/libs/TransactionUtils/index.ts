@@ -2161,8 +2161,9 @@ function hasTaxRateWithMatchingValue(policy: OnyxEntry<Policy>, transaction: Ony
     }
 
     const transactionTaxCode = getTaxCode(transaction);
+    const resolvedTaxCode = (transactionTaxCode) ? resolveCurrentTaxCode(policy, transactionTaxCode) : transactionTaxCode;
     const transformedRates = transformedTaxRates(policy, transaction);
-    const taxRate = Object.values(transformedRates).find((rate) => rate.code === transactionTaxCode);
+    const taxRate = Object.values(transformedRates).find((rate) => rate.code === resolvedTaxCode);
 
     if (!transaction?.taxValue) {
         return !!taxRate;
