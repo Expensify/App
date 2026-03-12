@@ -148,6 +148,9 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Accessibility label for the component */
         accessibilityLabel?: string;
 
+        /** Accessibility hint for the component */
+        accessibilityHint?: string;
+
         /** Accessibility state to pass to the pressable */
         accessibilityState?: AccessibilityState;
 
@@ -286,6 +289,7 @@ function Button({
     id = '',
     testID = undefined,
     accessibilityLabel = '',
+    accessibilityHint,
     accessibilityState,
     link = false,
     isContentCentered = false,
@@ -526,6 +530,7 @@ function Button({
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityHint}
                 role={getButtonRole(isNested)}
                 accessibilityState={accessibilityState}
                 hoverDimmingValue={1}

@@ -146,6 +146,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     );
     const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
     const isTextTooLong = customText && customText?.length > 6;
+    const dropdownAccessibilityHint = isMenuVisible ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND;
 
     const handlePress = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -196,6 +197,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         iconRightHoverFill={hasError ? theme.icon : undefined}
                         sentryLabel={sentryLabel}
                         accessibilityState={!isSplitButton ? {expanded: isMenuVisible} : undefined}
+                        accessibilityHint={!isSplitButton ? dropdownAccessibilityHint : undefined}
                     />
 
                     {isSplitButton && (
@@ -215,6 +217,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             sentryLabel={sentryLabel}
                             accessibilityState={{expanded: isMenuVisible}}
+                            accessibilityHint={dropdownAccessibilityHint}
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                                 <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
