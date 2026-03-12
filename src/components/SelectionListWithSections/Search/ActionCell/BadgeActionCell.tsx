@@ -23,7 +23,7 @@ function BadgeActionCell({action, isLargeScreenWidth, shouldDisablePointerEvents
     const StyleUtils = useStyleUtils();
     const text = translate(actionTranslationsMap[action]);
 
-    const badgeTheme = action === CONST.SEARCH.ACTION_TYPES.PAID ? theme.reportStatusBadge.paid : theme.reportStatusBadge.approved;
+    const badgeTheme = action === CONST.SEARCH.ACTION_TYPES.PAID ? theme.reportStatusBadge.paid : theme.reportStatusBadge.closed;
 
     return (
         <View
