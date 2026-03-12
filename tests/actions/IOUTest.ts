@@ -585,6 +585,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [fakeTransaction.transactionID],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -688,6 +689,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -776,6 +778,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -831,6 +834,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -914,6 +918,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -969,6 +974,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -1035,6 +1041,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             };
         }
@@ -1253,6 +1260,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
+                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
             });
@@ -1345,6 +1353,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -3101,6 +3110,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
 
@@ -3169,6 +3179,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -3660,7 +3671,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -3693,6 +3704,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -7585,7 +7597,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -8933,7 +8945,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -8970,6 +8982,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -9876,7 +9889,6 @@ describe('actions/IOU', () => {
                                 reportsToArchive: reportToArchive,
                                 transactionViolations: undefined,
                                 reimbursementAccountError: undefined,
-                                bankAccountList: {},
                                 lastUsedPaymentMethods: undefined,
                                 localeCompare,
                             });
@@ -11016,6 +11028,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
 
@@ -12915,6 +12928,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await getOnyxData({

@@ -483,6 +483,7 @@ export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams
 export type {default as DeleteDomainMemberParams} from './DeleteDomainMemberParams';
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
+export type {default as SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams} from './SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams';
 export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRuleParams';
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
 export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';
