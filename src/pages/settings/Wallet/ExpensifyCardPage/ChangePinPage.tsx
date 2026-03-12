@@ -11,8 +11,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isValidPin} from '@libs/ValidationUtils';
-import {PinContextProvider, usePin} from '@pages/MissingPersonalDetails/PinContext';
+import {isValidPIN} from '@libs/ValidationUtils';
+import {PINContextProvider, usePIN} from '@pages/MissingPersonalDetails/PINContext';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -23,7 +23,7 @@ function ChangePinPageContent({cardID}: {cardID: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {executeScenario} = useMultifactorAuthentication();
-    const {isConfirmStep, setIsConfirmStep, isPinHidden, togglePinVisibility} = usePin();
+    const {isConfirmStep, setIsConfirmStep, isPINHidden, togglePINVisibility} = usePIN();
 
     const [enteredPin, setEnteredPin] = useState('');
     const [confirmPin, setConfirmPin] = useState('');
@@ -52,7 +52,7 @@ function ChangePinPageContent({cardID}: {cardID: string}) {
             return translate('cardPage.pinMismatch');
         }
 
-        if (!isValidPin(pinToValidate)) {
+        if (!isValidPIN(pinToValidate)) {
             return translate('cardPage.invalidPin');
         }
         return '';
@@ -111,15 +111,15 @@ function ChangePinPageContent({cardID}: {cardID: string}) {
                             onChangeText={handlePinChange}
                             hasError={!!error}
                             autoFocus
-                            secureTextEntry={isPinHidden}
+                            secureTextEntry={isPINHidden}
                         />
                         {!!error && <Text style={[styles.formError, styles.mt2]}>{error}</Text>}
                     </View>
 
                     <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb4, styles.alignItemsCenter, styles.w100]}>
                         <Button
-                            text={isPinHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
-                            onPress={togglePinVisibility}
+                            text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
+                            onPress={togglePINVisibility}
                             medium
                         />
                     </View>
@@ -145,9 +145,9 @@ function ChangePinPage({
     },
 }: ChangePinPageProps) {
     return (
-        <PinContextProvider>
+        <PINContextProvider>
             <ChangePinPageContent cardID={cardID} />
-        </PinContextProvider>
+        </PINContextProvider>
     );
 }
 
