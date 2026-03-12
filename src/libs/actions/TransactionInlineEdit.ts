@@ -11,7 +11,8 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
-import {canEditFieldOfMoneyRequest, isReportApproved, isSettled} from '@libs/ReportUtils';
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -26,6 +27,7 @@ import type {
     RecentlyUsedTags,
     Report,
     ReportAction,
+    ReportNameValuePairs,
     ReportNextStepDeprecated,
     SearchResults,
     Transaction,
@@ -145,6 +147,15 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.BETAS,
     callback: (value) => {
         allBetas = value ?? undefined;
+    },
+});
+
+let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportNameValuePairs = value;
     },
 });
 
@@ -360,8 +371,38 @@ function getTransactionEditPermissions(
         return NO_EDIT;
     }
 
+    // Get the transaction thread report and chat report for comprehensive permission checks
+    const transactionThreadReportID = parentReportAction.childReportID;
+    const transactionThreadReport = transactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] : undefined;
+    const chatReportID = parentReport?.chatReportID;
+
+    // Check if reports are archived using reportNameValuePairs
+    const transactionThreadNameValuePairs = transactionThreadReportID ? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${transactionThreadReportID}`] : undefined;
+    const chatReportNameValuePairs = chatReportID ? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportID}`] : undefined;
+    const isTransactionThreadArchived = isArchivedReport(transactionThreadNameValuePairs);
+    const isChatReportArchived = isArchivedReport(chatReportNameValuePairs);
+
+    // Check if user can perform write actions on the transaction thread report
+    const canUserEdit = canUserPerformWriteAction(transactionThreadReport, isTransactionThreadArchived);
+    if (!canUserEdit) {
+        return NO_EDIT;
+    }
+
+    // Comprehensive permission check matching MoneyRequestView's canEdit logic
     const policyID = parentReport?.policyID;
     const parentPolicy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
+
+    if (!isMoneyRequestAction(parentReportAction)) {
+        return NO_EDIT;
+    }
+
+    if (!canEditMoneyRequest(parentReportAction, isChatReportArchived, parentReport, parentPolicy, transaction)) {
+        return NO_EDIT;
+    }
+
+    // Get policy tags for tag-related checks
+    const policyTags = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined;
+    const policyTagLists = getTagLists(policyTags);
 
     return {
         canEditDate: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, false, false, undefined, transaction, parentReport, parentPolicy),
@@ -375,8 +416,10 @@ function getTransactionEditPermissions(
             canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CATEGORY, false, false, undefined, transaction, parentReport, parentPolicy),
         canEditAmount: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, false, false, undefined, transaction, parentReport, parentPolicy),
         // Multi-level tags need a picker UI not available inline.
+        // Allow editing if transaction already has a tag OR if there are enabled tags.
         canEditTag:
-            !isMultiLevelTags(policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined) &&
+            !isMultiLevelTags(policyTags) &&
+            (!!transaction?.tag || hasEnabledTags(policyTagLists)) &&
             canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.TAG, false, false, undefined, transaction, parentReport, parentPolicy),
     };
 }

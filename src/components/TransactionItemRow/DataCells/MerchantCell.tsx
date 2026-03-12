@@ -58,6 +58,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
                     onSubmitEditing={handleSubmitEditing}
                     autoFocus
                     multiline={isMultiline}
+                    submitBehavior="blurAndSubmit"
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress TextInput's own border and background to avoid visual conflicts.
                     textInputContainerStyles={styles.editableCellInputStyle}
