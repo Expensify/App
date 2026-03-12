@@ -214,9 +214,6 @@ type Account = {
     /** Whether or not the user uses expensify card */
     isUsingExpensifyCard?: boolean;
 
-    /** Whether Expensify Card approval flow is ongoing - checking loginList for private domains */
-    isCheckingDomain?: boolean;
-
     /** Whether or not the user has lounge access */
     hasLoungeAccess?: boolean;
 

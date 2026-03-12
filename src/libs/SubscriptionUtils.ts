@@ -544,14 +544,18 @@ function getSubscriptionPlanInfo(
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         let subtitle = translate('subscription.yourPlan.customPricing');
-        let note: string | undefined = translate('subscription.yourPlan.asLowAs', {price});
+        let note: string | undefined = translate('subscription.yourPlan.asLowAs', {
+            price,
+        });
 
         if (hasTeam2025Pricing) {
             if (isFromComparisonModal) {
                 subtitle = price;
                 note = translate('subscription.yourPlan.perMemberMonth');
             } else {
-                subtitle = translate('subscription.yourPlan.pricePerMemberMonth', {price});
+                subtitle = translate('subscription.yourPlan.pricePerMemberMonth', {
+                    price,
+                });
                 note = undefined;
             }
         }

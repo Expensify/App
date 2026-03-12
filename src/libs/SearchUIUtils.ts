@@ -2326,10 +2326,10 @@ function getReportSections({
                 const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions, allReportTransactions);
 
                 const fromDetails =
-                    data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
+                    mergedPersonalDetails?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
                     getPersonalDetailsForAccountID(reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ??
                     emptyPersonalDetails;
-                const toDetails = !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
+                const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
                 const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
                 const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';
@@ -2404,8 +2404,8 @@ function getReportSections({
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
-            const from = reportAction?.actorAccountID ? (data.personalDetailsList?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
+            const from = reportAction?.actorAccountID ? (mergedPersonalDetails?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, mergedPersonalDetails, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
@@ -3659,18 +3659,34 @@ function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string
     return !!matchedSearchKey && TODO_KEYS.includes(matchedSearchKey);
 }
 
-function createTypeMenuSections(
-    icons: Record<'Document' | 'Send' | 'ThumbsUp', IconAsset>,
-    currentUserEmail: string | undefined,
-    currentUserAccountID: number | undefined,
-    cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
-    defaultCardFeed: CardFeedForDisplay | undefined,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
-    isOffline: boolean,
-    defaultExpensifyCard: CardFeedForDisplay | undefined,
-    shouldRedirectToExpensifyClassic: boolean,
-): SearchTypeMenuSection[] {
+type TypeMenuSectionsParams = {
+    icons: Record<'Document' | 'Send' | 'ThumbsUp', IconAsset>;
+    currentUserEmail: string | undefined;
+    currentUserAccountID: number | undefined;
+    cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>;
+    defaultCardFeed: CardFeedForDisplay | undefined;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    savedSearches: OnyxEntry<OnyxTypes.SaveSearch>;
+    isOffline: boolean;
+    defaultExpensifyCard: CardFeedForDisplay | undefined;
+    shouldRedirectToExpensifyClassic: boolean;
+    draftTransactionIDs: string[] | undefined;
+};
+
+function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
+    const {
+        icons,
+        currentUserEmail,
+        currentUserAccountID,
+        cardFeedsByPolicy,
+        defaultCardFeed,
+        policies,
+        savedSearches,
+        isOffline,
+        defaultExpensifyCard,
+        shouldRedirectToExpensifyClassic,
+        draftTransactionIDs,
+    } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, icons);
@@ -3723,7 +3739,7 @@ function createTypeMenuSections(
                                               return;
                                           }
 
-                                          startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN);
+                                          startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
                                       });
                                   },
                               },
@@ -4569,40 +4585,6 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
-/**
- * Determine policyID based on selected transactions:
- * - If all selected transactions belong to the same policy, use that policy
- * - Otherwise, fall back to the user's active workspace policy
- */
-function getSearchBulkEditPolicyID(
-    selectedTransactionIDs: string[],
-    activePolicyID: string | undefined,
-    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
-    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
-): string | undefined {
-    if (selectedTransactionIDs.length === 0) {
-        return activePolicyID;
-    }
-
-    const policyIDs = selectedTransactionIDs.map((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction?.reportID) {
-            return undefined;
-        }
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        return report?.policyID;
-    });
-
-    const firstPolicyID = policyIDs.at(0);
-    const allSamePolicy = policyIDs.every((policyID) => policyID === firstPolicyID);
-
-    if (allSamePolicy && firstPolicyID) {
-        return firstPolicyID;
-    }
-
-    return activePolicyID;
-}
-
 function filterValidHasValues(hasValues: string[] | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): string[] | undefined {
     if (!hasValues || !type) {
         return undefined;
@@ -4734,7 +4716,6 @@ function applySelectionToItem(
 }
 
 export {
-    getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getListItem,
     getSections,
