@@ -13240,7 +13240,7 @@ function rejectExpenseReport(reportID: string, targetAccountID: number, comment:
         reportID,
         targetAccountID,
         comment,
-        rejectedReportActionID: optimisticRejectAction.reportActionID,
+        rejectedActionReportActionID: optimisticRejectAction.reportActionID,
         rejectedCommentReportActionID: optimisticCommentAction.reportActionID,
     };
 

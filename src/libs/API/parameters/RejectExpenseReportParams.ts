@@ -2,7 +2,7 @@ type RejectExpenseReportParams = {
     reportID: string;
     targetAccountID: number;
     comment: string;
-    rejectedReportActionID: string;
+    rejectedActionReportActionID: string;
     rejectedCommentReportActionID: string;
 };
 
