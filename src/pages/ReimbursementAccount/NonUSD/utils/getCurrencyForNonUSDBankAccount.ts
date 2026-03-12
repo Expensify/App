@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import CONST, {Country} from '@src/CONST';
+import type {Country} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type Policy from '@src/types/onyx/Policy';
