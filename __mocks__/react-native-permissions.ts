@@ -1,5 +1,4 @@
-import {PERMISSIONS} from 'react-native-permissions/dist/commonjs/permissions';
-import {RESULTS} from 'react-native-permissions/dist/commonjs/results';
+import {PERMISSIONS, RESULTS} from 'react-native-permissions/dist/commonjs/permissions';
 import type {ValueOf} from 'type-fest';
 
 type Results = ValueOf<typeof RESULTS>;
