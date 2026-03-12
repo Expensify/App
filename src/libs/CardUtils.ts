@@ -42,6 +42,7 @@ import type {
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -157,11 +158,10 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
         return card.nameValuePairs?.cardTitle ?? card.cardName ?? '';
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
-    const isPersonal = isPersonalCard(card);
-    const bankName = isPlaid || isPersonal ? card?.cardName : getBankName(card.bank);
+    const bankName = isPlaid ? card?.cardName : getBankName(card.bank);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
-    return cardDescriptor && !isPlaid && !isPersonal ? `${humanReadableBankName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${humanReadableBankName}`;
+    return cardDescriptor && !isPlaid ? `${humanReadableBankName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
@@ -1201,7 +1201,7 @@ function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExcl
         return undefined;
     }
 
-    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardConnectionBroken(card));
 }
 
 /** Extract feed from feed with domainID */
@@ -1316,6 +1316,17 @@ function generateCardID(): number {
 }
 
 /**
+ * Check if the card has expired
+ */
+function isExpiredCard(card: Card): boolean {
+    if (!card.nameValuePairs?.validThru) {
+        return false;
+    }
+    const currentTime = DateUtils.getDBTime();
+    return card.nameValuePairs.validThru < currentTime;
+}
+
+/**
  * Check if there are any assigned cards that should be displayed in the wallet page.
  * This includes active Expensify cards, company cards (domain), and personal cards.
  */
@@ -1328,7 +1339,8 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
         (card) =>
             CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
             (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
-            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+            (!isExpensifyCard(card) || !isExpiredCard(card)),
     );
 }
 
@@ -1483,6 +1495,7 @@ export {
     isCardFrozen,
     isCardWithPotentialFraud,
     getDisplayableExpensifyCards,
+    isExpiredCard,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};

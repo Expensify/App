@@ -32,19 +32,21 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
         openSubscriptionPage();
     }, []);
     const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const shouldShowPage = !!subscriptionPlan || (amountOwed ?? 0) > 0;
 
     useEffect(() => {
-        if (subscriptionPlan ?? isAppLoading) {
+        if (shouldShowPage || isAppLoading) {
             return;
         }
         Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
-    }, [isAppLoading, subscriptionPlan]);
+    }, [isAppLoading, shouldShowPage]);
 
-    if (!subscriptionPlan && isAppLoading) {
+    if (!shouldShowPage && isAppLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
-    if (!subscriptionPlan) {
+    if (!shouldShowPage) {
         return null;
     }
 
