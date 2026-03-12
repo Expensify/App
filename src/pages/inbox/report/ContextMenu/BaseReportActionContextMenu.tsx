@@ -240,6 +240,7 @@ function BaseReportActionContextMenu({
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const session = useSession();
@@ -407,6 +408,7 @@ function BaseReportActionContextMenu({
                             currentUserPersonalDetails,
                             encryptedAuthToken,
                             iouTransaction,
+                            bankAccountList,
                         };
 
                         if ('renderContent' in contextAction) {
