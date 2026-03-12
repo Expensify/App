@@ -11798,15 +11798,18 @@ function prepareOnboardingOnyxData({
     let bespokeAction: OptimisticReportAction | undefined;
 
     if (shouldUseFollowupsInsteadOfTasks) {
-        bespokeWelcomeMessage = getBespokeWelcomeMessage(companySize, userReportedIntegration);
+        const bespokeMarkdown = getBespokeWelcomeMessage(companySize, userReportedIntegration);
         optimisticConciergeReportActionID = rand64();
         bespokeAction = buildOptimisticAddCommentReportAction({
-            text: bespokeWelcomeMessage,
+            text: bespokeMarkdown,
             actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
             createdOffset: 2,
             reportID: targetChatReportID,
             reportActionID: optimisticConciergeReportActionID,
         });
+        // Send the HTML-parsed version to the backend so it matches the optimistic render.
+        // The backend passes this to the LLM as HTML for AddComment, which expects HTML.
+        bespokeWelcomeMessage = getParsedComment(bespokeMarkdown, {reportID: targetChatReportID});
     }
 
     let createWorkspaceTaskReportID;
