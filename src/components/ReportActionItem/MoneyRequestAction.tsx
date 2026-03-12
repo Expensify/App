@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -25,7 +25,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import ReportActionItemContext from '@pages/inbox/report/ReportActionItemContext';
+import {useReportActionItemActions, useReportActionItemState} from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,7 +83,8 @@ function MoneyRequestAction({
     isWhisper = false,
     shouldDisplayContextMenu = true,
 }: MoneyRequestActionProps) {
-    const {shouldOpenReportInRHP, onPreviewPressed} = useContext(ReportActionItemContext);
+    const {shouldOpenReportInRHP} = useReportActionItemState();
+    const {onPreviewPressed} = useReportActionItemActions();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false});

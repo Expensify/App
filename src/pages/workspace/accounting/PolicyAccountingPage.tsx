@@ -47,6 +47,7 @@ import {
     settingsPendingAction,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -56,7 +57,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
+import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
@@ -79,7 +80,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
-    const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
+    const {popoverAnchorRefs} = useAccountingState();
+    const {startIntegrationFlow} = useAccountingActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isLargeScreenWidth} = useResponsiveLayout();
     const route = useRoute();
@@ -416,6 +418,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
         ];
 
+        const syncActivityReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'PolicyAccountingPage.connectionsMenuItems',
+            isSyncInProgress,
+        };
         return [
             {
                 ...iconProps,
@@ -428,7 +434,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldShowRedDotIndicator: true,
                 description: connectionMessage,
                 rightComponent: isSyncInProgress ? (
-                    <ActivityIndicator style={[styles.popoverMenuIcon]} />
+                    <ActivityIndicator
+                        style={[styles.popoverMenuIcon]}
+                        reasonAttributes={syncActivityReasonAttributes}
+                    />
                 ) : (
                     <ThreeDotsMenu
                         shouldSelfPosition

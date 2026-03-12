@@ -94,7 +94,7 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, conciergeReportID: string | undefined, usesIcon = false) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
@@ -115,7 +115,7 @@ export default {
         if (isRoomOrGroupChat) {
             // Will be fixed in https://github.com/Expensify/App/issues/76852
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = ReportUtils.getReportName({report});
+            const roomName = ReportUtils.getReportName({report, conciergeReportID});
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
