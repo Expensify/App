@@ -1120,7 +1120,7 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
         const programSettings = cardSettings[programKey as keyof typeof cardSettings];
         if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
             // Nested program values take precedence — they are the authoritative source for
-            // program-specific fields once the backend sends the full nested format (Phase 2).
+            // program-specific fields (e.g. paymentBankAccountID, monthlySettlementDate).
             return {...cardSettings, ...(programSettings as ExpensifyCardSettingsBase)} as ExpensifyCardSettingsBase;
         }
         return undefined;
@@ -1130,10 +1130,14 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
         return getMergedProgramSettings(feedCountry);
     }
 
-    // Auto-detect: try known card programs in priority order.
-    // Phase 2 guarantees all settings are nested under program keys
-    // (CURRENT for legacy domains, US/GB for new ones).
-    return getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
+    // Auto-detect: try known card programs in priority order, then fall
+    // back to the flat root for legacy domains that haven't been migrated.
+    return (
+        getMergedProgramSettings(CONST.COUNTRY.US) ??
+        getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ??
+        getMergedProgramSettings(CONST.COUNTRY.GB) ??
+        (cardSettings as ExpensifyCardSettingsBase)
+    );
 }
 
 function isCardPendingIssue(card?: Card) {

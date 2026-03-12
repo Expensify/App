@@ -3432,14 +3432,16 @@ describe('CardUtils', () => {
             expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
         });
 
-        it('should return undefined when no nested keys exist and feedCountry is not provided', () => {
+        it('should fall back to flat root when no nested keys exist and feedCountry is not provided', () => {
             const result = getCardSettings(flatSettings);
-            expect(result).toBeUndefined();
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
         });
 
-        it('should return undefined when no nested keys exist and feedCountry is undefined', () => {
+        it('should fall back to flat root when no nested keys exist and feedCountry is undefined', () => {
             const result = getCardSettings(flatSettings, undefined);
-            expect(result).toBeUndefined();
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
         });
 
         it('should return merged root + nested when feedCountry matches a nested key', () => {
