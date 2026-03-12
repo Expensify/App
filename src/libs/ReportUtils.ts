@@ -155,6 +155,8 @@ import {
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
+    getPerDiemCustomUnit,
+    getPolicyByCustomUnitID,
     getPolicyNameByID,
     getPolicyRole,
     getRuleApprovers,
@@ -4938,6 +4940,14 @@ function canEditFieldOfMoneyRequest(
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
         if (isUnreportedExpense) {
+            if (isPerDiemRequest(transaction)) {
+                // For unreported per diem expenses, check if there's a valid policy with rates.
+                const perDiemPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
+                const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
+                if (!perDiemPolicy?.arePerDiemRatesEnabled || isEmptyObject(perDiemCustomUnit?.rates)) {
+                    return false;
+                }
+            }
             return true;
         }
 
