@@ -73,6 +73,9 @@ function UserListItem<TItem extends ListItem>({
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
+    const shouldDisableAccessibleGrouping = !!rightHandSideComponent && !canSelectMultiple;
+
+    const contactAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
     return (
         <BaseListItem
             item={item}
@@ -96,13 +99,19 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
         >
             {(hovered?: boolean) => {
                 const isHovered = !!hovered && !shouldDisableHoverStyle;
 
                 return (
-                    <>
+                    <View
+                        accessible={shouldDisableAccessibleGrouping || undefined}
+                        accessibilityLabel={shouldDisableAccessibleGrouping ? contactAccessibilityLabel : undefined}
+                        role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                    >
                         {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
                             <PressableWithFeedback
                                 accessibilityLabel={item.text ?? ''}
@@ -194,7 +203,7 @@ function UserListItem<TItem extends ListItem>({
                                 </View>
                             </PressableWithFeedback>
                         )}
-                    </>
+                    </View>
                 );
             }}
         </BaseListItem>

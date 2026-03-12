@@ -4,6 +4,7 @@ import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
@@ -14,6 +15,39 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
+
+type AccessibilityProps = Pick<PressableWithFeedbackProps, 'accessible' | 'role' | 'tabIndex'>;
+
+type CalculatedAccessibilityProps = Pick<PressableWithFeedbackProps, 'role' | 'tabIndex' | 'accessibilityState'> & {
+    accessibleAndAccessibilityLabel: Pick<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'>;
+};
+
+function getAccessibilityProps<TItem extends ListItem>({role, tabIndex, accessible, item, isFocused}: AccessibilityProps & {item: TItem; isFocused: BaseListItemProps<TItem>['isFocused']}) {
+    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
+
+    if (!accessible) {
+        return {
+            role: CONST.ROLE.PRESENTATION,
+            tabIndex: -1,
+            accessibilityState,
+            accessibleAndAccessibilityLabel: {accessible: false},
+        } satisfies CalculatedAccessibilityProps;
+    }
+
+    const accessibilityLabel = getAccessibilityLabel(item);
+
+    return {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel}} satisfies CalculatedAccessibilityProps;
+}
+
+function getAccessibilityLabel<TItem extends ListItem>(item: TItem) {
+    if (item.accessibilityLabel) {
+        return item.accessibilityLabel;
+    }
+
+    const defaultAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
+
+    return defaultAccessibilityLabel;
+}
 
 function BaseListItem<TItem extends ListItem>({
     item,
@@ -84,9 +118,7 @@ function BaseListItem<TItem extends ListItem>({
 
     const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
 
-    const accessibilityState =
-        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
-
+    const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel} = getAccessibilityProps({role: accessibilityRole, accessible, tabIndex: item.tabIndex, item, isFocused});
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -115,8 +147,6 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
-                accessibilityState={accessibilityState}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
@@ -136,12 +166,14 @@ function BaseListItem<TItem extends ListItem>({
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
+                role={role}
+                tabIndex={tabIndex}
+                // eslint-disable-next-line react/jsx-props-no-spreading -- we can't pass those props here on their own because this Component expects a discriminated Union
+                {...accessibleAndAccessibilityLabel}
+                accessibilityState={accessibilityState}
                 onMouseLeave={handleMouseLeave}
-                tabIndex={accessible === false ? -1 : item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
                 testID={testID}
-                accessible={accessible}
-                role={accessible === false ? CONST.ROLE.PRESENTATION : accessibilityRole}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
