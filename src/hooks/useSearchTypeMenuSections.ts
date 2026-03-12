@@ -65,6 +65,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -113,6 +114,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
                 draftTransactionIDs,
+                activePolicyID,
             }),
         [
             currentUserLoginAndAccountID?.email,
@@ -126,6 +128,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             shouldRedirectToExpensifyClassic,
             icons,
             draftTransactionIDs,
+            activePolicyID,
         ],
     );
 

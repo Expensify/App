@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -17,6 +18,7 @@ type Params = {
     shouldUseNarrowLayout: boolean;
     policy?: Policy;
     domain?: Domain;
+    activePolicyID: OnyxEntry<string>;
 };
 
 // Gets the latest workspace navigation state, restoring from session or preserved state if needed.
@@ -49,7 +51,7 @@ const getWorkspaceNavigationRouteState = () => {
 };
 
 // Navigates to the appropriate workspace tab or workspace list page.
-const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain}: Params) => {
+const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain, activePolicyID}: Params) => {
     const {lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute} = getWorkspaceNavigationRouteState();
 
     if (!topmostFullScreenRoute || topmostFullScreenRoute.name === SCREENS.WORKSPACES_LIST) {
@@ -107,7 +109,7 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
 
         // Fallback: any other state, go to the list.
         Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
-    });
+    }, activePolicyID);
 };
 
 export default navigateToWorkspacesPage;

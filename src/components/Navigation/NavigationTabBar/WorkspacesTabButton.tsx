@@ -57,9 +57,10 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
         return domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${paramsDomainAccountID}`];
     };
     const [lastViewedDomain] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {selector: lastViewedDomainSelector}, [navigationState]);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const navigateToWorkspaces = () => {
-        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain});
+        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain, activePolicyID});
     };
 
     const workspacesAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.WORKSPACES};

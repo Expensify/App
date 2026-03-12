@@ -121,11 +121,11 @@ Onyx.connect({
     callback: (value) => (stashedCredentials = value ?? {}),
 });
 
-let activePolicyID: OnyxEntry<string>;
+let deprecatedActivePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (newActivePolicyID) => {
-        activePolicyID = newActivePolicyID;
+        deprecatedActivePolicyID = newActivePolicyID;
     },
 });
 
@@ -322,7 +322,13 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.IS_USING_IMPORTED_STATE,
 ];
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean) {
+function signOutAndRedirectToSignIn(
+    shouldResetToHome?: boolean,
+    shouldStashSession?: boolean,
+    shouldSignOutFromOldDot = true,
+    shouldForceUseStashedSession?: boolean,
+    activePolicyID = deprecatedActivePolicyID,
+) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 

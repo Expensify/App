@@ -3671,6 +3671,7 @@ type TypeMenuSectionsParams = {
     defaultExpensifyCard: CardFeedForDisplay | undefined;
     shouldRedirectToExpensifyClassic: boolean;
     draftTransactionIDs: string[] | undefined;
+    activePolicyID: OnyxEntry<string>;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
@@ -3686,6 +3687,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         defaultExpensifyCard,
         shouldRedirectToExpensifyClassic,
         draftTransactionIDs,
+        activePolicyID,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -3740,7 +3742,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                                           }
 
                                           startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
-                                      });
+                                      }, activePolicyID);
                                   },
                               },
                           ]
