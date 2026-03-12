@@ -339,7 +339,6 @@ function MoneyRequestView({
     );
     const isReportOpen = isOpenReport(moneyRequestReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
-    console.log({isExpenseSplit, shouldShowSplitIndicator, hasMultipleSplits, isReportOpen});
     const isSplitAvailable =
         moneyRequestReport &&
         transaction &&
