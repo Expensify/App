@@ -113,6 +113,7 @@ function PhoneNumberPage() {
                                 defaultValue={phoneNumber}
                                 spellCheck={false}
                                 inputMode={CONST.INPUT_MODE.TEL}
+                                enterKeyHint="done"
                                 onBlur={() => {
                                     if (!validateLoginError) {
                                         return;
