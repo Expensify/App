@@ -163,7 +163,7 @@ function ReportActionCompose({
         canEvict: false,
     });
 
-    const {editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
+    const {editingReportID, editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
 
     const isEditingInComposer = shouldUseNarrowLayout && !!editingReportActionID;
     const effectiveDraft = shouldUseNarrowLayout ? editingMessage : draftComment;
@@ -328,9 +328,10 @@ function ReportActionCompose({
         isEditing: !!editingReportAction,
     });
 
-    const originalReportID = useOriginalReportID(reportID, editingReportAction);
+    const originalReportID = useOriginalReportID(editingReportID ?? undefined, editingReportAction);
+
     const {publishDraft, deleteDraft} = useEditMessage({
-        reportID,
+        reportID: editingReportID ?? undefined,
         originalReportID,
         reportAction: editingReportAction,
         shouldScrollToLastMessage: isEditingLastReportAction,

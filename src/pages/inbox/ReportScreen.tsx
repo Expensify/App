@@ -1001,7 +1001,11 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     return (
         // Wide RHP overlays should be rendered only for the report screen displayed in RHP
         <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
-            <ReportActionEditMessageContextProvider reportID={reportID}>
+            <ReportActionEditMessageContextProvider
+                reportID={reportID}
+                parentReportID={reportOnyx?.parentReportID}
+                parentReportAction={parentReportAction}
+            >
                 <ActionListContext.Provider value={actionListValue}>
                     <ReactionListWrapper>
                         <ScreenWrapper

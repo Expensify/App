@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
 import type {Dispatch, SetStateAction} from 'react';
 import type {TextSelection} from '@components/Composer/types';
 import useOnyx from '@hooks/useOnyx';
@@ -12,6 +12,7 @@ function NOOP() {
 type EditingState = 'editing' | 'submitted' | 'cancelled';
 
 type ReportActionActiveEdit = {
+    editingReportID: string | null;
     editingReportActionID: string | null;
     editingReportAction: OnyxTypes.ReportAction | null;
     editingMessage: string | null;
@@ -26,6 +27,7 @@ type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
 };
 
 const ReportActionEditMessageContext = createContext<ReportActionEditMessageContextValue>({
+    editingReportID: null,
     editingReportActionID: null,
     editingReportAction: null,
     editingMessage: null,
@@ -38,15 +40,18 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
 
 type ReportActionEditMessageContextProviderProps = {
     reportID: string | undefined;
+    parentReportID: string | undefined;
+    parentReportAction: OnyxTypes.ReportAction | undefined;
     children: React.ReactNode;
 };
 
-function ReportActionEditMessageContextProvider({reportID, children}: ReportActionEditMessageContextProviderProps) {
+function ReportActionEditMessageContextProvider({reportID, parentReportID, parentReportAction, children}: ReportActionEditMessageContextProviderProps) {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
     });
     const [reportActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
 
+    const [editingReportID, setEditingReportID] = useState<string | null>(null);
     const [editingReportActionID, setEditingReportActionID] = useState<string | null>(null);
     const [editingReportAction, setEditingReportAction] = useState<OnyxTypes.ReportAction | null>(null);
     const [editingMessage, setEditingMessage] = useState<string | null>(null);
@@ -64,6 +69,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
             const newEditingReportActionID = activeEdit?.editingReportActionID ?? null;
             const newEditingReportAction = activeEdit?.editingReportAction ?? null;
             const newEditingMessage = activeEdit?.editingMessage ?? null;
+        const newEditingReportID = activeEdit?.editingReportID ?? null;
 
             if (newEditingReportActionID !== editingReportActionID) {
                 setEditingReportActionID(newEditingReportActionID);
@@ -77,19 +83,30 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
         },
         [editingReportActionID, editingReportAction, editingMessage],
     );
+        if (newEditingReportID !== editingReportID) {
+            setEditingReportID(newEditingReportID);
+        }
 
-    const setCurrentEditMessageSelection = useCallback(
-        (setSelectionStateAction: SetStateAction<TextSelection | null>) => {
-            if (!editingReportActionID) {
-                return;
-            }
+        if (newEditingReportActionID !== editingReportActionID) {
+            setEditingReportActionID(newEditingReportActionID);
+        }
+        if (newEditingReportAction !== editingReportAction) {
+            setEditingReportAction(newEditingReportAction);
+        }
+        if (newEditingMessage !== editingMessage) {
+            setEditingMessage(newEditingMessage);
+        }
+    };
 
-            setCurrentEditMessageSelectionState(setSelectionStateAction);
-        },
-        [editingReportActionID],
-    );
+    const setCurrentEditMessageSelection = (setSelectionStateAction: SetStateAction<TextSelection | null>) => {
+        if (!editingReportActionID) {
+            return;
+        }
 
-    const reset = useCallback(() => {
+        setCurrentEditMessageSelectionState(setSelectionStateAction);
+    };
+
+    const reset = () => {
         if (editingStateRef.current === 'editing') {
             return;
         }
@@ -103,20 +120,46 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     useEffect(() => {
         const reportDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
 
-        if (!reportDrafts) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+        let parentReportActionDrafts: OnyxTypes.ReportActionsDrafts | undefined;
+        if (parentReportAction && parentReportID) {
+            parentReportActionDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${parentReportID}`];
+        }
+
+        if (!reportDrafts && !parentReportActionDrafts) {
             reset();
             return;
         }
 
-        const reportDraftEntry = Object.entries(reportDrafts).find(([, draft]) => draft?.message !== undefined);
+        let editReportID: string | undefined;
+        let reportActionID: string | undefined;
+        let reportAction: OnyxTypes.ReportAction | undefined;
+        let draft: OnyxTypes.ReportActionsDraft | undefined;
 
-        if (!reportDraftEntry) {
-            reset();
-            return;
+        if (parentReportAction && parentReportActionDrafts) {
+            const parentReportActionDraft = parentReportActionDrafts[parentReportAction.reportActionID];
+            if (parentReportActionDraft) {
+                editReportID = parentReportID;
+                reportActionID = parentReportAction.reportActionID;
+                reportAction = parentReportAction;
+                draft = parentReportActionDraft;
+            }
         }
 
-        const [reportActionID, draft] = reportDraftEntry;
+        if (!reportActionID) {
+            const reportDraftEntry = reportDrafts ? Object.entries(reportDrafts).find(([, d]) => d?.message !== undefined) : undefined;
+
+            if (!reportDraftEntry) {
+                reset();
+                return;
+            }
+
+            const [reportActionIDOfDraft, reportActionDraft] = reportDraftEntry;
+
+            editReportID = reportID;
+            reportActionID = reportActionIDOfDraft;
+            reportAction = reportActions?.[reportActionID];
+            draft = reportActionDraft;
+        }
 
         if (editingStateRef.current !== null) {
             return;
@@ -124,16 +167,18 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
 
         editingStateRef.current = 'editing';
         updateActiveEditState({
+            editingReportID: editReportID ?? null,
             editingReportActionID: reportActionID,
-            editingReportAction: reportActions?.[reportActionID] ?? null,
-            editingMessage: draft.message,
+            editingReportAction: reportAction ?? null,
+            editingMessage: draft?.message ?? null,
         });
-    }, [reportActionDrafts, reportActions, reportID, reset, updateActiveEditState]);
+    }, [parentReportAction, parentReportID, reportActionDrafts, reportActions, reportID, reset, updateActiveEditState]);
 
     return (
         <ReportActionEditMessageContext.Provider
             // eslint-disable-next-line react/jsx-no-constructed-context-values
             value={{
+                editingReportID,
                 editingReportActionID,
                 editingReportAction,
                 editingMessage,
