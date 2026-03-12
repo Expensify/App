@@ -1734,7 +1734,20 @@ function MoneyReportHeader({
             icon: expensifyIcons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RETRACT,
-            onSelected: () => {
+            onSelected: async () => {
+                if (isExported) {
+                    const result = await showConfirmModal({
+                        title: translate('iou.reopenReport'),
+                        prompt: reopenExportedReportWarningText,
+                        confirmText: translate('iou.reopenReport'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    });
+
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                }
                 retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
             },
         },
