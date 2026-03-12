@@ -11242,6 +11242,7 @@ function completePaymentOnboarding(
         onboardingPolicyID,
         paymentSelected,
         wasInvited: true,
+        shouldSkipTestDriveModal: true,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
         isSelfTourViewed,
