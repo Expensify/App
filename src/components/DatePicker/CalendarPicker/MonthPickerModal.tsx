@@ -40,27 +40,28 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), curr
     const [searchText, setSearchText] = useState('');
     const monthNames = DateUtils.getMonthNames();
 
-    const allMonths = useMemo(
-        () =>
-            monthNames
-                .map((month, index) => {
-                    const monthStart = startOfMonth(new Date(currentYear, index));
-                    const monthEnd = endOfMonth(new Date(currentYear, index));
-                    const isBeforeMin = minDate ? monthEnd < startOfMonth(new Date(minDate)) : false;
-                    const isAfterMax = maxDate ? monthStart > endOfMonth(new Date(maxDate)) : false;
-                    if (isBeforeMin || isAfterMax) {
-                        return null;
-                    }
-                    return {
-                        text: month.charAt(0).toUpperCase() + month.slice(1),
-                        value: index,
-                        keyForList: index.toString(),
-                        isSelected: index === currentMonth,
-                    };
-                })
-                .filter((item): item is NonNullable<typeof item> => item !== null),
-        [monthNames, currentMonth, currentYear, minDate, maxDate],
-    );
+    const allMonths = useMemo(() => {
+        const minMonthStart = minDate ? startOfMonth(new Date(minDate)) : undefined;
+        const maxMonthEnd = maxDate ? endOfMonth(new Date(maxDate)) : undefined;
+
+        return monthNames
+            .map((month, index) => {
+                const monthStart = startOfMonth(new Date(currentYear, index));
+                const monthEnd = endOfMonth(new Date(currentYear, index));
+                const isBeforeMin = minMonthStart ? monthEnd < minMonthStart : false;
+                const isAfterMax = maxMonthEnd ? monthStart > maxMonthEnd : false;
+                if (isBeforeMin || isAfterMax) {
+                    return null;
+                }
+                return {
+                    text: month.charAt(0).toUpperCase() + month.slice(1),
+                    value: index,
+                    keyForList: index.toString(),
+                    isSelected: index === currentMonth,
+                };
+            })
+            .filter((item): item is NonNullable<typeof item> => item !== null);
+    }, [monthNames, currentMonth, currentYear, minDate, maxDate]);
 
     const {data, headerMessage} = useMemo(() => {
         const filteredMonths = searchText === '' ? allMonths : allMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
