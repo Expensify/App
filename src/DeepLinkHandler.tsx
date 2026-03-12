@@ -37,6 +37,13 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         if (isLoadingOnyxValue(sessionMetadata)) {
             return;
         }
+
+        // Guard against stale closures: when deps change and the effect re-runs, the previous
+        // getInitialURL() promise may still be in-flight. Without this guard, its .then() would
+        // fire with stale conciergeReportID/introSelected values, causing a duplicate
+        // openReportFromDeepLink() call.
+        let cancelled = false;
+
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report.
         // We race against a timeout to prevent permanently blocking NavigationRoot if getInitialURL() never resolves
         // (e.g. in HybridApp when OldDot fails to send the URL via native bridge).
@@ -47,6 +54,10 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             }),
         ])
             .then((url) => {
+                if (cancelled) {
+                    return;
+                }
+
                 initialUrlProcessed.current = true;
                 onInitialUrl(url as Route);
 
@@ -68,6 +79,10 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
             })
             .catch(() => {
+                if (cancelled) {
+                    return;
+                }
+
                 initialUrlProcessed.current = true;
                 onInitialUrl(null);
                 Report.doneCheckingPublicRoom();
@@ -87,6 +102,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         });
 
         return () => {
+            cancelled = true;
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
