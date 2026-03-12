@@ -25,7 +25,7 @@ on:
 jobs:
   verifyPatches:
     name: Verify React Native Patches
-    runs-on: 'ubuntu-latest'
+    runs-on: 'blacksmith-4vcpu-ubuntu-2404'
     outputs:
       build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
       hybrid_app_patches_hash: ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }}
@@ -124,7 +124,7 @@ jobs:
 
   buildAndPublishReactNativeArtifacts:
     name: Build and Publish React Native Artifacts
-    runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-16vcpu-ubuntu-2404' || 'blacksmith-2vcpu-ubuntu-2404' }}
     needs: verifyPatches
     if: needs.verifyPatches.outputs.build_targets != '' 
     strategy:

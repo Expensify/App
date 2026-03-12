@@ -7,6 +7,7 @@ import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountI
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,9 +53,27 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
 
     /** The chatReportID of the request */
     chatReportID?: string;
+
+    /** Whether this is a P2P (1:1) request */
+    isP2P?: boolean;
 };
 
-const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
+const nonZeroExpenses = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
+const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean) => {
+    if (!amount.length || parseFloat(amount) < 0) {
+        return true;
+    }
+
+    if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(amount) < 0.01 && isP2P) {
+        return true;
+    }
+
+    if (parseFloat(amount) < 0.01 && nonZeroExpenses.has(iouType)) {
+        return true;
+    }
+
+    return false;
+};
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
     isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
@@ -77,6 +96,7 @@ function MoneyRequestAmountForm({
     chatReportID,
     hideCurrencySymbol = false,
     allowFlippingAmount = false,
+    isP2P = false,
     ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
@@ -138,18 +158,18 @@ function MoneyRequestAmountForm({
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(
-        (iouPaymentType?: PaymentMethodType | undefined) => {
+        ({paymentType: iouPaymentType}: PaymentActionParams = {}) => {
             const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes('taxAmount');
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
+            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
 
             if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm, currency)) {
-                setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
+                setFormError(translate('iou.error.invalidTaxAmount', formattedTaxAmount));
                 return;
             }
 
@@ -157,7 +177,7 @@ function MoneyRequestAmountForm({
 
             onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P],
     );
 
     const buttonText: string = useMemo(() => {
@@ -200,6 +220,7 @@ function MoneyRequestAmountForm({
                         shouldShowPersonalBankAccountOption
                         enterKeyEventListenerPriority={1}
                         chatReportID={chatReportID}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_PAY_BUTTON}
                     />
                 ) : (
                     <Button
@@ -213,6 +234,7 @@ function MoneyRequestAmountForm({
                         onPress={() => submitAndNavigateToNextPage()}
                         text={buttonText}
                         testID="next-button"
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_NEXT_BUTTON}
                     />
                 )}
             </View>

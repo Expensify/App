@@ -31,20 +31,22 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const shouldShowPage = !!subscriptionPlan || (amountOwed ?? 0) > 0;
 
     useEffect(() => {
-        if (subscriptionPlan ?? isAppLoading) {
+        if (shouldShowPage || isAppLoading) {
             return;
         }
         Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
-    }, [isAppLoading, subscriptionPlan]);
+    }, [isAppLoading, shouldShowPage]);
 
-    if (!subscriptionPlan && isAppLoading) {
+    if (!shouldShowPage && isAppLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
-    if (!subscriptionPlan) {
+    if (!shouldShowPage) {
         return null;
     }
 
@@ -56,14 +58,15 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => {
-                    if (Navigation.getShouldPopToSidebar()) {
-                        Navigation.popToSidebar();
+                    if (backTo) {
+                        Navigation.goBack(backTo);
                         return;
                     }
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 icon={illustrations.CreditCardsNew}
                 shouldUseHeadlineHeader
             />

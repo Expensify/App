@@ -16,23 +16,28 @@ type WebViewNavigationEvent = WebViewNavigation & {type?: WebViewMessageType};
 const renderLoading = () => <FullScreenLoadingIndicator />;
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const webViewRef = useRef<WebView>(null);
     const authToken = session?.authToken ?? null;
 
-    const onMessage = useCallback((event: WebViewMessageEvent) => {
-        try {
-            const parsedData = JSON.parse(event.nativeEvent.data) as WebViewNavigationEvent;
-            const {type, url} = parsedData || {};
-            if (!webViewRef.current) {
-                return;
-            }
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const onMessage = useCallback(
+        (event: WebViewMessageEvent) => {
+            try {
+                const parsedData = JSON.parse(event.nativeEvent.data) as WebViewNavigationEvent;
+                const {type, url} = parsedData || {};
+                if (!webViewRef.current) {
+                    return;
+                }
 
-            handleWalletStatementNavigation(type, url);
-        } catch (error) {
-            console.error('Error parsing message from WebView:', error);
-        }
-    }, []);
+                handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, type, url);
+            } catch (error) {
+                console.error('Error parsing message from WebView:', error);
+            }
+        },
+        [conciergeReportID, session?.accountID, introSelected],
+    );
 
     return (
         <WebView

@@ -37,7 +37,7 @@ When AI feedback is unclear or ambiguous, contributors will benefit from discuss
 When AI feedback is incorrect or not applicable, reach out to the AI reviewer maintainers in the #expensify-open-source Slack channel to help improve the system. This feedback helps refine the reviewers and prevents the same issues from recurring.
 
 ### Keep rule documentation in sync with AI reviewer prompts
-When adding or modifying rules in AI reviewer agent files, the corresponding documentation should be updated. The agent files in `.claude/agents/` are the source of truth for specific rules.
+When adding or modifying rules, the corresponding documentation should be updated. The coding standard files in `.claude/skills/coding-standards/` are the source of truth for code review rules.
 
 ## Reviewer Setup
 
@@ -46,7 +46,7 @@ When adding or modifying rules in AI reviewer agent files, the corresponding doc
 **code-inline-reviewer (Smart Linter)**
 - Reviews source code PRs for specific, predefined violations
 - Creates inline comments on lines that violate rules
-- See `.claude/agents/code-inline-reviewer.md` for current rule definitions
+- See `.claude/skills/coding-standards/` for current rule definitions
 
 **Holistic Reviewer**
 - Provides general code review without predefined rules
@@ -174,17 +174,17 @@ Escalate to human reviewers when:
 ### Examples
 
 #### Appropriate Response to Valid Feedback
-**AI Comment**: "PERF-4: This object passed as a prop should be memoized to prevent unnecessary re-renders."
+**AI Comment**: "PERF-1: Spread operator used on object in renderItem creates new object references on each render."
 
-✅ **Good Response**: Wrap the object in `useMemo` or refactor to avoid creating new references.
+✅ **Good Response**: Pass individual props directly instead of using spread operator, or move object creation outside renderItem.
 
 ❌ **Bad Response**: Ignore the feedback without consideration.
 
 #### Appropriate Response to False Positive
-**AI Comment**: "PERF-4: This object passed as a prop should be memoized."
+**AI Comment**: "PERF-11: Add a selector to `useOnyx` to select only the `name` and `avatar` fields instead of the entire user object."
 
-**Context**: The parent component is already optimized by React Compiler.
+**Context**: A selector is already present in the code - the AI reviewer missed it during analysis.
 
-✅ **Good Response**: Reach out in the #expensify-open-source Slack channel with explanation of incorrect suggestion.
+✅ **Good Response**: Reach out in the #expensify-open-source Slack channel explaining that a selector is already being used.
 
-❌ **Bad Response**: Apply the change anyway, adding unnecessary complexity.
+❌ **Bad Response**: Add a duplicate selector or ignore the feedback without verifying the claim.

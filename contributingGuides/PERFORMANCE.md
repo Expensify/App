@@ -110,46 +110,6 @@ https://github.com/user-attachments/assets/fe00da26-af07-4ea1-bd92-2dbe06c4bdad
 - For more accurate performance data, prefer release builds when possible
 - The generated traces require symbolication to show meaningful function names in release builds
 
-### React Native Release Profiler
-
-For more advanced JavaScript profiling on native devices, [`react-native-release-profiler`](https://github.com/margelo/react-native-release-profiler) provides programmatic profiling capabilities that work on both development and release builds.
-
-#### Setup:
-The profiler is already integrated into our debugging console. See the [App README](https://github.com/Expensify/App?tab=readme-ov-file#release-profiler) for detailed setup instructions.
-
-#### Steps to Profile:
-
-1. **Start Profiling:**
-   - Open the debugging console (four-finger tap)
-   - Press "Record Troubleshoot Data"
-   - Perform the actions you want to profile
-   - Press "Record Troubleshoot Data" again
-
-2. **Retrieve Profile:**
-   - The profile is saved to the device's Documents folder
-
-3. **Symbolicate Profile:**
-   - Download source maps from the GitHub release. Each release contains source maps for Android, iOS and Web.
-   - Copy the recorded profile to the root folder of the E/App repository
-   - Copy the source maps to the specific paths:
-     - **Android:** `android/app/build/generated/sourcemaps/react/productionRelease/` and rename file to `index.android.bundle.map`
-     - **iOS:** root folder and rename file to `main.jsbundle.map`
-     - **Web:** `dist` and run `npm run combine-web-sourcemaps` to generate merged sourcemaps
-   - Run the appropriate symbolication command:
-     ```bash
-     # iOS
-     npm run symbolicate-release:ios
-     # Android
-     npm run symbolicate-release:android
-     # Web
-     npm run symbolicate-release:web
-     ```
-   - This converts the raw profile into a format with readable function names
-
-4. **Analyze:**
-   - Upload the symbolicated profile to [Speedscope](https://www.speedscope.app/)
-   - Or use Chrome DevTools Performance tab
-
 ### Flashlight
 
 [Flashlight](https://github.com/bamlab/flashlight) is a tool for measuring React Native app performance with quantifiable metrics. It provides automated performance testing and can generate consistent baseline measurements.
@@ -276,34 +236,6 @@ https://github.com/user-attachments/assets/39e8514a-caac-4296-b837-b986e088fa9a
 
 You need to have the web server running. The app will open in a separate browser window.
 
-### Performance Metrics (Opt-In on local release builds)
-
-To capture reliable performance metrics for native app launch, we must test against a release build. To make this easier for everyone to do, we created an opt-in tool (using [`react-native-performance`](https://github.com/oblador/react-native-performance)) that will capture metrics and display them in an alert once the app becomes interactive. To set this up, just set `CAPTURE_METRICS=true` in your `.env` file, then create a release build on iOS or Android. The metrics this tool shows are as follows:
-
-- `nativeLaunch` - Total time for the native process to initialize
-- `runJSBundle` - Total time to parse and execute the JS bundle
-- `timeToInteractive` - Rough TTI (Time to Interactive). Includes native init time + sidebar UI partially loaded
-
-#### How to create a Release Build on Android
-
-- Create a keystore by running `keytool -genkey -v -keystore your_key_name.keystore -alias your_key_alias -keyalg RSA -keysize 2048 -validity 10000`
-- Fill out all the prompts with any info and give it a password
-- Drag the generated keystore to `/android/app`
-- Hardcode the values to the gradle config like so:
-
-```
-signingConfigs {
-        release {
-            storeFile file('your_key_name.keystore')
-            storePassword 'Password1'
-            keyAlias 'your_key_alias'
-            keyPassword 'Password1'
-        }
-}
-```
-- Delete any existing apps off emulator or device
-- Run `react-native run-android --variant release`
-
 ## Example Performance Optimization Proposals
 
 Here are examples of well-documented performance optimization proposals that demonstrate good practices for investigating, profiling, and fixing performance issues:
@@ -325,7 +257,7 @@ Another option is to use `React.memo()` with a custom comparison function to pre
 
 React might still take some time to re-render a component when its parent component renders. If it takes a long time to re-render the child even though we have no props changing, then we can use `React.memo()` which will "shallow compare" the `props` to see if a component should re-render.
 
-If you aren't sure what exactly is changing about some deeply nested object prop, you can use `Performance.diffObject()` in `React.memo()` method which should show you exactly what is changing from one update to the next.
+If you aren't sure what exactly is changing about some deeply nested object prop, you can add a temporary custom comparison function to `React.memo()` that logs the differences between previous and next props, which should show you exactly what is changing from one update to the next.
 
 **Suggested resource:** [React Docs - Preserving and Resetting state](https://react.dev/learn/preserving-and-resetting-state)
 
@@ -362,3 +294,99 @@ Examples:
 - [PopoverWithMeasuredContent optimization for mobile](https://github.com/Expensify/App/pull/68223) - returns early to avoid unnecessary calculations
 - [Reduce confirm modal initial render count](https://github.com/Expensify/App/pull/67518) - returns early to reduce first load cost
 - [Do not render PopoverMenu until it gets opened](https://github.com/Expensify/App/pull/67877) - adds a wrapper to control if `PopoverMenu` should be rendered
+
+# Proposing Performance Improvements
+
+We are actively looking for contributions that improve the performance of the App, specifically regarding unnecessary re-renders, slow method executions, and user perceived latency.
+
+If you haven't already, check out our [Contributing Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md).
+
+👉 **Before posting the proposal, please read through this whole process for important context and instructions.** Proposals that do not follow these guidelines cannot be accepted.
+
+___
+
+### Instructions for Submission
+1.  Copy the template below.
+2.  Fill out the details strictly following the guide.
+3.  Post it in `#expensify-open-source` with the title `[Performance Proposal] <Component_Name>`.
+
+___
+
+```
+# [Performance Proposal] <Component_Name>
+
+## 1. Component and Flow Description
+
+**Component/Flow:** Describe the specific UI component or user flow being optimized.
+- [Add details here]
+
+**Preconditions:** List any specific setup required before reproducing the steps (e.g., "Workspace must have chat history").
+- [Add details here]
+
+**Reproduction Steps:** Provide a numbered list of steps to reproduce the performance issue (similar to a QA test case).
+- [Add details here]
+
+## 2. Required Tools
+*I have verified these metrics using (check all that apply):*
+- [ ] React DevTools Profiler
+- [ ] Chrome Performance Tab
+- [ ] JS Flame charts
+- [ ] Hermes / Release Profiler traces
+- [ ] Sentry (If you have access)
+
+## 3. Before/After Metrics
+*Please fill out the metrics below. If a metric is not applicable, write N/A.*
+
+*Perceived Latency:*
+  - Before:
+  - After:
+  - Improvement:
+
+*Device Used:* (e.g. iPhone 13, Pixel 6, Chrome on M1 Mac) - Note: Don't use CPU throttling for these measurements!
+  - Device CPU: ___
+  - Device RAM: ___
+*Evidence:* (Attach screenshots of the profiler or logs for both Before and After below this section)*
+
+## 4. Prerequisites & Eligibility
+*To ensure proposals are measurable and based on realistic scenarios, you must meet the following criteria:*
+
+- [ ] **Test Environment:** I tested on a high-traffic account (instructions to create this [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts)).
+- [ ] **Thresholds:** My proposal reduces Perceived Latency by at least 100ms
+
+## 5. Pattern Detection & Prevention
+*Is the code logic being optimized something that should be prevented from being added to the app in the future (e.g., via an ESLint rule)?*
+- [ ] Yes (Proposal: _________________)
+- [ ] No (It's a valid pattern, just unoptimized here)
+
+*Other*
+- [ ] **App-wide Audit:** I have checked for other places in the app that have this same performance problem and fixed them.
+- [ ] **Shared Refactor:** This fixes a shared utility/component (e.g., `Avatar.ts`) used across the app.
+- [ ] **Localized Fix:** This only affects this specific view.
+
+
+## 6. Automated Tests & QA
+*Tests are required by default. If you cannot add them, explain why.*
+- [ ] **Unit Tests:** Added to prevent regression.
+- [ ] **Reassure Tests:** Added (Required for execution time improvements).
+- [ ] **Exception:** I cannot add automated tests because: _________________
+- [ ] **Manual Verification:** I have included manual verification steps (Required).
+
+## 7. Other Considerations & UX Risks
+*Performance improvements should not change user experience and product design.*
+- [ ] This change preserves existing UX (No visual/behavioral changes).
+- [ ] This change alters UX (Description: _________________).
+```
+
+---
+
+### Compensation
+* **Bounty:** Accepted and merged performance improvements are eligible for a flat **$250 bounty**.
+* **Scope:** We prefer smaller, atomic PRs. However, if multiple proposals are submitted for closely related logic that could have been one PR, we reserve the right to consolidate them.
+
+___
+
+### Review Process
+1.  **Peer Review:** Wait for **2 Expert Contributors** to approve your proposal.
+2.  **Internal Review:** Once approved by experts, comment `Proposal ready for final review - cc: perf-review` in slack to notify Internal Engineers that the proposal is ready a final review.
+    - Note: Internal Engineers can set up notifications for `perf-review` keyword as mentioned in [this Internal SO](https://stackoverflowteams.com/c/expensify/questions/23081/23082#23082).
+3.  **Approval:** **2 Internal Engineers** must approve before a GH issue is created.

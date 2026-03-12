@@ -2,8 +2,8 @@ import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType} from '@components/Search/types';
-import CONST from '@src/CONST';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
+import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
@@ -127,6 +127,7 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const userFriendlyStatusList = Object.values({
     ...CONST.SEARCH.STATUS.EXPENSE,
     ...CONST.SEARCH.STATUS.INVOICE,
@@ -151,6 +152,7 @@ function filterOutRangesWithCorrectValue(
     currencyList: SharedValue<string[]>,
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
+    exportedToList: SharedValue<string[]>,
     currentType: string,
 ) {
     'worklet';
@@ -160,6 +162,7 @@ function filterOutRangesWithCorrectValue(
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const statusList = userFriendlyStatusList;
     const groupByList = userFriendlyGroupByList;
+    const viewList = userFriendlyViewList;
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
@@ -208,6 +211,8 @@ function filterOutRangesWithCorrectValue(
                 return false;
             }
             return groupByList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
+            return viewList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             return booleanList.includes(range.value);
@@ -225,6 +230,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
             return range.value.length > 0;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
+            return exportedToList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
             return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
@@ -232,11 +239,15 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
-            return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,2})?$/.test(range.value);
+            return new RegExp(`^-?(?!.*[.,].*[.,])\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}(?:[.,]\\d{0,2})?$`).test(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
             return userFriendlyColumnList.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT: {
+            const num = Number(range.value);
+            return Number.isInteger(num) && num > 0;
+        }
         default:
             return false;
     }
@@ -254,6 +265,7 @@ function parseForLiveMarkdown(
     currencyList: SharedValue<string[]>,
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
+    exportedToList: SharedValue<string[]>,
 ): MarkdownRange[] {
     'worklet';
 
@@ -263,13 +275,48 @@ function parseForLiveMarkdown(
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, currentType))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, exportedToList, currentType))
         .map((range) => {
             const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
 
             return {start: range.start, type, length: range.length};
         });
+}
+
+/**
+ * Returns the trimmed search query that preserves comma-separated values for "name fields" like to, from, assignee, etc.
+ * This allows users to select multiple users by typing commas between selections.
+ *
+ * Ex: "to:user1," when selecting user2 -> preserves "to:user1," so result becomes "to:user1,user2"
+ * Ex: "to:user1" when selecting user2 -> returns "to:" so result becomes "to:user2"
+ */
+function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldKey: string | undefined): string {
+    if (!fieldKey) {
+        return getQueryWithoutAutocompletedPart(textInputValue);
+    }
+
+    const isNameField = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
+
+    if (isNameField) {
+        const fieldPattern = `${fieldKey}:`;
+        const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+
+        if (keyIndex !== -1) {
+            const afterFieldKey = textInputValue.substring(keyIndex + fieldPattern.length);
+            const lastCommaIndex = afterFieldKey.lastIndexOf(',');
+
+            if (lastCommaIndex !== -1) {
+                // Preserves "to:user1," when selecting user2
+                return textInputValue.substring(0, keyIndex + fieldPattern.length + lastCommaIndex + 1);
+            }
+            return textInputValue.substring(0, keyIndex + fieldPattern.length);
+        }
+        return getQueryWithoutAutocompletedPart(textInputValue);
+    }
+
+    const keyIndex = textInputValue.toLowerCase().lastIndexOf(`${fieldKey}:`);
+    return keyIndex !== -1 ? textInputValue.substring(0, keyIndex + fieldKey.length + 1) : getQueryWithoutAutocompletedPart(textInputValue);
 }
 
 export {
@@ -280,6 +327,7 @@ export {
     getAutocompleteTags,
     getAutocompleteTaxList,
     getQueryWithoutAutocompletedPart,
+    getTrimmedUserSearchQueryPreservingComma,
     parseForAutocomplete,
     parseForLiveMarkdown,
 };

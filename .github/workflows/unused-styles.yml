@@ -15,7 +15,7 @@ jobs:
   check-unused-styles:
     name: Check for unused styles
     if: ${{ github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
         # v4

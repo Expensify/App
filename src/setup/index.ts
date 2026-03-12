@@ -59,7 +59,12 @@ export default function () {
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
+        snapshotMergeKeys: ['pendingAction', 'pendingFields'],
     });
+
+    // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
+    // handlers are registered before any push arrives, including Android headless/background wake-ups.
+    import('@libs/Notification/PushNotification/subscribeToPushNotifications');
 
     initOnyxDerivedValues();
 

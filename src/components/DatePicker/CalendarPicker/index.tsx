@@ -1,6 +1,7 @@
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -35,6 +36,9 @@ type CalendarPickerProps = {
 
     /** A function called when the date is selected */
     onSelected?: (selectedDate: string) => void;
+
+    /** Optional style override for the header container */
+    headerContainerStyle?: StyleProp<ViewStyle>;
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
@@ -56,6 +60,7 @@ function CalendarPicker({
     onSelected,
     DayComponent = Day,
     selectableDates,
+    headerContainerStyle,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -175,11 +180,14 @@ function CalendarPicker({
 
     const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
     const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
+    const headerPaddingStyle = headerContainerStyle ?? themeStyles.ph5;
+
+    const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
 
     return (
         <View style={[themeStyles.pb4]}>
             <View
-                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph5]}
+                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, headerPaddingStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <PressableWithFeedback
@@ -193,12 +201,13 @@ function CalendarPicker({
                     hoverDimmingValue={1}
                     disabled={years.length <= 1}
                     testID="currentYearButton"
-                    accessibilityLabel={translate('common.currentYear')}
+                    accessibilityLabel={`${currentYearView}, ${translate('common.currentYear')}`}
+                    role={CONST.ROLE.BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.YEAR_PICKER}
                 >
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
                         testID="currentYearText"
-                        accessibilityLabel={translate('common.currentYear')}
                     >
                         {currentYearView}
                     </Text>
@@ -208,7 +217,7 @@ function CalendarPicker({
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
                         testID="currentMonthText"
-                        accessibilityLabel={translate('common.currentMonth')}
+                        accessibilityLabel={`${monthNames.at(currentMonthView)}, ${translate('common.currentMonth')}`}
                     >
                         {monthNames.at(currentMonthView)}
                     </Text>
@@ -219,6 +228,8 @@ function CalendarPicker({
                         onPress={moveToPrevMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.previous')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_MONTH}
                     >
                         <ArrowIcon
                             disabled={!hasAvailableDatesPrevMonth}
@@ -232,6 +243,8 @@ function CalendarPicker({
                         onPress={moveToNextMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.next')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_MONTH}
                     >
                         <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                     </PressableWithFeedback>
@@ -269,16 +282,25 @@ function CalendarPicker({
                                 onDayPressed(day);
                             };
                             const key = `${index}_day-${day}`;
+                            const fullDate = day ? new Date(currentYearView, currentMonthView, day) : null;
+                            const accessibilityDateLabel = fullDate ? DateUtils.formatToLongDateWithWeekday(fullDate) : '';
                             return (
                                 <PressableWithoutFeedback
                                     key={key}
                                     disabled={isDisabled}
                                     onPress={handleOnPress}
                                     style={themeStyles.calendarDayRoot}
-                                    accessibilityLabel={day?.toString() ?? ''}
+                                    accessibilityLabel={accessibilityDateLabel}
+                                    accessibilityHint=""
+                                    accessibilityState={getAccessibilityState(isSelected)}
+                                    aria-selected={isSelected}
                                     tabIndex={day ? 0 : -1}
                                     accessible={!!day}
+                                    accessibilityElementsHidden={!day}
+                                    importantForAccessibility={day ? 'auto' : 'no-hide-descendants'}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                    role={CONST.ROLE.BUTTON}
+                                    sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.DAY}
                                 >
                                     {({hovered, pressed}) => (
                                         <DayComponent

@@ -4,7 +4,7 @@ import BootSplash from '@libs/BootSplash';
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
 import UpdateRequiredView from '@pages/ErrorPage/UpdateRequiredView';
 import CONST from '@src/CONST';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import {useSplashScreenActions} from '@src/SplashScreenStateContext';
 import type {BaseErrorBoundaryProps} from './types';
 
 /**
@@ -15,7 +15,7 @@ import type {BaseErrorBoundaryProps} from './types';
 
 function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseErrorBoundaryProps) {
     const [errorContent, setErrorContent] = useState('');
-    const {setSplashScreenState} = useSplashScreenStateContext();
+    const {setSplashScreenState} = useSplashScreenActions();
 
     const catchError = (errorObject: Error, errorInfo: React.ErrorInfo) => {
         logError(errorMessage, errorObject, JSON.stringify(errorInfo));

@@ -2,6 +2,8 @@ import {setDefaultOptions} from 'date-fns';
 import type {Locale as DateUtilsLocale} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import CONST from '@src/CONST';
 import {LOCALES} from '@src/CONST/LOCALES';
 import type {Locale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -166,6 +168,17 @@ class IntlStore {
         }
         const loaderPromise = this.loaders[locale];
         setAreTranslationsLoading(true);
+
+        const localeSpan = getSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT);
+
+        if (localeSpan) {
+            startSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD, {
+                name: CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD,
+                op: CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD,
+                parentSpan: localeSpan,
+            });
+        }
+
         return loaderPromise()
             .then(() => {
                 this.currentLocale = locale;
@@ -177,6 +190,12 @@ class IntlStore {
             })
             .then(() => {
                 setAreTranslationsLoading(false);
+            })
+            .finally(() => {
+                if (!localeSpan) {
+                    return;
+                }
+                endSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD);
             });
     }
 

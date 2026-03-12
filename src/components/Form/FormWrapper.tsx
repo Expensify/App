@@ -1,5 +1,5 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import type {RefObject} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
@@ -11,12 +11,14 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormInputErrors, FormProps, InputRefs} from './types';
+import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './types';
 
 type FormWrapperProps = ChildrenProps &
     FormProps & {
@@ -64,6 +66,8 @@ type FormWrapperProps = ChildrenProps &
 
         /** Prevents the submit button from triggering blur on mouse down. */
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
+
+        ref?: ForwardedRef<FormWrapperRef>;
     };
 
 function FormWrapper({
@@ -96,16 +100,18 @@ function FormWrapper({
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
     forwardedFSClass,
+    sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
+    ref,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
 
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
 
-    const errorMessage = useMemo(() => (formState ? getLatestErrorMessage(formState) : undefined), [formState]);
+    const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
 
-    const onFixTheErrorsLinkPressed = useCallback(() => {
+    const onFixTheErrorsLinkPressed = () => {
         const errorFields = !isEmptyObject(errors) ? errors : (formState?.errorFields ?? {});
         const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => key in errorFields);
 
@@ -132,9 +138,18 @@ function FormWrapper({
             );
         }
 
+        Accessibility.moveAccessibilityFocus(focusInput?.getNativeRef?.());
+
         // Focus the input after scrolling, as on the Web it gives a slightly better visual result
         focusInput?.focus?.();
-    }, [errors, formState?.errorFields, inputRefs]);
+    };
+
+    const scrollToEnd = () => {
+        // We need to wait for the keyboard animation to complete before scrolling to the end
+        setTimeout(() => {
+            formRef.current?.scrollToEnd({animated: true});
+        }, CONST.ANIMATED_TRANSITION);
+    };
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
     // we expect that the user wants to use the new edge-to-edge mode.
@@ -159,88 +174,58 @@ function FormWrapper({
         style: submitButtonStyles,
     });
 
-    const SubmitButton = useMemo(
-        () =>
-            isSubmitButtonVisible && (
-                <FormAlertWithSubmitButton
-                    buttonText={submitButtonText}
-                    isDisabled={isSubmitDisabled}
-                    isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
-                    isLoading={!!formState?.isLoading || isLoading}
-                    message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
-                    onSubmit={onSubmit}
-                    footerContent={footerContent}
-                    onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-                    containerStyles={[
-                        styles.mh0,
-                        styles.mt5,
-                        submitFlexEnabled && styles.flex1,
-                        submitButtonStylesWithBottomSafeAreaPadding,
-                        shouldSubmitButtonStickToBottom && [styles.stickToBottom, style],
-                    ]}
-                    enabledWhenOffline={enabledWhenOffline}
-                    isSubmitActionDangerous={isSubmitActionDangerous}
-                    disablePressOnEnter={disablePressOnEnter}
-                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                    shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
-                    shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
-                    shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
-                />
-            ),
-        [
-            disablePressOnEnter,
-            enterKeyEventListenerPriority,
-            enabledWhenOffline,
-            errorMessage,
-            errors,
-            footerContent,
-            formState?.errorFields,
-            formState?.isLoading,
-            isLoading,
-            isSubmitActionDangerous,
-            isSubmitButtonVisible,
-            isSubmitDisabled,
-            onFixTheErrorsLinkPressed,
-            onSubmit,
-            shouldHideFixErrorsAlert,
-            shouldSubmitButtonBlendOpacity,
-            shouldSubmitButtonStickToBottom,
-            style,
-            styles.flex1,
-            styles.mh0,
-            styles.mt5,
-            styles.stickToBottom,
-            submitButtonStylesWithBottomSafeAreaPadding,
-            submitButtonText,
-            submitFlexEnabled,
-            shouldRenderFooterAboveSubmit,
-            shouldPreventDefaultFocusOnPressSubmit,
-        ],
+    useImperativeHandle(ref, () => ({
+        scrollToEnd,
+    }));
+
+    const SubmitButton = isSubmitButtonVisible && (
+        <FormAlertWithSubmitButton
+            buttonText={submitButtonText}
+            isDisabled={isSubmitDisabled}
+            isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
+            isLoading={!!formState?.isLoading || isLoading}
+            message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
+            onSubmit={onSubmit}
+            footerContent={footerContent}
+            onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
+            containerStyles={[
+                styles.mh0,
+                styles.mt5,
+                submitFlexEnabled && styles.flex1,
+                submitButtonStylesWithBottomSafeAreaPadding,
+                shouldSubmitButtonStickToBottom && [styles.stickToBottom, style],
+            ]}
+            enabledWhenOffline={enabledWhenOffline}
+            isSubmitActionDangerous={isSubmitActionDangerous}
+            disablePressOnEnter={disablePressOnEnter}
+            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+            shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
+            shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
+            shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
+            sentryLabel={sentryLabel}
+        />
     );
 
-    const scrollViewContent = useCallback(
-        () => (
-            <FormElement
-                key={formID}
-                ref={formContentRef}
-                style={[style, styles.pb5]}
-                onLayout={() => {
-                    if (!shouldScrollToEnd) {
-                        return;
-                    }
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => {
-                        requestAnimationFrame(() => {
-                            formRef.current?.scrollToEnd({animated: true});
-                        });
+    const scrollViewContent = () => (
+        <FormElement
+            key={formID}
+            ref={formContentRef}
+            style={[style, styles.pb5]}
+            onLayout={() => {
+                if (!shouldScrollToEnd) {
+                    return;
+                }
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    requestAnimationFrame(() => {
+                        formRef.current?.scrollToEnd({animated: true});
                     });
-                }}
-            >
-                {children}
-                {!shouldSubmitButtonStickToBottom && SubmitButton}
-            </FormElement>
-        ),
-        [formID, style, styles.pb5, children, shouldSubmitButtonStickToBottom, SubmitButton, shouldScrollToEnd],
+                });
+            }}
+        >
+            {children}
+            {!shouldSubmitButtonStickToBottom && SubmitButton}
+        </FormElement>
     );
 
     if (!shouldUseScrollView) {

@@ -87,6 +87,7 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         isCategoryRequired: false,
         isDistanceRequest: false,
         isManualDistanceRequest: false,
+        isGPSDistanceRequest: false,
         isPerDiemRequest: false,
         isMerchantEmpty: false,
         isMerchantRequired: false,
@@ -97,6 +98,7 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         policyTags: {},
         policyTagLists: [],
         rate: undefined,
+        distanceRateName: undefined,
         receiptFilename: '',
         receiptPath: '',
         reportActionID: '',
@@ -119,6 +121,11 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         iouIsReimbursable: false,
         isReceiptEditable: false,
         isDescriptionRequired: false,
+        iouTimeCount: undefined,
+        iouTimeRate: undefined,
+        isTimeRequest: false,
+        showMoreFields: false,
+        setShowMoreFields: jest.fn(),
     };
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>

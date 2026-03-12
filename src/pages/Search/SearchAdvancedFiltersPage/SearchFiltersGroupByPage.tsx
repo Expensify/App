@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersGroupByPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.groupBy);
 
     const listData: Array<ListItem<SearchGroupBy>> = useMemo(() => {
@@ -40,7 +40,9 @@ function SearchFiltersGroupByPage() {
     }, []);
 
     const applyChanges = useCallback(() => {
-        updateAdvancedFilters({groupBy: selectedItem ?? null});
+        // When groupBy is cleared, also clear the view since view is only valid when groupBy is set
+        const updates = selectedItem ? {groupBy: selectedItem} : {groupBy: null, view: null};
+        updateAdvancedFilters(updates);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedItem]);
 

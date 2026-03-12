@@ -11,6 +11,7 @@ import SafeString from '@src/utils/SafeString';
 import {convertToDisplayString} from './CurrencyUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
+import {constructReceiptSourceFromFilename} from './ReceiptUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
 import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
@@ -29,10 +30,9 @@ import {
     isMerchantMissing,
     isPerDiemRequest,
     isScanning,
+    isTimeRequest,
     isTransactionPendingDelete,
 } from './TransactionUtils';
-
-const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
 // Define the specific merge fields we want to handle
 const MERGE_FIELDS = ['amount', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'attendees', 'reportID'] as const;
@@ -89,7 +89,7 @@ function fillMissingReceiptSource(transaction: Transaction) {
         ...transaction,
         receipt: {
             ...transaction.receipt,
-            source: `${RECEIPT_SOURCE_URL}${transaction.receipt.filename}`,
+            source: constructReceiptSourceFromFilename(transaction.receipt.filename),
         },
     };
 }
@@ -408,6 +408,10 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
     }
 
     if (isDistanceRequest(transaction1) !== isDistanceRequest(transaction2)) {
+        return false;
+    }
+
+    if (isTimeRequest(transaction1) !== isTimeRequest(transaction2)) {
         return false;
     }
 

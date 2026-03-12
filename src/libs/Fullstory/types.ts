@@ -83,6 +83,26 @@ type Fullstory = {
      * Returns the current FullStory session URL.
      */
     getSessionURL: () => Promise<string | undefined>;
+
+    /**
+     * Sends a custom event to FullStory.
+     */
+    event: (eventName: string, eventProperties?: Record<string, unknown>) => void;
+
+    /**
+     * Sends a log message to FullStory with the specified log level.
+     */
+    log: (level: 'log' | 'info' | 'warn' | 'error', message: string) => void;
+
+    /**
+     * Updates user properties without re-identifying.
+     */
+    setUserVars: (userVars: Record<string, unknown>) => void;
+
+    /**
+     * Resets the idle timer to prevent session timeout.
+     */
+    resetIdleTimer: () => void;
 };
 
 /**

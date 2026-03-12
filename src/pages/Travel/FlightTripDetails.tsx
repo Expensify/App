@@ -60,7 +60,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                         width={variables.iconSizeNormal}
                         fill={theme.icon}
                     />
-                    <RenderHTML html={translate('travel.flightDetails.layover', {layover})} />
+                    <RenderHTML html={translate('travel.flightDetails.layover', layover)} />
                 </View>
             )}
             <MenuItemWithTopDescription
@@ -100,14 +100,15 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
             />
 
             <View style={[styles.flexRow, styles.flexWrap]}>
-                {!!reservation.route?.number && (
+                {!!reservation.seatNumber && (
                     <View style={styles.w50}>
                         <MenuItemWithTopDescription
                             description={translate('travel.flightDetails.seat')}
-                            title={reservation.route?.number}
+                            title={reservation.seatNumber}
                             interactive={false}
-                            copyValue={reservation.route?.number}
-                            copyable={!!reservation.route?.number?.length}
+                            copyValue={reservation.seatNumber}
+                            copyable={!!reservation.seatNumber?.length}
+                            pressableTestID={CONST.FLIGHT_SEAT_TEST_ID}
                         />
                     </View>
                 )}

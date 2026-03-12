@@ -5,6 +5,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ExtraLoadingContext} from '@libs/AppState';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
@@ -27,6 +29,9 @@ type FullScreenLoadingIndicatorProps = {
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
     extraLoadingContext?: ExtraLoadingContext;
+
+    /** Reason attributes for skeleton span telemetry */
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
 function FullScreenLoadingIndicator({
@@ -35,10 +40,12 @@ function FullScreenLoadingIndicator({
     shouldUseGoBackButton = false,
     testID = '',
     extraLoadingContext,
+    reasonAttributes,
 }: FullScreenLoadingIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [showGoBackButton, setShowGoBackButton] = useState(false);
+    useSkeletonSpan('FullScreenLoadingIndicator', reasonAttributes);
 
     useEffect(() => {
         if (!shouldUseGoBackButton) {
@@ -59,7 +66,7 @@ function FullScreenLoadingIndicator({
                     testID={testID}
                     extraLoadingContext={extraLoadingContext}
                 />
-                {showGoBackButton && (
+                {showGoBackButton && shouldUseGoBackButton && (
                     <View style={styles.loadingMessage}>
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>

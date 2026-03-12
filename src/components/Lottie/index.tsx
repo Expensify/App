@@ -1,9 +1,9 @@
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
-import type {ForwardedRef} from 'react';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import {useReducedMotion} from 'react-native-reanimated';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
@@ -11,20 +11,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getBrowser, isMobile} from '@libs/Browser';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import CONST from '@src/CONST';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
 type Props = {
     source: DotLottieAnimation;
     shouldLoadAfterInteractions?: boolean;
-    ref?: ForwardedRef<LottieView>;
 } & Omit<LottieViewProps, 'source'>;
 
-function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: Props) {
+function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props) {
     const animationRef = useRef<LottieView | null>(null);
     const appState = useAppState();
-    const {splashScreenState} = useSplashScreenStateContext();
+    const {splashScreenState} = useSplashScreenState();
     const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
+    const isReducedMotionEnabled = useReducedMotion();
 
     useNetwork({onReconnect: () => setIsError(false)});
 
@@ -64,10 +64,12 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: 
         }
         const unsubscribeNavigationFocus = navigator.addListener('focus', () => {
             setHasNavigatedAway(false);
-            animationRef.current?.play();
+            if (!isReducedMotionEnabled) {
+                animationRef.current?.play();
+            }
         });
         return unsubscribeNavigationFocus;
-    }, [browser, navigationContainerRef, navigator]);
+    }, [browser, navigationContainerRef, navigator, isReducedMotionEnabled]);
 
     useEffect(() => {
         if (!browser || !navigationContainerRef || !navigator) {
@@ -116,15 +118,11 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: 
         <LottieView
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            autoPlay={isReducedMotionEnabled ? false : props.autoPlay}
+            loop={isReducedMotionEnabled ? false : props.loop}
             source={animationFile}
             key={`${hasNavigatedAway}`}
             ref={(newRef) => {
-                if (typeof ref === 'function') {
-                    ref(newRef);
-                } else if (ref && 'current' in ref) {
-                    // eslint-disable-next-line no-param-reassign
-                    ref.current = newRef;
-                }
                 animationRef.current = newRef;
             }}
             style={[aspectRatioStyle, props.style]}

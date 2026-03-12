@@ -19,6 +19,7 @@ import {
     getParsedComment,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import {notifyNewAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -31,9 +32,28 @@ import {dismissModalAndOpenReportInInboxTab} from '.';
 
 type SendMoneyParamsData = {
     params: SendMoneyParams;
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
+    optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        >
+    >;
+    successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
+    >;
+    failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    >;
 };
 
 /**
@@ -406,7 +426,6 @@ function getSendMoneyParams({
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT
@@ -457,7 +476,7 @@ function getSendMoneyParams({
 }
 
 /**
- * @param managerID - Account ID of the person sending the money
+ * @param currentUserAccountID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
 function sendMoneyElsewhere(
@@ -466,7 +485,7 @@ function sendMoneyElsewhere(
     amount: number,
     currency: string,
     comment: string,
-    managerID: number,
+    currentUserAccountID: number,
     recipient: Participant,
     created?: string,
     merchant?: string,
@@ -479,21 +498,32 @@ function sendMoneyElsewhere(
         currency,
         commentParam: comment,
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-        managerID,
+        managerID: currentUserAccountID,
         recipient,
         created,
         merchant,
         receipt,
     });
+    startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+        name: 'submit-to-destination-visible',
+        op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: !!receipt,
+            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isEmptyObject(report) || !report?.reportID,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: CONST.IOU.TYPE.PAY,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: 'pay',
+        },
+    });
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
-    notifyNewAction(params.chatReportID, managerID);
+    notifyNewAction(params.chatReportID, undefined, true);
 }
 
 /**
- * @param managerID - Account ID of the person sending the money
+ * @param currentUserAccountID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
 function sendMoneyWithWallet(
@@ -502,7 +532,7 @@ function sendMoneyWithWallet(
     amount: number,
     currency: string,
     comment: string,
-    managerID: number,
+    currentUserAccountID: number,
     recipient: Participant | OptionData,
     created?: string,
     merchant?: string,
@@ -515,17 +545,28 @@ function sendMoneyWithWallet(
         currency,
         commentParam: comment,
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-        managerID,
+        managerID: currentUserAccountID,
         recipient,
         created,
         merchant,
         receipt,
     });
+    startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+        name: 'submit-to-destination-visible',
+        op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: !!receipt,
+            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isEmptyObject(report) || !report?.reportID,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: CONST.IOU.TYPE.PAY,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: 'pay',
+        },
+    });
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
-    notifyNewAction(params.chatReportID, managerID);
+    notifyNewAction(params.chatReportID, undefined, true);
 }
 
 export {sendMoneyElsewhere, sendMoneyWithWallet};

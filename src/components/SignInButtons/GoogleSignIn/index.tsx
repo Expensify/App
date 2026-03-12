@@ -34,7 +34,7 @@ const signIn = (response: Response, preferredLocale?: Locale) => {
 function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const loadScript = useCallback(() => {
         const google = window.google;
         if (google) {

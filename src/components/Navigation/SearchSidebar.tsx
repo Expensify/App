@@ -1,19 +1,14 @@
 import type {ParamListBase} from '@react-navigation/native';
-import {searchResultsSelector} from '@selectors/Snapshot';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import NavigationTabBar from './NavigationTabBar';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
@@ -27,35 +22,25 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const route = state.routes.at(-1);
-    const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
-    const {lastSearchType, setLastSearchType} = useSearchContext();
+    const {lastSearchType, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
+    const {setLastSearchType} = useSearchActionsContext();
 
-    const queryJSON = useMemo(() => {
-        if (!params?.q) {
-            return undefined;
-        }
-
-        return buildSearchQueryJSON(params.q, params.rawQuery);
-    }, [params?.q, params?.rawQuery]);
-
-    const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {
-        canBeMissing: true,
-        selector: searchResultsSelector,
-    });
+    const searchType = currentSearchResults?.search?.type;
+    const isSearchLoading = currentSearchResults?.search?.isLoading;
 
     useEffect(() => {
-        if (!currentSearchResults?.type) {
+        if (!searchType) {
             return;
         }
 
-        setLastSearchType(currentSearchResults.type);
-    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults?.type]);
+        setLastSearchType(searchType);
+    }, [lastSearchType, setLastSearchType, searchType]);
 
-    const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !!currentSearchResults?.isLoading;
+    const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
     if (shouldUseNarrowLayout) {
         return null;
@@ -65,12 +50,12 @@ function SearchSidebar({state}: SearchSidebarProps) {
         <View style={styles.searchSidebar}>
             <View style={styles.flex1}>
                 <TopBar
-                    shouldShowLoadingBar={shouldShowLoadingState}
+                    shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
                     breadcrumbLabel={translate('common.reports')}
                     shouldDisplaySearch={false}
                     shouldDisplayHelpButton={false}
                 />
-                <SearchTypeMenu queryJSON={queryJSON} />
+                <SearchTypeMenu queryJSON={currentSearchQueryJSON} />
             </View>
             <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>

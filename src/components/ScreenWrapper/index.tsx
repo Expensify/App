@@ -1,22 +1,26 @@
-import {useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import type {ReactNode} from 'react';
-import React, {useContext, useEffect, useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard} from 'react-native';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
+import {DeviceEventEmitter, Keyboard} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
+import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobile} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import getPlatform from '@libs/getPlatform';
+import mergeRefs from '@libs/mergeRefs';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -104,10 +108,12 @@ function ScreenWrapper({
     const navigationFallback = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
+    const screenWrapperRef = useRef<View | HTMLElement>(null);
+    const mergedScreenWrapperRef = mergeRefs(screenWrapperRef, ref);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
@@ -133,6 +139,9 @@ function ScreenWrapper({
     // This context allows us to disable the safe area padding offsetting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
     // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offsetting the offline indicator because we only show the offline indicator on small screens.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
+    const isMobileWebNarrowLayout = getPlatform() === CONST.PLATFORM.WEB && isMobile() && shouldUseNarrowLayout;
+    const shouldMoveAccessibilityFocus = isMobileWebNarrowLayout && isInNarrowPane;
+    const shouldHideFromAccessibility = isMobileWebNarrowLayout && !isFocused;
     const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => {
         const newAddSafeAreaPadding = isInNarrowPane ? isSmallScreenWidth : addSafeAreaPadding;
@@ -167,15 +176,17 @@ function ScreenWrapper({
     const {isOffline} = useNetwork();
     const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
-    const {initialURL} = useContext(InitialURLContext);
-    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
+    const {initialURL} = useInitialURLState();
+    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
 
     usePreventRemove(isSingleNewDotEntry && !!initialURL?.endsWith(Navigation.getActiveRouteWithoutParams()), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
-        closeReactNativeApp({shouldSetNVP: false});
+        closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
     });
+
+    useAccessibilityFocus({didScreenTransitionEnd, isFocused, ref: screenWrapperRef, shouldMoveAccessibilityFocus});
 
     useEffect(() => {
         // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
@@ -220,6 +231,31 @@ function ScreenWrapper({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useFocusEffect(
+        useCallback(() => {
+            // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
+            const timeout = setTimeout(() => {
+                DeviceEventEmitter.emit(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER);
+            }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+
+            const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
+                // Prevent firing the prop callback when user is exiting the page.
+                if (event?.data?.closing) {
+                    return;
+                }
+                clearTimeout(timeout);
+                DeviceEventEmitter.emit(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER);
+            });
+
+            return () => {
+                clearTimeout(timeout);
+                if (unsubscribeTransitionEnd) {
+                    unsubscribeTransitionEnd();
+                }
+            };
+        }, [navigation]),
+    );
+
     const ChildrenContent = useMemo(() => {
         return (
             // If props.children is a function, call it to provide the insets to the children.
@@ -230,7 +266,7 @@ function ScreenWrapper({
     return (
         <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>
             <ScreenWrapperContainer
-                ref={ref}
+                ref={mergedScreenWrapperRef}
                 style={[styles.flex1, style]}
                 bottomContent={bottomContent}
                 didScreenTransitionEnd={didScreenTransitionEnd}
@@ -239,6 +275,7 @@ function ScreenWrapper({
                 includePaddingTop={includePaddingTop}
                 includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
                 isFocused={isFocused}
+                shouldHideFromAccessibility={shouldHideFromAccessibility}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restContainerProps}
             >

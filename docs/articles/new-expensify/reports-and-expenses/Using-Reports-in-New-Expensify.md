@@ -1,7 +1,7 @@
 ---
 title: Using Reports in New Expensify
 description: Learn how to use Reports in New Expensify to search, filter, customize columns, and save reports for expenses, invoices, trips, and chats.
-keywords: [Reports, New Expensify, report filters, search commands, custom columns, saved reports, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns]
+keywords: [Reports, New Expensify, report filters, search commands, custom columns, saved reports, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -75,6 +75,18 @@ You can choose from a wide range of columns, including:
 To view the full list of available columns, click the **Columns** icon in the **Reports** tab.
 
 ---
+
+# How to group expenses by category or tag using Report Layout
+
+Report Layout lets you group expenses inside a report to make reviews faster and easier.
+
+To group expenses:
+
+1. Open a report that contains more than one expense.
+2. Click the **More** icon (three dots) in the top-right corner of the report.
+3. Select **Group by category**, **Group by tag**, or **Don’t group**.
+
+Your selected layout will be remembered and applied to other reports you view.
 
 # How to use Reports search query commands
 
