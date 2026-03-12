@@ -253,7 +253,7 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {editingReportActionID, editingReportAction, editingMessage, setEditingMessage, currentEditMessageSelection, setCurrentEditMessageSelection, getEditingState} =
+    const {editingState, editingReportActionID, editingReportAction, editingMessage, setEditingMessage, currentEditMessageSelection, setCurrentEditMessageSelection} =
         useReportActionActiveEdit();
 
     const [value, setValue] = useState(() => {
@@ -332,7 +332,6 @@ function ComposerWithSuggestions({
     );
 
     useEffect(() => {
-        const editingState = getEditingState();
         if (editingState === 'submitted') {
             return;
         }
@@ -347,8 +346,7 @@ function ComposerWithSuggestions({
         if (!isEditing) {
             if (wasEditing.current && wasEditingInComposerRef.current) {
                 // Editing just ended in the composer – restore the draft comment and its previous selection.
-                const nextValue = draftComment ?? '';
-                applyComposerValue(nextValue, {selection: previousDraftSelectionRef.current});
+                applyComposerValue(draftComment ?? '', {selection: previousDraftSelectionRef.current});
             }
 
             wasEditing.current = false;
@@ -370,16 +368,14 @@ function ComposerWithSuggestions({
                 return;
             }
             // In narrow layout we always show the message being edited.
-            const nextValue = editingMessage ?? '';
             // When starting to edit in the composer, always place the cursor at the end of the message.
-            applyComposerValue(nextValue, {isEditingInComposer: true, shouldMoveSelectionToEnd: true});
+            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true, shouldMoveSelectionToEnd: true});
             return;
         }
 
         // We are already in editing mode, but the target message changed.
         if (didChangeEditedAction && shouldUseNarrowLayout) {
-            const nextValue = editingMessage ?? '';
-            applyComposerValue(nextValue, {isEditingInComposer: true});
+            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true});
             return;
         }
 
@@ -387,18 +383,16 @@ function ComposerWithSuggestions({
         if (shouldUseNarrowLayout && !wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = true;
             // We just moved from wide to narrow while editing – start editing in the composer.
-            const nextValue = editingMessage ?? '';
-            applyComposerValue(nextValue, {isEditingInComposer: true});
+            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true});
             return;
         }
 
         // Editing is ongoing and layout toggled from narrow to wide.
         if (!shouldUseNarrowLayout && wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = false;
-            const nextValue = draftComment ?? '';
-            applyComposerValue(nextValue);
+            applyComposerValue(draftComment ?? '');
         }
-    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, getEditingState, selection, shouldUseNarrowLayout, updateSelectionImperatively]);
+    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, editingState, selection, shouldUseNarrowLayout, updateSelectionImperatively]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -622,7 +616,6 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            const editingState = getEditingState();
             if (editingState === 'editing' && shouldUseNarrowLayout) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
@@ -651,8 +644,8 @@ function ComposerWithSuggestions({
             debouncedSaveDraft,
             debouncedSaveReportComment,
             editingReportActionID,
+            editingState,
             findNewlyAddedChars,
-            getEditingState,
             preferredLocale,
             preferredSkinTone,
             raiseIsScrollLikelyLayoutTriggered,
