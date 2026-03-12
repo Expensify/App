@@ -79,6 +79,7 @@ import {
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
+    getLinkedIOUTransaction,
     getMostRecentlyVisitedReport,
     getOriginalReportID,
     getOutstandingChildRequest,
@@ -4586,6 +4587,59 @@ describe('ReportUtils', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(
                 ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(CONST.POLICY.TYPE.TEAM, transactionID, childReportID, encodeURIComponent('mock-route')),
             );
+        });
+    });
+
+    describe('getLinkedIOUTransaction', () => {
+        it('should return the matching transaction for a money request action', () => {
+            const transactionID = 'txn-123';
+            const transaction = {
+                ...createRandomTransaction(100),
+                transactionID,
+            } as Transaction;
+            const otherTransaction = {
+                ...createRandomTransaction(200),
+                transactionID: 'txn-other',
+            } as Transaction;
+
+            const reportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID,
+                iouReportID: 'report-1',
+            });
+
+            const result = getLinkedIOUTransaction(reportAction, [otherTransaction, transaction]);
+            expect(result).toBe(transaction);
+        });
+
+        it('should return undefined when no matching transaction exists', () => {
+            const reportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: 'txn-missing',
+                iouReportID: 'report-1',
+            });
+
+            const result = getLinkedIOUTransaction(reportAction, []);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined for non-money-request actions', () => {
+            const action = buildOptimisticCreatedReportAction('user@test.com');
+            const transaction = {
+                ...createRandomTransaction(100),
+                transactionID: 'txn-123',
+            } as Transaction;
+
+            const result = getLinkedIOUTransaction(action, [transaction]);
+            expect(result).toBeUndefined();
         });
     });
 
