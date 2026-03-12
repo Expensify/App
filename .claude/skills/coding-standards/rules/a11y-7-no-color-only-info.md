@@ -26,11 +26,10 @@ Users with color vision deficiencies (8% of men, 0.5% of women) cannot distingui
 
 ```tsx
 // Status uses color + icon + label
+const statusLabel = isOnline ? translate('common.online') : translate('common.offline');
 <View style={styles.statusContainer}>
     <View style={{backgroundColor: isOnline ? theme.success : theme.danger, width: 8, height: 8, borderRadius: 4}} />
-    <Text accessibilityLabel={isOnline ? translate('common.online') : translate('common.offline')}>
-        {isOnline ? translate('common.online') : translate('common.offline')}
-    </Text>
+    <Text accessibilityLabel={statusLabel}>{statusLabel}</Text>
 </View>
 
 // Error uses color + icon + text message

@@ -9,8 +9,8 @@ title: Manage focus for modals and overlays
 
 When a modal, bottom sheet, or popover opens, screen reader users can still navigate to content behind it unless focus is trapped inside the overlay. Platform-specific handling is required:
 
-- **iOS**: Use `accessibilityViewIsModal={true}` (or `aria-modal`) on the modal container — VoiceOver will ignore sibling views. No `aria-*` alternative exists for hiding background content on Android.
-- **Android**: Use `importantForAccessibility="no-hide-descendants"` on the background content to hide it from TalkBack. There is no ARIA equivalent for this prop.
+- **iOS**: Use `accessibilityViewIsModal={true}` on the modal container — VoiceOver will ignore sibling views.
+- **Android**: Use `importantForAccessibility="no-hide-descendants"` on the background content to hide it from TalkBack.
 
 Focus should move to the modal's first interactive element on open and return to the trigger on close. (WCAG 2.4.3, 2.1.2)
 

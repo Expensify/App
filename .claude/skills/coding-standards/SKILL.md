@@ -52,6 +52,9 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CLEAN-REACT-PATTERNS-5](rules/clean-react-5-narrow-state.md) — Keep state narrow
 
 ### Accessibility (WCAG 2.2 AA)
+
+**Use React Native accessibility props.** React Native Web translates them to ARIA attributes automatically. Only use `aria-*` when a React Native equivalent isn't available.
+
 - [A11Y-1](rules/a11y-1-label-interactive-elements.md) — Label interactive elements
 - [A11Y-2](rules/a11y-2-semantic-roles.md) — Semantic accessibilityRole
 - [A11Y-3](rules/a11y-3-communicate-state.md) — Communicate component state

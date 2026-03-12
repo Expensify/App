@@ -52,7 +52,7 @@ Users with motor impairments, tremors, or limited dexterity struggle to tap smal
 
 Flag ONLY when ALL of these are true:
 
-- Element is interactive (`Pressable`, `TouchableOpacity`, `TouchableWithoutFeedback`, or has `onPress`)
+- Element is interactive (`Pressable`, `TouchableOpacity`, `TouchableWithoutFeedback`, `PressableWithFeedback`, `Button`, or has `onPress`)
 - Element has explicit dimensions (width/height in style) **less than 44** on either axis
 - Element has **no** `hitSlop` prop to compensate
 

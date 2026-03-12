@@ -51,12 +51,12 @@ Flag ONLY when ALL of these are true:
 
 - Element is interactive (`Pressable`, `TouchableOpacity`, `TouchableWithoutFeedback`, `PressableWithFeedback`, `Button`, or has `onPress`/`onLongPress`)
 - Element contains **no visible `<Text>` child** (icon-only, image-only, or SVG-only)
-- Element has **no** `accessibilityLabel` or `aria-label` prop
+- Element has **no** `accessibilityLabel` prop
 
 **DO NOT flag if:**
 
 - Element has a `<Text>` child that clearly describes the action
-- Element is explicitly hidden from accessibility (`accessible={false}`, `aria-hidden={true}`, `importantForAccessibility="no"`)
+- Element is explicitly hidden from accessibility (`accessible={false}`, `accessibilityElementsHidden={true}` on iOS, `importantForAccessibility="no"` on Android)
 - Element is a list item wrapper where the child component handles its own accessibility
 
 **Search Patterns** (hints for reviewers):

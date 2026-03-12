@@ -72,15 +72,15 @@ Screen readers must announce the current state of interactive elements — wheth
 
 Flag ONLY when ANY of these patterns is found:
 
-- Element has `disabled` prop but **no** `accessibilityState={{disabled: ...}}` or `aria-disabled`
-- Element has `accessibilityRole="checkbox"` or `"switch"` but **no** `accessibilityState={{checked: ...}}` or `aria-checked`
-- Element visually toggles expanded/collapsed but **no** `accessibilityState={{expanded: ...}}` or `aria-expanded`
-- Element visually indicates selection (active tab, selected item) but **no** `accessibilityState={{selected: ...}}` or `aria-selected`
+- Element has `disabled` prop but **no** `accessibilityState={{disabled: ...}}`
+- Element has `accessibilityRole="checkbox"` or `"switch"` but **no** `accessibilityState={{checked: ...}}`
+- Element visually toggles expanded/collapsed but **no** `accessibilityState={{expanded: ...}}`
+- Element visually indicates selection (active tab, selected item) but **no** `accessibilityState={{selected: ...}}`
 
 **DO NOT flag if:**
 
 - Using a design system component that handles state internally (e.g., `<Switch>`, `<Checkbox>`, `<RadioButton>`)
-- State is communicated via the equivalent `aria-*` props (`aria-disabled`, `aria-checked`, `aria-expanded`, `aria-selected`) — these map to `accessibilityState` internally
+- State is already communicated via `accessibilityState` on a parent or wrapper component
 
 **Search Patterns** (hints for reviewers):
 - `disabled={` without `accessibilityState`

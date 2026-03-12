@@ -7,7 +7,7 @@ title: Forms must have accessible labels, errors, and instructions
 
 ### Reasoning
 
-Screen reader users navigate forms field by field. Each input must be associated with a descriptive label so users know what to enter. While React Native uses `placeholder` as a fallback accessible name, it disappears once the user starts typing, leaving the field unlabeled. An explicit `accessibilityLabel` (or `accessibilityLabelledBy` on Android) persists regardless of input state. Error messages must be announced when they appear. Note: `accessibilityHint` and `accessibilityActions`/`onAccessibilityAction` have no ARIA equivalents — use the RN-specific props directly. (WCAG 1.3.1, 3.3.1, 3.3.2)
+Screen reader users navigate forms field by field. Each input must be associated with a descriptive label so users know what to enter. While React Native uses `placeholder` as a fallback accessible name, it disappears once the user starts typing, leaving the field unlabeled. An explicit `accessibilityLabel` (or `accessibilityLabelledBy` on Android) persists regardless of input state. Error messages must be announced when they appear using `accessibilityLiveRegion` (Android) and `AccessibilityInfo.announceForAccessibility()` (iOS). (WCAG 1.3.1, 3.3.1, 3.3.2)
 
 ### Incorrect
 
@@ -59,6 +59,13 @@ Screen reader users navigate forms field by field. Each input must be associated
         {emailError}
     </Text>
 )}
+
+// iOS: announce error to VoiceOver
+useEffect(() => {
+    if (emailError) {
+        AccessibilityInfo.announceForAccessibility(emailError);
+    }
+}, [emailError]);
 ```
 
 ---
@@ -67,7 +74,7 @@ Screen reader users navigate forms field by field. Each input must be associated
 
 Flag ONLY when ANY of these patterns is found:
 
-- `<TextInput>` with **no** `accessibilityLabel`, **no** `accessibilityLabelledBy`, and **no** `aria-label`
+- `<TextInput>` with **no** `accessibilityLabel` and **no** `accessibilityLabelledBy`
 - `<TextInput>` relying **only** on `placeholder` for labeling (placeholder disappears once user types, leaving the field unlabeled for screen readers)
 - Form validation error text rendered without `accessibilityLiveRegion` or `accessibilityRole="alert"`
 
@@ -75,7 +82,7 @@ Flag ONLY when ANY of these patterns is found:
 
 - Using a form component library that wraps inputs with labels internally
 - `accessibilityLabel` is set on the input or a parent `accessible` container
-- `accessibilityLabelledBy` / `aria-labelledby` links to a visible label
+- `accessibilityLabelledBy` links to a visible label via `nativeID`
 
 **Search Patterns** (hints for reviewers):
 - `<TextInput` without `accessibilityLabel`

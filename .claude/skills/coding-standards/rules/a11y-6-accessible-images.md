@@ -7,7 +7,7 @@ title: Images must have labels or be hidden from assistive technology
 
 ### Reasoning
 
-Screen readers attempt to announce every image. Informative images (photos, charts, meaningful icons) need descriptive `accessibilityLabel` so users understand the content. Decorative images (background patterns, visual separators, ornamental icons) must be hidden with `accessible={false}` or `aria-hidden={true}` to avoid cluttering the screen reader experience with meaningless announcements. (WCAG 1.1.1)
+Screen readers attempt to announce every image. Informative images (photos, charts, meaningful icons) need descriptive `accessibilityLabel` so users understand the content. Decorative images (background patterns, visual separators, ornamental icons) must be hidden with `accessible={false}` to avoid cluttering the screen reader experience with meaningless announcements. (WCAG 1.1.1)
 
 ### Incorrect
 
@@ -54,7 +54,7 @@ Screen readers attempt to announce every image. Informative images (photos, char
 
 Flag ONLY when ANY of these patterns is found:
 
-- `<Image>` with a meaningful `source` (not a decorative pattern) and **no** `accessibilityLabel` and **not** hidden (`accessible={false}` / `aria-hidden`)
+- `<Image>` with a meaningful `source` (not a decorative pattern) and **no** `accessibilityLabel` and **not** hidden (`accessible={false}`)
 - Icon used to convey information (status, type, category) with **no** label and **not** hidden
 - Decorative/ornamental image that is **not** hidden from assistive technology
 
