@@ -907,54 +907,34 @@ function dismissToSuperWideRHP() {
 }
 
 /**
- * Replaces the currently visible fullscreen root route on wide layouts with the
- * fullscreen route parsed from the destination path.
- *
- * This is a low-level helper used to prepare the screen underneath an open RHP.
- * It intentionally replaces the fullscreen wrapper route from the parsed state,
- * not the deepest focused leaf route.
- */
-function replaceLastFullScreenRoute(route: Route) {
-    if (getIsNarrowLayout()) {
-        Log.warn('[Navigation] replaceLastFullScreenRoute should only be used on wide layouts.');
-        return;
-    }
-
-    if (!canNavigate('replaceLastFullScreenRoute', {route}) || !navigationRef.current) {
-        Log.hmmm(`[Navigation] Unable to replace last full screen route. Can't navigate.`, {route});
-        return;
-    }
-
-    const rootState = navigationRef.current.getRootState();
-    const fullScreenRouteToReplace = rootState.routes.findLast((stateRoute) => isFullScreenName(stateRoute.name));
-    const stateFromPath = getStateFromPath(route);
-    // We need the destination fullscreen wrapper here (for example SearchFullscreenNavigator),
-    // not the deepest leaf screen from the parsed route state.
-    const targetRoute = stateFromPath?.routes.findLast((stateRoute) => isFullScreenName(stateRoute.name));
-
-    if (!targetRoute || !fullScreenRouteToReplace) {
-        Log.hmmm(`[Navigation] Unable to replace last full screen route. Target route is undefined.`, {route});
-        return;
-    }
-
-    navigationRef.current.dispatch({
-        payload: targetRoute,
-        source: fullScreenRouteToReplace.key,
-        target: rootState.key,
-        type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
-    });
-}
-
-/**
  * Reveals the destination fullscreen route under the currently open RHP before dismissing it.
- * This is currently used for the Search handoff so the user sees the target screen immediately
- * as the modal closes, instead of dismissing first and navigating afterward.
+ * Wide-layout only. Used after expense submission so the user sees the target screen (e.g. Search)
+ * sliding in behind the closing RHP instead of a blank flash.
+ *
+ * Two-frame sequence:
+ *   Frame 1 - REPLACE_FULLSCREEN_UNDER_RHP inserts the target fullscreen route underneath
+ *             the modal: [Home, RHP] -> [Home, Search, RHP]. Browser history is NOT touched
+ *             (the custom history extension preserves the old history array).
+ *   Frame 2 - DISMISS_MODAL pops the RHP: [Home, Search, RHP] -> [Home, Search].
+ *             useLinking detects the stale Home+RHP entry and replaces it with a Search
+ *             push, yielding correct browser history [Home, Search].
  */
 function revealRouteBeforeDismissingModal(route: Route) {
+    if (getIsNarrowLayout()) {
+        Log.warn('[Navigation] revealRouteBeforeDismissingModal should only be used on wide layouts.');
+        return;
+    }
+
+    if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {
+        Log.hmmm(`[Navigation] Unable to reveal route before dismissing modal. Can't navigate.`, {route});
+        return;
+    }
+
     requestAnimationFrame(() => {
-        // First paint the destination fullscreen route underneath the RHP.
-        replaceLastFullScreenRoute(route);
-        // Wait one more paint before dismissing so the new fullscreen route is already visible under the closing RHP.
+        navigationRef.current?.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+            payload: {route},
+        });
         requestAnimationFrame(() => {
             dismissModal();
         });
@@ -1018,7 +998,6 @@ export default {
     isValidateLoginFlow,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
-    replaceLastFullScreenRoute,
     revealRouteBeforeDismissingModal,
     getTopmostSearchReportID,
     getTopmostSuperWideRHPReportParams,
