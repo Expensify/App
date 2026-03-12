@@ -10,9 +10,10 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function ImTeacherUpdateEmailPage() {
     const illustrations = useMemoizedLazyIllustrations(['EmailAddress']);
@@ -46,7 +47,7 @@ function ImTeacherUpdateEmailPage() {
                     large
                     accessibilityLabel={translate('teachersUnitePage.updateEmail')}
                     text={translate('teachersUnitePage.updateEmail')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CONTACT_METHODS.path))}
                 />
             </FixedFooter>
         </ScreenWrapper>

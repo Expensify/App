@@ -76,7 +76,7 @@ function DynamicContactMethodsPage() {
                                 <MenuItem
                                     title={option.menuItemTitle}
                                     description={option.description}
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID, navigateBackTo))}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID))}
                                     brickRoadIndicator={option.indicator}
                                     shouldShowBasicTitle
                                     shouldShowRightIcon

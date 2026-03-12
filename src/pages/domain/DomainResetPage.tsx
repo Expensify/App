@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import {sanitizePhoneOrEmail} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -19,7 +20,7 @@ import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import {resetDomain} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {adminAccountIDsSelector, domainNameSelector} from '@src/selectors/Domain';
 import INPUT_IDS from '@src/types/form/ResetDomainForm';
@@ -103,7 +104,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
                     <View style={styles.mt5}>
                         <RenderHTML
                             html={translate('domain.admins.resetDomainInfo')}
-                            onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
+                            onLinkPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CONTACT_METHODS.path))}
                         />
                     </View>
                     <View style={styles.mt5}>
