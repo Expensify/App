@@ -37,28 +37,42 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         if (isLoadingOnyxValue(sessionMetadata)) {
             return;
         }
-        // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => {
-            initialUrlProcessed.current = true;
-            onInitialUrl(url as Route);
+        // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report.
+        // We race against a timeout to prevent permanently blocking NavigationRoot if getInitialURL() never resolves
+        // (e.g. in HybridApp when OldDot fails to send the URL via native bridge).
+        Promise.race([
+            Linking.getInitialURL(),
+            new Promise<null>((resolve) => {
+                setTimeout(() => resolve(null), CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
+            }),
+        ])
+            .then((url) => {
+                initialUrlProcessed.current = true;
+                onInitialUrl(url as Route);
 
-            if (url) {
-                if (conciergeReportID === undefined) {
-                    Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
+                if (url) {
+                    if (conciergeReportID === undefined) {
+                        Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
+                    }
+                    if (introSelected === undefined) {
+                        Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
+                    }
+                    // Use hasAuthToken() for the latest auth state at call time, since the isAuthenticated
+                    // closure value may be stale on cold start (useOnyx reports 'loaded' before storage completes).
+                    const isCurrentlyAuthenticated = hasAuthToken();
+                    openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected);
+                } else {
+                    Report.doneCheckingPublicRoom();
                 }
-                if (introSelected === undefined) {
-                    Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
-                }
-                // Use hasAuthToken() for the latest auth state at call time, since the isAuthenticated
-                // closure value may be stale on cold start (useOnyx reports 'loaded' before storage completes).
-                const isCurrentlyAuthenticated = hasAuthToken();
-                openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected);
-            } else {
+
+                endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
+            })
+            .catch(() => {
+                initialUrlProcessed.current = true;
+                onInitialUrl(null);
                 Report.doneCheckingPublicRoom();
-            }
-
-            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
-        });
+                endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
+            });
 
         // Open chat report from a deep link (only mobile native)
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
