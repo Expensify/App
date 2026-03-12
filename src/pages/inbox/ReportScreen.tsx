@@ -105,7 +105,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import reportsSelector from '@src/selectors/Attributes';
+import {reportByIDsSelector} from '@src/selectors/Attributes';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccountManagerBanner from './AccountManagerBanner';
@@ -283,7 +283,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     );
     const reportID = report?.reportID;
 
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector});
+    const reportAttributesSelector = useMemo(() => reportByIDsSelector(reportID ? [reportID] : []), [reportID]);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
     useDocumentTitle(getReportName(report, reportAttributes));
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);

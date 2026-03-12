@@ -6,6 +6,7 @@ function useDocumentTitle(title: string) {
     useFocusEffect(
         useCallback(() => {
             setPageTitle(title);
+            return () => setPageTitle('');
         }, [title]),
     );
 }
