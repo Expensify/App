@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -80,9 +80,6 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Whether to close the modal on select */
     shouldCloseModalOnSelect?: boolean;
-
-    /** Whether the menu should close after a delay instead of immediately */
-    shouldDelay?: boolean;
 
     /** Additional data for the menu item */
     additionalData?: Record<string, unknown>;
@@ -317,18 +314,6 @@ function BasePopoverMenu({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
-    const delayedCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    useEffect(() => {
-        if (isVisible || !delayedCloseRef.current) {
-            return;
-        }
-
-        clearTimeout(delayedCloseRef.current);
-        delayedCloseRef.current = null;
-
-        return () => delayedCloseRef.current && clearTimeout(delayedCloseRef.current);
-    }, [isVisible]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -344,12 +329,6 @@ function BasePopoverMenu({
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
             setFocusedIndex(-1);
-            if (selectedItem.shouldDelay) {
-                delayedCloseRef.current = setTimeout(() => {
-                    delayedCloseRef.current = null;
-                    onClose();
-                }, 1500);
-            }
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index, event);
             close(
