@@ -66,9 +66,13 @@ function TimeSensitiveSection() {
 
     // Selector for filtering admin policies (Release 4)
     const adminPoliciesSelectorWrapper = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
-    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: adminPoliciesSelectorWrapper});
+    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: adminPoliciesSelectorWrapper,
+    });
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: isUserValidatedSelector,
+    });
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -135,7 +139,7 @@ function TimeSensitiveSection() {
     const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
     const hasBrokenPersonalCards = brokenPersonalCardConnections.length > 0;
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
-    const shouldShowValidateAccount = !isUserValidated;
+    const shouldShowValidateAccount = isUserValidated === false;
     // This guard must exactly match the conditions used to render each widget below.
     // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
     // must be reflected here to avoid showing an empty "Time sensitive" section.
