@@ -11,7 +11,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled = true}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange, onCancel, isEnabled = true}: DiscardChangesConfirmationProps) {
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -19,6 +19,14 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled =
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
     const isConfirmed = useRef(false);
+
+    const setModalVisible = useCallback(
+        (nextVisible: boolean) => {
+            setIsVisible(nextVisible);
+            onVisibilityChange?.(nextVisible);
+        },
+        [onVisibilityChange],
+    );
 
     useBeforeRemove(
         useCallback(
@@ -29,9 +37,9 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled =
 
                 e.preventDefault();
                 blockedNavigationAction.current = e.data.action;
-                navigateAfterInteraction(() => setIsVisible((prev) => !prev));
+                navigateAfterInteraction(() => setModalVisible(true));
             },
-            [getHasUnsavedChanges, isFocused, isEnabled],
+            [getHasUnsavedChanges, isFocused, isEnabled, setModalVisible],
         ),
         isEnabled && isFocused,
     );
@@ -59,20 +67,20 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled =
             }
             // Navigation.navigate() rerenders the current page and resets its states
             window.history.go(1);
-            navigateAfterInteraction(() => setIsVisible((prev) => !prev));
+            navigateAfterInteraction(() => setModalVisible(true));
         });
 
         return unsubscribe;
-    }, [navigation, getHasUnsavedChanges, isFocused, isEnabled]);
+    }, [navigation, getHasUnsavedChanges, isFocused, isEnabled, setModalVisible]);
 
     useEffect(() => {
         if ((isFocused && isEnabled) || !isVisible) {
             return;
         }
-        setIsVisible(false);
+        setModalVisible(false);
         blockedNavigationAction.current = undefined;
         shouldNavigateBack.current = false;
-    }, [isFocused, isVisible, isEnabled]);
+    }, [isFocused, isVisible, isEnabled, setModalVisible]);
 
     const navigateBack = useCallback(() => {
         if (blockedNavigationAction.current) {
@@ -95,10 +103,10 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel, isEnabled =
             cancelText={translate('common.cancel')}
             onConfirm={() => {
                 isConfirmed.current = true;
-                setIsVisible(false);
+                setModalVisible(false);
             }}
             onCancel={() => {
-                setIsVisible(false);
+                setModalVisible(false);
                 blockedNavigationAction.current = undefined;
                 shouldNavigateBack.current = false;
             }}

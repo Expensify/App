@@ -67,9 +67,24 @@ type ReportFooterProps = {
 
     /** Whether the report screen is being displayed in the side panel */
     isInSidePanel?: boolean;
+
+    /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
+    shouldHideStatusIndicators?: boolean;
+    /** Function to trigger optimistic waiting indicator for Concierge */
+    kickoffWaitingIndicator?: () => void;
 };
 
-function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBlur, onComposerFocus, reportTransactions, transactionThreadReportID, isInSidePanel}: ReportFooterProps) {
+function ReportFooter({
+    lastReportAction,
+    report = {reportID: '-1'},
+    onComposerBlur,
+    onComposerFocus,
+    reportTransactions,
+    transactionThreadReportID,
+    isInSidePanel,
+    shouldHideStatusIndicators,
+    kickoffWaitingIndicator,
+}: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -252,6 +267,8 @@ function ReportFooter({lastReportAction, report = {reportID: '-1'}, onComposerBl
                             reportTransactions={reportTransactions}
                             transactionThreadReportID={transactionThreadReportID}
                             isInSidePanel={isInSidePanel}
+                            shouldHideStatusIndicators={shouldHideStatusIndicators}
+                            kickoffWaitingIndicator={kickoffWaitingIndicator}
                         />
                     </SwipeableView>
                 </View>

@@ -1,24 +1,23 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZone/DropZoneUI';
+import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 
 type SearchPageWideProps = {
@@ -33,11 +32,7 @@ type SearchPageWideProps = {
     };
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
-    scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    initScanRequest: (e: DragEvent) => void;
-    isDragDisabled: boolean;
-    PDFValidationComponent: React.ReactNode;
-    ErrorModal: React.ReactNode;
+    route: PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
     shouldShowFooter: boolean;
 };
 
@@ -49,16 +44,23 @@ function SearchPageWide({
     footerData,
     handleSearchAction,
     onSortPressedCallback,
-    scrollHandler,
-    initScanRequest,
-    isDragDisabled,
-    PDFValidationComponent,
-    ErrorModal,
+    route,
     shouldShowFooter,
 }: SearchPageWideProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
+    const {saveScrollOffset} = useContext(ScrollOffsetContext);
+    const receiptDropTargetRef = useRef<View>(null);
+
+    const scrollHandler = useCallback(
+        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+            if (!e.nativeEvent.contentOffset.y) {
+                return;
+            }
+
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [saveScrollOffset, route],
+    );
 
     const offlineIndicatorStyle = useMemo(() => {
         if (shouldShowFooter) {
@@ -68,11 +70,13 @@ function SearchPageWide({
         return [styles.mtAuto];
     }, [shouldShowFooter, styles]);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan']);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
     return (
-        <View style={styles.searchSplitContainer}>
+        <View
+            ref={receiptDropTargetRef}
+            style={styles.searchSplitContainer}
+        >
             <ScreenWrapper
                 testID="Search"
                 shouldEnableMaxHeight
@@ -86,8 +90,7 @@ function SearchPageWide({
                     shouldShowLink={false}
                 >
                     {!!queryJSON && (
-                        <DragAndDropProvider isDisabled={isDragDisabled}>
-                            {PDFValidationComponent}
+                        <>
                             <SearchPageHeader
                                 queryJSON={queryJSON}
                                 handleSearch={handleSearchAction}
@@ -114,20 +117,11 @@ function SearchPageWide({
                                     currency={footerData.currency}
                                 />
                             )}
-                            <DragAndDropConsumer onDrop={initScanRequest}>
-                                <DropZoneUI
-                                    icon={expensifyIcons.SmartScan}
-                                    dropTitle={translate('dropzone.scanReceipts')}
-                                    dropStyles={styles.receiptDropOverlay(true)}
-                                    dropTextStyles={styles.receiptDropText}
-                                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                                />
-                            </DragAndDropConsumer>
-                        </DragAndDropProvider>
+                        </>
                     )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
-            {ErrorModal}
+            {!!queryJSON && <ReceiptScanDropZone targetRef={receiptDropTargetRef} />}
         </View>
     );
 }
