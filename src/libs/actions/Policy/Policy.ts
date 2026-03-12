@@ -364,7 +364,6 @@ type DeleteWorkspaceActionParams = {
     reportsToArchive: Report[];
     transactionViolations: OnyxCollection<TransactionViolations> | undefined;
     reimbursementAccountError: Errors | undefined;
-    bankAccountList: OnyxEntry<BankAccountList>;
     lastUsedPaymentMethods?: LastPaymentMethod;
     localeCompare: LocaleContextProps['localeCompare'];
 };
@@ -384,7 +383,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         transactionViolations,
         reimbursementAccountError,
         lastUsedPaymentMethods,
-        bankAccountList,
         localeCompare,
         personalPolicyID,
     } = params;
@@ -393,19 +391,10 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     const filteredPolicies = Object.values(policies ?? {}).filter((p): p is Policy => p?.id !== policyID);
     const workspaceAccountID = policy?.workspaceAccountID;
 
-    // Filter out bank accounts associated with the policy being deleted
-    const filteredBankAccountList = Object.entries(bankAccountList ?? {}).reduce<BankAccountList>((acc, [key, bankAccount]) => {
-        if (bankAccount?.accountData?.additionalData?.policyID !== policyID) {
-            acc[key] = bankAccount;
-        }
-        return acc;
-    }, {});
-
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.POLICY
             | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
-            | typeof ONYXKEYS.BANK_ACCOUNT_LIST
             | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
             | typeof ONYXKEYS.NVP_ACTIVE_POLICY_ID
             | typeof ONYXKEYS.COLLECTION.REPORT
@@ -430,15 +419,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: null,
         },
-        ...(filteredBankAccountList !== bankAccountList
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                      value: filteredBankAccountList,
-                  },
-              ]
-            : []),
         ...(!hasActiveChatEnabledPolicies(filteredPolicies, true)
             ? [
                   {
@@ -458,7 +438,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
             | typeof ONYXKEYS.COLLECTION.POLICY
             | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
-            | typeof ONYXKEYS.BANK_ACCOUNT_LIST
             | typeof ONYXKEYS.NVP_ACTIVE_POLICY_ID
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
@@ -488,14 +467,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             value: policyCardFeeds ?? null,
         },
     ];
-
-    if (filteredBankAccountList !== bankAccountList) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
-            value: bankAccountList ?? {},
-        });
-    }
 
     if (policyID === activePolicyID) {
         const mostRecentlyCreatedGroupPolicy = Object.values(policies ?? {})
@@ -669,7 +640,10 @@ function setWorkspaceAutoHarvesting(policy: Policy, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: enabled,
-                harvesting: {enabled},
+                harvesting: {
+                    // Auto-harvesting should never be on if auto reporting is set to manual (immediate with harvesting = false)
+                    enabled: policy.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE ? false : enabled,
+                },
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -864,6 +838,9 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     const nextStepOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [];
     const nextStepFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [];
     const shouldUpdateNextSteps = additionalData?.reportNextSteps != null && additionalData?.transactionViolations != null && additionalData?.betas != null;
+
+    // We want to toggle off preventSelfApproval when the user turns off Approvals and has preventSelfApproval enabled.
+    const shouldResetPreventSelfApproval = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && !!policy?.preventSelfApproval;
     if (shouldUpdateNextSteps) {
         const {reportNextSteps, transactionViolations, betas} = additionalData;
         const resolvedTransactionViolations: OnyxCollection<TransactionViolations> = transactionViolations ?? {};
@@ -915,8 +892,12 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 ...value,
-                pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                pendingFields: {
+                    approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    ...(shouldResetPreventSelfApproval && {preventSelfApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                },
                 employeeList: optimisticMembersState,
+                ...(shouldResetPreventSelfApproval && {preventSelfApproval: false}),
             },
         },
     ];
@@ -931,9 +912,10 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 approver: policy?.approver,
                 approvalMode: policy?.approvalMode,
-                pendingFields: {approvalMode: null},
+                pendingFields: {approvalMode: null, ...(shouldResetPreventSelfApproval && {preventSelfApproval: policy?.pendingFields?.preventSelfApproval ?? null})},
                 errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApproverPage.genericErrorMessage')},
                 employeeList: policy?.employeeList,
+                ...(shouldResetPreventSelfApproval && {preventSelfApproval: policy?.preventSelfApproval}),
             },
         },
     ];
@@ -946,7 +928,10 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {approvalMode: null},
+                pendingFields: {
+                    approvalMode: null,
+                    ...(shouldResetPreventSelfApproval && {preventSelfApproval: null}),
+                },
             },
         },
     ];
