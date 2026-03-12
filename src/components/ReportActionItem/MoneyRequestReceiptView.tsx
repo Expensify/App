@@ -12,6 +12,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+import Tooltip from '@components/Tooltip';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAncestors from '@hooks/useAncestors';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
@@ -498,48 +499,52 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && deviceHasHoverSupport && styles.opacity0]}>
                                     <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                                         {({openPicker}) => (
-                                            <PressableWithoutFeedback
-                                                onPress={() => {
-                                                    openPicker({
-                                                        onPicked: (files) => {
-                                                            validateFiles(files);
-                                                        },
-                                                    });
-                                                }}
-                                                style={styles.receiptActionButton}
-                                                hoverStyle={styles.buttonDefaultHovered}
-                                                accessibilityLabel={translate('reportActionCompose.addAttachment')}
-                                                role={CONST.ROLE.BUTTON}
-                                                sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
-                                            >
-                                                <Icon
-                                                    src={lazyIcons.ReceiptPlus}
-                                                    height={variables.iconSizeSmall}
-                                                    width={variables.iconSizeSmall}
-                                                    fill={theme.icon}
-                                                />
-                                            </PressableWithoutFeedback>
+                                            <Tooltip text={translate('receipt.addAdditionalReceipt')}>
+                                                <PressableWithoutFeedback
+                                                    onPress={() => {
+                                                        openPicker({
+                                                            onPicked: (files) => {
+                                                                validateFiles(files);
+                                                            },
+                                                        });
+                                                    }}
+                                                    style={styles.receiptActionButton}
+                                                    hoverStyle={styles.buttonDefaultHovered}
+                                                    accessibilityLabel={translate('receipt.addAdditionalReceipt')}
+                                                    role={CONST.ROLE.BUTTON}
+                                                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
+                                                >
+                                                    <Icon
+                                                        src={lazyIcons.ReceiptPlus}
+                                                        height={variables.iconSizeSmall}
+                                                        width={variables.iconSizeSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                </PressableWithoutFeedback>
+                                            </Tooltip>
                                         )}
                                     </AttachmentPicker>
-                                    <PressableWithoutFocus
-                                        onPress={() =>
-                                            Navigation.navigate(
-                                                ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
-                                            )
-                                        }
-                                        style={[styles.receiptActionButton, styles.noOutline]}
-                                        hoverStyle={styles.buttonDefaultHovered}
-                                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                                        role={CONST.ROLE.BUTTON}
-                                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
-                                    >
-                                        <Icon
-                                            src={lazyIcons.Expand}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
-                                            fill={theme.icon}
-                                        />
-                                    </PressableWithoutFocus>
+                                    <Tooltip text={translate('reportActionCompose.expand')}>
+                                        <PressableWithoutFocus
+                                            onPress={() =>
+                                                Navigation.navigate(
+                                                    ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
+                                                )
+                                            }
+                                            style={[styles.receiptActionButton, styles.noOutline]}
+                                            hoverStyle={styles.buttonDefaultHovered}
+                                            accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                                            role={CONST.ROLE.BUTTON}
+                                            sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
+                                        >
+                                            <Icon
+                                                src={lazyIcons.Expand}
+                                                height={variables.iconSizeSmall}
+                                                width={variables.iconSizeSmall}
+                                                fill={theme.icon}
+                                            />
+                                        </PressableWithoutFocus>
+                                    </Tooltip>
                                 </View>
                             )}
                         </View>
