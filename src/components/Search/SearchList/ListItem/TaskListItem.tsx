@@ -1,4 +1,6 @@
 import React from 'react';
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -7,9 +9,7 @@ import FS from '@libs/Fullstory';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TaskListItemRow from './TaskListItemRow';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import {TaskListItemProps, TaskListItemType} from './types';
-import {ListItem} from '@components/SelectionList/types';
 
 function TaskListItem<TItem extends ListItem>({
     item,

@@ -12,10 +12,10 @@ import Icon from './Icon';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 import type {SearchCustomColumnIds} from './Search/types';
+import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from './SelectionList/types';
 import Text from './Text';
 import TextLink from './TextLink';
-import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
 
 type ColumnItem = {
     /** Display label for the column */

@@ -8,6 +8,7 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchStateContext} from '@components/Search/SearchContext';
+import type {ListItem} from '@components/SelectionList/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,9 +22,8 @@ import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
-import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
-import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionReportGroupListItemType} from './types';
+import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */

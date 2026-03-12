@@ -5,6 +5,7 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
@@ -12,7 +13,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {PolicyReportField} from '@src/types/onyx';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 type ReportFieldListProps = {
     field: PolicyReportField;

@@ -9,6 +9,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchStateContext} from '@components/Search/SearchContext';
+import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -30,9 +31,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
-import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
-import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionListItemProps, TransactionListItemType} from './types';
+import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 function TransactionListItem<TItem extends ListItem>({
     item,

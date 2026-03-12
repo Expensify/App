@@ -10,6 +10,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
@@ -40,7 +41,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 import getFileSize from './getFileSize';
 import {showErrorAlert} from './ShareRootPage';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 

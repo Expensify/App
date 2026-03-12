@@ -3,6 +3,7 @@ import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
 import type {SearchDatePreset} from '@components/Search/types';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,7 +13,6 @@ import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateRangeDisplayValueFromFormValue, getEmptyDateValues, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import RangeDatePicker from './RangeDatePicker';
 
 type CustomDateModifier = Exclude<SearchDateModifier, typeof CONST.SEARCH.DATE_MODIFIERS.RANGE>;
@@ -397,7 +397,9 @@ function DatePresetFilterBase({
                         item={{
                             text: translate(`search.filters.date.presets.${preset}`),
                             isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
+                            keyForList: preset,
                         }}
+                        keyForList={preset}
                         onSelectRow={() => setExclusiveDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
                         wrapperStyle={styles.flexReset}
                     />
@@ -470,9 +472,9 @@ function DatePresetFilterBase({
                     item={{
                         text: translate(`common.${dateModifier.toLowerCase() as SearchDateModifierLower}`),
                         isSelected: selectedDateModifier === dateModifier,
-                        keyForList: prest
+                        keyForList: dateModifier,
                     }}
-                    keyForList={preset}
+                    keyForList={dateModifier}
                     onSelectRow={() => selectDateModifier(dateModifier)}
                     wrapperStyle={styles.flexReset}
                 />

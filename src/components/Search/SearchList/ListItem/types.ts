@@ -1,8 +1,12 @@
-import {ListItem} from '@components/SelectionList/types';
-import {ListItemProps} from '@components/SelectionList/ListItem/types';
 import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {LastPaymentMethod, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import {ValueOf} from 'type-fest';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import {ListItemProps} from '@components/SelectionList/ListItem/types';
+import {ListItem} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
+import type {LastPaymentMethod, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
+import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
     SearchCategoryGroup,
@@ -18,11 +22,7 @@ import type {
     SearchWithdrawalIDGroup,
     SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {Attendee} from '@src/types/onyx/IOU';
-import {ValueOf} from 'type-fest';
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;

@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import type {SearchColumnType} from '@components/Search/types';
+import type {ListItem} from '@components/SelectionList/types';
 import StatusBadge from '@components/StatusBadge';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useEnvironment from '@hooks/useEnvironment';
@@ -22,7 +23,6 @@ import ROUTES from '@src/ROUTES';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionWithdrawalIDGroupListItemType} from './types';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {

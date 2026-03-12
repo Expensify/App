@@ -24,8 +24,8 @@ import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import AvatarWithTextCell from './AvatarWithTextCell';
 import DateCell from './DateCell';
-import UserInfoCell from './UserInfoCell';
 import type {TaskListItemType} from './types';
+import UserInfoCell from './UserInfoCell';
 
 type TaskListItemRowProps = {
     item: TaskListItemType;

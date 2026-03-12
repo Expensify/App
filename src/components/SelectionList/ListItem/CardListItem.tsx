@@ -16,8 +16,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
-import type {BaseListItemProps, ListItem} from './types';
 import BaseListItem from './BaseListItem';
+import type {BaseListItemProps, ListItem} from './types';
 
 type AdditionalCardProps = {
     shouldShowOwnersAvatar?: boolean;

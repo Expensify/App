@@ -1,9 +1,8 @@
 import React from 'react';
-
+import {ListItem} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import type {BaseListItemHeaderProps} from './BaseListItemHeader';
 import BaseListItemHeader from './BaseListItemHeader';
-import {ListItem} from '@components/SelectionList/types';
 import {TransactionMerchantGroupListItemType} from './types';
 
 type MerchantListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {

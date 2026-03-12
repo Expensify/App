@@ -2,14 +2,14 @@ import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;

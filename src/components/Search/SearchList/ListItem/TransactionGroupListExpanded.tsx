@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -25,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({

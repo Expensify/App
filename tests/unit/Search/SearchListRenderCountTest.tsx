@@ -7,6 +7,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScrollOffsetContextProvider from '@components/ScrollOffsetContextProvider';
 import SearchList from '@components/Search/SearchList';
+import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
@@ -16,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
-import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 
 jest.mock('@components/Icon/Expensicons');
 

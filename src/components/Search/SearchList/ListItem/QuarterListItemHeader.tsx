@@ -1,9 +1,9 @@
 import React from 'react';
+import type {ListItem} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import type {BaseListItemHeaderProps} from './BaseListItemHeader';
 import BaseListItemHeader from './BaseListItemHeader';
 import type {TransactionQuarterGroupListItemType} from './types';
-import type {ListItem} from '@components/SelectionList/types';
 
 type QuarterListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The quarter group currently being looked at */

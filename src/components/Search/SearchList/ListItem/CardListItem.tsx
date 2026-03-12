@@ -5,6 +5,9 @@ import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import {BaseListItemProps} from '@components/SelectionList/ListItem/types';
+import {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -16,9 +19,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
-import {ListItem} from '@components/SelectionList/types';
-import {BaseListItemProps} from '@components/SelectionList/ListItem/types';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 
 type AdditionalCardProps = {
     shouldShowOwnersAvatar?: boolean;

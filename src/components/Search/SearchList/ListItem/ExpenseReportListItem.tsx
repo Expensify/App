@@ -8,6 +8,8 @@ import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {useSearchStateContext} from '@components/Search/SearchContext';
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -28,9 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
-import type {ListItem} from '@components/SelectionList/types';
 
 function ExpenseReportListItem<TItem extends ListItem>({
     item,

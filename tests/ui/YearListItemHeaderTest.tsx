@@ -5,13 +5,13 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
+import type {TransactionYearGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import YearListItemHeader from '@components/Search/SearchList/ListItem/YearListItemHeader';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import type {TransactionYearGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import YearListItemHeader from '@components/Search/SearchList/ListItem/YearListItemHeader';
 
 jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/Navigation');

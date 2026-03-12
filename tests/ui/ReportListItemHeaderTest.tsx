@@ -6,14 +6,14 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
+import ReportListItemHeader from '@components/Search/SearchList/ListItem/ReportListItemHeader';
+import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import ReportListItemHeader from '@components/Search/SearchList/ListItem/ReportListItemHeader';
 
 jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/Navigation');

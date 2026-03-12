@@ -51,10 +51,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
-import TransactionListItem from './ListItem/TransactionListItem';
 import ChatListItem from './ListItem/ChatListItem';
-import TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import TaskListItem from './ListItem/TaskListItem';
+import TransactionGroupListItem from './ListItem/TransactionGroupListItem';
+import TransactionListItem from './ListItem/TransactionListItem';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 

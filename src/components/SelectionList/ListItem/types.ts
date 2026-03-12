@@ -3,6 +3,8 @@ import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, Role, StylePro
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
+import {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -23,8 +25,6 @@ import type TableListItem from './TableListItem';
 import type TravelDomainListItem from './TravelDomainListItem';
 import type UserListItem from './UserListItem';
 import type UserSelectionListItem from './UserSelectionListItem';
-import {TransactionPreviewData} from '@libs/actions/Search';
-import {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 type ListItem<K extends string | number = string> = {
     /** Text to display */
