@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type React from 'react';
-import {useEffect, useState} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import CONST from '@src/CONST';
 import useActiveElementRole from './useActiveElementRole';
@@ -23,14 +23,18 @@ type UseListKeyboardNavConfig<T extends View | HTMLElement> = {
 
 /**
  * Manages keyboard navigation (arrow keys, Enter/Space selection) for a list of items
- * with DOM focus tracking. Pass a `containerRef` attached to the wrapping element.
- * On web, focusin/focusout DOM events track whether the list has focus.
- * On native, DOM APIs are absent and the effect safely no-ops.
+ * with DOM focus tracking via focusin/focusout on `containerRef`.
  */
 function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, disabledIndexes, containerRef, onSelect}: UseListKeyboardNavConfig<T>) {
     const isFocused = useIsFocused();
     const [hasFocus, setHasFocus] = useState(false);
     const [hasBeenFocused, setHasBeenFocused] = useState(false);
+
+    const itemKeysRef = useRef(itemKeys);
+    // useLayoutEffect so the ref is updated before SortableItem's useEffect calls .focus()
+    useLayoutEffect(() => {
+        itemKeysRef.current = itemKeys;
+    });
 
     const isArrowKeyActive = isActive && (hasFocus || (isFocused && !hasBeenFocused));
 
@@ -46,14 +50,20 @@ function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, d
         if (!isActive) {
             return;
         }
-        // On web, RNW renders View as a div so DOM APIs exist. On native they don't and this safely returns.
         const container = containerRef.current as FocusableContainer | null;
         if (!container?.addEventListener) {
             return;
         }
-        const handleFocusIn = () => {
+        const handleFocusIn = (event: FocusEvent) => {
             setHasBeenFocused(true);
             setHasFocus(true);
+            const target = event.target as HTMLElement | null;
+            if (target?.id) {
+                const index = itemKeysRef.current.indexOf(target.id);
+                if (index >= 0) {
+                    setFocusedIndex(index);
+                }
+            }
         };
         const handleFocusOut = (event: FocusEvent) => {
             if (event.relatedTarget instanceof Node && container.contains(event.relatedTarget)) {
@@ -81,17 +91,15 @@ function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, d
 
         let newIndex = focusedIndex;
 
-        // Clamp to bounds when list shrinks
         if (newIndex > itemKeys.length - 1) {
             newIndex = Math.max(itemKeys.length - 1, -1);
         }
 
-        // Skip forward past disabled indexes
         while (newIndex >= 0 && newIndex < itemKeys.length && disabledIndexes.includes(newIndex)) {
             newIndex++;
         }
 
-        // If we overshot the end, scan backward from the original position
+        // Overshot the end — scan backward from the original position
         if (newIndex >= itemKeys.length) {
             newIndex = focusedIndex - 1;
             while (newIndex >= 0 && disabledIndexes.includes(newIndex)) {

@@ -174,7 +174,6 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         });
     };
 
-    // Unified keyboard nav for grouped mode: per W3C APG, arrow keys cross group boundaries seamlessly.
     const combinedItems = isGrouped ? [...groupColumnsList, ...typeColumnsList] : [];
     const groupLength = groupColumnsList.length;
     const disabledIndexes = combinedItems.flatMap((item, index) => (item.isDisabled ? [index] : []));
