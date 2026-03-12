@@ -406,6 +406,7 @@ function MoneyRequestParticipantsSelector({
         privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
+        policy,
     ]);
 
     /**

@@ -241,6 +241,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
+        policy,
     ]);
 
     const selectAccountant = useCallback(
