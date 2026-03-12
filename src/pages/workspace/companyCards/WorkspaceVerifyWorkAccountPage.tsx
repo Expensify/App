@@ -3,16 +3,14 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import AccountUtils from '@libs/AccountUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import {updateSelectedFeed} from '@userActions/Card';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
-import {getAccessiblePolicies} from '@userActions/Policy/Policy';
+import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
-import {setOnboardingErrorMessage} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -23,13 +21,11 @@ type WorkspaceVerifyWorkAccountPageProps = PlatformStackScreenProps<SettingsNavi
 function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageProps) {
     const {policyID, feed} = route.params;
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [onboardingEmail] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = onboardingEmail?.onboardingWorkEmail;
 
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
-    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
+    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
     const isWorkEmailValidated = workEmail ? !!loginList?.[workEmail]?.validatedDate : false;
 
@@ -55,7 +51,6 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
     };
 
     const validateAccountAndMerge = (validateCode: string) => {
-        setOnboardingErrorMessage(null);
         getAccessiblePolicies(validateCode);
     };
 
@@ -75,10 +70,10 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
         <ValidateCodeActionContent
             handleSubmitForm={validateAccountAndMerge}
             sendValidateCode={sendValidateCode}
-            validateCodeActionErrorField="mergeIntoAccountAndLogIn"
-            clearError={() => setOnboardingErrorMessage(null)}
-            isLoading={isValidateCodeFormSubmitting}
-            validateError={onboardingErrorMessage ? {invalidCodeError: translate(onboardingErrorMessage)} : undefined}
+            validateCodeActionErrorField="getAccessiblePolicies"
+            clearError={clearGetAccessiblePoliciesErrors}
+            isLoading={getAccessiblePoliciesAction?.loading}
+            validateError={getAccessiblePoliciesAction?.errors}
             title={translate('onboarding.workEmailValidation.title')}
             descriptionPrimary={translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}
             onClose={() => {
