@@ -162,6 +162,12 @@ function OptionRowLHN({
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
     const actionBadgeText = !isProduction && optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
+    let accessibilityLabelForBadge = '';
+    if (brickRoadIndicator) {
+        accessibilityLabelForBadge = `. ${translate('common.yourReviewIsRequired')}, ${actionBadgeText}`;
+    } else if (optionItem.isPinned) {
+        accessibilityLabelForBadge = `. ${translate('common.pinned')}`;
+    }
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0, style];
@@ -297,7 +303,7 @@ function OptionRowLHN({
                                         (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                                     ]}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                    accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${accessibilityLabelForBadge}`}
                                     onLayout={onLayout}
                                     needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                                     sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
