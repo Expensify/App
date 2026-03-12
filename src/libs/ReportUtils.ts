@@ -11807,9 +11807,10 @@ function prepareOnboardingOnyxData({
             reportID: targetChatReportID,
             reportActionID: optimisticConciergeReportActionID,
         });
-        // Send the HTML-parsed version to the backend so it matches the optimistic render.
+        // Reuse the HTML that buildOptimisticAddCommentReportAction already parsed via getParsedComment,
+        // so we avoid calling getParsedComment a second time with the same input.
         // The backend passes this to the LLM as HTML for AddComment, which expects HTML.
-        bespokeWelcomeMessage = getParsedComment(bespokeMarkdown, {reportID: targetChatReportID});
+        bespokeWelcomeMessage = bespokeAction.commentText;
     }
 
     let createWorkspaceTaskReportID;
