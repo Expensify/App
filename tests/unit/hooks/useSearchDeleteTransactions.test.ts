@@ -103,16 +103,26 @@ describe('useSearchDeleteTransactions', () => {
             originalTransactionID,
             expect.objectContaining({
                 transactionID: hiddenRemainingSplitID,
-                amount: 700,
+                amount: hiddenRemainingSplit.amount,
+                created: hiddenRemainingSplit.created,
+                category: hiddenRemainingSplit.category,
+                tag: hiddenRemainingSplit.tag,
                 merchant: 'Hidden Merchant',
                 comment: `split-${hiddenRemainingSplitID}`,
+                reimbursable: hiddenRemainingSplit.reimbursable,
+                billable: hiddenRemainingSplit.billable,
                 reportID: hiddenRemainingSplit.reportID,
+                waypoints: hiddenRemainingSplit.comment?.waypoints ? JSON.stringify(hiddenRemainingSplit.comment.waypoints) : undefined,
             }),
-            [selectedSplitID, hiddenRemainingSplitID],
+            expect.objectContaining({
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedSplitID}`]: selectedSplit,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${hiddenRemainingSplitID}`]: hiddenRemainingSplit,
+            }),
             expect.objectContaining({
                 transactionID: originalTransactionID,
                 amount: hiddenRemainingSplit.amount,
                 modifiedAmount: hiddenRemainingSplit.modifiedAmount,
+                pendingAction: null,
                 merchant: hiddenRemainingSplit.merchant,
                 comment: expect.objectContaining({
                     source: undefined,
@@ -120,6 +130,7 @@ describe('useSearchDeleteTransactions', () => {
                     comment: `split-${hiddenRemainingSplitID}`,
                 }),
             }),
+            undefined,
         );
     });
 
