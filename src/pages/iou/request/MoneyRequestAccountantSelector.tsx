@@ -143,7 +143,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
 
-    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(chatOptions?.userToInvite);
+    const {userToInviteExpenseReport} = useUserToInviteReports(chatOptions?.userToInvite);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -196,15 +196,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              currentUserAccountID,
-                              personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteChatReport,
-                              reportAttributesDerived,
-                          )
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, userToInviteExpenseReport, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 3,
@@ -229,7 +221,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         debouncedSearchTerm,
         personalDetails,
         userToInviteExpenseReport,
-        userToInviteChatReport,
         reportAttributesDerived,
         translate,
         loginList,
