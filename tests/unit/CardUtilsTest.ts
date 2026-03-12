@@ -36,6 +36,7 @@ import {
     getDisplayableExpensifyCards,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
+    getFeedConnectionBrokenCard,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -1580,6 +1581,18 @@ describe('CardUtils', () => {
             const feedName = getBankName(feed as unknown as CompanyCardFeed);
             expect(feedName).toBe('');
         });
+
+        it('Should return the same value for repeated calls with the same feedType (cache)', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            expect(getBankName(feed)).toBe('Chase');
+            expect(getBankName(feed)).toBe('Chase');
+        });
+
+        it('Should match longest prefix first (e.g. AMEX_1205 before AMEX)', () => {
+            const feedWithAmex1205Prefix = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205}something` as CompanyCardFeed;
+            const feedName = getBankName(feedWithAmex1205Prefix);
+            expect(feedName).toBe('American Express');
+        });
     });
 
     describe('getCardFeedIcon', () => {
@@ -2235,7 +2248,7 @@ describe('CardUtils', () => {
                 accountID: 1,
                 bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
                 cardID: 1,
-                cardName: 'Personal Visa •••• 1234',
+                cardName: 'Visa • 1234',
                 domainName: '',
                 fraud: 'none',
                 lastFourPAN: '1234',
@@ -2244,7 +2257,7 @@ describe('CardUtils', () => {
                 state: 3,
             };
             const description = getCardDescription(personalCard, translateLocal);
-            expect(description).toBe('Personal Visa •••• 1234');
+            expect(description).toBe('Visa • 1234');
         });
     });
 
@@ -3487,6 +3500,75 @@ describe('CardUtils', () => {
             const result = getCardSettings(currentSettings);
             expect(result?.paymentBankAccountID).toBe(55555);
             expect(result?.domainName).toBe('legacy.com');
+        });
+    });
+
+    describe('getFeedConnectionBrokenCard', () => {
+        it('Should return undefined when feedCards is undefined', () => {
+            expect(getFeedConnectionBrokenCard(undefined)).toBeUndefined();
+        });
+
+        it('Should return undefined when feedCards is empty', () => {
+            expect(getFeedConnectionBrokenCard({})).toBeUndefined();
+        });
+
+        it('Should return the card with a broken connection status', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            const result = getFeedConnectionBrokenCard(feedCards);
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(1);
+        });
+
+        it('Should return undefined when all cards have ignored statuses (200, 434, etc.)', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 200, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+                card2: {bank: 'oauth.chase.com', lastScrapeResult: 434, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards)).toBeUndefined();
+        });
+
+        it('Should return undefined when cards have no lastScrapeResult', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards)).toBeUndefined();
+        });
+
+        it('Should exclude cards matching feedToExclude', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com')).toBeUndefined();
+        });
+
+        it('Should return a broken card from a different feed when feedToExclude is set', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+                card2: {bank: 'oauth.amex.com', lastScrapeResult: 403, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            const result = getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com');
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(2);
+        });
+
+        it('Should skip empty card objects', () => {
+            const feedCards: CardList = {
+                card1: {} as unknown as Card,
+                card2: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            const result = getFeedConnectionBrokenCard(feedCards);
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(2);
+        });
+
+        it('Should return undefined when all non-ignored statuses belong to excluded feed', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+                card2: {bank: 'oauth.amex.com', lastScrapeResult: 200, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com')).toBeUndefined();
         });
     });
 });
