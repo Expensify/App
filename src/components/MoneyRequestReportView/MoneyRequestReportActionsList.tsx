@@ -732,7 +732,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport({reportID: report.reportID, participants: [], introSelected});
+            openReport({reportID: report.reportID, introSelected});
             reportScrollManager.scrollToEnd();
             return;
         }

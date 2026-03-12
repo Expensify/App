@@ -279,7 +279,7 @@ type OpenReportActionParams = {
     reportActionID?: string;
 
     /** The list of participants */
-    participants: ParticipantInfo[];
+    participants?: ParticipantInfo[];
 
     /** The personal details of the participants */
     personalDetails?: OnyxEntry<PersonalDetailsList>;
@@ -1918,7 +1918,6 @@ function createTransactionThreadReport(
         reportID: optimisticTransactionThreadReportID,
         introSelected,
         personalDetails: allPersonalDetails,
-        participants: [],
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
         transaction,
@@ -2912,7 +2911,7 @@ function toggleSubscribeToChildReport(
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected, participants: []});
+        openReport({reportID: childReportID, introSelected});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(

@@ -285,7 +285,7 @@ function IOURequestStepDistance({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport({reportID: transaction?.reportID, participants: [], introSelected});
+            openReport({reportID: transaction?.reportID, introSelected});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
