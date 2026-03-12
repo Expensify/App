@@ -115,14 +115,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         <ScreenWrapper
             testID="DomainInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={
-                !shouldDisplayLHB && (
-                    <NavigationTabBar
-                        selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingButtons={false}
-                    />
-                )
-            }
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.dismissModal()}

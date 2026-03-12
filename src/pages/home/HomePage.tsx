@@ -53,14 +53,6 @@ function HomePage() {
                 shouldShowOfflineIndicatorInWideScreen
                 testID="HomePage"
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
-                bottomContent={
-                    shouldUseNarrowLayout && (
-                        <NavigationTabBar
-                            selectedTab={NAVIGATION_TABS.HOME}
-                            shouldShowFloatingButtons
-                        />
-                    )
-                }
             >
                 <TopBar
                     breadcrumbLabel={translate('common.home')}

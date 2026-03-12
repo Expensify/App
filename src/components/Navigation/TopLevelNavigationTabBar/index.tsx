@@ -70,13 +70,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
             accessibilityElementsHidden={!isReadyToDisplayBottomBar}
             aria-hidden={!isReadyToDisplayBottomBar}
         >
-            {/* We are not rendering NavigationTabBar conditionally for two reasons
-                1. It's faster to hide/show it than mount a new when needed.
-                2. We need to hide tooltips as well if they were displayed. */}
-            <NavigationTabBar
-                selectedTab={selectedTab}
-                isTopLevelBar
-            />
+
         </View>
     );
 }

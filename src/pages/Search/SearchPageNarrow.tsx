@@ -168,7 +168,6 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
             testID="SearchPageNarrow"
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
-            bottomContent={!searchRouterListVisible && <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
             shouldShowOfflineIndicator={!!searchResults}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>

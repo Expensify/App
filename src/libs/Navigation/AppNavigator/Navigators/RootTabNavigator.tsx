@@ -1,14 +1,15 @@
 /**
  * Tab Navigator containing Home, Inbox (Reports), Search, Settings, and Workspaces pages.
  */
-import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import React, {lazy, Suspense} from 'react';
-import type {ValueOf} from 'type-fest';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React, { lazy, Suspense } from 'react';
+import { View } from 'react-native';
+import type { ValueOf } from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import type {RootTabNavigatorParamList} from '@libs/Navigation/types';
+import type { RootTabNavigatorParamList } from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -25,7 +26,13 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
 function RootTabNavigatorTabBar(props: BottomTabBarProps) {
     const selectedRouteName = props.state.routes[props.state.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
-    return <NavigationTabBar selectedTab={selectedTab} />;
+    console.log(props)
+    return (
+        <NavigationTabBar
+            selectedTab={selectedTab}
+        />
+        // <View/>
+    );
 }
 
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
