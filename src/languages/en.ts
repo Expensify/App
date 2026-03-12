@@ -191,6 +191,12 @@ const translations = {
         home: 'Home',
         inbox: 'Inbox',
         yourReviewIsRequired: 'Your review is required',
+        actionBadge: {
+            submit: 'Submit',
+            approve: 'Approve',
+            pay: 'Pay',
+            fix: 'Fix',
+        },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
         group: 'Group',
@@ -372,6 +378,8 @@ const translations = {
         // @context Unit label for “mile.” Should be treated as a measurement unit and may require capitalization depending on locale conventions.
         mi: 'mile',
         km: 'kilometer',
+        milesAbbreviated: 'mi',
+        kilometersAbbreviated: 'km',
         copied: 'Copied!',
         someone: 'Someone',
         total: 'Total',
@@ -563,6 +571,10 @@ const translations = {
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        concierge: {
+            sidePanelGreeting: 'Hi there, how can I help?',
+            showHistory: 'Show history',
+        },
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
         approver: 'Approver',
@@ -759,6 +771,9 @@ const translations = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} other ${otherDeviceCount === 1 ? 'device' : 'devices'}`;
             },
+        },
+        setPin: {
+            didNotShipCard: "We didn't ship your card. Please try again.",
         },
     },
     validateCodeModal: {
@@ -1626,7 +1641,7 @@ const translations = {
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         correctRateError: 'Fix the rate error and try again.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explain<sparkles-icon/></a>`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),
@@ -2020,7 +2035,7 @@ const translations = {
         restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.</muted-text-micro>`,
+        readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
         whatIsNew: "What's new",
         accountSettings: 'Account settings',
@@ -2389,6 +2404,14 @@ const translations = {
             alertMessage: ({cardLastFour, amount, merchant, date}: {cardLastFour: string; amount: string; merchant: string; date: string}) =>
                 `identified suspicious activity on card ending in ${cardLastFour}. Do you recognize this charge?\n\n${amount} for ${merchant} - ${date}`,
         },
+        setYourPin: 'Set the PIN for your card.',
+        confirmYourPin: 'Enter your PIN again to confirm.',
+        pinMustBeFourDigits: 'PIN must be exactly 4 digits.',
+        invalidPin: 'Please choose a more secure PIN.',
+        pinMismatch: 'PINs do not match. Please try again.',
+        revealPin: 'Reveal PIN',
+        hidePin: 'Hide PIN',
+        pin: 'PIN',
         freezeCard: 'Freeze card',
         unfreeze: 'Unfreeze',
         unfreezeCard: 'Unfreeze card',
@@ -2690,7 +2713,7 @@ const translations = {
     },
     termsOfUse: {
         terms: `<muted-text-xs>By logging in, you agree to the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.</muted-text-xs>`,
-        license: `<muted-text-xs>Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenses</a>.</muted-text-xs>`,
+        license: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenses</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
@@ -2798,6 +2821,7 @@ const translations = {
         },
         workEmailValidationError: {
             publicEmail: 'Please enter a valid work email from a private domain e.g. mitch@company.com',
+            sameAsSignupEmail: 'Please enter a different email than the one you signed up with',
             offline: 'We couldn’t add your work email as you appear to be offline',
         },
         mergeBlockScreen: {
@@ -3090,7 +3114,7 @@ const translations = {
                 descriptionTwo: 'Categorize and tag expenses',
                 descriptionThree: 'Create and share reports',
             },
-            price: 'Try it free for 30 days, then upgrade for just <strong>$5/user/month</strong>.',
+            price: (price?: string) => `Try it free for 30 days, then upgrade for just <strong>${price ?? '$5'}/user/month</strong>.`,
             createWorkspace: 'Create workspace',
         },
         confirmWorkspace: {
@@ -4055,6 +4079,9 @@ const translations = {
             defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
+            outstandingBalanceWarning:
+                'You have an outstanding balance that must be settled before deleting your last workspace. Please go to your subscription settings to resolve the payment.',
+            settleBalance: 'Go to subscription',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
@@ -6982,6 +7009,8 @@ const translations = {
                     return `${enabled ? 'enabled' : 'disabled'} accounting`;
                 case 'Expensify Cards':
                     return `${enabled ? 'enabled' : 'disabled'} Expensify Cards`;
+                case 'travel invoicing':
+                    return `${enabled ? 'enabled' : 'disabled'} travel invoicing`;
                 case 'company cards':
                     return `${enabled ? 'enabled' : 'disabled'} company cards`;
                 case 'invoicing':
@@ -8268,6 +8297,7 @@ const translations = {
         switchAccount: 'Switch accounts:',
         copilotDelegatedAccess: 'Copilot: Delegated access',
         copilotDelegatedAccessDescription: 'Allow other members to access your account.',
+        learnMoreAboutDelegatedAccess: 'Learn more about delegated access',
         addCopilot: 'Add copilot',
         membersCanAccessYourAccount: 'These members can access your account:',
         youCanAccessTheseAccounts: 'You can access these accounts via the account switcher:',
@@ -8596,9 +8626,13 @@ const translations = {
             title: 'Members',
             findMember: 'Find member',
             addMember: 'Add member',
+            allMembers: 'All members',
             email: 'Email address',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
-            forceCloseAccount: () => ({one: 'Force close account', other: 'Force close accounts'}),
+            forceCloseAccount: () => ({
+                one: 'Force close account',
+                other: 'Force close accounts',
+            }),
             safeCloseAccount: () => ({
                 one: 'Close account safely',
                 other: 'Close accounts safely',
