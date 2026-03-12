@@ -3635,7 +3635,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isSelfTourViewed,
     } = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
-    const {policy, policyCategories, policyTagList} = policyParams;
+    const {policy} = policyParams;
     const {
         comment,
         amount,
