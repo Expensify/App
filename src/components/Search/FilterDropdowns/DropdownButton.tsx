@@ -21,7 +21,6 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type PopoverComponentProps = {
     closeOverlay: () => void;
-    setPopoverWidth?: (width: number | undefined) => void;
 };
 
 type DropdownButtonProps = WithSentryLabel & {
@@ -71,7 +70,6 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     const triggerRef = useRef<View | null>(null);
     const anchorRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
-    const [customPopoverWidth, setCustomPopoverWidth] = useState<number | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const [popoverTriggerPosition, setPopoverTriggerPosition] = useState({
@@ -116,17 +114,15 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
         return `${label}: ${selectedItems}`;
     }, [label, value]);
 
-    const actualPopoverWidth = customPopoverWidth ?? CONST.POPOVER_DROPDOWN_WIDTH;
-
     const containerStyles = useMemo(() => {
         if (isSmallScreenWidth) {
             return styles.w100;
         }
-        return {width: actualPopoverWidth};
-    }, [isSmallScreenWidth, styles, actualPopoverWidth]);
+        return {width: CONST.POPOVER_DROPDOWN_WIDTH};
+    }, [isSmallScreenWidth, styles]);
 
     const popoverContent = useMemo(() => {
-        return PopoverComponent({closeOverlay: toggleOverlay, setPopoverWidth: setCustomPopoverWidth});
+        return PopoverComponent({closeOverlay: toggleOverlay});
     }, [PopoverComponent, toggleOverlay]);
 
     return (
@@ -175,7 +171,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                 shouldCloseWhenBrowserNavigationChanged={false}
                 innerContainerStyle={containerStyles}
                 popoverDimensions={{
-                    width: actualPopoverWidth,
+                    width: CONST.POPOVER_DROPDOWN_WIDTH,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
                 shouldSkipRemeasurement
