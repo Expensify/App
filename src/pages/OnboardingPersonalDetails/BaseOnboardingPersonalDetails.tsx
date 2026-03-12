@@ -133,7 +133,11 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+            if (
+                onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
+                onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
+                onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER
+            ) {
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
                 return;
