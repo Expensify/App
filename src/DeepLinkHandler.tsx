@@ -108,9 +108,11 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
     }, [sessionMetadata?.status, conciergeReportID, introSelected]);
 
-    // Cold-start race condition safety net: the initial deep link may be processed before the session
-    // loads from storage, triggering an unnecessary public room check. Once isAuthenticated settles to
-    // true, unblock the UI immediately. This call is idempotent.
+    // Safety net: if getInitialURL() resolves before the session loads, hasAuthToken() may return false
+    // for an authenticated user, causing openReportFromDeepLink to take the wrong path. Once isAuthenticated
+    // settles to true, unblock the UI. The initialUrlProcessed guard ensures this doesn't fire before URL
+    // resolution. In the common case (isAuthenticated settles first), this is a no-op because
+    // openReportFromDeepLink's own doneCheckingPublicRoom() call handles it.
     useEffect(() => {
         if (!isAuthenticated || !initialUrlProcessed.current) {
             return;
