@@ -512,7 +512,6 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Aan',
         before: 'Vooraf',
         after: 'Na',
-        range: 'Bereik',
         reschedule: 'Opnieuw plannen',
         general: 'Algemeen',
         workspacesTabTitle: 'Werkruimtes',
@@ -749,6 +748,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `Deze actie wordt niet ondersteund op jouw apparaat. Download de Expensify-app uit de <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> of de <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> en probeer het opnieuw.`,
         },
         verificationFailed: 'Verificatie mislukt',
+        setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2109,12 +2109,6 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Je bedrijf vereist tweefactorauthenticatie.',
         twoFactorAuthCannotDisable: 'Kan 2FA niet uitschakelen',
         twoFactorAuthRequired: 'Tweestapsverificatie (2FA) is vereist voor je Xero-verbinding en kan niet worden uitgeschakeld.',
-        replaceDevice: 'Apparaat vervangen',
-        replaceDeviceTitle: 'Twee-factorapparaat vervangen',
-        verifyOldDeviceTitle: 'Oud apparaat verifiëren',
-        verifyOldDeviceDescription: 'Voer de zescijferige code uit je huidige authenticator-app in om te bevestigen dat je er toegang toe hebt.',
-        verifyNewDeviceTitle: 'Nieuw apparaat instellen',
-        verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer vervolgens de code in om de installatie te voltooien.',
     },
     recoveryCodeForm: {
         error: {
@@ -2366,6 +2360,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} voor ${merchant} - ${date}`,
         },
+        setYourPin: 'Stel je pincode in.',
+        confirmYourPin: 'Bevestig je pincode.',
+        pinMustBeFourDigits: 'Pincode moet precies 4 cijfers bevatten.',
+        invalidPin: 'Kies alsjeblieft een veiligere pincode.',
+        pinMismatch: 'Pincodes komen niet overeen. Probeer het opnieuw.',
+        revealPin: 'Pincode weergeven',
+        hidePin: 'Pincode verbergen',
+        pin: 'Pincode',
         freezeCard: 'Kaart blokkeren',
         unfreeze: 'Deblokkeren',
         unfreezeCard: 'Kaart deblokkeren',
@@ -7276,8 +7278,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 before: (date?: string) => `Voor ${date ?? ''}`,
                 after: (date?: string) => `Na ${date ?? ''}`,
                 on: (date?: string) => `Op ${date ?? ''}`,
-                customDate: 'Aangepaste datum',
-                customRange: 'Aangepast bereik',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Vorige maand',
@@ -7376,9 +7376,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         exportAll: {
             selectAllMatchingItems: 'Selecteer alle overeenkomende items',
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: 'Selecteer datums voor Van en Tot',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Van',

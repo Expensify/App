@@ -152,7 +152,6 @@ function useReceiptScan({
                 taxAmount: transactionTaxAmount,
                 currency: initialTransaction?.currency,
                 isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
-                isFromFloatingActionButton: initialTransaction?.isFromFloatingActionButton,
                 participants: initialTransaction?.participants,
             },
             personalDetails,
