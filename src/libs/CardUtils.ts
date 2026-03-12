@@ -148,9 +148,9 @@ function isExpensifyCard(card?: Card) {
  * @param card - The card to check.
  * @returns boolean
  */
-function supportsPINManagementFeatures(card: Card | null | undefined): boolean {
+function supportsPINManagementFeatures(card: Card | undefined): boolean {
     //  Use of PINs is based on card program. UK/EU (feedCountry GB) are the only program currently that supports these features.
-    return isExpensifyCard(card ?? undefined) && card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
+    return isExpensifyCard(card) && card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
 }
 
 /**
