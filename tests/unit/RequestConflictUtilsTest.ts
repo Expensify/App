@@ -2,10 +2,12 @@ import Onyx from 'react-native-onyx';
 import {
     enablePolicyFeatureCommand,
     resolveCommentDeletionConflicts,
+    resolveDetachReceiptConflicts,
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
     resolveEnableFeatureConflicts,
 } from '@libs/actions/RequestConflictUtils';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
 
 describe('RequestConflictUtils', () => {
@@ -158,6 +160,33 @@ describe('RequestConflictUtils', () => {
                 indices: [0],
                 pushNewRequest: false,
             },
+        });
+    });
+
+    describe('resolveDetachReceiptConflicts', () => {
+        it('returns push when no replace-receipt requests match transactionID', () => {
+            const persistedRequests = [{command: 'OpenReport'}, {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '2'}}, {command: 'CloseAccount'}];
+            const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('returns push when exactly one replace-receipt request matches transactionID', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}}];
+            const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('deletes all but the last matching replace-receipt request and pushes new request', () => {
+            const persistedRequests = [
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}},
+                {command: 'OpenReport'},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '2'}},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1'}},
+            ];
+
+            const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 2], pushNewRequest: true}});
         });
     });
 });
