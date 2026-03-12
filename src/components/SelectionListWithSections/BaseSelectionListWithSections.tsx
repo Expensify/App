@@ -25,6 +25,7 @@ import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -247,6 +248,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
                     // If disabled, add to the disabled indexes array
                     const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (isItemDisabled || item.isDisabledCheckbox) {
                         disabledOptionsIndexes.push(disabledIndex);
                         if (isItemDisabled) {
@@ -716,11 +718,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const renderListEmptyContent = () => {
         if (shouldShowLoadingPlaceholder) {
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'BaseSelectionListWithSections',
+                shouldShowLoadingPlaceholder,
+                shouldUseUserSkeletonView,
+            };
             return (
                 <LoadingPlaceholderComponent
                     fixedNumItems={fixedNumItemsForLoader}
                     shouldStyleAsTable={shouldUseUserSkeletonView}
                     speed={loaderSpeed}
+                    reasonAttributes={reasonAttributes}
                 />
             );
         }

@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -26,7 +27,6 @@ import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent
 import type {MoneyRequestReportPreviewProps} from './types';
 
 function MoneyRequestReportPreview({
-    policies,
     iouReportID,
     policyID,
     chatReportID,
@@ -46,8 +46,8 @@ function MoneyRequestReportPreview({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const personalDetailsList = usePersonalDetails();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const invoiceReceiverPolicy =
-        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`];
+    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
@@ -97,6 +97,7 @@ function MoneyRequestReportPreview({
             return false;
         }
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
@@ -125,6 +126,8 @@ function MoneyRequestReportPreview({
     // We only want to highlight the new expenses if the screen is focused.
     const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
 
+    const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
+
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
             chatReportID={chatReportID}
@@ -137,14 +140,14 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
-            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle]}
+            containerStyles={transactionPreviewContainerStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
-            shouldHighlight={newTransactionIDs?.has(item.transactionID)}
+            shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
         />
     );
 

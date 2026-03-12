@@ -89,6 +89,7 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} 
     const {asset, isLoaded} = useLazyAsset(stableImportFn, fallback);
 
     return {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         asset: (isLoaded ? asset : PlaceholderIcon) as T,
     };
 }

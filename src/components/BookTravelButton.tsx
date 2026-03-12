@@ -122,13 +122,13 @@ function BookTravelButton({
 
         // Spotnana requires a private domain email for travel booking
         if (isEmailPublicDomain(primaryContactMethod)) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID, Navigation.getActiveRoute()));
             return;
         }
 
         const adminDomains = getAdminsPrivateEmailDomains(policy);
         if (adminDomains.length === 0) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID, Navigation.getActiveRoute()));
             return;
         }
 

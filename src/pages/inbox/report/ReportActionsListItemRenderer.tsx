@@ -5,14 +5,11 @@ import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
 type ReportActionsListItemRendererProps = {
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
-
     /** All the data of the action item */
     reportAction: ReportAction;
 
@@ -86,7 +83,6 @@ type ReportActionsListItemRendererProps = {
 };
 
 function ReportActionsListItemRenderer({
-    policies,
     reportAction,
     parentReportAction,
     index,
@@ -194,7 +190,6 @@ function ReportActionsListItemRenderer({
     if (shouldDisplayParentAction && isChatThread(report)) {
         return (
             <ReportActionItemParentAction
-                policies={policies}
                 shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
                 shouldDisplayReplyDivider={shouldDisplayReplyDivider}
                 parentReportAction={parentReportAction}
@@ -217,7 +212,6 @@ function ReportActionsListItemRenderer({
 
     return (
         <ReportActionItem
-            policies={policies}
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}
