@@ -773,7 +773,6 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         NEW_DOT_DEW: 'newDotDEW',
-        GPS_MILEAGE: 'gpsMileage',
         ODOMETER_EXPENSES: 'odometerExpenses',
         SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
