@@ -3,6 +3,7 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import DisplayNames from '@components/DisplayNames';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
@@ -690,6 +691,17 @@ function MoneyRequestView({
     const previousTagLength = getLengthOfTag(previousTag ?? '');
     const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
 
+    const displayNamesWithTooltips = useMemo(() => {
+        if (!Array.isArray(actualAttendees)) {
+            return [];
+        }
+        return actualAttendees.map((item) => ({
+            displayName: item?.displayName ?? item?.login ?? '',
+            login: item?.login ?? '',
+            accountID: item?.accountID,
+        }));
+    }, [actualAttendees]);
+
     const getAttendeesTitle = Array.isArray(actualAttendees) ? actualAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : '';
     const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
 
@@ -1061,7 +1073,16 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <MenuItemWithTopDescription
                             key="attendees"
-                            title={getAttendeesTitle}
+                            title={
+                                <DisplayNames
+                                    fullTitle={getAttendeesTitle}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
+                                    tooltipEnabled
+                                    numberOfLines={2}
+                                    shouldAddEllipsis
+                                    textStyles={[styles.textNormalThemeText, styles.lineHeightXLarge]}
+                                />
+                            }
                             description={`${translate('iou.attendees')} ${
                                 Array.isArray(actualAttendees) && actualAttendees.length > 1 && formattedPerAttendeeAmount
                                     ? `${CONST.DOT_SEPARATOR} ${formattedPerAttendeeAmount} ${translate('common.perPerson')}`

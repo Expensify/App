@@ -14,6 +14,7 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import ReportActionAvatars from './ReportActionAvatars';
 import Text from './Text';
 
 type ApprovalWorkflowSectionProps = {
@@ -89,31 +90,41 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_EXPENSES_FROM}
                 />
 
-                {approvalWorkflow.approvers.map((approver, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <View key={`approver-${approver.email}-${index}`}>
-                        <View style={styles.workflowApprovalVerticalLine} />
-                        <MenuItem
-                            title={approverTitle(index)}
-                            style={styles.p0}
-                            titleStyle={styles.textLabelSupportingNormal}
-                            descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
-                            description={Str.removeSMSDomain(approver.displayName)}
-                            icon={icons.UserCheck}
-                            shouldBeAccessible={false}
-                            tabIndex={-1}
-                            iconHeight={20}
-                            iconWidth={20}
-                            numberOfLinesDescription={1}
-                            iconFill={theme.icon}
-                            onPress={onPress}
-                            shouldRemoveBackground
-                            helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
-                            helperTextStyle={styles.workflowApprovalLimitText}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
-                        />
-                    </View>
-                ))}
+                {approvalWorkflow.approvers.map((approver, index) => {
+                    const approverAccountID = personalDetailsByEmail[approver.email]?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                    return (
+                        // eslint-disable-next-line react/no-array-index-key
+                        <View key={`approver-${approver.email}-${index}`}>
+                            <View style={styles.workflowApprovalVerticalLine} />
+                            <MenuItem
+                                title={approverTitle(index)}
+                                style={styles.p0}
+                                titleStyle={styles.textLabelSupportingNormal}
+                                descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
+                                description={Str.removeSMSDomain(approver.displayName)}
+                                leftComponent={
+                                    <ReportActionAvatars
+                                        accountIDs={[approverAccountID]}
+                                        size={CONST.AVATAR_SIZE.SMALL}
+                                        shouldShowTooltip
+                                    />
+                                }
+                                icon={icons.UserCheck}
+                                shouldBeAccessible={false}
+                                tabIndex={-1}
+                                iconHeight={20}
+                                iconWidth={20}
+                                numberOfLinesDescription={1}
+                                iconFill={theme.icon}
+                                onPress={onPress}
+                                shouldRemoveBackground
+                                helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
+                                helperTextStyle={styles.workflowApprovalLimitText}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
+                            />
+                        </View>
+                    );
+                })}
             </View>
             <Icon
                 src={icons.ArrowRight}
