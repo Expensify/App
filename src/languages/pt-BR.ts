@@ -511,6 +511,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Ativado',
         before: 'Antes',
         after: 'Depois',
+        range: 'Intervalo',
         reschedule: 'Reagendar',
         general: 'Geral',
         workspacesTabTitle: 'Espaços de trabalho',
@@ -1596,7 +1597,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'O valor total é muito alto. Diminua as horas ou reduza a tarifa.',
         },
         correctRateError: 'Corrija o erro de taxa e tente novamente.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explicar<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcou a despesa como "reembolsável"' : 'marcou a despesa como “não reembolsável”'),
@@ -3047,7 +3048,7 @@ ${
                 descriptionTwo: 'Classifique e categorize despesas',
                 descriptionThree: 'Criar e compartilhar relatórios',
             },
-            price: 'Experimente grátis por 30 dias e depois faça upgrade por apenas <strong>US$5/usuário/mês</strong>.',
+            price: (price?: string) => `Experimente grátis por 30 dias e depois faça upgrade por apenas <strong>${price ?? 'US$5'}/usuário/mês</strong>.`,
             createWorkspace: 'Criar espaço de trabalho',
         },
         confirmWorkspace: {
@@ -6864,6 +6865,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     return `Contabilidade ${enabled ? 'ativado' : 'desativado'}`;
                 case 'Expensify Cards':
                     return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
+                case 'travel invoicing':
+                    return `Faturamento de viagens ${enabled ? 'ativado' : 'desativado'}`;
                 case 'company cards':
                     return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
                 case 'invoicing':
@@ -7265,6 +7268,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 before: (date?: string) => `Antes de ${date ?? ''}`,
                 after: (date?: string) => `Depois de ${date ?? ''}`,
                 on: (date?: string) => `Em ${date ?? ''}`,
+                customDate: 'Data personalizada',
+                customRange: 'Intervalo personalizado',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mês passado',
@@ -7375,6 +7380,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não tem despesas.',
             accessPlaceHolder: 'Abrir para ver detalhes',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Selecione datas para De e Até',
         },
         spendOverTime: 'Gastos ao longo do tempo',
     },
