@@ -18,6 +18,7 @@ import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor} from '@co
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 
 /** Inner padding between bars (0.3 = 30% of bar width) */
@@ -180,9 +181,13 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom};
 
     if (isLoading || !font) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !font};
         return (
             <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <ActivityIndicator size="large" />
+                <ActivityIndicator
+                    size="large"
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
         );
     }
