@@ -149,7 +149,12 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
 
         return (
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
-            <View style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}>
+            <View
+                style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}
+                accessibilityViewIsModal={isSmallScreenWidth}
+                aria-modal={isSmallScreenWidth || undefined}
+                role={isSmallScreenWidth ? 'dialog' : undefined}
+            >
                 <ModalStackNavigator.Navigator>
                     {Object.keys(screens as Required<Screens>).map((name) => (
                         <ModalStackNavigator.Screen
@@ -925,6 +930,8 @@ const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePay
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisabledPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisablePage').default,
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyOldPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_NEW]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyNewPage').default,
 });
 
 const SearchRouterModalStackNavigator = createModalStackNavigator({

@@ -34,6 +34,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.route,
+        [SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW]: ROUTES.MONEY_REQUEST_ODOMETER_PREVIEW.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.WORKSPACES_LIST]: {
             path: ROUTES.WORKSPACES_LIST.route,
@@ -1361,6 +1362,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.TWO_FACTOR_AUTH.DISABLE]: {
                             path: ROUTES.SETTINGS_2FA_DISABLE,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD]: {
+                            path: ROUTES.SETTINGS_2FA_REPLACE_VERIFY_OLD,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_NEW]: {
+                            path: ROUTES.SETTINGS_2FA_REPLACE_VERIFY_NEW,
                             exact: true,
                         },
                     },
