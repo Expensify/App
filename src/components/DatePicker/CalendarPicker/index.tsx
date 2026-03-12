@@ -247,7 +247,7 @@ function CalendarPicker({
                         disabled={!hasAvailableDatesPrevMonth}
                         onPress={moveToPrevMonth}
                         hoverDimmingValue={1}
-                        accessibilityLabel={translate('common.previous')}
+                        accessibilityLabel={translate('common.previousMonth')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_MONTH}
                     >
@@ -283,7 +283,7 @@ function CalendarPicker({
                         disabled={!hasAvailableDatesNextMonth}
                         onPress={moveToNextMonth}
                         hoverDimmingValue={1}
-                        accessibilityLabel={translate('common.next')}
+                        accessibilityLabel={translate('common.nextMonth')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_MONTH}
                     >
@@ -297,7 +297,7 @@ function CalendarPicker({
                         disabled={!hasAvailableDatesPrevYear}
                         onPress={moveToPrevYear}
                         hoverDimmingValue={1}
-                        accessibilityLabel={translate('common.previous')}
+                        accessibilityLabel={translate('common.previousYear')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_YEAR}
                     >
@@ -334,7 +334,7 @@ function CalendarPicker({
                         disabled={!hasAvailableDatesNextYear}
                         onPress={moveToNextYear}
                         hoverDimmingValue={1}
-                        accessibilityLabel={translate('common.next')}
+                        accessibilityLabel={translate('common.nextYear')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_YEAR}
                     >
