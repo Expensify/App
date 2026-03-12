@@ -680,13 +680,18 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
         return true;
     }
 
-    if (hasOnlyNonReimbursableTransactions(parentReport.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+    // Use the transaction's reportID to get the correct report for merge eligibility check
+    // This is important for expenses in chat where parentReport might be a chat report instead of an expense report
+    const transactionReportID = reportTransactions?.[0]?.reportID;
+    const reportIDToCheck = transactionReportID ?? parentReport.reportID;
+
+    if (hasOnlyNonReimbursableTransactions(reportIDToCheck) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
         return false;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
+    return isMoneyRequestReportEligibleForMerge(reportIDToCheck, isAdmin);
 }
 
 function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[], currentUserAccountID?: number) {
