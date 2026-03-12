@@ -353,6 +353,35 @@ describe('useListKeyboardNav', () => {
         cleanup();
     });
 
+    it('should sync focusedIndex when Tab focuses an item (focusin with matching id)', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+                onSelect: jest.fn(),
+            }),
+        );
+
+        expect(result.current.focusedIndex).toBe(-1);
+
+        // Simulate Tab-focusing the item with id='b' (index 1)
+        const child = document.createElement('button');
+        child.id = 'b';
+        ref.current.appendChild(child);
+
+        act(() => {
+            child.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        });
+
+        expect(result.current.focusedIndex).toBe(1);
+
+        child.remove();
+        cleanup();
+    });
+
     it('should scan backward when all items after focused index are disabled', () => {
         const {ref, cleanup} = createContainerRef();
         const {result, rerender} = renderHook(
