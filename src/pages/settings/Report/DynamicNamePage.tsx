@@ -1,26 +1,20 @@
 import React from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useReportFromDynamicRoute from '@hooks/useReportFromDynamicRoute';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isGroupChat, isTripRoom} from '@libs/ReportUtils';
+import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import GroupChatNameEditPage from '@pages/GroupChatNameEditPage';
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import TripChatNameEditPage from '@pages/TripChatNameEditPage';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type SCREENS from '@src/SCREENS';
 import RoomNamePage from './RoomNamePage';
 
-function DynamicNamePage() {
+type DynamicNamePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME>;
+
+function DynamicNamePage({report}: DynamicNamePageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path);
-    const {report, isLoading} = useReportFromDynamicRoute();
-
-    if (isLoading) {
-        return <FullscreenLoadingIndicator />;
-    }
-
-    if (isEmptyObject(report)) {
-        return <FullPageNotFoundView shouldShow />;
-    }
 
     if (isTripRoom(report)) {
         return <TripChatNameEditPage report={report} />;
@@ -38,4 +32,4 @@ function DynamicNamePage() {
     );
 }
 
-export default DynamicNamePage;
+export default withReportOrNotFound()(DynamicNamePage);

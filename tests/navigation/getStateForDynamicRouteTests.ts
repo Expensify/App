@@ -31,6 +31,7 @@ jest.mock('@src/ROUTES', () => ({
 type LeafRoute = {
     name: string;
     path: string;
+    params?: Record<string, unknown>;
 };
 
 type NestedRoute = {
@@ -110,5 +111,24 @@ describe('getStateForDynamicRoute', () => {
         const state = (parentNode as NestedRoute).state;
         expect(state?.index).toBe(0);
         expect(Array.isArray(state?.routes)).toBe(true);
+    });
+
+    it('should inherit parent route params on the leaf node', () => {
+        const path = '/r/12345/settings/name';
+        const parentParams = {reportID: '12345'};
+        const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES, parentParams);
+
+        const rootRoute = result.routes.at(0) as NestedRoute | undefined;
+        const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
+        expect(leafRoute?.params).toEqual(parentParams);
+    });
+
+    it('should not include params on the leaf node when parentRouteParams is undefined', () => {
+        const path = '/some/path/test-path';
+        const result = getStateForDynamicRoute(path, KEY_TEST as unknown as keyof typeof DYNAMIC_ROUTES);
+
+        const rootRoute = result.routes.at(0) as NestedRoute | undefined;
+        const leafRoute = rootRoute?.state.routes.at(0) as LeafRoute | undefined;
+        expect(leafRoute?.params).toBeUndefined();
     });
 });

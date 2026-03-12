@@ -5,6 +5,7 @@ import type {DynamicRouteSuffix} from '@src/ROUTES';
 type LeafRoute = {
     name: string;
     path: string;
+    params?: Record<string, unknown>;
 };
 
 type NestedRoute = {
@@ -31,7 +32,7 @@ function getRouteNamesForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): str
     return null;
 }
 
-function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DYNAMIC_ROUTES) {
+function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DYNAMIC_ROUTES, parentRouteParams?: Record<string, unknown>) {
     const routeConfig = getRouteNamesForDynamicRoute(DYNAMIC_ROUTES[dynamicRouteName].path);
 
     if (!routeConfig) {
@@ -42,11 +43,12 @@ function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DY
     const buildNestedState = (routes: string[], currentIndex: number): RouteNode => {
         const currentRoute = routes.at(currentIndex);
 
-        // If this is the last route, create leaf node with path
+        // If this is the last route, create leaf node with path and inherited params
         if (currentIndex === routes.length - 1) {
             return {
                 name: currentRoute ?? '',
                 path,
+                ...(parentRouteParams ? {params: parentRouteParams} : {}),
             };
         }
 
