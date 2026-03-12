@@ -51,6 +51,7 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldShowRightCaret,
     errorRowStyles,
+    isLastItem,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -106,6 +107,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                isLastItem={isLastItem}
             />
             {item.footerContent && item.footerContent}
         </>

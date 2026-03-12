@@ -125,6 +125,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
+
+    /** Whether this is the last item in the list (used for bottom border-radius styling on desktop) */
+    isLastItem?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;

@@ -3496,11 +3496,18 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 4,
             backgroundColor: theme.highlightBG,
             justifyContent: 'flex-start',
+            borderTopLeftRadius: 8,
+            borderTopRightRadius: 8,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
         },
 
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
+            borderBottomWidth: 0,
         },
 
         narrowSearchRouterInactiveStyle: {

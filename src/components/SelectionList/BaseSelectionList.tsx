@@ -340,6 +340,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 index={index}
                 isFocused={isItemFocused}
                 isDisabled={isItemDisabled}
+                isLastItem={index === data.length - 1}
                 canSelectMultiple={canSelectMultiple}
                 onDismissError={onDismissError}
                 onLongPressRow={onLongPressRow}

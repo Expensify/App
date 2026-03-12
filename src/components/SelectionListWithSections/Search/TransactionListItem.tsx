@@ -52,6 +52,7 @@ function TransactionListItem<TItem extends ListItem>({
     isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -199,7 +200,8 @@ function TransactionListItem<TItem extends ListItem>({
                     styles.flex1,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: 1, borderColor: theme.border},
+                    isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: theme.border},
+                    isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
                 ]}
             >
                 {({hovered}) => (

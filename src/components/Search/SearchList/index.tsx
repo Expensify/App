@@ -410,6 +410,7 @@ function SearchList({
 
             const itemData = itemsWithSelection.at(index);
             const itemWithSelection = itemData?.itemWithSelection ?? item;
+            const isLastItem = index === data.length - 1;
 
             return (
                 <Animated.View
@@ -426,6 +427,7 @@ function SearchList({
                         onCheckboxPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
                         item={itemWithSelection}
+                        isLastItem={isLastItem}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
                         columns={columns}

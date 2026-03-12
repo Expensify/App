@@ -29,6 +29,7 @@ function TableListItem<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     shouldShowRightCaret,
     errorRowStyles,
+    isLastItem,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -65,7 +66,12 @@ function TableListItem<TItem extends ListItem>({
                 item.isSelected && styles.activeComponentBG,
                 item.cursorStyle,
             ]}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: 1, borderColor: theme.border}]}
+            pressableWrapperStyle={[
+                styles.mh5,
+                animatedHighlightStyle,
+                isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: theme.border},
+                isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+            ]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
             containerStyle={!isLargeScreenWidth ? styles.mb2 : undefined}
             isFocused={isFocused}

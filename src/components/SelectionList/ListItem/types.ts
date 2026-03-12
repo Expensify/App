@@ -208,6 +208,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+
+    /** Whether this is the last item in the list (used for bottom border-radius styling on desktop) */
+    isLastItem?: boolean;
 } & TRightHandSideComponent<TItem> &
     WithSentryLabel;
 
