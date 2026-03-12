@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {AccessibilityInfo, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -40,9 +40,10 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
 
-    const announceStatus = useCallback((message: string) => {
+    const announceStatus = (message: string) => {
         setStatusAnnouncement((prev) => ({id: prev.id + 1, text: message}));
-    }, []);
+        AccessibilityInfo.announceForAccessibility(message);
+    };
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
 
@@ -162,7 +163,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                         <Text
                             key={statusAnnouncement.id}
                             role={CONST.ROLE.ALERT}
-                            accessibilityLiveRegion="assertive"
+                            accessibilityLiveRegion="polite"
                             style={styles.hiddenElementOutsideOfWindow}
                         >
                             {statusAnnouncement.text}
