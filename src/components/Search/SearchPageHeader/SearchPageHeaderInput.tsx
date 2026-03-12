@@ -10,6 +10,8 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
@@ -17,8 +19,6 @@ import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpd
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
-import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

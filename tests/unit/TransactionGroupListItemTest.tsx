@@ -7,8 +7,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {SearchContextProvider} from '@components/Search/SearchContext';
-import TransactionGroupListItem from '@src/components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type {TransactionGroupListItemProps, TransactionListItemType, TransactionReportGroupListItemType} from '@src/components/SelectionListWithSections/types';
+import type {TransactionGroupListItemProps, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -288,6 +288,7 @@ describe('TransactionGroupListItem', () => {
         onSelectRow: mockOnSelectRow,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
+        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
@@ -471,6 +472,7 @@ describe('Empty Report Selection', () => {
         onCheckboxPress: mockOnCheckboxPress,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
+        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {

@@ -8,9 +8,6 @@ import type {ListItem as NewListItem, UserListItemProps} from '@components/Selec
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
-// eslint-disable-next-line no-restricted-imports
-import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
@@ -37,6 +34,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListItem/SearchQueryListItem';
+import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 

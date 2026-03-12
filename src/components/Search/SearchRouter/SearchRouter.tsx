@@ -10,10 +10,10 @@ import DeferredAutocompleteList from '@components/Search/DeferredSearchAutocompl
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
-import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';

@@ -6,7 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {LastPaymentMethod, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
     SearchCategoryGroup,
@@ -448,6 +448,12 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     onLongPress: (transaction: TransactionListItemType) => void;
 };
 
+type UnreportedExpenseListItemType = Transaction & {
+    isDisabled: boolean;
+    keyForList: string;
+    errors?: Errors;
+};
+
 export type {
     ChatListItemProps,
     ExpenseReportListItemProps,
@@ -472,4 +478,5 @@ export type {
     TransactionGroupListExpandedProps,
     TransactionListItemProps,
     ReportActionListItemType,
+    UnreportedExpenseListItemType,
 };

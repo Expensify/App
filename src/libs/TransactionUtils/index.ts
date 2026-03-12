@@ -8,7 +8,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
-import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
+import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
@@ -2710,7 +2710,7 @@ function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
 /**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
-function createUnreportedExpenses(transactions: Array<Transaction | undefined>): UnreportedExpenseListItemType[] {
+function createUnreportedExpenses(transactions: Array<OnyxEntry<Transaction> | undefined>): UnreportedExpenseListItemType[] {
     return transactions
         .filter((t): t is Transaction => t !== undefined)
         .map(

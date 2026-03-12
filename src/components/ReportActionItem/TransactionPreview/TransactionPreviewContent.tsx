@@ -7,7 +7,7 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
-import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
+import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';

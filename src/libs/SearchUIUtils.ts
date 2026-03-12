@@ -10,6 +10,30 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
+import ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
+import TaskListItem from '@components/Search/SearchList/ListItem/TaskListItem';
+import TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
+import TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
+import type {
+    ExpenseReportListItemType,
+    ReportActionListItemType,
+    SearchListItem,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionReportGroupListItemType,
+    TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
 import type {
     GroupedItem,
     QueryFilters,
@@ -30,31 +54,7 @@ import type {
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
-import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
-import TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
-import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
-import type {
-    ExpenseReportListItemType,
-    ListItem,
-    ReportActionListItemType,
-    SearchListItem,
-    TaskListItemType,
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionMemberGroupListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionReportGroupListItemType,
-    TransactionTagGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionWithdrawalIDGroupListItemType,
-    TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type {ThemeColors} from '@styles/theme/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';

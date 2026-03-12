@@ -2,18 +2,6 @@ import React from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import type {
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionMemberGroupListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionTagGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionWithdrawalIDGroupListItemType,
-    TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,6 +15,18 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SearchBarChart from './SearchBarChart';
 import SearchLineChart from './SearchLineChart';
+import type {
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
+} from './SearchList/ListItem/types';
 import SearchPieChart from './SearchPieChart';
 import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
 

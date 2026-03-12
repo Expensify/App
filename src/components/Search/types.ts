@@ -1,6 +1,11 @@
 import type {ValueOf} from 'type-fest';
 import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type CONST from '@src/CONST';
+import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {
     ReportActionListItemType,
     TaskListItemType,
@@ -16,12 +21,7 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import type CONST from '@src/CONST';
-import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type IconAsset from '@src/types/utils/IconAsset';
+} from './SearchList/ListItem/types';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {

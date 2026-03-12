@@ -44,7 +44,7 @@ import Icon from './Icon';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from './ReportActionAvatars';
-import type {TransactionListItemType} from './SelectionListWithSections/types';
+import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {

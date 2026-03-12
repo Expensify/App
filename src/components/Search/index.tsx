@@ -8,15 +8,7 @@ import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming}
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
-import type {
-    ReportActionListItemType,
-    SearchListItem,
-    SelectionListHandle,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionReportGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -83,7 +75,9 @@ import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
+import SearchTableHeader from './SearchTableHeader';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
@@ -277,7 +271,7 @@ function Search({
 
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const searchListRef = useRef<SelectionListHandle | null>(null);
+    const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const spanExistedOnMount = useRef(!!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE));
 

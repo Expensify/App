@@ -3,11 +3,10 @@ import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
-import type {SelectedTransactionInfo} from '@components/Search/types';
-import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
-import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
+import ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
+import ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
+import TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
+import TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {
     ReportActionListItemType,
     TransactionCardGroupListItemType,
@@ -23,7 +22,8 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+} from '@components/Search/SearchList/ListItem/types';
+import type {SelectedTransactionInfo} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
@@ -1560,6 +1560,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         total: 70,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '18439984',
     },
     {
         accountID: 1111111,
@@ -1573,6 +1574,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         total: 30,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '1111111',
     },
 ];
 
@@ -1589,6 +1591,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         total: 70,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '18439984',
     },
     {
         accountID: 1111111,
@@ -1602,6 +1605,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         total: 30,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '1111112',
     },
 ];
 
@@ -1623,6 +1627,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         total: 40,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '20202020',
     },
     {
         accountID: 1111111,
@@ -1641,6 +1646,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         total: 20,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '30303030',
     },
 ];
 
@@ -1662,6 +1668,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         total: 40,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '20202020',
     },
     {
         accountID: 1111111,
@@ -1680,6 +1687,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         total: 20,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '30303030',
     },
 ];
 
@@ -1697,6 +1705,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         formattedWithdrawalID: '5',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '5',
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1711,6 +1720,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         formattedWithdrawalID: '6',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '6',
     },
 ];
 
@@ -1728,6 +1738,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         formattedWithdrawalID: '5',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '5',
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1742,6 +1753,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         formattedWithdrawalID: '6',
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: '6',
     },
 ];
 
@@ -1755,6 +1767,7 @@ const transactionCategoryGroupListItems: TransactionCategoryGroupListItemType[] 
         formattedCategory: categoryName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'categoryName1',
     },
     {
         category: categoryName2,
@@ -1765,6 +1778,7 @@ const transactionCategoryGroupListItems: TransactionCategoryGroupListItemType[] 
         formattedCategory: categoryName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'categoryName2',
     },
 ];
 
@@ -1778,6 +1792,7 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
         formattedCategory: categoryName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'categoryName1',
     },
     {
         category: categoryName2,
@@ -1788,6 +1803,7 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
         formattedCategory: categoryName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'categoryName2',
     },
 ];
 
@@ -1836,6 +1852,7 @@ const transactionMerchantGroupListItems: TransactionMerchantGroupListItemType[] 
         formattedMerchant: merchantName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'merchantName1',
     },
     {
         merchant: merchantName2,
@@ -1846,6 +1863,7 @@ const transactionMerchantGroupListItems: TransactionMerchantGroupListItemType[] 
         formattedMerchant: merchantName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'merchantName2',
     },
 ];
 
@@ -1891,6 +1909,7 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
         formattedTag: tagName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'tagName1',
     },
     {
         tag: tagName2,
@@ -1901,6 +1920,7 @@ const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
         formattedTag: tagName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'tagName2',
     },
 ];
 
@@ -1929,6 +1949,7 @@ const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemT
         formattedMerchant: merchantName1,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'merchantName1',
     },
     {
         merchant: merchantName2,
@@ -1939,6 +1960,7 @@ const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemT
         formattedMerchant: merchantName2,
         transactions: [],
         transactionsQueryJSON: undefined,
+        keyForList: 'merchantName2',
     },
 ];
 
@@ -3016,6 +3038,7 @@ describe('SearchUIUtils', () => {
                 formattedCategory: 'Travel',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'categoryName1',
             };
 
             expect(SearchUIUtils.isTransactionCategoryGroupListItemType(categoryItem)).toBe(true);
@@ -3034,6 +3057,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 202601,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: '202601',
                 },
                 {
                     year: 2025,
@@ -3046,6 +3070,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 202512,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: '202512',
                 },
             ];
 
@@ -3130,6 +3155,7 @@ describe('SearchUIUtils', () => {
                 sortKey: 202601,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '202601',
             };
 
             expect(SearchUIUtils.isTransactionMonthGroupListItemType(monthItem)).toBe(true);
@@ -3145,6 +3171,7 @@ describe('SearchUIUtils', () => {
                 formattedWeek: 'Jan 25 - Jan 31, 2026',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '2026-01-25',
             };
 
             expect(SearchUIUtils.isTransactionWeekGroupListItemType(weekItem)).toBe(true);
@@ -3162,6 +3189,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 2026,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: '2026',
                 },
                 {
                     year: 2025,
@@ -3173,6 +3201,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 2025,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: '2025',
                 },
             ];
 
@@ -3254,6 +3283,7 @@ describe('SearchUIUtils', () => {
                 sortKey: 2026,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '2026',
             };
 
             expect(SearchUIUtils.isTransactionYearGroupListItemType(yearItem)).toBe(true);
@@ -3579,6 +3609,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 20261,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: '202601',
                 },
                 {
                     year: 2025,
@@ -3591,6 +3622,7 @@ describe('SearchUIUtils', () => {
                     sortKey: 20254,
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: '202504',
                 },
             ];
 
@@ -3675,6 +3707,7 @@ describe('SearchUIUtils', () => {
                 sortKey: 20261,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '202601',
             };
 
             expect(SearchUIUtils.isTransactionQuarterGroupListItemType(quarterItem)).toBe(true);
@@ -3690,6 +3723,7 @@ describe('SearchUIUtils', () => {
                     formattedWeek: 'Jan 25 - Jan 31, 2026',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: '2026-01-25',
                 },
                 {
                     week: '2025-12-21',
@@ -3700,6 +3734,7 @@ describe('SearchUIUtils', () => {
                     formattedWeek: 'Dec 21 - Dec 27, 2025',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: '2025-12-21',
                 },
             ];
 
@@ -3766,6 +3801,7 @@ describe('SearchUIUtils', () => {
                 total: 100,
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: '123',
             };
 
             expect(SearchUIUtils.isTransactionCategoryGroupListItemType(memberItem)).toBe(false);
@@ -4213,6 +4249,7 @@ describe('SearchUIUtils', () => {
                 formattedMerchant: 'Starbucks',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'merchantName1',
             };
 
             expect(SearchUIUtils.isTransactionMerchantGroupListItemType(merchantItem)).toBe(true);
@@ -4228,6 +4265,7 @@ describe('SearchUIUtils', () => {
                 formattedCategory: 'Travel',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'categoryName1',
             };
 
             expect(SearchUIUtils.isTransactionMerchantGroupListItemType(categoryItem)).toBe(false);
@@ -4474,6 +4512,7 @@ describe('SearchUIUtils', () => {
                 formattedTag: 'Project A',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'tagName1',
             };
 
             expect(SearchUIUtils.isTransactionTagGroupListItemType(tagItem)).toBe(true);
@@ -4489,6 +4528,7 @@ describe('SearchUIUtils', () => {
                 formattedCategory: 'Travel',
                 transactions: [],
                 transactionsQueryJSON: undefined,
+                keyForList: 'categoryName1',
             };
 
             expect(SearchUIUtils.isTransactionTagGroupListItemType(categoryItem)).toBe(false);
@@ -5047,6 +5087,7 @@ describe('SearchUIUtils', () => {
                     formattedMerchant: 'No merchant', // Translated by getMerchantSections
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'noMerchant',
                 },
                 {
                     merchant: 'Apple Store',
@@ -5057,6 +5098,7 @@ describe('SearchUIUtils', () => {
                     formattedMerchant: 'Apple Store',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'appleStore',
                 },
                 {
                     merchant: 'Zebra Coffee',
@@ -5067,6 +5109,7 @@ describe('SearchUIUtils', () => {
                     formattedMerchant: 'Zebra Coffee',
                     transactions: [],
                     transactionsQueryJSON: undefined,
+                    keyForList: 'zebraCoffee',
                 },
             ];
 
