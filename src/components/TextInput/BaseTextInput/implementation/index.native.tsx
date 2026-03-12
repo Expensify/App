@@ -273,7 +273,7 @@ function BaseTextInput({
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
         isAutoGrowHeightMarkdown && styles.pb2,
         inputProps.disabled && styles.textInputDisabledContainer,
-        shouldAddPaddingBottom && styles.pb1,
+        shouldAddPaddingBottom && shouldApplyPaddingToContainer && styles.pb1,
     ]);
 
     // TextInputMeasurement is absolutely positioned, so it doesn’t inherit padding/border.

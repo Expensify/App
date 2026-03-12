@@ -38,6 +38,8 @@ function MerchantOrDescriptionCell({
         save();
     }, [save]);
 
+    const isMultiline = isDescription;
+
     return (
         <EditableCell
             canEdit={canEdit}
@@ -51,11 +53,13 @@ function MerchantOrDescriptionCell({
                     onBlur={handleBlur}
                     onSubmitEditing={handleSubmitEditing}
                     autoFocus
+                    multiline={isMultiline}
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress TextInput's own border and background to avoid visual conflicts.
                     textInputContainerStyles={styles.editableCellInputStyle}
                     touchableInputWrapperStyle={styles.editableCellInputStyle}
                     hideFocusedState
+                    shouldApplyPaddingToContainer={false}
                 />
             }
         >
@@ -63,7 +67,7 @@ function MerchantOrDescriptionCell({
                 shouldShowTooltip={shouldShowTooltip}
                 text={localValue}
                 numberOfLines={shouldUseNarrowLayout ? 1 : 2}
-                style={[shouldUseNarrowLayout ? styles.lh20 : styles.lineHeightLarge, shouldUseNarrowLayout ? styles.pre : styles.preWrap, styles.justifyContentCenter, styles.flex1]}
+                style={shouldUseNarrowLayout ? [styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1] : [styles.lineHeightXLarge, isMultiline ? styles.preWrap : styles.pre]}
             />
         </EditableCell>
     );
