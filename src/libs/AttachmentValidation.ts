@@ -15,44 +15,40 @@ type SingleAttachmentValidResult = {
     validatedFile: ValidatedFile;
 };
 
-type SingleAttachmentValidationError = ValueOf<typeof CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE>;
+type FileValidationError = ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
 type SingleAttachmentInvalidResult = {
     isValid: false;
-    error: SingleAttachmentValidationError;
+    error: FileValidationError;
     file: FileObject;
 };
 
 type SingleAttachmentValidationResult = SingleAttachmentValidResult | SingleAttachmentInvalidResult;
 
-function isSingleAttachmentValidationResult(result: unknown): result is SingleAttachmentValidationResult {
-    return typeof result === 'object' && result !== null && 'isValid' in result && typeof result.isValid === 'boolean' && ('validatedFile' in result || 'error' in result);
-}
-
 async function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isValidatingReceipts = false): Promise<SingleAttachmentValidationResult> {
     if (!file) {
-        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.NO_FILE_PROVIDED, file});
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.NO_FILE_PROVIDED, file});
     }
 
     if (!file.name || file.size == null) {
-        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID, file});
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID, file});
     }
 
     if (isValidatingReceipts && !isValidReceiptExtension(file)) {
-        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE, file});
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE, file});
     }
 
     if (hasHeicOrHeifExtension(file)) {
-        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.HEIC_OR_HEIF_IMAGE, file});
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE, file});
     }
 
     const isImage = Str.isImage(file.name);
     const maxFileSize = isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
     if (!isImage && !hasHeicOrHeifExtension(file) && file.size > maxFileSize) {
-        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE, file});
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE, file});
     }
 
     if (isValidatingReceipts && file.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL, file});
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL, file});
     }
 
     let fileObject = file;
@@ -62,14 +58,14 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
     }
 
     if (!fileObject) {
-        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID, file});
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID, file});
     }
 
     if (item && item.kind === 'file' && 'webkitGetAsEntry' in item) {
         const entry = item.webkitGetAsEntry();
 
         if (entry?.isDirectory) {
-            return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FOLDER_NOT_ALLOWED, file});
+            return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED, file});
         }
     }
 
@@ -115,26 +111,21 @@ type MultipleAttachmentsValidResult = {
     validatedFiles: ValidatedFile[];
 };
 
-type MultipleAttachmentsValidationError = ValueOf<typeof CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES>;
 type MultipleAttachmentsInvalidResult = {
     isValid: false;
-    error?: MultipleAttachmentsValidationError;
+    error?: FileValidationError;
     fileResults: SingleAttachmentValidationResult[];
     files: FileObject[];
 };
 type MultipleAttachmentsValidationResult = MultipleAttachmentsValidResult | MultipleAttachmentsInvalidResult;
 
-function isMultipleAttachmentsValidationResult(result: unknown): result is MultipleAttachmentsValidationResult {
-    return typeof result === 'object' && result !== null && 'isValid' in result && typeof result.isValid === 'boolean' && ('validatedFiles' in result || 'fileResults' in result);
-}
-
 async function validateMultipleAttachmentFiles(files: FileObject[], items?: DataTransferItem[], isValidatingReceipts = false): Promise<MultipleAttachmentsValidationResult> {
     if (!files?.length || files.some((f) => isDirectory(f))) {
-        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.FOLDER_NOT_ALLOWED, fileResults: [], files});
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED, fileResults: [], files});
     }
 
     if (files.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
-        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED, fileResults: [], files});
+        return Promise.resolve({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED, fileResults: [], files});
     }
 
     const results = await Promise.all(files.map((f, index) => validateAttachmentFile(f, items?.at(index), isValidatingReceipts)));
@@ -157,7 +148,7 @@ type FileCorruptionValidResult = {
 };
 type FileCorruptionInvalidResult = {
     isValid: false;
-    error: SingleAttachmentValidationError;
+    error: FileValidationError;
 };
 
 type FileCorruptionResult = FileCorruptionValidResult | FileCorruptionInvalidResult;
@@ -171,14 +162,14 @@ async function isFileCorrupted(fileObject: FileObject, isValidatingReceipts?: bo
         if (normalizedFile.size && normalizedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             return {
                 isValid: false,
-                error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE,
+                error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
             } satisfies FileCorruptionInvalidResult;
         }
 
         if (isValidatingReceipts !== false && normalizedFile.size && normalizedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
             return {
                 isValid: false,
-                error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL,
+                error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL,
             } satisfies FileCorruptionInvalidResult;
         }
 
@@ -189,7 +180,7 @@ async function isFileCorrupted(fileObject: FileObject, isValidatingReceipts?: bo
     } catch (error) {
         return {
             isValid: false,
-            error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID,
+            error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID,
         } satisfies FileCorruptionInvalidResult;
     }
 }
@@ -202,14 +193,13 @@ function isDirectory(data: FileObject) {
     return false;
 }
 
-export {validateAttachmentFile, validateMultipleAttachmentFiles, isSingleAttachmentValidationResult, isMultipleAttachmentsValidationResult};
+export {validateAttachmentFile, validateMultipleAttachmentFiles};
 export type {
     SingleAttachmentValidationResult,
     SingleAttachmentValidResult,
     SingleAttachmentInvalidResult,
-    SingleAttachmentValidationError,
+    FileValidationError,
     MultipleAttachmentsValidationResult,
     MultipleAttachmentsValidResult,
     MultipleAttachmentsInvalidResult,
-    MultipleAttachmentsValidationError,
 };

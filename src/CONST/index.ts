@@ -2320,22 +2320,17 @@ const CONST = {
     },
 
     FILE_VALIDATION_ERRORS: {
-        SINGLE_FILE: {
-            NO_FILE_PROVIDED: 'noFileProvided',
-            FILE_INVALID: 'fileInvalid',
-            WRONG_FILE_TYPE: 'wrongFileType',
-            FILE_TOO_LARGE: 'fileTooLarge',
-            FILE_TOO_SMALL: 'fileTooSmall',
-            FILE_CORRUPTED: 'fileCorrupted',
-            PROTECTED_FILE: 'protectedFile',
-            FOLDER_NOT_ALLOWED: 'folderNotAllowed',
-            HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
-            IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
-        },
-        MULTIPLE_FILES: {
-            FOLDER_NOT_ALLOWED: 'multipleAttachmentsFolderNotAllowed',
-            MAX_FILE_LIMIT_EXCEEDED: 'multipleAttachmentsMaxFileLimitExceeded',
-        },
+        NO_FILE_PROVIDED: 'noFileProvided',
+        FILE_INVALID: 'fileInvalid',
+        WRONG_FILE_TYPE: 'wrongFileType',
+        FILE_TOO_LARGE: 'fileTooLarge',
+        FILE_TOO_SMALL: 'fileTooSmall',
+        FILE_CORRUPTED: 'fileCorrupted',
+        PROTECTED_FILE: 'protectedFile',
+        HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
+        IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
+        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
+        MAX_FILE_LIMIT_EXCEEDED: 'maxFileLimitExceeded',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',

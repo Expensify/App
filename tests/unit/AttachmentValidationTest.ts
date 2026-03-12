@@ -29,7 +29,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL);
         });
 
         it('should return SINGLE_FILE.FILE_TOO_LARGE for large non-image file', async () => {
@@ -40,7 +40,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE);
         });
 
         it('should return SINGLE_FILE.WRONG_FILE_TYPE for invalid receipt extension', async () => {
@@ -51,7 +51,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
         it('should prioritize SINGLE_FILE.WRONG_FILE_TYPE over SINGLE_FILE.FILE_TOO_LARGE for receipts', async () => {
@@ -62,7 +62,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
         it('should return empty string for valid image receipt', async () => {
@@ -79,7 +79,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.NO_FILE_PROVIDED);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.NO_FILE_PROVIDED);
             expect(result.file).toBeNull();
         });
 
@@ -90,7 +90,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.NO_FILE_PROVIDED);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.NO_FILE_PROVIDED);
             expect(result.file).toBeUndefined();
         });
 
@@ -102,7 +102,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.HEIC_OR_HEIF_IMAGE);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE);
         });
 
         it('should return SINGLE_FILE.HEIC_OR_HEIF_IMAGE for HEIF file', async () => {
@@ -113,7 +113,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.HEIC_OR_HEIF_IMAGE);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE);
         });
 
         it('should return SINGLE_FILE.FILE_TOO_LARGE for large image receipt', async () => {
@@ -125,7 +125,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE);
         });
 
         it('should return SINGLE_FILE.FILE_TOO_LARGE for large non-image receipt', async () => {
@@ -136,7 +136,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE);
         });
 
         it('should accept file at exact MIN_SIZE for receipt', async () => {
@@ -225,7 +225,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FILE_INVALID);
         });
 
         it('should handle file with no size', async () => {
@@ -237,7 +237,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FILE_INVALID);
         });
 
         it('should return SINGLE_FILE.FOLDER_NOT_ALLOWED when DataTransferItem is a directory', async () => {
@@ -255,12 +255,12 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateAttachmentFile should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FOLDER_NOT_ALLOWED);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
         });
     });
 
     describe('validateMultipleAttachmentFiles', () => {
-        it('should return MULTIPLE_FILES.FILE_TOO_LARGE when checking multiple files', async () => {
+        it('should return SINGLE_FILE.FILE_TOO_LARGE when checking multiple files', async () => {
             const file = createMockFile('file.pdf', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
             const result = await validateMultipleAttachmentFiles([file], undefined, false);
 
@@ -276,7 +276,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('firstFileResult should be defined and valid');
             }
 
-            expect(firstFileResult.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
+            expect(firstFileResult.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE);
         });
 
         it('should return WRONG_FILE_TYPE_MULTIPLE when checking multiple invalid receipt files', async () => {
@@ -293,7 +293,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('firstFileResult should be defined and valid');
             }
 
-            expect(firstFileResult.error).toEqual(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
+            expect(firstFileResult.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
 
         it('should return MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED when more than MAX_FILE_LIMIT files', async () => {
@@ -304,7 +304,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateMultipleAttachmentFiles should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
         });
 
         it('should accept exactly MAX_FILE_LIMIT files', async () => {
@@ -324,7 +324,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateMultipleAttachmentFiles should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.FOLDER_NOT_ALLOWED);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
         });
 
         it('should return MULTIPLE_FILES.FOLDER_NOT_ALLOWED when directory is included', async () => {
@@ -342,7 +342,7 @@ describe('AttachmentValidation', () => {
                 throw new Error('validateMultipleAttachmentFiles should return an invalid result');
             }
 
-            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.FOLDER_NOT_ALLOWED);
+            expect(result.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
         });
 
         it('should return valid result when all files are valid', async () => {
@@ -391,9 +391,9 @@ describe('AttachmentValidation', () => {
 
             expect(result.fileResults).toHaveLength(3);
             const errors = result.fileResults.map((r) => (r.isValid ? null : r.error));
-            expect(errors).toContain(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE);
-            expect(errors).toContain(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE);
-            expect(errors).toContain(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL);
+            expect(errors).toContain(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
+            expect(errors).toContain(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE);
+            expect(errors).toContain(CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL);
         });
 
         it('should handle multiple receipt files with HEIC/HEIF', async () => {
@@ -409,7 +409,7 @@ describe('AttachmentValidation', () => {
 
             expect(result.fileResults).toHaveLength(2);
             const errors = result.fileResults.map((r) => (r.isValid ? null : r.error));
-            expect(errors).toContain(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.HEIC_OR_HEIF_IMAGE);
+            expect(errors).toContain(CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE);
         });
 
         it('should handle multiple valid receipt files', async () => {

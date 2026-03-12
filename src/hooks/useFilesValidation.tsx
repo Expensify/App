@@ -6,14 +6,8 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
-import type {
-    MultipleAttachmentsValidationError,
-    MultipleAttachmentsValidationResult,
-    SingleAttachmentInvalidResult,
-    SingleAttachmentValidationError,
-    SingleAttachmentValidationResult,
-} from '@libs/AttachmentValidation';
+import {validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
+import type {FileValidationError, SingleAttachmentInvalidResult} from '@libs/AttachmentValidation';
 import {getFileValidationErrorText, resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
@@ -25,7 +19,7 @@ import useThemeStyles from './useThemeStyles';
 const DEFAULT_IS_VALIDATING_RECEIPTS = true;
 
 type ErrorObject = {
-    error: SingleAttachmentValidationError | MultipleAttachmentsValidationError;
+    error: FileValidationError;
     fileExtension?: string;
 };
 
@@ -67,10 +61,10 @@ const classifyValidatedFiles = (files: FileObject[], invalidResults: SingleAttac
     const urisToResize = new Set<string>();
     for (const result of invalidResults) {
         const uri = result.file.uri ?? '';
-        if (result.error === CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.HEIC_OR_HEIF_IMAGE) {
+        if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE) {
             filesToConvert.push(result.file);
             urisToConvert.add(uri);
-        } else if (result.error === CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE) {
+        } else if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE) {
             filesToResize.push(result.file);
             urisToResize.add(uri);
         }
@@ -128,7 +122,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
     const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
 
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [fileError, setFileError] = useState<SingleAttachmentValidationError | MultipleAttachmentsValidationError | null>(null);
+    const [fileError, setFileError] = useState<FileValidationError | null>(null);
     const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
     const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
     const [invalidFileExtension, setInvalidFileExtension] = useState('');
@@ -190,7 +184,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         });
     };
 
-    const setErrorAndOpenModal = (error: SingleAttachmentValidationError | MultipleAttachmentsValidationError) => {
+    function setErrorAndOpenModal(error: FileValidationError) {
         setFileError(error);
         setIsErrorModalVisible(true);
     };
@@ -420,7 +414,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
     };
 
     const onConfirmError = () => {
-        if (fileError === CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
             setIsErrorModalVisible(false);
             convertAndResizeFiles([], filesToValidate.current);
             return;
@@ -474,7 +468,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
                   onPassword={() => {
                       validatedPDFs.current.push(file);
                       if (isValidatingReceipt) {
-                          collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.PROTECTED_FILE});
+                          collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
                       } else {
                           validFiles.current.push(file);
                       }
@@ -482,7 +476,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
                   }}
                   onLoadError={() => {
                       validatedPDFs.current.push(file);
-                      collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_CORRUPTED});
+                      collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
                       checkIfAllValidatedAndProceed();
                   }}
               />
@@ -496,7 +490,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
             return '';
         }
         const prompt = fileValidationErrorText.reason;
-        if (fileError === CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE) {
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
             return (
                 <Text>
                     {prompt}

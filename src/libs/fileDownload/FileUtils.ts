@@ -6,7 +6,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
 import type {TupleToUnion} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
+import type {FileValidationError} from '@libs/AttachmentValidation';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -543,7 +543,7 @@ const calculateScaledDimensions = (width: number, height: number): {width: numbe
     const totalPixels = width * height;
 
     if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
-        throw new Error(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.IMAGE_DIMENSIONS_TOO_LARGE);
+        throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
     }
 
     const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
@@ -682,7 +682,7 @@ type GetFileValidationErrorTextOptions = {
 
 const getFileValidationErrorText = (
     translate: LocalizedTranslate,
-    validationError: SingleAttachmentValidationError | MultipleAttachmentsValidationError | null,
+    validationError: FileValidationError | null,
     additionalData: TranslationAdditionalData = {},
     options: GetFileValidationErrorTextOptions = {},
 ): {
@@ -699,24 +699,24 @@ const getFileValidationErrorText = (
 
     if (options.isValidatingMultipleFiles) {
         switch (validationError) {
-            case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE:
+            case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
                 return {
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
                     reason: translate('attachmentPicker.unsupportedFileType', additionalData.fileType ?? ''),
                 };
-            case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE:
+            case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
                 return {
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
                     reason: translate('attachmentPicker.sizeLimitExceeded', {
                         maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024,
                     }),
                 };
-            case CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.FOLDER_NOT_ALLOWED:
+            case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
                 return {
                     title: translate('attachmentPicker.attachmentError'),
                     reason: translate('attachmentPicker.folderNotAllowedMessage'),
                 };
-            case CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED:
+            case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
                 return {
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
                     reason: translate('attachmentPicker.maxFileLimitExceeded'),
@@ -727,12 +727,12 @@ const getFileValidationErrorText = (
     }
 
     switch (validationError) {
-        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.WRONG_FILE_TYPE:
+        case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
                 title: translate('attachmentPicker.wrongFileType'),
                 reason: translate('attachmentPicker.notAllowedExtension'),
             };
-        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE:
+        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
                 title: translate('attachmentPicker.attachmentTooLarge'),
                 reason: options.isValidatingReceipt
@@ -741,22 +741,22 @@ const getFileValidationErrorText = (
                       })
                     : translate('attachmentPicker.sizeExceeded'),
             };
-        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL:
+        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
             return {
                 title: translate('attachmentPicker.attachmentTooSmall'),
                 reason: translate('attachmentPicker.sizeNotMet'),
             };
-        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_CORRUPTED:
+        case CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED:
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
-        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.PROTECTED_FILE:
+        case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.protectedPDFNotSupported'),
             };
-        case CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.IMAGE_DIMENSIONS_TOO_LARGE:
+        case CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE:
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.imageDimensionsTooLarge'),

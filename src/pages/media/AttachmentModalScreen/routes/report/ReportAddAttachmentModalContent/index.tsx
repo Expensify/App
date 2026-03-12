@@ -4,8 +4,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
-import {isMultipleAttachmentsValidationResult, validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
-import type {MultipleAttachmentsValidationResult, SingleAttachmentValidationResult} from '@libs/AttachmentValidation';
+import {validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canUserPerformWriteAction, isReportNotFound} from '@libs/ReportUtils';
@@ -83,34 +82,21 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
     const [validFiles, setValidFiles] = useState<FileObject | FileObject[] | undefined>(fileParam);
     useEffect(() => {
-        if (!fileParam) {
-            return;
-        }
-
-        function updateState(result: SingleAttachmentValidationResult | MultipleAttachmentsValidationResult) {
-            if (isMultipleAttachmentsValidationResult(result)) {
-                if (result.isValid) {
-                    setSource(result.validatedFiles.at(0)?.source ?? '');
-                    setValidFiles(result.validatedFiles.map((r) => r.file));
-                }
-
+        async function validateFiles() {
+            if (!fileParam) {
                 return;
             }
 
-            if (!result.isValid) {
-                return;
+            const files = Array.isArray(fileParam) ? fileParam : [fileParam];
+            const result = await validateMultipleAttachmentFiles(files);
+
+            if (result.isValid) {
+                setSource(result.validatedFiles.at(0)?.source ?? '');
+                setValidFiles(result.validatedFiles.map((r) => r.file));
             }
-
-            setSource(result.validatedFile.source);
-            setValidFiles(result.validatedFile.file);
         }
 
-        if (Array.isArray(fileParam)) {
-            validateMultipleAttachmentFiles(fileParam).then(updateState);
-            return;
-        }
-
-        validateAttachmentFile(fileParam).then(updateState);
+        validateFiles();
     }, [fileParam]);
 
     const modalType = useReportAttachmentModalType(source, validFiles);

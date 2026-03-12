@@ -218,7 +218,7 @@ describe('FileUtils', () => {
 
                 const file = {uri: 'file://large-image.jpg', name: 'large-image.jpg', type: 'image/jpeg'};
 
-                await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.IMAGE_DIMENSIONS_TOO_LARGE);
+                await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
             });
 
             it('should not throw for images at exactly the maximum pixel count', async () => {
@@ -373,7 +373,7 @@ describe('FileUtils', () => {
 
                 const file = {uri: 'blob:http://localhost/large-image', name: 'large.jpg', type: 'image/jpeg'};
 
-                await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.IMAGE_DIMENSIONS_TOO_LARGE);
+                await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
             });
 
             it('should throw IMAGE_DIMENSIONS_TOO_LARGE for large PNG via blob URL', async () => {
@@ -383,7 +383,7 @@ describe('FileUtils', () => {
 
                 const file = {uri: 'blob:http://localhost/large-png', name: 'large.png', type: 'image/png'};
 
-                await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.IMAGE_DIMENSIONS_TOO_LARGE);
+                await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
             });
 
             it('should fallback to ImageSize.getSize when header parsing fails', async () => {
@@ -465,7 +465,7 @@ describe('FileUtils', () => {
         const mockTranslate = ((path: string) => path) as LocaleContextProps['translate'];
 
         it('should return correct error text for IMAGE_DIMENSIONS_TOO_LARGE', () => {
-            const result = getFileValidationErrorText(mockTranslate, CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.IMAGE_DIMENSIONS_TOO_LARGE);
+            const result = getFileValidationErrorText(mockTranslate, CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
 
             expect(result.title).toBe('attachmentPicker.attachmentError');
             expect(result.reason).toBe('attachmentPicker.imageDimensionsTooLarge');
