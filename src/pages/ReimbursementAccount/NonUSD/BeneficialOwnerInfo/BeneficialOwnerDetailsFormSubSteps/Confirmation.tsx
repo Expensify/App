@@ -8,7 +8,6 @@ import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAcco
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import SafeString from '@src/utils/SafeString';
 
 type ConfirmationProps = SubStepProps & {ownerBeingModifiedID: string};
