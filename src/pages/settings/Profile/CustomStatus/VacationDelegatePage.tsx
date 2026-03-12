@@ -47,12 +47,12 @@ function VacationDelegatePage() {
             });
 
             if (result.action === ModalActions.CONFIRM) {
-                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegateRef.current?.delegate);
+                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegate?.delegate);
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
                 return;
             }
 
-            clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
+            clearVacationDelegateError(vacationDelegate?.previousDelegate);
         },
         [showConfirmModal, translate, currentUserLogin],
     );
