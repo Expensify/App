@@ -2,20 +2,30 @@
  * Tab Navigator containing Home, Inbox (Reports), Search, Settings, and Workspaces pages.
  */
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import type {TabNavigationState} from '@react-navigation/native';
 import React, {lazy, Suspense} from 'react';
-import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import type {RootTabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-// RootTabNavigatorTabBar renders an invisible placeholder so that the bottom tab navigator
-// does not show its own tab bar. The actual NavigationTabBar is rendered by TopLevelNavigationTabBar
-// which is positioned at the root level to avoid overflow:hidden clipping on web.
-function RootTabNavigatorTabBar() {
-    return <View style={{height: 0}} />;
+const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
+    [SCREENS.HOME]: NAVIGATION_TABS.HOME,
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.INBOX,
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NAVIGATION_TABS.SEARCH,
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.SETTINGS,
+    [SCREENS.WORKSPACES_LIST]: NAVIGATION_TABS.WORKSPACES,
+};
+
+function RootTabNavigatorTabBar({state}: {state: TabNavigationState<RootTabNavigatorParamList>}) {
+    const selectedRouteName = state.routes[state.index]?.name;
+    const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
+    return <NavigationTabBar selectedTab={selectedTab} />;
 }
 
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
@@ -45,7 +55,7 @@ function RootTabNavigator() {
         <Tab.Navigator
             backBehavior="fullHistory"
             // eslint-disable-next-line react/no-unstable-nested-components
-            tabBar={() => <RootTabNavigatorTabBar />}
+            tabBar={({state}) => <RootTabNavigatorTabBar state={state} />}
             screenOptions={{
                 headerShown: false,
                 lazy: true,
