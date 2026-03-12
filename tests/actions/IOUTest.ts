@@ -581,6 +581,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [fakeTransaction.transactionID],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -684,6 +685,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -772,6 +774,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -827,6 +830,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -910,6 +914,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -965,6 +970,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -1031,6 +1037,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             };
         }
@@ -1249,6 +1256,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
+                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
             });
@@ -1341,6 +1349,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -3097,6 +3106,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
 
@@ -3165,6 +3175,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -3689,6 +3700,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -9003,6 +9015,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
@@ -9923,7 +9936,6 @@ describe('actions/IOU', () => {
                                 reportsToArchive: reportToArchive,
                                 transactionViolations: undefined,
                                 reimbursementAccountError: undefined,
-                                bankAccountList: {},
                                 lastUsedPaymentMethods: undefined,
                                 localeCompare,
                             });
@@ -11063,6 +11075,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
 
@@ -12448,6 +12461,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
                 isSelfTourViewed: false,
             });
             await getOnyxData({
