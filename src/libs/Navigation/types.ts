@@ -966,6 +966,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_ADD]: {
         policyID: string;
+        subPage?: string;
+        action?: 'edit';
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD]: {
         policyID: string;
@@ -1282,6 +1284,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TRAVEL_EXPORT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: {
@@ -1925,7 +1930,9 @@ type MoneyRequestNavigatorParamList = {
         iouType: IOUType;
         transactionID: string;
         reportID: string;
+        backToReport?: string;
         imageType: OdometerImageType;
+        isEditingConfirmation?: string;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
@@ -2516,6 +2523,7 @@ type TravelNavigatorParamList = {
         policyID?: string;
     };
     [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
+        policyID?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2917,6 +2925,8 @@ type AttachmentModalScreensParamList = {
         iouType?: IOUType;
         mergeTransactionID?: string;
         imageType?: OdometerImageType;
+        isEditingConfirmation?: boolean;
+        backToReport?: string;
     };
     [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: AttachmentModalContainerModalProps & {
         reportID: string;
@@ -2924,6 +2934,16 @@ type AttachmentModalScreensParamList = {
         action: IOUAction;
         iouType: IOUType;
         readonly: string;
+    };
+    [SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW]: AttachmentModalContainerModalProps & {
+        reportID: string;
+        transactionID: string;
+        action: IOUAction;
+        iouType: IOUType;
+        readonly: string;
+        imageType: OdometerImageType;
+        isEditingConfirmation: boolean;
+        backToReport?: string;
     };
     [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;

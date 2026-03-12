@@ -34,6 +34,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.route,
+        [SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW]: ROUTES.MONEY_REQUEST_ODOMETER_PREVIEW.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.WORKSPACES_LIST]: {
             path: ROUTES.WORKSPACES_LIST.route,
@@ -850,6 +851,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
                             path: ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.route,
+                        },
+                        [SCREENS.WORKSPACE.TRAVEL_EXPORT]: {
+                            path: ROUTES.WORKSPACE_TRAVEL_EXPORT.route,
                         },
                         [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: {
                             path: ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.route,

@@ -17,7 +17,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -119,6 +119,11 @@ type PaymentData = {
     ownerEmail?: string;
     policyName?: string;
 };
+type BulkPaySelectionData = {
+    bankAccountID?: number;
+    payAsBusiness?: boolean;
+    paymentMethod?: string;
+};
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
@@ -154,13 +159,14 @@ type SearchCustomColumnIds =
 
 type SearchContextData = {
     currentSearchHash: number;
-    currentRecentSearchHash: number;
+    currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
     currentSearchResults: SearchResults | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
+    suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
@@ -177,8 +183,6 @@ type SearchStateContextValue = SearchContextData & {
 };
 
 type SearchActionsContextValue = {
-    setCurrentSearchHashAndKey: (hash: number, recentHash: number, key: SearchKey | undefined) => void;
-    setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
@@ -400,6 +404,7 @@ export type {
     TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
+    BulkPaySelectionData,
     SearchAutocompleteQueryRange,
     SearchParams,
     TableColumnSize,

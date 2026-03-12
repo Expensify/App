@@ -362,6 +362,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: 'あたり',
         mi: 'マイル',
         km: 'キロメートル',
+        milesAbbreviated: 'マイル',
+        kilometersAbbreviated: 'キロ',
         copied: 'コピーしました！',
         someone: '誰か',
         total: '合計',
@@ -475,6 +477,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: '検証',
         downloadAsPDF: 'PDFとしてダウンロード',
         downloadAsCSV: 'CSVとしてダウンロード',
+        print: '印刷',
         help: 'ヘルプ',
         expenseReport: '経費精算書',
         expenseReports: '経費レポート',
@@ -509,6 +512,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'オン',
         before: '前',
         after: '後',
+        range: '範囲',
         reschedule: '予定を変更',
         general: '一般',
         workspacesTabTitle: 'ワークスペース',
@@ -543,6 +547,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: '四半期',
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
+        concierge: {sidePanelGreeting: 'こんにちは、どのようにお手伝いできますか？', showHistory: '履歴を表示'},
         duplicateReport: 'レポートを複製',
         approver: '承認者',
     },
@@ -680,7 +685,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: '生体認証テスト',
             authenticationSuccessful: '認証に成功しました',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `${authType} を使用して正常に認証されました。`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `生体認証（${registered ? '登録済み' : '未登録'}）`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `生体認証（${status}）`,
             yourAttemptWasUnsuccessful: '認証を試みましたが、成功しませんでした。',
             youCouldNotBeAuthenticated: '認証できませんでした',
             areYouSureToReject: '本当に終了しますか？この画面を閉じると、認証の試行は拒否されます。',
@@ -696,6 +701,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: '未登録',
+            statusNotRegistered: '未登録',
+            statusRegisteredThisDevice: '登録済み',
+            statusRegisteredOtherDevice: () => ({one: '別のデバイスが登録されました', other: '登録済みの他のデバイス'}),
         },
         pleaseEnableInSystemSettings: {
             start: '顔認証/指紋認証を有効にするか、デバイスのパスコードを設定してください',
@@ -715,14 +724,24 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: '顔や指紋を使って、素早く安全に認証できます。パスワードやコードは不要です。',
         },
         revoke: {
-            title: '顔認証／指紋認証とパスキー',
-            explanation: '1 つ以上のデバイスで顔／指紋またはパスキーによる認証が有効になっています。アクセスを取り消すと、次回どのデバイスで認証する場合もマジックコードが必要になります。',
-            confirmationPrompt: '本当に実行しますか？次回以降、どのデバイスでも認証にはマジックコードが必要になります。',
+            title: '顔／指紋 & パスキー',
+            explanation: '1 台以上の端末で顔／指紋またはパスキー認証が有効になっています。アクセスを取り消すと、その端末で次回認証する際にマジックコードが必要になります。',
+            confirmationPrompt: '本当によろしいですか？そのデバイスで次回の認証を行うには、マジックコードが必要になります。',
             cta: 'アクセスを取り消す',
-            noDevices: '顔認証／指紋認証またはパスキー認証用に登録されているデバイスがありません。デバイスを登録すると、そのアクセスをここで取り消せるようになります。',
+            noDevices: '顔認証・指紋認証またはパスキー認証に登録されているデバイスがありません。デバイスを登録すると、そのアクセス権をここで取り消すことができるようになります。',
             dismiss: '了解しました',
             error: 'リクエストに失敗しました。後でもう一度お試しください。',
             revoke: '取り消す',
+            confirmationPromptAll: '本当に実行してよろしいですか？今後どの端末でも、次回の認証にはマジックコードが必要になります。',
+            ctaAll: 'すべて取り消す',
+            thisDevice: 'このデバイス',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['1', '二', '三', '四', '五', '六', '七', '8', '9'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `その他${displayCount}件の${otherDeviceCount === 1 ? 'デバイス' : 'デバイス'}`;
+            },
+            confirmationPromptThisDevice: '本当によろしいですか？このデバイスで次回の認証を行うには、マジックコードが必要になります。',
+            confirmationPromptMultiple: 'よろしいですか？その端末で次回の認証を行うには、マジックコードが必要になります。',
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
@@ -1564,7 +1583,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'ワークスペースを選択',
-        routedDueToDEW: (to: string) => `カスタム承認ワークフローにより、レポートは${to}に回付されました`,
+        routedDueToDEW: (to: string, reason?: string) => `レポートは ${to}${reason ? ` ${reason} のため` : ''} に回覧されました`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`,
             hrs: '時間',
@@ -1573,7 +1592,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
         correctRateError: 'レートのエラーを修正して、もう一度お試しください。',
-        AskToExplain: `・<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明</strong></a> &#x2728;`,
+        AskToExplain: `・<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">説明<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '経費を「精算対象」に指定しました' : '経費を「精算対象外」にマークしました'),
@@ -1946,7 +1965,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: '保存済みログインを復元',
         signOutConfirmationText: 'サインアウトすると、オフライン中の変更内容はすべて失われます。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro><a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>と<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシー</a>をお読みください。</muted-text-micro>`,
+        readTheTermsAndPrivacy: `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>と<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>をお読みください。`,
         help: 'ヘルプ',
         whatIsNew: '新機能',
         accountSettings: 'アカウント設定',
@@ -2064,6 +2083,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: '次の端末でQRコードをスキャンしてください:',
         authenticatorApp: '認証アプリ',
         addKey: 'または、この秘密キーを認証アプリに追加してください:',
+        secretKey: '秘密キー',
         enterCode: '次に、認証アプリで生成された6桁のコードを入力してください。',
         stepSuccess: '完了',
         enabled: '2要素認証が有効になりました',
@@ -2622,7 +2642,7 @@ ${date} の ${merchant} への ${amount}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>ログインすると、<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>および<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>に同意したものとみなされます。</muted-text-xs>`,
-        license: `<muted-text-xs>資金移動サービスは、その<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">ライセンス</a>に基づき、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）によって提供されています。</muted-text-xs>`,
+        license: `資金移動サービスは、その<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">認可</a>に基づき、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）によって提供されています。`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'マジックコードを受け取っていませんか？',
@@ -2731,6 +2751,7 @@ ${date} の ${merchant} への ${amount}`,
         },
         workEmailValidationError: {
             publicEmail: 'プライベートドメインの有効な勤務先メールアドレスを入力してください（例：mitch@company.com）',
+            sameAsSignupEmail: 'サインアップ時に使用したものとは別のメールアドレスを入力してください',
             offline: 'オフラインのため、勤務先のメールアドレスを追加できませんでした',
         },
         mergeBlockScreen: {
@@ -3010,7 +3031,7 @@ ${
                 descriptionTwo: '経費を分類してタグ付けする',
                 descriptionThree: 'レポートを作成して共有',
             },
-            price: 'まずは30日間無料でお試しいただき、その後はわずか<strong>$5/ユーザー/月</strong>でアップグレードできます。',
+            price: (price?: string) => `まずは30日間無料でお試しいただき、その後はわずか<strong>${price ?? '$5'}/ユーザー/月</strong>でアップグレードできます。`,
             createWorkspace: 'ワークスペースを作成',
         },
         confirmWorkspace: {
@@ -3968,6 +3989,8 @@ ${
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信されたレシートは、このワークスペースに表示されます。`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
+            outstandingBalanceWarning: '最後のワークスペースを削除する前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
+            settleBalance: 'サブスクリプションに移動',
             unavailable: '利用できないワークスペース',
             memberNotFound: 'メンバーが見つかりません。ワークスペースに新しいメンバーを招待するには、上の招待ボタンを使用してください。',
             notAuthorized: `このページへのアクセス権がありません。このワークスペースに参加しようとしている場合は、ワークスペースのオーナーに依頼してメンバーとして追加してもらってください。別のご用件ですか？${CONST.EMAIL.CONCIERGE} までご連絡ください。`,
@@ -5211,6 +5234,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         learnHow: '詳しく見る',
                         subsections: {
                             currentTravelSpendLabel: '現在の出張費支出',
+                            currentTravelSpendPaymentQueued: (amount: string) => `${amount} の支払いはキューに登録されており、まもなく処理されます。`,
                             currentTravelSpendCta: '残高を支払う',
                             currentTravelLimitLabel: '現在の出張上限',
                             settlementAccountLabel: '決済口座',
@@ -5224,6 +5248,14 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         confirm: 'オフにする',
                     },
                     outstandingBalanceModal: {title: 'トラベル請求書作成をオフにできません', body: '未清算の出張残高があります。先に残高を精算してください。', confirm: '了解しました'},
+                    payBalanceModal: {
+                        title: (amount: string) => `残高 ${amount} を支払いますか？`,
+                        body: '支払いはキューに追加され、その後まもなく処理されます。この操作は一度開始すると元に戻すことはできません。',
+                    },
+                    exportToPDF: 'PDF にエクスポート',
+                    exportToCSV: 'CSV にエクスポート',
+                    selectDateRangeError: 'エクスポートする日付範囲を選択してください',
+                    invalidDateRangeError: '開始日は終了日より前でなければなりません',
                     enabled: '集中請求が有効になりました！',
                     enabledDescription: 'このワークスペースのすべての出張費は、今後、月次請求書で一元管理されます。',
                 },
@@ -6780,6 +6812,8 @@ ${reportName}
                     return `${enabled ? '有効' : '無効'} 会計`;
                 case 'Expensify Cards':
                     return `${enabled ? '有効' : '無効'} Expensify カード`;
+                case 'travel invoicing':
+                    return `${enabled ? '有効' : '無効'} トラベルインボイス`;
                 case 'company cards':
                     return `${enabled ? '有効' : '無効'} 件の会社カード`;
                 case 'invoicing':
@@ -7178,6 +7212,8 @@ ${reportName}
                 before: (date?: string) => `${date ?? ''} より前`,
                 after: (date?: string) => `${date ?? ''} の後`,
                 on: (date?: string) => `${date ?? ''} に発生`,
+                customDate: 'カスタム日付',
+                customRange: 'カスタム範囲',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '決してない',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
@@ -7282,6 +7318,9 @@ ${reportName}
         exportAll: {
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: '開始日と終了日の両方を選択してください',
         },
         spendOverTime: '時間経過による支出',
     },
@@ -7572,6 +7611,9 @@ ${reportName}
         notActivated: '未有効化',
         outOfPocket: '返金可能',
         companySpend: '返金不可',
+        personalCard: '個人のカード',
+        companyCard: '会社カード',
+        expensifyCard: 'Expensify カード',
     },
     distance: {
         addStop: '経由地を追加',
@@ -7675,6 +7717,7 @@ ${reportName}
             prompt: 'GPSで距離の追跡を開始するには、端末の設定で位置情報へのアクセスを許可してください。',
         },
         fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
+        liveActivity: {subtitle: '距離の記録', button: '進捗を表示'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成績表の紛失または破損',
@@ -8170,6 +8213,7 @@ ${reportName}
         switchAccount: 'アカウントを切り替え:',
         copilotDelegatedAccess: 'Copilot：代理アクセス',
         copilotDelegatedAccessDescription: '他のメンバーがあなたのアカウントにアクセスできるようにする',
+        learnMoreAboutDelegatedAccess: '代理アクセスの詳細',
         addCopilot: 'コパイロットを追加',
         membersCanAccessYourAccount: '次のメンバーがあなたのアカウントにアクセスできます:',
         youCanAccessTheseAccounts: 'これらのアカウントには、アカウント切り替え機能からアクセスできます。',

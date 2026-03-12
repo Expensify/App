@@ -103,7 +103,7 @@ const connectionsVideoPaths = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
-const brokenConnectionScrapeStatuses: number[] = [200, 531, 530, 500, 666];
+const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
@@ -248,6 +248,7 @@ const CONST = {
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
     POPOVER_DATE_WIDTH: 338,
+    POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
     TOOLTIP_ANIMATION_DURATION: 500,
@@ -775,7 +776,6 @@ const CONST = {
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
         ODOMETER_EXPENSES: 'odometerExpenses',
-        NEW_DOT_HOME: 'newDotHome',
         SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
@@ -1144,6 +1144,7 @@ const CONST = {
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
         POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
         SETTINGS_WALLET_URL: 'settings?param={%22section%22:%22creditcards%22}',
+        PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
     },
@@ -1209,6 +1210,7 @@ const CONST = {
             CANCEL_PAYMENT: 'cancelPayment',
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
+            PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
             VIEW_DETAILS: 'viewDetails',
@@ -1741,6 +1743,7 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
@@ -1748,6 +1751,9 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
+        BREADCRUMB_CATEGORY_MFA: 'mfa',
+        BREADCRUMB_CATEGORY_3DS_NAVIGATION: '3ds.navigation',
+        BREADCRUMB_CATEGORY_3DS_AUTHORIZE: '3ds.authorize',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
@@ -1779,6 +1785,8 @@ const CONST = {
         TAG_EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
         TAG_EXPENSE_COMMAND: 'expense_command',
         TAG_EXPENSE_JSON_CODE: 'expense_json_code',
+        TAG_MFA_SCENARIO: 'mfa_scenario',
+        TAG_MFA_ERROR_REASON: 'mfa_error_reason',
         TAG_BUILD_TYPE: 'build_type',
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
@@ -1792,10 +1800,9 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT: 'SearchRouter.ModalCloseWait',
         SPAN_SEARCH_ROUTER_OPTIONS_INIT: 'SearchRouter.OptionsInit',
-        SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS: 'SearchRouter.ComputeOptions',
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
+        SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
-        SPAN_SCAN_SHORTCUT: 'ScanShortcut',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
@@ -1805,6 +1812,7 @@ const CONST = {
         SPAN_CONFIRMATION_RECEIPT_LOAD: 'ManualConfirmationReceiptLoad',
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
+        SPAN_SUBMIT_TO_DESTINATION_VISIBLE: 'ManualSubmitToDestinationVisible',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
@@ -1850,12 +1858,25 @@ const CONST = {
         ATTRIBUTE_SCENARIO: 'scenario',
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
+        /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
+        ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_COLD_START: 'cold_start',
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
+        SUBMIT_FOLLOW_UP_ACTION: {
+            DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
+            NAVIGATE_TO_SEARCH: 'navigate_to_search',
+            DISMISS_MODAL_ONLY: 'dismiss_modal_only',
+        },
+        /** Trigger for useSubmitToDestinationVisible: end span on focus vs on layout. */
+        SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER: {
+            FOCUS: 'focus',
+            LAYOUT: 'layout',
+        },
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
             REQUEST_MONEY_SCAN: 'request_money_scan',
@@ -1866,6 +1887,7 @@ const CONST = {
             SPLIT_GLOBAL: 'split_global',
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
+            SEND_MONEY: 'send_money',
         },
         // Event names
         EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
@@ -2391,6 +2413,7 @@ const CONST = {
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
+    CONCIERGE_GREETING_ACTION_ID: 'concierge-side-panel-greeting',
 
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
@@ -2641,7 +2664,15 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
-        NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
+        NETSUITE_ADD_CUSTOM_LIST: {
+            STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            PAGE_NAME: {
+                NAME: 'name',
+                FIELD_ID: 'field-id',
+                MAPPING_TITLE: 'mapping-title',
+                CONFIRM: 'confirm',
+            },
+        },
         NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
 
@@ -3321,6 +3352,7 @@ const CONST = {
             IMPORT_SPREADSHEET: 'importSpreadsheet',
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
+            EXPORT: 'export',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -4131,6 +4163,7 @@ const CONST = {
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
         FIRST_SPACE: /.+?(?=\s)/,
         TRAILING_DOTS: /\.$/,
+        STARTS_WITH_PUNCTUATION: /^[.,!?]/,
 
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
@@ -6253,6 +6286,7 @@ const CONST = {
             NORMAL: 8,
         },
         DEFAULT_VIDEO_DIMENSIONS: {width: 1900, height: 1400},
+        OFFLINE_THRESHOLD: 7000,
     },
 
     INTRO_CHOICES: {
@@ -7477,6 +7511,7 @@ const CONST = {
             EQUAL_TO: 'eq',
             CONTAINS: 'contains',
             NOT_EQUAL_TO: 'neq',
+            RANGE: 'range',
             GREATER_THAN: 'gt',
             GREATER_THAN_OR_EQUAL_TO: 'gte',
             LOWER_THAN: 'lt',
@@ -7551,6 +7586,7 @@ const CONST = {
             ON_PREFIX: 'reportFieldOn-',
             AFTER_PREFIX: 'reportFieldAfter-',
             BEFORE_PREFIX: 'reportFieldBefore-',
+            RANGE_PREFIX: 'reportFieldRange-',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none',
@@ -7560,6 +7596,7 @@ const CONST = {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
+            FIND_ITEM: 'findItem',
         },
         SEARCH_USER_FRIENDLY_KEYS: {
             TYPE: 'type',
@@ -7679,6 +7716,10 @@ const CONST = {
             ON: 'On',
             AFTER: 'After',
             BEFORE: 'Before',
+            RANGE: 'Range',
+        },
+        get CUSTOM_DATE_MODIFIERS() {
+            return [this.DATE_MODIFIERS.ON, this.DATE_MODIFIERS.BEFORE, this.DATE_MODIFIERS.AFTER] as const;
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
@@ -8563,6 +8604,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
@@ -8783,6 +8825,7 @@ const CONST = {
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
+            IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
                 MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
@@ -8985,8 +9028,8 @@ const CONST = {
             CHECKBOX_RIGHT: 'UserListItem-CheckboxRight',
         },
         USER_LIST_ITEM_WITH_SECTIONS: {
-            CHECKBOX: 'UserListItemWithSections-Checkbox',
-            CHECKBOX_RIGHT: 'UserListItemWithSections-CheckboxRight',
+            LEFT_CHECKBOX: 'UserListItemWithSections-LeftCheckbox',
+            RIGHT_CHECKBOX: 'UserListItemWithSections-RightCheckbox',
         },
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
