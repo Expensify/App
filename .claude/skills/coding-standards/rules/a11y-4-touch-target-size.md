@@ -58,10 +58,11 @@ Flag ONLY when ALL of these are true:
 
 **DO NOT flag if:**
 
-- Element uses `hitSlop` to expand the tappable area
+- Element uses `hitSlop` or `shouldUseAutoHitSlop={true}` to expand the tappable area
 - Element is within a larger tappable parent that meets the minimum
 - Element is an inline text link within a paragraph (WCAG exception)
 - Dimensions are not explicitly set (defaults may be adequate)
+- Using Expensify's `GenericPressable` or `PressableWithFeedback` with `shouldUseAutoHitSlop` (auto-computes hitSlop to meet 44x44)
 
 **Search Patterns** (hints for reviewers):
 - Explicit `width` or `height` under 44 on interactive elements (e.g., `width: 24`, `height: 32`)

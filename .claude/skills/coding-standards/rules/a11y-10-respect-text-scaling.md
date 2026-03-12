@@ -7,7 +7,7 @@ title: Respect user text scaling preferences
 
 ### Reasoning
 
-Users with low vision rely on system-level font size settings (iOS Dynamic Type / Android Font Size) to enlarge text. Setting `allowFontScaling={false}` or `maxFontSizeMultiplier={1}` disables this, making text unreadable for these users. Layouts must accommodate scaled text using flexible containers (`flexShrink`, `flexWrap`, `minHeight`) instead of fixed pixel heights. (WCAG 1.4.4)
+Users with low vision rely on system-level font size settings (iOS Dynamic Type / Android Font Size) to enlarge text. Setting `allowFontScaling={false}` or `maxFontSizeMultiplier={1}` disables this, making text unreadable for these users. Layouts must accommodate scaled text using flexible containers (`minHeight`, `flexWrap`) instead of fixed pixel heights. (WCAG 1.4.4)
 
 ### Incorrect
 
@@ -32,8 +32,8 @@ Users with low vision rely on system-level font size settings (iOS Dynamic Type 
 
 // Flexible container that accommodates scaled text
 <View style={{minHeight: 40, paddingVertical: 8}}>
-    <Text style={{fontSize: 16, flexShrink: 1}}>
-        This text reflows at larger scales
+    <Text style={{fontSize: 16}}>
+        This text grows with the container at larger scales
     </Text>
 </View>
 
@@ -49,13 +49,13 @@ Flag ONLY when ANY of these patterns is found:
 
 - `allowFontScaling={false}` on `<Text>` or `<TextInput>` displaying user-facing content
 - `maxFontSizeMultiplier={1}` effectively disabling scaling on readable text
-- Fixed `height` on a container with text content and no `minHeight` / `flexShrink` / overflow accommodation
+- Fixed `height` on a container with text content and no `minHeight` or overflow accommodation
 
 **DO NOT flag if:**
 
 - `allowFontScaling={false}` on purely decorative text (icons rendered as text, single-character badges)
 - `maxFontSizeMultiplier` set to a reasonable value (>= 1.5) to prevent extreme layout breakage
-- Container uses `minHeight` instead of `height`, or text has `flexShrink: 1`
+- Container uses `minHeight` instead of `height`
 - Text is inside a component that manages scaling internally
 
 **Search Patterns** (hints for reviewers):

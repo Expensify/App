@@ -81,6 +81,7 @@ Flag ONLY when ANY of these patterns is found:
 
 **DO NOT flag if:**
 
+- Using React Native's built-in `<Modal>` component (it renders in a separate native window/dialog that already isolates focus)
 - Using a shared modal/dialog component that already sets `accessibilityViewIsModal` internally
 - Overlay is non-blocking (e.g., tooltip that doesn't obscure primary content)
 - Component uses React Navigation modal which handles focus management

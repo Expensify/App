@@ -72,7 +72,7 @@ Screen readers must announce the current state of interactive elements — wheth
 
 Flag ONLY when ANY of these patterns is found:
 
-- Element has `disabled` prop but **no** `accessibilityState={{disabled: ...}}`
+- Element has `disabled` prop but **no** `accessibilityState={{disabled: ...}}` (only on custom components — `Pressable`, `TouchableOpacity`, and `TouchableWithoutFeedback` auto-merge `disabled` into `accessibilityState`)
 - Element has `accessibilityRole="checkbox"` or `"switch"` but **no** `accessibilityState={{checked: ...}}`
 - Element visually toggles expanded/collapsed but **no** `accessibilityState={{expanded: ...}}`
 - Element visually indicates selection (active tab, selected item) but **no** `accessibilityState={{selected: ...}}`
@@ -80,6 +80,8 @@ Flag ONLY when ANY of these patterns is found:
 **DO NOT flag if:**
 
 - Using a design system component that handles state internally (e.g., `<Switch>`, `<Checkbox>`, `<RadioButton>`)
+- Using `Pressable`, `TouchableOpacity`, or `TouchableWithoutFeedback` with `disabled` prop (these auto-merge `disabled` into `accessibilityState`)
+- Using Expensify's `GenericPressable` or `PressableWithFeedback` (they set `accessibilityState={{disabled}}` internally)
 - State is already communicated via `accessibilityState` on a parent or wrapper component
 
 **Search Patterns** (hints for reviewers):

@@ -82,7 +82,7 @@ Flag ONLY when ANY of these patterns is found:
 
 - Using a form component library that wraps inputs with labels internally
 - `accessibilityLabel` is set on the input or a parent `accessible` container
-- `accessibilityLabelledBy` links to a visible label via `nativeID`
+- `accessibilityLabelledBy` links to a visible label via `nativeID` (Android-only — ensure `accessibilityLabel` is also set as iOS fallback)
 
 **Search Patterns** (hints for reviewers):
 - `<TextInput` without `accessibilityLabel`

@@ -86,12 +86,13 @@ Flag ONLY when ANY of these patterns is found:
 - `DraggableFlatList` or drag-and-drop with **no** visible move/reorder buttons or `accessibilityActions`
 - `Swipeable` component with **no** accessible alternative (button, menu item, or `accessibilityActions`)
 - Pinch-to-zoom with **no** zoom buttons
-- Any gesture-only interaction (`onLongPress` for drag, pan gestures for reorder) with **no** tap-based alternative
+- `onLongPress` used specifically to initiate a drag/reorder operation (e.g., `onLongPress={drag}`) with **no** tap-based alternative — do NOT flag `onLongPress` used for context menus or secondary actions, as long press is accessible via double-tap-and-hold
 
 **DO NOT flag if:**
 
 - Accessible alternative controls are provided (buttons, menus, accessibility actions)
 - The gesture is supplementary to an existing tap-based primary interaction
+- `onLongPress` is used for context menus or secondary actions (not drag initiation)
 - Component is purely decorative or non-functional (e.g., animation)
 
 **Search Patterns** (hints for reviewers):

@@ -53,7 +53,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 
 ### Accessibility (WCAG 2.2 AA)
 
-**Use React Native accessibility props.** React Native Web translates them to ARIA attributes automatically. Only use `aria-*` when a React Native equivalent isn't available.
+**Use React Native accessibility props.** React Native Web translates them to ARIA attributes automatically. Only use `aria-*` when a React Native equivalent isn't available. Reference: [React Native Accessibility](https://reactnative.dev/docs/accessibility)
 
 - [A11Y-1](rules/a11y-1-label-interactive-elements.md) — Label interactive elements
 - [A11Y-2](rules/a11y-2-semantic-roles.md) — Semantic accessibilityRole

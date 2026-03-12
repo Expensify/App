@@ -7,7 +7,7 @@ title: Do not convey information through color alone
 
 ### Reasoning
 
-Users with color vision deficiencies (8% of men, 0.5% of women) cannot distinguish information conveyed solely through color. Status indicators, error states, required fields, and success/failure feedback must include a non-color cue — text labels, icons, patterns, or shape changes. Text must also meet minimum contrast ratios: 4.5:1 for normal text, 3:1 for large text (18pt+ or 14pt bold+), and 3:1 for non-text UI components and graphical objects. (WCAG 1.3.3, 1.4.1, 1.4.3, 1.4.11)
+Users with color vision deficiencies cannot distinguish information conveyed solely through color. Status indicators, error states, required fields, and success/failure feedback must include a non-color cue — text labels, icons, patterns, or shape changes. (WCAG 1.4.1)
 
 ### Incorrect
 
