@@ -59,11 +59,8 @@ You can issue virtual or physical cards to employees:
 7. (Optional for virtual cards) Toggle **Set expiration date** to define:
    - **Start date**
    - **End date**
-   When enabled:
-   - Both dates are required
-   - The card activates at 12:00 AM local time on the Start date
-   - The card expires at 11:59 PM local time on the End date
-   If no expiration date is set, the card does not expire automatically.
+   - **When enabled:** Both dates are required. The card activates at 12:00 AM local time on the Start date and expires at 11:59 PM local time on the End date.
+   - **When disabled:** The card does not expire automatically.
 8. Name the card for easier tracking
 9. Click **Issue card** to confirm
 
