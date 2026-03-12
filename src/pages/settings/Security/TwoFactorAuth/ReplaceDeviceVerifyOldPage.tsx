@@ -33,6 +33,13 @@ function ReplaceDeviceVerifyOldPage() {
         clearAccountMessages();
     };
 
+    useEffect(() => {
+        clearAccountMessages();
+        return () => {
+            clearAccountMessages();
+        };
+    }, []);
+
     // Navigate to verify new page when we receive the new secret key from the backend
     useEffect(() => {
         if (!account?.twoFactorAuthSecretKey) {
