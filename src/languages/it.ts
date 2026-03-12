@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Attivo',
         before: 'Prima',
         after: 'Dopo',
+        range: 'Intervallo',
         reschedule: 'Ripianifica',
         general: 'Generale',
         workspacesTabTitle: 'Area di lavoro',
@@ -1601,7 +1602,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'L’importo totale è troppo alto. Riduci le ore o abbassa la tariffa.',
         },
         correctRateError: "Correggi l'errore di tariffa e riprova.",
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Spiega</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Spiega<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError: 'Non puoi duplicare le spese di diaria tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse tra gli spazi di lavoro.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'ha contrassegnato la spesa come "rimborsabile"' : 'ha contrassegnato la spesa come "non rimborsabile"'),
@@ -2111,6 +2112,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'La tua azienda richiede l’autenticazione a due fattori.',
         twoFactorAuthCannotDisable: "Impossibile disabilitare l'autenticazione a due fattori",
         twoFactorAuthRequired: 'Per la connessione a Xero è richiesta l’autenticazione a due fattori (2FA) e non può essere disattivata.',
+        replaceDevice: 'Sostituisci dispositivo',
+        replaceDeviceTitle: "Sostituisci dispositivo per l'autenticazione a due fattori",
+        verifyOldDeviceTitle: 'Verifica dispositivo precedente',
+        verifyOldDeviceDescription: 'Inserisci il codice a sei cifre dalla tua attuale app di autenticazione per confermare di avere accesso ad essa.',
+        verifyNewDeviceTitle: 'Configura nuovo dispositivo',
+        verifyNewDeviceDescription: 'Scansiona il codice QR con il tuo nuovo dispositivo, quindi inserisci il codice per completare la configurazione.',
     },
     recoveryCodeForm: {
         error: {
@@ -3049,7 +3056,7 @@ ${
                 descriptionTwo: 'Classifica e tagga le spese',
                 descriptionThree: 'Crea e condividi report',
             },
-            price: 'Provalo gratis per 30 giorni, poi passa al piano a soli <strong>$5/utente/mese</strong>.',
+            price: (price?: string) => `Provalo gratis per 30 giorni, poi passa al piano a soli <strong>${price ?? '$5'}/utente/mese</strong>.`,
             createWorkspace: 'Crea spazio di lavoro',
         },
         confirmWorkspace: {
@@ -6883,6 +6890,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     return `${enabled ? 'attivato' : 'disattivato'} contabilità`;
                 case 'Expensify Cards':
                     return `${enabled ? 'attivato' : 'disattivato'} Carte Expensify`;
+                case 'travel invoicing':
+                    return `fatturazione viaggi ${enabled ? 'attivato' : 'disattivato'}`;
                 case 'company cards':
                     return `${enabled ? 'attivato' : 'disattivato'} carte aziendali`;
                 case 'invoicing':
@@ -7288,6 +7297,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 before: (date?: string) => `Prima di ${date ?? ''}`,
                 after: (date?: string) => `Dopo ${date ?? ''}`,
                 on: (date?: string) => `Su ${date ?? ''}`,
+                customDate: 'Data personalizzata',
+                customRange: 'Intervallo personalizzato',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Il mese scorso',
@@ -7398,6 +7409,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         exportAll: {
             selectAllMatchingItems: 'Seleziona tutti gli elementi corrispondenti',
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Seleziona le date per Da e A',
         },
         spendOverTime: 'Spesa nel tempo',
     },
