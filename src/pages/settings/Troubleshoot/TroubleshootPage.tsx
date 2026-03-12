@@ -71,13 +71,14 @@ function TroubleshootPage() {
             confirmText: translate('initialSettingsPage.troubleshoot.resetAndRefresh'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
+            shouldHandleNavigationBack: false,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
         resetOptions();
         setShouldResetSearchQuery(true);
-        clearOnyxAndResetApp();
+        clearOnyxAndResetApp(true);
     };
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
