@@ -24,7 +24,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
     const {currentReportID: currentReportIDContext, exactlyMatch, policyID} = useContext(MentionReportContext);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const {currentReportID} = useCurrentReportIDState();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
