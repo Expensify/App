@@ -46,6 +46,113 @@ function hasEnabledTags(tags?: PolicyTags): boolean {
 }
 
 /**
+ * Maps MCC groups to prohibited expense types.
+ * This mapping is used to detect prohibited expenses based on the merchant category code.
+ */
+function getProhibitedExpenseTypeFromMCCGroup(mccGroup: string | undefined, prohibitedExpenses: Policy['prohibitedExpenses']): string[] {
+    const result: string[] = [];
+
+    if (!mccGroup || !prohibitedExpenses) {
+        return result;
+    }
+
+    // Map MCC groups to prohibited expense types based on merchant category
+    // Hotel MCC group can indicate hotel incidentals
+    if (mccGroup === CONST.MCC_GROUPS.HOTEL && prohibitedExpenses.hotelIncidentals) {
+        result.push(CONST.PROHIBITED_EXPENSES.HOTEL_INCIDENTALS);
+    }
+
+    // Note: Other prohibited expense types (alcohol, gambling, tobacco, adultEntertainment)
+    // would require more specific MCC codes or merchant name analysis
+    // For now, we rely on backend to provide these classifications via transaction data
+
+    return result;
+}
+
+/**
+ * Checks if a transaction contains prohibited expenses based on policy settings.
+ * Analyzes merchant, category, and MCC group to determine if the expense violates policy.
+ */
+function getProhibitedExpenseViolation(
+    transaction: Transaction,
+    policy: Policy,
+): string[] {
+    const prohibitedExpenseTypes: string[] = [];
+    const prohibitedExpenses = policy.prohibitedExpenses;
+
+    if (!prohibitedExpenses) {
+        return prohibitedExpenseTypes;
+    }
+
+    // Check MCC group based violations
+    const mccGroup = transaction.modifiedMCCGroup ?? transaction.mccGroup;
+    const mccBasedViolations = getProhibitedExpenseTypeFromMCCGroup(mccGroup, prohibitedExpenses);
+    prohibitedExpenseTypes.push(...mccBasedViolations);
+
+    // Check for adult entertainment based on merchant name or category
+    // This is a heuristic based on common merchant naming patterns
+    const merchant = transaction.modifiedMerchant ?? transaction.merchant ?? '';
+    const category = transaction.category ?? '';
+    const merchantLower = merchant.toLowerCase();
+    const categoryLower = category.toLowerCase();
+
+    // Adult entertainment detection keywords
+    const adultEntertainmentKeywords = [
+        'adult',
+        'strip club',
+        'gentlemen',
+        'escort',
+        'xxx',
+        'porn',
+        'sex shop',
+        'peep show',
+    ];
+
+    if (prohibitedExpenses.adultEntertainment) {
+        const isAdultEntertainment = adultEntertainmentKeywords.some(
+            (keyword) => merchantLower.includes(keyword) || categoryLower.includes(keyword),
+        );
+        if (isAdultEntertainment) {
+            prohibitedExpenseTypes.push(CONST.PROHIBITED_EXPENSES.ADULT_ENTERTAINMENT);
+        }
+    }
+
+    // Alcohol detection keywords
+    const alcoholKeywords = ['bar', 'pub', 'liquor', 'wine', 'beer', 'cocktail', 'lounge', 'tavern'];
+
+    if (prohibitedExpenses.alcohol) {
+        // Only flag if merchant appears to be primarily an alcohol establishment
+        // Exclude restaurants that may serve alcohol
+        const isAlcoholEstablishment = alcoholKeywords.some((keyword) => merchantLower.includes(keyword)) && !merchantLower.includes('restaurant');
+        if (isAlcoholEstablishment) {
+            prohibitedExpenseTypes.push(CONST.PROHIBITED_EXPENSES.ALCOHOL);
+        }
+    }
+
+    // Gambling detection keywords
+    const gamblingKeywords = ['casino', 'gambling', 'betting', 'lottery', 'poker', 'sportsbook', 'wager'];
+
+    if (prohibitedExpenses.gambling) {
+        const isGambling = gamblingKeywords.some((keyword) => merchantLower.includes(keyword) || categoryLower.includes(keyword));
+        if (isGambling) {
+            prohibitedExpenseTypes.push(CONST.PROHIBITED_EXPENSES.GAMBLING);
+        }
+    }
+
+    // Tobacco detection keywords
+    const tobaccoKeywords = ['smoke', 'tobacco', 'cigar', 'vape', 'e-cigarette'];
+
+    if (prohibitedExpenses.tobacco) {
+        const isTobacco = tobaccoKeywords.some((keyword) => merchantLower.includes(keyword) || categoryLower.includes(keyword));
+        if (isTobacco) {
+            prohibitedExpenseTypes.push(CONST.PROHIBITED_EXPENSES.TOBACCO);
+        }
+    }
+
+    return prohibitedExpenseTypes;
+}
+
+/**
  * Calculates tag out of policy and missing tag violations for the given transaction
  */
 function getTagViolationsForSingleLevelTags(
@@ -647,6 +754,28 @@ const ViolationsUtils = {
         if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY});
         }
+
+        // Check for prohibited expense violations
+        const hasProhibitedExpenseViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.PROHIBITED_EXPENSE);
+        const prohibitedExpenseTypes = getProhibitedExpenseViolation(updatedTransaction, policy);
+
+        // Add prohibited expense violation if policy prohibits certain expense types and transaction matches
+        if (!hasProhibitedExpenseViolation && prohibitedExpenseTypes.length > 0) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+                data: {
+                    prohibitedExpenseRule: prohibitedExpenseTypes,
+                },
+            });
+        }
+
+        // Remove prohibited expense violation if no longer applicable
+        if (hasProhibitedExpenseViolation && prohibitedExpenseTypes.length === 0) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.PROHIBITED_EXPENSE});
+        }
+
         return {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
