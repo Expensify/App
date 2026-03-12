@@ -1761,7 +1761,7 @@ function getReceiptError(
                   filename: filename ?? '',
                   action: action ?? '',
                   retryParams: formattedRetryParams,
-                  transactionID: transactionID ?? '',
+                  ...(transactionID && {transactionID}),
               },
               errorKey,
           );
