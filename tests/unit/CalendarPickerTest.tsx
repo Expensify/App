@@ -281,4 +281,72 @@ describe('CalendarPicker', () => {
         // then the label 24 should be clickable
         expect(screen.getByLabelText('Monday, February 24, 2003')).toBeEnabled();
     });
+
+    test('clicking next year arrow updates the displayed year', () => {
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2030-12-31');
+        const value = '2025-06-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('next-year-arrow'));
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2026')).toBeTruthy();
+    });
+
+    test('clicking previous year arrow updates the displayed year', () => {
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2030-12-31');
+        const value = '2025-06-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('prev-year-arrow'));
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2024')).toBeTruthy();
+    });
+
+    test('should block the previous year arrow when there are no available dates in the previous year', async () => {
+        const minDate = new Date('2023-01-01');
+        const value = new Date('2023-06-15');
+        render(
+            <CalendarPicker
+                minDate={minDate}
+                value={value}
+            />,
+        );
+
+        const user = userEvent.setup();
+        await user.press(screen.getByTestId('prev-year-arrow'));
+
+        // Year should still be 2023 since the button is disabled
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+    });
+
+    test('should block the next year arrow when there are no available dates in the next year', async () => {
+        const maxDate = new Date('2023-12-31');
+        const value = new Date('2023-06-15');
+        render(
+            <CalendarPicker
+                maxDate={maxDate}
+                value={value}
+            />,
+        );
+
+        const user = userEvent.setup();
+        await user.press(screen.getByTestId('next-year-arrow'));
+
+        // Year should still be 2023 since the button is disabled
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+    });
 });

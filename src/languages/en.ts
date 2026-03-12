@@ -3212,6 +3212,10 @@ const translations = {
         year: 'Year',
         selectYear: 'Please select a year',
     },
+    monthPickerPage: {
+        month: 'Month',
+        selectMonth: 'Please select a month',
+    },
     focusModeUpdateModal: {
         title: 'Welcome to #focus mode!',
         prompt: (priorityModePageUrl: string) =>
