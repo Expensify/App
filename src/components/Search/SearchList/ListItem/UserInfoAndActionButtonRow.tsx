@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import ActionCell from './ActionCell';
-import {TransactionListItemType, TransactionReportGroupListItemType} from './types';
+import type {TransactionListItemType, TransactionReportGroupListItemType} from './types';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
 function UserInfoAndActionButtonRow({

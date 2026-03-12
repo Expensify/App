@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
-import {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
+import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
