@@ -6,11 +6,6 @@ function useDocumentTitle(title: string) {
     useFocusEffect(
         useCallback(() => {
             setPageTitle(title);
-
-            // Reset to default title when screen loses focus or unmounts
-            return () => {
-                setPageTitle('');
-            };
         }, [title]),
     );
 }
