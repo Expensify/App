@@ -180,6 +180,12 @@ function CalendarPicker({
     const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
     const headerPaddingStyle = headerContainerStyle ?? themeStyles.ph5;
 
+    // On mobile (isSmallScreenWidth), the height animation is not used, so we render a plain View
+    // instead of Reanimated's Animated.View. On Android, Animated.View manages its own native view
+    // hierarchy on the UI thread, which can prevent child views from being repainted when their
+    // styles change (e.g., day selection background color), even though React state is correct.
+    const CalendarBody = isSmallScreenWidth ? View : Animated.View;
+
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
 
     return (
@@ -259,7 +265,7 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            <Animated.View style={calendarContainerStyle}>
+            <CalendarBody style={calendarContainerStyle}>
                 {calendarDaysMatrix?.map((week) => (
                     <View
                         key={`week-${week.toString()}`}
@@ -315,7 +321,7 @@ function CalendarPicker({
                         })}
                     </View>
                 ))}
-            </Animated.View>
+            </CalendarBody>
             <YearPickerModal
                 isVisible={isYearPickerVisible}
                 years={years}
