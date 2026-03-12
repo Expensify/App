@@ -1,70 +1,59 @@
 ---
-title: Filter and Reconcile the Expensify Cards
-description: Learn how to reconcile Expensify Card transactions using filters and exports in New Expensify, with tips for both card and payment reconciliation.
-keywords: [New Expensify, Expensify Card reconciliation, card filters, export transactions, payment reconciliation, report filters, posted date, settlement matching]
+title: View and Export Expensify Card Expenses
+description: Learn how to view, filter, and export Expensify Card transactions from the Search page in New Expensify.
+keywords: [Expensify Card, view card expenses, filter card transactions, export card transactions, card feed, posted date, Search]
+internalScope: Audience is Workspace Admins managing Expensify Card transactions. Covers viewing, filtering, and exporting card expenses from the Search page. Does not cover statement matching, bank reconciliation, or Expensify Card setup.
 ---
 
-Once employees use the Expensify Card, you can easily view and reconcile their transactions from the Reports page in New Expensify.
+# View and Export Expensify Card Expenses
 
+You can view, filter, and export Expensify Card transactions from the **Search** page in New Expensify. Use card and date filters to narrow results, then export a selection for your records or accounting workflows.
 
-# View Card Transactions by Employee or Company
-
-To view card transactions for a specific employee or for the entire company:
-
-1. Go to the **Reports** page.
-2. Click **Filters** in the top-right corner.
-3. Click **Card** to filter cards:
-   - Select a feed from **Card feeds** to view expenses from all cards in the feed.
-   - Select a card from **Individual cards** to view expenses from that card.
-
-This view allows you to review all transactions made on the Expensify Card, grouped by employee or feed.
+To match card transactions against your bank statement or card statement totals, see [Statement Matching and Reconciliation](/articles/new-expensify/reports-and-expenses/Statement-Matching-and-Reconciliation).
 
 ---
 
-# Export Card Transactions by Date
+## Who Can View and Export Expensify Card Expenses
 
-You can export transactions from a specific date range to help with monthly reconciliations:
+Any Workspace Admin with Expensify Card access can view and export card transactions from the **Search** page.
 
-1. From the **Reports** page, select **Expenses** in the left-hand-bar.
-2. Select **All** above the expenses list.
+---
+
+## How to View Expensify Card Expenses by Card Feed
+
+1. Click **Search** in the left-hand navigation (on web) or the bottom bar (on mobile).
+2. Select **Expenses** under the **Explore** section in the left-hand menu.
 3. Click **Filters**.
-4. Apply the following filters:
-   - **Card**: select the applicable card feed.
-   - **Posted date**: Set the appropriate date range (e.g., `posted<2025-02-28 AND posted>2025-02-01`)
-5. Alternatively, you can enter this directly in the search bar (e.g., `type:expense feed:"all in cards" posted<2025-02-28 posted>2025-02-01`)
-6. Once filtered, click the **Export** icon in the top-right corner to download the report as a spreadsheet.
+4. Select **Card**.
+5. Choose a filter option:
+   - Select a feed under **Card feeds** to view expenses from all cards in that feed.
+   - Select a specific card under **Individual cards** to view expenses from one card.
 
 ---
 
-# Reconcile Card Payments Manually
+## How to Export Expensify Card Expenses
 
-To align exported card expenses with bank withdrawals:
-
-- Group the **posted dates** in your spreadsheet by **day** or **month**.
-- This allows you to match the totals with the amounts withdrawn from your **settlement account**.
-
-**Note:** This manual method is currently the best way to reconcile card payments. We're working on a more streamlined reconciliation tool, but it's not yet available.
+1. Click **Search** in the left-hand navigation (on web) or the bottom bar (on mobile).
+2. Select **Expenses** under the **Explore** section in the left-hand menu.
+3. Click **Filters**.
+4. Select **Card** and choose the applicable card feed.
+5. Select **Posted** and set the date range for the period you want to export.
+6. Select the checkbox next to each expense you want to export. You can also select the checkbox at the top of the list to select all visible results.
+7. Click **Export** in the actions bar that appears above the results.
+8. Select **Basic export** to download the results as a CSV file.
 
 ---
 
 # FAQ
 
-## Where do I find the Card filter?
+## Why Don't I See the Export Option?
 
-On the **Reports** page:
-- Click **Filters**.
-- Click into the **Card** section.
-- Choose a specific card feed or select all feeds to view all transactions.
+The **Export** option only appears after you select one or more expenses using the checkboxes. Select at least one expense to reveal the actions bar with export options.
 
-## Can I reconcile card transactions for a custom date range?
+## Can I Export Expensify Card Expenses for a Custom Date Range?
 
-Yes. Use the **Posted date** filter or add the search query directly to the search bar.
+Yes. Use the **Posted** filter to set a custom date range before selecting and exporting expenses.
 
-## Is there a reconciliation tool available?
+## Where Do I Find the Card Filter on the Search Page?
 
-Not yet. A more automated reconciliation tool is in development, but for now, we recommend using the manual export and filter method.
-
-## Where can I learn more about using the Reports page?
-
-Check out [Using Reports in New Expensify](https://docs.expensify.com/help/using-reports-in-new-expensify) for more details.
-
+On the **Search** page, click **Filters**, then select **Card**. You can choose a specific card feed or an individual card to narrow your results.
