@@ -1569,7 +1569,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'レポートを却下',
             description: 'このレポートを却下する理由を説明してください：',
             rejectReason: '却下理由',
-            selectTarget: 'このレポートを差し戻すメンバーを選択してください。',
+            selectTarget: 'このレポートを差し戻すメンバーを選択してください：',
             lastApprover: '最終承認者',
             submitter: '提出者',
             rejectedReportMessage: 'このレポートは却下されました。',

@@ -1579,7 +1579,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Rifiuta report',
             description: 'Spiega perché stai rifiutando questo report:',
             rejectReason: 'Motivo del rifiuto',
-            selectTarget: 'Scegli il membro a cui rimandare questo report per la revisione.',
+            selectTarget: 'Scegli il membro a cui rimandare questo report per la revisione:',
             lastApprover: 'Ultimo approvatore',
             submitter: 'Mittente',
             rejectedReportMessage: 'Questo report è stato rifiutato.',

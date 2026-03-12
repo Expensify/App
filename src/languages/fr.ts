@@ -1586,7 +1586,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Rejeter le rapport',
             description: 'Expliquez pourquoi vous rejetez ce rapport :',
             rejectReason: 'Motif du rejet',
-            selectTarget: 'Choisissez le membre à qui renvoyer ce rapport pour révision.',
+            selectTarget: 'Choisissez le membre à qui renvoyer ce rapport pour révision:',
             lastApprover: 'Dernier approbateur',
             submitter: 'Soumetteur',
             rejectedReportMessage: 'Ce rapport a été rejeté.',

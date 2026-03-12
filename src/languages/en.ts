@@ -1610,7 +1610,7 @@ const translations = {
             title: 'Reject report',
             description: 'Explain why you will not approve this report:',
             rejectReason: 'Rejection reason',
-            selectTarget: 'Choose the member to reject this report back to for review.',
+            selectTarget: 'Choose the member to reject this report back to for review:',
             lastApprover: 'Last approver',
             submitter: 'Submitter',
             rejectedReportMessage: 'This report was rejected.',

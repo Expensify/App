@@ -1582,7 +1582,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Bericht ablehnen',
             description: 'Erklären Sie, warum Sie diesen Bericht ablehnen:',
             rejectReason: 'Ablehnungsgrund',
-            selectTarget: 'Wählen Sie das Mitglied, an das dieser Bericht zur Überprüfung zurückgewiesen werden soll.',
+            selectTarget: 'Wählen Sie das Mitglied, an das dieser Bericht zur Überprüfung zurückgewiesen werden soll:',
             lastApprover: 'Letzter Genehmiger',
             submitter: 'Einreicher',
             rejectedReportMessage: 'Dieser Bericht wurde abgelehnt.',

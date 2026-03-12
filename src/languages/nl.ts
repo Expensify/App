@@ -1577,7 +1577,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Rapport afwijzen',
             description: 'Leg uit waarom u dit rapport afwijst:',
             rejectReason: 'Reden van afwijzing',
-            selectTarget: 'Kies het lid naar wie dit rapport moet worden teruggestuurd ter beoordeling.',
+            selectTarget: 'Kies het lid naar wie dit rapport moet worden teruggestuurd ter beoordeling:',
             lastApprover: 'Laatste goedkeurder',
             submitter: 'Indiener',
             rejectedReportMessage: 'Dit rapport is afgewezen.',

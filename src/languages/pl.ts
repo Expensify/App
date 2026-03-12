@@ -1576,7 +1576,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Odrzuć raport',
             description: 'Wyjaśnij, dlaczego odrzucasz ten raport:',
             rejectReason: 'Powód odrzucenia',
-            selectTarget: 'Wybierz członka, do którego ten raport ma zostać zwrócony do sprawdzenia.',
+            selectTarget: 'Wybierz członka, do którego ten raport ma zostać zwrócony do sprawdzenia:',
             lastApprover: 'Ostatni zatwierdzający',
             submitter: 'Zgłaszający',
             rejectedReportMessage: 'Ten raport został odrzucony.',

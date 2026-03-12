@@ -1544,7 +1544,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '驳回报告',
             description: '请说明驳回此报告的原因：',
             rejectReason: '驳回原因',
-            selectTarget: '选择要将此报告退回审核的成员。',
+            selectTarget: '选择要将此报告退回审核的成员：',
             lastApprover: '最后审批人',
             submitter: '提交人',
             rejectedReportMessage: '此报告已被驳回。',
