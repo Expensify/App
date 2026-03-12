@@ -139,11 +139,10 @@ function BaseListItem<TItem extends ListItem>({
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
-                testID={testID}
+                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
             >
                 <View
-                    testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!item.isSelected}}
+                    testID={testID}
                     style={[
                         wrapperStyle,
                         isFocused &&
