@@ -279,6 +279,59 @@ export default createOnyxDerivedValueConfig({
             reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
 
+        // Build an index of child expense reports per chatReportID so we can compute
+        // action badges on chat reports (GBR/RBR is shown on chat reports, not expense reports).
+        const childExpenseReportsByChatID = new Map<string, Array<{reportID: string; created?: string; stateNum?: number; hasError: boolean}>>();
+        for (const report of Object.values(reports)) {
+            if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE || !report.chatReportID) {
+                continue;
+            }
+            const attributes = reportAttributes[report.reportID];
+            if (!attributes?.brickRoadStatus) {
+                continue;
+            }
+            const children = childExpenseReportsByChatID.get(report.chatReportID) ?? [];
+            children.push({
+                reportID: report.reportID,
+                created: report.created,
+                stateNum: report.stateNum,
+                hasError: attributes.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            });
+            childExpenseReportsByChatID.set(report.chatReportID, children);
+        }
+
+        // For chat reports with GBR/RBR that have child expense reports,
+        // compute the action badge based on the oldest child's state.
+        for (const [chatReportID, children] of childExpenseReportsByChatID) {
+            const attributes = reportAttributes[chatReportID];
+            if (!attributes?.brickRoadStatus || !children.length) {
+                continue;
+            }
+
+            // Find the oldest child expense report
+            let oldestChild = children.at(0);
+            if (!oldestChild) {
+                continue;
+            }
+            for (const child of children) {
+                if (child.created && (!oldestChild.created || child.created < oldestChild.created)) {
+                    oldestChild = child;
+                }
+            }
+
+            // Determine the action badge from the child expense report's state
+            if (oldestChild.hasError) {
+                attributes.actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
+            } else if ((oldestChild.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) === CONST.REPORT.STATE_NUM.OPEN) {
+                attributes.actionBadge = CONST.REPORT.ACTION_BADGE.SUBMIT;
+            } else if (oldestChild.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
+                attributes.actionBadge = CONST.REPORT.ACTION_BADGE.APPROVE;
+            } else {
+                attributes.actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
+            }
+            attributes.actionTargetReportID = oldestChild.reportID;
+        }
+
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;
