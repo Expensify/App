@@ -153,8 +153,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     setDistanceRequestData?: (participants: Participant[]) => void;
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
-    toLocaleDigit: (digit: string) => string;
-    getCurrencySymbol: (currencyCode: string) => string | undefined;
+    toLocaleDigit?: (digit: string) => string;
+    getCurrencySymbol?: (currencyCode: string) => string | undefined;
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
@@ -639,7 +639,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
             let amount = 0;
             let merchant = translate('iou.fieldPending');
-            if (isManualDistance && distance !== undefined && unit) {
+            if (isManualDistance && distance !== undefined && unit && toLocaleDigit && getCurrencySymbol) {
                 const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
                 const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
                 amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
