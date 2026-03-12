@@ -60,6 +60,7 @@ export default function useBankConnection({
     const isPlaid = !!plaidToken;
     const url = getCompanyCardBankConnection(policyID, bankName);
     const isFeedExpired = feed ? !!isSelectedFeedExpired(cardFeeds?.[feed]) : false;
+    const prevIsFeedExpired = usePrevious(isFeedExpired);
     const {isNewFeedConnected, newFeed} = useMemo(
         () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCardData?.plaidConnectedFeed),
         [addNewCardData?.plaidConnectedFeed, cardFeeds, prevFeedsData],
@@ -72,8 +73,8 @@ export default function useBankConnection({
         if (!isRefreshConnectionFlow || !feed || !hasConnectionSource || shouldWaitForData) {
             return false;
         }
-        return !isFeedExpired && !isFeedConnectionBroken;
-    }, [isRefreshConnectionFlow, feed, hasConnectionSource, shouldWaitForData, isFeedExpired, isFeedConnectionBroken]);
+        return !!prevIsFeedExpired && !isFeedExpired && !isFeedConnectionBroken;
+    }, [isRefreshConnectionFlow, feed, hasConnectionSource, shouldWaitForData, prevIsFeedExpired, isFeedExpired, isFeedConnectionBroken]);
 
     const fallbackNavigation = useCallback(() => {
         Navigation.goBack(policyID ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID) : undefined);
