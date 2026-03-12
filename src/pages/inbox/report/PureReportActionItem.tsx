@@ -830,7 +830,7 @@ function PureReportActionItem({
             action,
             transactionThreadReport,
             isDisabled: false,
-            shouldDisplayContextMenuValue,
+            shouldDisplayContextMenu: shouldDisplayContextMenuValue,
         }),
         [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived],
     );
