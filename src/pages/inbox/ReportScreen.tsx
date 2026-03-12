@@ -283,7 +283,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     );
     const reportID = report?.reportID;
 
-    const reportAttributesSelector = useMemo(() => reportByIDsSelector(reportID ? [reportID] : []), [reportID]);
+    const reportAttributesSelector = useCallback(
+        (attributes: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => reportByIDsSelector(reportID ? [reportID] : [])(attributes),
+        [reportID],
+    );
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
     useDocumentTitle(getReportName(report, reportAttributes));
 
