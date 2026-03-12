@@ -37,8 +37,13 @@ type ClassifiedFiles = {
     validFilesToProcess: FileObject[];
 };
 
+type ValidatedFiles = {
+    processedFiles: FileObject[];
+    pdfsToLoad: FileObject[];
+};
+
 /** Splits validated files into PDFs vs non-PDFs and groups invalid results by HEIC/HEIF vs FILE_TOO_LARGE. */
-const classifyValidatedFiles = (files: FileObject[], invalidResults: SingleAttachmentInvalidResult[]): ClassifiedFiles => {
+function classifyValidatedFiles(files: FileObject[], invalidResults: SingleAttachmentInvalidResult[]): ClassifiedFiles {
     type FileMap = Map<string, FileObject>;
 
     const pdfFilesMap: FileMap = new Map();
@@ -84,22 +89,11 @@ const classifyValidatedFiles = (files: FileObject[], invalidResults: SingleAttac
         filesToResize,
         validFilesToProcess,
     };
-};
+}
 
-const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, number>) => {
+function sortFilesByOriginalOrder(files: FileObject[], orderMap: Map<string, number>) {
     return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
-};
-
-/** Replaces entries in convertedFiles that needed resize with their resized versions (by index in convertedNeedingResize). */
-const mergeResizedIntoConverted = (convertedFiles: FileObject[], convertedNeedingResize: FileObject[], resizedConverted: FileObject[]): FileObject[] => {
-    return convertedFiles.map((file) => {
-        const j = convertedNeedingResize.indexOf(file);
-        if (j >= 0) {
-            return resizedConverted.at(j) ?? file;
-        }
-        return file;
-    });
-};
+}
 
 /** Extracts the ordered file list from validation result. Downstream logic does not need the original files param. */
 function getFilesFromValidationResult(result: Awaited<ReturnType<typeof validateMultipleAttachmentFiles>>): FileObject[] {
@@ -111,6 +105,18 @@ function getFilesFromValidationResult(result: Awaited<ReturnType<typeof validate
         return result.fileResults.map((r) => (r.isValid ? r.validatedFile.file : r.file));
     }
     return result.files ?? [];
+}
+
+function deduplicateErrors(errors: ErrorObject[]) {
+    const uniqueErrors = new Set<string>();
+    return errors.filter((error) => {
+        const key = `${error.error}-${error.fileExtension ?? ''}`;
+        if (uniqueErrors.has(key)) {
+            return false;
+        }
+        uniqueErrors.add(key);
+        return true;
+    });
 }
 
 function useFilesValidation(onFilesValidated: OnFilesValidated) {
@@ -137,26 +143,14 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
     const collectedErrors = useRef<ErrorObject[]>([]);
     const originalFileOrder = useRef<Map<string, number>>(new Map());
 
-    const updateFileOrderMapping = (oldFile: FileObject | undefined, newFile: FileObject) => {
+    function updateFileOrderMapping(oldFile: FileObject | undefined, newFile: FileObject) {
         const originalIndex = originalFileOrder.current.get(oldFile?.uri ?? '');
         if (originalIndex !== undefined) {
             originalFileOrder.current.set(newFile.uri ?? '', originalIndex);
         }
-    };
+    }
 
-    const deduplicateErrors = (errors: ErrorObject[]) => {
-        const uniqueErrors = new Set<string>();
-        return errors.filter((error) => {
-            const key = `${error.error}-${error.fileExtension ?? ''}`;
-            if (uniqueErrors.has(key)) {
-                return false;
-            }
-            uniqueErrors.add(key);
-            return true;
-        });
-    };
-
-    const resetValidationState = () => {
+    function reset() {
         setIsValidatingFiles(false);
         setIsValidatingReceipt(undefined);
         setIsValidatingMultipleFiles(false);
@@ -174,22 +168,22 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         dataTransferItemList.current = [];
         collectedErrors.current = [];
         originalFileOrder.current.clear();
-    };
+    }
 
     const hideModalAndReset = () => {
         setIsErrorModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            resetValidationState();
+            reset();
         });
     };
 
     function setErrorAndOpenModal(error: FileValidationError) {
         setFileError(error);
         setIsErrorModalVisible(true);
-    };
+    }
 
-    const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
+    function convertHeicImageToJpegPromise(file: FileObject): Promise<FileObject> {
         return new Promise((resolve, reject) => {
             convertHeicImage(file, {
                 onSuccess: (convertedFile) => resolve(convertedFile),
@@ -198,9 +192,9 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
                 },
             });
         });
-    };
+    }
 
-    const checkIfAllValidatedAndProceed = () => {
+    function checkIfAllValidatedAndProceed() {
         if (!validatedPDFs.current || !validFiles.current) {
             return;
         }
@@ -228,50 +222,55 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         } else if (validFiles.current.length > 0) {
             const sortedFiles = sortFilesByOriginalOrder(validFiles.current, originalFileOrder.current);
             onFilesValidated(sortedFiles, dataTransferItemList.current);
-            resetValidationState();
+            reset();
         }
-    };
+    }
 
     /** Resizes files with loader; updates order mapping. Returns originals on error. */
-    const resizeFilesWithLoader = (files: FileObject[]): Promise<FileObject[]> => {
+    async function resizeFilesWithLoader(files: FileObject[]): Promise<FileObject[]> {
         if (files.length === 0) {
-            return Promise.resolve([]);
+            return [];
         }
         setIsLoaderVisible(true);
-        return Promise.all(files.map((file) => resizeImageIfNeeded(file)))
-            .then((resizedFiles) => {
-                for (const [index, resizedFile] of resizedFiles.entries()) {
-                    updateFileOrderMapping(files.at(index), resizedFile);
-                }
-                setIsLoaderVisible(false);
-                return resizedFiles;
-            })
-            .catch((error) => {
-                Log.alert('Error resizing files:', {error});
-                setIsLoaderVisible(false);
-                return files;
-            });
-    };
+        let resizedFiles: FileObject[] = [];
+
+        try {
+            resizedFiles = await Promise.all(files.map((file) => resizeImageIfNeeded(file)));
+        } catch (error) {
+            Log.alert('Error resizing files:', {error});
+            setIsLoaderVisible(false);
+            return files;
+        }
+
+        for (const [index, resizedFile] of resizedFiles.entries()) {
+            const originalFile = files.at(index);
+
+            updateFileOrderMapping(originalFile, resizedFile);
+        }
+
+        setIsLoaderVisible(false);
+        return resizedFiles;
+    }
 
     /** Merges converted, resized, and valid files into one list; resizes filesToResize if any. */
-    const mergeConvertedResizedAndValid = (
+    async function mergeConvertedResizedAndValid(
         convertedFiles: FileObject[],
         validFilesToProcess: FileObject[],
         filesToResize: FileObject[],
         pdfsToLoad: FileObject[],
-    ): Promise<{processedFiles: FileObject[]; pdfsToLoad: FileObject[]}> => {
+    ): Promise<ValidatedFiles> {
         if (filesToResize.length === 0) {
             const processedFiles = [...convertedFiles, ...validFilesToProcess];
-            return Promise.resolve({processedFiles, pdfsToLoad});
-        }
-        return resizeFilesWithLoader(filesToResize).then((resizedFiles) => {
-            const processedFiles = [...convertedFiles, ...validFilesToProcess, ...resizedFiles];
             return {processedFiles, pdfsToLoad};
-        });
-    };
+        }
+
+        const resizedFiles = await resizeFilesWithLoader(filesToResize);
+        const processedFiles = [...convertedFiles, ...validFilesToProcess, ...resizedFiles];
+        return {processedFiles, pdfsToLoad};
+    }
 
     /** Completes validation: either show PDFs for validation or finish with errors/onFilesValidated. */
-    const completeWithProcessedFiles = ({processedFiles, pdfsToLoad}: {processedFiles: FileObject[]; pdfsToLoad: FileObject[]}) => {
+    const completeValidation = ({processedFiles, pdfsToLoad}: {processedFiles: FileObject[]; pdfsToLoad: FileObject[]}) => {
         if (pdfsToLoad.length > 0) {
             validFiles.current = processedFiles;
             setPdfFilesToRender(pdfsToLoad);
@@ -297,60 +296,100 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         } else if (processedFiles.length > 0) {
             const sortedFiles = sortFilesByOriginalOrder(processedFiles, originalFileOrder.current);
             onFilesValidated(sortedFiles, dataTransferItemList.current);
-            resetValidationState();
+            reset();
         }
     };
 
-    const convertAndResizeFiles = (invalidResults: SingleAttachmentInvalidResult[], files: FileObject[]) => {
+    async function convertAndResizeFiles(invalidResults: SingleAttachmentInvalidResult[], files: FileObject[]) {
         const {pdfsToLoad, nonPdfFiles, filesToConvert, filesToResize, validFilesToProcess} = classifyValidatedFiles(files, invalidResults);
 
-        const runConversionThenFinish = (): Promise<{processedFiles: FileObject[]; pdfsToLoad: FileObject[]}> => {
-            setIsLoaderVisible(true);
-            return Promise.all(filesToConvert.map((file) => convertHeicImageToJpegPromise(file)))
-                .then((convertedFiles) => {
-                    for (const [index, convertedFile] of convertedFiles.entries()) {
-                        updateFileOrderMapping(filesToConvert.at(index), convertedFile);
-                    }
-                    const convertedNeedingResize = convertedFiles.filter((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE);
-                    if (convertedNeedingResize.length > 0) {
-                        return resizeFilesWithLoader(convertedNeedingResize).then((resizedConverted) => {
-                            const mergedConverted = mergeResizedIntoConverted(convertedFiles, convertedNeedingResize, resizedConverted);
-                            return mergeConvertedResizedAndValid(mergedConverted, validFilesToProcess, filesToResize, pdfsToLoad);
-                        });
-                    }
-                    return mergeConvertedResizedAndValid(convertedFiles, validFilesToProcess, filesToResize, pdfsToLoad);
-                })
-                .catch((error) => {
-                    Log.alert('Error converting HEIC/HEIF files:', {error});
-                    return {processedFiles: validFilesToProcess, pdfsToLoad};
-                })
-                .finally(() => {
-                    setIsLoaderVisible(false);
-                });
-        };
-
-        const runNoConversionPath = (): Promise<{processedFiles: FileObject[]; pdfsToLoad: FileObject[]}> => {
+        if (filesToConvert.length === 0) {
             const anyNonPdfTooLarge = nonPdfFiles.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE);
             if (anyNonPdfTooLarge) {
-                return resizeFilesWithLoader(nonPdfFiles).then((processedFiles) => ({processedFiles, pdfsToLoad}));
+                const resizedFiles = await resizeFilesWithLoader(nonPdfFiles);
+                return completeValidation({processedFiles: resizedFiles, pdfsToLoad});
             }
-            return mergeConvertedResizedAndValid([], validFilesToProcess, filesToResize, pdfsToLoad);
-        };
+            const mergedConvertedResizedFiles = await mergeConvertedResizedAndValid([], validFilesToProcess, filesToResize, pdfsToLoad);
 
-        const promise = filesToConvert.length > 0 ? runConversionThenFinish() : runNoConversionPath();
+            return completeValidation(mergedConvertedResizedFiles);
+        }
 
-        promise.then(completeWithProcessedFiles);
-    };
+        setIsLoaderVisible(true);
 
-    /** Handles result of multiple-file validation: always routes through convert/resize + PDF validation to detect corrupted PDFs. */
-    const handleMultipleFilesResult = (result: MultipleAttachmentsValidationResult, items?: DataTransferItem[]) => {
+        let convertedFiles: FileObject[] | undefined;
+        let mergedConvertedResizedFiles: ValidatedFiles | undefined;
+        try {
+            convertedFiles = await Promise.all(filesToConvert.map((file) => convertHeicImageToJpegPromise(file)));
+
+            const convertedNeedingResize = convertedFiles.filter((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE);
+
+            if (convertedNeedingResize.length === 0) {
+                mergedConvertedResizedFiles = await mergeConvertedResizedAndValid(convertedFiles, validFilesToProcess, filesToResize, pdfsToLoad);
+                return completeValidation(mergedConvertedResizedFiles);
+            }
+
+            const resizedConverted = await resizeFilesWithLoader(convertedNeedingResize);
+
+            const mergedConverted = convertedFiles.map((file) => {
+                const index = convertedNeedingResize.indexOf(file);
+                const fileNeededConverting = index >= 0;
+                if (fileNeededConverting) {
+                    return resizedConverted.at(index) ?? file;
+                }
+                return file;
+            });
+
+            setIsLoaderVisible(false);
+
+            mergedConvertedResizedFiles = await mergeConvertedResizedAndValid(mergedConverted, validFilesToProcess, filesToResize, pdfsToLoad);
+        } catch (error) {
+            Log.alert('Error converting HEIC/HEIF files:', {error});
+            setIsLoaderVisible(false);
+
+            mergedConvertedResizedFiles = await mergeConvertedResizedAndValid([], validFilesToProcess, filesToResize, pdfsToLoad);
+        }
+
+        if (convertedFiles) {
+            for (const [index, convertedFile] of convertedFiles.entries()) {
+                updateFileOrderMapping(filesToConvert.at(index), convertedFile);
+            }
+        }
+
+        return completeValidation(mergedConvertedResizedFiles);
+    }
+
+    async function validateFiles(filesParam: File | FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) {
+        if (isValidatingFiles) {
+            Log.warn('Files are already being validated. Please wait for the current validation to complete before calling `validateFiles` again.');
+            return;
+        }
+
+        if (!filesParam) {
+            return;
+        }
+
+        setIsValidatingFiles(true);
+        dataTransferItemList.current = items ?? [];
+
+        const isReceiptValidation = validationOptions?.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS;
+        setIsValidatingReceipt(isReceiptValidation);
+        collectedErrors.current = [];
+
+        const files = Array.isArray(filesParam) ? filesParam : [filesParam];
+
+        if (files.length > 0) {
+            setIsValidatingMultipleFiles(true);
+        }
+
+        const result = await validateMultipleAttachmentFiles(files, items, isReceiptValidation);
+
         if (items) {
             dataTransferItemList.current = items;
         }
 
         const derivedFiles = getFilesFromValidationResult(result);
 
-        if (!result.isValid && result.error === CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
+        if (!result.isValid && result.error === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
             filesToValidate.current = result.files?.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) ?? [];
             if (items) {
                 dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
@@ -368,50 +407,8 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
             setErrorAndOpenModal(result.error);
         }
 
-        convertAndResizeFiles(invalidResults, derivedFiles);
-    };
-
-    /** Handles result of single-file validation: always routes through convert/resize + PDF validation to detect corrupted PDFs. */
-    const handleSingleFileResult = (result: SingleAttachmentValidationResult, file: FileObject) => {
-        if (result.isValid) {
-            convertAndResizeFiles([], [result.validatedFile.file]);
-            return;
-        }
-
-        if (result.error) {
-            collectedErrors.current.push({error: result.error});
-            setErrorAndOpenModal(result.error);
-        }
-
-        convertAndResizeFiles([result], [file]);
-    };
-
-    const validateFiles = (files: File | FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
-        if (isValidatingFiles) {
-            Log.warn('Files are already being validated. Please wait for the current validation to complete before calling `validateFiles` again.');
-            return;
-        }
-
-        if (!files) {
-            return;
-        }
-
-        setIsValidatingFiles(true);
-        dataTransferItemList.current = items ?? [];
-
-        const isReceiptValidation = validationOptions?.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS;
-        setIsValidatingReceipt(isReceiptValidation);
-        collectedErrors.current = [];
-
-        if (Array.isArray(files)) {
-            setIsValidatingMultipleFiles(true);
-            validateMultipleAttachmentFiles(files, items, isReceiptValidation).then((result) => handleMultipleFilesResult(result, items));
-            return;
-        }
-
-        originalFileOrder.current.set(files.uri ?? '', 0);
-        validateAttachmentFile(files, items?.at(0), isReceiptValidation).then((result) => handleSingleFileResult(result, files));
-    };
+        return convertAndResizeFiles(invalidResults, derivedFiles);
+    }
 
     const onConfirmError = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
@@ -444,7 +441,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
                 if (sortedFiles.length !== 0) {
                     onFilesValidated(sortedFiles, dataTransferItemList.current);
                 }
-                resetValidationState();
+                reset();
             });
         } else {
             if (sortedFiles.length !== 0) {
