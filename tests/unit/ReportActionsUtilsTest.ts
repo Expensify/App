@@ -32,7 +32,10 @@ import {
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getUpdateACHAccountMessage,
+    hasNextActionMadeBySameActor,
     hasReasoning,
+    isConsecutiveActionMadeByPreviousActor,
+    isConsecutiveChronosAutomaticTimerAction,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
     isReportActionVisibleAsLastAction,
@@ -44,6 +47,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {getFakeReportAction} from '../utils/ReportTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -4058,6 +4062,119 @@ describe('ReportActionsUtils', () => {
         it('should return false when the action is null or undefined', () => {
             expect(hasReasoning(null)).toBe(false);
             expect(hasReasoning(undefined)).toBe(false);
+        });
+    });
+
+    describe('isConsecutiveActionMadeByPreviousActor', () => {
+        const accountID = 1;
+
+        it('returns false if current action is missing', () => {
+            expect(isConsecutiveActionMadeByPreviousActor([getFakeReportAction(accountID)], 0, false)).toBe(false);
+        });
+
+        it('returns false if actions are more than 5 minutes apart', () => {
+            const actions = [getFakeReportAction(accountID, {created: '2025-01-01T02:00:00Z'}), getFakeReportAction(accountID, {created: '2025-01-01T01:01:00Z'})];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(false);
+        });
+
+        it('returns true when same actor and within 5 minutes', () => {
+            const actions = [
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+            ];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(true);
+        });
+
+        it('skips pending-delete actions when online', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(accountID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete actions when offline', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(2, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, true)).toBe(false);
+        });
+    });
+
+    describe('hasNextActionMadeBySameActor', () => {
+        const accountID = 1;
+
+        it('returns false if inspecting first item on the list', () => {
+            expect(hasNextActionMadeBySameActor([], 0, false)).toBe(false);
+        });
+
+        it('returns false if actions are more than 5 minutes apart', () => {
+            const actions = [getFakeReportAction(accountID, {created: '2025-01-01T01:01:00Z'}), getFakeReportAction(accountID, {created: '2025-01-01T02:00:00Z'})];
+            expect(hasNextActionMadeBySameActor(actions, 1, false)).toBe(false);
+        });
+
+        it('returns true when same actor and within 5 minutes', () => {
+            const actions = [
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+            ];
+            expect(hasNextActionMadeBySameActor(actions, 1, false)).toBe(true);
+        });
+
+        it('skips pending-delete actions when online', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(accountID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(hasNextActionMadeBySameActor(actions, 2, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete actions when offline', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(2, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(hasNextActionMadeBySameActor(actions, 2, true)).toBe(false);
+        });
+    });
+
+    describe('isConsecutiveChronosAutomaticTimerAction', () => {
+        const accountID = 1;
+
+        function makeChronosAction(text: string, overrides: Parameters<typeof getFakeReportAction>[1] = {}) {
+            return getFakeReportAction(accountID, {
+                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
+                ...overrides,
+            });
+        }
+
+        it('returns false when isChronosReport is false', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, false, false)).toBe(false);
+        });
+
+        it('returns false when current action is not a timer action', () => {
+            const actions = [makeChronosAction('hello'), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('returns false when previous action is not a timer action', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('hello')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('returns true when both current and previous are timer actions', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(true);
+        });
+
+        it('returns false when there is no previous action', () => {
+            const actions = [makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('skips pending-delete previous action when online', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete previous action when offline', () => {
+            const actions = [makeChronosAction('hello'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(false);
+        });
+
+        it('includes pending-delete timer action as previous when offline', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(true);
         });
     });
 });

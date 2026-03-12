@@ -108,10 +108,10 @@ Onyx.connect({
     },
 });
 
-let isNetworkOffline = false;
+let deprecatedIsNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
+    callback: (val) => (deprecatedIsNetworkOffline = val?.isOffline ?? false),
 });
 
 let deprecatedCurrentUserAccountID: number | undefined;
@@ -785,13 +785,13 @@ function extractLinksFromMessageHtmlString(message: string): string {
  * @param reportActions - all actions
  * @param actionIndex - index of the action
  */
-function findPreviousAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
+function findPreviousAction(reportActions: ReportAction[], actionIndex: number, isOffline: boolean): OnyxEntry<ReportAction> {
     for (let i = actionIndex + 1; i < reportActions.length; i++) {
         const action = reportActions.at(i);
 
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (!isNetworkOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!isOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
 
@@ -810,13 +810,13 @@ function findPreviousAction(reportActions: ReportAction[], actionIndex: number):
  * @param reportActions - all actions
  * @param actionIndex - index of the action
  */
-function findNextAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
+function findNextAction(reportActions: ReportAction[], actionIndex: number, isOffline: boolean): OnyxEntry<ReportAction> {
     for (let i = actionIndex - 1; i >= 0; i--) {
         const action = reportActions.at(i);
 
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-        if (!isNetworkOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!isOffline && action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
 
@@ -837,8 +837,8 @@ function findNextAction(reportActions: ReportAction[], actionIndex: number): Ony
  * @param reportActions - report actions ordered from latest
  * @param actionIndex - index of the comment item in state to check
  */
-function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], actionIndex: number): boolean {
-    const previousAction = findPreviousAction(reportActions, actionIndex);
+function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], actionIndex: number, isOffline: boolean): boolean {
+    const previousAction = findPreviousAction(reportActions, actionIndex, isOffline);
     const currentAction = reportActions.at(actionIndex);
 
     return canActionsBeGrouped(currentAction, previousAction);
@@ -851,9 +851,9 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], a
  * @param reportActions - report actions ordered from oldest
  * @param actionIndex - index of the comment item in state to check
  */
-function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex: number) {
+function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex: number, isOffline: boolean) {
     const currentAction = reportActions.at(actionIndex);
-    const nextAction = findNextAction(reportActions, actionIndex);
+    const nextAction = findNextAction(reportActions, actionIndex, isOffline);
 
     if (actionIndex === 0) {
         return false;
@@ -988,8 +988,8 @@ function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportActi
  * If the user sends consecutive actions to Chronos to automatically start/stop the timer,
  * then detect that and show each individually so that the user can easily see when they were sent.
  */
-function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number, isChronosReport: boolean): boolean {
-    const previousAction = findPreviousAction(reportActions, actionIndex);
+function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number, isChronosReport: boolean, isOffline: boolean): boolean {
+    const previousAction = findPreviousAction(reportActions, actionIndex, isOffline);
     const currentAction = reportActions?.at(actionIndex);
     return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
 }
@@ -1201,7 +1201,7 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!reportAction) {
         return true;
     }
-    return !isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return !deprecatedIsNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -1831,7 +1831,7 @@ function getOneTransactionThreadReportAction(
             iouRequestTypesSet.has(actionType) &&
             !!originalMessage?.IOUTransactionID &&
             // Include deleted IOU reportActions if the action is pending deletion and the user is offline
-            (!isDeletedAction(action) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
+            (!isDeletedAction(action) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? deprecatedIsNetworkOffline)))
         ) {
             if (iouRequestAction !== null) {
                 // We found a second action so this is for sure not a one-transaction report
