@@ -7,7 +7,13 @@ import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
-import type {MultipleAttachmentsValidationError, SingleAttachmentInvalidResult, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
+import type {
+    MultipleAttachmentsValidationError,
+    MultipleAttachmentsValidationResult,
+    SingleAttachmentInvalidResult,
+    SingleAttachmentValidationError,
+    SingleAttachmentValidationResult,
+} from '@libs/AttachmentValidation';
 import {getFileValidationErrorText, resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
@@ -342,22 +348,15 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         promise.then(completeWithProcessedFiles);
     };
 
-    /** Handles result of multiple-file validation: either completes with valid files or starts convert/resize for invalid. */
-    const handleMultipleFilesResult = (result: Awaited<ReturnType<typeof validateMultipleAttachmentFiles>>, items?: DataTransferItem[]) => {
+    /** Handles result of multiple-file validation: always routes through convert/resize + PDF validation to detect corrupted PDFs. */
+    const handleMultipleFilesResult = (result: MultipleAttachmentsValidationResult, items?: DataTransferItem[]) => {
         if (items) {
             dataTransferItemList.current = items;
         }
 
-        if (result.isValid) {
-            const fileObjects = result.validatedFiles.map((f) => f.file);
-            onFilesValidated(fileObjects, dataTransferItemList.current);
-            resetValidationState();
-            return;
-        }
-
         const derivedFiles = getFilesFromValidationResult(result);
 
-        if (result.error === CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
+        if (!result.isValid && result.error === CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
             filesToValidate.current = result.files?.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) ?? [];
             if (items) {
                 dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
@@ -368,9 +367,9 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
             originalFileOrder.current.set(file.uri ?? '', index);
         }
 
-        const invalidResults = result.fileResults?.filter((r) => r.isValid === false) ?? [];
+        const invalidResults = !result.isValid && 'fileResults' in result ? result.fileResults.filter((fileResult) => !fileResult.isValid) : [];
 
-        if (result.error) {
+        if (!result.isValid && result.error) {
             collectedErrors.current.push({error: result.error});
             setErrorAndOpenModal(result.error);
         }
@@ -378,11 +377,10 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         convertAndResizeFiles(invalidResults, derivedFiles);
     };
 
-    /** Handles result of single-file validation: either completes with valid file or starts convert/resize for invalid. */
-    const handleSingleFileResult = (result: Awaited<ReturnType<typeof validateAttachmentFile>>, file: FileObject) => {
+    /** Handles result of single-file validation: always routes through convert/resize + PDF validation to detect corrupted PDFs. */
+    const handleSingleFileResult = (result: SingleAttachmentValidationResult, file: FileObject) => {
         if (result.isValid) {
-            onFilesValidated([result.validatedFile.file], dataTransferItemList.current);
-            resetValidationState();
+            convertAndResizeFiles([], [result.validatedFile.file]);
             return;
         }
 
