@@ -55,7 +55,11 @@ Each rule file contains:
 7. **Do NOT post comments, call scripts, or add reactions.** Only return the structured JSON.
 8. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
 9. **DO NOT describe what you are doing or add extra content.**
-    EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of including it in the violations array rather than skipping it.
+10. **Self-critique gate - apply before including any violation in output:**
+    - Silently verify each potential violation is genuine - not a borderline case, a permitted exception listed in the rule's "DO NOT flag" section, or a misreading of the code.
+    - If there is any doubt about whether the code actually violates the rule, omit the violation entirely. Do not include it with caveats or hedging.
+    - Never include deliberation, self-correction, or hedging language (e.g., "actually", "upon re-reading", "wait", "however", "although") in the `body` field. Each violation must state the issue as a definitive fact with a concrete fix.
+    - A violation that you would retract upon closer reading should never appear in the output. When uncertain, omit.
 
 ## Comment Format
 
