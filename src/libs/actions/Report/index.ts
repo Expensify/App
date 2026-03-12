@@ -2109,8 +2109,8 @@ function createChildReport(
 
     const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
     if (!childReportID) {
-        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
         const participantAccountIDsForDetails = Object.keys(newChat.participants ?? {}).map(Number);
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails);
 
         const detailsToUse = personalDetails ?? allPersonalDetails;
 
