@@ -89,6 +89,16 @@ function getWorkspaceCardFeedKey(cardFeedKey: string) {
     return cardFeedKey;
 }
 
+/**
+ * Resolves the display name of a linked policy when preferredPolicy differs from the current policyID.
+ */
+function getLinkedPolicyName(allPolicies: OnyxCollection<Policy>, preferredPolicy: string | undefined, currentPolicyID: string, fallbackName: string | undefined): string | undefined {
+    if (preferredPolicy && preferredPolicy !== currentPolicyID) {
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy}`]?.name;
+    }
+    return fallbackName;
+}
+
 function createCardFilterItem(
     card: Card,
     personalDetailsList: PersonalDetailsList,
@@ -634,6 +644,7 @@ export {
     createCardFeedKey,
     getCardFeedKey,
     getWorkspaceCardFeedKey,
+    getLinkedPolicyName,
     generateDomainFeedData,
     getDomainFeedData,
     getCardFeedsForDisplay,

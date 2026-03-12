@@ -1,4 +1,3 @@
-import {emailSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,10 +28,7 @@ type WorkspaceCompanyCardAddWorkEmailPageProps = PlatformStackScreenProps<Settin
 
 function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWorkEmailPageProps) {
     const {policyID, feed} = route.params;
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const primaryLogin = account?.primaryLogin ?? '';
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
+    const primaryContactMethod = usePrimaryContactMethod();
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();

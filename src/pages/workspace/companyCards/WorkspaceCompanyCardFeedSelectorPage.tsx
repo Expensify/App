@@ -1,4 +1,3 @@
-import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
@@ -22,10 +21,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
-import {getCardFeedIcon, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
+import {getLinkedPolicyName} from '@libs/CardFeedUtils';
+import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -72,10 +73,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const primaryLogin = account?.primaryLogin ?? '';
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
+    const primaryContactMethod = usePrimaryContactMethod();
 
     const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
 
@@ -86,12 +84,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
         const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedName];
 
-        let policyName = policy?.name;
-
-        if (feedSettings?.preferredPolicy && feedSettings?.preferredPolicy !== policyID) {
-            const linkedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${feedSettings.preferredPolicy}`];
-            policyName = linkedPolicy?.name;
-        }
+        const policyName = getLinkedPolicyName(allPolicies, feedSettings?.preferredPolicy, policyID, policy?.name);
 
         return {
             value: feedName,
@@ -196,8 +189,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         if (!feed.fundID) {
             return;
         }
+        const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID) as CompanyCardFeedWithDomainID;
         linkCardFeedToPolicy(feed.fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feed?.country, feed.feed);
-        updateSelectedFeed(feed.value, policyID);
+        updateSelectedFeed(feedValue, policyID);
         goBack();
     };
 
