@@ -7,7 +7,7 @@ title: Communicate component state to assistive technology
 
 ### Reasoning
 
-Screen readers must announce the current state of interactive elements — whether a button is disabled, a checkbox is checked, an accordion is expanded, or a tab is selected. Without `accessibilityState` (or equivalent `aria-*` props), state changes are invisible to assistive technology users. They cannot determine if a toggle is on/off, a form field is disabled, or a section is expanded. (WCAG 4.1.2)
+Screen readers must announce the current state of interactive elements — whether a button is disabled, a checkbox is checked, an accordion is expanded, or a tab is selected. Without `accessibilityState`, state changes are invisible to assistive technology users. They cannot determine if a toggle is on/off, a form field is disabled, or a section is expanded. (WCAG 4.1.2)
 
 ### Incorrect
 
