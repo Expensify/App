@@ -248,7 +248,6 @@ const CONST = {
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
     POPOVER_DATE_WIDTH: 338,
-    POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
     TOOLTIP_ANIMATION_DURATION: 500,
@@ -1225,7 +1224,6 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
-            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1262,7 +1260,6 @@ const CONST = {
             REJECT_BULK: 'rejectBulk',
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
-            MOVE_EXPENSE: 'moveExpense',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
@@ -1805,7 +1802,6 @@ const CONST = {
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
-        SPAN_SCAN_SHORTCUT: 'ScanShortcut',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
@@ -2882,11 +2878,13 @@ const CONST = {
 
     MISSING_PERSONAL_DETAILS: {
         STEP_INDEX_LIST: ['1', '2', '3', '4'],
+        STEP_INDEX_LIST_WITH_PIN: ['1', '2', '3', '4', '5'],
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
             DATE_OF_BIRTH: 'date-of-birth',
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
+            PIN: 'pin',
             CONFIRM: 'confirm',
         },
     },
@@ -2905,6 +2903,14 @@ const CONST = {
             ADDRESS: 2,
             PHONE_NUMBER: 3,
             CONFIRM: 4,
+        },
+        MAPPING_WITH_PIN: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            ADDRESS: 2,
+            PHONE_NUMBER: 3,
+            PIN: 4,
+            CONFIRM: 5,
         },
         INDEX_LIST: ['1', '2', '3', '4'],
     },
@@ -3778,6 +3784,42 @@ const CONST = {
             DAMAGED: 'damaged',
         },
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
+        PIN: {
+            LENGTH: 4,
+            INVALID_PINS: [
+                '0000',
+                '1111',
+                '2222',
+                '3333',
+                '4444',
+                '5555',
+                '6666',
+                '7777',
+                '8888',
+                '9999',
+                '1234',
+                '2345',
+                '3456',
+                '4567',
+                '5678',
+                '6789',
+                '7890',
+                '0123',
+                '0987',
+                '9876',
+                '8765',
+                '7654',
+                '6543',
+                '5432',
+                '4321',
+                '3210',
+                '1212',
+                '1004',
+                '6969',
+                '2000',
+                '2015',
+            ],
+        },
     },
     PERSONAL_CARDS: {
         FEED_KEY_SEPARATOR: '#',
@@ -5817,6 +5859,8 @@ const CONST = {
         LINK: 'link',
         /** Use to identify a list of items. */
         LIST: 'list',
+        /** Use for a list of selectable options (single or multi-select). */
+        LISTBOX: 'listbox',
         /** Use for individual items within a list. */
         LISTITEM: 'listitem',
         /** Use for a list of choices or options. */
@@ -5825,6 +5869,8 @@ const CONST = {
         MENUBAR: 'menubar',
         /** Use for items within a menu. */
         MENUITEM: 'menuitem',
+        /** Use for selectable options within a listbox. */
+        OPTION: 'option',
         /** Use when no specific role is needed. */
         NONE: 'none',
         /** Use for elements that don't require a specific role. */
@@ -5859,8 +5905,6 @@ const CONST = {
         NAVIGATION: 'navigation',
         /** Use for Tooltips */
         TOOLTIP: 'tooltip',
-        /** Use for dialog/modal elements */
-        DIALOG: 'dialog',
         /** Use for data table containers. */
         TABLE: 'table',
         /** Use for table rows. */
@@ -5896,8 +5940,6 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
-        REPLACE_VERIFY_OLD: 'REPLACE_VERIFY_OLD',
-        REPLACE_VERIFY_NEW: 'REPLACE_VERIFY_NEW',
     },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
@@ -7518,7 +7560,6 @@ const CONST = {
             EQUAL_TO: 'eq',
             CONTAINS: 'contains',
             NOT_EQUAL_TO: 'neq',
-            RANGE: 'range',
             GREATER_THAN: 'gt',
             GREATER_THAN_OR_EQUAL_TO: 'gte',
             LOWER_THAN: 'lt',
@@ -7593,7 +7634,6 @@ const CONST = {
             ON_PREFIX: 'reportFieldOn-',
             AFTER_PREFIX: 'reportFieldAfter-',
             BEFORE_PREFIX: 'reportFieldBefore-',
-            RANGE_PREFIX: 'reportFieldRange-',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none',
@@ -7723,10 +7763,6 @@ const CONST = {
             ON: 'On',
             AFTER: 'After',
             BEFORE: 'Before',
-            RANGE: 'Range',
-        },
-        get CUSTOM_DATE_MODIFIERS() {
-            return [this.DATE_MODIFIERS.ON, this.DATE_MODIFIERS.BEFORE, this.DATE_MODIFIERS.AFTER] as const;
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
@@ -8633,7 +8669,6 @@ const CONST = {
             ADD_EXPENSE_UNREPORTED: 'MoreMenu-AddExpenseUnreported',
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
-            MOVE_EXPENSE: 'MoreMenu-MoveExpense',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',

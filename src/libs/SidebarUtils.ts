@@ -1114,7 +1114,15 @@ function getOptionData({
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             const displayName =
                 (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
+                    getLastActorDisplayNameFromLastVisibleActions(
+                        report,
+                        lastActorDetails,
+                        currentUserAccountID,
+                        personalDetails,
+                        reportNameValuePairs?.private_isArchived,
+                        visibleReportActionsData,
+                        lastAction,
+                    )) ||
                 lastActorDisplayName;
             result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else {
@@ -1158,7 +1166,15 @@ function getOptionData({
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
             const displayName =
                 (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
+                    getLastActorDisplayNameFromLastVisibleActions(
+                        report,
+                        lastActorDetails,
+                        currentUserAccountID,
+                        personalDetails,
+                        reportNameValuePairs?.private_isArchived,
+                        visibleReportActionsData,
+                        lastAction,
+                    )) ||
                 lastActorDisplayName;
             result.alternateText = `${displayName}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {
