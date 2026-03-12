@@ -101,9 +101,7 @@ Before flagging, verify that the file actually compiles with React Compiler:
 npm run react-compiler-compliance-check check <filepath>
 ```
 
-Parse the output as follows:
-- If the file appears under **"Failed to compile"** in the output, the file does **not** compile with React Compiler - the rule **does not apply**. The author may have no alternative to manual memoization until the compilation issue is resolved.
-- If the file does **not** appear under "Failed to compile" (or the output shows only successes), the file compiles successfully - proceed to flag manual memoization as redundant.
+If the output contains **"Failed to compile"** for the file under review, the rule **does not apply** — the author may have no alternative to manual memoization until the compilation issue is resolved.
 
 #### Condition
 
