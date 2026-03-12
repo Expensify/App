@@ -31,9 +31,9 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
     const isReportArchived = useReportIsArchived(report.reportID);
     const isAbleToEdit = canEditWriteCapability(report, policy, isReportArchived);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     const updateWriteCapability = useCallback(
         (newValue: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>) => {
