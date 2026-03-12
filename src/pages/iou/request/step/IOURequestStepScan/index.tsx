@@ -32,6 +32,7 @@ import {base64ToFile, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownl
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -439,6 +440,13 @@ function IOURequestStepScan({
         [],
     );
 
+    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepScan',
+        cameraPermissionState,
+        isQueriedPermissionState,
+        hasVideoConstraints: !isEmptyObject(videoConstraints),
+    };
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -448,6 +456,7 @@ function IOURequestStepScan({
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
                         color={theme.textSupporting}
+                        reasonAttributes={cameraLoadingReasonAttributes}
                     />
                 )}
                 {cameraPermissionState !== 'granted' && isQueriedPermissionState && (

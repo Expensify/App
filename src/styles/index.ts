@@ -4309,6 +4309,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
+        tabSelectorContentContainer: {
+            flexGrow: 1,
+            paddingBottom: 12,
+            paddingHorizontal: 20,
+        },
+
         scrollableTabSelector: {
             flexGrow: 0,
         },
@@ -5681,6 +5687,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 28,
             borderRadius: 16,
             marginTop: 32,
+        },
+        twoFactorAuthSecretBox: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: 16,
         },
         anonymousRoomFooter: {
             padding: 20,
