@@ -2934,31 +2934,6 @@ function buildOnyxDataForTrackExpense({
             onyxData.successData?.push(...searchUpdate.successData);
         }
     }
-
-    // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        return onyxData;
-    }
-
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-        transaction,
-        [],
-        policy,
-        policyTagList ?? {},
-        policyCategories ?? {},
-        hasDependentTags(policy, policyTagList ?? {}),
-        false,
-    );
-
-    if (violationsOnyxData) {
-        onyxData.optimisticData?.push(violationsOnyxData);
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-            value: [],
-        });
-    }
-
     return onyxData;
 }
 
