@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -32,7 +32,7 @@ import {
 import {clearError} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
@@ -40,9 +40,6 @@ type ReportActionItemProps = Omit<
     PureReportActionItemProps,
     'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts' | 'userBillingGraceEndPeriodCollection'
 > & {
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
-
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
 
@@ -69,7 +66,6 @@ type ReportActionItemProps = Omit<
 };
 
 function ReportActionItem({
-    policies,
     action,
     report,
     draftMessage,
@@ -111,7 +107,7 @@ function ReportActionItem({
     const iouReportOfLinkedReportID = linkedReport && 'iouReportID' in linkedReport ? linkedReport.iouReportID : undefined;
     const [iouReportOfLinkedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportOfLinkedReportID}`);
 
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -138,7 +134,6 @@ function ReportActionItem({
             {...props}
             introSelected={introSelected}
             allTransactionDrafts={allTransactionDrafts}
-            policies={policies}
             personalPolicyID={personalPolicyID}
             action={action}
             report={report}

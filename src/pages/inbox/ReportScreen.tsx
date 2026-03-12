@@ -38,6 +38,8 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
+import useSidePanelState from '@hooks/useSidePanelState';
+import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
@@ -295,6 +297,16 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
 
+    const isConciergeSidePanel = useMemo(() => isInSidePanel && isConciergeChatReport(report, conciergeReportID), [isInSidePanel, report, conciergeReportID]);
+
+    const {sessionStartTime} = useSidePanelState();
+
+    const hasUserSentMessage = useMemo(() => {
+        if (!isConciergeSidePanel || !sessionStartTime) {
+            return false;
+        }
+        return reportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
+    }, [isConciergeSidePanel, reportActions, currentUserAccountID, sessionStartTime]);
     const viewportOffsetTop = useViewportOffsetTop();
 
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
@@ -492,7 +504,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo((): boolean => {
         const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
-        const isLoading = isLoadingApp !== false || isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
+        const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!reportMetadata?.isLoadingInitialReportActions);
         const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
 
         if (shouldShowNotFoundLinkedAction) {
@@ -524,6 +536,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         shouldShowNotFoundLinkedAction,
         isLoadingApp,
         isLoadingReportData,
+        isOffline,
         reportMetadata?.isLoadingInitialReportActions,
         reportID,
         isOptimisticDelete,
@@ -987,6 +1000,12 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     useShowWideRHPVersion(shouldShowWideRHP);
 
+    useSubmitToDestinationVisible(
+        [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
+        reportIDFromRoute,
+        CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS,
+    );
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -1052,11 +1071,15 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                     report={report}
                                                     reportActions={reportActions}
                                                     isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                                    hasOnceLoadedReportActions={reportMetadata?.hasOnceLoadedReportActions}
                                                     hasNewerActions={hasNewerActions}
                                                     hasOlderActions={hasOlderActions}
                                                     parentReportAction={parentReportAction}
                                                     transactionThreadReportID={transactionThreadReportID}
                                                     isReportTransactionThread={isTransactionThreadView}
+                                                    isConciergeSidePanel={isConciergeSidePanel}
+                                                    hasUserSentMessage={hasUserSentMessage}
+                                                    sessionStartTime={sessionStartTime}
                                                     isConciergeProcessing={isConciergeProcessing}
                                                     conciergeReasoningHistory={conciergeReasoningHistory}
                                                     conciergeStatusLabel={conciergeStatusLabel}
@@ -1092,6 +1115,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                                 isInSidePanel={isInSidePanel}
+                                                shouldHideStatusIndicators={isConciergeSidePanel && !hasUserSentMessage}
                                                 kickoffWaitingIndicator={kickoffWaitingIndicator}
                                             />
                                         ) : null}
