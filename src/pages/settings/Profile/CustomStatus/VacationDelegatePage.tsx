@@ -27,7 +27,7 @@ function VacationDelegatePage() {
 
     const showErrorModal = async (message?: string) => {
         await showConfirmModal({
-            title: translate('common.headsUp'),
+            title: translate('statusPage.addVacationDelegate'),
             prompt: message ?? translate('statusPage.vacationDelegateError'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
