@@ -89,8 +89,8 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) 
 
 function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     const {translate} = useLocalize();
-    const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
-    const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
+    const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
+    const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM);
     // Cannot use useRef because react compiler fails
     const [isSaving, setIsSaving] = useState(false);
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -98,7 +98,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
 
     useEffect(() => () => clearDraftRule(), []);
 
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const categoriesSelector = useCallback(
         (allPolicyCategories: OnyxCollection<PolicyCategories>) => {
             const categories = getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
@@ -111,19 +111,16 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
         [personalPolicyID],
     );
     const [hasPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
-        canBeMissing: true,
         selector: categoriesSelector,
     });
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${activePolicyID}`, {
-        canBeMissing: true,
         selector: getTagLists,
     });
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const [allTaxRates] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
         selector: getAllTaxRatesNamesAndValues,
     });
     const hasTaxRates = Object.keys(allTaxRates ?? {}).length > 0;

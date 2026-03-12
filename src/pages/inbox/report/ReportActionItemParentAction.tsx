@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,19 +21,13 @@ import {
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<Report>;
-
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
-
     /** All the data of the action item */
     action: ReportAction;
 
@@ -90,8 +85,6 @@ type ReportActionItemParentActionProps = {
 };
 
 function ReportActionItemParentAction({
-    allReports,
-    policies,
     report,
     action,
     transactionThreadReport,
@@ -115,12 +108,14 @@ function ReportActionItemParentAction({
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const getLinkedTransactionRouteError = useCallback((transaction: OnyxEntry<Transaction>) => {
         return transaction?.errorFields?.route;
     }, []);
 
-    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true, selector: getLinkedTransactionRouteError});
+    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
     const ancestorReportNameValuePairsSelector = useCallback(
         (allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) => {
@@ -140,7 +135,6 @@ function ReportActionItemParentAction({
     const [ancestorsReportNameValuePairs] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         {
-            canBeMissing: true,
             selector: ancestorReportNameValuePairsSelector,
         },
         [ancestors],
@@ -157,12 +151,12 @@ function ReportActionItemParentAction({
     const [ancestorsReportActions] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         {
-            canBeMissing: true,
             selector: ancestorReportActionsSelector,
         },
         [ancestors],
     );
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     return (
         <View style={[styles.pRelative]}>
@@ -173,7 +167,7 @@ function ReportActionItemParentAction({
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
                 errorRowStyles={[styles.ml10, styles.mr2]}
-                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, undefined, true)}
+                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, true)}
             >
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
@@ -198,19 +192,17 @@ function ReportActionItemParentAction({
                             pendingAction={ancestorReport?.pendingFields?.addWorkspaceRoom ?? ancestorReport?.pendingFields?.createChat}
                             errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
                             errorRowStyles={[styles.ml10, styles.mr2]}
-                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID)}
+                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected)}
                         >
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider
                                     ancestor={ancestor}
-                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)}
+                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)}
                                 />
                             )}
                             <ReportActionItem
-                                allReports={allReports}
-                                policies={policies}
                                 onPress={
-                                    canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)
+                                    canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)
                                         ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
                                         : undefined
                                 }

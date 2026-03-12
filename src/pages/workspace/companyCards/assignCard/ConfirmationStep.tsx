@@ -47,12 +47,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [cardError, setCardError] = useState<Errors>();
     const policy = usePolicy(policyID);
     const {currencyList} = useCurrencyListState();
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const bankName = assignCard?.cardToAssign?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
@@ -107,7 +107,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         // Check both encryptedCardNumber and cardName since isCardAlreadyAssigned matches on either
         // This handles cases where workspace card entries only have cardName (masked display name) stored
         const cardIdentifier = cardToAssign?.encryptedCardNumber ?? cardToAssign?.cardName;
-        if (cardIdentifier && isCardAlreadyAssigned(cardIdentifier, workspaceCardFeeds, domainOrWorkspaceAccountID)) {
+        if (cardIdentifier && isCardAlreadyAssigned(cardIdentifier, workspaceCardFeeds, domainOrWorkspaceAccountID, bankName)) {
             setCardError(getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.cardAlreadyAssignedError'));
             return;
         }

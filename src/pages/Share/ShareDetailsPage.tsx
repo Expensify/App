@@ -50,10 +50,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
-    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
-    const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
+    const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const reportAttributesDerived = useReportAttributes();
     const personalDetails = usePersonalDetails();
@@ -152,16 +152,12 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             validateFileName,
             (file) => {
                 if (isDraft) {
-                    openReport(
-                        report.reportID,
+                    openReport({
+                        reportID: report.reportID,
                         introSelected,
-                        '',
-                        displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
-                        report,
-                        undefined,
-                        undefined,
-                        undefined,
-                    );
+                        participantLoginList: displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
+                        newReportObject: report,
+                    });
                 }
                 if (report.reportID) {
                     addAttachmentWithComment({

@@ -75,12 +75,12 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [loadPolicyCompanyCardsPage, isOffline]);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
-        if (isLoading || !bankName || isFeedPending) {
+        if (isLoading || !bankName || isFeedPending || isOffline) {
             return;
         }
 
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
-    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policyID, translate]);
+    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policyID, translate, isOffline]);
 
     useEffect(() => {
         loadPolicyCompanyCardsFeed();

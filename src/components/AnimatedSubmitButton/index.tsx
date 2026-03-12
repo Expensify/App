@@ -3,7 +3,7 @@ import type {View} from 'react-native';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -74,7 +74,8 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 .withCallback(stretchOutY),
         [buttonDuration, stretchOutY],
     );
-    const icon = isAnimationRunning ? Expensicons.Send : null;
+    const icons = useMemoizedLazyExpensifyIcons(['Send'] as const);
+    const icon = isAnimationRunning ? icons.Send : null;
 
     useEffect(() => {
         if (!isAnimationRunning) {

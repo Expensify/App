@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import KYCWall from './KYCWall';
 import type {KYCWallProps} from './KYCWall/types';
 
@@ -21,9 +21,8 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
 
     onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
 
-    headerText?: string;
-
-    shouldPutHeaderTextAfterBackButton?: boolean;
+    /** Ref for the inner ButtonWithDropdownMenu */
+    dropdownMenuRef?: React.Ref<ButtonWithDropdownMenuRef>;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -33,9 +32,8 @@ function MoneyReportHeaderKYCDropdown({
     applicableSecondaryActions,
     iouReport,
     onPaymentSelect,
+    dropdownMenuRef,
     ref,
-    headerText = '',
-    shouldPutHeaderTextAfterBackButton = false,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
@@ -63,6 +61,7 @@ function MoneyReportHeaderKYCDropdown({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
+                    ref={dropdownMenuRef}
                     success={false}
                     onPress={() => {}}
                     onSubItemSelected={(item, index, event) => {
@@ -80,8 +79,6 @@ function MoneyReportHeaderKYCDropdown({
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
                     shouldUseModalPaddingStyle
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
-                    menuHeaderText={headerText}
-                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </KYCWall>

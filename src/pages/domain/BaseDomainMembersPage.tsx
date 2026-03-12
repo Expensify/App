@@ -103,7 +103,7 @@ function BaseDomainMembersPage({
     const {formatPhoneNumber, localeCompare, translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const data: MemberOption[] = accountIDs.map((accountID) => {
@@ -214,7 +214,7 @@ function BaseDomainMembersPage({
                     {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
 
-                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5]}>{headerContent}</View>}
 
                 <SelectionListWithModal
                     data={filteredData}
@@ -228,7 +228,7 @@ function BaseDomainMembersPage({
                     ListItem={TableListItem}
                     onSelectRow={onSelectRow}
                     onDismissError={onDismissError}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     showScrollIndicator={false}
                     shouldHeaderBeInsideList
                     customListHeader={getCustomListHeader()}
