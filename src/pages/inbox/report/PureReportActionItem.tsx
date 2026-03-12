@@ -1138,6 +1138,7 @@ function PureReportActionItem({
         personalPolicyID,
         userBillingGraceEndPeriodCollection,
         amountOwed,
+        ownerBillingGraceEndPeriod,
     ]);
 
     /**

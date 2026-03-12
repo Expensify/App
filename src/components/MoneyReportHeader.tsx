@@ -717,6 +717,7 @@ function MoneyReportHeader({
             isSelfTourViewed,
             userBillingGraceEndPeriods,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         ],
     );
 

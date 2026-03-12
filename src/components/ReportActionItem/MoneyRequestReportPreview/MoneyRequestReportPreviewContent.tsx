@@ -333,6 +333,7 @@ function MoneyRequestReportPreviewContent({
             isSelfTourViewed,
             userBillingGraceEndPeriods,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         ],
     );
 
