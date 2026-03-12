@@ -6,8 +6,8 @@ import BrowserNotifications from './BrowserNotifications';
 import type {LocalNotificationClickHandler, LocalNotificationModifiedExpenseParams, LocalNotificationModule} from './types';
 
 let allPolicies: OnyxCollection<Policy>;
-// This is a temporary subscription until the modified-expense notification chain is fully migrated
-// see https://github.com/Expensify/App/issues/66336
+// We do not depend on updates on the UI for notifications, so we can use `connectWithoutView` here.
+// This is a temporary subscription until the modified-expense notification chain is fully migrated; see https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
@@ -17,8 +17,8 @@ Onyx.connectWithoutView({
 });
 
 let allPolicyTags: OnyxCollection<PolicyTagLists>;
-// This is a temporary subscription until the modified-expense notification chain is fully migrated
-// see https://github.com/Expensify/App/issues/66336
+// We do not depend on updates on the UI for notifications, so we can use `connectWithoutView` here.
+// This is a temporary subscription until the modified-expense notification chain is fully migrated; see https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
