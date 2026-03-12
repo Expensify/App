@@ -2551,6 +2551,8 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
         ...restReviewDuplicateTransaction,
         modifiedMerchant: reviewDuplicateTransaction?.merchant,
         merchant: reviewDuplicateTransaction?.merchant,
+        // Preserve original category if reviewDuplicates category is empty (e.g., when category is disabled)
+        category: reviewDuplicateTransaction?.category || duplicatedTransaction?.category,
         comment: {...reviewDuplicateTransaction?.comment, comment: reviewDuplicateTransaction?.description},
     };
 }
@@ -2570,8 +2572,9 @@ function buildMergeDuplicatesParams(
         transactionIDList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []).map((transaction) => transaction.transactionID),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
-        category: reviewDuplicates?.category ?? '',
-        tag: reviewDuplicates?.tag ?? '',
+        // Preserve original category if reviewDuplicates category is empty (e.g., when category is disabled)
+        category: reviewDuplicates?.category || originalTransaction?.category || '',
+        tag: reviewDuplicates?.tag || originalTransaction?.tag || '',
         merchant: reviewDuplicates?.merchant ?? '',
         comment: reviewDuplicates?.description ?? '',
     };
