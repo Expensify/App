@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
@@ -16,8 +16,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
-import type {BaseListItemProps, ListItem} from './types';
-import BaseListItem from './BaseListItem';
+import {ListItem} from '@components/SelectionList/types';
+import {BaseListItemProps} from '@components/SelectionList/ListItem/types';
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 
 type AdditionalCardProps = {
     shouldShowOwnersAvatar?: boolean;
@@ -49,13 +50,13 @@ function CardListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const handleCheckboxPress = () => {
+    const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
             onCheckboxPress(item);
         } else {
             onSelectRow(item);
         }
-    };
+    }, [item, onCheckboxPress, onSelectRow]);
 
     const ownersAvatar = {
         source: item.cardOwnerPersonalDetails?.avatar ?? icons.FallbackAvatar,

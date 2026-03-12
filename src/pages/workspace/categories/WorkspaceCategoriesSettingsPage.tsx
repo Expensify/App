@@ -6,8 +6,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import SpendCategorySelectorListItem from '@components/SelectionList/ListItem/SpendCategorySelectorListItem';
-import type {ListItem} from '@components/SelectionList/ListItem/types';
-import type {ListItem as SelectionListWithSectionsListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
@@ -26,6 +24,7 @@ import {clearPolicyErrorField, setWorkspaceDefaultSpendCategory} from '@userActi
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {ListItem} from '@components/SelectionList/types';
 
 type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps &
     (
@@ -72,7 +71,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
 
-    const setNewCategory = (selectedCategory: SelectionListWithSectionsListItem, currentGroupID: string) => {
+    const setNewCategory = (selectedCategory: ListItem, currentGroupID: string) => {
         if (!selectedCategory.keyForList) {
             return;
         }

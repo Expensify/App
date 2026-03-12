@@ -6,12 +6,12 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
-import CategoryListItemHeader from '@components/SelectionListWithSections/Search/CategoryListItemHeader';
-import type {TransactionCategoryGroupListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import {TransactionCategoryGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import CategoryListItemHeader from '@components/Search/SearchList/ListItem/CategoryListItemHeader';
 
 jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/Navigation');

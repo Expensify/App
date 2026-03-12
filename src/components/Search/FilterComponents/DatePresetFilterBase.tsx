@@ -3,7 +3,6 @@ import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
 import type {SearchDatePreset} from '@components/Search/types';
-import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 type SearchDateValues = Record<SearchDateModifier, string | undefined>;
 
@@ -185,7 +185,9 @@ function DatePresetFilterBase({
                     item={{
                         text: translate(`search.filters.date.presets.${preset}`),
                         isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
+                        keyForList: preset,
                     }}
+                    keyForList={preset}
                     onSelectRow={() => setDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
                     wrapperStyle={styles.flexReset}
                 />

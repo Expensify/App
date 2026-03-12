@@ -3,7 +3,6 @@ import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
@@ -15,6 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {ListItemProps, ListItem} from '@components/SelectionList/ListItem/types';
 
 function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onFocus, shouldSyncFocus, onSelectRow}: ListItemProps<TItem>) {
     const styles = useThemeStyles();

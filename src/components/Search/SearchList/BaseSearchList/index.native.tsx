@@ -1,8 +1,8 @@
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback} from 'react';
 import Animated from 'react-native-reanimated';
-import type {SearchListItem} from '@components/SelectionListWithSections/types';
 import type BaseSearchListProps from './types';
+import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 

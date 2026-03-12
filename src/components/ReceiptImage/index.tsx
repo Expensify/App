@@ -8,7 +8,6 @@ import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoa
 import ImageWithLoading from '@components/ImageWithLoading';
 import PDFThumbnail from '@components/PDFThumbnail';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
-import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -16,6 +15,7 @@ import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 import shouldUseAspectRatioForEReceipts from './shouldUseAspectRatioForEReceipts';
+import {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 // It is used to avoid updating the image width in a loop.
 const MIN_UPDATE_WIDTH_DIFF = 1000;

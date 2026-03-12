@@ -3,7 +3,6 @@ import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,6 +13,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
+import type {ListItem} from '@components/SelectionList/types';
+import type {ListItemProps} from '@components/SelectionList/ListItem/types';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 type UnreportedExpenseListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     readOnly?: boolean;

@@ -1,13 +1,13 @@
 import {useMemo} from 'react';
 import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
 import * as MCCIcons from '@components/Icon/MCCIcons';
-import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useStyleUtils from './useStyleUtils';
+import {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 const backgroundImages = {
     [CONST.ERECEIPT_COLORS.YELLOW]: eReceiptBGs.EReceiptBG_Yellow,

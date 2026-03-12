@@ -6,7 +6,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
-import SingleSelectWithAvatarListItem from '@components/SelectionListWithSections/SingleSelectWithAvatarListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -24,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import SingleSelectWithAvatarListItem from '@components/SelectionList/ListItem/SingleSelectWithAvatarListItem';
 
 type Sections = Section<OptionData>;
 

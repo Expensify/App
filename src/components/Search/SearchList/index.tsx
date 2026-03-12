@@ -16,10 +16,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
-import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
 import type {
     ExtendedTargetedEvent,
     ReportActionListItemType,
@@ -55,6 +51,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
+import TransactionListItem from './ListItem/TransactionListItem';
+import ChatListItem from './ListItem/ChatListItem';
+import TransactionGroupListItem from './ListItem/TransactionGroupListItem';
+import TaskListItem from './ListItem/TaskListItem';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
