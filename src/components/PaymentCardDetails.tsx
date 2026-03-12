@@ -10,8 +10,8 @@ import DateUtils from '@libs/DateUtils';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import type Fund from '@src/types/onyx/Fund';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Text from './Text';
 import Icon from './Icon';
+import Text from './Text';
 
 type PaymentCardDetailsProps = {
     /** The billing card data */

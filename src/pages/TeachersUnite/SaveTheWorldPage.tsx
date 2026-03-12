@@ -1,10 +1,10 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import PaymentCardDetails from '@components/PaymentCardDetails';
 import ConfirmModal from '@components/ConfirmModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
+import PaymentCardDetails from '@components/PaymentCardDetails';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -79,10 +79,11 @@ function SaveTheWorldPage() {
     }, [translate, waitForNavigate, styles]);
 
     useEffect(() => {
-        if (pendingPersonalKarmaEnableRef.current && billingCard) {
-            pendingPersonalKarmaEnableRef.current = false;
-            updatePersonalKarma(true);
+        if (!pendingPersonalKarmaEnableRef.current || !billingCard) {
+            return;
         }
+        pendingPersonalKarmaEnableRef.current = false;
+        updatePersonalKarma(true);
     }, [billingCard]);
 
     const handleDisablePersonalKarma = () => {
