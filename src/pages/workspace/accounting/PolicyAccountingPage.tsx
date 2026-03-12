@@ -498,6 +498,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
+        hasPoliciesConnectedToSageIntacct,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
