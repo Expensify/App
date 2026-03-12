@@ -67,7 +67,6 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const reportAttributesDerived = useReportAttributes();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [privateIsArchived] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: privateIsArchivedSelector});
 
@@ -83,7 +82,6 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                 currentUserPersonalDetails.accountID,
                 personalDetails,
                 report,
-                chatReport,
                 policy,
                 reportAttributesDerived,
             ),

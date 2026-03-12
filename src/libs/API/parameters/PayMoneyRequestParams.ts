@@ -7,6 +7,7 @@ type PayMoneyRequestParams = {
     paymentMethodType: PaymentMethodType;
     full: boolean;
     amount?: number;
+    bankAccountID?: number;
     optimisticHoldReportID?: string;
     optimisticHoldActionID?: string;
     /**

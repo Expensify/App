@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
@@ -81,15 +81,31 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
-    const options: OptionList | null =
-        enabled && allReports && allPersonalDetails
-            ? createFilteredOptionList(allPersonalDetails, allReports, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, allPolicies, {
-                  maxRecentReports: reportsLimit,
-                  includeP2P,
-                  searchTerm,
-                  betas,
-              })
-            : null;
+    // React Compiler can't prove referential stability for the destructured `config` param with default values, so explicit useMemo is required here.
+    const options: OptionList | null = useMemo(
+        () =>
+            enabled && allReports && allPersonalDetails
+                ? createFilteredOptionList(allPersonalDetails, allReports, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, allPolicies, {
+                      maxRecentReports: reportsLimit,
+                      includeP2P,
+                      searchTerm,
+                      betas,
+                  })
+                : null,
+        [
+            enabled,
+            allReports,
+            allPersonalDetails,
+            currentUserPersonalDetails.accountID,
+            reportAttributesDerived,
+            privateIsArchivedMap,
+            allPolicies,
+            reportsLimit,
+            includeP2P,
+            searchTerm,
+            betas,
+        ],
+    );
 
     const hasMore = options ? reportsLimit < totalReports : false;
 

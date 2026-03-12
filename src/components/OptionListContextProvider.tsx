@@ -133,9 +133,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-                const {reportOption} = processReport(report, personalDetails, privateIsArchived, currentUserAccountID, chatReport, policy, reportAttributes?.reports);
+                const {reportOption} = processReport(report, personalDetails, privateIsArchived, currentUserAccountID, policy, reportAttributes?.reports);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -171,9 +170,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
                 const reportItem = updatedReportsMap.get(reportID)?.item;
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem?.chatReportID}`];
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
-                const {reportOption} = processReport(reportItem, personalDetails, privateIsArchived, currentUserAccountID, chatReport, policy, reportAttributes?.reports);
+                const {reportOption} = processReport(reportItem, personalDetails, privateIsArchived, currentUserAccountID, policy, reportAttributes?.reports);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -244,9 +242,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 }
 
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const newReportOption = createOptionFromReport(report, personalDetails, currentUserAccountID, chatReport, privateIsArchived, policy, reportAttributes?.reports, {
+                const newReportOption = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, policy, reportAttributes?.reports, {
                     showPersonalDetails: true,
                 });
                 const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
