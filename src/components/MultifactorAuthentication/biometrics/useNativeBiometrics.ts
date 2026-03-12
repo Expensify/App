@@ -184,6 +184,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
     const hasLocalCredentials = async () => !!(await getLocalPublicKey());
 
     return {
+        deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS,
         serverHasAnyCredentials,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,

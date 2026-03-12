@@ -178,6 +178,7 @@ function usePasskeys(): UseBiometricsReturn {
     };
 
     return {
+        deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS,
         serverHasAnyCredentials,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,

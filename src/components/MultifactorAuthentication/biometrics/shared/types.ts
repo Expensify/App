@@ -1,5 +1,7 @@
+import type {ValueOf} from 'type-fest';
 import type {AuthenticationChallenge, RegistrationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import type {AuthTypeInfo, MultifactorAuthenticationReason, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
+import type CONST from '@src/CONST';
 
 type BaseRegisterResult = {
     keyInfo: RegistrationKeyInfo;
@@ -35,6 +37,9 @@ type AuthorizeResultFailure = {
 type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;
 
 type UseBiometricsReturn = {
+    /** The authentication method type provided by this hook (BIOMETRICS on native, PASSKEYS on web) */
+    deviceVerificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
+
     /** Whether server has any registered credentials for this account */
     serverHasAnyCredentials: boolean;
 
