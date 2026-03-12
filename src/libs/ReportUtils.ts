@@ -544,7 +544,19 @@ type OptimisticReopenedReportAction = Pick<
 
 type OptimisticRetractedReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachmentOnly'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
+    | 'delegateAccountID'
 >;
 
 type OptimisticCancelPaymentReportAction = Pick<
@@ -2982,18 +2994,33 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
  * @param backToReport - The report to return to after adding an expense
  * @returns The dropdown options for the add expense button
  */
-function getAddExpenseDropdownOptions(
-    translate: LocalizedTranslate,
-    icons: Record<'Location' | 'ReceiptPlus', IconAsset>,
-    iouReportID: string | undefined,
-    policy: OnyxEntry<Policy>,
-    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>,
-    amountOwed: OnyxEntry<number>,
-    ownerBillingGraceEndPeriod: OnyxEntry<number>,
-    iouRequestBackToReport?: string,
-    unreportedExpenseBackToReport?: string,
-    lastDistanceExpenseType?: IOURequestType,
-): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
+type GetAddExpenseDropdownOptionsParams = {
+    translate: LocalizedTranslate;
+    icons: Record<'Location' | 'ReceiptPlus', IconAsset>;
+    iouReportID: string | undefined;
+    policy: OnyxEntry<Policy>;
+    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+    draftTransactionIDs: string[] | undefined;
+    amountOwed: OnyxEntry<number>;
+    ownerBillingGraceEndPeriod: OnyxEntry<number>;
+    iouRequestBackToReport?: string;
+    unreportedExpenseBackToReport?: string;
+    lastDistanceExpenseType?: IOURequestType;
+};
+
+function getAddExpenseDropdownOptions({
+    translate,
+    icons,
+    iouReportID,
+    policy,
+    userBillingGraceEndPeriodCollection,
+    draftTransactionIDs,
+    amountOwed,
+    ownerBillingGraceEndPeriod,
+    iouRequestBackToReport,
+    unreportedExpenseBackToReport,
+    lastDistanceExpenseType,
+}: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
     return [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
@@ -3012,7 +3039,7 @@ function getAddExpenseDropdownOptions(
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, undefined, false, iouRequestBackToReport);
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
             },
         },
         {
@@ -3028,7 +3055,7 @@ function getAddExpenseDropdownOptions(
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, lastDistanceExpenseType, false, iouRequestBackToReport);
+                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);
             },
         },
         {
@@ -4817,67 +4844,6 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 }
 
 /**
- * Checks if the user can edit multiple transactions
- */
-function canEditMultipleTransactions(
-    selectedTransactions: Transaction[],
-    reportActions: OnyxCollection<ReportActions>,
-    reports: OnyxCollection<Report>,
-    policies: OnyxCollection<Policy>,
-    areReportsSelected = false,
-): boolean {
-    if (areReportsSelected) {
-        return false;
-    }
-
-    if (selectedTransactions.length < 2) {
-        return false;
-    }
-
-    for (const transaction of selectedTransactions) {
-        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        if (isUnreportedExpense) {
-            return true;
-        }
-
-        // Do not allow editing split expenses in bulk
-        if (transaction.comment?.source === CONST.IOU.TYPE.SPLIT || transaction.comment?.splits) {
-            return false;
-        }
-
-        const reportAction = getIOUActionForTransactionID(Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {}), transaction.transactionID);
-        const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-
-        const isApproved = isReportApproved({report});
-
-        if (isApproved || isSettled(report)) {
-            return false;
-        }
-
-        const fieldsToCheck = [
-            CONST.EDIT_REQUEST_FIELD.AMOUNT,
-            CONST.EDIT_REQUEST_FIELD.MERCHANT,
-            CONST.EDIT_REQUEST_FIELD.CATEGORY,
-            CONST.EDIT_REQUEST_FIELD.TAG,
-            CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
-            CONST.EDIT_REQUEST_FIELD.DATE,
-            CONST.EDIT_REQUEST_FIELD.BILLABLE,
-            CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
-            CONST.EDIT_REQUEST_FIELD.TAX_RATE,
-        ];
-
-        const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest(reportAction, field, undefined, undefined, undefined, transaction, report, policy));
-
-        if (!isTransactionEditable) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
  * Checks if the current user can edit the provided property of an expense
  *
  */
@@ -4902,7 +4868,6 @@ function canEditFieldOfMoneyRequest(
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
         CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
-        CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
 
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, linkedTransaction)) {
@@ -4917,10 +4882,6 @@ function canEditFieldOfMoneyRequest(
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
     const transaction = linkedTransaction ?? deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
-        return false;
-    }
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
@@ -6454,6 +6415,20 @@ function buildOptimisticAddCommentReportAction(
             delegateAccountID: delegateAccountDetails?.accountID,
         },
     };
+}
+
+function buildConciergeGreetingReportAction(reportID: string, greetingText: string, created: string): ReportAction {
+    return {
+        reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID,
+        reportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
+        created,
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: greetingText, text: greetingText}],
+        originalMessage: {html: greetingText, whisperedTo: []},
+        shouldShow: true,
+    } as ReportAction;
 }
 
 /**
@@ -8172,6 +8147,7 @@ function buildOptimisticRetractedReportAction(created = DateUtils.getDBTime()): 
         avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
+        delegateAccountID: getPersonalDetailByEmail(delegateEmail)?.accountID,
     };
 }
 
@@ -13092,8 +13068,34 @@ function getLinkedIOUTransaction(reportAction: OnyxEntry<ReportAction | Optimist
     return transactionID ? transactions.find((item) => item.transactionID === transactionID) : undefined;
 }
 
+function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportViolations?: OnyxEntry<ReportViolations>): boolean {
+    if (!report || !policy?.fieldList || !policy?.areReportFieldsEnabled) {
+        return false;
+    }
+
+    if (!isPaidGroupPolicyExpenseReport(report) && !isInvoiceReport(report)) {
+        return false;
+    }
+
+    const {fieldsByName} = getReportFieldMaps(report, policy.fieldList);
+
+    return Object.values(fieldsByName).some((field) => {
+        if (field.target !== report.type) {
+            return false;
+        }
+        if (shouldHideSingleReportField(field)) {
+            return false;
+        }
+        if (isReportFieldDisabledForUser(report, field, policy)) {
+            return false;
+        }
+        return !!getFieldViolation(reportViolations, field);
+    });
+}
+
 export {
     areAllRequestsBeingSmartScanned,
+    buildConciergeGreetingReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
     checkBulkRejectHydration,
@@ -13153,7 +13155,6 @@ export {
     canHoldUnholdReportAction,
     canEditReportPolicy,
     canEditFieldOfMoneyRequest,
-    canEditMultipleTransactions,
     canEditMoneyRequest,
     canEditReportAction,
     canEditReportDescription,
@@ -13278,6 +13279,7 @@ export {
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,
+    hasVisibleReportFieldViolations,
     hasWarningTypeViolations,
     hasNoticeTypeViolations,
     hasAnyViolations,

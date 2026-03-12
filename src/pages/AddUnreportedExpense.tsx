@@ -33,6 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
@@ -59,6 +60,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'AddUnreportedExpense.InitialSkeleton',
@@ -298,7 +300,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                                     return;
                                 }
                                 interceptAnonymousUser(() => {
-                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, undefined, false, backToReport);
+                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
                                 });
                             },
                             success: true,

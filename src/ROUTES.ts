@@ -192,19 +192,6 @@ const ROUTES = {
         },
     },
     SEARCH_REJECT_REASON_RHP: 'search/reject',
-    SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
-    SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
-    SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
-    SEARCH_EDIT_MULTIPLE_MERCHANT_RHP: 'search/edit-multiple/merchant',
-    SEARCH_EDIT_MULTIPLE_DATE_RHP: 'search/edit-multiple/date',
-    SEARCH_EDIT_MULTIPLE_CATEGORY_RHP: 'search/edit-multiple/category',
-    SEARCH_EDIT_MULTIPLE_TAG_RHP: {
-        route: 'search/edit-multiple/tag/:tagListIndex',
-        getRoute: (tagListIndex = 0) => `search/edit-multiple/tag/${tagListIndex}` as const,
-    },
-    SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
-    SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
-    SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
     MOVE_TRANSACTIONS_SEARCH_RHP: {
         route: 'search/move-transactions/search/:backTo?',
         getRoute: (backTo?: string) => {
@@ -3008,7 +2995,7 @@ const ROUTES = {
         route: 'travel/public-domain-error',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error`, backTo),
+        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_WORKSPACE_CONFIRMATION: {
         route: 'travel/upgrade/workspace/confirmation',
