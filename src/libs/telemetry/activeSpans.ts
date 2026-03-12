@@ -36,7 +36,7 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     if (extraOptions.minDuration) {
         span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION, extraOptions.minDuration);
     }
-    activeSpans.set(spanId, {span, startTime: Date.now()});
+    activeSpans.set(spanId, {span, startTime: performance.now()});
 
     return span;
 }
@@ -49,7 +49,7 @@ function endSpan(spanId: string) {
         return;
     }
     const {span, startTime} = entry;
-    const now = Date.now();
+    const now = performance.now();
     const durationMs = Math.round(now - startTime);
     Log.info(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, undefined, {spanId, durationMs, timestamp: now});
     span.setStatus({code: 1});
