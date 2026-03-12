@@ -178,7 +178,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
+    const draftTransactionIDs = useMemo(() => Object.keys(transactionDrafts ?? {}), [transactionDrafts]);
 
     const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {isBetaEnabled} = usePermissions();

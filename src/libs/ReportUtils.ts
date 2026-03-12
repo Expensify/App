@@ -2994,18 +2994,33 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
  * @param backToReport - The report to return to after adding an expense
  * @returns The dropdown options for the add expense button
  */
-function getAddExpenseDropdownOptions(
-    translate: LocalizedTranslate,
-    icons: Record<'Location' | 'ReceiptPlus', IconAsset>,
-    iouReportID: string | undefined,
-    policy: OnyxEntry<Policy>,
-    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>,
-    amountOwed: OnyxEntry<number>,
-    ownerBillingGraceEndPeriod: OnyxEntry<number>,
-    iouRequestBackToReport?: string,
-    unreportedExpenseBackToReport?: string,
-    lastDistanceExpenseType?: IOURequestType,
-): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
+type GetAddExpenseDropdownOptionsParams = {
+    translate: LocalizedTranslate;
+    icons: Record<'Location' | 'ReceiptPlus', IconAsset>;
+    iouReportID: string | undefined;
+    policy: OnyxEntry<Policy>;
+    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+    draftTransactionIDs: string[] | undefined;
+    amountOwed: OnyxEntry<number>;
+    ownerBillingGraceEndPeriod: OnyxEntry<number>;
+    iouRequestBackToReport?: string;
+    unreportedExpenseBackToReport?: string;
+    lastDistanceExpenseType?: IOURequestType;
+};
+
+function getAddExpenseDropdownOptions({
+    translate,
+    icons,
+    iouReportID,
+    policy,
+    userBillingGraceEndPeriodCollection,
+    draftTransactionIDs,
+    amountOwed,
+    ownerBillingGraceEndPeriod,
+    iouRequestBackToReport,
+    unreportedExpenseBackToReport,
+    lastDistanceExpenseType,
+}: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
     return [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
@@ -3024,7 +3039,7 @@ function getAddExpenseDropdownOptions(
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, undefined, false, iouRequestBackToReport);
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
             },
         },
         {
@@ -3040,7 +3055,7 @@ function getAddExpenseDropdownOptions(
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, lastDistanceExpenseType, false, iouRequestBackToReport);
+                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);
             },
         },
         {
@@ -6401,6 +6416,20 @@ function buildOptimisticAddCommentReportAction(
             delegateAccountID: delegateAccountDetails?.accountID,
         },
     };
+}
+
+function buildConciergeGreetingReportAction(reportID: string, greetingText: string, created: string): ReportAction {
+    return {
+        reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID,
+        reportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
+        created,
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: greetingText, text: greetingText}],
+        originalMessage: {html: greetingText, whisperedTo: []},
+        shouldShow: true,
+    } as ReportAction;
 }
 
 /**
@@ -13035,8 +13064,34 @@ function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string,
     return {fieldValues, fieldsByName};
 }
 
+function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportViolations?: OnyxEntry<ReportViolations>): boolean {
+    if (!report || !policy?.fieldList || !policy?.areReportFieldsEnabled) {
+        return false;
+    }
+
+    if (!isPaidGroupPolicyExpenseReport(report) && !isInvoiceReport(report)) {
+        return false;
+    }
+
+    const {fieldsByName} = getReportFieldMaps(report, policy.fieldList);
+
+    return Object.values(fieldsByName).some((field) => {
+        if (field.target !== report.type) {
+            return false;
+        }
+        if (shouldHideSingleReportField(field)) {
+            return false;
+        }
+        if (isReportFieldDisabledForUser(report, field, policy)) {
+            return false;
+        }
+        return !!getFieldViolation(reportViolations, field);
+    });
+}
+
 export {
     areAllRequestsBeingSmartScanned,
+    buildConciergeGreetingReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
     checkBulkRejectHydration,
@@ -13220,6 +13275,7 @@ export {
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,
+    hasVisibleReportFieldViolations,
     hasWarningTypeViolations,
     hasNoticeTypeViolations,
     hasAnyViolations,

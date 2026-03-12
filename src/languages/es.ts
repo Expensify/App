@@ -236,6 +236,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: 'por',
         mi: 'milla',
         km: 'kilómetro',
+        milesAbbreviated: 'mi',
+        kilometersAbbreviated: 'km',
         copied: '¡Copiado!',
         someone: 'Alguien',
         total: 'Total',
@@ -383,6 +385,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'El',
         before: 'Antes',
         after: 'Después',
+        range: 'Rango',
         reschedule: 'Reprogramar',
         general: 'General',
         workspacesTabTitle: 'Espacios',
@@ -417,6 +420,10 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semana',
         year: 'Año',
         quarter: 'Trimestre',
+        concierge: {
+            sidePanelGreeting: 'Hola, ¿en qué puedo ayudarte?',
+            showHistory: 'Mostrar historial',
+        },
         vacationDelegate: 'Delegado de vacaciones',
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
@@ -1469,7 +1476,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'El importe total es demasiado alto. Reduce las horas o disminuye la tasa.',
         },
         correctRateError: 'Corrige el error de la tasa y vuelve a intentarlo.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explicar<sparkles-icon/></a>`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"'),
             billable: (value: boolean) => (value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"'),
@@ -1849,7 +1856,7 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.</muted-text-micro>`,
+        readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
         whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',
@@ -2519,7 +2526,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>Al iniciar sesión, estás accediendo a los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.</muted-text-xs>`,
-        license: `<muted-text-xs>El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licencias</a>.</muted-text-xs>`,
+        license: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licencias</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
@@ -2627,6 +2634,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         workEmailValidationError: {
             publicEmail: 'Por favor, introduce un correo electrónico laboral válido de un dominio privado, por ejemplo: mitch@company.com',
+            sameAsSignupEmail: 'Por favor, introduce un correo electrónico diferente al que utilizaste para registrarte',
             offline: 'No pudimos añadir tu correo electrónico laboral porque parece que estás sin conexión.',
         },
         mergeBlockScreen: {
@@ -2914,7 +2922,7 @@ ${amount} para ${merchant} - ${date}`,
                 descriptionTwo: 'Clasifica y etiqueta gastos',
                 descriptionThree: 'Crea y comparte informes',
             },
-            price: 'Pruébalo gratis durante 30 días y luego mejora por solo <strong>$5/usuario/mes</strong>.',
+            price: (price?: string) => `Pruébalo gratis durante 30 días y luego mejora por solo <strong>${price ?? '$5'}/usuario/mes</strong>.`,
             createWorkspace: 'Crear espacio de trabajo',
         },
         confirmWorkspace: {
@@ -3887,6 +3895,9 @@ ${amount} para ${merchant} - ${date}`,
             defaultNote: `Los recibos enviados a ${CONST.EMAIL.RECEIPTS} aparecerán en este espacio de trabajo.`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
+            outstandingBalanceWarning:
+                'Tienes un saldo pendiente que debe liquidarse antes de eliminar tu último espacio de trabajo. Por favor, ve a la configuración de tu suscripción para resolver el pago.',
+            settleBalance: 'Ir a Suscripción',
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a este espacio de trabajo, pide al dueño del espacio de trabajo que te añada como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
@@ -6858,6 +6869,8 @@ ${amount} para ${merchant} - ${date}`,
                     return `${enabled ? 'activó' : 'desactivó'} la contabilidad`;
                 case 'Expensify Cards':
                     return `${enabled ? 'activó' : 'desactivó'} las tarjetas Expensify`;
+                case 'travel invoicing':
+                    return `${enabled ? 'activó' : 'desactivó'} la facturación de viajes`;
                 case 'company cards':
                     return `${enabled ? 'activó' : 'desactivó'} las tarjetas de empresa`;
                 case 'invoicing':
@@ -7122,6 +7135,8 @@ ${amount} para ${merchant} - ${date}`,
                 before: (date) => `Antes de ${date ?? ''}`,
                 after: (date) => `Después de ${date ?? ''}`,
                 on: (date) => `En ${date ?? ''}`,
+                customDate: 'Fecha personalizada',
+                customRange: 'Rango personalizado',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
@@ -7224,6 +7239,9 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
     },
     genericErrorPage: {
@@ -8516,6 +8534,7 @@ ${amount} para ${merchant} - ${date}`,
         switchAccount: 'Cambiar de cuenta:',
         copilotDelegatedAccess: 'Copilot: Acceso delegado',
         copilotDelegatedAccessDescription: 'Permitir que otros miembros accedan a tu cuenta.',
+        learnMoreAboutDelegatedAccess: 'Más información sobre acceso delegado',
         addCopilot: 'Agregar copiloto',
         membersCanAccessYourAccount: 'Estos miembros pueden acceder a tu cuenta:',
         youCanAccessTheseAccounts: 'Puedes acceder a estas cuentas a través del conmutador de cuentas:',
@@ -8855,7 +8874,10 @@ ${amount} para ${merchant} - ${date}`,
                 other: 'Cerrar cuentas',
             }),
             closeAccountPrompt: '¿Estás seguro? Esta acción es permanente.',
-            forceCloseAccount: () => ({one: 'Forzar cierre de cuenta', other: 'Forzar cierre de cuentas'}),
+            forceCloseAccount: () => ({
+                one: 'Forzar cierre de cuenta',
+                other: 'Forzar cierre de cuentas',
+            }),
             safeCloseAccount: () => ({
                 one: 'Cierre seguro de cuenta',
                 other: 'Cierre seguro de cuentas',
