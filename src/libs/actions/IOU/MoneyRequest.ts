@@ -647,7 +647,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     distanceInMeters,
                     unit,
                     mileageRate?.rate ?? 0,
-                    mileageRate?.currency ?? transaction?.currency ?? 'USD',
+                    mileageRate?.currency ?? transaction?.currency ?? CONST.CURRENCY.USD,
                     translate,
                     (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                     getCurrencySymbol,
