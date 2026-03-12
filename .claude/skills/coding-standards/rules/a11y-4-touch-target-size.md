@@ -64,5 +64,5 @@ Flag ONLY when ALL of these are true:
 - Dimensions are not explicitly set (defaults may be adequate)
 
 **Search Patterns** (hints for reviewers):
-- `width: 2` / `height: 2` / `width: 3` (small explicit dimensions on interactive elements)
+- Explicit `width` or `height` under 44 on interactive elements (e.g., `width: 24`, `height: 32`)
 - `onPress` with small explicit sizing and no `hitSlop`

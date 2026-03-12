@@ -7,7 +7,7 @@ title: Forms must have accessible labels, errors, and instructions
 
 ### Reasoning
 
-Screen reader users navigate forms field by field. Each input must be associated with a descriptive label so users know what to enter. Error messages must be announced when they appear and linked to the relevant field. Without proper labeling, users hear "edit text" with no context. Without announced errors, users submit forms repeatedly without knowing what's wrong. (WCAG 1.3.1, 3.3.1, 3.3.2)
+Screen reader users navigate forms field by field. Each input must be associated with a descriptive label so users know what to enter. While React Native uses `placeholder` as a fallback accessible name, it disappears once the user starts typing, leaving the field unlabeled. An explicit `accessibilityLabel` (or `accessibilityLabelledBy` on Android) persists regardless of input state. Error messages must be announced when they appear. Note: `accessibilityHint` and `accessibilityActions`/`onAccessibilityAction` have no ARIA equivalents — use the RN-specific props directly. (WCAG 1.3.1, 3.3.1, 3.3.2)
 
 ### Incorrect
 
@@ -44,12 +44,11 @@ Screen reader users navigate forms field by field. Each input must be associated
     accessibilityLabelledBy="emailLabel"
 />
 
-// Error announced and associated with the input
+// Error announced via live region (Android) + announceForAccessibility (iOS)
 <TextInput
     value={email}
     onChangeText={setEmail}
     accessibilityLabel={translate('common.email')}
-    accessibilityState={{disabled: false}}
 />
 {emailError && (
     <Text
@@ -69,7 +68,7 @@ Screen reader users navigate forms field by field. Each input must be associated
 Flag ONLY when ANY of these patterns is found:
 
 - `<TextInput>` with **no** `accessibilityLabel`, **no** `accessibilityLabelledBy`, and **no** `aria-label`
-- `<TextInput>` relying **only** on `placeholder` for labeling (placeholder disappears on input and is not reliably read by all screen readers)
+- `<TextInput>` relying **only** on `placeholder` for labeling (placeholder disappears once user types, leaving the field unlabeled for screen readers)
 - Form validation error text rendered without `accessibilityLiveRegion` or `accessibilityRole="alert"`
 
 **DO NOT flag if:**

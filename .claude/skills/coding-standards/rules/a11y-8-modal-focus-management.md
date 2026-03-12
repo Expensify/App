@@ -7,7 +7,12 @@ title: Manage focus for modals and overlays
 
 ### Reasoning
 
-When a modal, bottom sheet, or popover opens, screen reader users can still navigate to content behind it unless focus is trapped inside the overlay. On iOS, use `accessibilityViewIsModal={true}` to make VoiceOver ignore sibling views. Focus should move to the modal's first interactive element on open and return to the trigger element on close. Without this, screen reader users can interact with obscured content, creating a confusing and broken experience. (WCAG 2.4.3, WCAG 2.4.11)
+When a modal, bottom sheet, or popover opens, screen reader users can still navigate to content behind it unless focus is trapped inside the overlay. Platform-specific handling is required:
+
+- **iOS**: Use `accessibilityViewIsModal={true}` (or `aria-modal`) on the modal container — VoiceOver will ignore sibling views. No `aria-*` alternative exists for hiding background content on Android.
+- **Android**: Use `importantForAccessibility="no-hide-descendants"` on the background content to hide it from TalkBack. There is no ARIA equivalent for this prop.
+
+Focus should move to the modal's first interactive element on open and return to the trigger on close. (WCAG 2.4.3, 2.1.2)
 
 ### Incorrect
 
@@ -33,43 +38,35 @@ When a modal, bottom sheet, or popover opens, screen reader users can still navi
 ### Correct
 
 ```tsx
-// Modal with accessibility focus trapping
+// Modal with cross-platform focus trapping
 <Modal visible={isVisible} onRequestClose={onCancel}>
     <View
         style={styles.modalContent}
-        accessibilityViewIsModal={true}
+        accessibilityViewIsModal={true}  // iOS: VoiceOver ignores siblings
     >
         <Text accessibilityRole="header">Confirm deletion?</Text>
         <Pressable
             ref={firstFocusRef}
             onPress={onConfirm}
             accessibilityRole="button"
-            accessibilityLabel={translate('common.delete')}
         >
             <Text>Delete</Text>
         </Pressable>
         <Pressable
             onPress={onCancel}
             accessibilityRole="button"
-            accessibilityLabel={translate('common.cancel')}
         >
             <Text>Cancel</Text>
         </Pressable>
     </View>
 </Modal>
-
-// Bottom sheet with focus management
-{isSheetOpen && (
-    <View
-        style={styles.bottomSheet}
-        accessibilityViewIsModal={true}
-    >
-        <Text accessibilityRole="header">Options</Text>
-        <Pressable onPress={onEdit} accessibilityRole="button">
-            <Text>Edit</Text>
-        </Pressable>
-    </View>
-)}
+{/* Android: hide background from TalkBack when modal is open */}
+<View
+    style={styles.backgroundContent}
+    importantForAccessibility={isVisible ? 'no-hide-descendants' : 'auto'}
+>
+    {/* ... app content ... */}
+</View>
 ```
 
 ---
@@ -78,8 +75,8 @@ When a modal, bottom sheet, or popover opens, screen reader users can still navi
 
 Flag ONLY when ANY of these patterns is found:
 
-- `<Modal>` or custom modal/overlay component with **no** `accessibilityViewIsModal` on the content container
-- Bottom sheet or popover overlay with **no** `accessibilityViewIsModal`
+- `<Modal>` or custom modal/overlay component with **no** `accessibilityViewIsModal` (iOS) and **no** `importantForAccessibility="no-hide-descendants"` on background (Android)
+- Bottom sheet or popover overlay with **no** focus trapping mechanism
 - Modal/overlay that does **not** handle `onRequestClose` (Android back button dismissal)
 
 **DO NOT flag if:**
@@ -89,6 +86,6 @@ Flag ONLY when ANY of these patterns is found:
 - Component uses React Navigation modal which handles focus management
 
 **Search Patterns** (hints for reviewers):
-- `<Modal` without `accessibilityViewIsModal`
+- `<Modal` without `accessibilityViewIsModal` or `importantForAccessibility`
 - Custom overlay/sheet components
 - `visible={` / `isVisible` conditionally rendered overlays

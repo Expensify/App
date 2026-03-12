@@ -35,28 +35,31 @@ Drag-and-drop, swipe-to-delete, pinch-to-zoom, and other gesture-based interacti
 // Reorderable list with move up/down buttons as accessible alternative
 <DraggableFlatList
     data={items}
-    renderItem={({item, drag, getIndex}) => (
-        <View style={styles.row}>
-            <Pressable onLongPress={drag} accessibilityLabel={translate('common.dragToReorder')}>
-                <Icon src={Expensicons.DragHandle} />
-            </Pressable>
-            <Text>{item.name}</Text>
-            <Pressable
-                onPress={() => moveItem(getIndex(), 'up')}
-                accessibilityLabel={translate('common.moveUp')}
-                accessibilityRole="button"
-            >
-                <Icon src={Expensicons.UpArrow} />
-            </Pressable>
-            <Pressable
-                onPress={() => moveItem(getIndex(), 'down')}
-                accessibilityLabel={translate('common.moveDown')}
-                accessibilityRole="button"
-            >
-                <Icon src={Expensicons.DownArrow} />
-            </Pressable>
-        </View>
-    )}
+    renderItem={({item, drag, isActive}) => {
+        const index = items.indexOf(item);
+        return (
+            <View style={styles.row}>
+                <Pressable onLongPress={drag} accessibilityLabel={translate('common.dragToReorder')}>
+                    <Icon src={Expensicons.DragHandle} />
+                </Pressable>
+                <Text>{item.name}</Text>
+                <Pressable
+                    onPress={() => moveItem(index, 'up')}
+                    accessibilityLabel={translate('common.moveUp')}
+                    accessibilityRole="button"
+                >
+                    <Icon src={Expensicons.UpArrow} />
+                </Pressable>
+                <Pressable
+                    onPress={() => moveItem(index, 'down')}
+                    accessibilityLabel={translate('common.moveDown')}
+                    accessibilityRole="button"
+                >
+                    <Icon src={Expensicons.DownArrow} />
+                </Pressable>
+            </View>
+        );
+    }}
     onDragEnd={({data}) => setItems(data)}
 />
 

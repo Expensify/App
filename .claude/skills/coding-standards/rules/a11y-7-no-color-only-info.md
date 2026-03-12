@@ -36,7 +36,6 @@ Users with color vision deficiencies (8% of men, 0.5% of women) cannot distingui
 // Error uses color + icon + text message
 <TextInput
     style={[styles.input, hasError && styles.inputError]}
-    accessibilityState={{disabled: false}}
 />
 {hasError && (
     <View style={styles.errorRow}>

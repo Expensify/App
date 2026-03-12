@@ -7,15 +7,15 @@ title: Use semantic accessibilityRole for interactive elements
 
 ### Reasoning
 
-React Native `<View>` has no semantic meaning — assistive technology treats it as a generic container. When a `<View>` handles `onPress` or acts as a button, link, header, checkbox, switch, or tab, it must declare its role via `accessibilityRole` (or `role`). Without this, screen reader users cannot understand what the element does or how to interact with it. (WCAG 4.1.2)
+React Native components have no implicit semantic meaning — assistive technology treats them as generic containers. Interactive elements must declare their role via `accessibilityRole` or `role` so screen readers can convey what the element does. Note: `role` is a cross-platform alias that takes precedence over `accessibilityRole` when both are set. (WCAG 4.1.2)
 
 ### Incorrect
 
 ```tsx
-// View acting as button with no role — screen reader doesn't know it's tappable
-<View accessible onPress={handleSubmit}>
+// Pressable with no role — screen reader doesn't convey it's a button
+<Pressable onPress={handleSubmit}>
     <Text>Submit</Text>
-</View>
+</Pressable>
 
 // Pressable acting as link with no role
 <Pressable onPress={() => openURL(href)}>
@@ -59,7 +59,7 @@ React Native `<View>` has no semantic meaning — assistive technology treats it
 
 Flag ONLY when ANY of these patterns is found:
 
-- `<View>` or generic container with `onPress`/`onLongPress` handler but **no** `accessibilityRole` or `role` prop
+- `<Pressable>` or interactive component with `onPress`/`onLongPress` handler but **no** `accessibilityRole` or `role` prop
 - `<Pressable>` or `<TouchableOpacity>` navigating to a URL without `accessibilityRole="link"`
 - Text styled as a heading (large/bold, section title) without `accessibilityRole="header"`
 - Toggle/switch UI without `accessibilityRole="switch"` or `"checkbox"`
@@ -72,6 +72,6 @@ Flag ONLY when ANY of these patterns is found:
 - Element is not interactive and not a semantic landmark
 
 **Search Patterns** (hints for reviewers):
-- `onPress` without `accessibilityRole`
-- `<View` with `onPress`
+- `onPress` without `accessibilityRole` or `role`
+- `<Pressable` without `accessibilityRole`
 - Heading-styled `<Text` without `accessibilityRole="header"`

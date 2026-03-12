@@ -80,7 +80,7 @@ Flag ONLY when ANY of these patterns is found:
 **DO NOT flag if:**
 
 - Using a design system component that handles state internally (e.g., `<Switch>`, `<Checkbox>`, `<RadioButton>`)
-- State is communicated via `aria-*` props instead of `accessibilityState`
+- State is communicated via the equivalent `aria-*` props (`aria-disabled`, `aria-checked`, `aria-expanded`, `aria-selected`) — these map to `accessibilityState` internally
 
 **Search Patterns** (hints for reviewers):
 - `disabled={` without `accessibilityState`

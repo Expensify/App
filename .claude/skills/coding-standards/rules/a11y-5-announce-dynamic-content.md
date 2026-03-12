@@ -7,7 +7,7 @@ title: Announce dynamic content changes to assistive technology
 
 ### Reasoning
 
-Screen reader users cannot see visual changes — toast messages, success/error banners, loading completions, and counter updates are invisible unless explicitly announced. On Android, use `accessibilityLiveRegion` on the changing text node. On iOS, use `AccessibilityInfo.announceForAccessibility()`. Without announcements, dynamic feedback is silently lost. (WCAG 4.1.3)
+Screen reader users cannot see visual changes — toast messages, success/error banners, loading completions, and counter updates are invisible unless explicitly announced. Cross-platform coverage requires **both** approaches: `accessibilityLiveRegion` (or `aria-live`) works **only on Android** (TalkBack), while `AccessibilityInfo.announceForAccessibility()` works **only on iOS** (VoiceOver). Neither has a cross-platform equivalent — you must handle both platforms. (WCAG 4.1.3)
 
 ### Incorrect
 
@@ -31,33 +31,31 @@ Screen reader users cannot see visual changes — toast messages, success/error 
 ### Correct
 
 ```tsx
-// Android: live region announces when text content changes
+// Cross-platform: use BOTH live region (Android) and announceForAccessibility (iOS)
 {showSuccess && (
     <View style={styles.toast}>
         <Text accessibilityLiveRegion="polite">Changes saved successfully</Text>
     </View>
 )}
 
-// Error messages should interrupt — use assertive for errors
-{error && (
-    <Text accessibilityLiveRegion="assertive" accessibilityRole="alert">
-        {error}
-    </Text>
-)}
-
-// iOS: programmatic announcement for transient messages
 useEffect(() => {
     if (showSuccess) {
         AccessibilityInfo.announceForAccessibility(translate('common.changesSaved'));
     }
 }, [showSuccess]);
 
-// Cross-platform: announce loading completion
+// Error messages should interrupt — use assertive (Android) + announcement (iOS)
+{error && (
+    <Text accessibilityLiveRegion="assertive" accessibilityRole="alert">
+        {error}
+    </Text>
+)}
+
 useEffect(() => {
-    if (!isLoading) {
-        AccessibilityInfo.announceForAccessibility(translate('common.loaded'));
+    if (error) {
+        AccessibilityInfo.announceForAccessibility(error);
     }
-}, [isLoading]);
+}, [error]);
 ```
 
 ---
@@ -66,7 +64,7 @@ useEffect(() => {
 
 Flag ONLY when ANY of these patterns is found:
 
-- Toast, snackbar, banner, or success/error message rendered conditionally with **no** `accessibilityLiveRegion` and **no** `AccessibilityInfo.announceForAccessibility` call
+- Toast, snackbar, banner, or success/error message rendered conditionally with **no** `accessibilityLiveRegion`/`aria-live` (Android) and **no** `AccessibilityInfo.announceForAccessibility` call (iOS)
 - Form validation error text appears dynamically with **no** live region or announcement
 - Loading state transitions (loading -> loaded) with **no** announcement
 - Counter or status text updates with **no** live region
