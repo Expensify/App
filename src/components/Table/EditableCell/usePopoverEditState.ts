@@ -18,7 +18,7 @@ type UsePopoverEditStateOptions = {
 
     /**
      * Which horizontal edge of the anchor to use as the popover's x-origin.
-     * 'right' (default) = x + width (right edge of anchor)
+     * 'right' = x + width (right edge of anchor)
      * 'left' = x (left edge of anchor)
      */
     anchorEdge?: 'left' | 'right';
@@ -34,7 +34,7 @@ type UsePopoverEditStateOptions = {
  *   - Auto-open after layout via InteractionManager
  *   - isEditing + isPopoverVisible toggling
  */
-function usePopoverEditState({popoverHeight = CONST.POPOVER_DATE_MAX_HEIGHT, padding = 8, anchorEdge = 'right'}: UsePopoverEditStateOptions = {}) {
+function usePopoverEditState({popoverHeight = CONST.POPOVER_DATE_MAX_HEIGHT, padding = 8, anchorEdge = 'left'}: UsePopoverEditStateOptions = {}) {
     const {windowHeight} = useWindowDimensions();
     const anchorRef = useRef<View>(null);
     const [isEditing, setIsEditing] = useState(false);

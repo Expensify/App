@@ -15,9 +15,7 @@ type DateCellProps = {
 
 function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({
-        anchorEdge: 'left',
-    });
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState();
 
     const formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
 

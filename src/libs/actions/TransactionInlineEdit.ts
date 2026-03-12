@@ -9,7 +9,8 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Permissions from '@libs/Permissions';
-import {canEditFieldOfMoneyRequest, isReportIDApproved, isSettled} from '@libs/ReportUtils';
+import {isMultiLevelTags} from '@libs/PolicyUtils';
+import {canEditFieldOfMoneyRequest, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,6 +21,7 @@ import type {
     PolicyCategories,
     PolicyTagLists,
     RecentlyUsedCategories,
+    RecentlyUsedTags,
     Report,
     ReportAction,
     ReportNextStepDeprecated,
@@ -27,7 +29,23 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
-import {updateMoneyRequestAmountAndCurrency, updateMoneyRequestCategory, updateMoneyRequestDate, updateMoneyRequestDescription, updateMoneyRequestMerchant} from './IOU';
+import {
+    updateMoneyRequestAmountAndCurrency,
+    updateMoneyRequestCategory,
+    updateMoneyRequestDate,
+    updateMoneyRequestDescription,
+    updateMoneyRequestMerchant,
+    updateMoneyRequestTag,
+} from './IOU';
+
+type TransactionEditPermissions = {
+    canEditDate: boolean;
+    canEditMerchant: boolean;
+    canEditDescription: boolean;
+    canEditCategory: boolean;
+    canEditAmount: boolean;
+    canEditTag: boolean;
+};
 
 let allTransactions: NonNullable<OnyxCollection<Transaction>> = {};
 Onyx.connectWithoutView({
@@ -89,6 +107,15 @@ Onyx.connectWithoutView({
     waitForCollectionCallback: true,
     callback: (value) => {
         allPolicyRecentlyUsedCategories = value;
+    },
+});
+
+let allPolicyRecentlyUsedTags: OnyxCollection<RecentlyUsedTags> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allPolicyRecentlyUsedTags = value ?? {};
     },
 });
 
@@ -164,11 +191,12 @@ function getIouParamsForTransaction(transactionID: string, transactionThreadRepo
         transaction,
         policyTagList,
         policyRecentlyUsedCategories,
+        policyRecentlyUsedTags: policyID ? allPolicyRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] : undefined,
     };
 }
 
 /** Updates the date of an expense from the Search results table or the Expense Report page. */
-function editTransactionDateOnSearch(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newDate: string) {
+function editTransactionDateInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newDate: string) {
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     if (hash !== undefined) {
         optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedCreated: newDate});
@@ -185,7 +213,7 @@ function editTransactionDateOnSearch(hash: number | undefined, transactionID: st
 }
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
-function editTransactionMerchantOnSearch(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newMerchant: string) {
+function editTransactionMerchantInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newMerchant: string) {
     // Merchant must be a non-empty string. An empty merchant is not a valid
     // state and the IOU action would save it as a blank row label.
     if (!newMerchant.trim()) {
@@ -203,7 +231,7 @@ function editTransactionMerchantOnSearch(hash: number | undefined, transactionID
 }
 
 /** Updates the description of an expense from the Search results table or the Expense Report page. */
-function editTransactionDescriptionOnSearch(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newDescription: string) {
+function editTransactionDescriptionInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newDescription: string) {
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     if (hash !== undefined) {
         optimisticallyUpdateSnapshotTransaction(hash, transactionID, {comment: {comment: newDescription}});
@@ -216,7 +244,7 @@ function editTransactionDescriptionOnSearch(hash: number | undefined, transactio
 }
 
 /** Updates the category of an expense from the Search results table or the Expense Report page. */
-function editTransactionCategoryOnSearch(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newCategory: string) {
+function editTransactionCategoryInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newCategory: string) {
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     if (hash !== undefined) {
         optimisticallyUpdateSnapshotTransaction(hash, transactionID, {category: newCategory});
@@ -229,7 +257,7 @@ function editTransactionCategoryOnSearch(hash: number | undefined, transactionID
 }
 
 /** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
-function editTransactionAmountOnSearch(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newAmount: number) {
+function editTransactionAmountInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newAmount: number) {
     if (newAmount <= 0) {
         return;
     }
@@ -255,15 +283,30 @@ function editTransactionAmountOnSearch(hash: number | undefined, transactionID: 
     });
 }
 
+/** Updates the tag of an expense from the Search results table or the Expense Report page. */
+function editTransactionTagInline(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newTag: string) {
+    const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
+    if (hash !== undefined) {
+        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {tag: newTag});
+    }
+    updateMoneyRequestTag({
+        ...iouParams,
+        tag: newTag,
+        policyRecentlyUsedTags: iouParams.policyRecentlyUsedTags,
+        hash,
+    });
+}
+
 /**
  * Core inline-edit permission check, shared by the Search table and the Expense Report page.
  * Does NOT apply the Search-tab guard (caller is responsible for context-specific filtering).
  */
 function getTransactionEditPermissions(
-    transactionID: string,
     parentReportAction: OnyxInputOrEntry<ReportAction> | undefined,
-): {canEditDate: boolean; canEditMerchant: boolean; canEditDescription: boolean; canEditCategory: boolean; canEditAmount: boolean} {
-    const noEdit = {canEditDate: false, canEditMerchant: false, canEditDescription: false, canEditCategory: false, canEditAmount: false};
+    transaction: OnyxInputOrEntry<Transaction> | undefined,
+    parentReport: OnyxInputOrEntry<Report> | undefined,
+): TransactionEditPermissions {
+    const noEdit: TransactionEditPermissions = {canEditDate: false, canEditMerchant: false, canEditDescription: false, canEditCategory: false, canEditAmount: false, canEditTag: false};
 
     // parentReportAction may be undefined while the Onyx subscription is loading;
     // return noEdit until it arrives so permissions aren't prematurely granted.
@@ -271,10 +314,8 @@ function getTransactionEditPermissions(
         return noEdit;
     }
 
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-
     // Receipt is still being scanned — field values are not yet reliable.
-    if (isScanning(transaction)) {
+    if (isScanning(transaction ?? undefined)) {
         return noEdit;
     }
 
@@ -283,8 +324,6 @@ function getTransactionEditPermissions(
         return noEdit;
     }
 
-    const reportID = transaction.reportID;
-    const parentReport = reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : undefined;
     const policyID = parentReport?.policyID;
     const parentPolicy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
 
@@ -296,7 +335,7 @@ function getTransactionEditPermissions(
     }
 
     // Approved or settled reports are locked — inline editing is not supported.
-    const reportIsLocked = isSettled(parentReport?.reportID) || !!isReportIDApproved(parentReport?.reportID);
+    const reportIsLocked = isSettled(parentReport) || !!isReportApproved({report: parentReport});
     if (reportIsLocked) {
         return noEdit;
     }
@@ -315,16 +354,21 @@ function getTransactionEditPermissions(
             !!parentPolicy?.areCategoriesEnabled &&
             canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CATEGORY, false, false, undefined, transaction, parentReport, parentPolicy),
         canEditAmount: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, false, false, undefined, transaction, parentReport, parentPolicy),
+        // Multi-level tags require a picker UI that isn't available inline — only allow editing for single-level tag policies.
+        canEditTag:
+            !isMultiLevelTags(policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined) &&
+            canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.TAG, false, false, undefined, transaction, parentReport, parentPolicy),
     };
 }
 
 /** Returns per-field edit permissions for a transaction in the Search table. */
 function getSearchTransactionEditPermissions(
-    transactionID: string,
     parentReportAction: OnyxInputOrEntry<ReportAction> | undefined,
+    transaction: OnyxInputOrEntry<Transaction> | undefined,
+    parentReport: OnyxInputOrEntry<Report> | undefined,
     queryJSON: SearchQueryJSON | undefined,
-): {canEditDate: boolean; canEditMerchant: boolean; canEditDescription: boolean; canEditCategory: boolean; canEditAmount: boolean} {
-    const noEdit = {canEditDate: false, canEditMerchant: false, canEditDescription: false, canEditCategory: false, canEditAmount: false};
+): TransactionEditPermissions {
+    const noEdit: TransactionEditPermissions = {canEditDate: false, canEditMerchant: false, canEditDescription: false, canEditCategory: false, canEditAmount: false, canEditTag: false};
 
     // Only the Expense tab with an editable status supports inline editing.
     const isEditableTab = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && CONST.SEARCH.INLINE_EDITABLE_EXPENSE_STATUSES.has((queryJSON?.status as string) ?? '');
@@ -332,15 +376,18 @@ function getSearchTransactionEditPermissions(
         return noEdit;
     }
 
-    return getTransactionEditPermissions(transactionID, parentReportAction);
+    return getTransactionEditPermissions(parentReportAction, transaction, parentReport);
 }
 
 export {
-    editTransactionDateOnSearch,
-    editTransactionMerchantOnSearch,
-    editTransactionDescriptionOnSearch,
-    editTransactionCategoryOnSearch,
-    editTransactionAmountOnSearch,
+    editTransactionDateInline,
+    editTransactionMerchantInline,
+    editTransactionDescriptionInline,
+    editTransactionCategoryInline,
+    editTransactionAmountInline,
+    editTransactionTagInline,
     getTransactionEditPermissions,
     getSearchTransactionEditPermissions,
 };
+
+export type {TransactionEditPermissions};

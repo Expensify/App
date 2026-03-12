@@ -160,11 +160,13 @@ function TransactionListItem<TItem extends ListItem>({
         canEditDescription,
         canEditCategory,
         canEditAmount,
+        canEditTag,
         onEditDate,
         onEditMerchant,
         onEditDescription,
         onEditCategory,
         onEditAmount,
+        onEditTag,
         wasEditingOnMouseDownRef,
     } = useTransactionInlineEdit({
         transactionID,
@@ -281,11 +283,13 @@ function TransactionListItem<TItem extends ListItem>({
                             onEditDescription={onEditDescription}
                             onEditCategory={onEditCategory}
                             onEditAmount={onEditAmount}
+                            onEditTag={onEditTag}
                             canEditDate={canEditDate}
                             canEditMerchant={canEditMerchant}
                             canEditDescription={canEditDescription}
                             canEditCategory={canEditCategory}
                             canEditAmount={canEditAmount}
+                            canEditTag={canEditTag}
                         />
                     </>
                 )}

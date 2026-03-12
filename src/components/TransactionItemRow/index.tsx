@@ -147,6 +147,7 @@ type TransactionItemRowProps = {
     onEditDescription?: (newDescription: string) => void;
     onEditCategory?: (newCategory: string) => void;
     onEditAmount?: (newAmount: number) => void;
+    onEditTag?: (newTag: string) => void;
 
     /** Per-field edit permissions — controls whether the cell shows editable affordance */
     canEditDate?: boolean;
@@ -154,6 +155,7 @@ type TransactionItemRowProps = {
     canEditDescription?: boolean;
     canEditCategory?: boolean;
     canEditAmount?: boolean;
+    canEditTag?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -211,11 +213,13 @@ function TransactionItemRow({
     onEditDescription,
     onEditCategory,
     onEditAmount,
+    onEditTag,
     canEditDate,
     canEditMerchant,
     canEditDescription,
     canEditCategory,
     canEditAmount,
+    canEditTag,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -327,6 +331,9 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            canEdit={canEditTag}
+                            onSave={onEditTag}
+                            policyID={report?.policyID ?? transactionItem.report?.policyID}
                         />
                     </View>
                 );

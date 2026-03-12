@@ -7,11 +7,12 @@ import {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {
-    editTransactionAmountOnSearch,
-    editTransactionCategoryOnSearch,
-    editTransactionDateOnSearch,
-    editTransactionDescriptionOnSearch,
-    editTransactionMerchantOnSearch,
+    editTransactionAmountInline,
+    editTransactionCategoryInline,
+    editTransactionDateInline,
+    editTransactionDescriptionInline,
+    editTransactionMerchantInline,
+    editTransactionTagInline,
     getSearchTransactionEditPermissions,
     getTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
@@ -61,12 +62,14 @@ type UseTransactionInlineEditReturn = {
     canEditDescription: boolean;
     canEditCategory: boolean;
     canEditAmount: boolean;
+    canEditTag: boolean;
     transactionThreadReportID: string | undefined;
     onEditDate: (newDate: string) => void;
     onEditMerchant: (newMerchant: string) => void;
     onEditDescription: (newDescription: string) => void;
     onEditCategory: (newCategory: string) => void;
     onEditAmount: (newAmount: number) => void;
+    onEditTag: (newTag: string) => void;
     /**
      * Ref that should be written in onPressIn and checked in onPress to suppress
      * row navigation when a cell edit is being dismissed.
@@ -94,34 +97,43 @@ function useTransactionInlineEdit({
         selector: parentReportActionSelector,
     });
 
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+
     const parentReportAction = externalParentReportAction !== undefined ? externalParentReportAction : internalParentReportAction;
 
     const transactionThreadReportID = parentReportAction?.childReportID;
 
     // Apply the tab guard only when a queryJSON context is supplied (Search table).
     const permissions =
-        queryJSON !== undefined ? getSearchTransactionEditPermissions(transactionID, parentReportAction, queryJSON) : getTransactionEditPermissions(transactionID, parentReportAction);
+        queryJSON !== undefined
+            ? getSearchTransactionEditPermissions(parentReportAction, transaction, parentReport, queryJSON)
+            : getTransactionEditPermissions(parentReportAction, transaction, parentReport);
 
     const wasEditingOnMouseDownRef = useRef(false);
 
     const onEditDate = (newDate: string) => {
-        editTransactionDateOnSearch(hash, transactionID, transactionThreadReportID, newDate);
+        editTransactionDateInline(hash, transactionID, transactionThreadReportID, newDate);
     };
 
     const onEditMerchant = (newMerchant: string) => {
-        editTransactionMerchantOnSearch(hash, transactionID, transactionThreadReportID, newMerchant);
+        editTransactionMerchantInline(hash, transactionID, transactionThreadReportID, newMerchant);
     };
 
     const onEditDescription = (newDescription: string) => {
-        editTransactionDescriptionOnSearch(hash, transactionID, transactionThreadReportID, newDescription);
+        editTransactionDescriptionInline(hash, transactionID, transactionThreadReportID, newDescription);
     };
 
     const onEditCategory = (newCategory: string) => {
-        editTransactionCategoryOnSearch(hash, transactionID, transactionThreadReportID, newCategory);
+        editTransactionCategoryInline(hash, transactionID, transactionThreadReportID, newCategory);
     };
 
     const onEditAmount = (newAmount: number) => {
-        editTransactionAmountOnSearch(hash, transactionID, transactionThreadReportID, newAmount);
+        editTransactionAmountInline(hash, transactionID, transactionThreadReportID, newAmount);
+    };
+
+    const onEditTag = (newTag: string) => {
+        editTransactionTagInline(hash, transactionID, transactionThreadReportID, newTag);
     };
 
     return {
@@ -132,6 +144,7 @@ function useTransactionInlineEdit({
         onEditDescription,
         onEditCategory,
         onEditAmount,
+        onEditTag,
         wasEditingOnMouseDownRef,
     };
 }

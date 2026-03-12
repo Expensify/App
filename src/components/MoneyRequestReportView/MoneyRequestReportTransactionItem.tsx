@@ -104,11 +104,13 @@ function MoneyRequestReportTransactionItem({
         canEditDescription,
         canEditCategory,
         canEditAmount,
+        canEditTag,
         onEditDate,
         onEditMerchant,
         onEditDescription,
         onEditCategory,
         onEditAmount,
+        onEditTag,
         wasEditingOnMouseDownRef,
     } = useTransactionInlineEdit({transactionID: transaction.transactionID, reportID: transaction.reportID});
 
@@ -193,11 +195,13 @@ function MoneyRequestReportTransactionItem({
                         canEditDescription={canEditDescription}
                         canEditCategory={canEditCategory}
                         canEditAmount={canEditAmount}
+                        canEditTag={canEditTag}
                         onEditDate={onEditDate}
                         onEditMerchant={onEditMerchant}
                         onEditDescription={onEditDescription}
                         onEditCategory={onEditCategory}
                         onEditAmount={onEditAmount}
+                        onEditTag={onEditTag}
                     />
                 )}
             </PressableWithFeedback>

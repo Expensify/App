@@ -3,7 +3,7 @@ import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal'
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
 import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
-import type {EditableProps} from '@components/Table/EditableCell/types';
+import type {EditableProps} from '@components/Table/EditableCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,9 +18,7 @@ type CategoryCellProps = TransactionDataCellProps &
 function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({
-        anchorEdge: 'left',
-    });
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState();
 
     const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
 
