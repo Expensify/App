@@ -35,6 +35,7 @@ const ROOT_TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = [
     {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
     {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
     {name: SCREENS.WORKSPACES_LIST},
+    {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR},
 ];
 
 /**
@@ -175,7 +176,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (RHP_TO_WORKSPACE[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_WORKSPACE[route.name]);
 
-        return getInitialSplitNavigatorState(
+        const workspaceState = getInitialSplitNavigatorState(
             {
                 name: SCREENS.WORKSPACE.INITIAL,
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
@@ -185,6 +186,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
+        return getRootTabNavigatorState(workspaceState);
     }
 
     if (RHP_TO_SETTINGS[route.name]) {
@@ -300,12 +302,6 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
-    const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
-
-    if (isWorkspaceSplitNavigator) {
-        const workspacesListRoute = getRootTabNavigatorState({name: SCREENS.WORKSPACES_LIST});
-        return getRoutesWithIndex([workspacesListRoute, ...state.routes]);
-    }
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
@@ -316,12 +312,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
-                const routes = [matchingRootRoute, ...state.routes];
-                if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                    const workspacesListRoute = getRootTabNavigatorState({name: SCREENS.WORKSPACES_LIST});
-                    routes.unshift(workspacesListRoute);
-                }
-                return getRoutesWithIndex(routes);
+                return getRoutesWithIndex([matchingRootRoute, ...state.routes]);
             }
         }
 
