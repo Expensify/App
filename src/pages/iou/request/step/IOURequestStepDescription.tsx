@@ -74,6 +74,7 @@ function IOURequestStepDescription({
     }, [isTransactionDraft, iouType, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
 
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -207,6 +208,7 @@ function IOURequestStepDescription({
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ROLE.PRESENTATION}
+                        editable={!isDiscardModalVisible}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
@@ -218,6 +220,7 @@ function IOURequestStepDescription({
                 </View>
             </FormProvider>
             <DiscardChangesConfirmation
+                onVisibilityChange={setIsDiscardModalVisible}
                 onCancel={() => {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {

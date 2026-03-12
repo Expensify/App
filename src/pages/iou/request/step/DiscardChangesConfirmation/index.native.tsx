@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({hasUnsavedChanges}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({hasUnsavedChanges, onVisibilityChange}: DiscardChangesConfirmationProps) {
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
@@ -19,6 +19,14 @@ function DiscardChangesConfirmation({hasUnsavedChanges}: DiscardChangesConfirmat
         }, []),
     );
 
+    const setModalVisible = useCallback(
+        (nextVisible: boolean) => {
+            setIsVisible(nextVisible);
+            onVisibilityChange?.(nextVisible);
+        },
+        [onVisibilityChange],
+    );
+
     return (
         <ConfirmModal
             isVisible={isVisible}
@@ -29,6 +37,7 @@ function DiscardChangesConfirmation({hasUnsavedChanges}: DiscardChangesConfirmat
             cancelText={translate('common.cancel')}
             onConfirm={() => {
                 setIsVisible(false);
+                setModalVisible(false);
                 if (blockedNavigationAction.current) {
                     navigationRef.current?.dispatch(blockedNavigationAction.current);
                     blockedNavigationAction.current = undefined;
@@ -37,7 +46,7 @@ function DiscardChangesConfirmation({hasUnsavedChanges}: DiscardChangesConfirmat
                 }
             }}
             onCancel={() => {
-                setIsVisible(false);
+                setModalVisible(false);
                 blockedNavigationAction.current = undefined;
             }}
             shouldHandleNavigationBack
