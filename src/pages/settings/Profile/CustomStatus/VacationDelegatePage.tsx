@@ -47,14 +47,14 @@ function VacationDelegatePage() {
             });
 
             if (result.action === ModalActions.CONFIRM) {
-                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegate?.delegate);
+                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegateRef.current?.delegate);
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
                 return;
             }
 
-            clearVacationDelegateError(vacationDelegate?.previousDelegate);
+            clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
         },
-        [showConfirmModal, translate, currentUserLogin, vacationDelegate?.previousDelegate, vacationDelegate?.delegate],
+        [showConfirmModal, translate, currentUserLogin],
     );
 
     const onSelectRow = useCallback(
