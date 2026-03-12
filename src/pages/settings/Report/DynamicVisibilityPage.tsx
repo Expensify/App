@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,26 +6,25 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
-import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackToDetailsPage, isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import {updateRoomVisibility} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {RoomVisibility} from '@src/types/onyx/Report';
 
-type VisibilityProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>;
+type DynamicVisibilityProps = WithReportOrNotFoundProps;
 
-function VisibilityPage({report}: VisibilityProps) {
-    const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>>();
+function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldDisableVisibility = isArchivedNonExpenseReport(report, isReportArchived);
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path);
 
     const {showConfirmModal} = useConfirmModal();
 
@@ -45,7 +43,7 @@ function VisibilityPage({report}: VisibilityProps) {
     );
 
     const goBack = () => {
-        goBackToDetailsPage(report, route.params.backTo);
+        goBackToDetailsPage(report, backPath);
     };
 
     const changeVisibility = (newVisibility: RoomVisibility) => {
@@ -100,4 +98,4 @@ function VisibilityPage({report}: VisibilityProps) {
     );
 }
 
-export default withReportOrNotFound()(VisibilityPage);
+export default withReportOrNotFound()(DynamicVisibilityPage);

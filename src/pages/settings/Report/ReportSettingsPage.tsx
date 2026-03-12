@@ -103,7 +103,7 @@ function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
                                 shouldShowRightIcon
                                 title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
                                 description={translate('newRoomPage.visibility')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID, backTo))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path))}
                             />
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>
