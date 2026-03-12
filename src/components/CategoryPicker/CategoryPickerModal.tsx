@@ -1,8 +1,8 @@
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ConfirmCancelButtonRow from '@components/ConfirmCancelButtonRow';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {ListItem} from '@components/SelectionList/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,17 +20,8 @@ const popoverDimensions = {
 };
 
 type CategoryPickerModalProps = {
-    /** Whether the popover is visible */
-    isVisible: boolean;
-
     /** Callback to close the modal */
     onClose: () => void;
-
-    /** Pixel coordinates for the anchor (as returned by measureInWindow) */
-    anchorPosition: {
-        horizontal: number;
-        vertical: number;
-    };
 
     /** The policy whose categories should be shown */
     policyID: string | undefined;
@@ -40,16 +31,7 @@ type CategoryPickerModalProps = {
 
     /** Called when the user confirms a category selection */
     onSelected?: (item: ListItem) => void;
-
-    /** Override anchor alignment — defaults to LEFT/TOP so the popover opens to the right */
-    anchorAlignment?: {
-        horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
-        vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
-    };
-
-    /** When true the popover measures position from the top of anchorPosition.vertical */
-    shouldPositionFromTop?: boolean;
-};
+} & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 function CategoryPickerModal({
     isVisible,
@@ -59,7 +41,7 @@ function CategoryPickerModal({
     selectedCategory,
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
-    shouldPositionFromTop = false,
+    shouldMeasureAnchorPositionFromTop = false,
 }: CategoryPickerModalProps) {
     const styles = useThemeStyles();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
@@ -94,7 +76,7 @@ function CategoryPickerModal({
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
-            shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
+            shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
         >

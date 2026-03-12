@@ -1,6 +1,8 @@
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import ConfirmCancelButtonRow from '@components/ConfirmCancelButtonRow';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,9 +10,7 @@ import {getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ConfirmCancelButtonRow from './ConfirmCancelButtonRow';
-import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
-import TagPicker from './TagPicker';
+import TagPicker from '.';
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -23,17 +23,8 @@ const popoverDimensions = {
 };
 
 type TagPickerModalProps = {
-    /** Whether the popover is visible */
-    isVisible: boolean;
-
     /** Callback to close the modal */
     onClose: () => void;
-
-    /** Pixel coordinates for the anchor (as returned by measureInWindow) */
-    anchorPosition: {
-        horizontal: number;
-        vertical: number;
-    };
 
     /** The policy whose tags should be shown */
     policyID: string | undefined;
@@ -43,16 +34,7 @@ type TagPickerModalProps = {
 
     /** Called when the user confirms a tag selection */
     onSelected?: (tag: string) => void;
-
-    /** Override anchor alignment — defaults to LEFT/TOP so the popover opens to the right */
-    anchorAlignment?: {
-        horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
-        vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
-    };
-
-    /** When true the popover measures position from the top of anchorPosition.vertical */
-    shouldPositionFromTop?: boolean;
-};
+} & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 function TagPickerModal({
     isVisible,
@@ -62,7 +44,7 @@ function TagPickerModal({
     selectedTag = '',
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
-    shouldPositionFromTop = false,
+    shouldMeasureAnchorPositionFromTop = false,
 }: TagPickerModalProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -103,7 +85,7 @@ function TagPickerModal({
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
-            shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
+            shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
         >

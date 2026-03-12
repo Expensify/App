@@ -2,7 +2,7 @@ import React from 'react';
 import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
 import type {EditableProps} from '@components/Table/EditableCell';
 import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
-import TagPickerModal from '@components/TagPickerModal';
+import TagPickerModal from '@components/TagPicker/TagPickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,7 +55,7 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
-                    shouldPositionFromTop={!isInverted}
+                    shouldMeasureAnchorPositionFromTop={!isInverted}
                     onSelected={handleTagSelected}
                 />
             }

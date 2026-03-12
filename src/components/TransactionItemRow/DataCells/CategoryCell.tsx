@@ -61,7 +61,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
-                    shouldPositionFromTop={!isInverted}
+                    shouldMeasureAnchorPositionFromTop={!isInverted}
                     onSelected={handleCategorySelected}
                 />
             }
