@@ -4,6 +4,7 @@ import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import AccountUtils from '@libs/AccountUtils';
+import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -15,7 +16,7 @@ import {setOnboardingErrorMessage} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 type WorkspaceVerifyWorkAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL>;
 
@@ -63,8 +64,9 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
             return;
         }
         if (isWorkEmailValidated) {
+            const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
             linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber);
-            updateSelectedFeed(feed, policyID);
+            updateSelectedFeed(feedValue, policyID);
             Navigation.closeRHPFlow();
         }
     }, [feed, feedInfo, isWorkEmailValidated, policyID]);
