@@ -116,6 +116,9 @@ function HeaderWithBackButton({
                             accessible={!!progressBarLabel}
                             accessibilityLabel={progressBarLabel}
                             role={CONST.ROLE.PROGRESSBAR}
+                            aria-valuenow={progressBarPercentage}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
                         >
                             <View
                                 aria-hidden
