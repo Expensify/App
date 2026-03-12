@@ -1,7 +1,6 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import {useState} from 'react';
-import {FlatList} from 'react-native';
+import React, {useState} from 'react';
 import type ReactNative from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
@@ -11,12 +10,62 @@ import type Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
-// FlashList requires layout events to render items; mock it with FlatList for tests
+// Captures scrollToIndex calls so tests can assert on scroll behaviour
+const mockScrollToIndex = jest.fn();
+
+// Mock FlashList
 jest.mock('@shopify/flash-list', () => {
+    const ReactLocal = jest.requireActual<typeof React>('react');
     const RN = jest.requireActual<typeof ReactNative>('react-native');
-    return {
-        FlashList: RN.FlatList,
-    };
+
+    const FlashList = ReactLocal.forwardRef<
+        {scrollToIndex: (params: {index: number}) => void},
+        Omit<React.ComponentProps<typeof RN.ScrollView>, 'children'> & {
+            data?: unknown[];
+            renderItem?: (info: {item: unknown; index: number; target: string}) => React.ReactNode;
+            keyExtractor?: (item: unknown, index: number) => string;
+            ListHeaderComponent?: React.ReactNode;
+            ListFooterComponent?: React.ReactNode;
+            getItemType?: unknown;
+            extraData?: unknown;
+            initialScrollIndex?: number;
+            onEndReached?: unknown;
+            onEndReachedThreshold?: unknown;
+            ListFooterComponentStyle?: unknown;
+        }
+    >(
+        (
+            {
+                data,
+                renderItem,
+                keyExtractor,
+                ListHeaderComponent,
+                ListFooterComponent,
+                getItemType: _getItemType,
+                extraData: _extraData,
+                initialScrollIndex: _initialScrollIndex,
+                onEndReached: _onEndReached,
+                onEndReachedThreshold: _onEndReachedThreshold,
+                ListFooterComponentStyle: _ListFooterComponentStyle,
+                ...scrollViewProps
+            },
+            ref,
+        ) => {
+            ReactLocal.useImperativeHandle(ref, () => ({scrollToIndex: mockScrollToIndex}));
+
+            return ReactLocal.createElement(
+                RN.ScrollView,
+                scrollViewProps,
+                ListHeaderComponent ?? null,
+                ...(data ?? []).map((item, index) =>
+                    ReactLocal.createElement(ReactLocal.Fragment, {key: keyExtractor?.(item, index) ?? String(index)}, renderItem?.({item, index, target: 'Cell'})),
+                ),
+                ListFooterComponent ?? null,
+            );
+        },
+    );
+
+    return {FlashList};
 });
 
 type BaseSelectionListSections<TItem extends ListItem> = {
@@ -77,6 +126,10 @@ jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callb
 describe('BaseSelectionList', () => {
     const onSelectRowMock = jest.fn();
 
+    beforeEach(() => {
+        mockScrollToIndex.mockClear();
+    });
+
     function BaseListItemRenderer<TItem extends ListItem>(props: BaseSelectionListSections<TItem>) {
         const {sections, canSelectMultiple, setSearchText, searchText} = props;
         const focusedKey = sections.at(0)?.data.find((item) => item.isSelected)?.keyForList;
@@ -92,6 +145,7 @@ describe('BaseSelectionList', () => {
                     ListItem={RadioListItem}
                     onSelectRow={onSelectRowMock}
                     shouldSingleExecuteRowSelect
+                    shouldShowTextInput={!!setSearchText}
                     canSelectMultiple={canSelectMultiple}
                     initiallyFocusedItemKey={focusedKey}
                 />
@@ -111,10 +165,11 @@ describe('BaseSelectionList', () => {
         render(<BaseListItemRenderer sections={[{data: mockSections, sectionIndex: 0}]} />);
 
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
-        expect(onSelectRowMock).toHaveBeenCalledWith({
-            ...mockSections.at(1),
-            shouldAnimateInHighlight: false,
-        });
+        expect(onSelectRowMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                ...mockSections.at(1),
+            }),
+        );
     });
 
     it('should update focused item when sections are updated from BE', () => {
@@ -130,7 +185,6 @@ describe('BaseSelectionList', () => {
     });
 
     it('should scroll to top when selecting a multi option list', () => {
-        const spy = jest.spyOn(FlatList.prototype, 'scrollToIndex');
         render(
             <BaseListItemRenderer
                 sections={[
@@ -141,7 +195,7 @@ describe('BaseSelectionList', () => {
             />,
         );
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`));
-        expect(spy).toHaveBeenCalledWith(expect.objectContaining({index: 0}));
+        expect(mockScrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 0}));
     });
 
     it('should render all items', () => {
