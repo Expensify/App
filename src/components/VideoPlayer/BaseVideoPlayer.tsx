@@ -385,12 +385,7 @@ function BaseVideoPlayer({
             videoViewRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
-            (isUploading && !isCurrentlyURLSet) ||
-                isFullScreenRef.current ||
-                !isReadyForDisplayRef.current ||
-                hasError ||
-                isSeeking ||
-                !allowSharedAutoPlayRef.current,
+            (isUploading && !isCurrentlyURLSet) || isFullScreenRef.current || !isReadyForDisplayRef.current || hasError || isSeeking || !allowSharedAutoPlayRef.current,
             {shouldUseSharedVideoElement, url, reportID},
         );
     }, [
