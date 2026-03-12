@@ -111,6 +111,7 @@ const WRITE_COMMANDS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     ENABLE_TWO_FACTOR_AUTH: 'EnableTwoFactorAuth',
     DISABLE_TWO_FACTOR_AUTH: 'DisableTwoFactorAuth',
+    REPLACE_TWO_FACTOR_DEVICE: 'ReplaceTwoFactorDevice',
     ADD_COMMENT: 'AddComment',
     ADD_ATTACHMENT: 'AddAttachment',
     ADD_TEXT_AND_ATTACHMENT: 'AddTextAndAttachment',
@@ -285,6 +286,7 @@ const WRITE_COMMANDS = {
     REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED: 'RemoveWorkspaceCategoryReceiptsRequired',
     SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED: 'SetPolicyCategoryItemizedReceiptsRequired',
     REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED: 'RemoveWorkspaceCategoryItemizedReceiptsRequired',
+    SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED: 'SetPolicyCategoryReceiptsAndItemizedReceiptRequired',
     SET_POLICY_CATEGORY_MAX_AMOUNT: 'SetPolicyCategoryMaxAmount',
     SET_POLICY_CATEGORY_APPROVER: 'SetPolicyCategoryApprover',
     SET_POLICY_CATEGORY_TAX: 'SetPolicyCategoryTax',
@@ -663,6 +665,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UNLINK_LOGIN]: Parameters.UnlinkLoginParams;
     [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: null;
     [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: Parameters.DisableTwoFactorAuthParams;
+    [WRITE_COMMANDS.REPLACE_TWO_FACTOR_DEVICE]: Parameters.ReplaceTwoFactorDeviceParams;
     [WRITE_COMMANDS.ADD_COMMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.ADD_ATTACHMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.CREATE_APP_REPORT]: Parameters.CreateAppReportParams;
@@ -843,6 +846,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED]: Parameters.RemovePolicyCategoryReceiptsRequiredParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED]: Parameters.SetPolicyCategoryItemizedReceiptsRequiredParams;
     [WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED]: Parameters.RemovePolicyCategoryItemizedReceiptsRequiredParams;
+    [WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED]: Parameters.SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT]: Parameters.SetPolicyCategoryMaxAmountParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER]: Parameters.SetPolicyCategoryApproverParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX]: Parameters.SetPolicyCategoryTaxParams;
