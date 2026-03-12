@@ -115,6 +115,8 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** Whether the report screen is being displayed in the side panel */
     isInSidePanel?: boolean;
 
+    /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
+    shouldHideStatusIndicators?: boolean;
     /** Function to trigger optimistic waiting indicator for Concierge */
     kickoffWaitingIndicator?: () => void;
 };
@@ -141,6 +143,7 @@ function ReportActionCompose({
     reportTransactions,
     transactionThreadReportID,
     isInSidePanel = false,
+    shouldHideStatusIndicators = false,
     kickoffWaitingIndicator,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
@@ -674,7 +677,7 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <ReportTypingIndicator reportID={reportID} />
+                        {!shouldHideStatusIndicators && <ReportTypingIndicator reportID={reportID} />}
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}
