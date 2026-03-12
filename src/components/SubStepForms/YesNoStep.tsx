@@ -31,13 +31,13 @@ type YesNoStepProps = {
     isLoading?: boolean;
 
     /** Optional content rendered below the radio buttons */
-    footerContent?: React.ReactNode;
+    children?: React.ReactNode;
 
     /** Optional callback fired when the radio selection changes */
     onValueChange?: () => void;
 };
 
-function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles, submitFlexEnabled, isLoading = false, footerContent, onValueChange}: YesNoStepProps) {
+function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles, submitFlexEnabled, isLoading = false, children, onValueChange}: YesNoStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(defaultValue);
@@ -84,7 +84,7 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
                 defaultCheckedValue={defaultValue.toString()}
                 radioButtonStyle={[styles.mb6]}
             />
-            {footerContent}
+            {children}
         </FormProvider>
     );
 }

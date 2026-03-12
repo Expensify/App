@@ -147,15 +147,14 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
 
     const handleNextSubStep = useCallback(
         (value: boolean) => {
-            if (!value && !policyID) {
+            if (!policyID && (!value || currency === CONST.CURRENCY.AUD)) {
                 setShowNoPolicyError(true);
                 return;
             }
-            setShowNoPolicyError(false);
             setIsUserDirector(value);
             setCurrentSubStep(value ? SUBSTEP.SIGNER_DETAILS_FORM : SUBSTEP.ENTER_EMAIL);
         },
-        [policyID],
+        [currency, policyID],
     );
 
     const handleBackButtonPress = useCallback(() => {
@@ -220,31 +219,30 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
                     onSelectedValue={handleNextSubStep}
                     onValueChange={() => setShowNoPolicyError(false)}
                     submitFlexEnabled={!showNoPolicyError}
-                    footerContent={
-                        showNoPolicyError && (
-                            <View style={[styles.flex1, styles.justifyContentEnd]}>
-                                <DotIndicatorMessage
-                                    style={[styles.mt3]}
-                                    type="error"
-                                    messages={{
-                                        connectToWorkspace: (
-                                            <>
-                                                {`${translate('signerInfoStep.error.connectToWorkspacePrefix')} `}
-                                                <TextLink
-                                                    style={styles.fontSizeLabel}
-                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute())}
-                                                >
-                                                    {translate('signerInfoStep.error.connectToWorkspaceLink')}
-                                                </TextLink>
-                                                {` ${translate('signerInfoStep.error.connectToWorkspaceSuffix')}`}
-                                            </>
-                                        ),
-                                    }}
-                                />
-                            </View>
-                        )
-                    }
-                />
+                >
+                    {showNoPolicyError && (
+                        <View style={[styles.flex1, styles.justifyContentEnd]}>
+                            <DotIndicatorMessage
+                                style={styles.mt3}
+                                type="error"
+                                messages={{
+                                    connectToWorkspace: (
+                                        <>
+                                            {`${translate('signerInfoStep.error.connectToWorkspacePrefix')} `}
+                                            <TextLink
+                                                style={styles.fontSizeLabel}
+                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute())}
+                                            >
+                                                {translate('signerInfoStep.error.connectToWorkspaceLink')}
+                                            </TextLink>
+                                            {` ${translate('signerInfoStep.error.connectToWorkspaceSuffix')}`}
+                                        </>
+                                    ),
+                                }}
+                            />
+                        </View>
+                    )}
+                </YesNoStep>
             )}
 
             {currentSubStep === SUBSTEP.SIGNER_DETAILS_FORM && (
