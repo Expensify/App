@@ -25,6 +25,7 @@ type DeepLinkHandlerProps = {
  */
 function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
+    const initialUrlProcessed = useRef(false);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
@@ -38,6 +39,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         }
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
+            initialUrlProcessed.current = true;
             onInitialUrl(url as Route);
 
             if (url) {
@@ -80,7 +82,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     // loads from storage, triggering an unnecessary public room check. Once isAuthenticated settles to
     // true, unblock the UI immediately. This call is idempotent.
     useEffect(() => {
-        if (!isAuthenticated) {
+        if (!isAuthenticated || !initialUrlProcessed.current) {
             return;
         }
 
