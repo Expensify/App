@@ -3009,7 +3009,7 @@ function buildOnyxDataForTrackExpense({
 function getDeleteTrackExpenseInformation(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     transactionID: string | undefined,
-    reportAction: OnyxTypes.ReportAction,
+    reportAction: OnyxTypes.ReportAction | undefined,
     isChatReportArchived: boolean | undefined,
     shouldDeleteTransactionFromOnyx = true,
     isMovingTransactionFromTrackExpense = false,
@@ -3017,6 +3017,11 @@ function getDeleteTrackExpenseInformation(
     resolution = '',
     shouldRemoveIOUTransaction = true,
 ) {
+    if (!reportAction) {
+        Log.warn(`[getDeleteTrackExpenseInformation] Missing reportAction for transaction ${transactionID} in report ${chatReport?.reportID}`);
+        return {parameters: undefined, optimisticData: [], successData: [], failureData: [], shouldDeleteTransactionThread: false, chatReport};
+    }
+
     // STEP 1: Get all collections we're updating
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -8690,6 +8695,10 @@ function deleteTrackExpense({
         CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
         false,
     );
+
+    if (!parameters) {
+        return urlToNavigateBack;
+    }
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
