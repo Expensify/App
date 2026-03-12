@@ -532,6 +532,85 @@ function ComposerWithSuggestions({
                     saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
+            // Handle Ctrl/Cmd + ArrowRight for word navigation
+            if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey && (webEvent.ctrlKey || webEvent.metaKey)) {
+                webEvent.preventDefault();
+
+                const text = lastTextRef.current;
+                const currentPosition = selection.start;
+
+                // Find next word boundary by iterating graphemes and detecting whitespace transitions
+                const segmenter = new Intl.Segmenter(preferredLocale, {granularity: 'grapheme'});
+                const graphemes = Array.from(segmenter.segment(text));
+
+                let i = graphemes.findIndex((g) => g.index >= currentPosition);
+                if (i === -1) {
+                    return;
+                }
+
+                // Skip current word (non-whitespace graphemes)
+                while (i < graphemes.length && !/\s/.test(graphemes[i].segment)) {
+                    i++;
+                }
+
+                // Skip whitespace
+                while (i < graphemes.length && /\s/.test(graphemes[i].segment)) {
+                    i++;
+                }
+
+                const nextPosition = i < graphemes.length ? graphemes[i].index : text.length;
+
+                setSelection((prevSelection) => ({
+                    start: nextPosition,
+                    end: nextPosition,
+                    positionX: prevSelection.positionX,
+                    positionY: prevSelection.positionY,
+                }));
+            }
+
+            // Handle Ctrl/Cmd + ArrowLeft for word navigation
+            if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey && (webEvent.ctrlKey || webEvent.metaKey)) {
+                webEvent.preventDefault();
+
+                const text = lastTextRef.current;
+                const currentPosition = selection.start;
+
+                // Find previous word boundary by iterating graphemes and detecting whitespace transitions
+                const segmenter = new Intl.Segmenter(preferredLocale, {granularity: 'grapheme'});
+                const graphemes = Array.from(segmenter.segment(text));
+
+                // Find the grapheme at or before the current position
+                let i = graphemes.findLastIndex((g) => g.index < currentPosition);
+                if (i === -1) {
+                    setSelection((prevSelection) => ({
+                        start: 0,
+                        end: 0,
+                        positionX: prevSelection.positionX,
+                        positionY: prevSelection.positionY,
+                    }));
+                    return;
+                }
+
+                // Skip whitespace going backwards
+                while (i >= 0 && /\s/.test(graphemes[i].segment)) {
+                    i--;
+                }
+
+                // Skip current word (non-whitespace graphemes) going backwards
+                while (i >= 0 && !/\s/.test(graphemes[i].segment)) {
+                    i--;
+                }
+
+                const prevPosition = i >= 0 ? graphemes[i].index + graphemes[i].segment.length : 0;
+
+                setSelection((prevSelection) => ({
+                    start: prevPosition,
+                    end: prevPosition,
+                    positionX: prevSelection.positionX,
+                    positionY: prevSelection.positionY,
+                }));
+            }
+
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
             // so we need to handle backspace key action differently with grapheme segmentation.
             if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey) {
@@ -563,7 +642,7 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, onEnterKeyPress, lastReportAction, reportID, updateComment, selection.end],
+        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, onEnterKeyPress, lastReportAction, reportID, updateComment, selection.end, preferredLocale],
     );
 
     /**
