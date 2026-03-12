@@ -46,7 +46,6 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {getReportName} from '@libs/ReportNameUtils';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -64,6 +63,7 @@ import {
     isTransactionThread,
     isWhisperAction,
 } from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canEditReportAction,
     canUserPerformWriteAction,
