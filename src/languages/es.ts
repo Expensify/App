@@ -7364,7 +7364,8 @@ ${amount} para ${merchant} - ${date}`,
                     `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
-                addEmployee: (email, role) => `agregó a ${email} como ${role}`,
+                addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
+                    didJoinPolicy ? `${email} se unió mediante el enlace de incorporación al espacio de trabajo` : `se añadió ${email} como ${role === 'member' ? 'a' : 'a un'} ${role}`,
                 updateRole: ({email, currentRole, newRole}) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 updatedCustomField1: (email, newValue, previousValue) => {
                     if (!newValue) {
