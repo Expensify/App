@@ -153,6 +153,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     setDistanceRequestData?: (participants: Participant[]) => void;
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
+    toLocaleDigit: (digit: string) => string;
+    getCurrencySymbol: (currencyCode: string) => string | undefined;
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
@@ -571,6 +573,8 @@ function handleMoneyRequestStepDistanceNavigation({
     lastSelectedDistanceRates,
     setDistanceRequestData,
     translate,
+    toLocaleDigit,
+    getCurrencySymbol,
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
@@ -620,7 +624,6 @@ function handleMoneyRequestStepDistanceNavigation({
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-            setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
             const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
             const participant = participants.at(0);
             const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
@@ -635,11 +638,24 @@ function handleMoneyRequestStepDistanceNavigation({
             const validWaypoints = !isManualDistance && !isOdometerDistance ? getValidWaypoints(waypoints, true, isGPSDistance) : undefined;
 
             let amount = 0;
+            let merchant = translate('iou.fieldPending');
             if (isManualDistance && distance !== undefined && unit) {
                 const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
                 const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
                 amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
+                merchant = DistanceRequestUtils.getDistanceMerchant(
+                    true,
+                    distanceInMeters,
+                    unit,
+                    mileageRate?.rate ?? 0,
+                    mileageRate?.currency ?? transaction?.currency ?? 'USD',
+                    translate,
+                    toLocaleDigit,
+                    getCurrencySymbol,
+                    true,
+                );
             }
+            setMoneyRequestMerchant(transactionID, merchant, false);
 
             if (isCreatingTrackExpense && participant) {
                 trackExpense({
@@ -658,7 +674,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         distance,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
-                        merchant: translate('iou.fieldPending'),
+                        merchant,
                         receipt: {},
                         billable: false,
                         reimbursable: defaultReimbursable,
@@ -694,7 +710,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     comment: '',
                     created: transaction?.created ?? '',
                     currency: transaction?.currency ?? 'USD',
-                    merchant: translate('iou.fieldPending'),
+                    merchant,
                     billable: !!policy?.defaultBillable,
                     reimbursable: defaultReimbursable,
                     validWaypoints,
