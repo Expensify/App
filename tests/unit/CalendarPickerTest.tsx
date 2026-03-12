@@ -1,6 +1,6 @@
 import type * as ReactNavigationNative from '@react-navigation/native';
 import {fireEvent, render, screen, userEvent, within} from '@testing-library/react-native';
-import {addMonths, addYears, subMonths, subYears} from 'date-fns';
+import {addMonths, addYears, endOfMonth, startOfMonth, subMonths, subYears} from 'date-fns';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DateUtils from '@libs/DateUtils';
 
@@ -348,5 +348,99 @@ describe('CalendarPicker', () => {
 
         // Year should still be 2023 since the button is disabled
         expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+    });
+
+    test('prev year arrow should clamp to minDate when navigating would go below it', () => {
+        const minDate = new Date('2023-11-01');
+        const maxDate = new Date('2030-12-31');
+        const value = '2024-03-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('prev-year-arrow'));
+
+        // Should clamp to minDate (November 2023), not land on March 2023
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(10) ?? '')).toBeTruthy();
+    });
+
+    test('next year arrow should clamp to maxDate when navigating would go above it', () => {
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2025-04-20');
+        const value = '2024-09-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('next-year-arrow'));
+
+        // Should clamp to maxDate (April 2025), not land on September 2025
+        expect(within(screen.getByTestId('currentYearText')).getByText('2025')).toBeTruthy();
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(3) ?? '')).toBeTruthy();
+    });
+
+    test('month picker filtering should exclude months before minDate', () => {
+        const currentYear = 2023;
+        const minDate = new Date('2023-06-01');
+        const maxDate = new Date('2030-12-31');
+
+        const filteredMonths = monthNames
+            .map((month, index) => {
+                const monthStart = startOfMonth(new Date(currentYear, index));
+                const monthEnd = endOfMonth(new Date(currentYear, index));
+                const isBeforeMin = monthEnd < startOfMonth(new Date(minDate));
+                const isAfterMax = monthStart > endOfMonth(new Date(maxDate));
+                if (isBeforeMin || isAfterMax) {
+                    return null;
+                }
+                return {text: month, value: index};
+            })
+            .filter(Boolean);
+
+        // Months before June (index 5) should be excluded
+        expect(filteredMonths.find((m) => m?.value === 0)).toBeUndefined();
+        expect(filteredMonths.find((m) => m?.value === 4)).toBeUndefined();
+
+        // June and later months should be included
+        expect(filteredMonths.find((m) => m?.value === 5)).toBeTruthy();
+        expect(filteredMonths.find((m) => m?.value === 11)).toBeTruthy();
+        expect(filteredMonths).toHaveLength(7);
+    });
+
+    test('month picker filtering should exclude months after maxDate', () => {
+        const currentYear = 2023;
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2023-09-30');
+
+        const filteredMonths = monthNames
+            .map((month, index) => {
+                const monthStart = startOfMonth(new Date(currentYear, index));
+                const monthEnd = endOfMonth(new Date(currentYear, index));
+                const isBeforeMin = monthEnd < startOfMonth(new Date(minDate));
+                const isAfterMax = monthStart > endOfMonth(new Date(maxDate));
+                if (isBeforeMin || isAfterMax) {
+                    return null;
+                }
+                return {text: month, value: index};
+            })
+            .filter(Boolean);
+
+        // Months after September (index 8) should be excluded
+        expect(filteredMonths.find((m) => m?.value === 10)).toBeUndefined();
+        expect(filteredMonths.find((m) => m?.value === 11)).toBeUndefined();
+
+        // September and earlier months should be included
+        expect(filteredMonths.find((m) => m?.value === 8)).toBeTruthy();
+        expect(filteredMonths.find((m) => m?.value === 0)).toBeTruthy();
+        expect(filteredMonths).toHaveLength(9);
     });
 });

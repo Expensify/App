@@ -87,6 +87,7 @@ function CalendarPicker({
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const pressableRef = useRef<View>(null);
+    const monthPressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
@@ -182,7 +183,10 @@ function CalendarPicker({
 
     const moveToPrevYear = () => {
         setCurrentDateView((prev) => {
-            const prevYear = subYears(new Date(prev), 1);
+            let prevYear = subYears(new Date(prev), 1);
+            if (prevYear < new Date(minDate)) {
+                prevYear = new Date(minDate);
+            }
             setYears((prevYears) => prevYears.map((item) => ({...item, isSelected: item.value === prevYear.getFullYear()})));
             return prevYear;
         });
@@ -190,7 +194,10 @@ function CalendarPicker({
 
     const moveToNextYear = () => {
         setCurrentDateView((prev) => {
-            const nextYear = addYears(new Date(prev), 1);
+            let nextYear = addYears(new Date(prev), 1);
+            if (nextYear > new Date(maxDate)) {
+                nextYear = new Date(maxDate);
+            }
             setYears((prevYears) => prevYears.map((item) => ({...item, isSelected: item.value === nextYear.getFullYear()})));
             return nextYear;
         });
@@ -250,7 +257,11 @@ function CalendarPicker({
                         />
                     </PressableWithFeedback>
                     <PressableWithFeedback
-                        onPress={() => setIsMonthPickerVisible(true)}
+                        onPress={() => {
+                            monthPressableRef?.current?.blur();
+                            setIsMonthPickerVisible(true);
+                        }}
+                        ref={monthPressableRef}
                         style={[themeStyles.alignItemsCenter, themeStyles.flexRow]}
                         wrapperStyle={[themeStyles.alignItemsCenter]}
                         hoverDimmingValue={1}
@@ -409,6 +420,9 @@ function CalendarPicker({
             <MonthPickerModal
                 isVisible={isMonthPickerVisible}
                 currentMonth={currentMonthView}
+                currentYear={currentYearView}
+                minDate={minDate}
+                maxDate={maxDate}
                 onMonthChange={onMonthSelected}
                 onClose={() => setIsMonthPickerVisible(false)}
             />
