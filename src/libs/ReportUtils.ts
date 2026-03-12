@@ -10235,7 +10235,7 @@ function canCreateRequest(
 
 function getWorkspaceChats(policyID: string | undefined, accountIDs: number[], reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
     return Object.values(reports ?? {}).filter(
-        (report) => !!policyID && report?.policyID === policyID && report?.ownerAccountID && accountIDs.includes(report?.ownerAccountID) && isPolicyExpenseChat(report),
+        (report) => isPolicyExpenseChat(report) && !!policyID && report?.policyID === policyID && report?.ownerAccountID && accountIDs.includes(report?.ownerAccountID),
     );
 }
 
