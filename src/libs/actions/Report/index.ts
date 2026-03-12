@@ -161,7 +161,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
+import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, recalculateUnreportedTransactionDetails, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import {clearByKey} from '@userActions/CachedPDFPaths';
@@ -410,12 +410,6 @@ Onyx.connect({
         }
         onboarding = val;
     },
-});
-
-let deprecatedIntroSelected: OnyxEntry<IntroSelected> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (val) => (deprecatedIntroSelected = val),
 });
 
 let environment: EnvironmentType;
@@ -1994,7 +1988,7 @@ function navigateToAndCreateGroupChat(
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number) {
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>) {
     let newChat: OptimisticChatReport | undefined;
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
@@ -2004,7 +1998,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
         openReport({
             reportID: newChat?.reportID,
-            introSelected: deprecatedIntroSelected,
+            introSelected,
             newReportObject: newChat,
             parentReportActionID: '0',
             participantAccountIDList: participantAccountIDs,
@@ -3965,7 +3959,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     return true;
 }
 
-function showReportActionNotification(reportID: string, reportAction: ReportAction, currentUserAccountID: number, currentUserLogin: string) {
+function showReportActionNotification(reportID: string, reportAction: ReportAction, currentUserAccountID: number, currentUserLogin: string, conciergeReportID: string | undefined) {
     if (!shouldShowReportActionNotification(reportID, currentUserAccountID, reportAction)) {
         return;
     }
@@ -3986,7 +3980,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
         LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserLogin});
     } else {
-        LocalNotification.showCommentNotification(report, reportAction, onClick);
+        LocalNotification.showCommentNotification(report, reportAction, onClick, conciergeReportID);
     }
 
     notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID);
@@ -5449,17 +5443,34 @@ function clearDeleteTransactionNavigateBackUrl() {
     Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
 }
 
+type DeleteAppReportProps = {
+    report: OnyxEntry<Report>;
+    selfDMReport: OnyxEntry<Report>;
+    currentUserEmailParam: string;
+    currentUserAccountIDParam: number;
+    reportTransactions: Record<string, Transaction>;
+    allTransactionViolations: OnyxCollection<TransactionViolations>;
+    bankAccountList: OnyxEntry<BankAccountList>;
+    personalPolicy: Pick<Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'> | undefined;
+    translate: LocaleContextProps['translate'];
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
+    hash?: number;
+};
+
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
-function deleteAppReport(
-    report: OnyxEntry<Report>,
-    selfDMReport: OnyxEntry<Report>,
-    currentUserEmailParam: string,
-    currentUserAccountIDParam: number,
-    reportTransactions: Record<string, Transaction>,
-    allTransactionViolations: OnyxCollection<TransactionViolations>,
-    bankAccountList: OnyxEntry<BankAccountList>,
-    hash?: number,
-) {
+function deleteAppReport({
+    report,
+    selfDMReport,
+    currentUserEmailParam,
+    currentUserAccountIDParam,
+    reportTransactions,
+    allTransactionViolations,
+    bankAccountList,
+    personalPolicy,
+    translate,
+    toLocaleDigit,
+    hash,
+}: DeleteAppReportProps) {
     if (!report?.reportID) {
         Log.warn('[Report] deleteAppReport called with no reportID');
         return;
@@ -5589,11 +5600,18 @@ function deleteAppReport(
             const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
 
+            const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = recalculateUnreportedTransactionDetails(
+                transaction,
+                personalPolicy?.outputCurrency,
+                translate,
+                toLocaleDigit,
+            );
+
             optimisticData.push(
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, comment: {hold: null}},
+                    value: {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, comment, modifiedAmount, modifiedCurrency, modifiedMerchant},
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -5606,7 +5624,13 @@ function deleteAppReport(
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {reportID: transaction?.reportID, comment: {hold: transaction?.comment?.hold}},
+                    value: {
+                        reportID: transaction?.reportID,
+                        comment: transaction?.comment,
+                        modifiedAmount: transaction?.modifiedAmount,
+                        modifiedCurrency: transaction?.modifiedCurrency,
+                        modifiedMerchant: transaction?.modifiedMerchant,
+                    },
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
