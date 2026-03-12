@@ -9,6 +9,7 @@ import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -89,7 +90,11 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         }, []);
 
         if (isEditing && isLoadingApp) {
-            return <FullScreenLoadingIndicator />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'withWritableReportOrNotFound',
+                isLoadingApp,
+            };
+            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
         }
 
         if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {

@@ -38,6 +38,8 @@ import Overlay from './Overlay';
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
+let signUpEventPublishedForAccountID: number | undefined;
+
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
@@ -68,10 +70,11 @@ function OnboardingModalNavigator() {
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
     useEffect(() => {
-        if (!accountID) {
+        if (!accountID || signUpEventPublishedForAccountID === accountID) {
             return;
         }
 
+        signUpEventPublishedForAccountID = accountID;
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
     }, [accountID]);
 
