@@ -9,8 +9,6 @@ import {convertToDisplayString} from './CurrencyUtils';
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
-type WorkspaceAddress = Partial<Pick<CompanyAddress, 'addressStreet' | 'addressStreet2' | 'city' | 'state' | 'zipCode'>>;
-
 type WorkspaceAddressStreetLines = {
     streetLineOne: string;
     streetLineTwo: string;
@@ -51,7 +49,7 @@ function getChatTabBrickRoad(orderedReportIDs: string[], reportAttributes: Repor
 /**
  * Resolve workspace street lines while supporting both legacy newline street format and explicit street line 2.
  */
-function getWorkspaceAddressStreetLines(addressStreet: WorkspaceAddress['addressStreet'] = '', addressStreet2?: WorkspaceAddress['addressStreet2']): WorkspaceAddressStreetLines {
+function getWorkspaceAddressStreetLines(addressStreet: CompanyAddress['addressStreet'] = '', addressStreet2?: CompanyAddress['addressStreet2']): WorkspaceAddressStreetLines {
     const [legacyStreetLineOne, legacyStreetLineTwo] = (addressStreet ?? '').split('\n');
     const trimmedStreetLineTwo = addressStreet2?.trim();
     return {
@@ -137,4 +135,4 @@ function getOwnershipChecksDisplayText(
 }
 
 export {getChatTabBrickRoadReportID, getBrickRoadForPolicy, getChatTabBrickRoad, getUnitTranslationKey, getOwnershipChecksDisplayText, getWorkspaceAddressStreetLines};
-export type {BrickRoad, WorkspaceAddress, WorkspaceAddressStreetLines};
+export type {BrickRoad, WorkspaceAddressStreetLines};
