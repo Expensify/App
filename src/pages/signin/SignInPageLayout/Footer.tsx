@@ -174,7 +174,6 @@ function Footer({navigateFocus}: FooterProps) {
                                 <Text
                                     style={[styles.textHeadline, styles.footerTitle]}
                                     accessibilityRole={CONST.ROLE.HEADER}
-                                    aria-level={2}
                                 >
                                     {translate(column.translationPath)}
                                 </Text>

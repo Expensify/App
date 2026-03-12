@@ -44,7 +44,6 @@ function SignInPageContent({shouldShowWelcomeHeader, welcomeHeader, welcomeText,
                                         styles.mb5,
                                     ]}
                                     accessibilityRole={CONST.ROLE.HEADER}
-                                    aria-level={2}
                                 >
                                     {welcomeHeader}
                                 </Text>
