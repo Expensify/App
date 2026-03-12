@@ -8677,6 +8677,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             title: 'Membres',
             findMember: 'Trouver un membre',
             addMember: 'Ajouter un membre',
+            allMembers: 'Tous les membres',
             email: 'Adresse e-mail',
             closeAccount: () => ({
                 one: 'Fermer le compte',

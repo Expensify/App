@@ -8609,6 +8609,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             title: 'Membros',
             findMember: 'Encontrar membro',
             addMember: 'Adicionar membro',
+            allMembers: 'Todos os membros',
             email: 'Endereço de e-mail',
             closeAccount: () => ({
                 one: 'Encerrar conta',
