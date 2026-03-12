@@ -1070,4 +1070,4 @@ export {
     submitPerDiemExpenseForSelfDM,
 };
 
-export type {PerDiemExpenseTransactionParams, PerDiemExpenseInformation};
+export type {PerDiemExpenseTransactionParams, PerDiemExpenseInformation, BaseTransactionParams};

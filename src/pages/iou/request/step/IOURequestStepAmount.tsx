@@ -36,11 +36,11 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    trackExpense,
     updateMoneyRequestAmountAndCurrency,
 } from '@userActions/IOU';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
+import {trackExpense} from '@userActions/IOU/TrackExpense';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
