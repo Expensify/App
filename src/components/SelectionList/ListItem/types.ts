@@ -3,8 +3,8 @@ import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, Role, StylePro
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
-import {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import {TransactionPreviewData} from '@libs/actions/Search';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports

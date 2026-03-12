@@ -1,4 +1,6 @@
 import React from 'react';
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -7,8 +9,7 @@ import FS from '@libs/Fullstory';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import BaseListItem from './BaseListItem';
-import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
+import type {ChatListItemProps, ReportActionListItemType} from './types';
 
 function ChatListItem<TItem extends ListItem>({
     item,

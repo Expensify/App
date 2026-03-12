@@ -6,7 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
 import CategoryListItemHeader from '@components/Search/SearchList/ListItem/CategoryListItemHeader';
-import {TransactionCategoryGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionCategoryGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';

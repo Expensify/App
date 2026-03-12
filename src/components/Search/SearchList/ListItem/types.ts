@@ -1,12 +1,12 @@
-import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
-import {ListItemProps} from '@components/SelectionList/ListItem/types';
-import {ListItem} from '@components/SelectionList/types';
+import type {ListItemProps} from '@components/SelectionList/ListItem/types';
+import type {ListItem} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {LastPaymentMethod, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
     SearchCategoryGroup,
@@ -471,4 +471,5 @@ export type {
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,
     TransactionListItemProps,
+    ReportActionListItemType,
 };

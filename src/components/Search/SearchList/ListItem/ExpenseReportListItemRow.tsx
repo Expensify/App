@@ -25,7 +25,7 @@ import ExportedIconCell from './ExportedIconCell';
 import StatusCell from './StatusCell';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import {ExpenseReportListItemType} from './types';
+import type {ExpenseReportListItemType} from './types';
 import UserInfoCell from './UserInfoCell';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 import WorkspaceCell from './WorkspaceCell';

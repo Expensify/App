@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
 import * as MCCIcons from '@components/Icon/MCCIcons';
-import {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
