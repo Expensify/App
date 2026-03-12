@@ -1,22 +1,38 @@
-import {usePreventRemove} from '@react-navigation/native';
 import type {NavigationAction} from '@react-navigation/native';
+import {useIsFocused, usePreventRemove} from '@react-navigation/native';
 import React, {memo, useCallback, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({hasUnsavedChanges}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange, isEnabled = true}: DiscardChangesConfirmationProps) {
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
     const [isVisible, setIsVisible] = useState(false);
+    const shouldAllowNavigation = useRef(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
 
+    const hasUnsavedChanges = isEnabled && isFocused && getHasUnsavedChanges();
+    const shouldPrevent = hasUnsavedChanges && !shouldAllowNavigation.current;
+
+    const setModalVisible = useCallback(
+        (nextVisible: boolean) => {
+            setIsVisible(nextVisible);
+            onVisibilityChange?.(nextVisible);
+        },
+        [onVisibilityChange],
+    );
+
     usePreventRemove(
-        hasUnsavedChanges,
-        useCallback((e) => {
-            blockedNavigationAction.current = e.data.action;
-            setIsVisible(true);
-        }, []),
+        shouldPrevent,
+        useCallback(
+            ({data}) => {
+                blockedNavigationAction.current = data.action;
+                setModalVisible(true);
+            },
+            [setModalVisible],
+        ),
     );
 
     return (
@@ -28,7 +44,8 @@ function DiscardChangesConfirmation({hasUnsavedChanges}: DiscardChangesConfirmat
             confirmText={translate('discardChangesConfirmation.confirmText')}
             cancelText={translate('common.cancel')}
             onConfirm={() => {
-                setIsVisible(false);
+                setModalVisible(false);
+                shouldAllowNavigation.current = true;
                 if (blockedNavigationAction.current) {
                     navigationRef.current?.dispatch(blockedNavigationAction.current);
                     blockedNavigationAction.current = undefined;
@@ -37,7 +54,7 @@ function DiscardChangesConfirmation({hasUnsavedChanges}: DiscardChangesConfirmat
                 }
             }}
             onCancel={() => {
-                setIsVisible(false);
+                setModalVisible(false);
                 blockedNavigationAction.current = undefined;
             }}
             shouldHandleNavigationBack

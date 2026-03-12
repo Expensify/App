@@ -184,7 +184,7 @@ function BaseVacationDelegateSelectionComponent({
                                 onSelectRow(item);
                             }}
                             textInputOptions={textInputOptions}
-                            showLoadingPlaceholder={!areOptionsInitialized}
+                            shouldShowLoadingPlaceholder={!areOptionsInitialized}
                             isLoadingNewOptions={!!isSearchingForReports}
                             onEndReached={onListEndReached}
                             shouldSingleExecuteRowSelect
