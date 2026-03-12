@@ -58,7 +58,6 @@ function OptionRowLHN({
     conciergeReportID,
 }: OptionRowLHNProps) {
     const {isProduction} = useEnvironment();
-    const canShowBadge = true;
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -162,7 +161,7 @@ function OptionRowLHN({
     }
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-    const actionBadgeText = canShowBadge && optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
+    const actionBadgeText = !isProduction && optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0, style];
@@ -431,7 +430,7 @@ function OptionRowLHN({
                                         )}
                                         {!brickRoadIndicator &&
                                             !!optionItem.isPinned &&
-                                            (!canShowBadge ? (
+                                            (isProduction ? (
                                                 <View
                                                     style={styles.ml2}
                                                     accessibilityLabel={translate('sidebarScreen.chatPinned')}
