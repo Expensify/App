@@ -377,7 +377,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
 
         const files = Array.isArray(filesParam) ? filesParam : [filesParam];
 
-        if (files.length > 0) {
+        if (files.length > 1) {
             setIsValidatingMultipleFiles(true);
         }
 
