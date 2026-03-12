@@ -60,13 +60,7 @@ function IOURequestStepMerchant({
     const merchant = getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = isInvalidMerchantValue(merchant);
     const initialMerchant = isEmptyMerchant ? '' : merchant;
-<<<<<<< HEAD
-=======
-    const [currentMerchant, setCurrentMerchant] = useState(initialMerchant);
-    const [isSaved, setIsSaved] = useState(false);
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
-    const shouldNavigateAfterSaveRef = useRef(false);
->>>>>>> main
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
