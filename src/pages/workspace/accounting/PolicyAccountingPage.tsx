@@ -21,6 +21,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useHasPoliciesConnectedToSageIntacct from '@hooks/useHasPoliciesConnectedToSageIntacct';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -55,7 +56,6 @@ import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {adminPoliciesConnectedToSageIntacctSelector} from '@src/selectors/Policy';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
@@ -69,8 +69,8 @@ type RouteParams = {
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
+    const hasPoliciesConnectedToSageIntacct = useHasPoliciesConnectedToSageIntacct();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
-    const [hasPoliciesConnectedToSageIntacct = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const theme = useTheme();
     const styles = useThemeStyles();

@@ -128,6 +128,10 @@ const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Po
 const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
 
+const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length;
+
+const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
+
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
@@ -141,4 +145,6 @@ export {
     shouldRedirectToExpensifyClassicSelector,
     adminPoliciesConnectedToSageIntacctSelector,
     adminPoliciesConnectedToNetSuiteSelector,
+    hasPoliciesConnectedToSageIntacctSelector,
+    hasPoliciesConnectedToNetSuiteSelector,
 };

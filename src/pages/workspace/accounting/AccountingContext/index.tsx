@@ -3,16 +3,14 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
+import useHasPoliciesConnectedToSageIntacct from '@hooks/useHasPoliciesConnectedToSageIntacct';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {adminPoliciesConnectedToSageIntacctSelector} from '@src/selectors/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {defaultAccountingActionsContextValue, defaultAccountingStateContextValue, popoverAnchorRefsInitialValue} from './default';
@@ -31,7 +29,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
-    const [hasPoliciesConnectedToSageIntacct = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length});
+    const hasPoliciesConnectedToSageIntacct = useHasPoliciesConnectedToSageIntacct();
 
     const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {

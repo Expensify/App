@@ -12,13 +12,13 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {adminPoliciesConnectedToNetSuiteSelector} from '@src/selectors/Policy';
+import {hasPoliciesConnectedToNetSuiteSelector} from '@src/selectors/Policy';
 import type {ConnectToNetSuiteFlowProps} from './types';
 
 function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     const {translate} = useLocalize();
 
-    const [hasPoliciesConnectedToNetSuite] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length});
+    const [hasPoliciesConnectedToNetSuite] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasPoliciesConnectedToNetSuiteSelector});
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
