@@ -1262,6 +1262,101 @@ describe('ReportActionsUtils', () => {
             const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
             expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
         });
+
+        it('should preserve backend-provided CARDFROZEN fragments', () => {
+            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+                reportActionID: 'card-frozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 01:58:43.479',
+                message: [
+                    {
+                        html: cardFrozenMessage,
+                        text: cardFrozenMessage,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: cardFrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 01:58:43.479',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
+        });
+
+        it('should synthesize fragments from originalMessage.html when CARDFROZEN has no message array entries', () => {
+            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+                reportActionID: 'card-frozen-action-empty-message',
+                actorAccountID: 21052128,
+                created: '2026-03-12 01:58:43.479',
+                message: [],
+                originalMessage: {
+                    html: cardFrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 01:58:43.479',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual([
+                {
+                    html: cardFrozenMessage,
+                    text: cardFrozenMessage,
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                },
+            ]);
+        });
+    });
+
+    describe('getReportActionText', () => {
+        it('should return the backend-provided CARDFROZEN text', () => {
+            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+                reportActionID: 'card-frozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 01:58:43.479',
+                message: [
+                    {
+                        html: cardFrozenMessage,
+                        text: cardFrozenMessage,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: cardFrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 01:58:43.479',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardFrozenMessage);
+        });
+
+        it('should return text from originalMessage.html when CARDUNFROZEN has no message array entries', () => {
+            const cardUnfrozenMessage = 'A A unfroze their Expensify Card (ending in 1384). This card can now be used for transactions.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
+                reportActionID: 'card-unfrozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 02:08:08.128',
+                message: [],
+                originalMessage: {
+                    html: cardUnfrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 02:08:08.128',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardUnfrozenMessage);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
+        });
     });
 
     describe('getSendMoneyFlowAction', () => {
@@ -1491,6 +1586,23 @@ describe('ReportActionsUtils', () => {
             const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
+
+        it('should return false for CARDFROZEN action with empty message array when originalMessage.html is provided', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+                reportActionID: 'card-frozen-action-empty-message',
+                actorAccountID: 21052128,
+                created: '2026-03-12 01:58:43.479',
+                message: [],
+                originalMessage: {
+                    html: 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.',
+                    isNewDot: true,
+                    lastModified: '2026-03-12 01:58:43.479',
+                },
+            };
+
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
     });
 
     describe('getRenamedAction', () => {
@@ -1554,29 +1666,6 @@ describe('ReportActionsUtils', () => {
         } as Card;
 
         const testPolicyID = 'test-policy-123';
-        const mockCardFreezeAction: ReportAction = {
-            actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FREEZE,
-            reportActionID: 'card-freeze-action-123',
-            actorAccountID: 123,
-            created: '2024-01-01',
-            message: [],
-            originalMessage: {
-                assigneeAccountID: 456,
-                cardID: 789,
-                frozen: true,
-            },
-        } as ReportAction;
-
-        const mockCardUnfreezeAction: ReportAction = {
-            ...mockCardFreezeAction,
-            reportActionID: 'card-unfreeze-action-123',
-            originalMessage: {
-                assigneeAccountID: 456,
-                cardID: 789,
-                frozen: false,
-            },
-        } as ReportAction;
-
         describe('render virtual card issued messages', () => {
             it('should render a plain text message without card link when no card data is available', () => {
                 const messageResult = getCardIssuedMessage({
@@ -1602,26 +1691,6 @@ describe('ReportActionsUtils', () => {
                 expect(messageResult).toBe(
                     `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
                 );
-            });
-        });
-
-        describe('render card freeze messages', () => {
-            it('should render the freeze system message when the card is frozen', () => {
-                const messageResult = getCardIssuedMessage({
-                    reportAction: mockCardFreezeAction,
-                    translate: translateLocal,
-                });
-
-                expect(messageResult).toBe(`froze @456's Expensify Card.`);
-            });
-
-            it('should render the unfreeze system message when the card is unfrozen', () => {
-                const messageResult = getCardIssuedMessage({
-                    reportAction: mockCardUnfreezeAction,
-                    translate: translateLocal,
-                });
-
-                expect(messageResult).toBe(`unfroze @456's Expensify Card.`);
             });
         });
     });

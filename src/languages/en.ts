@@ -5130,8 +5130,6 @@ const translations = {
             addedShippingDetails: (assignee: string) => `${assignee} added shipping details. Expensify Card will arrive in 2-3 business days.`,
             replacedCard: (assignee: string) => `${assignee} replaced their Expensify Card. The new card will arrive in 2-3 business days.`,
             replacedVirtualCard: (assignee: string, link: string) => `${assignee} replaced their virtual Expensify Card! The ${link} can be used right away.`,
-            frozeCard: (assignee: string) => `froze ${assignee}'s Expensify Card.`,
-            unfrozeCard: (assignee: string) => `unfroze ${assignee}'s Expensify Card.`,
             card: 'card',
             replacementCard: 'replacement card',
             verifyingHeader: 'Verifying',

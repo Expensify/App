@@ -5125,8 +5125,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             addedShippingDetails: (assignee: string) => `${assignee} adicionou os detalhes de envio. O Cartão Expensify chegará em 2-3 dias úteis.`,
             replacedCard: (assignee: string) => `${assignee} substituiu o Cartão Expensify. O novo cartão chegará em 2-3 dias úteis.`,
             replacedVirtualCard: (assignee: string, link: string) => `${assignee} substituiu o cartão virtual Cartão Expensify! O ${link} já pode ser usado.`,
-            frozeCard: (assignee: string) => `bloqueou o Cartão Expensify de ${assignee}.`,
-            unfrozeCard: (assignee: string) => `desbloqueou o Cartão Expensify de ${assignee}.`,
             card: 'cartão',
             replacementCard: 'cartão de substituição',
             verifyingHeader: 'Verificando',
