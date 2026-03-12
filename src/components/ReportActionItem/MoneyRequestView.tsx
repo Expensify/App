@@ -845,8 +845,7 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (shouldShowSplitIndicator) {
-                                //} && isSplitAvailable) { I amdisabling this to test first
+                            if (shouldShowSplitIndicator && (isSplitAvailable || canEditAmount)) {
                                 initSplitExpense(transaction, policy);
                                 return;
                             }
