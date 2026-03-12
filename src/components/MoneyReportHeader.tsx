@@ -1953,7 +1953,6 @@ function MoneyReportHeader({
 
     const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'MoneyReportHeader.PDFModal',
-        hasFinishedPDFDownload: !!hasFinishedPDFDownload,
     };
 
     return (

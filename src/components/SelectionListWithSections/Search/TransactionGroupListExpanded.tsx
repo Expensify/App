@@ -138,9 +138,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const transactionGroupLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'TransactionGroupListExpanded',
-        isExpenseReportType,
         isOffline: !!isOffline,
-        isLoading: !!transactionsSnapshotMetadata?.isLoading,
     };
 
     if (shouldDisplayEmptyView) {

@@ -303,7 +303,6 @@ function Button({
 
     const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'Button',
-        isLoading,
     };
 
     const renderContent = () => {

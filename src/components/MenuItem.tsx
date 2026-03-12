@@ -600,7 +600,6 @@ function MenuItem({
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const menuItemLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'MenuItem',
-        shouldShowLoadingSpinnerIcon,
     };
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
 

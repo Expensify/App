@@ -38,7 +38,6 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
 
     const copyableTextFieldLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'CopyableTextField',
-        isLoading,
     };
 
     return (

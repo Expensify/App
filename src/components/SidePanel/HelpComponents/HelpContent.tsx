@@ -119,7 +119,6 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
     const helpLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'HelpContent',
-        isNavigationInitialized: currentState !== undefined,
     };
 
     return (
