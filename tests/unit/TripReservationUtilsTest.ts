@@ -2278,6 +2278,7 @@ const connectingAirPnrData = asDefined(airPnrConnecting.data.airPnr);
 const hotelPnrData = asDefined(hotelPnr.data.hotelPnr);
 const carPnrData = asDefined(carPnr.data.carPnr);
 const railPnrData = asDefined(railPnr.data.railPnr);
+const railInwardJourney = asDefined(railPnrData.inwardJourney);
 
 describe('TripReservationUtils', () => {
     describe('getAirReservations', () => {
@@ -2828,7 +2829,7 @@ describe('TripReservationUtils', () => {
                             journeyStatus: CONST.PNR_STATUS.CANCELLED,
                         },
                         inwardJourney: {
-                            ...railPnrData.inwardJourney,
+                            ...railInwardJourney,
                             journeyStatus: CONST.PNR_STATUS.CANCELLED,
                         },
                     },
@@ -2849,7 +2850,7 @@ describe('TripReservationUtils', () => {
                             journeyStatus: CONST.PNR_STATUS.CANCELLED,
                         },
                         inwardJourney: {
-                            ...railPnrData.inwardJourney,
+                            ...railInwardJourney,
                             journeyStatus: 'CONFIRMED',
                         },
                     },
