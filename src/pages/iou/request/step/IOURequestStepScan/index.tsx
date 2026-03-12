@@ -22,7 +22,6 @@ import MobileWebCameraView from './components/MobileWebCameraView';
 import useReceiptScan from './hooks/useReceiptScan';
 import {getLocationPermission} from './LocationPermission';
 import type IOURequestStepScanProps from './types';
-import useScanShortcutSpan from './useScanShortcutSpan';
 
 function IOURequestStepScan({
     report,
@@ -44,8 +43,6 @@ function IOURequestStepScan({
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
-
-    useScanShortcutSpan(initialTransaction);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);

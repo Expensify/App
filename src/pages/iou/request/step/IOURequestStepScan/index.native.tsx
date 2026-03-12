@@ -53,7 +53,6 @@ import ReceiptPreviews from './components/ReceiptPreviews';
 import useMobileReceiptScan from './hooks/useMobileReceiptScan';
 import useReceiptScan from './hooks/useReceiptScan';
 import type IOURequestStepScanProps from './types';
-import useScanShortcutSpan from './useScanShortcutSpan';
 
 function IOURequestStepScan({
     report,
@@ -97,8 +96,6 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-
-    useScanShortcutSpan(initialTransaction);
 
     // Track camera init telemetry
     const cameraInitSpanStarted = useRef(false);
