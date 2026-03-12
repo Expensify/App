@@ -1,12 +1,13 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import type {InitialState} from '@react-navigation/native';
+import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockingViewContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SearchContextProvider} from '@components/Search/SearchContext';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
@@ -23,7 +24,12 @@ import SCREENS from '@src/SCREENS';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
-type TestNavigationContainerProps = {initialState: InitialState};
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
+    useNavigationState: () => {},
+}));
+
+type TestNavigationContainerProps = {initialState: reactNavigationNativeImport.InitialState};
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
@@ -61,24 +67,26 @@ const renderPage = () => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PlaybackContextProvider, FullScreenBlockingViewContextProvider]}>
             <PortalProvider>
-                <TestNavigationContainer
-                    initialState={{
-                        index: 0,
-                        routes: [
-                            {
-                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                                state: {
-                                    index: 0,
-                                    routes: [
-                                        {
-                                            name: SCREENS.SEARCH.ROOT,
-                                        },
-                                    ],
+                <SearchContextProvider>
+                    <TestNavigationContainer
+                        initialState={{
+                            index: 0,
+                            routes: [
+                                {
+                                    name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                    state: {
+                                        index: 0,
+                                        routes: [
+                                            {
+                                                name: SCREENS.SEARCH.ROOT,
+                                            },
+                                        ],
+                                    },
                                 },
-                            },
-                        ],
-                    }}
-                />
+                            ],
+                        }}
+                    />
+                </SearchContextProvider>
             </PortalProvider>
         </ComposeProviders>,
     );
