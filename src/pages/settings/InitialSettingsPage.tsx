@@ -11,8 +11,6 @@ import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -155,8 +153,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
 
     const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
-
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const {
         all: {shouldShowRBR},
@@ -560,7 +556,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             testID="InitialSettingsPage"
             shouldEnableKeyboardAvoidingView={false}
         >
-            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             {shouldUseNarrowLayout && (
                 <TopBar
                     breadcrumbLabel={translate('initialSettingsPage.account')}

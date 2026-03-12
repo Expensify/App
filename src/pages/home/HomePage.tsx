@@ -3,8 +3,6 @@ import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -28,7 +26,6 @@ import UpcomingTravelSection from './UpcomingTravelSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -77,7 +74,6 @@ function HomePage() {
                         </View>
                     </View>
                 </ScrollView>
-                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
             </ScreenWrapper>
             <DragAndDropConsumer onDrop={initScanRequest}>
                 <DropZoneUI
