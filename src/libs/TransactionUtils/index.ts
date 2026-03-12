@@ -1354,7 +1354,17 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
  * Determine whether a transaction is made with a centrally managed card (Expensify or Company Card).
  */
 function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return !!transaction?.managedCard;
+    if (transaction?.managedCard) {
+        return true;
+    }
+
+    // Check for company card transactions without managedCard flag
+    // Company cards have cardNumber and bank that is not 'upload' (CSV import)
+    if (transaction?.cardNumber && transaction?.bank && transaction.bank !== CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
