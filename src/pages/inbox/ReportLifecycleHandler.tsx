@@ -15,7 +15,7 @@ type ReportLifecycleHandlerProps = {
 };
 
 /**
- * Renderless component that handles screen lifecycle side effects:
+ * Component that does not render anything. Handles screen lifecycle side effects:
  * - Hide emoji picker when screen loses focus
  * - Clear notifications when report is opened/re-focused
  * - DeviceEventEmitter listener for switchToPreExistingReport

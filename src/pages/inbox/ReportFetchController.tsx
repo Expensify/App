@@ -26,7 +26,7 @@ const defaultReportMetadata = {
 };
 
 /**
- * Renderless component owning all report fetching/opening logic:
+ * Component that does not render anything, owning all report fetching/opening logic:
  * - fetchReport / openReport calls
  * - introSelected, onboarding subscriptions
  * - Anonymous-to-signed-in re-fetch

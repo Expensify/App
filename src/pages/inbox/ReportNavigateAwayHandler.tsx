@@ -36,7 +36,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 }
 
 /**
- * Renderless handler that navigates away when a report is removed, closed, or deleted.
+ * Handler that does not render anything. Navigates away when a report is removed, closed, or deleted.
  * Self-subscribes to its own data via useRoute().
  */
 function ReportNavigateAwayHandler() {
