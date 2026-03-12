@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 
 /**
  * Hook for managing inline editing state (text, number fields).
@@ -8,8 +8,9 @@ import {useEffect, useState} from 'react';
  *   - Save on blur (compares localValue vs original value)
  *   - Cancel (reset to original)
  *   - isEditing toggle
+ *   - Auto-cancel when canEdit becomes false
  */
-function useInlineEditState<T>(value: T, onSave?: (value: T) => void) {
+function useInlineEditState<T>(canEdit: boolean | undefined, value: T, onSave?: (value: T) => void) {
     const [isEditing, setIsEditing] = useState(false);
     const [localValue, setLocalValue] = useState(value);
 
@@ -18,11 +19,11 @@ function useInlineEditState<T>(value: T, onSave?: (value: T) => void) {
         setLocalValue(value);
     }, [value]);
 
-    const startEditing = () => {
+    const startEditing = useCallback(() => {
         setIsEditing(true);
-    };
+    }, []);
 
-    const save = () => {
+    const save = useCallback(() => {
         if (localValue !== value) {
             onSave?.(localValue);
         }
@@ -30,12 +31,20 @@ function useInlineEditState<T>(value: T, onSave?: (value: T) => void) {
         // doesn't leave stale localValue displayed after edit mode closes.
         setLocalValue(value);
         setIsEditing(false);
-    };
+    }, [localValue, value, onSave]);
 
-    const cancelEditing = () => {
+    const cancelEditing = useCallback(() => {
         setLocalValue(value);
         setIsEditing(false);
-    };
+    }, [value]);
+
+    // Cancel editing when permission is revoked (e.g., transaction status changed)
+    useEffect(() => {
+        if (canEdit || !isEditing) {
+            return;
+        }
+        cancelEditing();
+    }, [canEdit, cancelEditing, isEditing]);
 
     return {isEditing, localValue, setLocalValue, startEditing, save, cancelEditing};
 }

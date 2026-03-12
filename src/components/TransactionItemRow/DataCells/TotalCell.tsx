@@ -38,7 +38,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
     };
 
     // localValue tracks the frontend-format amount string (e.g. "12.34") while editing
-    const {isEditing, setLocalValue, startEditing, save} = useInlineEditState(convertToFrontendAmountAsString(absoluteAmount, currency), handleAmountSave);
+    const {isEditing, setLocalValue, startEditing, save} = useInlineEditState(canEdit, convertToFrontendAmountAsString(absoluteAmount, currency), handleAmountSave);
 
     // Ref used to programmatically focus the input when edit mode starts
     const inputRef = useRef<BaseTextInputRef | null>(null);

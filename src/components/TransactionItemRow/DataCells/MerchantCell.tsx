@@ -23,7 +23,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
         return Parser.htmlToText(merchantOrDescription).replaceAll('\n', ' ');
     }, [merchantOrDescription, isDescription]);
 
-    const {isEditing, localValue, setLocalValue, startEditing, save} = useInlineEditState(text, onSave);
+    const {isEditing, localValue, setLocalValue, startEditing, save} = useInlineEditState(canEdit, text, onSave);
 
     // Prevent double-save: for non-multiline inputs, pressing Enter fires onSubmitEditing then
     // immediately triggers a blur (blurOnSubmit=true by default), which would call save twice.
