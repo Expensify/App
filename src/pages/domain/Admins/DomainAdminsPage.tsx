@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -63,7 +64,15 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         pendingAction: domainPendingAction?.[accountID]?.pendingAction,
     });
 
+    const getCustomListHeader = () => (
+        <CustomListHeader
+            canSelectMultiple={false}
+            leftHeaderText={translate('domain.admins.title')}
+        />
+    );
+
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
+
     const headerContent = isAdmin ? (
         <View style={[styles.flexRow, styles.gap2]}>
             <Button
@@ -94,6 +103,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             searchPlaceholder={translate('domain.admins.findAdmin')}
             headerIcon={illustrations.UserShield}
             headerContent={headerContent}
+            getCustomListHeader={getCustomListHeader}
             getCustomRightElement={getCustomRightElement}
             getCustomRowProps={getCustomRowProps}
             onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}
