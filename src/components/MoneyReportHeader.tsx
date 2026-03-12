@@ -490,9 +490,10 @@ function MoneyReportHeader({
         activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
 
     const handleDuplicateReset = useCallback(() => {
-        if (!shouldDuplicateCloseModalOnSelect) {
-            dropdownMenuRef.current?.setIsMenuVisible(false);
+        if (shouldDuplicateCloseModalOnSelect) {
+            return;
         }
+        dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [shouldDuplicateCloseModalOnSelect]);
 
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState(handleDuplicateReset);

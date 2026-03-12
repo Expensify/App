@@ -212,9 +212,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const shouldDuplicateCloseModalOnSelect = isDistanceExpenseUnsupportedForDuplicating || hasCustomUnitOutOfPolicyViolation || isPerDiemRequestOnNonDefaultWorkspace;
 
     const handleDuplicateReset = useCallback(() => {
-        if (!shouldDuplicateCloseModalOnSelect) {
-            dropdownMenuRef.current?.setIsMenuVisible(false);
+        if (shouldDuplicateCloseModalOnSelect) {
+            return;
         }
+        dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [shouldDuplicateCloseModalOnSelect]);
 
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState(handleDuplicateReset);
