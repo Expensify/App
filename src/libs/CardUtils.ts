@@ -992,7 +992,10 @@ function getAllCardsForWorkspace(
         const isWorkspaceAccountCards = workspaceAccountID !== CONST.DEFAULT_NUMBER_ID && key.includes(workspaceAccountID.toString());
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
-        if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
+        // Directly check if this is an Expensify Card for this workspace to ensure it's always included
+        // even when expensifyCardSettings is empty or stale (e.g., after deleting a company card feed)
+        const isExpensifyCard = key.includes(workspaceAccountID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK);
+        if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards || isExpensifyCard) && values) {
             const {cardList: assignableCards, ...assignedCards} = values ?? {};
             const filteredCards = filterInactiveCards(assignedCards);
             Object.assign(cards, filteredCards);
