@@ -6,7 +6,7 @@ import splitPathAndQuery from './splitPathAndQuery';
 type LeafRoute = {
     name: string;
     path: string;
-    params?: Record<string, string>;
+    params?: Record<string, unknown>;
 };
 
 type NestedRoute = {
@@ -54,7 +54,7 @@ function getRouteNamesForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): str
     return null;
 }
 
-function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DYNAMIC_ROUTES) {
+function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DYNAMIC_ROUTES, parentRouteParams?: Record<string, unknown>) {
     const routeConfig = getRouteNamesForDynamicRoute(DYNAMIC_ROUTES[dynamicRouteName].path);
     const [, query] = splitPathAndQuery(path);
     const params = getParamsFromQuery(query);
@@ -67,12 +67,12 @@ function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DY
     const buildNestedState = (routes: string[], currentIndex: number): RouteNode => {
         const currentRoute = routes.at(currentIndex);
 
-        // If this is the last route, create leaf node with path
+        // If this is the last route, create leaf node with path and inherited params
         if (currentIndex === routes.length - 1) {
             return {
                 name: currentRoute ?? '',
                 path,
-                params,
+                ...(parentRouteParams ? {params: parentRouteParams} : {}),
             };
         }
 
