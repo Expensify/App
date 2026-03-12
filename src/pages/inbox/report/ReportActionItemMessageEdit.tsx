@@ -408,7 +408,10 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                         isExceedingMaxLength && styles.borderColorDanger,
                     ]}
                 >
-                    <MessageEditCancelButton onCancel={deleteDraft} />
+                    <MessageEditCancelButton
+                        onCancel={deleteDraft}
+                        style={[styles.justifyContentEnd, styles.mb1]}
+                    />
                     <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                         <Composer
                             multiline

@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ViewProps} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -9,11 +10,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type MessageEditCancelButtonProps = {
+type MessageEditCancelButtonProps = ViewProps & {
     onCancel: () => void;
 };
 
-function MessageEditCancelButton({onCancel}: MessageEditCancelButtonProps) {
+function MessageEditCancelButton({onCancel, ...restProps}: MessageEditCancelButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -22,7 +23,8 @@ function MessageEditCancelButton({onCancel}: MessageEditCancelButtonProps) {
     const closeButtonStyles = [styles.composerSizeButton, {marginVertical: styles.composerSizeButton.marginHorizontal}];
 
     return (
-        <View style={[styles.justifyContentEnd, styles.mb1]}>
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <View {...restProps}>
             <Tooltip text={translate('common.cancel')}>
                 <PressableWithFeedback
                     onPress={onCancel}

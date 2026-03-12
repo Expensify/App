@@ -1,6 +1,6 @@
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
+import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSharedValue} from 'react-native-reanimated';
@@ -73,6 +73,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps, ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
+import ExpandCollapseComposerButton from './ExpandCollapseComposerButton';
 import MessageEditCancelButton from './MessageEditCancelButton';
 import ReportActionComposeSendButton from './ReportActionComposeSendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
@@ -570,7 +571,20 @@ function ReportActionCompose({
                     >
                         {PDFValidationComponent}
                         {isEditingInComposer ? (
-                            <MessageEditCancelButton onCancel={deleteDraft} />
+                            <View
+                                style={[styles.dFlex, styles.alignItemsCenter, styles.flexWrap, styles.justifyContentCenter, {paddingVertical: styles.composerSizeButton.marginHorizontal}]}
+                            >
+                                <ExpandCollapseComposerButton
+                                    isFullComposerAvailable={isFullComposerAvailable}
+                                    isComposerFullSize={isComposerFullSize}
+                                    reportID={reportID}
+                                    disabled={isBlockedFromConcierge}
+                                    raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                                    setIsComposerFullSize={setIsComposerFullSize}
+                                    style={[styles.flexGrow1, styles.flexShrink0]}
+                                />
+                                <MessageEditCancelButton onCancel={deleteDraft} />
+                            </View>
                         ) : (
                             <AttachmentPickerWithMenuItems
                                 onAttachmentPicked={(files) => validateAttachments({files})}
