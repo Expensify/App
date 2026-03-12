@@ -62,7 +62,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     return null;
                 }
 
-                if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email)) {
+                if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email) && selectedApproverEmail !== email ) {
                     return null;
                 }
 
@@ -140,6 +140,10 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
             if (isRemovingApprover) {
                 clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
+                    if (isChangeApproverRoute && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
+                        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+                        return;
+                    }
                 goBack();
                 return;
             }
@@ -171,7 +175,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
             }
         },
-        [approverIndex, approvalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, isChangeApproverRoute],
+        [approverIndex, approvalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, isChangeApproverRoute, firstApprover],
     );
 
     const subtitle = useMemo(
