@@ -175,12 +175,6 @@ async function requestAuthorizationChallenge(): Promise<AuthenticationChallengeR
 }
 
 async function troubleshootMultifactorAuthentication({signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['BIOMETRICS-TEST']) {
-    // TODO: Remove mock once backend supports ES256/passkey signature verification
-    if (signedChallenge.type === CONST.PASSKEY_CREDENTIAL_TYPE) {
-        Log.hmmm('[MultifactorAuthentication] Mocking successful passkey troubleshoot response (backend not yet ready)');
-        return {httpStatusCode: 200, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL, message: undefined};
-    }
-
     try {
         const response = await makeRequestWithSideEffects(
             SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION,
