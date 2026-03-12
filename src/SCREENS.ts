@@ -443,7 +443,7 @@ const SCREENS = {
 
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
-        NAME: 'Report_Settings_Name',
+        DYNAMIC_SETTINGS_NAME: 'Dynamic_Report_Settings_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',

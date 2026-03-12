@@ -1,4 +1,4 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -15,24 +15,22 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import {shouldDisableRename} from '@libs/ReportUtils';
 import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
 import {updatePolicyRoomName as updatePolicyRoomNameReportAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/RoomNameForm';
 import type {Report} from '@src/types/onyx';
 
 type RoomNamePageProps = {
     report: Report;
+    navigateBackTo?: Route;
 };
 
-function RoomNamePage({report}: RoomNamePageProps) {
-    const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NAME>>();
+function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
     const styles = useThemeStyles();
     const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
@@ -42,8 +40,8 @@ function RoomNamePage({report}: RoomNamePageProps) {
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const goBack = useCallback(() => {
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo)));
-    }, [reportID, route.params.backTo]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, navigateBackTo)));
+    }, [reportID, navigateBackTo]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
