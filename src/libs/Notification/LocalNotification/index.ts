@@ -25,8 +25,8 @@ Onyx.connect({
     },
 });
 
-function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) {
-    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, true);
+function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, conciergeReportID: string | undefined) {
+    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, conciergeReportID, true);
 }
 
 function showUpdateAvailableNotification() {
