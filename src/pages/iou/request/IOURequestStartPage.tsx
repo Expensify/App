@@ -319,7 +319,6 @@ function IOURequestStartPage({
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
-                                shouldShowLabelWhenInactive={!shouldShowPerDiemOption}
                                 shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                                 renderProductTrainingTooltip={renderProductTrainingTooltip}
                                 lazyLoadEnabled

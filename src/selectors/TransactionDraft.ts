@@ -9,14 +9,12 @@ const validTransactionDraftsSelector = (drafts: OnyxCollection<Transaction>): Re
         return acc;
     }, {});
 
-const validTransactionDraftIDsSelector = (drafts: OnyxCollection<Transaction>): string[] => {
-    const ids: string[] = [];
-    for (const draft of Object.values(drafts ?? {})) {
+const validTransactionDraftIDsSelector = (drafts: OnyxCollection<Transaction>): string[] =>
+    Object.values(drafts ?? {}).reduce<string[]>((acc, draft) => {
         if (draft) {
-            ids.push(draft.transactionID);
+            acc.push(draft.transactionID);
         }
-    }
-    return ids;
-};
+        return acc;
+    }, []);
 
 export {validTransactionDraftsSelector, validTransactionDraftIDsSelector};

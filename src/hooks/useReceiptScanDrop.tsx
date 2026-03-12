@@ -22,7 +22,7 @@ import useSelfDMReport from './useSelfDMReport';
 
 /**
  * Encapsulates the receipt scan drag-and-drop logic used by SearchPage and HomePage.
- * Returns the drop handler, PDF validation component, and error modal needed for drag-and-drop receipt scanning.
+ * Returns the drop handler and sibling-safe auxiliary UI needed for receipt scanning.
  */
 function useReceiptScanDrop() {
     const isAnonymousUser = useIsAnonymousUser();
@@ -121,7 +121,14 @@ function useReceiptScanDrop() {
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
-    return {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled: isAnonymousUser};
+    const auxiliaryUI = (
+        <>
+            {PDFValidationComponent}
+            {ErrorModal}
+        </>
+    );
+
+    return {initScanRequest, auxiliaryUI, isDragDisabled: isAnonymousUser};
 }
 
 export default useReceiptScanDrop;
