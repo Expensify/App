@@ -43,7 +43,6 @@ import {
     getPolicyExpenseChat,
     isCurrentUserSubmitter,
     isDM,
-    isExpenseReport as isExpenseReportUtils,
     isOpenReport,
     isSelfDM,
     navigateToDetailsPage,
@@ -119,7 +118,6 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
         'ArrowCollapse',
         'ArrowSplit',
         'Checkmark',
-        'DocumentMerge',
         'ExpenseCopy',
         'Flag',
         'Hourglass',
@@ -167,8 +165,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
     const reportID = report?.reportID;
     const {currentSearchHash} = useSearchStateContext();
-    const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
-    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const {removeTransaction} = useSearchActionsContext();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -427,19 +424,8 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
         if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(
-            currentUserLogin ?? '',
-            accountID,
-            parentReport,
-            transaction,
-            parentReportAction,
-            originalTransaction,
-            policy,
-            report,
-            outstandingReportsByPolicyID,
-            isChatIOUReportArchived,
-        );
-    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction, accountID, outstandingReportsByPolicyID, isChatIOUReportArchived]);
+        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', accountID, parentReport, transaction, parentReportAction, originalTransaction, policy, report);
+    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction, accountID]);
 
     const dismissModalAndUpdateUseHold = () => {
         setIsHoldEducationalModalVisible(false);
@@ -650,19 +636,6 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 } else {
                     setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
                 }
-            },
-        },
-        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE]: {
-            text: translate('iou.moveExpenses'),
-            icon: expensifyIcons.DocumentMerge,
-            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE,
-            onSelected: () => {
-                if (!parentReport || !transaction?.transactionID) {
-                    return;
-                }
-                const iouType = isExpenseReportUtils(parentReport) ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.TRACK;
-                setSelectedTransactions([transaction.transactionID]);
-                Navigation.navigate(ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, Navigation.getActiveRoute()));
             },
         },
     };
