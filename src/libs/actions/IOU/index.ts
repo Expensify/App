@@ -867,6 +867,7 @@ type PayMoneyRequestFunctionParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     amountOwed: OnyxEntry<number>;
+    methodID?: number;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -6931,6 +6932,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 taxCode,
                 taxAmount,
+                taxPolicyID: policy?.id,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
                 receiptGpsPoints: gpsPoint ? JSON.stringify(gpsPoint) : undefined,
@@ -9626,6 +9628,7 @@ function getPayMoneyRequestParams({
             optimisticHoldReportID,
             optimisticHoldActionID,
             optimisticHoldReportExpenseActionIDs,
+            ...(bankAccountID != null ? {bankAccountID} : {}),
             ...policyParams,
         },
         onyxData,
@@ -11267,6 +11270,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         betas,
         isSelfTourViewed,
         amountOwed,
+        methodID,
     } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -11290,6 +11294,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         currentUserAccountIDParam: currentUserAccountID,
         betas,
         isSelfTourViewed,
+        bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
