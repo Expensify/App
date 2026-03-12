@@ -123,6 +123,9 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             errors: null,
             originalApprovers: currentApprovalWorkflow.approvers,
         });
+        // Intentional: synchronizes the initial workflow snapshot when the current workflow changes.
+        // This runs alongside setApprovalWorkflow above and is part of the same logical update.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setInitialApprovalWorkflow(currentApprovalWorkflow);
     }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails]);
 

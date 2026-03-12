@@ -1,7 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isExpensifyCard, isExpensifyCardUkEuSupported, isPersonalCard} from '@libs/CardUtils';
+import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
+import {isCard, isCardHiddenFromSearch, isExpensifyCard, isPersonalCard, supportsPINManagementFeatures} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,10 +55,20 @@ const filterOutPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 };
 
 /**
+ * Get only personal cards from the card list.
+ */
+const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
+    return filterObject(
+        cards ?? {},
+        (key, card) => card?.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && card?.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV && (!card?.fundID || card?.fundID === '0'),
+    );
+};
+
+/**
  * Selects the Expensify Card feed from the card list and returns the first one.
  */
-const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>, translate: LocalizedTranslate) => {
-    const cards = getCardFeedsForDisplay({}, allCards, translate);
+const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
+    const cards = getExpensifyCardFeedsForDisplay(allCards ?? undefined);
     return Object.values(cards)?.at(0);
 };
 
@@ -80,7 +89,7 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
 
 /** Checks whether the Expensify card matching the given cardID supports UK/EU features (e.g. PIN management). */
 const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID: string): boolean =>
-    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && isExpensifyCardUkEuSupported(card));
+    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && supportsPINManagementFeatures(card ?? undefined));
 
 export {
     filterCardsHiddenFromSearch,
@@ -90,4 +99,5 @@ export {
     areAllExpensifyCardsShipped,
     buildFeedKeysWithAssignedCards,
     isExpensifyCardUkEuSupportedSelector,
+    getBankLinkedPersonalCards,
 };

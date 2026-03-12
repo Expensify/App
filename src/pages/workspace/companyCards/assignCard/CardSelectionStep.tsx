@@ -180,7 +180,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                     textInputOptions={textInputOptions}
                     customListHeaderContent={customListHeader}
                     shouldScrollToFocusedIndex={false}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex
                     footerContent={

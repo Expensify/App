@@ -34,7 +34,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails, SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-type PersonalDetailsFormLikeValues = {
+type PersonalDetailsFormValues = {
     legalFirstName?: string;
     legalLastName?: string;
     phoneNumber?: string;
@@ -48,7 +48,7 @@ type PersonalDetailsFormLikeValues = {
     dob: string;
 };
 
-function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDetailsFormLikeValues, countryCode: number): Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> {
+function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDetailsFormValues, countryCode: number): Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> {
     return {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',

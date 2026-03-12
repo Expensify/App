@@ -36,7 +36,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
-    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType} = route.params;
+    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType, isEditingConfirmation, backToReport} = route.params;
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -150,7 +150,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport(reportID, introSelected);
+        openReport({reportID, introSelected});
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -289,8 +289,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         transactionID: transaction.transactionID,
                         file,
                         source: imageUriResult,
+                        state: transaction.receipt?.state,
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
+                        isSameReceipt: true,
                     });
                 }
                 setIsRotating(false);
@@ -298,7 +300,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsRotating(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt, policy]);
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
@@ -326,7 +328,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, []);
 
     const saveCrop = useCallback(() => {
-        if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect) {
+        if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect || cropRect.width < 1 || cropRect.height < 1) {
+            exitCropMode();
             return;
         }
 
@@ -378,13 +381,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     });
                 }
                 setIsCropSaving(false);
-                setIsCropping(false);
-                setCropRect(null);
+                exitCropMode();
             })
             .catch(() => {
                 setIsCropSaving(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, cropRect, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, cropRect, receiptFilename, policyCategories, transaction?.receipt?.type, policy, exitCropMode]);
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
@@ -508,7 +510,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         onPress={() => {
                             const getDestinationRoute = () => {
                                 return isOdometerImage
-                                    ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType)
+                                    ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType, isEditingConfirmation, backToReport)
                                     : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                           action ?? CONST.IOU.ACTION.EDIT,
                                           iouType,
@@ -564,6 +566,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         transactionID,
         reportID,
         imageType,
+        isEditingConfirmation,
+        backToReport,
         draftTransactionID,
         transaction?.transactionID,
         report?.reportID,
@@ -571,18 +575,18 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     ]);
 
     const customAttachmentContent = useMemo(() => {
-        if (!isCropping || !source) {
+        if (!isCropping || (!sourceUri && !source)) {
             return null;
         }
 
         return (
             <ReceiptCropView
-                imageUri={source as string}
+                imageUri={(sourceUri || source) as string}
                 onCropChange={handleCropChange}
-                isAuthTokenRequired={isAuthTokenRequired}
+                isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
             />
         );
-    }, [isCropping, source, handleCropChange, isAuthTokenRequired]);
+    }, [isCropping, sourceUri, handleCropChange, isAuthTokenRequired, source]);
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({

@@ -3,14 +3,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ReportActionReactions, ReportActionsDrafts} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
 type ReportActionsListItemRendererProps = {
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
-
     /** All the data of the action item */
     reportAction: ReportAction;
 
@@ -93,7 +90,6 @@ type ReportActionsListItemRendererProps = {
 };
 
 function ReportActionsListItemRenderer({
-    policies,
     reportAction,
     parentReportAction,
     index,
@@ -153,6 +149,7 @@ function ReportActionsListItemRenderer({
                 delegateAccountID: reportAction.delegateAccountID,
                 previousMessage: reportAction.previousMessage,
                 isAttachmentWithText: reportAction.isAttachmentWithText,
+                isOriginalReportDeleted: reportAction.isOriginalReportDeleted,
                 childStateNum: reportAction.childStateNum,
                 childStatusNum: reportAction.childStatusNum,
                 childReportName: reportAction.childReportName,
@@ -182,6 +179,7 @@ function ReportActionsListItemRenderer({
             reportAction.delegateAccountID,
             reportAction.previousMessage,
             reportAction.isAttachmentWithText,
+            reportAction.isOriginalReportDeleted,
             reportAction.childStateNum,
             reportAction.childStatusNum,
             reportAction.childReportName,
@@ -198,7 +196,6 @@ function ReportActionsListItemRenderer({
     if (shouldDisplayParentAction && isChatThread(report)) {
         return (
             <ReportActionItemParentAction
-                policies={policies}
                 shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
                 shouldDisplayReplyDivider={shouldDisplayReplyDivider}
                 parentReportAction={parentReportAction}
@@ -223,7 +220,6 @@ function ReportActionsListItemRenderer({
 
     return (
         <ReportActionItem
-            policies={policies}
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}
