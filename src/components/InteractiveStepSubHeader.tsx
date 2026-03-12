@@ -71,6 +71,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
         <View
             style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}
             accessible={false}
+            aria-hidden
         >
             {stepNames.map((stepName, index) => {
                 const isCompletedStep = currentStep > index;
