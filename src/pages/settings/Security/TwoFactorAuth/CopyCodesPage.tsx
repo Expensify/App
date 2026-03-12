@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -37,7 +37,12 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
+    const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
+
+    const announceStatus = useCallback((message: string) => {
+        setStatusAnnouncement((prev) => ({id: prev.id + 1, text: message}));
+    }, []);
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
 
@@ -120,6 +125,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                                 Clipboard.setString(account?.recoveryCodes ?? '');
                                                 setError('');
                                                 setCodesAreCopied();
+                                                announceStatus(translate('common.copied'));
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
@@ -135,6 +141,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                                 localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '', translate);
                                                 setError('');
                                                 setCodesAreCopied();
+                                                announceStatus(translate('fileDownload.success.title'));
                                             }}
                                             inline={false}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
@@ -151,6 +158,15 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                     </Section>
                 )}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    {!!statusAnnouncement.text && (
+                        <Text
+                            key={statusAnnouncement.id}
+                            role={CONST.ROLE.ALERT}
+                            style={styles.hiddenElementOutsideOfWindow}
+                        >
+                            {statusAnnouncement.text}
+                        </Text>
+                    )}
                     {!!error && (
                         <FormHelpMessage
                             isError
