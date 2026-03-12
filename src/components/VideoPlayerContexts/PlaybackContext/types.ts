@@ -69,6 +69,13 @@ type PlaybackStateContextValues = {
      * Status of the currently used Video Player
      */
     playerStatus: RefObject<VideoPlayerStatus>;
+
+    /**
+     * A counter that increments to signal all non-shared (donor) players to re-register their refs.
+     * This is used when a player transitions from non-shared to shared mode, so the actual donor
+     * (e.g. the chat player) can reclaim the context refs from the stale non-shared player.
+     */
+    shareVersion: number;
 };
 
 /**
@@ -110,6 +117,13 @@ type PlaybackActionsContextValues = {
      * @param newStatus New videoPlayer status
      */
     updatePlayerStatus: (newStatus: VideoPlayerStatus) => void;
+
+    /**
+     * Requests all non-shared (donor) video player instances to re-register their refs.
+     * Should be called when a player transitions from non-shared to shared mode, so the real
+     * donor can reclaim the context refs that were temporarily taken by the non-shared instance.
+     */
+    requestDonorReRegistration: () => void;
 };
 
 /**
