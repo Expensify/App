@@ -428,14 +428,27 @@ function OptionRowLHN({
                                                 />
                                             </View>
                                         )}
-                                        {!isProduction && !brickRoadIndicator && !!optionItem.isPinned && (
-                                            <Badge
-                                                icon={expensifyIcons.Pin}
-                                                text={translate('common.pinned')}
-                                                isCondensed
-                                                isStrong
-                                            />
-                                        )}
+                                        {!brickRoadIndicator &&
+                                            !!optionItem.isPinned &&
+                                            (isProduction ? (
+                                                <View
+                                                    style={styles.ml2}
+                                                    accessibilityLabel={translate('sidebarScreen.chatPinned')}
+                                                >
+                                                    <Icon
+                                                        testID="Pin Icon"
+                                                        fill={theme.icon}
+                                                        src={expensifyIcons.Pin}
+                                                    />
+                                                </View>
+                                            ) : (
+                                                <Badge
+                                                    icon={expensifyIcons.Pin}
+                                                    text={translate('common.pinned')}
+                                                    isCondensed
+                                                    isStrong
+                                                />
+                                            ))}
                                     </View>
                                 </PressableWithSecondaryInteraction>
                             );
