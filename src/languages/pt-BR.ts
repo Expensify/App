@@ -1437,6 +1437,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
             manySplitsProvided: `O número máximo de divisões permitido é ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
+            stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o comprovante que você enviou. Tem certeza?',

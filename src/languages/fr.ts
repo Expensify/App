@@ -1449,6 +1449,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
             manySplitsProvided: `Le nombre maximal de répartitions autorisées est de ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `La plage de dates ne peut pas dépasser ${CONST.IOU.SPLITS_LIMIT} jours.`,
+            stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera complètement votre reçu téléversé. Êtes-vous sûr ?',
