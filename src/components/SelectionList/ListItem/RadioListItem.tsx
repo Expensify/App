@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -41,14 +41,17 @@ function RadioListItem<TItem extends ListItem>({
         onSelectRow(item);
     }, [item, onSelectRow]);
 
-    const defaultRightHandSideComponent = (
-        <Checkbox
-            shouldSelectOnPressEnter
-            containerBorderRadius={CIRCULAR_BORDER_RADIUS}
-            accessibilityLabel={item.text ?? ''}
-            isChecked={!!item.isSelected}
-            onPress={handleCheckboxPress}
-        />
+    const defaultRightHandSideComponent = useMemo(
+        () => (
+            <Checkbox
+                shouldSelectOnPressEnter
+                containerBorderRadius={999}
+                accessibilityLabel={item.text ?? ''}
+                isChecked={!!item.isSelected}
+                onPress={handleCheckboxPress}
+            />
+        ),
+        [item.text, item.isSelected, handleCheckboxPress],
     );
 
     return (
@@ -62,7 +65,6 @@ function RadioListItem<TItem extends ListItem>({
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={shouldUseDefaultRightHandSideComponent ? defaultRightHandSideComponent : rightHandSideComponent}
-            shouldUseDefaultRightHandSideCheckmark={false}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
