@@ -1319,16 +1319,18 @@ function getLastVisibleAction(
     } else {
         reportActions = Object.values(reportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
-    // Pass reportID as fallback for actions that don't have it set (e.g., optimistic actions)
-    // This is cleaner than mutating the actions array
-    const visibleReportActions = reportActions.filter((action): action is ReportAction =>
-        isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID),
-    );
-    const sortedReportActions = getSortedReportActions(visibleReportActions, true);
-    if (sortedReportActions.length === 0) {
-        return undefined;
+
+    // O(n) scan to find the newest visible action, avoiding O(n log n) sort
+    let newest: ReportAction | undefined;
+    for (const action of reportActions) {
+        if (!action || !isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID)) {
+            continue;
+        }
+        if (!newest || isNewerReportAction(action, newest)) {
+            newest = action;
+        }
     }
-    return sortedReportActions.at(0);
+    return newest;
 }
 
 /**

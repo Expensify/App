@@ -111,18 +111,19 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantPersonalDetailListExcludeCurrentUser = Object.values(
         getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
     );
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(
+    const welcomeMessage = SidebarUtils.getWelcomeMessage({
         report,
         policy,
         invoiceReceiverPolicy,
-        participantPersonalDetailListExcludeCurrentUser,
+        participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
         translate,
         localeCompare,
+        conciergeReportID,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
-    );
+    });
 
     return (
         <>
