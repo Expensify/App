@@ -631,6 +631,7 @@ type CreateDistanceRequestInformation = {
     currentUserLogin?: string;
     currentUserAccountID?: number;
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
@@ -7557,6 +7558,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         currentUserLogin = '',
         currentUserAccountID = -1,
         iouType = CONST.IOU.TYPE.SUBMIT,
+        existingIOUReport,
         existingTransaction,
         transactionParams,
         policyParams = {},
@@ -7695,6 +7697,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation({
             parentChatReport: currentChatReport,
+            existingIOUReport,
             existingTransaction,
             moneyRequestReportID,
             participantParams: {
