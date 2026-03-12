@@ -55,6 +55,7 @@ import {
     isDirectFeed as isDirectFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
+    isExpiredCard,
     isMatchingCard,
     isPersonalCard,
     lastFourNumbersFromCardName,
@@ -63,6 +64,7 @@ import {
     splitCardFeedWithDomainID,
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
+import DateUtils from '@src/libs/DateUtils';
 import type {
     BankAccountList,
     Card,
@@ -3500,6 +3502,33 @@ describe('CardUtils', () => {
             const result = getCardSettings(currentSettings);
             expect(result?.paymentBankAccountID).toBe(55555);
             expect(result?.domainName).toBe('legacy.com');
+        });
+    });
+
+    describe('isExpiredCard', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('returns false when validThru is missing', () => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
+            expect(isExpiredCard({} as Card)).toBe(false);
+            expect(isExpiredCard({nameValuePairs: {}} as Card)).toBe(false);
+        });
+
+        it('returns true when validThru is before current time (UTC)', () => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
+            expect(isExpiredCard({nameValuePairs: {validThru: '2026-02-24 23:59:59'}} as Card)).toBe(true);
+        });
+
+        it('returns false when validThru equals current time', () => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
+            expect(isExpiredCard({nameValuePairs: {validThru: '2026-02-25 00:00:00'}} as Card)).toBe(false);
+        });
+
+        it('returns false when validThru is after current time', () => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
+            expect(isExpiredCard({nameValuePairs: {validThru: '2026-02-25 00:00:01'}} as Card)).toBe(false);
         });
     });
 
