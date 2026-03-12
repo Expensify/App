@@ -3398,7 +3398,7 @@ function duplicateWorkspace(policy: Policy, options: DuplicatePolicyDataOptions)
     return params;
 }
 
-function openPolicyWorkflowsPage(policyID: string) {
+function openPolicyWorkflowsPage(policyID: string, includeAllBankAccounts?: boolean) {
     if (!policyID) {
         Log.warn('openPolicyWorkflowsPage invalid params', {policyID});
         return;
@@ -3434,7 +3434,7 @@ function openPolicyWorkflowsPage(policyID: string) {
         ],
     };
 
-    const params: OpenPolicyWorkflowsPageParams = {policyID};
+    const params: OpenPolicyWorkflowsPageParams = {policyID, includeAllBankAccounts};
 
     API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params, onyxData);
 }
