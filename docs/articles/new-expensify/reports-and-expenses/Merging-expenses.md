@@ -1,7 +1,7 @@
 ---
 title: Merge Expenses
 description: Learn how to merge duplicate expenses in Expensify, including cash and card transactions, eligibility rules, and step-by-step instructions for web and mobile.
-keywords: [merge expenses, duplicate expenses, combine expenses, merge duplicate expenses, merge receipts, SmartScan duplicate, cash expense, card expense, expense matching, fix duplicate expense]
+keywords: [merge expenses, duplicate expenses, combine expenses, merge duplicate expenses, merge receipts, SmartScan duplicate, cash expense, card expense, expense matching, fix duplicate expense, merging expenses, merge transactions, combine transactions, deduplicate expenses]
 internalScope: Audience is all members. Covers manually merging duplicate expenses and eligibility rules. Does not cover SmartScan automation logic or expense deletion workflows.
 ---
 

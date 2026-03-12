@@ -31,6 +31,7 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -42,6 +43,7 @@ import variables from '@styles/variables';
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -63,7 +65,7 @@ function focusCamera(cameraRef: React.RefObject<Camera | null>, point: Point) {
 
 function IOURequestStepOdometerImage({
     route: {
-        params: {action, iouType, transactionID, imageType},
+        params: {action, iouType, transactionID, reportID, backToReport, imageType, isEditingConfirmation},
     },
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
@@ -95,8 +97,13 @@ function IOURequestStepOdometerImage({
     const snapPhotoText = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.snapPhotoStart') : translate('distance.odometer.snapPhotoEnd');
     const icon = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
 
+    const goBackRoute =
+        isEditingConfirmation === 'true'
+            ? ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID)
+            : ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action, iouType, transactionID, reportID, backToReport);
+
     const navigateBack = () => {
-        Navigation.goBack();
+        Navigation.goBack(goBackRoute);
     };
 
     const askForPermissions = () => {
@@ -249,6 +256,12 @@ function IOURequestStepOdometerImage({
             });
     };
 
+    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepOdometerImage',
+        cameraPermissionGranted: cameraPermissionStatus === RESULTS.GRANTED,
+        deviceAvailable: device != null,
+    };
+
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
         return null;
@@ -291,6 +304,7 @@ function IOURequestStepOdometerImage({
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
+                            reasonAttributes={cameraLoadingReasonAttributes}
                         />
                     </View>
                 )}
