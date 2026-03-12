@@ -2195,5 +2195,75 @@ describe('actions/Duplicate', () => {
                 }),
             );
         });
+
+        it('should strip originalTransactionID and source when duplicating split distance expenses', async () => {
+            const splitDistanceTx = createCashTransaction('splitDist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    originalTransactionID: 'origParent123',
+                    source: 'split',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 10,
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([splitDistanceTx]));
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            expect(distanceCall).toBeDefined();
+
+            const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+            const duplicatedTransactions = (Object.values(allTransactions ?? {}) as Array<Transaction | null>).filter(
+                (tx): tx is Transaction => !!tx && tx.transactionID !== splitDistanceTx.transactionID,
+            );
+            expect(duplicatedTransactions.length).toBeGreaterThan(0);
+            for (const tx of duplicatedTransactions) {
+                expect(tx.comment?.originalTransactionID).toBeFalsy();
+                expect(tx.comment?.source).not.toBe('split');
+            }
+        });
+
+        it('should clear modifiedAmount from duplicated transactions', async () => {
+            const tx = createCashTransaction('tx1', {
+                modifiedAmount: 999,
+            });
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.[1]?.modifiedAmount).toBeUndefined();
+        });
+
+        it('should not create any expense calls for an empty transactions array', async () => {
+            duplicateReport(getDefaultParams([]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(0);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(0);
+        });
+
+        it('should pass shouldPlaySound false to individual expense calls', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+
+            duplicateReport(getDefaultParams([tx1, tx2]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
+            expect(requestMoneyCalls).toHaveLength(2);
+
+            for (const call of requestMoneyCalls) {
+                expect(call[1]).not.toEqual(expect.objectContaining({shouldPlaySound: true}));
+            }
+        });
     });
 });
