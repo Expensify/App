@@ -1,6 +1,8 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,6 +17,7 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -153,8 +156,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     setDistanceRequestData?: (participants: Participant[]) => void;
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
-    toLocaleDigit?: (digit: string) => string;
-    getCurrencySymbol?: (currencyCode: string) => string | undefined;
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
@@ -573,8 +574,6 @@ function handleMoneyRequestStepDistanceNavigation({
     lastSelectedDistanceRates,
     setDistanceRequestData,
     translate,
-    toLocaleDigit,
-    getCurrencySymbol,
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
@@ -639,7 +638,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
             let amount = 0;
             let merchant = translate('iou.fieldPending');
-            if (isManualDistance && distance !== undefined && unit && toLocaleDigit && getCurrencySymbol) {
+            if (isManualDistance && distance !== undefined && unit) {
                 const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
                 const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
                 amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
@@ -650,7 +649,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     mileageRate?.rate ?? 0,
                     mileageRate?.currency ?? transaction?.currency ?? 'USD',
                     translate,
-                    toLocaleDigit,
+                    (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                     getCurrencySymbol,
                     true,
                 );

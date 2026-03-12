@@ -9,7 +9,6 @@ import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -58,10 +57,9 @@ function IOURequestStepDistanceManual({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceManualProps) {
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
-    const {getCurrencySymbol} = useCurrencyListActions();
 
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -229,8 +227,6 @@ function IOURequestStepDistanceManual({
                 transactionViolations,
                 lastSelectedDistanceRates,
                 translate,
-                toLocaleDigit,
-                getCurrencySymbol,
                 quickAction,
                 policyRecentlyUsedCurrencies,
                 introSelected,
@@ -269,8 +265,6 @@ function IOURequestStepDistanceManual({
             transactionViolations,
             lastSelectedDistanceRates,
             translate,
-            toLocaleDigit,
-            getCurrencySymbol,
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
