@@ -13389,7 +13389,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, MOCK_REPORT_ACTIONS);
 
-            expect(getIOUReportActionWithBadge(fakeReport, undefined, {}, undefined)).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
+            expect(getIOUReportActionWithBadge(fakeReport, undefined, {}, undefined).reportAction).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
         });
     });
 

@@ -287,6 +287,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            reportAttributes[chatReportID].actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
         }
 
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
