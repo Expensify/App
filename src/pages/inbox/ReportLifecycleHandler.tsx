@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect} from 'react';
+import {useEffect} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
@@ -54,14 +54,14 @@ function ReportLifecycleHandler({reportIDFromRoute}: ReportLifecycleHandlerProps
     }, [reportID]);
 
     // Clear notifications for the current report when it's opened and re-focused
-    const clearNotifications = useCallback(() => {
+    const clearNotifications = () => {
         // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
         if (!isTopMostReportId) {
             return;
         }
 
         clearReportNotifications(reportID);
-    }, [reportID, isTopMostReportId]);
+    };
 
     useEffect(clearNotifications, [clearNotifications]);
     useAppFocusEvent(clearNotifications);

@@ -16,7 +16,6 @@ import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useParentReportAction from '@hooks/useParentReportAction';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -149,8 +148,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
 
-    const parentReportAction = useParentReportAction(report);
-
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest();
@@ -174,34 +171,13 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const shouldShowWideRHPReceipt = visibleTransactions.length === 1 && !isSmallScreenWidth && !!transactionThreadReport;
 
-    const reportHeaderView = useMemo(
-        () =>
-            isTransactionThreadView ? (
-                <MoneyRequestHeader
-                    reportID={report?.reportID}
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest();
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
-                />
-            ) : (
-                <MoneyReportHeader
-                    reportID={report?.reportID}
-                    shouldDisplayBackButton
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest();
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
-                />
-            ),
-        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
-    );
+    const onBackButtonPress = () => {
+        if (!backToRoute) {
+            goBackFromSearchMoneyRequest();
+            return;
+        }
+        Navigation.goBack(backToRoute);
+    };
 
     // We need to cancel telemetry span when user leaves the screen before full report data is loaded
     useEffect(() => {
@@ -257,7 +233,18 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 needsOffscreenAlphaCompositing
                 shouldShowErrorMessages={false}
             >
-                {reportHeaderView}
+                {isTransactionThreadView ? (
+                    <MoneyRequestHeader
+                        reportID={report?.reportID}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                ) : (
+                    <MoneyReportHeader
+                        reportID={report?.reportID}
+                        shouldDisplayBackButton
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                )}
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}

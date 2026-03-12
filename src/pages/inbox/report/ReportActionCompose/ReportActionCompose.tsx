@@ -148,8 +148,21 @@ function ReportActionCompose({reportID, onComposerFocus, onComposerBlur}: Report
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const allReportTransactions = useReportTransactionsCollection(reportID);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
-    const visibleTransactions = reportTransactions?.filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
+    let visibleTransactions: OnyxTypes.Transaction[];
+    let reportTransactionIDs: string[];
+    if (isOffline) {
+        visibleTransactions = reportTransactions;
+        reportTransactionIDs = reportTransactions.map((t) => t.transactionID);
+    } else {
+        visibleTransactions = [];
+        reportTransactionIDs = [];
+        for (const t of reportTransactions) {
+            if (t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                visibleTransactions.push(t);
+                reportTransactionIDs.push(t.transactionID);
+            }
+        }
+    }
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = {} as OnyxTypes.ReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
