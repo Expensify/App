@@ -91,6 +91,7 @@ function VacationDelegatePage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID="VacationDelegatePage"
+            shouldShowOfflineIndicator={false}
         >
             <BaseVacationDelegateSelectionComponent
                 vacationDelegate={vacationDelegate}
