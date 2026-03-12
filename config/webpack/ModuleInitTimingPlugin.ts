@@ -52,28 +52,29 @@ class ModuleInitTimingPlugin {
             compilation.hooks.runtimeRequirementInTree.for(webpack.RuntimeGlobals.interceptModuleExecution).tap(PLUGIN_NAME, (chunk: Chunk) => {
                 compilation.addRuntimeModule(chunk, createTimingRuntimeModule());
             });
+        });
 
-            // Emit a separate module-names.json asset (not part of the runtime chunk) so
-            // numeric production module IDs can be resolved to file paths for Sentry.
-            // Fetched lazily after first paint — zero startup cost.
-            compilation.hooks.processAssets.tap({name: PLUGIN_NAME, stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL}, () => {
-                const names: Record<string, string> = {};
-                for (const module of compilation.modules) {
-                    const id = compilation.chunkGraph.getModuleId(module);
-                    if (id === null) {
-                        continue;
-                    }
-                    const resource = (module as NormalModule).resource;
-                    if (!resource || resource.includes('node_modules')) {
-                        continue;
-                    }
-                    const relativePath = `./${path.relative(compiler.context, resource).replaceAll('\\', '/')}`;
-                    names[String(id)] = relativePath;
+        // Emit module-names.json once per build (after all compilations are sealed).
+        // Using compiler.hooks.emit rather than compilation.hooks.processAssets avoids
+        // conflicts when multiple compilation rounds run in the same build (e.g. Sentry plugin).
+        compiler.hooks.emit.tap(PLUGIN_NAME, (compilation) => {
+            const names: Record<string, string> = {};
+            for (const module of compilation.modules) {
+                const id = compilation.chunkGraph.getModuleId(module);
+                if (id === null) {
+                    continue;
                 }
-                if (Object.keys(names).length > 0) {
-                    compilation.emitAsset('module-names.json', new webpack.sources.RawSource(JSON.stringify(names)));
+                const resource = (module as NormalModule).resource;
+                if (!resource || resource.includes('node_modules')) {
+                    continue;
                 }
-            });
+                const relativePath = `./${path.relative(compiler.context, resource).replaceAll('\\', '/')}`;
+                names[String(id)] = relativePath;
+            }
+            if (Object.keys(names).length > 0) {
+                // eslint-disable-next-line no-param-reassign
+                compilation.assets['module-names.json'] = new webpack.sources.RawSource(JSON.stringify(names));
+            }
         });
     }
 }

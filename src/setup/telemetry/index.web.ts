@@ -11,7 +11,7 @@ export default function (): void {
         op: CONST.TELEMETRY.SPAN_APP_STARTUP,
     });
 
-    requestAnimationFrame(() => {
+    requestIdleCallback(() => {
         // webpack module timing path (ModuleInitTimingPlugin injected __moduleInitTimes).
         // Use typeof guard — bare identifier throws ReferenceError if ModuleInitTimingPlugin didn't run (e.g. Storybook, stale cache)
         const initTimes = typeof __moduleInitTimes !== 'undefined' ? (__moduleInitTimes as Record<string, number>) : undefined;
