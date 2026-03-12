@@ -16,6 +16,7 @@ import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
+import useEffectivePolicyID from '@hooks/useEffectivePolicyID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -227,6 +228,10 @@ function TransactionItemRow({
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
+
+    // Compute effective policy ID once for all child components
+    // For unreported expenses (SelfDM), falls back to active policy
+    const effectivePolicyID = useEffectivePolicyID(report?.policyID ?? transactionItem.report?.policyID);
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
@@ -333,7 +338,7 @@ function TransactionItemRow({
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                             canEdit={canEditTag}
                             onSave={onEditTag}
-                            policyID={report?.policyID ?? transactionItem.report?.policyID}
+                            policyID={effectivePolicyID}
                         />
                     </View>
                 );
@@ -416,7 +421,7 @@ function TransactionItemRow({
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                             canEdit={canEditCategory}
                             onSave={onEditCategory}
-                            policyID={report?.policyID ?? transactionItem.report?.policyID}
+                            policyID={effectivePolicyID}
                         />
                     </View>
                 );
@@ -768,11 +773,13 @@ function TransactionItemRow({
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        policyID={effectivePolicyID}
                                     />
                                     <TagCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        policyID={effectivePolicyID}
                                     />
                                 </View>
                             )}

@@ -8,10 +8,12 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
-import {isMultiLevelTags} from '@libs/PolicyUtils';
+import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
 import {canEditFieldOfMoneyRequest, isReportApproved, isSettled} from '@libs/ReportUtils';
-import {isScanning} from '@libs/TransactionUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -144,6 +146,15 @@ Onyx.connectWithoutView({
     callback: (value) => {
         allBetas = value ?? undefined;
     },
+});
+
+const NO_EDIT: Readonly<TransactionEditPermissions> = Object.freeze({
+    canEditDate: false,
+    canEditMerchant: false,
+    canEditDescription: false,
+    canEditCategory: false,
+    canEditAmount: false,
+    canEditTag: false,
 });
 
 /**
@@ -302,59 +313,68 @@ function editTransactionTagInline(hash: number | undefined, transactionID: strin
  * Does NOT apply the Search-tab guard (caller is responsible for context-specific filtering).
  */
 function getTransactionEditPermissions(
-    parentReportAction: OnyxInputOrEntry<ReportAction> | undefined,
-    transaction: OnyxInputOrEntry<Transaction> | undefined,
-    parentReport: OnyxInputOrEntry<Report> | undefined,
+    transaction: OnyxInputOrEntry<Transaction>,
+    parentReportAction: OnyxInputOrEntry<ReportAction>,
+    parentReport: OnyxInputOrEntry<Report>,
+    policyForMovingExpenses?: OnyxInputOrEntry<Policy>,
 ): TransactionEditPermissions {
-    const noEdit: TransactionEditPermissions = {canEditDate: false, canEditMerchant: false, canEditDescription: false, canEditCategory: false, canEditAmount: false, canEditTag: false};
-
-    // parentReportAction may be undefined while the Onyx subscription is loading;
-    // return noEdit until it arrives so permissions aren't prematurely granted.
-    if (!parentReportAction) {
-        return noEdit;
-    }
-
-    // Receipt is still being scanned — field values are not yet reliable.
-    if (isScanning(transaction ?? undefined)) {
-        return noEdit;
-    }
-
-    // Cannot determine editing permissions without the transaction record.
     if (!transaction) {
-        return noEdit;
+        return NO_EDIT;
+    }
+
+    if (isScanning(transaction)) {
+        return NO_EDIT;
+    }
+
+    const isSplitTransaction = !!transaction.comment?.originalTransactionID || !!(transaction.comment?.splits && transaction.comment.splits.length > 0);
+    if (isSplitTransaction) {
+        return NO_EDIT;
+    }
+
+    // Unreported track expenses (SelfDM) have no parent report or report action.
+    // They are always editable by the creator. Category/tag logic matches MoneyRequestView:
+    // - Category: editable if no policy OR policy has enabled categories
+    // - Tag: editable if policy has enabled tags
+    if (isExpenseUnreported(transaction)) {
+        const policyID = policyForMovingExpenses?.id;
+        const policyCategories = policyID ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] : undefined;
+        const policyTags = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined;
+        const policyTagLists = getTagLists(policyTags);
+
+        return {
+            canEditDate: true,
+            canEditMerchant: true,
+            canEditDescription: true,
+            canEditAmount: true,
+            canEditCategory: !policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {}),
+            canEditTag: hasEnabledTags(policyTagLists),
+        };
+    }
+
+    // All remaining expense types require a resolved parentReportAction.
+    if (!parentReportAction) {
+        return NO_EDIT;
+    }
+
+    if (isSettled(parentReport) || !!isReportApproved({report: parentReport})) {
+        return NO_EDIT;
     }
 
     const policyID = parentReport?.policyID;
     const parentPolicy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
 
-    // Split transactions cannot be edited inline — editing the parent would leave
-    // the child splits inconsistent.
-    const isSplitTransaction = !!transaction.comment?.originalTransactionID || !!(transaction.comment?.splits && transaction.comment.splits.length > 0);
-    if (isSplitTransaction) {
-        return noEdit;
-    }
-
-    // Approved or settled reports are locked — inline editing is not supported.
-    const reportIsLocked = isSettled(parentReport) || !!isReportApproved({report: parentReport});
-    if (reportIsLocked) {
-        return noEdit;
-    }
-
     return {
         canEditDate: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, false, false, undefined, transaction, parentReport, parentPolicy),
         canEditMerchant: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, false, false, undefined, transaction, parentReport, parentPolicy),
         canEditDescription: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DESCRIPTION, false, false, undefined, transaction, parentReport, parentPolicy),
-        // Only expenses tied to a real workspace policy that has categories enabled can have a category.
-        // Personal/DM expenses have policyID = undefined or '_FAKE_' and no workspace categories to pick from.
-        // Even when a real policyID is present we must confirm categories are enabled — the report page only
-        // shows the category field when policy.areCategoriesEnabled is true (see SplitExpenseEditPage).
+        // Only expenses tied to a real workspace with categories enabled.
         canEditCategory:
             !!policyID &&
             policyID !== CONST.POLICY.ID_FAKE &&
             !!parentPolicy?.areCategoriesEnabled &&
             canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CATEGORY, false, false, undefined, transaction, parentReport, parentPolicy),
         canEditAmount: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, false, false, undefined, transaction, parentReport, parentPolicy),
-        // Multi-level tags require a picker UI that isn't available inline — only allow editing for single-level tag policies.
+        // Multi-level tags need a picker UI not available inline.
         canEditTag:
             !isMultiLevelTags(policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined) &&
             canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.TAG, false, false, undefined, transaction, parentReport, parentPolicy),
@@ -363,20 +383,19 @@ function getTransactionEditPermissions(
 
 /** Returns per-field edit permissions for a transaction in the Search table. */
 function getSearchTransactionEditPermissions(
-    parentReportAction: OnyxInputOrEntry<ReportAction> | undefined,
-    transaction: OnyxInputOrEntry<Transaction> | undefined,
-    parentReport: OnyxInputOrEntry<Report> | undefined,
+    transaction: OnyxInputOrEntry<Transaction>,
+    parentReportAction: OnyxInputOrEntry<ReportAction>,
+    parentReport: OnyxInputOrEntry<Report>,
     queryJSON: SearchQueryJSON | undefined,
+    policyForMovingExpenses?: OnyxInputOrEntry<Policy>,
 ): TransactionEditPermissions {
-    const noEdit: TransactionEditPermissions = {canEditDate: false, canEditMerchant: false, canEditDescription: false, canEditCategory: false, canEditAmount: false, canEditTag: false};
-
     // Only the Expense tab with an editable status supports inline editing.
     const isEditableTab = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && CONST.SEARCH.INLINE_EDITABLE_EXPENSE_STATUSES.has((queryJSON?.status as string) ?? '');
     if (!isEditableTab) {
-        return noEdit;
+        return NO_EDIT;
     }
 
-    return getTransactionEditPermissions(parentReportAction, transaction, parentReport);
+    return getTransactionEditPermissions(transaction, parentReportAction, parentReport, policyForMovingExpenses);
 }
 
 export {

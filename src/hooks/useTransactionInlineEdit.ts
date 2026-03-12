@@ -3,7 +3,7 @@
  * derivation, Onyx subscriptions, and edit handlers live in one place rather
  * than being duplicated across every surface that renders a transaction.
  */
-import {useCallback, useRef} from 'react';
+import {useCallback, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {
@@ -18,9 +18,11 @@ import {
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {isExpenseUnreported} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import useOnyx from './useOnyx';
+import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 
 type UseTransactionInlineEditParams = {
     transactionID: string;
@@ -104,11 +106,17 @@ function useTransactionInlineEdit({
 
     const transactionThreadReportID = parentReportAction?.childReportID;
 
+    // For unreported expenses (SelfDM), get the user's default policy for moving expenses.
+    // This policy determines whether category/tag editing is allowed.
+    const isUnreported = useMemo(() => isExpenseUnreported(transaction), [transaction]);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(undefined, undefined);
+    const policyForPermissions = isUnreported ? policyForMovingExpenses : undefined;
+
     // Apply the tab guard only when a queryJSON context is supplied (Search table).
     const permissions =
         queryJSON !== undefined
-            ? getSearchTransactionEditPermissions(parentReportAction, transaction, parentReport, queryJSON)
-            : getTransactionEditPermissions(parentReportAction, transaction, parentReport);
+            ? getSearchTransactionEditPermissions(transaction, parentReportAction, parentReport, queryJSON, policyForPermissions)
+            : getTransactionEditPermissions(transaction, parentReportAction, parentReport, policyForPermissions);
 
     const wasEditingOnMouseDownRef = useRef(false);
 

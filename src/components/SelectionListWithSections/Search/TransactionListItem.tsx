@@ -14,6 +14,7 @@ import {getIsEditingCell} from '@components/Table/EditableCell/editingCellState'
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEffectivePolicyID from '@hooks/useEffectivePolicyID';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -65,15 +66,10 @@ function TransactionListItem<TItem extends ListItem>({
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
 
-    // Use active policy (user's current workspace) as fallback for self DM tracking expenses
-    // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-
     // Use report's policyID as fallback when transaction doesn't have policyID directly
     // Use active policy as final fallback for SelfDM (tracking expenses)
-    // NOTE: Using || instead of ?? to treat empty string "" as falsy
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyID;
+    const policyID = useEffectivePolicyID(transactionItem.policyID || snapshotReport?.policyID);
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
     const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
 

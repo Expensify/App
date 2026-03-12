@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 /**
  * Hook for managing inline editing state (text, number fields).
@@ -18,21 +18,24 @@ function useInlineEditState<T>(value: T, onSave?: (value: T) => void) {
         setLocalValue(value);
     }, [value]);
 
-    const startEditing = useCallback(() => {
+    const startEditing = () => {
         setIsEditing(true);
-    }, []);
+    };
 
-    const save = useCallback(() => {
+    const save = () => {
         if (localValue !== value) {
             onSave?.(localValue);
         }
-        setIsEditing(false);
-    }, [localValue, value, onSave]);
-
-    const cancelEditing = useCallback(() => {
+        // Always reset to the source-of-truth so a rejected save (e.g. empty merchant)
+        // doesn't leave stale localValue displayed after edit mode closes.
         setLocalValue(value);
         setIsEditing(false);
-    }, [value]);
+    };
+
+    const cancelEditing = () => {
+        setLocalValue(value);
+        setIsEditing(false);
+    };
 
     return {isEditing, localValue, setLocalValue, startEditing, save, cancelEditing};
 }

@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import type {EditableProps} from '@components/Table/EditableCell/types';
 import TextInput from '@components/TextInput';
@@ -6,19 +6,14 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 
-function MerchantOrDescriptionCell({
-    merchantOrDescription,
-    shouldShowTooltip,
-    shouldUseNarrowLayout,
-    isDescription,
-    canEdit,
-    onSave,
-}: {
+type MerchantOrDescriptionCellProps = {
     merchantOrDescription: string;
     shouldUseNarrowLayout?: boolean;
     shouldShowTooltip: boolean;
     isDescription?: boolean;
-} & EditableProps<string>) {
+} & EditableProps<string>;
+
+function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, shouldUseNarrowLayout, isDescription, canEdit, onSave}: MerchantOrDescriptionCellProps) {
     const styles = useThemeStyles();
 
     const text = useMemo(() => {
@@ -30,13 +25,22 @@ function MerchantOrDescriptionCell({
 
     const {isEditing, localValue, setLocalValue, startEditing, save} = useInlineEditState(text, onSave);
 
-    const handleBlur = useCallback(() => {
-        save();
-    }, [save]);
+    // Prevent double-save: for non-multiline inputs, pressing Enter fires onSubmitEditing then
+    // immediately triggers a blur (blurOnSubmit=true by default), which would call save twice.
+    const submitFiredRef = useRef(false);
 
-    const handleSubmitEditing = useCallback(() => {
+    const handleSubmitEditing = () => {
+        submitFiredRef.current = true;
         save();
-    }, [save]);
+    };
+
+    const handleBlur = () => {
+        if (submitFiredRef.current) {
+            submitFiredRef.current = false;
+            return;
+        }
+        save();
+    };
 
     const isMultiline = isDescription;
 

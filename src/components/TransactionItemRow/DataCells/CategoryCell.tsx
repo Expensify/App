@@ -50,7 +50,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
 
     return (
         <EditableCell
-            canEdit={canEdit && !!policyID}
+            canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}
             anchorRef={anchorRef}

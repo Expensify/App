@@ -5,6 +5,7 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {ListItem} from '@components/SelectionList/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import CategoryPicker from '.';
@@ -44,6 +45,8 @@ function CategoryPickerModal({
     shouldMeasureAnchorPositionFromTop = false,
 }: CategoryPickerModalProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -80,7 +83,7 @@ function CategoryPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
         >
-            <View style={[{height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT, flexDirection: 'column'}, styles.pt4]}>
+            <View style={[StyleUtils.getHeight(CONST.POPOVER_DROPDOWN_MAX_HEIGHT), styles.flexColumn, styles.pt4]}>
                 <View style={styles.flex1}>
                     <CategoryPicker
                         policyID={policyID}

@@ -44,7 +44,7 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
 
     return (
         <EditableCell
-            canEdit={canEdit && !!policyID}
+            canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}
             anchorRef={anchorRef}
