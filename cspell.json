@@ -205,6 +205,7 @@
         "ecash",
         "ecconnrefused",
         "econn",
+        "EDDSA",
         "EDIFACT",
         "Egencia",
         "Electromedical",
