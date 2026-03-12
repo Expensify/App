@@ -73,6 +73,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {getReportPreviewAction, prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
@@ -900,7 +901,7 @@ function revertSplitTransactionOnSearch(
     hash: number,
     originalTransactionID: string,
     params: RevertSplitTransactionParams,
-    optimisticDeletedSplitTransactions: Record<string, Transaction> = {},
+    optimisticDeletedSplitTransactions: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> = {},
     optimisticRestoredTransaction?: Transaction,
     optimisticOriginalTransaction?: Transaction,
 ) {
@@ -913,17 +914,26 @@ function revertSplitTransactionOnSearch(
         optimisticData = [...(loadingOptimisticData ?? [])];
         finallyData = [...(loadingFinallyData ?? [])];
 
-        const deletedSplitEntries = Object.fromEntries(Object.keys(optimisticDeletedSplitTransactions).map((transactionKey) => [transactionKey, null]));
-        optimisticData.push({
+        const deletedSplitEntries = Object.fromEntries(Object.keys(optimisticDeletedSplitTransactions).map((transactionKey) => [transactionKey, null])) as PrefixedRecord<
+            typeof ONYXKEYS.COLLECTION.TRANSACTION,
+            null
+        >;
+
+        const optimisticSnapshotData: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction | null> = {
+            ...deletedSplitEntries,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: optimisticRestoredTransaction,
+        };
+
+        const optimisticSnapshotUpdate: OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> = {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 data: {
-                    ...deletedSplitEntries,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: optimisticRestoredTransaction,
+                    ...optimisticSnapshotData,
                 },
             },
-        } as unknown as OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>);
+        };
+        optimisticData.push(optimisticSnapshotUpdate);
         // Keep the transaction collection in sync for screens that do not render from the search snapshot.
         optimisticData.push(
             ...Object.keys(optimisticDeletedSplitTransactions).map(
@@ -941,17 +951,22 @@ function revertSplitTransactionOnSearch(
             },
         );
 
-        failureData = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                value: {
-                    data: {
-                        ...optimisticDeletedSplitTransactions,
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
-                    },
+        const failureSnapshotData: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction | null> = {
+            ...optimisticDeletedSplitTransactions,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
+        };
+
+        const failureSnapshotUpdate: OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> = {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {
+                    ...failureSnapshotData,
                 },
-            } as unknown as OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>,
+            },
+        };
+        failureData = [
+            failureSnapshotUpdate,
             ...Object.entries(optimisticDeletedSplitTransactions).map(
                 ([transactionKey, transaction]) =>
                     ({
