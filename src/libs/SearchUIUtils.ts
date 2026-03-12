@@ -2367,7 +2367,7 @@ function getReportSections({
                 const isRejectedReport =
                     reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
                     reportItem.ownerAccountID === currentAccountID &&
-                    (reportItem.lastActionType === CONST.REPORT.ACTIONS.TYPE.REJECTED || reportItem.lastActionType === CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER);
+                    reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
