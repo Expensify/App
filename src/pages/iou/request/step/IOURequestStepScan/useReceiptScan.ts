@@ -23,7 +23,7 @@ import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import {setMoneyRequestReceipt} from '@userActions/IOU';
-import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
+import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
@@ -84,6 +84,7 @@ function useReceiptScan({
     const selfDMReport = useSelfDMReport();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
@@ -187,7 +188,7 @@ function useReceiptScan({
     function setTestReceiptAndNavigate() {
         setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
             setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
-            removeDraftTransactions(true);
+            removeDraftTransactionsByIDs(draftTransactionIDs, true);
             navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
         });
     }
@@ -214,7 +215,7 @@ function useReceiptScan({
         }
 
         if (!isMultiScanEnabled && isStartingScan) {
-            removeDraftTransactions(true);
+            removeDraftTransactionsByIDs(draftTransactionIDs, true);
         }
 
         for (const [index, file] of files.entries()) {
@@ -273,7 +274,7 @@ function useReceiptScan({
             setShouldShowMultiScanEducationalPopup(true);
         }
         removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-        removeDraftTransactions(true);
+        removeDraftTransactionsByIDs(draftTransactionIDs, true);
         setIsMultiScanEnabled?.(!isMultiScanEnabled);
     }
 
