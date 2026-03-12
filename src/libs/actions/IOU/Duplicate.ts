@@ -832,7 +832,11 @@ function duplicateReport({
                     participants,
                     existingTransaction: {
                         ...(params.transactionParams ?? {}),
-                        comment: transaction.comment,
+                        comment: {
+                            ...transaction.comment,
+                            originalTransactionID: undefined,
+                            source: undefined,
+                        },
                         iouRequestType: getRequestType(transaction),
                         modifiedCreated: '',
                         reportID: '1',
