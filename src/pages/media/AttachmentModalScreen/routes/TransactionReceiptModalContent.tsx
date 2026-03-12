@@ -132,7 +132,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const shouldShowReplaceReceiptButton = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
     const shouldShowDeleteReceiptButton = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
 
-    const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
+    const isEReceipt = useMemo(
+        () => transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction),
+        [transaction?.receipt?.source, transaction?.hasEReceipt, receiptUpdateCounter],
+    );
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
     const iouType = useMemo(() => iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseActionValue, iouTypeParam]);
 
@@ -144,6 +147,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [isCropping, setIsCropping] = useState(false);
     const [isCropSaving, setIsCropSaving] = useState(false);
     const [cropRect, setCropRect] = useState<CropRect | null>(null);
+    const [receiptUpdateCounter, setReceiptUpdateCounter] = useState(0);
     const styles = useThemeStyles();
 
     useEffect(() => {
@@ -295,6 +299,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         isSameReceipt: true,
                     });
                 }
+                // Force a re-render to ensure the download button is displayed immediately after rotation
+                setReceiptUpdateCounter((prev) => prev + 1);
                 setIsRotating(false);
             })
             .catch(() => {
@@ -380,6 +386,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         transactionPolicy: policy,
                     });
                 }
+                // Force a re-render to ensure the download button is displayed immediately after cropping
+                setReceiptUpdateCounter((prev) => prev + 1);
                 setIsCropSaving(false);
                 exitCropMode();
             })
@@ -431,6 +439,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             translate,
             expensifyIcons,
             onDownloadAttachment,
+            receiptUpdateCounter,
         ],
     );
 
