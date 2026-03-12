@@ -54,7 +54,7 @@ function VacationDelegatePage() {
 
             clearVacationDelegateError(vacationDelegate?.previousDelegate);
         },
-        [showConfirmModal, translate, currentUserLogin],
+        [showConfirmModal, translate, currentUserLogin, vacationDelegate?.previousDelegate, vacationDelegate?.delegate],
     );
 
     const onSelectRow = useCallback(
