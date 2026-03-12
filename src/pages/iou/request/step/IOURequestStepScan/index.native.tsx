@@ -401,9 +401,10 @@ function IOURequestStepScan({
 
                 // Generate thumbnail off the critical path — update Onyx when ready
                 generateThumbnail(source).then((thumbnailUri) => {
-                    if (thumbnailUri) {
-                        setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg', false, false, thumbnailUri);
+                    if (!thumbnailUri) {
+                        return;
                     }
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg', false, false, thumbnailUri);
                 });
 
                 if (isEditing) {
