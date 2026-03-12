@@ -2534,7 +2534,6 @@ type BuildOnyxDataForTrackExpenseParams = {
     chat: {report: OnyxInputValue<OnyxTypes.Report>; previewAction: OnyxInputValue<ReportAction>};
     iou: {report: OnyxInputValue<OnyxTypes.Report>; createdAction: OptimisticCreatedReportAction; action: OptimisticIOUReportAction};
     transactionParams: {transaction: OnyxTypes.Transaction; threadReport: OptimisticChatReport | null; threadCreatedReportAction: OptimisticCreatedReportAction | null};
-    policyParams: {policy?: OnyxInputValue<OnyxTypes.Policy>; tagList?: OnyxInputValue<OnyxTypes.PolicyTagLists>; categories?: OnyxInputValue<OnyxTypes.PolicyCategories>};
     shouldCreateNewMoneyRequestReport: boolean;
     existingTransactionThreadReportID?: string;
     actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>;
@@ -2558,7 +2557,6 @@ function buildOnyxDataForTrackExpense({
     chat,
     iou,
     transactionParams,
-    policyParams = {},
     shouldCreateNewMoneyRequestReport,
     existingTransactionThreadReportID,
     actionableTrackExpenseWhisper,
@@ -2570,8 +2568,6 @@ function buildOnyxDataForTrackExpense({
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
     const {transaction, threadReport: transactionThreadReport, threadCreatedReportAction: transactionThreadCreatedReportAction} = transactionParams;
-    const {policy, tagList: policyTagList, categories: policyCategories} = policyParams;
-
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
@@ -3933,7 +3929,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             threadCreatedReportAction: optimisticCreatedActionForTransactionThread,
             threadReport: optimisticTransactionThread ?? {},
         },
-        policyParams: {policy, tagList: policyTagList, categories: policyCategories},
         shouldCreateNewMoneyRequestReport,
         actionableTrackExpenseWhisper,
         retryParams,
