@@ -5935,13 +5935,15 @@ function getCashExpenseReimbursableMode(policy: OnyxEntry<Policy>): PolicyCashEx
  * Call the API to enable or disable the reimbursable mode for the given policy
  * @param policyID - id of the policy to enable or disable the reimbursable mode
  * @param reimbursableMode - reimbursable mode to set for the given policy
+ * @param originalDefaultReimbursable - original default reimbursable value
+ * @param originalDefaultReimbursableDisabled - original default reimbursable disabled value
  */
-function setPolicyReimbursableMode(policyID: string, reimbursableMode: PolicyCashExpenseMode) {
-    const policy = deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-
-    const originalDefaultReimbursable = policy?.defaultReimbursable;
-    const originalDefaultReimbursableDisabled = policy?.disabledFields?.reimbursable;
-
+function setPolicyReimbursableMode(
+    policyID: string,
+    reimbursableMode: PolicyCashExpenseMode,
+    originalDefaultReimbursable: boolean | undefined,
+    originalDefaultReimbursableDisabled: boolean | undefined,
+) {
     const defaultReimbursable =
         reimbursableMode === CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT || reimbursableMode === CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE;
     const reimbursableDisabled =
