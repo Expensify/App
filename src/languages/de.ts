@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Startseite',
         inbox: 'Posteingang',
         yourReviewIsRequired: 'Ihre Überprüfung ist erforderlich',
+        actionBadge: {
+            submit: 'Senden',
+            approve: 'Genehmigen',
+            pay: 'Bezahlen',
+            fix: 'Beheben',
+        },
         success: 'Erfolgreich',
         group: 'Gruppe',
         profile: 'Profil',
@@ -362,6 +368,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: 'pro',
         mi: 'Meile',
         km: 'Kilometer',
+        milesAbbreviated: 'mi',
+        kilometersAbbreviated: 'km',
         copied: 'Kopiert!',
         someone: 'Jemand',
         total: 'Gesamt',
@@ -747,6 +755,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `Diese Aktion wird auf deinem Gerät nicht unterstützt. Bitte lade die Expensify-App aus dem <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> oder dem <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> herunter und versuche es erneut.`,
         },
         verificationFailed: 'Überprüfung fehlgeschlagen',
+        setPin: {didNotShipCard: 'Wir haben Ihre Karte nicht versendet. Bitte versuchen Sie es erneut.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1602,7 +1611,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Der Gesamtbetrag ist zu hoch. Verringere die Stunden oder reduziere den Satz.',
         },
         correctRateError: 'Beheben Sie den Kursfehler und versuchen Sie es erneut.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Erklären</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Erklären<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Sie können Per-Diem-Ausgaben nicht über mehrere Workspaces hinweg duplizieren, da sich die Sätze zwischen den Workspaces unterscheiden können.',
         rulesModifiedFields: {
@@ -2363,6 +2372,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} für ${merchant} – ${date}`,
         },
+        setYourPin: 'Legen Sie Ihre PIN fest.',
+        confirmYourPin: 'Bestätigen Sie Ihre PIN.',
+        pinMustBeFourDigits: 'Die PIN muss genau 4 Ziffern lang sein.',
+        invalidPin: 'Bitte wählen Sie eine sicherere PIN.',
+        pinMismatch: 'PINs stimmen nicht überein. Bitte versuchen Sie es erneut.',
+        revealPin: 'PIN anzeigen',
+        hidePin: 'PIN ausblenden',
+        pin: 'PIN',
         freezeCard: 'Karte sperren',
         unfreeze: 'Entsperren',
         unfreezeCard: 'Karte entsperren',
@@ -2775,6 +2792,7 @@ ${amount} für ${merchant} – ${date}`,
         },
         workEmailValidationError: {
             publicEmail: 'Bitte gib eine gültige geschäftliche E-Mail-Adresse von einer privaten Domain ein, z. B. mitch@company.com',
+            sameAsSignupEmail: 'Bitte geben Sie eine andere E-Mail-Adresse ein als die, mit der Sie sich registriert haben',
             offline: 'Wir konnten deine geschäftliche E-Mail nicht hinzufügen, da du offenbar offline bist',
         },
         mergeBlockScreen: {
@@ -3054,7 +3072,7 @@ ${
                 descriptionTwo: 'Ausgaben kategorisieren und taggen',
                 descriptionThree: 'Berichte erstellen und teilen',
             },
-            price: 'Teste es 30 Tage kostenlos und upgrade dann für nur <strong>5 $/Nutzer/Monat</strong>.',
+            price: (price?: string) => `Teste es 30 Tage kostenlos und upgrade dann für nur <strong>${price ?? '5 $'}/Nutzer/Monat</strong>.`,
             createWorkspace: 'Workspace erstellen',
         },
         confirmWorkspace: {
@@ -4023,6 +4041,9 @@ ${
             defaultNote: `Belege, die an ${CONST.EMAIL.RECEIPTS} gesendet werden, erscheinen in diesem Workspace.`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
+            outstandingBalanceWarning:
+                'Sie haben einen offenen Saldo, der beglichen werden muss, bevor Sie Ihren letzten Workspace löschen können. Bitte gehen Sie zu Ihren Abonnementeinstellungen, um die Zahlung abzuschließen.',
+            settleBalance: 'Zu Abo wechseln',
             unavailable: 'Nicht verfügbiger Arbeitsbereich',
             memberNotFound: 'Mitglied nicht gefunden. Um ein neues Mitglied zum Arbeitsbereich einzuladen, verwende bitte die Einladungsschaltfläche oben.',
             notAuthorized: `Du hast keinen Zugriff auf diese Seite. Wenn du versuchst, diesem Arbeitsbereich beizutreten, bitte einfach die/den Arbeitsbereichsinhaber·in, dich als Mitglied hinzuzufügen. Etwas anderes? Wende dich an ${CONST.EMAIL.CONCIERGE}.`,
@@ -6892,6 +6913,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Buchhaltung`;
                 case 'Expensify Cards':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Expensify Karten`;
+                case 'travel invoicing':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Reiserechnungsstellung`;
                 case 'company cards':
                     return `${enabled ? 'aktiviert' : 'deaktiviert'} Firmenkarten`;
                 case 'invoicing':
@@ -8307,6 +8330,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         switchAccount: 'Konten wechseln:',
         copilotDelegatedAccess: 'Copilot: Delegierter Zugriff',
         copilotDelegatedAccessDescription: 'Anderen Mitgliedern erlauben, auf dein Konto zuzugreifen.',
+        learnMoreAboutDelegatedAccess: 'Mehr über delegierten Zugriff erfahren',
         addCopilot: 'Copilot hinzufügen',
         membersCanAccessYourAccount: 'Diese Mitglieder haben Zugriff auf Ihr Konto:',
         youCanAccessTheseAccounts: 'Du kannst auf diese Konten über den Kontowechsel zugreifen:',
@@ -8638,6 +8662,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             title: 'Mitglieder',
             findMember: 'Mitglied finden',
             addMember: 'Mitglied hinzufügen',
+            allMembers: 'Alle Mitglieder',
             email: 'E-Mail-Adresse',
             closeAccount: () => ({
                 one: 'Konto schließen',
