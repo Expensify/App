@@ -5,7 +5,7 @@
  * Otherwise, it removes all selection ranges, effectively deselecting any
  * selected text in the document.
  */
-function clearSelectedTextIfComposerNotFocused() {
+function clearSelectedTextIfComposerBlurred() {
     const activeElement = document.activeElement as HTMLElement | null;
     const isComposerFocused = activeElement?.id === 'composer';
 
@@ -16,4 +16,4 @@ function clearSelectedTextIfComposerNotFocused() {
     window.getSelection()?.removeAllRanges();
 }
 
-export default clearSelectedTextIfComposerNotFocused;
+export default clearSelectedTextIfComposerBlurred;
