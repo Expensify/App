@@ -159,9 +159,24 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
-    // Search transactions - handles both refresh (offset 0) and pagination (current offset + pageSize)
+    const refreshTransactions = useCallback(() => {
+        if (!groupItem.transactionsQueryJSON) {
+            return;
+        }
+
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: !!transactionsSnapshot?.search?.isLoading,
+            isOffline,
+        });
+    }, [groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+
+    // Search transactions for pagination (current offset + pageSize)
     const searchTransactions = useCallback(
-        (pageSize = 0, isRefresh = false) => {
+        (pageSize = 0) => {
             if (!groupItem.transactionsQueryJSON) {
                 return;
             }
@@ -169,7 +184,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             search({
                 queryJSON: groupItem.transactionsQueryJSON,
                 searchKey: undefined,
-                offset: isRefresh ? 0 : (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
+                offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
                 isLoading: !!transactionsSnapshot?.search?.isLoading,
                 isOffline,
@@ -196,8 +211,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!newTransactionID || !isExpanded) {
             return;
         }
-        searchTransactions(0, true);
-    }, [newTransactionID, isExpanded, searchTransactions]);
+        refreshTransactions();
+    }, [newTransactionID, isExpanded, refreshTransactions]);
 
     const wasScreenFocusedRef = useRef(isScreenFocused);
     useEffect(() => {
@@ -209,15 +224,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         // Keep expanded group rows in sync with updated grouped totals after returning from RHP flows.
-        searchTransactions(0, true);
-    }, [isScreenFocused, isExpanded, isExpenseReportType, searchTransactions]);
+        refreshTransactions();
+    }, [isScreenFocused, isExpanded, isExpenseReportType, refreshTransactions]);
 
     const handleToggle = () => {
         setIsExpanded((prev) => {
             const newExpandedState = !prev;
 
             if (newExpandedState) {
-                searchTransactions(0, true);
+                refreshTransactions();
             } else {
                 setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
             }
