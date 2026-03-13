@@ -12885,7 +12885,13 @@ function buildOptimisticRejectReportActionComment(comment: string, created = Dat
  * Builds an optimistic report action for report-level rejection.
  * Uses REJECTED when rejecting to a previous approver, REJECTEDTOSUBMITTER when rejecting to the submitter.
  */
-function buildOptimisticReportLevelRejectAction(isRejectToSubmitter: boolean, targetAccountID: number, created = DateUtils.getDBTime()): OptimisticRejectReportAction {
+function buildOptimisticReportLevelRejectAction(
+    isRejectToSubmitter: boolean,
+    targetAccountID: number,
+    currentUserDisplayName: string | undefined,
+    currentUserAvatarSource: AvatarSource | undefined,
+    created = DateUtils.getDBTime(),
+): OptimisticRejectReportAction {
     return {
         reportActionID: rand64(),
         actionName: isRejectToSubmitter ? CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER : CONST.REPORT.ACTIONS.TYPE.REJECTED,
@@ -12902,11 +12908,11 @@ function buildOptimisticReportLevelRejectAction(isRejectToSubmitter: boolean, ta
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: getCurrentUserDisplayNameOrEmail(),
+                text: currentUserDisplayName,
             },
         ],
         automatic: false,
-        avatar: getCurrentUserAvatar(),
+        avatar: currentUserAvatarSource,
         created,
         shouldShow: true,
     };
@@ -12915,7 +12921,12 @@ function buildOptimisticReportLevelRejectAction(isRejectToSubmitter: boolean, ta
 /**
  * Builds an optimistic ADDCOMMENT action for the required rejection reason on report-level reject.
  */
-function buildOptimisticReportLevelRejectCommentAction(comment: string, created = DateUtils.getDBTime()): OptimisticRejectReportAction {
+function buildOptimisticReportLevelRejectCommentAction(
+    comment: string,
+    currentUserDisplayName: string | undefined,
+    currentUserAvatarSource: AvatarSource | undefined,
+    created = DateUtils.getDBTime(),
+): OptimisticRejectReportAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -12932,11 +12943,11 @@ function buildOptimisticReportLevelRejectCommentAction(comment: string, created 
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: getCurrentUserDisplayNameOrEmail(),
+                text: currentUserDisplayName,
             },
         ],
         automatic: false,
-        avatar: getCurrentUserAvatar(),
+        avatar: currentUserAvatarSource,
         created,
         shouldShow: true,
     };

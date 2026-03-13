@@ -12,6 +12,7 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -35,6 +36,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const policy = usePolicy(report?.policyID);
@@ -119,10 +121,10 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             }
 
             const targetAccountID = hasPreviousApprover ? Number(selectedTargetAccountID) : submitterAccountID;
-            rejectExpenseReport(reportID, targetAccountID, values[INPUT_IDS.COMMENT]);
+            rejectExpenseReport(reportID, targetAccountID, values[INPUT_IDS.COMMENT], currentUserPersonalDetails?.displayName, currentUserPersonalDetails?.avatar);
             Navigation.dismissModal();
         },
-        [hasPreviousApprover, reportID, selectedTargetAccountID, submitterAccountID, translate],
+        [hasPreviousApprover, reportID, selectedTargetAccountID, submitterAccountID, translate, currentUserPersonalDetails?.displayName, currentUserPersonalDetails?.avatar],
     );
 
     return (
