@@ -7826,7 +7826,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             confirm: 'Einstellungen öffnen',
             prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS‑Streckenverfolgung zu starten.',
         },
-        gpsFloatingPillText: 'GPS-Tracking läuft...',
+        gpsFloatingPillText: 'GPS-Verfolgung läuft...',
         liveActivity: {subtitle: 'Entfernungserfassung', button: 'Fortschritt anzeigen'},
     },
     reportCardLostOrDamaged: {

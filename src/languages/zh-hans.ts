@@ -7591,7 +7591,7 @@ ${reportName}
             confirm: '打开设置',
             prompt: '请在设备设置中允许访问位置信息，以开始使用 GPS 距离跟踪。',
         },
-        gpsFloatingPillText: '正在进行 GPS 追踪...',
+        gpsFloatingPillText: '正在进行 GPS 跟踪…',
         liveActivity: {subtitle: '跟踪距离', button: '查看进度'},
     },
     reportCardLostOrDamaged: {
