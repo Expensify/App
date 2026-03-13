@@ -117,7 +117,7 @@ describe('Deep linking', () => {
         Linking.setInitialURL(url);
         const {unmount} = render(<App />);
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
 
