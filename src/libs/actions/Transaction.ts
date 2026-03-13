@@ -786,14 +786,17 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
  */
 function markPendingRTERTransactionsAsCash(transactions: Array<OnyxEntry<Transaction>>, violationsCollection: OnyxCollection<TransactionViolations>, reportActions: ReportAction[]) {
     for (const t of transactions) {
-        const txViolations = violationsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t?.transactionID}`];
+        if (!t?.transactionID) {
+            continue;
+        }
+        const txViolations = violationsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`];
         if (!hasPendingRTERViolation(txViolations)) {
             continue;
         }
-        const action = getIOUActionForTransactionID(reportActions, t?.transactionID ?? '');
+        const action = getIOUActionForTransactionID(reportActions, t.transactionID);
         const threadReportID = action?.childReportID;
         if (threadReportID) {
-            markAsCash(t?.transactionID, threadReportID, txViolations ?? []);
+            markAsCash(t.transactionID, threadReportID, txViolations ?? []);
         }
     }
 }
