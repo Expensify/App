@@ -1293,7 +1293,8 @@ const translations = {
         deletedTransaction: (amount: string, merchant: string) => `deleted an expense (${amount} for ${merchant})`,
         movedFromReport: (reportName: string) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
         movedTransactionTo: (reportUrl: string, reportName?: string) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) =>
+        movedTransactionFrom: (reportUrl: string, reportName?: string) => `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFromPendingMatch: (reportUrl: string, reportName?: string) =>
             `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''} pending a match with a credit card transaction`,
         unreportedTransaction: (reportUrl: string) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {

@@ -1267,7 +1267,8 @@ const translations: TranslationDeepObject<typeof en> = {
         deletedTransaction: (amount: string, merchant: string) => `a supprimé une dépense (${amount} pour ${merchant})`,
         movedFromReport: (reportName: string) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransactionTo: (reportUrl: string, reportName?: string) => `a déplacé cette dépense${reportName ? `vers <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) =>
+        movedTransactionFrom: (reportUrl: string, reportName?: string) => `a déplacé cette dépense${reportName ? `depuis <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFromPendingMatch: (reportUrl: string, reportName?: string) =>
             `a déplacé cette dépense${reportName ? `depuis <a href="${reportUrl}">${reportName}</a>` : ''} en attente de rapprochement avec une transaction par carte de crédit`,
         unreportedTransaction: (reportUrl: string) => `a déplacé cette dépense vers votre <a href="${reportUrl}">espace personnel</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {

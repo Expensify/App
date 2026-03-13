@@ -1260,7 +1260,8 @@ const translations: TranslationDeepObject<typeof en> = {
         deletedTransaction: (amount: string, merchant: string) => `usunął(-ę) wydatek (${amount} dla ${merchant})`,
         movedFromReport: (reportName: string) => `przeniesiono wydatek${reportName ? `z ${reportName}` : ''}`,
         movedTransactionTo: (reportUrl: string, reportName?: string) => `przeniósł ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) =>
+        movedTransactionFrom: (reportUrl: string, reportName?: string) => `przeniósł(-ę) ten wydatek${reportName ? `z <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFromPendingMatch: (reportUrl: string, reportName?: string) =>
             `przeniósł(-ę) ten wydatek${reportName ? `z <a href="${reportUrl}">${reportName}</a>` : ''} w oczekiwaniu na dopasowanie z transakcją kartą kredytową`,
         unreportedTransaction: (reportUrl: string) => `przeniósł ten wydatek do Twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {

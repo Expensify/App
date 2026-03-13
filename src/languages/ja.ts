@@ -1253,7 +1253,8 @@ const translations: TranslationDeepObject<typeof en> = {
         deletedTransaction: (amount: string, merchant: string) => `経費を削除しました（${merchant} に ${amount}）`,
         movedFromReport: (reportName: string) => `経費${reportName ? `${reportName} から` : ''}を移動しました`,
         movedTransactionTo: (reportUrl: string, reportName?: string) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a>へ` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) =>
+        movedTransactionFrom: (reportUrl: string, reportName?: string) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> から` : ''}`,
+        movedTransactionFromPendingMatch: (reportUrl: string, reportName?: string) =>
             `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> から` : ''}（クレジットカード取引との照合待ち）`,
         unreportedTransaction: (reportUrl: string) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
