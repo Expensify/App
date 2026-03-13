@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
@@ -16,6 +17,7 @@ import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,12 +25,16 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
+    getAmount,
+    getCurrency,
     getDescription,
     getExchangeRate,
     getMerchant,
@@ -266,6 +272,30 @@ function TransactionItemRow({
         return transactionItem.cardName;
     }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
 
+    const attendeeAccountIDs = useMemo(
+        () =>
+            transactionItem.comment?.attendees
+                ?.map((attendee) => {
+                    if (attendee.accountID) {
+                        return attendee.accountID;
+                    }
+                    return getPersonalDetailByEmail(attendee.email)?.accountID;
+                })
+                .filter((accountID): accountID is number => typeof accountID === 'number') ?? [],
+        [transactionItem.comment?.attendees],
+    );
+
+    const totalPerAttendee = useMemo(() => {
+        const attendeesCount = transactionItem.comment?.attendees?.length ?? 0;
+        const totalAmount = getAmount(transactionItem);
+
+        if (!attendeesCount || totalAmount === undefined) {
+            return undefined;
+        }
+
+        return totalAmount / attendeesCount;
+    }, [transactionItem]);
+
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
@@ -495,6 +525,24 @@ function TransactionItemRow({
                         <TextCell text={cardName} />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)]}
+                    >
+                        {!!attendeeAccountIDs.length && (
+                            <ReportActionAvatars
+                                accountIDs={attendeeAccountIDs}
+                                horizontalStacking={{
+                                    sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.ID,
+                                    useCardBG: true,
+                                }}
+                                size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                            />
+                        )}
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
                 return (
                     <View
@@ -527,6 +575,22 @@ function TransactionItemRow({
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, undefined, isAmountColumnWide)]}
+                    >
+                        {!!totalPerAttendee && (
+                            <TextWithTooltip
+                                testID="TotalPerAttendeeCell"
+                                shouldShowTooltip
+                                text={convertToDisplayString(totalPerAttendee, getCurrency(transactionItem))}
+                                style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter, styles.textBold, styles.textAlignRight, styles.fontWeightNormal]}
+                            />
+                        )}
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:

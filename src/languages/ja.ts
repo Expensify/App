@@ -1527,6 +1527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchived: 'この予約はアーカイブされています',
         bookingArchivedDescription: 'この予約は旅行日が過ぎたためアーカイブされています。必要に応じて、最終金額の経費を追加してください。',
         attendees: '参加者',
+        totalPerAttendee: '参加者一人あたりの合計',
         whoIsYourAccountant: 'あなたの会計士は誰ですか？',
         paymentComplete: '支払いが完了しました',
         time: '時間',
