@@ -71,36 +71,32 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPreviousApprover = previousApprover !== null;
 
-    const targetOptions = useMemo(() => {
-        const options = [];
+    const options = [];
 
-        if (hasPreviousApprover) {
-            const previousApproverEmail = getLoginsByAccountIDs([previousApprover.accountID]).at(0) ?? '';
-            const isPreviousApproverSelected = selectedTargetAccountID === String(previousApprover.accountID);
-            options.push({
-                text: `${previousApprover.displayName} (${translate('iou.rejectReport.lastApprover')})`,
-                alternateText: previousApproverEmail,
-                keyForList: String(previousApprover.accountID),
-                accountID: previousApprover.accountID,
-                isSelected: false,
-                rightElement: <SelectCircle isChecked={isPreviousApproverSelected} />,
-            });
-        }
-
-        const submitterEmail = getLoginsByAccountIDs([submitterAccountID]).at(0) ?? '';
-        const submitterName = getDisplayNameOrDefault(getPersonalDetailByEmail(submitterEmail));
-        const isSubmitterSelected = selectedTargetAccountID === String(submitterAccountID);
+    if (hasPreviousApprover) {
+        const previousApproverEmail = getLoginsByAccountIDs([previousApprover.accountID]).at(0) ?? '';
+        const isPreviousApproverSelected = selectedTargetAccountID === String(previousApprover.accountID);
         options.push({
-            text: `${submitterName} (${translate('iou.rejectReport.submitter')})`,
-            alternateText: submitterEmail,
-            keyForList: String(submitterAccountID),
-            accountID: submitterAccountID,
+            text: `${previousApprover.displayName} (${translate('iou.rejectReport.lastApprover')})`,
+            alternateText: previousApproverEmail,
+            keyForList: String(previousApprover.accountID),
+            accountID: previousApprover.accountID,
             isSelected: false,
-            rightElement: <SelectCircle isChecked={isSubmitterSelected} />,
+            rightElement: <SelectCircle isChecked={isPreviousApproverSelected} />,
         });
+    }
 
-        return options;
-    }, [hasPreviousApprover, previousApprover?.displayName, previousApprover?.accountID, submitterAccountID, selectedTargetAccountID, translate]);
+    const submitterEmail = getLoginsByAccountIDs([submitterAccountID]).at(0) ?? '';
+    const submitterName = getDisplayNameOrDefault(getPersonalDetailByEmail(submitterEmail));
+    const isSubmitterSelected = selectedTargetAccountID === String(submitterAccountID);
+    options.push({
+        text: `${submitterName} (${translate('iou.rejectReport.submitter')})`,
+        alternateText: submitterEmail,
+        keyForList: String(submitterAccountID),
+        accountID: submitterAccountID,
+        isSelected: false,
+        rightElement: <SelectCircle isChecked={isSubmitterSelected} />,
+    });
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> => {
@@ -121,10 +117,26 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             }
 
             const targetAccountID = hasPreviousApprover ? Number(selectedTargetAccountID) : submitterAccountID;
-            rejectExpenseReport(reportID, targetAccountID, values[INPUT_IDS.COMMENT], currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.displayName, currentUserPersonalDetails?.avatar);
+            rejectExpenseReport(
+                reportID,
+                targetAccountID,
+                values[INPUT_IDS.COMMENT],
+                currentUserPersonalDetails?.accountID,
+                currentUserPersonalDetails?.displayName,
+                currentUserPersonalDetails?.avatar,
+            );
             Navigation.dismissModal();
         },
-        [hasPreviousApprover, reportID, selectedTargetAccountID, submitterAccountID, translate, currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.displayName, currentUserPersonalDetails?.avatar],
+        [
+            hasPreviousApprover,
+            reportID,
+            selectedTargetAccountID,
+            submitterAccountID,
+            translate,
+            currentUserPersonalDetails?.accountID,
+            currentUserPersonalDetails?.displayName,
+            currentUserPersonalDetails?.avatar,
+        ],
     );
 
     return (
@@ -170,7 +182,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                         <Text style={[styles.mb2]}>{translate('iou.rejectReport.selectTarget')}</Text>
                         <View style={styles.mhn5}>
                             <SelectionList
-                                data={targetOptions}
+                                data={options}
                                 ListItem={UserListItem}
                                 onSelectRow={(item) => {
                                     setSelectedTargetAccountID(item.keyForList ?? '');
