@@ -1,34 +1,65 @@
 ---
 title: Personal Karma
-description: Automatically donate a portion of your expenses to Expensify.org through Personal Karma.
-keywords: [New Expensify, personal karma, donations, expensify.org, save the world]
+description: Learn how Personal Karma works, how donation amounts are calculated, and how to enable or disable automatic donations to Expensify.org.
+keywords: [New Expensify, personal karma, donations, expensify.org, save the world, Expensify.org donation, automatic donation, billing card charge]
 ---
 
-Personal Karma allows you to automatically donate a small percentage of your monthly added expenses to [Expensify.org](https://www.expensify.org/about).
+# Personal Karma 
 
-For every $500 of expenses added, you'll donate $1 to a related Expensify.org fund. All reported and unreported expenses, including invoice expenses, are calculated to get the donation amount. Each month, Expensify will charge the billing card on file for the donation amount, and you'll receive a donation receipt via email.
+Personal Karma lets you automatically donate a small percentage of your monthly added expenses to [Expensify.org](https://www.expensify.org/about).
 
-The fund your Personal Karma supports is determined by the expense's MCC (Merchant Category Code). Each MCC supports one of Expensify.org's funds: Climate Justice, Food Security, Housing Equity, Reentry Services, and Youth Advocacy.
+For every $500 in expenses you add, $1 is donated to a related Expensify.org fund. Donations are calculated monthly and charged to the billing card on file. You’ll receive a donation receipt by email after each charge.
 
 ---
 
-# Enable or Disable Personal Karma
+## How to enable or disable Personal Karma
 
-1. Go to **Settings > Save the World > Personal Karma**.
-2. Toggle Personal Karma on or off.
+1. In the navigation tabs (on the left on Web, at the bottom on Mobile), choose **Account**.
+2. Select **Save the World**
+3. Toggle **Personal Karma** to enable or disable it.
+
+---
+
+## How Personal Karma calculates your donation amount
+
+Your donation is based on the total amount of expenses added during the month.
+
+This includes:
+ - Reported expenses
+ - Unreported expenses
+ - Invoice expenses
+   
+For every $500 in total expenses, $1 is donated. For example:
+
+ - $500 in expenses = $1 donation
+ - $2,500 in expenses = $5 donation
+
+The total donation amount is calculated at the end of each month.
+
+---
+
+## How Expensify charges you for Personal Karma donations
+
+At the end of each month, Expensify calculates your total donation amount and charges your billing card on file. A donation receipt is sent to your email. 
+
+To change the card where Personal Karma is charged, [update your Expensify billing card](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Add-a-payment-card-and-view-your-subscription#how-to-update-your-expensify-billing-card). 
 
 ---
 
 # FAQ
 
-## How is my donation amount calculated?
+## Does Personal Karma include unreported expenses?
 
-Your donation is based on the total amount of all expenses on the Expenses page, including both reported and unreported expenses. For every $500, $1 is donated.
+Yes. All expenses on the Expenses page — reported and unreported — are included in the monthly total used to calculate your donation.
 
 ## Where does my donation go?
 
 Donations are directed to one of Expensify.org's five funds — Climate Justice, Food Security, Housing Equity, Reentry Services, or Youth Advocacy — based on the Merchant Category Code of each expense.
 
-## How am I charged?
+## Can I choose which Expensify.org fund receives my donation?
 
-Expensify charges the billing card on file each month for the donation amount. You'll receive a donation receipt via email.
+No. The fund is automatically selected based on the Merchant Category Code (MCC) of each expense.
+
+## How can I learn more about Expensify.org's fund categories?
+
+To learn more about Expensify.org funding categories, visit [expensify.org/funds](https://www.expensify.org/funds). 
