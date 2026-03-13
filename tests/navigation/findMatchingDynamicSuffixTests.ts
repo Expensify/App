@@ -1,4 +1,4 @@
-import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
+import findMatchingDynamicSuffix from '@libs/Navigation/helpers/findMatchingDynamicSuffix';
 
 describe('findMatchingDynamicSuffix', () => {
     it('should match a single-segment dynamic suffix', () => {
@@ -31,9 +31,5 @@ describe('findMatchingDynamicSuffix', () => {
 
     it('should not match a suffix that appears in the middle of the path', () => {
         expect(findMatchingDynamicSuffix('/verify-account/settings/wallet')).toBeUndefined();
-    });
-
-    it('should match a suffix when path has suffix-specific query params', () => {
-        expect(findMatchingDynamicSuffix('settings/profile/address/country?country=US')).toBe('country');
     });
 });
