@@ -31,6 +31,7 @@ import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import colors from '@styles/theme/colors';
 import {clearOnyxAndResetApp} from '@userActions/App';
 import CONFIG from '@src/CONFIG';
@@ -198,7 +199,7 @@ function TroubleshootPage() {
                 icon={illustrations.Lightbulb}
                 shouldUseHeadlineHeader
             />
-            {isLoading && <FullScreenLoadingIndicator />}
+            {isLoading && <FullScreenLoadingIndicator reasonAttributes={{context: 'TroubleshootPage', isLoading} satisfies SkeletonSpanReasonAttributes} />}
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
