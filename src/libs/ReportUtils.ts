@@ -964,7 +964,6 @@ type GetReportNameParams = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     transactions?: Transaction[];
     reports?: Report[];
-    policies?: Policy[];
     isReportArchived?: boolean;
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
     /** Used to identify the Concierge chat so its name can be set to the Concierge display name */
@@ -5772,7 +5771,7 @@ function getReportActionMessage({
  * @deprecated Moved to src/libs/ReportNameUtils.ts.
  */
 function getReportName(reportNameInformation: GetReportNameParams): string {
-    const {report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, transactions, isReportArchived, reports, policies, conciergeReportID} =
+    const {report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, transactions, isReportArchived, reports, conciergeReportID} =
         reportNameInformation;
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
@@ -5935,8 +5934,8 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             receiverPolicy: invoiceReceiverPolicy ?? getPolicy(invoiceReceiverPolicyID),
             personalDetails,
-            policies,
             currentUserAccountID,
+            policy,
         });
     }
 
@@ -5998,7 +5997,6 @@ function getSearchReportName(props: GetReportNameParams): string {
                     transactions: props.transactions,
                     isReportArchived: props.isReportArchived,
                     reports: props.reports,
-                    policies: props.policies,
                 });
             }
 
@@ -6019,7 +6017,6 @@ function getSearchReportName(props: GetReportNameParams): string {
         transactions: props.transactions,
         isReportArchived: props.isReportArchived,
         reports: props.reports,
-        policies: props.policies,
     });
 }
 
@@ -6124,7 +6121,12 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    isParentReportArchived = false,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 
     if (isEmptyObject(parentReport)) {
@@ -6138,7 +6140,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
             return {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reportName: translateLocal('workspace.common.policyExpenseChatName', reportOwnerDisplayName ?? ''),
-                workspaceName: getPolicyName({report}),
+                workspaceName: getPolicyName({report, policy}),
             };
         }
         if (isIOUReport(report)) {
@@ -6148,7 +6150,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport)}`;
+        let reportName = `${getPolicyName({report: parentReport, policy})} & ${getInvoicePayerName(parentReport)}`;
 
         if (isArchivedNonExpenseReport(parentReport, isParentReportArchived)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -6164,7 +6166,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportName: getReportName({report: parentReport, reportAttributes}),
-        workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
+        workspaceName: getPolicyName({report: parentReport, policy, returnEmptyIfNotFound: true}),
     };
 }
 

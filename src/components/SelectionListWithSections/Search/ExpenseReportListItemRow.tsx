@@ -9,6 +9,7 @@ import type {SearchColumnType} from '@components/Search/types';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -68,6 +69,7 @@ function ExpenseReportListItemRow({
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const policy = usePolicy(item.policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
@@ -232,7 +234,7 @@ function ExpenseReportListItemRow({
         const isInMobileSelectionMode = shouldUseNarrowLayout && !!canSelectMultiple;
 
         // Compute accessible group label (user name, subtitle, report title, status, amount)
-        const parentNavigationSubtitleData = getParentNavigationSubtitle(item);
+        const parentNavigationSubtitleData = getParentNavigationSubtitle(item, policy);
         const subtitleLabel = translate('threads.parentNavigationSummary', parentNavigationSubtitleData);
         const statusLabel = getReportStatusTranslation({stateNum: item.stateNum, statusNum: item.statusNum, translate});
         const amountLabel = convertToDisplayString(totalDisplaySpend, currency);
