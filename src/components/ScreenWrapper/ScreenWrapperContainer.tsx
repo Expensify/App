@@ -85,6 +85,9 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
          */
         isFocused?: boolean;
 
+        /** Whether this screen should be hidden from accessibility tree */
+        shouldHideFromAccessibility?: boolean;
+
         /** Optional dataset values forwarded to the outer web container */
         dataSet?: ViewProps['dataSet'];
 
@@ -112,6 +115,7 @@ function ScreenWrapperContainer({
     includePaddingTop = true,
     includeSafeAreaPaddingBottom = false,
     isFocused = true,
+    shouldHideFromAccessibility = false,
     dataSet,
     ref,
     forwardedFSClass,
@@ -223,6 +227,9 @@ function ScreenWrapperContainer({
             {...panResponder.panHandlers}
             testID={testID}
             fsClass={forwardedFSClass}
+            tabIndex={-1}
+            accessibilityElementsHidden={shouldHideFromAccessibility}
+            aria-hidden={shouldHideFromAccessibility}
             dataSet={dataSet}
         >
             <View
