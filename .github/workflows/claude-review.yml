@@ -6,7 +6,7 @@ permissions:
 
 on:
   pull_request_target:
-    types: [opened, ready_for_review, synchronize]
+    types: [opened, ready_for_review]
 
 concurrency:
   group: claude-review-${{ github.event.pull_request.html_url }}
@@ -46,8 +46,9 @@ jobs:
             code:
               - 'src/**'
             docs:
-              - 'docs/**'
-
+              - 'docs/**/*.md'
+              - 'docs/**/*.csv'
+              
       - name: Add claude utility scripts to PATH
         run: |
           echo "$GITHUB_WORKSPACE/.claude/scripts" >> "$GITHUB_PATH"
