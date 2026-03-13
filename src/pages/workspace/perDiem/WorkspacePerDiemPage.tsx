@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -28,6 +29,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolation from '@hooks/useTransactionViolation';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -45,6 +47,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -139,6 +142,59 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         const allSubRatesMemo = getSubRatesData(allRates);
         return [customUnits, allRates, allSubRatesMemo];
     }, [policy]);
+
+    const policyReportsSelector = useCallback(
+        (reports: OnyxCollection<Report>) => {
+            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+                if (report && report.policyID === policyID) {
+                    reportIDs.add(report.reportID);
+                }
+                return reportIDs;
+            }, new Set<string>());
+        },
+        [policyID],
+    );
+
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: policyReportsSelector,
+    });
+
+    const transactionsSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) => {
+            if (!customUnit?.customUnitID) {
+                return undefined;
+            }
+            return Object.values(transactions ?? {}).reduce(
+                (transactionsData, transaction) => {
+                    if (
+                        transaction &&
+                        transaction.reportID &&
+                        policyReports?.has(transaction.reportID) &&
+                        customUnit?.customUnitID &&
+                        transaction?.comment?.customUnit?.customUnitID === customUnit?.customUnitID &&
+                        transaction?.comment?.customUnit?.customUnitRateID
+                    ) {
+                        const rateID = transaction.comment.customUnit.customUnitRateID;
+                        if (!transactionsData.rateIDToTransactionIDsMap[rateID]) {
+                            // eslint-disable-next-line no-param-reassign
+                            transactionsData.rateIDToTransactionIDsMap[rateID] = [];
+                        }
+                        transactionsData.rateIDToTransactionIDsMap[rateID].push(transaction.transactionID);
+                        transactionsData.transactionIDs.add(transaction.transactionID);
+                    }
+                    return transactionsData;
+                },
+                {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
+            );
+        },
+        [customUnit?.customUnitID, policyReports],
+    );
+
+    const [eligibleTransactionsData] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: transactionsSelector,
+    });
+
+    const transactionViolations = useTransactionViolation(eligibleTransactionsData?.transactionIDs);
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
 
@@ -261,7 +317,18 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const handleDeletePerDiemRates = () => {
-        deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
+        // Determine which rate IDs will be fully deleted (all their subrates are selected for deletion)
+        const deletedSubRateCountByRateID: Record<string, number> = {};
+        for (const subRate of selectedPerDiem) {
+            deletedSubRateCountByRateID[subRate.rateID] = (deletedSubRateCountByRateID[subRate.rateID] ?? 0) + 1;
+        }
+        const fullyDeletedRateIDs = Object.entries(deletedSubRateCountByRateID)
+            .filter(([rateID, count]) => count >= (customUnit?.rates?.[rateID]?.subRates?.length ?? 0))
+            .map(([rateID]) => rateID);
+
+        const transactionIDsAffected = fullyDeletedRateIDs.flatMap((rateID) => eligibleTransactionsData?.rateIDToTransactionIDsMap?.[rateID] ?? []);
+
+        deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem, transactionIDsAffected, transactionViolations);
         setDeletePerDiemConfirmModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
