@@ -623,7 +623,7 @@ function WorkspacesListPage() {
                 />
             )}
             {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
-                <View style={[styles.flexRow, styles.gap5, styles.pt2, styles.pb3, styles.ph9, styles.highlightBG]}>
+                <View style={[styles.flexRow, styles.gap5, styles.pv2, styles.pl4, styles.pr2, styles.mh5, styles.mnh40, styles.highlightBG, {borderBottomWidth: 1, borderColor: theme.border}]}>
                     <View style={[styles.flexRow, styles.flex2]}>
                         <Text
                             numberOfLines={1}
