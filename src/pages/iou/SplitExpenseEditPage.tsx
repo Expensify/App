@@ -99,7 +99,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const splitExpenseItem = splitExpensesList?.find((item) => item.transactionID === splitExpenseTransactionID);
     const originalSign = (splitExpenseItem?.amount ?? 0) < 0 ? -1 : 1;
-    const currentAmount = Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
     const shouldShowCategory = !!currentPolicy?.areCategoriesEnabled && !!policyCategories;
@@ -132,6 +131,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
     const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
+    const currentAmount = useMemo(() => {
+        if (isDistance && distance && rate) {
+            return DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign;
+        }
+        return Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
+    }, [isDistance, distance, rate, unit, originalSign, splitExpenseDraftTransaction?.amount]);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, false, isManualDistance);
     const currentRateID = getRateID(splitExpenseDraftTransaction);
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
