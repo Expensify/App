@@ -63,6 +63,7 @@ function RootTabNavigator() {
                 lazy: true,
                 animation: 'none',
                 sceneStyle: {flex: 1},
+                freezeOnBlur: true,
             }}
         >
             <Tab.Screen
