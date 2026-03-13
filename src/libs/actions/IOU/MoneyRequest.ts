@@ -89,7 +89,6 @@ type InitialTransactionParams = {
     taxCode: string;
     taxAmount: number;
     isFromGlobalCreate?: boolean;
-    isFromFloatingActionButton?: boolean;
     currency?: string;
     participants?: Participant[];
 };
@@ -366,9 +365,8 @@ function handleMoneyRequestStepScanParticipants({
     // If the user started this flow from using the + button in the composer inside a report
     // the participants can be automatically assigned from the report and the user can skip the participants step and go straight
     // to the confirmation step.
-    // If the user started this flow using the Create expense option (combined submit/track flow) or the green receipt FAB,
-    // they should be redirected to the participants page (or default policy flow), not the "from report" path.
-    if (!initialTransaction?.isFromGlobalCreate && !initialTransaction?.isFromFloatingActionButton && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
+    // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
+    if (!initialTransaction?.isFromGlobalCreate && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
         const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
 
         if (shouldSkipConfirmation) {
