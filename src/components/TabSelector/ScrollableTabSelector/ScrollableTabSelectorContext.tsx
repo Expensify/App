@@ -53,12 +53,7 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
         scrollToTabUtil({tabX, tabWidth, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
     };
 
-    // Because of the React Compiler we don't need to memoize it manually
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateValue: ScrollableTabSelectorStateContextType = {containerRef};
-
-    // Because of the React Compiler we don't need to memoize it manually
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsValue: ScrollableTabSelectorActionsContextType = {onContainerLayout, onContainerScroll, scrollToTab, registerTab, onTabLayout};
 
     return (

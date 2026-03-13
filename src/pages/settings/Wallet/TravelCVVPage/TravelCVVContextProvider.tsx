@@ -16,16 +16,12 @@ function TravelCVVContextProvider({children}: PropsWithChildren) {
     const [isLoading, setIsLoading] = useState(false);
     const [validateError, setValidateError] = useState<Errors>({});
 
-    // Because of the React Compiler we don't need to memoize it manually
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateValue: TravelCVVStateContextType = {
         cvv,
         isLoading,
         validateError,
     };
 
-    // Because of the React Compiler we don't need to memoize it manually
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsValue: TravelCVVActionsContextType = {
         setCvv,
         setIsLoading,
