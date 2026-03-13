@@ -160,6 +160,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             <ImageSVG
                                 style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
                                 src={expensifyIcons.ExpensifyAppIcon}
+                                aria-hidden
                             />
                         </PressableWithFeedback>
                         <PressableWithFeedback
