@@ -48,7 +48,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
@@ -79,11 +79,12 @@ import {
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
+import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -203,6 +204,15 @@ function MoneyRequestReportPreviewContent({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
+    const hasAnyPendingRTERViolation = useMemo(
+        () =>
+            transactions.some((t) => {
+                const txViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`];
+                return hasPendingRTERViolationTransactionUtils(txViolations);
+            }),
+        [transactions, transactionViolations],
+    );
+
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const getCanIOUBePaid = useCallback(
@@ -259,6 +269,21 @@ function MoneyRequestReportPreviewContent({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+
+    const markPendingRTERTransactionsAsCash = useCallback(() => {
+        const reportActionsArray = Object.values(reportActions ?? {});
+        for (const t of transactions) {
+            const txViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`];
+            if (!hasPendingRTERViolationTransactionUtils(txViolations)) {
+                continue;
+            }
+            const iouAction = getIOUActionForTransactionID(reportActionsArray, t.transactionID);
+            const threadReportID = iouAction?.childReportID;
+            if (threadReportID) {
+                markAsCashAction(t.transactionID, threadReportID, txViolations ?? []);
+            }
+        }
+    }, [transactions, transactionViolations, reportActions]);
 
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
@@ -751,6 +776,31 @@ function MoneyRequestReportPreviewContent({
                 onPress={() => {
                     if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
                         showDEWModal();
+                        return;
+                    }
+                    if (hasAnyPendingRTERViolation) {
+                        showConfirmModal({
+                            title: translate('iou.pendingMatchSubmitTitle'),
+                            prompt: translate('iou.pendingMatchSubmitDescription'),
+                            confirmText: translate('common.yes'),
+                            cancelText: translate('common.no'),
+                        }).then((result) => {
+                            if (result.action === ModalActions.CONFIRM) {
+                                markPendingRTERTransactionsAsCash();
+                            }
+                            startSubmittingAnimation();
+                            submitReport(
+                                iouReport,
+                                policy,
+                                currentUserAccountID,
+                                currentUserEmail,
+                                hasViolations,
+                                isASAPSubmitBetaEnabled,
+                                iouReportNextStep,
+                                userBillingGraceEndPeriods,
+                                amountOwed,
+                            );
+                        });
                         return;
                     }
                     startSubmittingAnimation();
