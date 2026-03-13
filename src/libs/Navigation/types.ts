@@ -2250,6 +2250,8 @@ type ReimbursementAccountNavigatorParamList = {
         action?: 'edit';
         policyID?: string;
         isComingFromExpensifyCard?: boolean;
+        // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param will be removed after https://github.com/Expensify/App/issues/73825 is done
+        backTo?: Routes;
     };
     [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
         // TODO this backTo comes from drilling it through bank account form screens

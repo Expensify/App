@@ -19,6 +19,9 @@ type NonUSDPageProps = {
 
     /** Whether the user is coming from the expensify card */
     isComingFromExpensifyCard?: boolean;
+
+    /** Optional route name to navigate back to after flow completion - will be removed after https://github.com/Expensify/App/issues/73825 is done */
+    backTo?: string;
 };
 
 export default NonUSDPageProps;

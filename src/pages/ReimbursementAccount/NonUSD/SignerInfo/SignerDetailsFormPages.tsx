@@ -42,9 +42,12 @@ type SignerDetailsFormPagesProps = {
 
     /** Callback triggered after the last form page is completed */
     onFinished: () => void;
+
+    /** Optional route name to navigate back to after flow completion */
+    backTo?: string;
 };
 
-function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFinished}: SignerDetailsFormPagesProps) {
+function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFinished, backTo}: SignerDetailsFormPagesProps) {
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -53,8 +56,8 @@ function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFini
     const skipPages: string[] = isUserOwner ? [SUB_PAGE_NAMES.NAME, SUB_PAGE_NAMES.DATE_OF_BIRTH, SUB_PAGE_NAMES.ADDRESS] : [];
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: pageName, action}),
-        [policyID],
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: pageName, action, backTo}),
+        [policyID, backTo],
     );
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage({

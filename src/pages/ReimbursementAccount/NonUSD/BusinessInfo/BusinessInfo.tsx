@@ -66,7 +66,7 @@ const INPUT_KEYS = {
     BUSINESS_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID,
 };
 
-function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, stepNames, currentSubPage}: NonUSDPageProps) {
+function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
 
@@ -88,8 +88,8 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
         if (!shouldRedirect) {
             return;
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BUSINESS_INFO, subPage: initialTargetSubPage}), {forceReplace: true});
-    }, [shouldRedirect, policyID, initialTargetSubPage]);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BUSINESS_INFO, subPage: initialTargetSubPage, backTo}), {forceReplace: true});
+    }, [shouldRedirect, policyID, initialTargetSubPage, backTo]);
 
     useEffect(() => {
         getCorpayOnboardingFields(country);
@@ -131,7 +131,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
     }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingCompanyFields, reimbursementAccount?.isSuccess, onSubmit]);
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BUSINESS_INFO, subPage: pageName, action}),
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BUSINESS_INFO, subPage: pageName, action, backTo}),
         [policyID],
     );
 

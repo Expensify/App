@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {cancelResetBankAccount, resetNonUSDBankAccount, resetUSDBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -31,6 +32,9 @@ type WorkspaceResetBankAccountModalProps = {
 
     /** Method to navigate after resetting bank account */
     navigateAfterReset?: () => void;
+
+    /** Back to url to pass along to the non-USD bank account setup flow */
+    backTo?: Route;
 };
 
 function WorkspaceResetBankAccountModal({
@@ -40,6 +44,7 @@ function WorkspaceResetBankAccountModal({
     isNonUSDWorkspace,
     setShouldShowContinueSetupButton,
     navigateAfterReset,
+    backTo,
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -75,7 +80,9 @@ function WorkspaceResetBankAccountModal({
                 setShouldShowContinueSetupButton(false);
             }
 
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? CONST.POLICY.ID_FAKE, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY}));
+            Navigation.navigate(
+                ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? CONST.POLICY.ID_FAKE, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY, backTo}),
+            );
         } else {
             resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
 

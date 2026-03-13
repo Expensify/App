@@ -27,7 +27,7 @@ const SUBSTEP: Record<string, number> = SIGNER_INFO_STEP.SUBSTEP;
 const SUB_PAGE_NAMES = SIGNER_INFO_STEP.SUB_PAGE_NAMES;
 const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME, SIGNER_EMAIL, SIGNER_FULL_NAME, SECOND_SIGNER_EMAIL} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage}: NonUSDPageProps) {
+function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
 
@@ -61,8 +61,8 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage}: No
         if (!shouldRedirect) {
             return;
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: initialTargetSubPage}), {forceReplace: true});
-    }, [shouldRedirect, policyID, initialTargetSubPage]);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: initialTargetSubPage, backTo}), {forceReplace: true});
+    }, [shouldRedirect, policyID, initialTargetSubPage, backTo]);
 
     const submit = useCallback(() => {
         isSubmittingRef.current = true;
@@ -83,7 +83,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage}: No
         if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
             isSubmittingRef.current = false;
             if (currency === CONST.CURRENCY.AUD) {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL}));
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
                 clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
                 return;
             }
@@ -94,7 +94,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage}: No
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         };
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, policyID]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, policyID, backTo]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -103,9 +103,9 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage}: No
         }
 
         if (reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.HANG_TIGHT}));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.HANG_TIGHT, backTo}));
         }
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isAskingForCorpaySignerInformation, reimbursementAccount?.isAskingForCorpaySignerInformationSuccess, policyID]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isAskingForCorpaySignerInformation, reimbursementAccount?.isAskingForCorpaySignerInformationSuccess, policyID, backTo]);
 
     const handleEmailSubmit = useCallback(
         (values: EmailSubmitParams) => {
@@ -132,30 +132,30 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage}: No
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isUserDirector: value});
             if (value) {
                 const firstFormPage = isUserOwner ? SUB_PAGE_NAMES.JOB_TITLE : SUB_PAGE_NAMES.NAME;
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: firstFormPage}));
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: firstFormPage, backTo}));
             } else {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL}));
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
             }
         },
-        [isUserOwner, policyID],
+        [isUserOwner, policyID, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => {
         if (currentSubPage === SUB_PAGE_NAMES.ENTER_EMAIL) {
             clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
             const backSubPage = isUserDirector ? SUB_PAGE_NAMES.CONFIRMATION : SUB_PAGE_NAMES.IS_DIRECTOR;
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: backSubPage}));
+            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: backSubPage, backTo}));
         } else if (currentSubPage === SUB_PAGE_NAMES.HANG_TIGHT) {
             Navigation.goBack();
         } else {
             onBackButtonPress();
         }
-    }, [currentSubPage, isUserDirector, onBackButtonPress, policyID]);
+    }, [currentSubPage, isUserDirector, onBackButtonPress, policyID, backTo]);
 
     const handleBackToIsDirector = useCallback(() => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.IS_DIRECTOR}));
-    }, [policyID]);
+        Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.IS_DIRECTOR, backTo}));
+    }, [policyID, backTo]);
 
     if (shouldRedirect) {
         return <FullScreenLoadingIndicator />;
@@ -168,6 +168,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage}: No
                 stepNames={stepNames}
                 policyID={policyID}
                 onFinished={submit}
+                backTo={backTo}
             />
         );
     }

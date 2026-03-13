@@ -51,9 +51,12 @@ type BeneficialOwnerDetailsFormPagesProps = {
 
     /** Callback triggered after the last form page is completed */
     onFinished: () => void;
+
+    /** Optional route name to navigate back to after flow completion - will be removed after https://github.com/Expensify/App/issues/73825 is done */
+    backTo?: string;
 };
 
-function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished}: BeneficialOwnerDetailsFormPagesProps) {
+function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backTo}: BeneficialOwnerDetailsFormPagesProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
@@ -81,8 +84,8 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished}: Bene
     }
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: pageName, action}),
-        [policyID],
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: pageName, action, backTo}),
+        [policyID, backTo],
     );
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage<BeneficialOwnerSubPageProps>({

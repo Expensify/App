@@ -33,7 +33,7 @@ const pages = [
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
 ];
 
-function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubPage}: NonUSDPageProps) {
+function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -53,8 +53,8 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubP
         if (!shouldRedirect) {
             return;
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BANK_INFO, subPage: initialTargetSubPage}), {forceReplace: true});
-    }, [shouldRedirect, policyID, initialTargetSubPage]);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BANK_INFO, subPage: initialTargetSubPage, backTo}), {forceReplace: true});
+    }, [shouldRedirect, policyID, initialTargetSubPage, backTo]);
 
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
@@ -103,8 +103,8 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubP
     }, [corpayFields?.bankCurrency, corpayFields?.bankCountry, country, currency]);
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BANK_INFO, subPage: pageName, action}),
-        [policyID],
+        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BANK_INFO, subPage: pageName, action, backTo}),
+        [policyID, backTo],
     );
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage<BankInfoSubStepProps>({

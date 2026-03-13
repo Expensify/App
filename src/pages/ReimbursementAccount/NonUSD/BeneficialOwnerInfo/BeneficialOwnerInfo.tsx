@@ -30,7 +30,7 @@ const OUTER_SUB_PAGES = new Set<string>([
     SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST,
 ]);
 
-function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage}: NonUSDPageProps) {
+function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -58,10 +58,10 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
         if (!shouldRedirect) {
             return;
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER}), {
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER, backTo}), {
             forceReplace: true,
         });
-    }, [shouldRedirect, policyID]);
+    }, [shouldRedirect, policyID, backTo]);
 
     const submit = useCallback(
         ({anyIndividualOwn25PercentOrMore}: {anyIndividualOwn25PercentOrMore?: boolean} = {}) => {
@@ -106,9 +106,9 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
     const prepareOwnerDetailsForm = useCallback(
         (ownerID: string) => {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: ownerID});
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME}));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
         },
-        [policyID],
+        [policyID, backTo],
     );
 
     const handleOwnerDetailsFormFinished = useCallback(() => {
@@ -132,20 +132,24 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
 
         if (isEditingCreatedOwner || !canAddMore) {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isEditingCreatedOwner: false});
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST}));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
         } else if (isUserEnteringHisOwnData) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER}));
+            Navigation.navigate(
+                ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER, backTo}),
+            );
         } else {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.ARE_THERE_MORE_BENEFICIAL_OWNERS}));
+            Navigation.navigate(
+                ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.ARE_THERE_MORE_BENEFICIAL_OWNERS, backTo}),
+            );
         }
-    }, [policyID, reimbursementAccountDraft]);
+    }, [policyID, reimbursementAccountDraft, backTo]);
 
     const handleOwnerEdit = useCallback(
         (ownerID: string) => {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: ownerID, isEditingCreatedOwner: true});
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME}));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
         },
-        [policyID],
+        [policyID, backTo],
     );
 
     const handleIsUserOwnerSelected = useCallback(
@@ -158,14 +162,16 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
                     setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: currentOwnerKeys.slice(0, 3)});
                 }
                 setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY});
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME}));
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.NAME, backTo}));
             } else {
                 const filteredKeys = currentOwnerKeys.filter((key) => key !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
                 setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: filteredKeys});
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER}));
+                Navigation.navigate(
+                    ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER, backTo}),
+                );
             }
         },
-        [policyID, reimbursementAccountDraft?.beneficialOwnerKeys],
+        [policyID, reimbursementAccountDraft?.beneficialOwnerKeys, backTo],
     );
 
     const handleIsAnyoneElseOwnerSelected = useCallback(
@@ -180,31 +186,31 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
 
             if (!value && isUserOwner) {
                 setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: [CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY]});
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST}));
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
                 return;
             }
 
             if (!canAddMoreOwners) {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST}));
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
                 return;
             }
 
             prepareOwnerDetailsForm(Str.guid());
         },
-        [canAddMoreOwners, isUserOwner, policyID, prepareOwnerDetailsForm, submit],
+        [canAddMoreOwners, isUserOwner, policyID, prepareOwnerDetailsForm, submit, backTo],
     );
 
     const handleAreThereMoreSelected = useCallback(
         (value: boolean) => {
             if (!value || !canAddMoreOwners) {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST}));
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST, backTo}));
                 return;
             }
 
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: true});
             prepareOwnerDetailsForm(Str.guid());
         },
-        [canAddMoreOwners, policyID, prepareOwnerDetailsForm],
+        [canAddMoreOwners, policyID, prepareOwnerDetailsForm, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => {

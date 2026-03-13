@@ -356,7 +356,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         if (isComingFromExpensifyCard) {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: startPage}));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: startPage, backTo}));
     };
 
     const goBack = useCallback(() => {
