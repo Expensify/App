@@ -451,7 +451,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     return (
                         <MenuItem
                             key={keyTitle}
-                            wrapperStyle={styles.sectionMenuItem}
+                            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                             title={keyTitle}
                             icon={item.icon}
                             iconType={item.iconType}
