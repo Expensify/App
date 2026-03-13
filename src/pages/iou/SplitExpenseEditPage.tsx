@@ -16,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
 import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/Split';
@@ -114,7 +115,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy, parentReport);
 
     const isCategoryRequired = !!currentPolicy?.requiresCategory;
-    const reportName = getReportName(currentReport);
+    const reportAttributes = useReportAttributes();
+    const reportName = getReportName(currentReport, reportAttributes) || parentReport?.reportName;
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, currentPolicy?.areRulesEnabled);
 
     const shouldShowTags = !!currentPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));

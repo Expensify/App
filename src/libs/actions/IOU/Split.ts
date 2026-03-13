@@ -1282,6 +1282,9 @@ function updateSplitTransactions({
                 distance: splitExpense.customUnit?.quantity ?? undefined,
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
+                // Preserve selfDM context so getMoneyRequestInformation doesn't create a new IOU report
+                isSelfDMSplit,
+                selfDMReportID,
             };
             requestMoneyInformation.existingTransaction = undefined;
         }
