@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -29,6 +30,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {close} from '@libs/actions/Modal';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
@@ -94,6 +96,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.profile');
     const policyID = policy?.id;
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -193,6 +196,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const prevIsPendingDelete = usePrevious(isPendingDelete);
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
+
+    const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined};
 
     const fetchPolicyData = () => {
         if (policyDraft?.id) {
@@ -636,16 +641,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION);
                                 }}
                             >
-                                <MenuItemWithTopDescription
-                                    title={policyDescription}
-                                    description={translate('workspace.editor.descriptionInputLabel')}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressDescription}
-                                    shouldRenderAsHTML
-                                />
+                                <MentionReportContext.Provider value={mentionReportContextValue}>
+                                    <MenuItemWithTopDescription
+                                        title={policyDescription}
+                                        description={translate('workspace.editor.descriptionInputLabel')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
+                                        shouldShowRightIcon={!readOnly}
+                                        interactive={!readOnly}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={onPressDescription}
+                                        shouldRenderAsHTML
+                                    />
+                                </MentionReportContext.Provider>
                             </OfflineWithFeedback>
                         )}
                         {!!account?.isApprovedAccountant && (
