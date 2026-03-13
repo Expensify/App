@@ -26,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, PerDiemExpenseInformation, RequestMoneyInformation} from '.';
+import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, RequestMoneyInformation} from '.';
 import {
     createDistanceRequest,
     getAllReportActionsFromIOU,
@@ -38,9 +38,10 @@ import {
     getMoneyRequestParticipantsFromReport,
     getUserAccountID,
     requestMoney,
-    submitPerDiemExpense,
     trackExpense,
 } from '.';
+import type {PerDiemExpenseInformation} from './PerDiem';
+import {submitPerDiemExpense} from './PerDiem';
 
 function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
     const allReportActions = getAllReportActionsFromIOU();
@@ -624,6 +625,8 @@ function duplicateExpenseTransaction({
             quickAction,
             recentWaypoints,
             betas,
+            draftTransactionIDs,
+            isSelfTourViewed,
         };
         return trackExpense(trackExpenseParams);
     }
