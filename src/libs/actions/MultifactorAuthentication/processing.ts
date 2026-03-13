@@ -13,6 +13,13 @@ type ProcessResult = {
     body?: Record<string, unknown>;
 };
 
+/**
+ * Determines if an HTTP response code indicates success.
+ * Checks if the status code is in the 2xx range.
+ *
+ * @param httpStatusCode - The HTTP status code to check
+ * @returns True if the code is in the 2xx range, false otherwise
+ */
 function isHttpSuccess(httpStatusCode: number | undefined): boolean {
     return String(httpStatusCode).startsWith('2');
 }
@@ -22,6 +29,10 @@ type RegistrationParams = {
     authenticationMethod: MarqetaAuthTypeName;
 };
 
+/**
+ * Processes a biometric registration request.
+ * Registers the authentication key with the backend API.
+ */
 async function processRegistration(params: RegistrationParams): Promise<ProcessResult> {
     const {httpStatusCode, reason, message} = await registerAuthenticationKey({
         keyInfo: params.keyInfo,
