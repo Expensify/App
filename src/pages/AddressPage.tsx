@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -83,6 +84,8 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         [currentCountry],
     );
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressPage', isLoadingApp: !!isLoadingApp};
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -95,7 +98,10 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <FullscreenLoadingIndicator
+                        style={[styles.flex1, styles.pRelative]}
+                        reasonAttributes={reasonAttributes}
+                    />
                 ) : (
                     <AddressForm
                         formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
