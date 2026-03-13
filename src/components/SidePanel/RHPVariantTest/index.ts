@@ -49,7 +49,7 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
  * - Control: navigate to the last accessed report on small screens, do not open side panel
  * - RHP Concierge DM: navigate to the workspace overview and open the side panel with the Concierge DM
  * - RHP Admins Room: navigate to the workspace overview and open the side panel with the Admins Room
- * - RHP Home Page: navigate to the Home page without opening the side panel or test drive modal
+ * - RHP Home Page: navigate to the Home page and open the side panel with the Concierge DM
  *
  * Accepts an optional variantOverride for the same race-condition reason as shouldOpenRHPVariant.
  */
@@ -57,6 +57,7 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     const variant = variantOverride ?? onboardingRHPVariant;
     if (variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE) {
         Navigation.navigate(ROUTES.HOME);
+        SidePanelActions.openSidePanel(true);
         return;
     }
 
