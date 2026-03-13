@@ -6287,9 +6287,6 @@ const CONST = {
         BROKEN_CARD_CONNECTION_530: 'brokenCardConnection530',
         SEVEN_DAY_HOLD: 'sevenDayHold',
     },
-    MOVED_TRANSACTION_REASONS: {
-        PENDING_CARD_MATCH: 'pendingCardMatch',
-    },
     REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
 
     REPORT_VIOLATIONS: {

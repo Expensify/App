@@ -1262,8 +1262,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromReport: (reportName: string) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransactionTo: (reportUrl: string, reportName?: string) => `ha spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         movedTransactionFrom: (reportUrl: string, reportName?: string) => `ha spostato questa spesa${reportName ? `da <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFromPendingMatch: (reportUrl: string, reportName?: string) =>
-            `ha spostato questa spesa${reportName ? `da <a href="${reportUrl}">${reportName}</a>` : ''} in attesa di abbinamento con una transazione della carta di credito`,
         unreportedTransaction: (reportUrl: string) => `ha spostato questa spesa nel tuo <a href="${reportUrl}">spazio personale</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {

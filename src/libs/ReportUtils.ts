@@ -6915,7 +6915,7 @@ function getDeletedTransactionMessage(translate: LocalizedTranslate, action: Rep
 
 function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
-    const {toReportID, fromReportID, reasoning} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+    const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
     const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
@@ -6928,9 +6928,6 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return translate('iou.movedTransactionTo', reportUrl, reportName);
-    }
-    if (reasoning === CONST.MOVED_TRANSACTION_REASONS.PENDING_CARD_MATCH) {
-        return translate('iou.movedTransactionFromPendingMatch', reportUrl, reportName);
     }
     return translate('iou.movedTransactionFrom', reportUrl, reportName);
 }
