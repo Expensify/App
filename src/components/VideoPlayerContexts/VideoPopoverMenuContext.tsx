@@ -47,11 +47,11 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (!originalParent || !currentVideoPlayerRef.current) {
             return;
         }
-        if (currentVideoPlayerRef.current.playbackRate === currentPlaybackSpeed) {
-            return;
+
+        if (currentVideoPlayerRef.current.playbackRate !== currentPlaybackSpeed) {
+            currentVideoPlayerRef.current.playbackRate = currentPlaybackSpeed;
         }
-        currentVideoPlayerRef.current.playbackRate = currentPlaybackSpeed;
-    }, [originalParent, currentVideoPlayerRef, currentPlaybackSpeed]);
+    }, [originalParent, currentPlaybackSpeed]);
 
     const updateVideoPopoverMenuPlayerRef = (videoPlayer: VideoPlayer | null) => {
         videoPopoverMenuPlayerRef.current = videoPlayer;
