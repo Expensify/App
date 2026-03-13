@@ -66,7 +66,7 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         groupID={groupID}
                         groupName={group?.name}
                     />
-                    <View style={[styles.sectionDividerLine, styles.ph5, styles.mv6]} />
+                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
                     <Text style={[styles.textNormal, styles.textStrong, styles.ph5]}>{translate('domain.groups.permissions')}</Text>
                     <StrictlyEnforceWorkspaceRulesToggle
                         domainAccountID={domainAccountID}
