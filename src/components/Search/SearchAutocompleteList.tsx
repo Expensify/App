@@ -1,5 +1,5 @@
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -218,6 +218,7 @@ function SearchAutocompleteList({
     const prevQueryRef = useRef(autocompleteQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
+    const sectionsRef = useRef<Array<Section<AutocompleteListItem>>>([]);
 
     // Callback ref to set both inner ref and forward to external ref
     const setListRef = (instance: SelectionListWithSectionsHandle | null) => {
@@ -351,76 +352,58 @@ function SearchAutocompleteList({
         debounceHandleSearch();
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
-    const styledRecentReports = useMemo(
-        () =>
-            recentReportsOptions.map((option) => {
-                const report = getReportOrDraftReport(option.reportID);
-                const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-                const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-                const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
-                return {
-                    ...option,
-                    keyForList,
-                    pressableStyle: styles.br2,
-                    text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-                    wrapperStyle: [styles.pr3, styles.pl3],
-                } as AutocompleteListItem;
-            }),
-        [recentReportsOptions, styles.br2, styles.pl3, styles.pr3],
-    );
+    const styledRecentReports = recentReportsOptions.map((option) => {
+        const report = getReportOrDraftReport(option.reportID);
+        const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+        const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+        const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
+        return {
+            ...option,
+            keyForList,
+            pressableStyle: styles.br2,
+            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+            wrapperStyle: [styles.pr3, styles.pl3],
+        } as AutocompleteListItem;
+    });
 
     /* Sections generation */
-    const sections: Array<Section<AutocompleteListItem>> = useMemo(() => {
-        const generatedSections: Array<Section<AutocompleteListItem>> = [];
-        let sectionIndex = 0;
+    const sections: Array<Section<AutocompleteListItem>> = [];
+    let sectionIndex = 0;
 
-        if (searchQueryItem) {
-            generatedSections.push({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
+    if (searchQueryItem) {
+        sections.push({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
+    }
+
+    const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
+    if (additionalSections) {
+        for (const section of additionalSections) {
+            sections.push(section);
+            sectionIndex++;
         }
+    }
 
-        const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
+    if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
+        sections.push({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
+    }
 
-        if (additionalSections) {
-            for (const section of additionalSections) {
-                generatedSections.push(section);
-                sectionIndex++;
-            }
-        }
+    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports, sectionIndex: sectionIndex++});
 
-        if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
-            generatedSections.push({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
-        }
+    if (autocompleteSuggestions.length > 0) {
+        const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
+            return {
+                text: getAutocompleteDisplayText(filterKey, text),
+                mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
+                singleIcon: expensifyIcons.MagnifyingGlass,
+                searchQuery: text,
+                autocompleteID,
+                keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
+            };
+        });
 
-        generatedSections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports, sectionIndex: sectionIndex++});
-
-        if (autocompleteSuggestions.length > 0) {
-            const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
-                return {
-                    text: getAutocompleteDisplayText(filterKey, text),
-                    mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
-                    singleIcon: expensifyIcons.MagnifyingGlass,
-                    searchQuery: text,
-                    autocompleteID,
-                    keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
-                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
-                };
-            });
-
-            generatedSections.push({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
-        }
-
-        return generatedSections;
-    }, [
-        autocompleteQueryValue,
-        autocompleteSuggestions,
-        expensifyIcons.MagnifyingGlass,
-        getAdditionalSections,
-        recentSearchesData,
-        searchOptions,
-        searchQueryItem,
-        styledRecentReports,
-        translate,
-    ]);
+        sections.push({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
+    }
+    sectionsRef.current = sections;
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
@@ -439,7 +422,7 @@ function SearchAutocompleteList({
         // Compute the flat index of firstRecentReportKey by replicating the flattening logic
         // from useFlattenedSections: each section may prepend a header row when it has a title/customHeader.
         let flatIndex = 0;
-        for (const section of sections) {
+        for (const section of sectionsRef.current) {
             const hasData = (section.data?.length ?? 0) > 0;
             const hasHeader = hasData && (section.title !== undefined || ('customHeader' in section && section.customHeader !== undefined));
             if (hasHeader) {
@@ -453,7 +436,7 @@ function SearchAutocompleteList({
                 flatIndex++;
             }
         }
-    }, [areOptionsInitialized, firstRecentReportKey, sections, shouldUseNarrowLayout]);
+    }, [areOptionsInitialized, firstRecentReportKey, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
