@@ -101,6 +101,7 @@ function BaseListItem<TItem extends ListItem>({
                 {...bind}
                 ref={pressableRef}
                 lang={item.lang}
+                accessibilityLanguage={item.lang}
                 onLongPress={() => {
                     onLongPressRow?.(item);
                 }}
