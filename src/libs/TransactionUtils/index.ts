@@ -1542,6 +1542,16 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
+ * Check if any of the given transactions have a pending RTER violation.
+ */
+function hasAnyPendingRTERViolation(transactions: OnyxEntry<Transaction>[], allTransactionViolations: OnyxCollection<TransactionViolations>): boolean {
+    return transactions.some((t) => {
+        const txViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t?.transactionID}`];
+        return hasPendingRTERViolation(txViolations);
+    });
+}
+
+/**
  * Check if there is a custom unit out of policy violation in transactionViolations.
  */
 function hasCustomUnitOutOfPolicyViolation(transactionViolations?: TransactionViolations | null): boolean {
@@ -2910,6 +2920,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
+    hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     allHavePendingRTERViolation,
     hasPendingUI,

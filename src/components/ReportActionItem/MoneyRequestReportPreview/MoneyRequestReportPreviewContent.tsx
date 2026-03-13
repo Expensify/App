@@ -79,7 +79,7 @@ import {
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
@@ -204,14 +204,7 @@ function MoneyRequestReportPreviewContent({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-    const hasAnyPendingRTERViolation = useMemo(
-        () =>
-            transactions.some((t) => {
-                const txViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`];
-                return hasPendingRTERViolationTransactionUtils(txViolations);
-            }),
-        [transactions, transactionViolations],
-    );
+    const hasAnyPendingRTERViolation = useMemo(() => hasAnyPendingRTERViolationTransactionUtils(transactions, transactionViolations), [transactions, transactionViolations]);
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 

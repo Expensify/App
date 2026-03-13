@@ -113,6 +113,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     hasDuplicateTransactions,
+    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDistanceRequest,
     isDuplicate,
@@ -455,14 +456,7 @@ function MoneyReportHeader({
         [transactions, violations, email, accountID, moneyRequestReport, policy],
     );
     // Check if any transactions have pending RTER violations (for showing the submit confirmation modal)
-    const hasAnyPendingRTERViolation = useMemo(
-        () =>
-            transactions.some((t) => {
-                const txViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`];
-                return hasPendingRTERViolationTransactionUtils(txViolations);
-            }),
-        [transactions, allTransactionViolations],
-    );
+    const hasAnyPendingRTERViolation = useMemo(() => hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations), [transactions, allTransactionViolations]);
 
     // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
