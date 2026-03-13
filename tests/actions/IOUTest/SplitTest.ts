@@ -186,6 +186,13 @@ const getParticipantsPolicyTags = async (participants: IOUParticipant[]) => {
     return participantsPolicyTags;
 };
 
+const getTransactionAndExpenseReports = (reportID: string) => {
+    const transactionReport = getReportOrDraftReport(reportID);
+    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+    return {transactionReport, expenseReport};
+};
+
 let mockFetch: MockFetch;
 
 beforeAll(() => {
@@ -1233,6 +1240,9 @@ describe('split expense', () => {
             },
         });
 
+        const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
+
         // When splitting the expense
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
@@ -1259,7 +1269,10 @@ describe('split expense', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
 
         await waitForBatchedUpdates();
@@ -1732,12 +1745,16 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
+
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -1757,7 +1774,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
 
         await waitForBatchedUpdates();
@@ -1843,12 +1863,17 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 allReportNameValuePairs = value;
             },
         });
+
+        const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
+
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -1868,7 +1893,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
 
         await waitForBatchedUpdates();
@@ -1967,12 +1995,16 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
+
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -1992,7 +2024,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
 
         await waitForBatchedUpdates();
@@ -2121,13 +2156,17 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        const reportID = originalReportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const policyTags = await getPolicyTags(reportID);
+        let reports = getTransactionAndExpenseReports(reportID);
+
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: [
                     {transactionID: splitTransactionID1, amount: amount / 2, created: DateUtils.getDBTime()},
@@ -2145,7 +2184,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
         await waitForBatchedUpdates();
 
@@ -2178,13 +2220,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        reports = getTransactionAndExpenseReports(reportID);
+
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: originalReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: [{transactionID: splitTransactionID1, amount, created: DateUtils.getDBTime(), reportID: differentReportID}],
             },
@@ -2199,7 +2243,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
         await waitForBatchedUpdates();
 
@@ -2351,12 +2398,16 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
+
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -2376,7 +2427,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
         await waitForBatchedUpdates();
 
@@ -2517,12 +2571,16 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
+
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -2542,7 +2600,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
         await waitForBatchedUpdates();
 
@@ -2696,13 +2757,17 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
+
         // it should use splitExpensesTotal in its calculation
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -2722,7 +2787,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
         await waitForBatchedUpdates();
 
@@ -2899,13 +2967,17 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
+
         // When splitting the held expense
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -2925,7 +2997,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
 
         await waitForBatchedUpdates();
@@ -3073,6 +3148,7 @@ describe('updateSplitTransactions', () => {
 
         const reportID = originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
         const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
@@ -3101,6 +3177,8 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
         await waitForBatchedUpdates();
 
@@ -3195,6 +3273,7 @@ describe('updateSplitTransactions', () => {
 
         const reportID = originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
         const policyTags = await getPolicyTags(reportID);
+        const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
@@ -3223,6 +3302,8 @@ describe('updateSplitTransactions', () => {
             betas: [CONST.BETAS.ALL],
             policyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
         });
         await waitForBatchedUpdates();
 
