@@ -38,6 +38,12 @@ type MergeTransactionParams = {
     /** The report ID of the transaction */
     reportID: string;
 
+    /** The tax code of the transaction */
+    taxCode: string;
+
+    /** The tax policy ID of the transaction */
+    taxPolicyID: string;
+
     /** The created IOU report action ID of the transaction */
     createdIOUReportActionID?: string;
 };
