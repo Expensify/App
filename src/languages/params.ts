@@ -1,9 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {DelegateRole} from '@src/types/onyx/Account';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
-import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 type MultifactorAuthenticationTranslationParams = {
     authType?: string;
@@ -80,7 +77,7 @@ type WorkspaceRouteParams = {
 
 type UserSplitParams = {amount: string};
 
-type PaidElsewhereParams = {payer?: string; comment?: string};
+// type PaidElsewhereParams = {payer?: string; comment?: string};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
@@ -116,7 +113,7 @@ type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string} | undefined;
 
-type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
+// type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
 type ViolationsOverAutoApprovalLimitParams = {formattedLimit: string};
 
@@ -148,9 +145,9 @@ type ViolationsProhibitedExpenseParams = {prohibitedExpenseTypes: string | strin
 
 type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
-type OptionalParam<T> = Partial<T>;
+// type OptionalParam<T> = Partial<T>;
 
-type LogSizeAndDateParams = {size: number; date: string};
+// type LogSizeAndDateParams = {size: number; date: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
@@ -273,28 +270,28 @@ type ShareParams = {to: string};
 
 type UnshareParams = {to: string};
 
-type ConnectionNameParams = {
-    connectionName: AllConnectionName;
-};
+// type ConnectionNameParams = {
+//     connectionName: AllConnectionName;
+// };
 
-type ExportAgainModalDescriptionParams = {
-    reportName: string;
-    connectionName: ConnectionName;
-};
+// type ExportAgainModalDescriptionParams = {
+//     reportName: string;
+//     connectionName: ConnectionName;
+// };
 
-type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
+// type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
-type RemoveMemberParams = {email: string; role: string};
+// type RemoveMemberParams = {email: string; role: string};
 
-type StatementPageTitleParams = {year: string | number; monthName: string};
+// type StatementPageTitleParams = {year: string | number; monthName: string};
 
-type DisconnectPromptParams = {currentIntegration?: ConnectionName} | undefined;
+// type DisconnectPromptParams = {currentIntegration?: ConnectionName} | undefined;
 
-type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
+// type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
 
 type AmountWithCurrencyParams = {amountWithCurrency: string};
 
-type LowerUpperParams = {lower: string; upper: string};
+// type LowerUpperParams = {lower: string; upper: string};
 
 type UpdatedPolicyCategoriesParams = {count: number};
 
@@ -302,17 +299,17 @@ type WorkspaceMembersCountParams = {count: number};
 
 type WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams = {workspaceOwnerName: string};
 
-type YourPlanPriceParams = {lower: string; upper: string};
+// type YourPlanPriceParams = {lower: string; upper: string};
 
 type YourPlanPriceValueParams = {price: string};
 
-type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
+// type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
 
-type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
+// type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
 
-type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
+// type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
 
-type DelegateRoleParams = {role: DelegateRole};
+// type DelegateRoleParams = {role: DelegateRole};
 
 type VacationDelegateParams = {nameOrEmail: string};
 
@@ -320,18 +317,18 @@ type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
 };
 
-type MissingPropertyParams = {
-    propertyName: string;
-};
+// type MissingPropertyParams = {
+//     propertyName: string;
+// };
 
-type InvalidPropertyParams = {
-    propertyName: string;
-    expectedType: string;
-};
+// type InvalidPropertyParams = {
+//     propertyName: string;
+//     expectedType: string;
+// };
 
-type InvalidValueParams = {
-    expectedValues: string;
-};
+// type InvalidValueParams = {
+//     expectedValues: string;
+// };
 
 type WorkspaceYouMayJoin = {
     domain: string;
@@ -386,41 +383,28 @@ type NextStepParams = {
     etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
 };
 
-type ConciergeBrokenCardConnectionParams = {
-    cardName: string;
-    connectionLink?: string;
-};
+// type ConciergeBrokenCardConnectionParams = {
+//     cardName: string;
+//     connectionLink?: string;
+// };
 
 export type {
-    MissingPropertyParams,
-    InvalidPropertyParams,
-    InvalidValueParams,
     RemovedFromApprovalWorkflowParams,
-    DelegateRoleParams,
     VacationDelegateParams,
-    SyncStageNameConnectionsParams,
-    IntacctMappingTitleParams,
-    ExportIntegrationSelectedParams,
-    YourPlanPriceParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     UpdatedPolicyCategoriesParams,
     AmountWithCurrencyParams,
-    LowerUpperParams,
-    LogSizeAndDateParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
-    MovedFromPersonalSpaceParams,
-    NotAllowedExtensionParams,
     ParentNavigationSummaryParams,
-    PaidElsewhereParams,
-    ConciergeBrokenCardConnectionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
+    NotAllowedExtensionParams,
     ResolutionConstraintsParams,
     SizeExceededParams,
     StepCounterParams,
@@ -434,7 +418,6 @@ export type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
-    ViolationsModifiedAmountParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
@@ -457,14 +440,6 @@ export type {
     MarkReimbursedFromIntegrationParams,
     ShareParams,
     UnshareParams,
-    ConnectionNameParams,
-    ExportAgainModalDescriptionParams,
-    UpdateRoleParams,
-    RemoveMemberParams,
-    StatementPageTitleParams,
-    DisconnectPromptParams,
-    DisconnectTitleParams,
-    OptionalParam,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
     WorkspaceLockedPlanTypeParams,
@@ -515,5 +490,6 @@ export type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyDefaultTitleParams,
+    MovedFromPersonalSpaceParams,
     MultifactorAuthenticationTranslationParams,
 };

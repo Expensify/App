@@ -4,10 +4,9 @@ import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    ConciergeBrokenCardConnectionParams,
     CreatedReportForUnapprovedTransactionsParams,
+    MovedFromPersonalSpaceParams,
     MultifactorAuthenticationTranslationParams,
-    PaidElsewhereParams,
     UpdatedPolicyTagParams,
     ViolationsRterParams,
     WorkspaceUpgradeNoteParams,
@@ -1258,7 +1257,7 @@ const translations: TranslationDeepObject<typeof en> = {
         adminCanceledRequest: 'canceló el pago',
         canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: (submitterDisplayName, amount) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
-        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marcó como pagado${comment ? `, diciendo "${comment}"` : ''}`,
+        paidElsewhere: (payer, comment) => `${payer ? `${payer} ` : ''}marcó como pagado${comment ? `, diciendo "${comment}"` : ''}`,
         paidWithExpensify: (payer) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
         automaticallyPaidWithExpensify: (payer) =>
             `${payer ? `${payer} ` : ''}pagó con Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
@@ -1280,7 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadExpenseReportName: (formattedAmount, comment) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         invoiceReportName: ({linkedReportID}) => `Informe de facturación #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount, comment) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
-        movedFromPersonalSpace: ({workspaceName, reportName}) => `movió el gasto desde su espacio personal a ${workspaceName ?? `un chat con ${reportName}`}`,
+        movedFromPersonalSpace: ({reportName, workspaceName}: MovedFromPersonalSpaceParams) => `movió el gasto desde su espacio personal a ${workspaceName ?? `un chat con ${reportName}`}`,
         movedToPersonalSpace: 'movió el gasto a su espacio personal',
         error: {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
@@ -2099,7 +2098,7 @@ const translations: TranslationDeepObject<typeof en> = {
         connectWithPlaid: 'conectar a través de Plaid.',
         brokenConnection: 'Hay un problema con la conexión de tu tarjeta.',
         fixCard: 'Arreglar conexión de la tarjeta',
-        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+        conciergeBrokenConnection: (cardName, connectionLink) =>
             connectionLink
                 ? `La conexión de tu tarjeta ${cardName} se ha interrumpido. <a href="${connectionLink}">Inicia sesión en tu banco</a> para arreglarla.`
                 : `La conexión de tu tarjeta ${cardName} se ha interrumpido. Inicia sesión en tu banco para arreglarla.`,
@@ -3938,7 +3937,7 @@ ${amount} para ${merchant} - ${date}`,
             subscription: 'Suscripción',
             markAsEntered: 'Marcar como introducido manualmente',
             markAsExported: 'Marcar como exportado',
-            exportIntegrationSelected: ({connectionName}) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: (connectionName) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
             lineItemLevel: 'Nivel de partida',
@@ -3949,11 +3948,11 @@ ${amount} para ${merchant} - ${date}`,
                 content: ({adminsRoomLink}) =>
                     `Comparte este código QR o copia el enlace de abajo para facilitar que los miembros soliciten acceso a tu espacio de trabajo. Todas las solicitudes para unirse al espacio de trabajo aparecerán en la sala <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> para tu revisión.`,
             },
-            connectTo: ({connectionName}) => `Conéctate a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            connectTo: (connectionName) => `Conéctate a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Crear una nueva conexión',
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
-            existingConnectionsDescription: ({connectionName}) =>
+            existingConnectionsDescription: (connectionName) =>
                 `Como ya te has conectado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} antes, puedes optar por reutilizar una conexión existente o crear una nueva.`,
             lastSyncDate: (connectionName, formattedDate) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
@@ -4808,7 +4807,7 @@ ${amount} para ${merchant} - ${date}`,
                 one: '1 UDD añadido',
                 other: (count: number) => `${count} UDDs añadido`,
             }),
-            mappingTitle: ({mappingName}) => {
+            mappingTitle: (mappingName) => {
                 switch (mappingName) {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
                         return 'departamentos';
@@ -5638,7 +5637,7 @@ ${amount} para ${merchant} - ${date}`,
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
             talkToConcierge: 'Chatear con Concierge.',
             needAnotherAccounting: '¿Necesitas otro software de contabilidad? ',
-            connectionName: ({connectionName}) => {
+            connectionName: (connectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -5666,13 +5665,13 @@ ${amount} para ${merchant} - ${date}`,
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
             reinstall: 'Reinstalar el conector',
-            disconnectTitle: ({connectionName} = {}) => {
+            disconnectTitle: (connectionName) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integración';
                 return `Desconectar ${integrationName}`;
             },
-            connectTitle: ({connectionName}) => `Conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'accounting integration'}`,
-            syncError: ({connectionName}) => {
+            connectTitle: (connectionName) => `Conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'accounting integration'}`,
+            syncError: (connectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'No se puede conectar a QuickBooks Online';
@@ -5701,12 +5700,12 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Predeterminado del empleado NetSuite',
             },
-            disconnectPrompt: ({connectionName} = {}) => {
+            disconnectPrompt: (connectionName) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integración';
                 return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
             },
-            connectPrompt: ({connectionName}) =>
+            connectPrompt: (connectionName) =>
                 `¿Estás seguro de que quieres conectar a ${
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'
                 }? Esto eliminará cualquier conexión contable existente.`,
@@ -5727,7 +5726,7 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
             connections: {
-                syncStageName: ({stage}) => {
+                syncStageName: (stage) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6105,7 +6104,7 @@ ${amount} para ${merchant} - ${date}`,
 
         exportAgainModal: {
             title: '¡Cuidado!',
-            description: ({reportName, connectionName}) =>
+            description: (reportName, connectionName) =>
                 `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\n¿Estás seguro de que deseas exportarlos de nuevo?`,
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
@@ -7376,7 +7375,7 @@ ${amount} para ${merchant} - ${date}`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email, role) => `agregó a ${email} como ${role}`,
-                updateRole: ({email, currentRole, newRole}) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
+                updateRole: (email, currentRole, newRole) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 updatedCustomField1: (email, newValue, previousValue) => {
                     if (!newValue) {
                         return `eliminó el campo personalizado 1 de ${email} (previamente "${previousValue}")`;
@@ -7397,8 +7396,8 @@ ${amount} para ${merchant} - ${date}`,
                 },
                 leftWorkspace: (nameOrEmail) => `${nameOrEmail} salió del espacio de trabajo`,
                 removeMember: (email, role) => `eliminado ${role} ${email}`,
-                removedConnection: ({connectionName}) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
-                addedConnection: ({connectionName}) => `se conectó a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                removedConnection: (connectionName) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                addedConnection: (connectionName) => `se conectó a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'salió del chat',
                 leftTheChatWithName: (nameOrEmail) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}salió del chat`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8106,7 +8105,7 @@ ${amount} para ${merchant} - ${date}`,
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
         missingAttendees: 'Se requieren múltiples asistentes para esta categoría',
         missingTag: ({tagName} = {}) => `Falta ${tagName ?? 'etiqueta'}`,
-        modifiedAmount: ({type, displayPercentVariance}) => {
+        modifiedAmount: (type, displayPercentVariance) => {
             switch (type) {
                 case 'distance':
                     return 'Importe difiere del calculado basado en distancia';
@@ -8403,8 +8402,8 @@ ${amount} para ${merchant} - ${date}`,
             collect: {
                 title: 'Recopilar',
                 description: 'El plan para pequeñas empresas que te ofrece gestión de gastos, viajes y chat.',
-                priceAnnual: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
-                pricePayPerUse: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                priceAnnual: (lower, upper) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                pricePayPerUse: (lower, upper) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'Escaneo de recibos',
                 benefit2: 'Reembolsos',
                 benefit3: 'Gestión de tarjetas corporativas',
@@ -8417,8 +8416,8 @@ ${amount} para ${merchant} - ${date}`,
             control: {
                 title: 'Controlar',
                 description: 'Gastos, viajes y chat para empresas más grandes.',
-                priceAnnual: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
-                pricePayPerUse: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                priceAnnual: (lower, upper) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                pricePayPerUse: (lower, upper) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'Todo lo incluido en el plan Collect',
                 benefit2: 'Flujos de aprobación multinivel',
                 benefit3: 'Reglas de gastos personalizadas',
@@ -8548,7 +8547,7 @@ ${amount} para ${merchant} - ${date}`,
         addCopilot: 'Agregar copiloto',
         membersCanAccessYourAccount: 'Estos miembros pueden acceder a tu cuenta:',
         youCanAccessTheseAccounts: 'Puedes acceder a estas cuentas a través del conmutador de cuentas:',
-        role: ({role} = {}) => {
+        role: (role) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Completo';
@@ -8563,7 +8562,7 @@ ${amount} para ${merchant} - ${date}`,
         accessLevel: 'Nivel de acceso',
         confirmCopilot: 'Confirma tu copiloto a continuación.',
         accessLevelDescription: 'Elige un nivel de acceso a continuación. Tanto el acceso Completo como el Limitado permiten a los copilotos ver todas las conversaciones y gastos.',
-        roleDescription: ({role} = {}) => {
+        roleDescription: (role) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Permite a otro miembro realizar todas las acciones en tu cuenta, en tu nombre. Incluye chat, presentaciones, aprobaciones, pagos, actualizaciones de configuración y más.';
@@ -8594,9 +8593,9 @@ ${amount} para ${merchant} - ${date}`,
         nothingToPreview: 'Nada que previsualizar',
         editJson: 'Editar JSON:',
         preview: 'Previa:',
-        missingProperty: ({propertyName}) => `Falta ${propertyName}`,
-        invalidProperty: ({propertyName, expectedType}) => `Propiedad inválida: ${propertyName} - Esperado: ${expectedType}`,
-        invalidValue: ({expectedValues}) => `Valor inválido - Esperado: ${expectedValues}`,
+        missingProperty: (propertyName) => `Falta ${propertyName}`,
+        invalidProperty: (propertyName, expectedType) => `Propiedad inválida: ${propertyName} - Esperado: ${expectedType}`,
+        invalidValue: (expectedValues) => `Valor inválido - Esperado: ${expectedValues}`,
         missingValue: 'Valor en falta',
         createReportAction: 'Crear acción de informe',
         reportAction: 'Acciones del informe',

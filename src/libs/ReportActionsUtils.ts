@@ -429,12 +429,12 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
 
 function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
     const personalCardName = originalCardName ?? card?.cardName ?? getBankName(card?.bank as CompanyCardFeed);
-    return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
+    return translate('personalCard.conciergeBrokenConnection', personalCardName, connectionLink);
 }
 
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
-    return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
+    return translate('iou.paidElsewhere', undefined, originalMessage?.message?.trim());
 }
 
 function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
@@ -2719,7 +2719,7 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
 
     const newRole = translate('workspace.common.roleName', stringNewValue).toLowerCase();
     const oldRole = translate('workspace.common.roleName', stringOldValue).toLowerCase();
-    return translate('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
+    return translate('report.actions.type.updateRole', email, newRole, oldRole);
 }
 
 function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -3699,7 +3699,7 @@ function getAddedConnectionMessage(translate: LocalizedTranslate, reportAction: 
     }
     const originalMessage = getOriginalMessage(reportAction);
     const connectionName = originalMessage?.connectionName;
-    return connectionName ? translate('report.actions.type.addedConnection', {connectionName}) : '';
+    return connectionName ? translate('report.actions.type.addedConnection', connectionName) : '';
 }
 
 function getRemovedConnectionMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
@@ -3708,7 +3708,7 @@ function getRemovedConnectionMessage(translate: LocalizedTranslate, reportAction
     }
     const originalMessage = getOriginalMessage(reportAction);
     const connectionName = originalMessage?.connectionName;
-    return connectionName ? translate('report.actions.type.removedConnection', {connectionName}) : '';
+    return connectionName ? translate('report.actions.type.removedConnection', connectionName) : '';
 }
 
 function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {

@@ -16,36 +16,28 @@ import StringUtils from '@libs/StringUtils';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {DelegateRole} from '@src/types/onyx/Account';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 import type {
     AddBudgetParams,
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
-    ConciergeBrokenCardConnectionParams,
-    ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
-    DelegateRoleParams,
     DeleteActionParams,
     DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
-    ExportAgainModalDescriptionParams,
-    ExportIntegrationSelectedParams,
     ImportPolicyCustomUnitRatesParams,
-    IntacctMappingTitleParams,
-    InvalidPropertyParams,
-    InvalidValueParams,
     MarkReimbursedFromIntegrationParams,
-    MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MultifactorAuthenticationTranslationParams,
     NextStepParams,
     NotAllowedExtensionParams,
-    OptionalParam,
-    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
@@ -57,7 +49,6 @@ import type {
     ShareParams,
     SizeExceededParams,
     StepCounterParams,
-    SyncStageNameConnectionsParams,
     UnshareParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
@@ -90,7 +81,6 @@ import type {
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
-    UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -102,7 +92,6 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
-    ViolationsModifiedAmountParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -129,7 +118,6 @@ import type {
     WorkspacesListRouteParams,
     WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
-    YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
 } from './params';
@@ -1355,7 +1343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         adminCanceledRequest: '已取消付款',
         canceledRequest: (amount: string, submitterDisplayName: string) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify 钱包`,
         settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) => `${submitterDisplayName} 已添加了一个银行账户。已完成 ${amount} 付款。`,
-        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}标记为已支付${comment ? `，内容为“${comment}”` : ''}`,
+        paidElsewhere: (payer?: string, comment?: string) => `${payer ? `${payer} ` : ''}标记为已支付${comment ? `，内容为“${comment}”` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}用钱包支付`,
         automaticallyPaidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}已通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>使用 Expensify 支付`,
         noReimbursableExpenses: '此报表的金额无效',
@@ -1373,7 +1361,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `用于 ${comment}` : '报销'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `发票报告 #${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `已发送 ${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
-        movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `已将报销从个人空间移动到 ${workspaceName ?? `与 ${reportName} 聊天`}`,
+        movedFromPersonalSpace: ({reportName, workspaceName}: MovedFromPersonalSpaceParams) => `已将报销从个人空间移动到 ${workspaceName ?? `与 ${reportName} 聊天`}`,
         movedToPersonalSpace: '已将报销移动到个人空间',
         error: {
             invalidCategoryLength: '类别名称超过 255 个字符。请缩短名称或选择其他类别。',
@@ -2182,7 +2170,7 @@ const translations: TranslationDeepObject<typeof en> = {
         connectWithPlaid: '通过 Plaid 连接。',
         fixCard: '修复卡片',
         brokenConnection: '您的银行卡连接已断开。',
-        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+        conciergeBrokenConnection: (cardName: string, connectionLink?: string) =>
             connectionLink ? `您的 ${cardName} 卡连接已中断。<a href="${connectionLink}">登录您的网上银行</a>以修复该卡。` : `您的 ${cardName} 卡连接已中断。登录您的网上银行以修复该卡。`,
         addAdditionalCards: '添加其他卡片',
         upgradeDescription: '需要添加更多卡片吗？创建工作区以添加其他个人卡片或将公司卡片分配给整个团队。',
@@ -3973,7 +3961,7 @@ ${
             subscription: '订阅',
             markAsEntered: '标记为手动输入',
             markAsExported: '标记为已导出',
-            exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: (connectionName: ConnectionName) => `导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: '我们再仔细检查一下，确保一切都正确。',
             lineItemLevel: '单行项目级别',
             reportLevel: '报表级别',
@@ -3984,11 +3972,11 @@ ${
                 content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
                     `将此二维码分享给他人或复制下方链接，方便成员请求访问你的工作区。所有加入工作区的请求都会显示在 <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> 聊天室中，供你审核。`,
             },
-            connectTo: ({connectionName}: ConnectionNameParams) => `连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            connectTo: (connectionName: AllConnectionName) => `连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: '创建新连接',
             reuseExistingConnection: '复用现有连接',
             existingConnections: '现有连接',
-            existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
+            existingConnectionsDescription: (connectionName: AllConnectionName) =>
                 `由于你之前已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}，你可以选择复用现有连接或创建新连接。`,
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - 上次同步时间：${formattedDate}`,
             authenticationError: (connectionName: string) => `由于身份验证错误，无法连接到 ${connectionName}。`,
@@ -4835,7 +4823,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 one: '已添加 1 个 UDD',
                 other: (count: number) => `已添加 ${count} 个UDD`,
             }),
-            mappingTitle: ({mappingName}: IntacctMappingTitleParams) => {
+            mappingTitle: (mappingName: SageIntacctMappingName) => {
                 switch (mappingName) {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
                         return '部门';
@@ -5700,7 +5688,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             talkYourAccountManager: '与您的客户经理聊天。',
             talkToConcierge: '与 Concierge 聊天。',
             needAnotherAccounting: '需要其他会计软件吗？',
-            connectionName: ({connectionName}: ConnectionNameParams) => {
+            connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -5727,12 +5715,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncNow: '立即同步',
             disconnect: '断开连接',
             reinstall: '重新安装连接器',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
+            disconnectTitle: (connectionName?: AllConnectionName) => {
                 const integrationName = connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '集成';
                 return `断开连接 ${integrationName}`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '会计集成'}`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
+            connectTitle: (connectionName: AllConnectionName) => `连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '会计集成'}`,
+            syncError: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return '无法连接到 QuickBooks Online';
@@ -5761,12 +5749,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: '已作为报表字段导入',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite 员工默认值',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
+            disconnectPrompt: (connectionName?: AllConnectionName) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : '此集成';
                 return `你确定要断开与 ${integrationName} 的连接吗？`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
+            connectPrompt: (connectionName: AllConnectionName) =>
                 `确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
             claimOffer: {
@@ -5784,7 +5772,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: (stage: PolicyConnectionSyncStage) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6103,7 +6091,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         },
         exportAgainModal: {
             title: '小心！',
-            description: ({reportName, connectionName}: ExportAgainModalDescriptionParams) => `以下报表已导出至 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}：
+            description: (reportName: string, connectionName: ConnectionName) => `以下报表已导出至 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}：
 
 ${reportName}
 
@@ -7331,7 +7319,7 @@ ${reportName}
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
                 addEmployee: (email: string, role: string) => `已将 ${email} 添加为 ${role === 'member' ? 'a' : '一个'} 的 ${role}`,
-                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `已将 ${email} 的角色更新为 ${newRole}（先前为 ${currentRole}）`,
+                updateRole: (email: string, currentRole: string, newRole: string) => `已将 ${email} 的角色更新为 ${newRole}（先前为 ${currentRole}）`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
                         return `已移除 ${email} 的自定义字段 1（先前为“${previousValue}”）`;
@@ -7346,8 +7334,8 @@ ${reportName}
                 },
                 leftWorkspace: (nameOrEmail: string) => `${nameOrEmail} 离开了工作区`,
                 removeMember: (email: string, role: string) => `已移除 ${role} ${email}`,
-                removedConnection: ({connectionName}: ConnectionNameParams) => `已移除与 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 的连接`,
-                addedConnection: ({connectionName}: ConnectionNameParams) => `已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                removedConnection: (connectionName: AllConnectionName) => `已移除与 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 的连接`,
+                addedConnection: (connectionName: AllConnectionName) => `已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: '已离开聊天',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `由于报销或 Expensify 卡结算问题，企业银行账户 ${maskedBankAccountNumber} 已被自动锁定。请在<a href="${linkURL}">工作区设置</a>中解决该问题。`,
@@ -7658,7 +7646,7 @@ ${reportName}
         missingComment: '所选类别需要填写说明',
         missingAttendees: '此类别需要多个参与者',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `缺少 ${tagName ?? '标签'}`,
-        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
+        modifiedAmount: (type?: ViolationDataType, displayPercentVariance?: number) => {
             switch (type) {
                 case 'distance':
                     return '金额与计算出的距离不符';
@@ -7941,8 +7929,8 @@ ${reportName}
             collect: {
                 title: '收款',
                 description: '为您提供报销、差旅和聊天功能的小型企业方案。',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `从使用 Expensify 卡的每位活跃成员 ${lower} 起，到未使用 Expensify 卡的每位活跃成员 ${upper}。`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `从使用 Expensify 卡的每位活跃成员 ${lower} 起，到未使用 Expensify 卡的每位活跃成员 ${upper}。`,
+                priceAnnual: (lower: string, upper: string) => `从使用 Expensify 卡的每位活跃成员 ${lower} 起，到未使用 Expensify 卡的每位活跃成员 ${upper}。`,
+                pricePayPerUse: (lower: string, upper: string) => `从使用 Expensify 卡的每位活跃成员 ${lower} 起，到未使用 Expensify 卡的每位活跃成员 ${upper}。`,
                 benefit1: '收据扫描',
                 benefit2: '报销',
                 benefit3: '公司卡管理',
@@ -7955,8 +7943,8 @@ ${reportName}
             control: {
                 title: '控制',
                 description: '适用于大型企业的报销、差旅和聊天。',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `从使用 Expensify 卡的每位活跃成员 ${lower} 起，到未使用 Expensify 卡的每位活跃成员 ${upper}。`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `从使用 Expensify 卡的每位活跃成员 ${lower} 起，到未使用 Expensify 卡的每位活跃成员 ${upper}。`,
+                priceAnnual: (lower: string, upper: string) => `从使用 Expensify 卡的每位活跃成员 ${lower} 起，到未使用 Expensify 卡的每位活跃成员 ${upper}。`,
+                pricePayPerUse: (lower: string, upper: string) => `从使用 Expensify 卡的每位活跃成员 ${lower} 起，到未使用 Expensify 卡的每位活跃成员 ${upper}。`,
                 benefit1: 'Collect 方案中的所有内容',
                 benefit2: '多级审批工作流程',
                 benefit3: '自定义报销规则',
@@ -8083,7 +8071,7 @@ ${reportName}
         addCopilot: '添加副驾',
         membersCanAccessYourAccount: '这些成员可以访问你的账户：',
         youCanAccessTheseAccounts: '您可以通过账户切换器访问这些账户：',
-        role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
+        role: (role?: DelegateRole) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return '完整';
@@ -8098,7 +8086,7 @@ ${reportName}
         accessLevel: '访问级别',
         confirmCopilot: '在下方确认你的副驾驶。',
         accessLevelDescription: '请选择下方的访问级别。完整和有限访问都允许副驾驶查看所有会话和报销。',
-        roleDescription: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
+        roleDescription: (role?: DelegateRole) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return '允许其他成员代表你在你的账户中执行所有操作。包括聊天、提交、审批、付款、更新设置等。';
@@ -8130,9 +8118,9 @@ ${reportName}
         nothingToPreview: '无可预览内容',
         editJson: '编辑 JSON：',
         preview: '预览：',
-        missingProperty: ({propertyName}: MissingPropertyParams) => `缺少 ${propertyName}`,
-        invalidProperty: ({propertyName, expectedType}: InvalidPropertyParams) => `无效属性：${propertyName} - 预期：${expectedType}`,
-        invalidValue: ({expectedValues}: InvalidValueParams) => `无效的值 - 预期为：${expectedValues}`,
+        missingProperty: (propertyName: string) => `缺少 ${propertyName}`,
+        invalidProperty: (propertyName: string, expectedType: string) => `无效属性：${propertyName} - 预期：${expectedType}`,
+        invalidValue: (expectedValues: string) => `无效的值 - 预期为：${expectedValues}`,
         missingValue: '缺少值',
         createReportAction: '创建报表操作',
         reportAction: '报告操作',

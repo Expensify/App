@@ -16,36 +16,28 @@ import StringUtils from '@libs/StringUtils';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {DelegateRole} from '@src/types/onyx/Account';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 import type {
     AddBudgetParams,
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
-    ConciergeBrokenCardConnectionParams,
-    ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
-    DelegateRoleParams,
     DeleteActionParams,
     DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
-    ExportAgainModalDescriptionParams,
-    ExportIntegrationSelectedParams,
     ImportPolicyCustomUnitRatesParams,
-    IntacctMappingTitleParams,
-    InvalidPropertyParams,
-    InvalidValueParams,
     MarkReimbursedFromIntegrationParams,
-    MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MultifactorAuthenticationTranslationParams,
     NextStepParams,
     NotAllowedExtensionParams,
-    OptionalParam,
-    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
@@ -57,7 +49,6 @@ import type {
     ShareParams,
     SizeExceededParams,
     StepCounterParams,
-    SyncStageNameConnectionsParams,
     UnshareParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
@@ -90,7 +81,6 @@ import type {
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
-    UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -102,7 +92,6 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
-    ViolationsModifiedAmountParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -129,7 +118,6 @@ import type {
     WorkspacesListRouteParams,
     WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
-    YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
 } from './params';
@@ -1385,7 +1373,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `ha annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha abilitato il proprio Expensify Wallet entro 30 giorni`,
         settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) =>
             `${submitterDisplayName} ha aggiunto un conto bancario. Il pagamento di ${amount} è stato effettuato.`,
-        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}contrassegnato come pagato${comment ? `, dicendo «${comment}»` : ''}`,
+        paidElsewhere: (payer?: string, comment?: string) => `${payer ? `${payer} ` : ''}contrassegnato come pagato${comment ? `, dicendo «${comment}»` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pagato con portafoglio`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}pagato con Expensify tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
@@ -1404,7 +1392,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `per ${comment}` : 'spesa'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Report fattura n. ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} inviato${comment ? `per ${comment}` : ''}`,
-        movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `ha spostato la spesa dallo spazio personale a ${workspaceName ?? `chatta con ${reportName}`}`,
+        movedFromPersonalSpace: ({reportName, workspaceName}: MovedFromPersonalSpaceParams) => `ha spostato la spesa dallo spazio personale a ${workspaceName ?? `chatta con ${reportName}`}`,
         movedToPersonalSpace: 'ha spostato la spesa nello spazio personale',
         error: {
             invalidCategoryLength: 'Il nome della categoria supera i 255 caratteri. Accorcialo oppure scegli un’altra categoria.',
@@ -2223,7 +2211,7 @@ const translations: TranslationDeepObject<typeof en> = {
         connectWithPlaid: 'connetterti tramite Plaid.',
         fixCard: 'Correggi carta',
         brokenConnection: 'La connessione della tua carta è interrotta.',
-        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+        conciergeBrokenConnection: (cardName: string, connectionLink?: string) =>
             connectionLink
                 ? `La connessione della tua carta ${cardName} non funziona. <a href="${connectionLink}">Accedi alla tua banca</a> per sistemare la carta.`
                 : `La connessione della tua carta ${cardName} non funziona. Accedi alla tua banca per sistemare la carta.`,
@@ -4053,7 +4041,7 @@ ${
             subscription: 'Abbonamento',
             markAsEntered: 'Segna come inserito manualmente',
             markAsExported: 'Segna come esportato',
-            exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Esporta in ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            exportIntegrationSelected: (connectionName: ConnectionName) => `Esporta in ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Controlliamo che sia tutto corretto.',
             lineItemLevel: 'Livello voce di dettaglio',
             reportLevel: 'Livello report',
@@ -4064,11 +4052,11 @@ ${
                 content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
                     `Condividi questo codice QR o copia il link qui sotto per facilitare ai membri la richiesta di accesso al tuo spazio di lavoro. Tutte le richieste di adesione allo spazio di lavoro verranno visualizzate nella stanza <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> per la tua revisione.`,
             },
-            connectTo: ({connectionName}: ConnectionNameParams) => `Connetti a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            connectTo: (connectionName: AllConnectionName) => `Connetti a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Crea nuova connessione',
             reuseExistingConnection: 'Riutilizza connessione esistente',
             existingConnections: 'Connessioni esistenti',
-            existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
+            existingConnectionsDescription: (connectionName: AllConnectionName) =>
                 `Poiché ti sei già connesso a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} in passato, puoi scegliere di riutilizzare una connessione esistente o crearne una nuova.`,
             lastSyncDate: (connectionName: string, formattedDate: string) => `${connectionName} - Ultima sincronizzazione ${formattedDate}`,
             authenticationError: (connectionName: string) => `Impossibile connettersi a ${connectionName} a causa di un errore di autenticazione.`,
@@ -4946,7 +4934,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 one: '1 UDD aggiunto',
                 other: (count: number) => `${count} UDD aggiunti`,
             }),
-            mappingTitle: ({mappingName}: IntacctMappingTitleParams) => {
+            mappingTitle: (mappingName: SageIntacctMappingName) => {
                 switch (mappingName) {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
                         return 'reparti';
@@ -5848,7 +5836,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             talkYourAccountManager: 'Chatta con il tuo account manager.',
             talkToConcierge: 'Chatta con Concierge.',
             needAnotherAccounting: 'Ti serve un altro software di contabilità?',
-            connectionName: ({connectionName}: ConnectionNameParams) => {
+            connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -5876,13 +5864,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             syncNow: 'Sincronizza ora',
             disconnect: 'Disconnetti',
             reinstall: 'Reinstalla connettore',
-            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
+            disconnectTitle: (connectionName?: AllConnectionName) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integrazione';
                 return `Disconnetti ${integrationName}`;
             },
-            connectTitle: ({connectionName}: ConnectionNameParams) => `Collega ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'integrazione contabile'}`,
-            syncError: ({connectionName}: ConnectionNameParams) => {
+            connectTitle: (connectionName: AllConnectionName) => `Collega ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'integrazione contabile'}`,
+            syncError: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'Impossibile connettersi a QuickBooks Online';
@@ -5911,12 +5899,12 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importato come campi del report',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Impostazione predefinita dipendente NetSuite',
             },
-            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
+            disconnectPrompt: (connectionName?: AllConnectionName) => {
                 const integrationName =
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'questa integrazione';
                 return `Sei sicuro di voler disconnettere ${integrationName}?`;
             },
-            connectPrompt: ({connectionName}: ConnectionNameParams) =>
+            connectPrompt: (connectionName: AllConnectionName) =>
                 `Sei sicuro di voler collegare ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'questa integrazione contabile'}? Questo rimuoverà tutte le connessioni contabili esistenti.`,
             enterCredentials: 'Inserisci le tue credenziali',
             claimOffer: {
@@ -5934,7 +5922,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 },
             },
             connections: {
-                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                syncStageName: (stage: PolicyConnectionSyncStage) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -6260,10 +6248,10 @@ Se vuoi assumere la fatturazione per l'intero abbonamento, chiedi loro di aggiun
         },
         exportAgainModal: {
             title: 'Attenzione!',
-            description: ({
-                reportName,
-                connectionName,
-            }: ExportAgainModalDescriptionParams) => `I seguenti report sono già stati esportati su ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:
+            description: (
+                reportName: string,
+                connectionName: ConnectionName,
+            ) => `I seguenti report sono già stati esportati su ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:
 
 ${reportName}
 
@@ -7535,7 +7523,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al conto bancario della tua azienda non funziona. Per favore, <a href='${walletRoute}'>ricollega il conto bancario ${maskedAccountNumber}</a> così puoi continuare a usare le tue Carte Expensify.`,
                 addEmployee: (email: string, role: string) => `aggiunto ${email} come ${role === 'member' ? 'a' : 'un'} ${role}`,
-                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `ha aggiornato il ruolo di ${email} a ${newRole} (in precedenza ${currentRole})`,
+                updateRole: (email: string, currentRole: string, newRole: string) => `ha aggiornato il ruolo di ${email} a ${newRole} (in precedenza ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
                         return `rimossa la campo personalizzato 1 di ${email} (in precedenza “${previousValue}”)`;
@@ -7554,8 +7542,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 },
                 leftWorkspace: (nameOrEmail: string) => `${nameOrEmail} ha lasciato lo spazio di lavoro`,
                 removeMember: (email: string, role: string) => `ha rimosso ${role} ${email}`,
-                removedConnection: ({connectionName}: ConnectionNameParams) => `rimossa connessione a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
-                addedConnection: ({connectionName}: ConnectionNameParams) => `collegato a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                removedConnection: (connectionName: AllConnectionName) => `rimossa connessione a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                addedConnection: (connectionName: AllConnectionName) => `collegato a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'ha lasciato la chat',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `il conto bancario aziendale ${maskedBankAccountNumber} è stato bloccato automaticamente a causa di un problema con il rimborso o con il regolamento della Carta Expensify. Risolvi il problema nelle <a href="${linkURL}">impostazioni dello spazio di lavoro</a>.`,
@@ -7881,7 +7869,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         missingComment: 'Descrizione obbligatoria per la categoria selezionata',
         missingAttendees: 'Per questa categoria sono richiesti più partecipanti',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Manca ${tagName ?? 'etichetta'}`,
-        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
+        modifiedAmount: (type?: ViolationDataType, displayPercentVariance?: number) => {
             switch (type) {
                 case 'distance':
                     return "L'importo differisce dalla distanza calcolata";
@@ -8174,8 +8162,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             collect: {
                 title: 'Riscuoti',
                 description: 'Il piano per piccole imprese che ti offre note spese, viaggi e chat.',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
+                priceAnnual: (lower: string, upper: string) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
+                pricePayPerUse: (lower: string, upper: string) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
                 benefit1: 'Scansione ricevute',
                 benefit2: 'Rimborsi',
                 benefit3: 'Gestione carte aziendali',
@@ -8188,8 +8176,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             control: {
                 title: 'Controllo',
                 description: 'Spese, viaggi e chat per le aziende più grandi.',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
+                priceAnnual: (lower: string, upper: string) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
+                pricePayPerUse: (lower: string, upper: string) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
                 benefit1: 'Tutto ciò che è incluso nel piano Collect',
                 benefit2: 'Flussi di approvazione multilivello',
                 benefit3: 'Regole personalizzate per le spese',
@@ -8319,7 +8307,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         addCopilot: 'Aggiungi copilota',
         membersCanAccessYourAccount: 'Questi membri possono accedere al tuo account:',
         youCanAccessTheseAccounts: 'Puoi accedere a questi account tramite il selettore di account:',
-        role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
+        role: (role?: DelegateRole) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Pieno';
@@ -8335,7 +8323,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         confirmCopilot: 'Conferma il tuo copilota qui sotto.',
         accessLevelDescription:
             'Scegli un livello di accesso qui sotto. Sia l’accesso Completo che quello Limitato consentono ai copiloti di visualizzare tutte le conversazioni e le spese.',
-        roleDescription: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
+        roleDescription: (role?: DelegateRole) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
                     return 'Consenti a un altro membro di eseguire tutte le azioni nel tuo account, per tuo conto. Include chat, invii, approvazioni, pagamenti, aggiornamenti delle impostazioni e altro ancora.';
@@ -8368,9 +8356,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         nothingToPreview: 'Niente da visualizzare',
         editJson: 'Modifica JSON:',
         preview: 'Anteprima:',
-        missingProperty: ({propertyName}: MissingPropertyParams) => `${propertyName} mancante`,
-        invalidProperty: ({propertyName, expectedType}: InvalidPropertyParams) => `Proprietà non valida: ${propertyName} - Previsto: ${expectedType}`,
-        invalidValue: ({expectedValues}: InvalidValueParams) => `Valore non valido - previsto: ${expectedValues}`,
+        missingProperty: (propertyName: string) => `${propertyName} mancante`,
+        invalidProperty: (propertyName: string, expectedType: string) => `Proprietà non valida: ${propertyName} - Previsto: ${expectedType}`,
+        invalidValue: (expectedValues: string) => `Valore non valido - previsto: ${expectedValues}`,
         missingValue: 'Valore mancante',
         createReportAction: 'Azione Crea Report',
         reportAction: 'Azione report',

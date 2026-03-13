@@ -724,7 +724,7 @@ const ViolationsUtils = {
             case 'missingTag':
                 return translate('violations.missingTag', {tagName});
             case 'modifiedAmount':
-                return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
+                return translate('violations.modifiedAmount', type, violation.data?.displayPercentVariance);
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
             case 'nonExpensiworksExpense':
