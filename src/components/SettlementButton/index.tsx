@@ -222,30 +222,24 @@ function SettlementButton({
         }
 
         return false;
-    }, [isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, isUserValidated, chatReportID, reportID, policy, userBillingGraceEndPeriods]);
-
-    const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
-    const latestBankItem = policy?.achAccount?.bankAccountID
-        ? formattedPaymentMethods
-              .filter(
-                  (method) =>
-                      (method.methodID === policy?.achAccount?.bankAccountID && (method.accountData as AccountData)?.state === CONST.BANK_ACCOUNT.STATE.OPEN) ||
-                      (method.accountData as AccountData)?.state === CONST.BANK_ACCOUNT.STATE.LOCKED,
-              )
-              .map((formattedPaymentMethod) => {
-                  const {icon, iconStyles, iconSize, title, description, methodID} = formattedPaymentMethod ?? {};
-                  return {
-                      text: title ?? '',
-                      description: description ?? '',
-                      icon: typeof icon === 'number' ? icons.Bank : icon,
-                      iconStyles: typeof icon === 'number' ? undefined : iconStyles,
-                      iconSize: typeof icon === 'number' ? undefined : iconSize,
-                      onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness: true}),
-                      methodID,
-                      value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                  };
-              })
-        : undefined;
+    }, [
+        isDelegateAccessRestricted,
+        isAccountLocked,
+        isUserValidated,
+        isBankAccountLocked,
+        policy,
+        userBillingGraceEndPeriods,
+        ownerBillingGraceEndPeriod,
+        showDelegateNoAccessModal,
+        showLockedAccountModal,
+        chatReportID,
+        reportID,
+        showConfirmModal,
+        translate,
+        conciergeReportID,
+        introSelected,
+        currentUserAccountID,
+    ]);
 
     const shortFormPayElsewhereButton = {
         text: translate('iou.pay'),
