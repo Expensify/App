@@ -389,10 +389,6 @@ function NumberWithSymbolForm({
      * Only available in displayAsTextInput mode for manual expense flow
      */
     const handleFlipPress = useCallback(() => {
-        if (!currentNumber) {
-            return;
-        }
-
         // Toggle the minus sign prefix in the value
         const newValue = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
         setCurrentNumber(newValue);
@@ -446,6 +442,7 @@ function NumberWithSymbolForm({
                         // eslint-disable-next-line no-param-reassign
                         ref.current = newRef;
                     }
+                    textInput.current = newRef;
                 }}
                 disabled={disabled}
                 prefixCharacter={symbol}
