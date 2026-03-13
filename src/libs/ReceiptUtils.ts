@@ -7,6 +7,7 @@ import ROUTES from '@src/ROUTES';
 import type {ShareTempFile, Transaction} from '@src/types/onyx';
 import type {ReceiptError, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isLocalFile as isLocalFileUtils, splitExtensionFromFileName} from './fileDownload/FileUtils';
+import STITCHED_ODOMETER_FILENAME_PREFIX from './stitchOdometerImages/constants';
 import {hasReceipt, hasReceiptSource, isFetchingWaypointsFromServer} from './TransactionUtils';
 
 type ThumbnailAndImageURI = {
@@ -94,6 +95,10 @@ const shouldValidateFile = (file: ShareTempFile | undefined) => {
     return file?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC || file?.mimeType === CONST.SHARE_FILE_MIMETYPE.IMG;
 };
 
+function isStitchedOdometerReceiptFilename(filename: string | undefined): boolean {
+    return !!filename?.startsWith(STITCHED_ODOMETER_FILENAME_PREFIX);
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {getThumbnailAndImageURIs, shouldValidateFile, constructReceiptSourceFromFilename};
+export {getThumbnailAndImageURIs, shouldValidateFile, constructReceiptSourceFromFilename, isStitchedOdometerReceiptFilename};
 export type {ThumbnailAndImageURI};

@@ -19,7 +19,7 @@ import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
-import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {getThumbnailAndImageURIs, isStitchedOdometerReceiptFilename} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
 import {getRequestType, hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
@@ -131,7 +131,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const receiptFilename = transaction?.receipt?.filename;
     const isImage = !!receiptFilename && Str.isImage(receiptFilename);
-    const isStitchedOdometerReceipt = !!receiptFilename?.startsWith('stitched_odometer');
+    const isStitchedOdometerReceipt = isStitchedOdometerReceiptFilename(receiptFilename);
 
     const shouldShowReplaceReceiptButton = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt && !isStitchedOdometerReceipt;
     const shouldShowDeleteReceiptButton = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
