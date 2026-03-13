@@ -317,7 +317,7 @@ type OpenReportActionParams = {
     /** The current user's account ID */
     currentUserAccountID?: number;
 
-    /** The list of enabled betas for the user */
+    /** Beta features list. TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417) */
     betas?: OnyxEntry<Beta[]>;
 };
 
@@ -1168,7 +1168,7 @@ type GuidedSetupDataForOpenReport = {
  * Returns the onyx data arrays and guidedSetupData string to include in the API parameters,
  * or undefined if no guided setup is needed.
  */
-function getGuidedSetupDataForOpenReport(introSelected: OnyxEntry<IntroSelected>): GuidedSetupDataForOpenReport | undefined {
+function getGuidedSetupDataForOpenReport(introSelected: OnyxEntry<IntroSelected>, betas: OnyxEntry<Beta[]>): GuidedSetupDataForOpenReport | undefined {
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
 
@@ -1202,6 +1202,7 @@ function getGuidedSetupDataForOpenReport(introSelected: OnyxEntry<IntroSelected>
         engagementChoice: choice,
         onboardingMessage,
         companySize: introSelected?.companySize as OnboardingCompanySize,
+        betas,
     });
 
     if (!onboardingData) {
@@ -1247,6 +1248,7 @@ function openReport(params: OpenReportActionParams) {
         optimisticSelfDMReport,
         currentUserLogin,
         currentUserAccountID,
+        betas,
     } = params;
     if (!reportID) {
         return;
@@ -1468,7 +1470,7 @@ function openReport(params: OpenReportActionParams) {
         });
     }
 
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -1647,6 +1649,8 @@ function createGroupChat(
     currentUserLogin: string,
     introSelected: OnyxEntry<IntroSelected>,
     avatar?: File | CustomRNImageManipulatorResult,
+    // TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417)
+    betas?: OnyxEntry<Beta[]>,
 ) {
     const optimisticReport = {
         reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
@@ -1807,7 +1811,7 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -1978,12 +1982,14 @@ function navigateToAndCreateGroupChat(
     introSelected: OnyxEntry<IntroSelected>,
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
+    // TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417)
+    betas?: OnyxEntry<Beta[]>,
 ) {
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-    createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, avatarFile);
+    createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, avatarFile, betas);
 
     navigateToReport(newChat.reportID);
 }
@@ -4870,6 +4876,7 @@ type CompleteOnboardingProps = {
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
     selectedInterestedFeatures?: string[];
+    shouldSkipTestDriveModal?: boolean;
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldWaitForRHPVariantInitialization?: boolean;
@@ -4890,6 +4897,7 @@ async function completeOnboarding({
     userReportedIntegration,
     wasInvited,
     selectedInterestedFeatures,
+    shouldSkipTestDriveModal,
     isInvitedAccountant,
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
@@ -4933,6 +4941,27 @@ async function completeOnboarding({
         bespokeWelcomeMessage,
         optimisticConciergeReportActionID,
     };
+
+    // We should only set testDriveModalDismissed to false if it's not already true (i.e., if the modal hasn't been dismissed yet).
+    if (!shouldSkipTestDriveModal && onboarding?.testDriveModalDismissed !== true) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: false},
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: false},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {testDriveModalDismissed: null},
+        });
+    }
 
     if (shouldWaitForRHPVariantInitialization) {
         // Wait for the workspace to be created before completing the guided setup
