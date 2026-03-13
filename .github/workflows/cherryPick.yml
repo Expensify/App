@@ -212,7 +212,7 @@ jobs:
           fi
 
       - name: Find deploy workflow run
-        # HAS_CONFLICTS is unset for version-bump-only CPs (no PULL_REQUEST_URL), which also passes this check
+        # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset
         if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
         id: findDeployRun
         run: |
@@ -247,7 +247,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Announce successful CP in #deployer
-        # HAS_CONFLICTS is unset for version-bump-only CPs (no PULL_REQUEST_URL), which also passes this check
+        # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset
         if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
         uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
@@ -265,7 +265,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Write workflow summary
-        # HAS_CONFLICTS is unset for version-bump-only CPs (no PULL_REQUEST_URL), which also passes this check
+        # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset
         if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
         run: |
           {
