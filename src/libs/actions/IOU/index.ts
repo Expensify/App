@@ -867,6 +867,7 @@ type PayMoneyRequestFunctionParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     amountOwed: OnyxEntry<number>;
+    onPaid?: () => void;
 };
 
 type ApproveMoneyRequestFunctionParams = {
@@ -881,6 +882,20 @@ type ApproveMoneyRequestFunctionParams = {
     userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     full?: boolean;
+    onApproved?: () => void;
+};
+
+type SubmitReportFunctionParams = {
+    expenseReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
+    onSubmitted?: () => void;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -9836,7 +9851,7 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
     return createdAction?.created ?? expenseReport.created;
 }
 
-function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams, onApproved?: () => void) {
+function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const {
         expenseReport,
         policy,
@@ -9849,6 +9864,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams, onApprov
         userBillingGraceEndPeriods,
         amountOwed,
         full,
+        onApproved,
     } = params;
     if (!expenseReport) {
         return;
@@ -10730,18 +10746,18 @@ function unapproveExpenseReport(
     API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function submitReport(
-    expenseReport: OnyxEntry<OnyxTypes.Report>,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    hasViolations: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
-    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
-    amountOwed: OnyxEntry<number>,
-    onSubmitted?: () => void,
-) {
+function submitReport({
+    expenseReport,
+    policy,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    hasViolations,
+    isASAPSubmitBetaEnabled,
+    expenseReportCurrentNextStepDeprecated,
+    userBillingGraceEndPeriods,
+    amountOwed,
+    onSubmitted,
+}: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
     }
@@ -11263,7 +11279,7 @@ function completePaymentOnboarding(
     });
 }
 
-function payMoneyRequest(params: PayMoneyRequestFunctionParams, onPaid?: () => void) {
+function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     const {
         paymentType,
         chatReport,
@@ -11279,6 +11295,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams, onPaid?: () => v
         betas,
         isSelfTourViewed,
         amountOwed,
+        onPaid,
     } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));

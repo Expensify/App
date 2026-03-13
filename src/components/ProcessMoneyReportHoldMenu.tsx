@@ -96,41 +96,37 @@ function ProcessMoneyReportHoldMenu({
         }
 
         if (isApprove) {
-            approveMoneyRequest(
-                {
-                    expenseReport: moneyRequestReport,
-                    policy: activePolicy,
-                    currentUserAccountIDParam: currentUserDetails.accountID,
-                    currentUserEmailParam: currentUserDetails.email ?? '',
-                    hasViolations,
-                    isASAPSubmitBetaEnabled,
-                    expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
-                    betas,
-                    userBillingGraceEndPeriods,
-                    amountOwed,
-                    full,
-                },
-                startAnimation,
-            );
+            approveMoneyRequest({
+                expenseReport: moneyRequestReport,
+                policy: activePolicy,
+                currentUserAccountIDParam: currentUserDetails.accountID,
+                currentUserEmailParam: currentUserDetails.email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                full,
+                onApproved: startAnimation,
+            });
         } else if (chatReport && paymentType) {
-            payMoneyRequest(
-                {
-                    paymentType,
-                    chatReport,
-                    iouReport: moneyRequestReport,
-                    introSelected,
-                    iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
-                    currentUserAccountID: currentUserDetails.accountID,
-                    full,
-                    activePolicy,
-                    policy,
-                    betas,
-                    isSelfTourViewed,
-                    userBillingGraceEndPeriods,
-                    amountOwed,
-                },
-                startAnimation,
-            );
+            payMoneyRequest({
+                paymentType,
+                chatReport,
+                iouReport: moneyRequestReport,
+                introSelected,
+                iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
+                currentUserAccountID: currentUserDetails.accountID,
+                full,
+                activePolicy,
+                policy,
+                betas,
+                isSelfTourViewed,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                onPaid: startAnimation,
+            });
         }
         onClose();
     };

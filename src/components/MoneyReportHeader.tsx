@@ -665,23 +665,21 @@ function MoneyReportHeader({
                     isSelfTourViewed,
                 });
             } else {
-                payMoneyRequest(
-                    {
-                        paymentType: type,
-                        chatReport,
-                        iouReport: moneyRequestReport,
-                        introSelected,
-                        iouReportCurrentNextStepDeprecated: nextStep,
-                        currentUserAccountID: accountID,
-                        activePolicy,
-                        policy,
-                        betas,
-                        isSelfTourViewed,
-                        userBillingGraceEndPeriods,
-                        amountOwed,
-                    },
-                    startAnimation,
-                );
+                payMoneyRequest({
+                    paymentType: type,
+                    chatReport,
+                    iouReport: moneyRequestReport,
+                    introSelected,
+                    iouReportCurrentNextStepDeprecated: nextStep,
+                    currentUserAccountID: accountID,
+                    activePolicy,
+                    policy,
+                    betas,
+                    isSelfTourViewed,
+                    userBillingGraceEndPeriods,
+                    amountOwed,
+                    onPaid: startAnimation,
+                });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
@@ -745,22 +743,20 @@ function MoneyReportHeader({
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
-            approveMoneyRequest(
-                {
-                    expenseReport: moneyRequestReport,
-                    policy,
-                    currentUserAccountIDParam: accountID,
-                    currentUserEmailParam: email ?? '',
-                    hasViolations,
-                    isASAPSubmitBetaEnabled,
-                    expenseReportCurrentNextStepDeprecated: nextStep,
-                    betas,
-                    userBillingGraceEndPeriods,
-                    amountOwed,
-                    full: true,
-                },
-                startApprovedAnimation,
-            );
+            approveMoneyRequest({
+                expenseReport: moneyRequestReport,
+                policy,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                full: true,
+                onApproved: startApprovedAnimation,
+            });
         }
     };
 
@@ -1172,18 +1168,18 @@ function MoneyReportHeader({
                         showDWEModal();
                         return;
                     }
-                    submitReport(
-                        moneyRequestReport,
+                    submitReport({
+                        expenseReport: moneyRequestReport,
                         policy,
-                        accountID,
-                        email ?? '',
+                        currentUserAccountIDParam: accountID,
+                        currentUserEmailParam: email ?? '',
                         hasViolations,
                         isASAPSubmitBetaEnabled,
-                        nextStep,
+                        expenseReportCurrentNextStepDeprecated: nextStep,
                         userBillingGraceEndPeriods,
                         amountOwed,
-                        startSubmittingAnimation,
-                    );
+                        onSubmitted: startSubmittingAnimation,
+                    });
                     if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
@@ -1459,7 +1455,17 @@ function MoneyReportHeader({
                     showDWEModal();
                     return;
                 }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
+                submitReport({
+                    expenseReport: moneyRequestReport,
+                    policy,
+                    currentUserAccountIDParam: accountID,
+                    currentUserEmailParam: email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    expenseReportCurrentNextStepDeprecated: nextStep,
+                    userBillingGraceEndPeriods,
+                    amountOwed,
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {

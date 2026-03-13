@@ -298,23 +298,21 @@ function MoneyRequestReportPreviewContent({
                         isSelfTourViewed,
                     });
                 } else {
-                    payMoneyRequest(
-                        {
-                            paymentType: type,
-                            chatReport,
-                            iouReport,
-                            introSelected,
-                            iouReportCurrentNextStepDeprecated: iouReportNextStep,
-                            currentUserAccountID,
-                            activePolicy,
-                            policy,
-                            betas,
-                            isSelfTourViewed,
-                            userBillingGraceEndPeriods,
-                            amountOwed,
-                        },
-                        startAnimation,
-                    );
+                    payMoneyRequest({
+                        paymentType: type,
+                        chatReport,
+                        iouReport,
+                        introSelected,
+                        iouReportCurrentNextStepDeprecated: iouReportNextStep,
+                        currentUserAccountID,
+                        activePolicy,
+                        policy,
+                        betas,
+                        isSelfTourViewed,
+                        userBillingGraceEndPeriods,
+                        amountOwed,
+                        onPaid: startAnimation,
+                    });
                 }
             }
         },
@@ -363,22 +361,20 @@ function MoneyRequestReportPreviewContent({
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            approveMoneyRequest(
-                {
-                    expenseReport: iouReport,
-                    policy: activePolicy,
-                    currentUserAccountIDParam: currentUserAccountID,
-                    currentUserEmailParam: currentUserEmail,
-                    hasViolations,
-                    isASAPSubmitBetaEnabled,
-                    expenseReportCurrentNextStepDeprecated: iouReportNextStep,
-                    betas,
-                    userBillingGraceEndPeriods,
-                    amountOwed,
-                    full: true,
-                },
-                startApprovedAnimation,
-            );
+            approveMoneyRequest({
+                expenseReport: iouReport,
+                policy: activePolicy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                full: true,
+                onApproved: startApprovedAnimation,
+            });
         }
     };
 
@@ -758,18 +754,18 @@ function MoneyRequestReportPreviewContent({
                         showDEWModal();
                         return;
                     }
-                    submitReport(
-                        iouReport,
+                    submitReport({
+                        expenseReport: iouReport,
                         policy,
-                        currentUserAccountID,
-                        currentUserEmail,
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
                         hasViolations,
                         isASAPSubmitBetaEnabled,
-                        iouReportNextStep,
+                        expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                         userBillingGraceEndPeriods,
                         amountOwed,
-                        startSubmittingAnimation,
-                    );
+                        onSubmitted: startSubmittingAnimation,
+                    });
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
