@@ -21,7 +21,7 @@ import {shouldShowMissingDetailsPage} from '@libs/PersonalDetailsUtils';
 import {getTravelInvoicingCard} from '@libs/TravelInvoicingUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {useTravelCVV} from './TravelCVVContextProvider';
+import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
 /**
  * TravelCVVPage - Displays the Travel CVV reveal interface.
@@ -40,8 +40,8 @@ function TravelCVVPage() {
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    // Get CVV from context - shared with TravelCVVVerifyAccountPage
-    const {cvv, setCvv} = useTravelCVV();
+    const {cvv} = useTravelCVVState();
+    const {setCvv} = useTravelCVVActions();
 
     // Clear CVV when the page unmounts (e.g. backdrop close) so it doesn't
     // remain visible the next time the page is opened
