@@ -7,6 +7,7 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
@@ -54,6 +55,7 @@ function SearchPageWide({
     const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {shouldUseLiveData} = useSearchStateContext();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
 
@@ -112,9 +114,11 @@ function SearchPageWide({
                                     reasonAttributes={{
                                         context: 'SearchPage',
                                         isOffline,
-                                        isDataLoaded: isSearchDataLoaded(searchResults, queryJSON),
+                                        isDataLoaded: shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON),
                                         isSearchLoading: !!searchResults?.search?.isLoading,
                                         hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                        hasPendingResponse: searchRequestResponseStatusCode === null,
+                                        shouldUseLiveData,
                                     }}
                                 />
                             ) : (

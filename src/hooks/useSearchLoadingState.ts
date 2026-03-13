@@ -1,6 +1,5 @@
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import type {SearchResults} from '@src/types/onyx';
 import useNetwork from './useNetwork';
 
@@ -21,13 +20,12 @@ function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined, searchRes
         return false;
     }
 
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const hasNoData = searchResults?.data === undefined;
 
     // Show page-level skeleton ONLY when no data has ever arrived for this query.
     // Once data arrives (even empty []), Search mounts and handles its own
     // loading/empty states internally via shouldShowLoadingState.
-    return !isDataLoaded && hasNoData;
+    return hasNoData;
 }
 
 export default useSearchLoadingState;

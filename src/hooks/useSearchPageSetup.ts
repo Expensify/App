@@ -6,6 +6,7 @@ import {openSearch, search} from '@libs/actions/Search';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
+import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 
 /**
  * Handles page-level setup for Search that must happen before the Search component mounts:
@@ -21,6 +22,7 @@ function useSearchPageSetup(queryJSON: SearchQueryJSON | undefined) {
     const {shouldUseLiveData, currentSearchResults, currentSearchKey} = useSearchStateContext();
 
     const hash = queryJSON?.hash;
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
 
     // Clear selected transactions when navigating to a different search query
     const clearOnHashChange = useCallback(() => {
@@ -47,8 +49,7 @@ function useSearchPageSetup(queryJSON: SearchQueryJSON | undefined) {
         if (isSearchDataLoaded(currentSearchResults, queryJSON) || currentSearchResults?.search?.isLoading) {
             return;
         }
-        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false});
     }, [hash, isOffline, shouldUseLiveData, queryJSON]);
 
     useEffect(() => {

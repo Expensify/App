@@ -13,7 +13,7 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
@@ -65,6 +65,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const {shouldUseLiveData} = useSearchStateContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
@@ -165,7 +166,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
         );
     }
 
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
 
     return (
@@ -253,9 +254,11 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                     reasonAttributes={{
                                         context: 'SearchPage',
                                         isOffline,
-                                        isDataLoaded: isSearchDataLoaded(searchResults, queryJSON),
+                                        isDataLoaded,
                                         isSearchLoading: !!searchResults?.search?.isLoading,
                                         hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                        hasPendingResponse: searchRequestResponseStatusCode === null,
+                                        shouldUseLiveData,
                                     }}
                                 />
                             ) : (
