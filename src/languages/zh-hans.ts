@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: '主页',
         inbox: '收件箱',
         yourReviewIsRequired: '需要您的审核',
+        actionBadge: {
+            submit: '提交',
+            approve: '批准',
+            pay: '支付',
+            fix: '修复',
+        },
         success: '成功',
         group: '群组',
         profile: '个人资料',
@@ -740,6 +746,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。`,
         },
         verificationFailed: '验证失败',
+        setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2306,6 +2313,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount}，商户：${merchant} - 日期：${date}`,
         },
+        setYourPin: '设置您的 PIN.',
+        confirmYourPin: '确认您的 PIN.',
+        pinMustBeFourDigits: 'PIN 必须正好为 4 位数字。',
+        invalidPin: '请选择一个更安全的 PIN。',
+        pinMismatch: 'PIN 不匹配。请重试。',
+        revealPin: '显示 PIN',
+        hidePin: '隐藏 PIN',
+        pin: 'PIN',
         freezeCard: '冻结卡片',
         unfreeze: '解冻',
         unfreezeCard: '解冻卡片',
@@ -8394,6 +8409,7 @@ ${reportName}
             title: '成员',
             findMember: '查找成员',
             addMember: '添加成员',
+            allMembers: '所有成员',
             email: '电子邮箱地址',
             closeAccount: () => ({
                 one: '关闭账户',

@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Home',
         inbox: 'Inbox',
         yourReviewIsRequired: 'Uw beoordeling is vereist',
+        actionBadge: {
+            submit: 'Verzenden',
+            approve: 'Goedkeuren',
+            pay: 'Betalen',
+            fix: 'Oplossen',
+        },
         success: 'Gelukt',
         group: 'Groep',
         profile: 'Profiel',
@@ -748,6 +754,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `Deze actie wordt niet ondersteund op jouw apparaat. Download de Expensify-app uit de <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> of de <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> en probeer het opnieuw.`,
         },
         verificationFailed: 'Verificatie mislukt',
+        setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2359,6 +2366,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} voor ${merchant} - ${date}`,
         },
+        setYourPin: 'Stel je pincode in.',
+        confirmYourPin: 'Bevestig je pincode.',
+        pinMustBeFourDigits: 'Pincode moet precies 4 cijfers bevatten.',
+        invalidPin: 'Kies alsjeblieft een veiligere pincode.',
+        pinMismatch: 'Pincodes komen niet overeen. Probeer het opnieuw.',
+        revealPin: 'Pincode weergeven',
+        hidePin: 'Pincode verbergen',
+        pin: 'Pincode',
         freezeCard: 'Kaart blokkeren',
         unfreeze: 'Deblokkeren',
         unfreezeCard: 'Kaart deblokkeren',
@@ -8612,6 +8627,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             title: 'Leden',
             findMember: 'Lid zoeken',
             addMember: 'Lid toevoegen',
+            allMembers: 'Alle leden',
             email: 'E-mailadres',
             closeAccount: () => ({
                 one: 'Account sluiten',
