@@ -308,7 +308,7 @@ function OptionRowLHN({
                                     ]}
                                     role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${accessibilityLabelForBadge}`}
-                                    accessibilityHint={contextMenuHint}
+                                    {...(contextMenuHint ? {accessibilityHint: contextMenuHint} : {})}
                                     onLayout={onLayout}
                                     needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                                     sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
