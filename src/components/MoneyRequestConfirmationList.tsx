@@ -638,8 +638,7 @@ function MoneyRequestConfirmationList({
             text = translate('iou.createExpense');
         } else if (isNewManualExpenseFlowEnabled) {
             text = translate('iou.createExpense');
-        }
-        else     {
+        } else {
             text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
         }
         return [
