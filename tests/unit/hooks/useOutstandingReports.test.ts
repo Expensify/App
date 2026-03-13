@@ -4,8 +4,10 @@ import useOutstandingReports from '@hooks/useOutstandingReports';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import createRandomPolicy from '../../utils/collections/policies';
+import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const POLICY_ID = 'policy1';
@@ -33,19 +35,24 @@ function buildExpenseReport(reportID: string, overrides: Partial<Report> = {}): 
     };
 }
 
-async function setupOnyxData(policy: Policy, reports: Report[], transactions: Array<{transactionID: string; reportID: string; reimbursable: boolean}>) {
+function buildTransaction(transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction {
+    return {
+        ...createRandomTransaction(0),
+        transactionID,
+        reportID,
+        ...overrides,
+    };
+}
+
+async function setupOnyxData(policy: Policy, reports: Report[], transactions: Transaction[]) {
     await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
-    for (const report of reports) {
-        // eslint-disable-next-line no-await-in-loop
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-    }
+    const reportDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, reports, (report) => report?.reportID);
+    await Onyx.multiSet(reportDataSet);
 
-    for (const txn of transactions) {
-        // eslint-disable-next-line no-await-in-loop
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`, txn);
-    }
+    const transactionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, transactions, (txn) => txn?.transactionID);
+    await Onyx.multiSet(transactionDataSet);
 
     await waitForBatchedUpdates();
 }
@@ -74,7 +81,7 @@ describe('useOutstandingReports', () => {
     it('returns reports when policy does not have instant submit with no approvers', async () => {
         // Given a workspace without instant submit and a report containing a non-reimbursable expense
         await act(async () => {
-            await setupOnyxData(buildPolicy({autoReporting: false}), [buildExpenseReport('report1')], [{transactionID: 'txn1', reportID: 'report1', reimbursable: false}]);
+            await setupOnyxData(buildPolicy({autoReporting: false}), [buildExpenseReport('report1')], [buildTransaction('txn1', 'report1', {reimbursable: false})]);
         });
 
         // When the hook computes outstanding reports for that workspace
@@ -97,7 +104,7 @@ describe('useOutstandingReports', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }),
                 [buildExpenseReport('report1')],
-                [{transactionID: 'txn1', reportID: 'report1', reimbursable: false}],
+                [buildTransaction('txn1', 'report1', {reimbursable: false})],
             );
         });
 
@@ -120,7 +127,7 @@ describe('useOutstandingReports', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }),
                 [buildExpenseReport('report1')],
-                [{transactionID: 'txn1', reportID: 'report1', reimbursable: true}],
+                [buildTransaction('txn1', 'report1', {reimbursable: true})],
             );
         });
 
@@ -144,10 +151,7 @@ describe('useOutstandingReports', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }),
                 [buildExpenseReport('report1'), buildExpenseReport('report2')],
-                [
-                    {transactionID: 'txn1', reportID: 'report1', reimbursable: false},
-                    {transactionID: 'txn2', reportID: 'report2', reimbursable: false},
-                ],
+                [buildTransaction('txn1', 'report1', {reimbursable: false}), buildTransaction('txn2', 'report2', {reimbursable: false})],
             );
         });
 
@@ -170,10 +174,7 @@ describe('useOutstandingReports', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }),
                 [buildExpenseReport('reportIneligible'), buildExpenseReport('reportEligible')],
-                [
-                    {transactionID: 'txnIneligible', reportID: 'reportIneligible', reimbursable: false},
-                    {transactionID: 'txnEligible', reportID: 'reportEligible', reimbursable: true},
-                ],
+                [buildTransaction('txnIneligible', 'reportIneligible', {reimbursable: false}), buildTransaction('txnEligible', 'reportEligible', {reimbursable: true})],
             );
         });
 
