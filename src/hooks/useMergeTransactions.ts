@@ -42,6 +42,7 @@ function getTransaction(
     transactionID: string | undefined,
     onyxTransaction: OnyxEntry<Transaction>,
     currentSearchResults: SearchResults | undefined,
+    isOnSearch?: boolean,
 ) {
     if (!transactionID) {
         return undefined;
@@ -52,7 +53,7 @@ function getTransaction(
         return transaction;
     }
 
-    return currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? onyxTransaction;
+    return isOnSearch && currentSearchResults?.data ? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : onyxTransaction;
 }
 
 function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): UseMergeTransactionsReturn {
@@ -62,8 +63,8 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
     const [onyxTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(mergeTransaction?.targetTransactionID)}`);
     const [onyxSourceTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(mergeTransaction?.sourceTransactionID)}`);
 
-    const targetTransaction = getTransaction(mergeTransaction, mergeTransaction?.targetTransactionID, onyxTargetTransaction, currentSearchResults);
-    const sourceTransaction = getTransaction(mergeTransaction, mergeTransaction?.sourceTransactionID, onyxSourceTransaction, currentSearchResults);
+    const targetTransaction = getTransaction(mergeTransaction, mergeTransaction?.targetTransactionID, onyxTargetTransaction, currentSearchResults, !!currentSearchHash);
+    const sourceTransaction = getTransaction(mergeTransaction, mergeTransaction?.sourceTransactionID, onyxSourceTransaction, currentSearchResults, !!currentSearchHash);
 
     const targetTransactionReportID = getReportIDForExpense(targetTransaction);
     const sourceTransactionReportID = getReportIDForExpense(sourceTransaction);
