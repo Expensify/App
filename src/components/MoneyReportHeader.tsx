@@ -100,7 +100,6 @@ import {
     isAllowedToApproveExpenseReport,
     isCurrentUserSubmitter,
     isDM,
-    isExpenseReport,
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
@@ -1901,9 +1900,8 @@ function MoneyReportHeader({
                 if (!transactionToMove?.transactionID) {
                     return;
                 }
-                const iouType = isExpenseReport(moneyRequestReport) ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.REQUEST;
                 setSelectedTransactions([transactionToMove.transactionID]);
-                Navigation.navigate(ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, moneyRequestReport.reportID, true, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, moneyRequestReport.reportID, true, Navigation.getActiveRoute()));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER]: {
