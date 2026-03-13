@@ -417,6 +417,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
                 style={[styles.defaultModalContainer]}
                 testID="WorkspacePerDiemPage"
                 shouldShowOfflineIndicatorInWideScreen

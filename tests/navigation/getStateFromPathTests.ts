@@ -1,6 +1,6 @@
 import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import Log from '@libs/Log';
-import getStateForDynamicRoute from '@libs/Navigation/helpers/getStateForDynamicRoute';
+import getStateForDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {Route} from '@src/ROUTES';
 
@@ -30,7 +30,7 @@ jest.mock('@src/ROUTES', () => ({
 
 jest.mock('@libs/Navigation/helpers/getMatchingNewRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getRedirectedPath', () => jest.fn((path: string) => path));
-jest.mock('@libs/Navigation/helpers/getStateForDynamicRoute', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute', () => jest.fn());
 
 describe('getStateFromPath', () => {
     const mockFindFocusedRoute = findFocusedRoute as jest.Mock;
