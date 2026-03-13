@@ -80,12 +80,10 @@ function DefaultGroupToggle({domainAccountID, groupID, groupName}: DefaultGroupT
                 pendingAction={defaultSecurityGroupIDPendingAction}
                 wrapperStyle={styles.ph5}
             />
-            <View style={[styles.mt3]}>
-                <HTMLMessagesRow
-                    errors={defaultSecurityGroupIDErrors}
-                    onDismiss={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'defaultSecurityGroupIDErrors')}
-                />
-            </View>
+            <HTMLMessagesRow
+                errors={defaultSecurityGroupIDErrors}
+                onDismiss={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'defaultSecurityGroupIDErrors')}
+            />
         </View>
     );
 }

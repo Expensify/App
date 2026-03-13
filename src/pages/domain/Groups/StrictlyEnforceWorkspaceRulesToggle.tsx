@@ -48,12 +48,10 @@ function StrictlyEnforceWorkspaceRulesToggle({domainAccountID, groupID}: Strictl
                 wrapperStyle={[styles.ph5]}
                 pendingAction={enableStrictPolicyRulesPendingAction}
             />
-            <View style={[styles.mt3]}>
-                <HTMLMessagesRow
-                    errors={enableStrictPolicyRulesErrors}
-                    onDismiss={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'enableStrictPolicyRulesErrors')}
-                />
-            </View>
+            <HTMLMessagesRow
+                errors={enableStrictPolicyRulesErrors}
+                onDismiss={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'enableStrictPolicyRulesErrors')}
+            />
         </View>
     );
 }
