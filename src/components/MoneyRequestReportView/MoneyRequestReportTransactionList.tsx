@@ -685,7 +685,7 @@ function MoneyRequestReportTransactionList({
                     style={styles.flex1}
                     contentContainerStyle={{width: minTableWidth}}
                     onScroll={handleHorizontalScroll}
-                    scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                    scrollEventThrottle={16}
                     onLayout={onLayout}
                 >
                     <View style={[styles.flex1]}>

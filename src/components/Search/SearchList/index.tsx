@@ -567,7 +567,7 @@ function SearchList({
                 contentContainerStyle={{width: minTableWidth}}
                 contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
                 onScroll={handleHorizontalScroll}
-                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                scrollEventThrottle={16}
             >
                 {content}
             </ScrollView>

@@ -8,7 +8,6 @@ jest.mock('@components/Tooltip');
 
 describe('TabSelectorItem Component', () => {
     const title = 'Test Tab';
-    const tabKey = 'test-tab';
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -21,7 +20,6 @@ describe('TabSelectorItem Component', () => {
                 title={title}
                 shouldShowLabelWhenInactive={false}
                 isActive={false}
-                tabKey={tabKey}
             />,
         );
 
@@ -42,7 +40,6 @@ describe('TabSelectorItem Component', () => {
                 title={title}
                 shouldShowLabelWhenInactive={false}
                 isActive
-                tabKey={tabKey}
             />,
         );
 
@@ -64,7 +61,6 @@ describe('TabSelectorItem Component', () => {
                 title={title}
                 shouldShowLabelWhenInactive
                 isActive={false}
-                tabKey={tabKey}
             />,
         );
 

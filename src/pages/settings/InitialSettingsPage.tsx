@@ -570,7 +570,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
-                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                scrollEventThrottle={16}
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
             >
