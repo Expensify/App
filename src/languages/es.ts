@@ -6278,15 +6278,15 @@ ${amount} para ${merchant} - ${date}`,
         },
         downgrade: {
             commonFeatures: {
-                title: 'Bajar de categoría a Collect',
+                title: 'Reducir a Collect',
                 note: 'Perderás acceso a las siguientes funciones ',
                 noteAndMore: 'y más:',
                 benefits: {
                     important: '¡IMPORTANTE!',
                     confirm: 'Necesitarás cambiar el "Tipo de plan" de cada espacio de trabajo a "Collect" para asegurar la tarifa Collect.',
-                    benefit1Label: 'Integraciones ERP',
+                    benefit1Label: 'Integraciones con ERP',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
-                    benefit2Label: 'Integraciones de RR. HH.',
+                    benefit2Label: 'Integraciones con RR. HH.',
                     benefit2: 'Workday, Certinia',
                     benefit3Label: 'Seguridad',
                     benefit3: 'SSO/SAML',
