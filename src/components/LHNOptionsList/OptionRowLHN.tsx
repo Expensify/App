@@ -24,6 +24,7 @@ import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import FS from '@libs/Fullstory';
+import getPlatform from '@libs/getPlatform';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
@@ -238,6 +239,9 @@ function OptionRowLHN({
         onSelectRow(optionItem, popoverAnchor);
     };
 
+    const isDesktopWeb = getPlatform(true) === CONST.PLATFORM.WEB;
+    const contextMenuHint = isDesktopWeb ? translate('accessibilityHints.contextMenuAvailable') : undefined;
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -304,6 +308,7 @@ function OptionRowLHN({
                                     ]}
                                     role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${accessibilityLabelForBadge}`}
+                                    accessibilityHint={contextMenuHint}
                                     onLayout={onLayout}
                                     needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                                     sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}

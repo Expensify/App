@@ -16,6 +16,7 @@ import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
+import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -333,6 +334,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The function that should be called when this component is LongPressed or right-clicked. */
         onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
+        /** Whether the accessibility label should announce that a context menu is available on web. */
+        shouldShowContextMenuHint?: boolean;
+
         /** Array of objects that map display names to their corresponding tooltip */
         titleWithTooltips?: DisplayNameWithTooltip[] | undefined;
 
@@ -546,6 +550,7 @@ function MenuItem({
     excludedMarkdownRules = [],
     shouldCheckActionAllowedOnPress = true,
     onSecondaryInteraction,
+    shouldShowContextMenuHint = false,
     titleWithTooltips,
     displayInDefaultIconColor = false,
     contentFit = 'cover',
@@ -739,6 +744,8 @@ function MenuItem({
     if (isNewWindowIcon) {
         enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
     }
+    const isDesktopWeb = getPlatform(true) === CONST.PLATFORM.WEB;
+    const contextMenuHint = shouldShowContextMenuHint && isDesktopWeb ? translate('accessibilityHints.contextMenuAvailable') : undefined;
 
     return (
         <View
@@ -792,6 +799,7 @@ function MenuItem({
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                accessibilityHint={contextMenuHint}
                                 accessible={shouldBeAccessible}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}

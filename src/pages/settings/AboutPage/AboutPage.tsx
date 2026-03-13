@@ -116,6 +116,7 @@ function AboutPage() {
             iconRight,
             onPress: action,
             shouldShowRightIcon: true,
+            shouldShowContextMenuHint: !!link,
             onSecondaryInteraction: link
                 ? (event: GestureResponderEvent | MouseEvent) =>
                       showContextMenu({

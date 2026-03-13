@@ -7596,6 +7596,7 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
+        contextMenuAvailable: 'Context menu available. Press Shift+F10 to open.',
         selectAllFeatures: 'Select all features',
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',

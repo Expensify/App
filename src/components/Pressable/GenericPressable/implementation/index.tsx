@@ -5,6 +5,9 @@ import GenericPressable from './BaseGenericPressable';
 
 function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: PressableProps) {
     const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
+    const ariaLabel = props.accessibilityLabel;
+    const ariaDescription = props.accessibilityHint;
+    const ariaLabelWithHint = ariaDescription ? [ariaLabel, ariaDescription].filter(Boolean).join('. ') : ariaLabel;
 
     return (
         <GenericPressable
@@ -16,7 +19,7 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             tabIndex={(props.tabIndex ?? (!accessible || !focusable)) ? -1 : 0}
             role={(props.accessibilityRole ?? props.role) as Role}
             id={props.id}
-            aria-label={props.accessibilityLabel}
+            aria-label={ariaLabelWithHint}
             aria-labelledby={props.accessibilityLabelledBy}
             aria-valuenow={props.accessibilityValue?.now}
             aria-valuemin={props.accessibilityValue?.min}
