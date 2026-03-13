@@ -72,7 +72,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected]);
+    }, [sessionMetadata?.status, conciergeReportID, introSelected, betas]);
 
     return null;
 }
