@@ -31,6 +31,8 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
     return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
 };
 
+const isImageFile = (file: FileObject) => hasHeicOrHeifExtension(file) ?? Str.isImage(file.name ?? '');
+
 function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -107,17 +109,6 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         setIsErrorModalVisible(true);
     };
 
-    const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
-        return new Promise((resolve, reject) => {
-            convertHeicImage(file, {
-                onSuccess: (convertedFile) => resolve(convertedFile),
-                onError: (nonConvertedFile) => {
-                    reject(nonConvertedFile);
-                },
-            });
-        });
-    };
-
     const checkIfAllValidatedAndProceed = () => {
         if (!validatedPDFs.current || !validFiles.current) {
             return;
@@ -162,12 +153,34 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             originalFileOrder.current.set(file.uri ?? '', index);
         }
 
-        const validatedFiles = await Promise.all(
+        const isValidatingReceipts = validationOptions?.isValidatingReceipts ?? isValidatingReceipt;
+
+        const pdfsToLoad: FileObject[] = [];
+        const validNonPdfFiles: FileObject[] = [];
+
+        const filesToResize: FileObject[] = [];
+        const filesToConvert: FileObject[] = [];
+        await Promise.all(
             files.map(async (file, index) => {
-                const result = await validateAttachmentFile(file, items.at(index), validationOptions?.isValidatingReceipts ?? isValidatingReceipt);
+                const result = await validateAttachmentFile(file, items.at(index), isValidatingReceipts);
 
                 if (result.isValid) {
-                    return result.file;
+                    if (Str.isPDF(result.file.name ?? '')) {
+                        pdfsToLoad.push(result.file);
+                    } else {
+                        validNonPdfFiles.push(result.file);
+                    }
+                    return;
+                }
+
+                if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file) && isValidatingReceipts) {
+                    filesToResize.push(file);
+                    return;
+                }
+
+                if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE) {
+                    filesToConvert.push(file);
+                    return;
                 }
 
                 const errorData = {
@@ -175,53 +188,60 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                     fileExtension: result.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE ? splitExtensionFromFileName(file.name ?? '').fileExtension : undefined,
                 };
                 collectedErrors.current.push(errorData);
-                return null;
             }),
         );
 
-        const filteredResults = validatedFiles.filter((result): result is FileObject => result !== null);
-        const pdfsToLoad = filteredResults.filter((file) => Str.isPDF(file.name ?? ''));
-        let nonPdfFiles = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
-
-        // Check if we need to convert images
-        if (nonPdfFiles.some((file) => hasHeicOrHeifExtension(file))) {
+        if (filesToConvert.length > 0) {
             setIsLoaderVisible(true);
 
-            const convertedImages = await Promise.all(nonPdfFiles.map((file) => convertHeicImageToJpegPromise(file)));
+            const convertedFilesToResize: FileObject[] = [];
+            const convertedFiles: FileObject[] = [];
+            await Promise.all(
+                filesToConvert.map(
+                    (file) =>
+                        new Promise<void>((resolve, reject) => {
+                            convertHeicImage(file, {
+                                onSuccess: (convertedFile) => {
+                                    if (isValidatingReceipts && convertedFile.size && convertedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+                                        convertedFilesToResize.push(convertedFile);
+                                        resolve();
+                                    }
 
-            for (const [index, convertedFile] of convertedImages.entries()) {
-                updateFileOrderMapping(nonPdfFiles.at(index), convertedFile);
-            }
+                                    if (!isValidatingReceipts && convertedFile.size && convertedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE});
+                                        reject();
+                                    }
 
-            // Check if we need to resize images
-            if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-                const results = await Promise.allSettled(convertedImages.map((file) => resizeImageIfNeeded(file)));
-                const processedFiles: FileObject[] = [];
-                for (const [index, result] of results.entries()) {
-                    if (result.status === 'fulfilled') {
-                        processedFiles.push(result.value);
-                        updateFileOrderMapping(convertedImages.at(index), result.value);
-                    } else {
-                        const errorMessage = result.reason instanceof Error ? result.reason.message : undefined;
-                        if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
-                            collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE});
-                        } else {
-                            collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
-                        }
-                    }
-                }
-                setIsLoaderVisible(false);
-                nonPdfFiles = processedFiles;
+                                    convertedFiles.push(convertedFile);
+                                    resolve();
+                                },
+                                onError: () => {
+                                    collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
+                                    reject();
+                                },
+                            });
+                        }),
+                ),
+            );
+
+            filesToResize.push(...convertedFilesToResize);
+            validNonPdfFiles.push(...convertedFiles);
+
+            for (const [index, convertedFile] of convertedFiles.entries()) {
+                updateFileOrderMapping(filesToConvert.at(index), convertedFile);
             }
-        } else if (nonPdfFiles.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-            // No conversion needed, but check if we need to resize images
+        }
+
+        if (filesToResize.length > 0) {
             setIsLoaderVisible(true);
-            const results = await Promise.allSettled(nonPdfFiles.map((file) => resizeImageIfNeeded(file)));
-            const processedFiles: FileObject[] = [];
-            for (const [index, result] of results.entries()) {
+
+            const toResizeResults = await Promise.allSettled(filesToResize.map((file) => resizeImageIfNeeded(file)));
+
+            for (const [index, result] of toResizeResults.entries()) {
                 if (result.status === 'fulfilled') {
-                    processedFiles.push(result.value);
-                    updateFileOrderMapping(nonPdfFiles.at(index), result.value);
+                    const value = result.value;
+                    validNonPdfFiles.push(value);
+                    updateFileOrderMapping(filesToResize.at(index), value);
                 } else {
                     const errorMessage = result.reason instanceof Error ? result.reason.message : undefined;
                     if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
@@ -231,35 +251,36 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                     }
                 }
             }
-            setIsLoaderVisible(false);
-            nonPdfFiles = processedFiles;
         }
 
-        if (pdfsToLoad.length) {
-            validFiles.current = nonPdfFiles;
-            setPdfFilesToRender(pdfsToLoad);
-        } else {
-            if (nonPdfFiles.length > 0) {
-                setValidFilesToUpload(nonPdfFiles);
-            }
+        setIsLoaderVisible(false);
 
-            if (collectedErrors.current.length > 0) {
-                const uniqueErrors = Array.from(new Set(collectedErrors.current.map((error) => JSON.stringify(error)))).map((errorStr) => JSON.parse(errorStr) as ErrorObject);
-                setErrorQueue(uniqueErrors);
-                setCurrentErrorIndex(0);
-                const firstError = uniqueErrors.at(0);
-                if (firstError) {
-                    setFileError(firstError.error);
-                    if (firstError.fileExtension) {
-                        setInvalidFileExtension(firstError.fileExtension);
-                    }
-                    setIsErrorModalVisible(true);
+        if (pdfsToLoad.length) {
+            validFiles.current = validNonPdfFiles;
+            setPdfFilesToRender(pdfsToLoad);
+            return;
+        }
+
+        if (validNonPdfFiles.length > 0) {
+            setValidFilesToUpload(validNonPdfFiles);
+        }
+
+        if (collectedErrors.current.length > 0) {
+            const uniqueErrors = Array.from(new Set(collectedErrors.current.map((error) => JSON.stringify(error)))).map((errorStr) => JSON.parse(errorStr) as ErrorObject);
+            setErrorQueue(uniqueErrors);
+            setCurrentErrorIndex(0);
+            const firstError = uniqueErrors.at(0);
+            if (firstError) {
+                setFileError(firstError.error);
+                if (firstError.fileExtension) {
+                    setInvalidFileExtension(firstError.fileExtension);
                 }
-            } else if (nonPdfFiles.length > 0) {
-                const sortedFiles = sortFilesByOriginalOrder(nonPdfFiles, originalFileOrder.current);
-                onFilesValidated(sortedFiles, dataTransferItemList.current);
-                reset();
+                setIsErrorModalVisible(true);
             }
+        } else if (validNonPdfFiles.length > 0) {
+            const sortedFiles = sortFilesByOriginalOrder(validNonPdfFiles, originalFileOrder.current);
+            onFilesValidated(sortedFiles, dataTransferItemList.current);
+            reset();
         }
     }
 
