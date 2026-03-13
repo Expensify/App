@@ -2446,23 +2446,39 @@ function deleteReportComment(
         },
     };
 
-    // Optimistically hide any associated unresolved actionable whisper (ACTIONABLE_MENTION_WHISPER or
-    // ACTIONABLE_REPORT_MENTION_WHISPER). We search the report's actions for an unresolved whisper.
+    // Optimistically hide whispers associated with the deleted comment. We use the same conventions
+    // as the backend (UpdateReportComment.cpp) to locate the correct whisper(s):
+    //   - ACTIONABLE_MENTION_WHISPER has ID = parentCommentID + 1
+    //   - ACTIONABLE_REPORT_MENTION_WHISPER has ID = parentCommentID + 2, and its originalMessage
+    //     also stores the parent's reportActionID so we can verify the match.
     // We prefer the actions passed directly from the calling component (currentReportActionsParam)
     // since those come from useOnyx and are guaranteed to be up to date. We fall back to the
     // module-level allReportActions cache.
     const reportActionsForReport = currentReportActionsParam ?? allReportActions?.[originalReportID] ?? {};
-    const unresolvedMentionWhisperID = Object.keys(reportActionsForReport).find((actionID) => {
-        const action = reportActionsForReport[actionID];
-        if (!ReportActionsUtils.isActionableMentionWhisper(action) && !ReportActionsUtils.isActionableReportMentionWhisper(action)) {
-            return false;
+    const unresolvedMentionWhisperIDs: string[] = [];
+
+    const mentionWhisperID = String(BigInt(reportActionID) + 1n);
+    const mentionWhisperAction = reportActionsForReport[mentionWhisperID];
+    if (ReportActionsUtils.isActionableMentionWhisper(mentionWhisperAction)) {
+        const originalMessage = ReportActionsUtils.getOriginalMessage(mentionWhisperAction);
+        if (!originalMessage?.resolution && !originalMessage?.deleted) {
+            unresolvedMentionWhisperIDs.push(mentionWhisperID);
         }
-        const originalMessage = ReportActionsUtils.getOriginalMessage(action);
-        return !originalMessage?.resolution && !originalMessage?.deleted;
-    });
-    if (unresolvedMentionWhisperID) {
-        optimisticReportActions[unresolvedMentionWhisperID] = {
-            originalMessage: {deleted: DateUtils.getDBTime()},
+    }
+
+    const reportMentionWhisperID = String(BigInt(reportActionID) + 2n);
+    const reportMentionWhisperAction = reportActionsForReport[reportMentionWhisperID];
+    if (ReportActionsUtils.isActionableReportMentionWhisper(reportMentionWhisperAction)) {
+        const originalMessage = ReportActionsUtils.getOriginalMessage(reportMentionWhisperAction);
+        if (!originalMessage?.resolution && !originalMessage?.deleted) {
+            unresolvedMentionWhisperIDs.push(reportMentionWhisperID);
+        }
+    }
+
+    const deletedTime = DateUtils.getDBTime();
+    for (const whisperID of unresolvedMentionWhisperIDs) {
+        optimisticReportActions[whisperID] = {
+            originalMessage: {deleted: deletedTime},
         };
     }
 
@@ -2496,8 +2512,8 @@ function deleteReportComment(
             previousMessage: null,
         },
     };
-    if (unresolvedMentionWhisperID) {
-        failureReportActionsData[unresolvedMentionWhisperID] = {
+    for (const whisperID of unresolvedMentionWhisperIDs) {
+        failureReportActionsData[whisperID] = {
             originalMessage: {deleted: null},
         };
     }

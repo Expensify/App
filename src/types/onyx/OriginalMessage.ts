@@ -195,6 +195,9 @@ type OriginalMessageActionableReportMentionWhisper = {
 
     /** Timestamp of when the whisper was deleted (set by the backend when the parent comment is deleted) */
     deleted?: string | null;
+
+    /** The reportActionID of the parent comment that triggered this whisper */
+    reportActionID?: number;
 };
 
 /** Model of `welcome whisper` report action */
