@@ -21,7 +21,7 @@ Expensify offers several plans based on your needs: **Collect, Control,** and **
 
 ---
 
-## Adjust Subscription Size
+## Adjust Annual Subscription Size
 1. Go to **Settings > Workspaces > Subscription**.
 2. Enter the desired number in the **Subscription size** field.
    - If left blank, your subscription size will be set automatically:
