@@ -2,6 +2,7 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +12,6 @@ import CONST from '@src/CONST';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
-import useFormHelpMessageAccessibilityAnnouncement from './utils/useFormHelpMessageAccessibilityAnnouncement';
 
 type FormHelpMessageProps = {
     /** Error or hint text. Ignored when children is not empty */
@@ -69,7 +69,7 @@ function FormHelpMessage({
         return `<muted-text-label>${replacedText}</muted-text-label>`;
     }, [isError, message, shouldRenderMessageAsHTML]);
 
-    useFormHelpMessageAccessibilityAnnouncement(message, shouldAnnounceError);
+    useAccessibilityAnnouncement(message, shouldAnnounceError);
 
     const errorIconLabel = isError && shouldShowRedDotIndicator ? CONST.ACCESSIBILITY_LABELS.ERROR : undefined;
 
