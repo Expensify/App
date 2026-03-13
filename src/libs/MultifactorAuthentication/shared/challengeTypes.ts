@@ -7,7 +7,8 @@ type ChallengeFlags = number;
 
 /**
  * Signed multifactor authentication challenge.
- * Shared format for both ED25519 (native biometrics) and ES256 (passkeys).
+ * Common response shape for different authenticator types —
+ * the actual signature algorithm (e.g. ED25519, ES256) depends on the credential.
  */
 type SignedChallenge = {
     rawId: Base64URLString;
