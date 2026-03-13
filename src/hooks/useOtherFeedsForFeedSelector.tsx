@@ -4,21 +4,20 @@ import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import type {ListItem} from '@components/SelectionList/types';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
-import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
 import {getCardFeedIcon, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import useCardFeedsForActivePolicies from './useCardFeedsForActivePolicies';
 
-export type CardFeedListItem = ListItem & {
+type CardFeedListItem = ListItem & {
     /** Combined feed key */
     value: CompanyCardFeedWithDomainID;
     /** Card feed value */
@@ -94,3 +93,4 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
 }
 
 export default useOtherFeedsForFeedSelector;
+export type {CardFeedListItem};
