@@ -8878,6 +8878,10 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Miembros',
             findMember: 'Buscar miembro',
             addMember: 'Añadir miembro',
+            emptyMembers: {
+                title: 'No hay miembros en este grupo',
+                subtitle: 'Añade un miembro o intenta cambiar el filtro de arriba.',
+            },
             allMembers: 'Todos los miembros',
             email: 'Dirección de correo electrónico',
             closeAccount: () => ({

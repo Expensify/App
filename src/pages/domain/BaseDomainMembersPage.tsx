@@ -1,13 +1,15 @@
 import React from 'react';
 import {View} from 'react-native';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -89,6 +91,12 @@ type BaseDomainMembersPageProps = {
 
     /** Optional filter applied unconditionally before text search (e.g. group filter). */
     preFilter?: (item: MemberOption) => boolean;
+
+    /** Title to show in the empty state when the list has no items */
+    emptyStateTitle?: string;
+
+    /** Subtitle to show in the empty state when the list has no items */
+    emptyStateSubtitle?: string;
 };
 
 function BaseDomainMembersPage({
@@ -111,12 +119,15 @@ function BaseDomainMembersPage({
     onBackButtonPress,
     searchBarAccessory,
     preFilter,
+    emptyStateTitle,
+    emptyStateSubtitle,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare, translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
     const data: MemberOption[] = accountIDs.map((accountID) => {
         const details = personalDetails?.[accountID];
@@ -194,7 +205,9 @@ function BaseDomainMembersPage({
     };
 
     const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
-    const shouldShowEmptySearchMessage = (!!searchBarAccessory || (!!shouldShowSearchBar && inputValue.length !== 0)) && filteredData.length === 0;
+    const shouldShowEmptySearchMessage = !!shouldShowSearchBar && inputValue.length !== 0 && filteredData.length === 0;
+    // Show empty pre filter state only if we have data, filtered data is empty, but the search have not been used.
+    const shouldShowEmptyPreFilterState = filteredData.length === 0 && data.length !== 0 && !!emptyStateTitle && inputValue.length === 0;
     const listHeaderContent =
         searchBarAccessory || shouldShowSearchBar ? (
             <View style={styles.flexColumn}>
@@ -224,9 +237,7 @@ function BaseDomainMembersPage({
                 </View>
                 {shouldShowEmptySearchMessage && (
                     <View style={[styles.ph5, styles.pb5]}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>
-                            {inputValue.length !== 0 ? translate('common.noResultsFoundMatching', inputValue) : translate('common.noResultsFound')}
-                        </Text>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', inputValue)}</Text>
                     </View>
                 )}
             </View>
@@ -238,7 +249,7 @@ function BaseDomainMembersPage({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 shouldShowOfflineIndicatorInWideScreen
-                testID={BaseDomainMembersPage.displayName}
+                testID="BaseDomainMembersPage"
             >
                 <HeaderWithBackButton
                     title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
@@ -252,35 +263,45 @@ function BaseDomainMembersPage({
 
                 {shouldUseNarrowLayout && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
 
-                <SelectionListWithModal
-                    data={filteredData}
-                    shouldShowRightCaret
-                    style={{
-                        containerStyle: styles.flex1,
-                        listHeaderWrapperStyle: styles.baseListHeaderWrapperStyle,
-                        listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
-                        listItemErrorRowStyles: [styles.ph4, styles.pb2],
-                    }}
-                    ListItem={TableListItem}
-                    onSelectRow={onSelectRow}
-                    onDismissError={onDismissError}
-                    shouldShowListEmptyContent={false}
-                    showScrollIndicator={false}
-                    shouldHeaderBeInsideList
-                    customListHeader={getFilteredListHeader()}
-                    customListHeaderContent={listHeaderContent}
-                    canSelectMultiple={canSelectMultiple}
-                    onSelectAll={toggleAllUsers}
-                    onCheckboxPress={toggleUser}
-                    selectedItems={selectedMembers}
-                    turnOnSelectionModeOnLongPress={turnOnSelectionModeOnLongPress}
-                    onTurnOnSelectionMode={(item) => item && toggleUser?.(item)}
-                />
+                {listHeaderContent}
+                {shouldShowEmptyPreFilterState ? (
+                    <ScrollView contentContainerStyle={styles.flex1}>
+                        <GenericEmptyStateComponent
+                            headerMedia={illustrations.EmptyShelves}
+                            headerContentStyles={styles.emptyShelvesIllustration}
+                            title={emptyStateTitle}
+                            subtitle={emptyStateSubtitle}
+                            headerStyles={styles.emptyStateCardIllustrationContainer}
+                        />
+                    </ScrollView>
+                ) : (
+                    <SelectionListWithModal
+                        data={filteredData}
+                        shouldShowRightCaret
+                        style={{
+                            containerStyle: styles.flex1,
+                            listHeaderWrapperStyle: styles.baseListHeaderWrapperStyle,
+                            listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
+                            listItemErrorRowStyles: [styles.ph4, styles.pb2],
+                        }}
+                        ListItem={TableListItem}
+                        onSelectRow={onSelectRow}
+                        onDismissError={onDismissError}
+                        shouldShowListEmptyContent={false}
+                        showScrollIndicator={false}
+                        customListHeader={getFilteredListHeader()}
+                        canSelectMultiple={canSelectMultiple}
+                        onSelectAll={toggleAllUsers}
+                        onCheckboxPress={toggleUser}
+                        selectedItems={selectedMembers}
+                        turnOnSelectionModeOnLongPress={turnOnSelectionModeOnLongPress}
+                        onTurnOnSelectionMode={(item) => item && toggleUser?.(item)}
+                    />
+                )}
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );
 }
 
-BaseDomainMembersPage.displayName = 'BaseDomainMembersPage';
 export type {MemberOption};
 export default BaseDomainMembersPage;
