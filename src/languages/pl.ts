@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Strona główna',
         inbox: 'Skrzynka odbiorcza',
         yourReviewIsRequired: 'Wymagana jest Twoja weryfikacja',
+        actionBadge: {
+            submit: 'Wyślij',
+            approve: 'Zatwierdź',
+            pay: 'Zapłać',
+            fix: 'Napraw',
+        },
         success: 'Sukces',
         group: 'Grupa',
         profile: 'Profil',
@@ -362,6 +368,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: 'na',
         mi: 'mila',
         km: 'kilometr',
+        milesAbbreviated: 'mi',
+        kilometersAbbreviated: 'km',
         copied: 'Skopiowano!',
         someone: 'Ktoś',
         total: 'Suma',
@@ -747,6 +755,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `Ta akcja nie jest obsługiwana na Twoim urządzeniu. Pobierz aplikację Expensify z <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> lub <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Sklepu Google Play</a> i spróbuj ponownie.`,
         },
         verificationFailed: 'Weryfikacja nie powiodła się',
+        setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1596,7 +1605,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Łączna kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
         correctRateError: 'Napraw błąd stawki i spróbuj ponownie.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Wyjaśnij<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
         rulesModifiedFields: {
@@ -2352,6 +2361,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} dla ${merchant} - ${date}`,
         },
+        setYourPin: 'Ustaw swój PIN.',
+        confirmYourPin: 'Potwierdź swój PIN.',
+        pinMustBeFourDigits: 'PIN musi mieć dokładnie 4 cyfry.',
+        invalidPin: 'Wybierz proszę bardziej bezpieczny PIN.',
+        pinMismatch: 'Kody PIN nie są takie same. Spróbuj ponownie.',
+        revealPin: 'Pokaż PIN',
+        hidePin: 'Ukryj PIN',
+        pin: 'PIN',
         freezeCard: 'Zamroź kartę',
         unfreeze: 'Odmroź',
         unfreezeCard: 'Odmroź kartę',
@@ -2759,6 +2776,7 @@ ${amount} dla ${merchant} - ${date}`,
         },
         workEmailValidationError: {
             publicEmail: 'Wpisz poprawny służbowy adres e‑mail z prywatnej domeny, np. mitch@company.com',
+            sameAsSignupEmail: 'Podaj inny adres e-mail niż ten, którego użyłeś przy rejestracji',
             offline: 'Nie mogliśmy dodać Twojego służbowego adresu e‑mail, ponieważ wydajesz się być offline',
         },
         mergeBlockScreen: {
@@ -3038,7 +3056,7 @@ ${
                 descriptionTwo: 'Kategoryzuj i taguj wydatki',
                 descriptionThree: 'Twórz i udostępniaj raporty',
             },
-            price: 'Wypróbuj za darmo przez 30 dni, a potem przejdź na wyższy plan za jedyne <strong>5 USD/użytkownika/miesiąc</strong>.',
+            price: (price?: string) => `Wypróbuj za darmo przez 30 dni, a potem przejdź na wyższy plan za jedyne <strong>${price ?? '5 USD'}/użytkownika/miesiąc</strong>.`,
             createWorkspace: 'Utwórz przestrzeń roboczą',
         },
         confirmWorkspace: {
@@ -4006,6 +4024,9 @@ ${
             defaultNote: `Paragony wysłane na ${CONST.EMAIL.RECEIPTS} pojawią się w tym obszarze roboczym.`,
             deleteConfirmation: 'Czy na pewno chcesz usunąć tę przestrzeń roboczą?',
             deleteWithCardsConfirmation: 'Na pewno chcesz usunąć tę przestrzeń roboczą? Spowoduje to usunięcie wszystkich źródeł kart i przypisanych kart.',
+            outstandingBalanceWarning:
+                'Masz zaległe saldo, które musi zostać uregulowane przed usunięciem ostatniego miejsca pracy. Przejdź do ustawień subskrypcji, aby uregulować płatność.',
+            settleBalance: 'Przejdź do subskrypcji',
             unavailable: 'Niedostępne miejsce pracy',
             memberNotFound: 'Nie znaleziono członka. Aby zaprosić nową osobę do przestrzeni roboczej, użyj przycisku zaproszenia powyżej.',
             notAuthorized: `Nie masz dostępu do tej strony. Jeśli próbujesz dołączyć do tego obszaru roboczego, poproś właściciela obszaru roboczego, aby dodał Cię jako członka. Coś innego? Skontaktuj się z ${CONST.EMAIL.CONCIERGE}.`,
@@ -6856,6 +6877,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     return `${enabled ? 'włączone' : 'wyłączone'} księgowość`;
                 case 'Expensify Cards':
                     return `${enabled ? 'włączone' : 'wyłączone'} Karty Expensify`;
+                case 'travel invoicing':
+                    return `Fakturowanie podróży ${enabled ? 'włączone' : 'wyłączone'}`;
                 case 'company cards':
                     return `${enabled ? 'włączone' : 'wyłączone'} karty firmowe`;
                 case 'invoicing':
@@ -8264,6 +8287,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         switchAccount: 'Przełącz konta:',
         copilotDelegatedAccess: 'Copilot: Dostęp delegowany',
         copilotDelegatedAccessDescription: 'Zezwól innym członkom na dostęp do Twojego konta.',
+        learnMoreAboutDelegatedAccess: 'Dowiedz się więcej o dostępie delegowanym',
         addCopilot: 'Dodaj pilota',
         membersCanAccessYourAccount: 'Ci członkowie mają dostęp do Twojego konta:',
         youCanAccessTheseAccounts: 'Masz dostęp do tych kont za pomocą przełącznika kont:',
@@ -8594,6 +8618,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             title: 'Członkowie',
             findMember: 'Znajdź członka',
             addMember: 'Dodaj członka',
+            allMembers: 'Wszyscy członkowie',
             email: 'Adres e-mail',
             closeAccount: () => ({
                 one: 'Zamknij konto',

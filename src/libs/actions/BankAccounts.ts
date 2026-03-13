@@ -24,7 +24,7 @@ import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/Save
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import type {MemberForList} from '@libs/OptionsListUtils';

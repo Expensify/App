@@ -160,19 +160,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const {
-        all: {shouldShowRBR},
         personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
-
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     let walletBrickRoadIndicator;
     if (
         hasLockedBankAccount ||
-        hasPaymentMethodError(bankAccountList, fundList, allCards) ||
+        hasPaymentMethodError(bankAccountList, fundList, allCards, session, policies) ||
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
         !isEmptyObject(unsharedBankAccount?.errors) ||
-        shouldShowRBR ||
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -281,7 +278,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         },
     ];
 
-    if (subscriptionPlan) {
+    if (subscriptionPlan || (amountOwed ?? 0) > 0) {
         accountItems.splice(1, 0, {
             translationKey: 'allSettingsScreen.subscription',
             icon: icons.CreditCard,
@@ -456,7 +453,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     return (
                         <MenuItem
                             key={keyTitle}
-                            wrapperStyle={styles.sectionMenuItem}
+                            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                             title={keyTitle}
                             icon={item.icon}
                             iconType={item.iconType}
@@ -575,7 +572,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
-                scrollEventThrottle={16}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
             >

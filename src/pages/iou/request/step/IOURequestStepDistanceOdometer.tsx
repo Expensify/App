@@ -12,6 +12,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -42,10 +43,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -117,6 +118,7 @@ function IOURequestStepDistanceOdometer({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
     // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
@@ -471,6 +473,7 @@ function IOURequestStepDistanceOdometer({
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
+            draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
         });
@@ -512,6 +515,15 @@ function IOURequestStepDistanceOdometer({
         // When validation passes, call navigateToNextPage
         navigateToNextPage();
     };
+
+    useDiscardChangesConfirmation({
+        isEnabled: shouldEnableDiscardConfirmation,
+        getHasUnsavedChanges: () => {
+            const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
+            const hasImageChanges = transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
+            return hasReadingChanges || hasImageChanges;
+        },
+    });
 
     return (
         <StepScreenWrapper
@@ -640,15 +652,6 @@ function IOURequestStepDistanceOdometer({
                     />
                 </View>
             </View>
-            <DiscardChangesConfirmation
-                isEnabled={shouldEnableDiscardConfirmation}
-                getHasUnsavedChanges={() => {
-                    const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-                    const hasImageChanges =
-                        transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
-                    return hasReadingChanges || hasImageChanges;
-                }}
-            />
         </StepScreenWrapper>
     );
 }

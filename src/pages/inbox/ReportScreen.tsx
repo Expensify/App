@@ -505,7 +505,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo((): boolean => {
         const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
-        const isLoading = isLoadingApp !== false || isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
+        const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!reportMetadata?.isLoadingInitialReportActions);
         const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
 
         if (shouldShowNotFoundLinkedAction) {
@@ -537,6 +537,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         shouldShowNotFoundLinkedAction,
         isLoadingApp,
         isLoadingReportData,
+        isOffline,
         reportMetadata?.isLoadingInitialReportActions,
         reportID,
         isOptimisticDelete,
