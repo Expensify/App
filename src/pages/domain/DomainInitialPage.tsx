@@ -138,7 +138,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn]}>
+                <ScrollView contentContainerStyle={styles.flexColumn}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.

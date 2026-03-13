@@ -52,8 +52,12 @@ function useMobileReceiptScan({
     function submitReceipts(files: ReceiptFile[]) {
         if (shouldSkipConfirmation) {
             const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-            if (gpsRequired && shouldStartLocationPermissionFlow) {
-                setStartLocationPermissionFlow(true);
+            if (gpsRequired) {
+                if (shouldStartLocationPermissionFlow) {
+                    setStartLocationPermissionFlow(true);
+                    return;
+                }
+                navigateToConfirmationStep(files, true);
                 return;
             }
         }

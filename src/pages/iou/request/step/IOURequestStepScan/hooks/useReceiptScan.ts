@@ -205,6 +205,8 @@ function useReceiptScan({
                     setStartLocationPermissionFlow(true);
                     return;
                 }
+                navigateToConfirmationStep(newReceiptFiles, true);
+                return;
             }
         }
         navigateToConfirmationStep(newReceiptFiles, false);
@@ -213,7 +215,6 @@ function useReceiptScan({
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files, getSource);
     });
-
     return {
         transactions,
         isEditing,
