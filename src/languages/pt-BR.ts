@@ -103,6 +103,7 @@ import type {
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
+    ViolationsModifiedDistanceParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -7865,6 +7866,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             }
         },
         modifiedDate: 'Data diferente do recibo digitalizado',
+        modifiedDistance: ({formattedRouteDistance}: ViolationsModifiedDistanceParams) =>
+            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
         nonExpensiworksExpense: 'Despesa fora do Expensiworks',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Despesa excede o limite de aprovação automática de ${formattedLimit}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Valor acima do limite de categoria de ${formattedLimit}/pessoa`,

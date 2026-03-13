@@ -103,6 +103,7 @@ import type {
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
+    ViolationsModifiedDistanceParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -7672,6 +7673,8 @@ ${reportName}
             }
         },
         modifiedDate: '日期与已扫描收据不符',
+        modifiedDistance: ({formattedRouteDistance}: ViolationsModifiedDistanceParams) =>
+            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
         nonExpensiworksExpense: '非 Expensiworks 报销',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `报销金额超出自动审批上限 ${formattedLimit}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `金额超出每人 ${formattedLimit} 的类别限额`,

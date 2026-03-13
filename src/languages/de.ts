@@ -103,6 +103,7 @@ import type {
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
+    ViolationsModifiedDistanceParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -7908,6 +7909,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             }
         },
         modifiedDate: 'Datum weicht vom gescannten Beleg ab',
+        modifiedDistance: ({formattedRouteDistance}: ViolationsModifiedDistanceParams) =>
+            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
         nonExpensiworksExpense: 'Nicht-Expensiworks-Ausgabe',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Ausgabe überschreitet das Auto-Genehmigungslimit von ${formattedLimit}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Betrag über dem Kategorie-Limit von ${formattedLimit}/Person`,

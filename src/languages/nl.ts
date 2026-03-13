@@ -103,6 +103,7 @@ import type {
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
+    ViolationsModifiedDistanceParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -7873,6 +7874,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             }
         },
         modifiedDate: 'Datum wijkt af van gescande bon',
+        modifiedDistance: ({formattedRouteDistance}: ViolationsModifiedDistanceParams) =>
+            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
         nonExpensiworksExpense: 'Niet-Expensiworks-uitgave',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Kosten overschrijden de automatische goedkeuringslimiet van ${formattedLimit}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Bedrag boven de categorielimiet van ${formattedLimit} per persoon`,

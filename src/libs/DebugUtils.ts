@@ -1091,6 +1091,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    routeDistanceMeters: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -34,7 +34,6 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOption, setSelectedOption] = useState<string>('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
@@ -43,6 +42,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const policy = usePolicy(policyID);
     const integrations = policy?.receiptPartners;
     const centralBillingAccountEmail = integration ? integrations?.[integration]?.centralBillingAccountEmail : undefined;
+    const effectiveSelected = centralBillingAccountEmail ?? '';
 
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
@@ -70,7 +70,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
                     ],
                     reportID: '',
                     keyForList: email,
-                    isSelected: email === selectedOption || personalDetail?.login === selectedOption,
+                    isSelected: email === effectiveSelected || personalDetail?.login === effectiveSelected,
                 });
 
                 workspaceMembers.push(memberForList);
@@ -88,18 +88,10 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
         data = [];
     }
 
-    useEffect(() => {
-        if (!centralBillingAccountEmail) {
-            return;
-        }
-        setSelectedOption(centralBillingAccountEmail);
-    }, [centralBillingAccountEmail]);
-
     const toggleOption = (option: MemberForList) => {
         if (!centralBillingAccountEmail) {
             return;
         }
-        setSelectedOption(option.login);
 
         changePolicyUberBillingAccount(policyID, option.login, centralBillingAccountEmail);
         Navigation.goBack();
