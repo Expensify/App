@@ -178,7 +178,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
+    const draftTransactionIDs = useMemo(() => Object.keys(transactionDrafts ?? {}), [transactionDrafts]);
 
     const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {isBetaEnabled} = usePermissions();
@@ -361,7 +361,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         return;
                     }
 
-                    changeMoneyRequestHoldStatus(parentReportAction);
+                    changeMoneyRequestHoldStatus(parentReportAction, transaction);
                 }}
             />
         ),
@@ -432,7 +432,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
-            changeMoneyRequestHoldStatus(parentReportAction);
+            changeMoneyRequestHoldStatus(parentReportAction, transaction);
         }
     };
 
@@ -440,7 +440,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
-                changeMoneyRequestHoldStatus(parentReportAction);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction);
             }
         } else {
             dismissRejectUseExplanation();
@@ -470,7 +470,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
                 if (isDismissed || isParentChatReportDM) {
-                    changeMoneyRequestHoldStatus(parentReportAction);
+                    changeMoneyRequestHoldStatus(parentReportAction, transaction);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -492,7 +492,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(parentReportAction);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
