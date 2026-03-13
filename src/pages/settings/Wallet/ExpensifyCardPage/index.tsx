@@ -4,6 +4,7 @@ import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import cardScarf from '@assets/images/card-scarf.svg';
+import * as Expensicons from '@components/Icon/Expensicons';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
@@ -460,6 +461,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         rightComponent={
                                             canRevealPin ? (
                                                 <Button
+                                                    icon={Expensicons.Eye}
                                                     text={translate('cardPage.revealPin')}
                                                     onPress={() => {
                                                         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {

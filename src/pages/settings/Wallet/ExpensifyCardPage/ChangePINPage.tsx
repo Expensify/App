@@ -2,6 +2,7 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MagicCodeInput from '@components/MagicCodeInput';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,49 +18,49 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ChangePinPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN>;
+type ChangePINPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN>;
 
-function ChangePinPageContent({cardID}: {cardID: string}) {
+function ChangePINPageContent({cardID}: {cardID: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {executeScenario} = useMultifactorAuthentication();
     const {isConfirmStep, setIsConfirmStep, isPINHidden, togglePINVisibility} = usePIN();
 
-    const [enteredPin, setEnteredPin] = useState('');
-    const [confirmPin, setConfirmPin] = useState('');
+    const [enteredPIN, setEnteredPIN] = useState('');
+    const [confirmPIN, setConfirmPIN] = useState('');
     const [error, setError] = useState('');
 
-    const handlePinChange = useCallback(
+    const handlePINChange = useCallback(
         (value: string) => {
             setError('');
             if (isConfirmStep) {
-                setConfirmPin(value);
+                setConfirmPIN(value);
             } else {
-                setEnteredPin(value);
+                setEnteredPIN(value);
             }
         },
         [isConfirmStep],
     );
 
-    const validatePin = useCallback((): string => {
-        const pinToValidate = isConfirmStep ? confirmPin : enteredPin;
+    const validatePIN = useCallback((): string => {
+        const PINToValidate = isConfirmStep ? confirmPIN : enteredPIN;
 
-        if (pinToValidate.length !== CONST.EXPENSIFY_CARD.PIN.LENGTH) {
+        if (PINToValidate.length !== CONST.EXPENSIFY_CARD.PIN.LENGTH) {
             return translate('cardPage.pinMustBeFourDigits');
         }
 
-        if (isConfirmStep && confirmPin !== enteredPin) {
+        if (isConfirmStep && confirmPIN !== enteredPIN) {
             return translate('cardPage.pinMismatch');
         }
 
-        if (!isValidPIN(pinToValidate)) {
+        if (!isValidPIN(PINToValidate)) {
             return translate('cardPage.invalidPin');
         }
         return '';
-    }, [isConfirmStep, confirmPin, enteredPin, translate]);
+    }, [isConfirmStep, confirmPIN, enteredPIN, translate]);
 
     const handleSubmit = useCallback(() => {
-        const validationError = validatePin();
+        const validationError = validatePIN();
         if (validationError) {
             setError(validationError);
             return;
@@ -72,18 +73,18 @@ function ChangePinPageContent({cardID}: {cardID: string}) {
         }
 
         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN, {
-            pin: confirmPin,
+            pin: confirmPIN,
             cardID,
         });
-    }, [validatePin, isConfirmStep, setIsConfirmStep, executeScenario, confirmPin, cardID]);
+    }, [validatePIN, isConfirmStep, setIsConfirmStep, executeScenario, confirmPIN, cardID]);
 
-    const currentPin = isConfirmStep ? confirmPin : enteredPin;
+    const currentPIN = isConfirmStep ? confirmPIN : enteredPIN;
     const title = isConfirmStep ? translate('cardPage.confirmYourChangedPin') : translate('cardPage.changeYourPin');
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={ChangePinPage.displayName}
+            testID={ChangePINPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('cardPage.changePin')}
@@ -93,7 +94,7 @@ function ChangePinPageContent({cardID}: {cardID: string}) {
                         return;
                     }
                     setIsConfirmStep(false);
-                    setConfirmPin('');
+                    setConfirmPIN('');
                     setError('');
                 }}
             />
@@ -101,14 +102,14 @@ function ChangePinPageContent({cardID}: {cardID: string}) {
                 <View style={[styles.flex1]}>
                     <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
 
-                    <View style={[styles.mb4]}>
+                    <View style={[styles.mv4, styles.ph11]}>
                         <MagicCodeInput
                             key={`pin-${isConfirmStep}`}
                             autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                             name="pin"
-                            value={currentPin}
+                            value={currentPIN}
                             maxLength={CONST.EXPENSIFY_CARD.PIN.LENGTH}
-                            onChangeText={handlePinChange}
+                            onChangeText={handlePINChange}
                             hasError={!!error}
                             autoFocus
                             secureTextEntry={isPINHidden}
@@ -116,8 +117,9 @@ function ChangePinPageContent({cardID}: {cardID: string}) {
                         {!!error && <Text style={[styles.formError, styles.mt2]}>{error}</Text>}
                     </View>
 
-                    <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb4, styles.alignItemsCenter, styles.w100]}>
+                    <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
                         <Button
+                            icon={isPINHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
                             text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
                             onPress={togglePINVisibility}
                             medium
@@ -137,20 +139,20 @@ function ChangePinPageContent({cardID}: {cardID: string}) {
     );
 }
 
-ChangePinPageContent.displayName = 'ChangePinPageContent';
+ChangePINPageContent.displayName = 'ChangePINPageContent';
 
-function ChangePinPage({
+function ChangePINPage({
     route: {
         params: {cardID = ''},
     },
-}: ChangePinPageProps) {
+}: ChangePINPageProps) {
     return (
         <PINContextProvider>
-            <ChangePinPageContent cardID={cardID} />
+            <ChangePINPageContent cardID={cardID} />
         </PINContextProvider>
     );
 }
 
-ChangePinPage.displayName = 'ChangePinPage';
+ChangePINPage.displayName = 'ChangePINPage';
 
-export default ChangePinPage;
+export default ChangePINPage;
