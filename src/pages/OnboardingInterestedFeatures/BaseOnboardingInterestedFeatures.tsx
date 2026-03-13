@@ -231,7 +231,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
             // Extract the RHP variant directly from the API response to avoid a race condition
             // where the Onyx callback hasn't fired yet when navigateAfterOnboarding is called.
-            const rhpVariantUpdate = response?.onyxData?.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT);
+            const rhpVariantUpdate = (response?.onyxData as Array<{key: string; value: unknown}> | undefined)?.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT);
             const rhpVariant = rhpVariantUpdate?.value as OnboardingRHPVariant | undefined;
 
             // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
