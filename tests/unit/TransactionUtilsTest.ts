@@ -452,6 +452,47 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('isScanning', () => {
+        it('returns true for a scan-eligible transaction without a manual amount override', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(true);
+        });
+
+        it('returns false when a scan-eligible transaction has a manual amount override', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: 1234,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(false);
+        });
+
+        it('returns false when the receipt is not in a scanning state', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.OPEN,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(false);
+        });
+    });
+
     describe('getTransactionType', () => {
         it('returns card when the transaction is null', () => {
             expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);

@@ -107,6 +107,9 @@ type MagicCodeInputProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<MagicCodeInputHandle>;
+
+    /** Whether to mask the input characters (display as dots) */
+    secureTextEntry?: boolean;
 };
 
 type MagicCodeInputHandle = {
@@ -157,6 +160,7 @@ function MagicCodeInput({
     testID = '',
     accessibilityLabel,
     ref,
+    secureTextEntry = false,
 }: MagicCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -502,6 +506,7 @@ function MagicCodeInput({
                 </GestureDetector>
                 {getInputPlaceholderSlots(maxLength).map((index) => {
                     const char = decomposeString(value, maxLength).at(index)?.trim() ?? '';
+                    const displayChar = secureTextEntry && char ? '•' : char;
                     const cursorMargin = char ? {marginLeft: 2} : {};
                     const isFocused = focusedIndex === index;
 
@@ -521,7 +526,7 @@ function MagicCodeInput({
                                 ]}
                             >
                                 <View style={styles.magicCodeInputValueContainer}>
-                                    <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
+                                    <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{displayChar}</Text>
                                     {isFocused && !isDisableKeyboard && (
                                         <View
                                             style={[styles.magicCodeInputCursorContainer]}

@@ -13,7 +13,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -138,8 +138,7 @@ function AttachmentView({
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const {translate} = useLocalize();
-    const {currentlyPlayingURL} = usePlaybackStateContext();
-    const {updateCurrentURLAndReportID, playVideo} = usePlaybackActionsContext();
+    const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
 
     const actions = useAttachmentCarouselPagerActions();
     const {onAttachmentError, onTap} = actions ?? {};
@@ -160,7 +159,8 @@ function AttachmentView({
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
         updateCurrentURLAndReportID(videoSource, reportID);
-    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, playVideo, currentlyPlayingURL]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- currentlyPlayingURL and playVideo are intentionally excluded to prevent a feedback loop
+    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID]);
 
     const [imageError, setImageError] = useState(false);
 

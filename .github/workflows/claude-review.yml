@@ -13,8 +13,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
   review:
-    if: github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')
+    needs: [validate]
+    if: |
+      needs.validate.outputs.IS_AUTHORIZED == 'true'
+      && github.event.pull_request.draft != true
+      && !contains(github.event.pull_request.title, 'Revert')
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}

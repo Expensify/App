@@ -8,8 +8,10 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
+import {isAuthenticationError} from '@libs/actions/connections';
+import {connectPolicyToNetSuite, updateNetSuiteTokens} from '@libs/actions/connections/NetSuiteCommands';
 import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
@@ -21,6 +23,7 @@ import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
 function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policy = usePolicy(policyID);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const formInputs = Object.values(INPUT_IDS);
@@ -46,10 +49,14 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                 return;
             }
 
-            connectPolicyToNetSuite(policyID, formValues);
+            if (isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)) {
+                updateNetSuiteTokens(policyID, formValues);
+            } else {
+                connectPolicyToNetSuite(policyID, formValues);
+            }
             onNext();
         },
-        [onNext, policyID],
+        [onNext, policyID, policy],
     );
 
     return (
