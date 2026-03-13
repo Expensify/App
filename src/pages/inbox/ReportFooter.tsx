@@ -1,13 +1,14 @@
 import {useRoute} from '@react-navigation/native';
 import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import React from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
+import SwipeableView from '@components/SwipeableView';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -85,7 +86,9 @@ function ReportFooter() {
     if (!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth)) {
         return (
             <View style={styles.chatFooter}>
-                <ReportActionCompose reportID={report.reportID} />
+                <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                    <ReportActionCompose reportID={report.reportID} />
+                </SwipeableView>
             </View>
         );
     }
