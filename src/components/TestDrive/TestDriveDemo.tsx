@@ -100,7 +100,7 @@ function TestDriveDemo() {
                         <EmbeddedDemo
                             url={getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin)}
                             iframeTitle={testDrive.EMBEDDED_DEMO_IFRAME_TITLE}
-                            iframeProps={{sandbox: 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox'}}
+                            iframeProps={{sandbox: CONST.STORYLANE.IFRAME_SANDBOX}}
                         />
                     </FullPageOfflineBlockingView>
                 </Modal>
