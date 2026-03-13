@@ -445,7 +445,6 @@ function MoneyRequestConfirmationListFooter({
     } = receiptPath && receiptFilename ? getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
-    const isStitchedOdometerReceipt = !!receiptFilename?.startsWith('stitched_odometer');
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
@@ -1152,7 +1151,7 @@ function MoneyRequestConfirmationListFooter({
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             shouldUseFullHeight={isCompactMode}
                             onLoad={handleReceiptLoad}
-                            resizeMode={isStitchedOdometerReceipt ? 'contain' : undefined}
+                            resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
                         />
                     </PressableWithoutFocus>
                 )}
@@ -1183,7 +1182,7 @@ function MoneyRequestConfirmationListFooter({
         receiptThumbnail,
         fileExtension,
         isDistanceRequest,
-        isStitchedOdometerReceipt,
+        isOdometerDistanceRequest,
         handleReceiptLoad,
         handleCompactReceiptContainerLayout,
     ]);
