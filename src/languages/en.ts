@@ -8650,6 +8650,9 @@ const translations = {
             error: {
                 settings: '<rbr>Couldn’t save this change. Please try again or <concierge-link>contact Concierge</concierge-link> for more support.</rbr>',
             },
+            permissions: 'Group permissions',
+            StrictlyEnforceWorkspaceRules: 'Strictly enforce workspace rules',
+            StrictlyEnforceWorkspaceRulesDescription: 'All workspace rules must be met before submitting a report. No manual exceptions allowed.',
         },
     },
 };
