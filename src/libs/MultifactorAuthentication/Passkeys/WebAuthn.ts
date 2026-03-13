@@ -21,7 +21,7 @@ function arrayBufferToBase64URL(buffer: ArrayBuffer): string {
 
 /** Decodes a Base64URL string into an ArrayBuffer. */
 function base64URLToArrayBuffer(base64url: string): ArrayBuffer {
-    return Base64URL.decode(base64url).buffer;
+    return new Uint8Array(Base64URL.decode(base64url)).buffer;
 }
 
 /** Checks whether the current environment supports WebAuthn (PublicKeyCredential API). */
