@@ -29,7 +29,7 @@ Expensify offers several plans based on your needs: **Collect, Control,** and **
      - **Existing Workspaces Switching to Annual**: Based on the last month's active users.
 
 ## Auto-Increase Subscription Size
-1. Go to **Settings > Workspaces > Group > Subscription**.
+1. Go to **Settings > Workspaces > Subscription**.
 2. Toggle **Auto-increase annual seats**.
 3. When enabled, your subscription size will adjust automatically based on usage, triggering a new 12-month commitment for the updated size.
 
