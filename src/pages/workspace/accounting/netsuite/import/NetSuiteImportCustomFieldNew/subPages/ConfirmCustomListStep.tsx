@@ -8,7 +8,6 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
@@ -23,11 +22,7 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
     const fieldNames = [INPUT_IDS.LIST_NAME, INPUT_IDS.TRANSACTION_FIELD_ID, INPUT_IDS.MAPPING];
 
     if (!values.mapping) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'ConfirmCustomListStep',
-            isMappingMissing: !values.mapping,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'ConfirmCustomListStep'}} />;
     }
 
     return (

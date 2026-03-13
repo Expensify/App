@@ -237,7 +237,6 @@ function WorkspacePageWithSections({
                                 context: 'WorkspacePageWithSections',
                                 isLoading,
                                 isFirstRender: firstRender.current,
-                                isOffline,
                             } satisfies SkeletonSpanReasonAttributes
                         }
                     />

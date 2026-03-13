@@ -8,7 +8,6 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -24,11 +23,7 @@ function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFiel
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
     if (!values.mapping) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'ConfirmCustomSegmentStep',
-            isMappingMissing: !values.mapping,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'ConfirmCustomSegmentStep'}} />;
     }
 
     return (

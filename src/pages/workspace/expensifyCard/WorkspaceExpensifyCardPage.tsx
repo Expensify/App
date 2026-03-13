@@ -45,7 +45,6 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
                 context: 'WorkspaceExpensifyCardPage',
                 isOffline,
-                isCardSettingsLoading: !cardSettings || !!settings?.isLoading,
                 hasOnceLoaded: !!cardSettings?.hasOnceLoaded,
             };
             return (

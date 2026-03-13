@@ -739,7 +739,6 @@ function WorkspacesListPage() {
                             reasonAttributes={
                                 {
                                     context: 'WorkspacesListPage',
-                                    isLoadingApp: !!isLoadingApp,
                                     isOffline,
                                 } satisfies SkeletonSpanReasonAttributes
                             }

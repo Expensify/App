@@ -41,8 +41,6 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
                 context: 'withPolicyAndFullscreenLoading',
                 isLoadingPolicy: !!isLoadingPolicy,
                 isLoadingReportData: !!isLoadingReportData,
-                isPolicyEmpty: isEmpty(policy),
-                isPolicyDraftEmpty: isEmpty(policyDraft),
             };
             return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
         }

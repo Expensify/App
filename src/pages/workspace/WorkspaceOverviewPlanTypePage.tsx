@@ -18,7 +18,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
@@ -114,14 +113,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 <HeaderWithBackButton title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
                     <View style={styles.flex1}>
-                        <FullScreenLoadingIndicator
-                            reasonAttributes={
-                                {
-                                    context: 'WorkspaceOverviewPlanTypePage',
-                                    isPolicyLoading: !!policy?.isLoading,
-                                } satisfies SkeletonSpanReasonAttributes
-                            }
-                        />
+                        <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceOverviewPlanTypePage'}} />
                     </View>
                 ) : (
                     <>
