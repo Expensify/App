@@ -159,39 +159,39 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isDistanceTypeRequest(transaction: OnyxEntry<Transaction>): boolean {
-    isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE);
 }
 
 function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
 }
 
 function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_GPS);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_GPS);
 }
 
 function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
 }
 
 function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
 }
 
 function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
-    isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.SCAN);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.SCAN);
 }
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
-    isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.PER_DIEM);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.PER_DIEM);
 }
 
 function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
-    isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.TIME);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.TIME);
 }
 
 function isManualRequest(transaction: Transaction): boolean {
-    isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.MANUAL);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.MANUAL);
 }
 
 function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
