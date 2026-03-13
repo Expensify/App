@@ -7,17 +7,10 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {
-    getFileValidationErrorText,
-    hasHeicOrHeifExtension,
-    isValidReceiptExtension,
-    normalizeFileObject,
-    resizeImageIfNeeded,
-    splitExtensionFromFileName,
-    validateImageForCorruption,
-} from '@libs/fileDownload/FileUtils';
+import {getFileValidationErrorText, hasHeicOrHeifExtension, resizeImageIfNeeded, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
+import validateAttachmentFile from '@libs/validateAttachmentFile';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import useLocalize from './useLocalize';
@@ -33,63 +26,6 @@ type ErrorObject = {
 type ValidationOptions = {
     isValidatingReceipts?: boolean;
 };
-
-type FileValidationError = ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
-
-async function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isValidatingReceipts = false): Promise<FileValidationError | null> {
-    if (!file.name || file.size == null) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_INVALID;
-    }
-
-    if (isValidatingReceipts && !isValidReceiptExtension(file)) {
-        return CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
-    }
-
-    if (hasHeicOrHeifExtension(file)) {
-        return CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE;
-    }
-
-    const isImage = Str.isImage(file.name);
-    const maxFileSize = isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!isImage && !hasHeicOrHeifExtension(file) && file.size > maxFileSize) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
-    }
-
-    if (isValidatingReceipts && file.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
-    }
-
-    let fileObject = file;
-    const fileConverted = file.getAsFile?.();
-    if (fileConverted) {
-        fileObject = fileConverted;
-    }
-
-    if (!fileObject) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_INVALID;
-    }
-
-    if (isDataTransferItemDirectory(item)) {
-        return CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED;
-    }
-
-    const normalizedFile = await normalizeFileObject(fileObject);
-    try {
-        await validateImageForCorruption(normalizedFile);
-    } catch (error) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED;
-    }
-
-    return null;
-}
-
-function isDataTransferItemDirectory(item: DataTransferItem | undefined) {
-    if (item && item.kind === 'file' && 'webkitGetAsEntry' in item && item.webkitGetAsEntry()?.isDirectory) {
-        return true;
-    }
-
-    return false;
-}
 
 const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, number>) => {
     return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
