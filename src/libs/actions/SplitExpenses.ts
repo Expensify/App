@@ -5,7 +5,7 @@ import {calculateAmount} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
+import {getTransactionDetails, isSelfDM, isOpenReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +47,11 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+        const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID);
+    const hasMultipleSplits = relatedTransactions.length > 1;
+    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const isReportOpen = isOpenReport(transactionReport);
+    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
     const isSelfDMReport = isSelfDM(report) || isSelfDM(parentReport);
 
@@ -57,8 +62,7 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
         reportID = transaction.reportID;
     }
 
-    if (isExpenseSplit) {
-        const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID);
+    if (isExpenseSplit && shouldShowSplitIndicator) {
         const transactionDetails = getTransactionDetails(originalTransaction);
         const splitExpenses = relatedTransactions.map((currentTransaction) => {
             const currentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
@@ -90,7 +94,6 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
 
     const transactionDetails = getTransactionDetails(transaction);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
-    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
 
     const splitAmounts = [
         calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),

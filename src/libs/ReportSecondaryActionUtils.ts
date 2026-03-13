@@ -68,6 +68,7 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
+    hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
@@ -203,15 +204,13 @@ function isSubmitAction({
         return false;
     }
 
-    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
-
-    if (!transactionAreComplete) {
-        return false;
-    }
-
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
         return false;
     }
 
@@ -962,6 +961,8 @@ function getSecondaryReportActions({
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
 
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);

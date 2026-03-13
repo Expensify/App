@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +35,7 @@ function EnablePaymentsPage() {
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isPendingOnfidoResult || hasFailedOnfido) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
             return;
@@ -42,8 +44,13 @@ function EnablePaymentsPage() {
         openEnablePaymentsPage();
     }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
 
-    if (isEmptyObject(userWallet)) {
-        return <FullScreenLoadingIndicator />;
+    const isUserWalletEmpty = isEmptyObject(userWallet);
+    if (isUserWalletEmpty) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'EnablePaymentsPage',
+            isUserWalletEmpty,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
