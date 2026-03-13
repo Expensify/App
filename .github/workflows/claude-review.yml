@@ -48,7 +48,7 @@ jobs:
             docs:
               - 'docs/**/*.md'
               - 'docs/**/*.csv'
-              
+
       - name: Add claude utility scripts to PATH
         run: |
           echo "$GITHUB_WORKSPACE/.claude/scripts" >> "$GITHUB_PATH"
