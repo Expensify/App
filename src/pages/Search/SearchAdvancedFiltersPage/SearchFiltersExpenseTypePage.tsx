@@ -13,12 +13,13 @@ import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersExpenseTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const initiallySelectedItems = useMemo(
         () =>
             searchAdvancedFiltersForm?.expenseType
@@ -55,12 +56,14 @@ function SearchFiltersExpenseTypePage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={expenseTypesItems}
-                    initiallySelectedItems={initiallySelectedItems}
-                    onSaveSelection={updateExpenseTypeFilter}
-                    shouldShowTextInput={false}
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={expenseTypesItems}
+                        initiallySelectedItems={initiallySelectedItems}
+                        onSaveSelection={updateExpenseTypeFilter}
+                        shouldShowTextInput={false}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );

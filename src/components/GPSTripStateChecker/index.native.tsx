@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
 function GPSTripStateChecker() {
@@ -27,9 +28,11 @@ function GPSTripStateChecker() {
     const reportID = gpsDraftDetails?.reportID ?? generateReportID();
 
     useUpdateGpsTripOnReconnect();
+    useUpdateGpsNotification();
 
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
+            await checkAndCleanGpsNotification();
             const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
             if (!gpsTrip?.isTracking) {
@@ -60,8 +63,12 @@ function GPSTripStateChecker() {
     const continueGpsTrip = async () => {
         const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
 
+        const unit = gpsDraftDetails?.unit;
+
         if (isBackgroundTaskRunning) {
-            startGpsTripNotification(translate, reportID);
+            if (unit) {
+                startGpsTripNotification(translate, reportID, unit, gpsDraftDetails?.distanceInMeters);
+            }
             return;
         }
 
@@ -72,7 +79,11 @@ function GPSTripStateChecker() {
             return;
         }
 
-        startGpsTripNotification(translate, reportID);
+        if (!unit) {
+            return;
+        }
+
+        startGpsTripNotification(translate, reportID, unit, gpsDraftDetails?.distanceInMeters);
     };
 
     const onContinueTrip = () => {

@@ -16,16 +16,27 @@ import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME
 import {startGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Unit} from '@src/types/onyx/Policy';
 import openSettings from './openSettings';
 
 type ButtonsProps = {
+    /** Function to call when user clicks next button after ending a trip */
     navigateToNextStep: () => void;
+
+    /** Function to call when there is an error starting GPS tracking */
     setShouldShowStartError: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Function to call when there is a permissions error */
     setShouldShowPermissionsError: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** reportID of the ongoing GPS trip */
     reportID: string;
+
+    /** Distance unit of the ongoing GPS trip */
+    unit: Unit;
 };
 
-function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID}: ButtonsProps) {
+function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID, unit}: ButtonsProps) {
     const [startPermissionsFlow, setStartPermissionsFlow] = useState(false);
     const [showLocationRequiredModal, setShowLocationRequiredModal] = useState(false);
     const [showDiscardConfirmation, setShowDiscardConfirmation] = useState(false);
@@ -62,8 +73,8 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
             setShouldShowStartError(true);
             return;
         }
-        initGpsDraft(reportID);
-        startGpsTripNotification(translate, reportID);
+        initGpsDraft(reportID, unit);
+        startGpsTripNotification(translate, reportID, unit);
     };
 
     const onNext = () => {
