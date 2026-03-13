@@ -13,18 +13,22 @@ const PASSKEY_AUTH_TYPE = {
     MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
 } as const;
 
+/** Encodes an ArrayBuffer as a Base64URL string. */
 function arrayBufferToBase64URL(buffer: ArrayBuffer): string {
     return Base64URL.encode(new Uint8Array(buffer));
 }
 
+/** Decodes a Base64URL string into an ArrayBuffer. */
 function base64URLToArrayBuffer(base64url: string): ArrayBuffer {
     return Base64URL.decode(base64url).buffer;
 }
 
+/** Checks whether the current environment supports WebAuthn (PublicKeyCredential API). */
 function isWebAuthnSupported(): boolean {
     return typeof window !== 'undefined' && !!window.PublicKeyCredential;
 }
 
+/** Builds WebAuthn credential creation options from a backend registration challenge. */
 function buildCreationOptions(challenge: RegistrationChallenge, excludeCredentials: PublicKeyCredentialDescriptor[]): PublicKeyCredentialCreationOptions {
     return {
         challenge: base64URLToArrayBuffer(challenge.challenge),
@@ -52,6 +56,7 @@ function buildCreationOptions(challenge: RegistrationChallenge, excludeCredentia
     };
 }
 
+/** Builds WebAuthn credential request options from a backend authentication challenge. */
 function buildRequestOptions(challenge: AuthenticationChallenge, allowCredentials: PublicKeyCredentialDescriptor[]): PublicKeyCredentialRequestOptions {
     return {
         challenge: base64URLToArrayBuffer(challenge.challenge),
@@ -62,10 +67,12 @@ function buildRequestOptions(challenge: AuthenticationChallenge, allowCredential
     };
 }
 
+/** Type guard that narrows a generic Credential to PublicKeyCredential. */
 function isPublicKeyCredential(credential: Credential): credential is PublicKeyCredential {
     return credential instanceof PublicKeyCredential;
 }
 
+/** Prompts the user to create a new passkey credential via the platform authenticator. */
 async function createPasskey(options: PublicKeyCredentialCreationOptions): Promise<PublicKeyCredential> {
     const result = await navigator.credentials.create({publicKey: options});
     if (!result || !isPublicKeyCredential(result)) {
@@ -74,6 +81,7 @@ async function createPasskey(options: PublicKeyCredentialCreationOptions): Promi
     return result;
 }
 
+/** Prompts the user to authenticate with an existing passkey and returns the signed assertion. */
 async function getPasskeyAssertion(options: PublicKeyCredentialRequestOptions): Promise<PublicKeyCredential> {
     const result = await navigator.credentials.get({publicKey: options});
     if (!result || !isPublicKeyCredential(result)) {
@@ -86,10 +94,12 @@ type SupportedTransport = ValueOf<typeof CONST.PASSKEY_TRANSPORT>;
 
 const SUPPORTED_TRANSPORTS = new Set<string>(Object.values(CONST.PASSKEY_TRANSPORT));
 
+/** Type guard that checks whether a transport string is one of the supported authenticator transports. */
 function isSupportedTransport(transport: string): transport is SupportedTransport & AuthenticatorTransport {
     return SUPPORTED_TRANSPORTS.has(transport);
 }
 
+/** Converts stored credential records into WebAuthn-compatible PublicKeyCredentialDescriptors. */
 function buildAllowCredentials(credentials: Array<{id: string; transports?: SupportedTransport[]}>): PublicKeyCredentialDescriptor[] {
     return credentials.map((c) => ({
         id: base64URLToArrayBuffer(c.id),
