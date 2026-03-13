@@ -1594,46 +1594,46 @@ function IOURequestStepConfirmation({
                         />
                     )}
                     <MoneyRequestConfirmationList
-                            transaction={transaction}
-                            selectedParticipants={participants}
-                            iouAmount={transaction?.amount ?? 0}
-                            iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
-                            iouComment={transaction?.comment?.comment ?? ''}
-                            iouCurrencyCode={transaction?.currency}
-                            iouIsBillable={transaction?.billable}
-                            onToggleBillable={setBillable}
-                            iouCategory={transaction?.category}
-                            onConfirm={onConfirm}
-                            onSendMoney={sendMoney}
-                            showRemoveExpenseConfirmModal={() => {
-                                confirmRemoveCurrentTransaction();
-                            }}
-                            receiptPath={receiptPath}
-                            receiptFilename={receiptFilename}
-                            iouType={iouType}
-                            reportID={reportID}
-                            shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest}
-                            isPolicyExpenseChat={isPolicyExpenseChat}
-                            policyID={policyID}
-                            iouMerchant={transaction?.merchant}
-                            iouCreated={transaction?.created}
-                            isDistanceRequest={isDistanceRequest}
-                            isManualDistanceRequest={isManualDistanceRequest}
-                            isOdometerDistanceRequest={isOdometerDistanceRequest}
-                            isGPSDistanceRequest={isGPSDistanceRequest}
-                            isPerDiemRequest={isPerDiemRequest}
-                            shouldShowSmartScanFields={shouldShowSmartScanFields}
-                            action={action}
-                            isConfirmed={isConfirmed}
-                            isConfirming={isConfirming}
-                            iouIsReimbursable={transaction?.reimbursable}
-                            onToggleReimbursable={setReimbursable}
-                            expensesNumber={transactions.length}
-                            isReceiptEditable
-                            isTimeRequest={isTimeRequest}
-                            iouTimeCount={transaction?.comment?.units?.count}
-                            iouTimeRate={transaction?.comment?.units?.rate}
-                            shouldHideToSection={shouldHideToSection}
+                        transaction={transaction}
+                        selectedParticipants={participants}
+                        iouAmount={transaction?.amount ?? 0}
+                        iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
+                        iouComment={transaction?.comment?.comment ?? ''}
+                        iouCurrencyCode={transaction?.currency}
+                        iouIsBillable={transaction?.billable}
+                        onToggleBillable={setBillable}
+                        iouCategory={transaction?.category}
+                        onConfirm={onConfirm}
+                        onSendMoney={sendMoney}
+                        showRemoveExpenseConfirmModal={() => {
+                            confirmRemoveCurrentTransaction();
+                        }}
+                        receiptPath={receiptPath}
+                        receiptFilename={receiptFilename}
+                        iouType={iouType}
+                        reportID={reportID}
+                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest}
+                        isPolicyExpenseChat={isPolicyExpenseChat}
+                        policyID={policyID}
+                        iouMerchant={transaction?.merchant}
+                        iouCreated={transaction?.created}
+                        isDistanceRequest={isDistanceRequest}
+                        isManualDistanceRequest={isManualDistanceRequest}
+                        isOdometerDistanceRequest={isOdometerDistanceRequest}
+                        isGPSDistanceRequest={isGPSDistanceRequest}
+                        isPerDiemRequest={isPerDiemRequest}
+                        shouldShowSmartScanFields={shouldShowSmartScanFields}
+                        action={action}
+                        isConfirmed={isConfirmed}
+                        isConfirming={isConfirming}
+                        iouIsReimbursable={transaction?.reimbursable}
+                        onToggleReimbursable={setReimbursable}
+                        expensesNumber={transactions.length}
+                        isReceiptEditable
+                        isTimeRequest={isTimeRequest}
+                        iouTimeCount={transaction?.comment?.units?.count}
+                        iouTimeRate={transaction?.comment?.units?.rate}
+                        shouldHideToSection={shouldHideToSection}
                     />
                 </View>
             </DragAndDropProvider>
