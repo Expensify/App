@@ -231,13 +231,16 @@ jobs:
             fi
           done
 
+          FALLBACK_URL="https://github.com/${{ github.repository }}/actions/workflows/deploy.yml"
           if [ -z "$DEPLOY_RUN_URL" ]; then
             echo "::warning::Could not find deploy workflow run for SHA $PUSH_SHA"
             echo "DEPLOY_RUN_FOUND=false" >> "$GITHUB_OUTPUT"
-            echo "DEPLOY_RUN_URL=https://github.com/${{ github.repository }}/actions/workflows/deploy.yml" >> "$GITHUB_OUTPUT"
+            echo "DEPLOY_RUN_URL=$FALLBACK_URL" >> "$GITHUB_OUTPUT"
+            echo "DEPLOY_RUN_MESSAGE=⚠️ Could not locate deploy run — check $FALLBACK_URL" >> "$GITHUB_OUTPUT"
           else
             echo "DEPLOY_RUN_FOUND=true" >> "$GITHUB_OUTPUT"
             echo "DEPLOY_RUN_URL=$DEPLOY_RUN_URL" >> "$GITHUB_OUTPUT"
+            echo "DEPLOY_RUN_MESSAGE=$DEPLOY_RUN_URL" >> "$GITHUB_OUTPUT"
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -252,7 +255,7 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: 'good',
-                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* successful\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nDeploy workflow: ${{ steps.findDeployRun.outputs.DEPLOY_RUN_FOUND == 'true' && steps.findDeployRun.outputs.DEPLOY_RUN_URL || '⚠️ Could not locate deploy run — check ' + steps.findDeployRun.outputs.DEPLOY_RUN_URL }}`
+                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* successful\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nDeploy workflow: ${{ steps.findDeployRun.outputs.DEPLOY_RUN_MESSAGE }}`
               }]
             }
         env:
