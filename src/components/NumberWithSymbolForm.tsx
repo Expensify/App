@@ -413,7 +413,7 @@ function NumberWithSymbolForm({
                         accessibilityLabel={translate('iou.flip')}
                     />
                 )}
-                {shouldShowCurrencyButton && currency && (
+                {shouldShowCurrencyButton && !!currency && (
                     <Button
                         shouldShowRightIcon
                         small
@@ -426,7 +426,7 @@ function NumberWithSymbolForm({
                 )}
             </View>
         );
-    }, [displayAsTextInput, shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
+    }, [shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
 
     if (displayAsTextInput) {
         return (

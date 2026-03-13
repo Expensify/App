@@ -30,8 +30,8 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileSafari} from '@libs/Browser';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {isMobileSafari} from '@libs/Browser';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -708,7 +708,6 @@ function IOURequestStepConfirmation({
             }
         },
         [
-            transactionIDs,
             transactions,
             receiptFiles,
             privateIsArchivedMap,

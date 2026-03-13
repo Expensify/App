@@ -345,7 +345,8 @@ function MoneyRequestConfirmationListFooter({
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     // Local state for the new manual expense flow
-    const [transactionAmount, setTransactionAmount] = useState(convertToFrontendAmountAsString(amount, currency));
+    const transactionAmountAsString = convertToFrontendAmountAsString(amount, currency);
+    const [transactionAmount, setTransactionAmount] = useState(transactionAmountAsString);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -574,7 +575,7 @@ function MoneyRequestConfirmationListFooter({
 
     const shouldShowAmountRequiredError = useMemo(() => {
         return formError === 'common.error.invalidAmount';
-    }, [formError, transactionAmount]);
+    }, [formError]);
 
     const fields: ConfirmationField[] = [
         {
