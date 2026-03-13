@@ -1,9 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
-import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -17,7 +15,6 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -629,6 +626,7 @@ function handleMoneyRequestStepDistanceNavigation({
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+            setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
             const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
             const participant = participants.at(0);
             const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
@@ -642,25 +640,6 @@ function handleMoneyRequestStepDistanceNavigation({
 
             const validWaypoints = !isManualDistance && !isOdometerDistance ? getValidWaypoints(waypoints, true, isGPSDistance) : undefined;
 
-            let amount = 0;
-            let merchant = translate('iou.fieldPending');
-            if (isManualDistance && distance !== undefined && unit) {
-                const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-                const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
-                amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
-                merchant = DistanceRequestUtils.getDistanceMerchant(
-                    true,
-                    distanceInMeters,
-                    unit,
-                    mileageRate?.rate ?? 0,
-                    mileageRate?.currency ?? transaction?.currency ?? CONST.CURRENCY.USD,
-                    translate,
-                    (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-                    getCurrencySymbol,
-                    true,
-                );
-            }
-            setMoneyRequestMerchant(transactionID, merchant, false);
             if (isCreatingTrackExpense && participant) {
                 trackExpense({
                     report,
@@ -674,11 +653,11 @@ function handleMoneyRequestStepDistanceNavigation({
                         policy,
                     },
                     transactionParams: {
-                        amount,
+                        amount: 0,
                         distance,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
-                        merchant,
+                        merchant: translate('iou.fieldPending'),
                         receipt: {},
                         billable: false,
                         reimbursable: defaultReimbursable,
@@ -711,12 +690,12 @@ function handleMoneyRequestStepDistanceNavigation({
                 iouType,
                 existingTransaction: transaction,
                 transactionParams: {
-                    amount,
+                    amount: 0,
                     distance,
                     comment: '',
                     created: transaction?.created ?? '',
                     currency: transaction?.currency ?? 'USD',
-                    merchant,
+                    merchant: translate('iou.fieldPending'),
                     billable: !!policy?.defaultBillable,
                     reimbursable: defaultReimbursable,
                     validWaypoints,
