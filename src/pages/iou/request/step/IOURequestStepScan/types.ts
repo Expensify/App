@@ -49,6 +49,32 @@ type UseReceiptScanParams = {
 
     /** Returns a source URL for the file based on platform */
     getSource: (file: FileObject) => string;
+};
+
+type UseMobileReceiptScanParams = {
+    /** The initial transaction */
+    initialTransaction: OnyxEntry<Transaction>;
+
+    /** The type of IOU report */
+    iouType: IOUType;
+
+    /** Whether multi-scan is enabled */
+    isMultiScanEnabled?: boolean;
+
+    /** Whether the user is starting a scan request */
+    isStartingScan?: boolean;
+
+    /** The current receipt files being scanned */
+    receiptFiles: ReceiptFile[];
+
+    /** Callback to navigate to the confirmation step */
+    navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean, isTestTransaction?: boolean) => void;
+
+    /** Whether the confirmation step should be skipped */
+    shouldSkipConfirmation: boolean;
+
+    /** Callback to start the location permission flow */
+    setStartLocationPermissionFlow: (value: boolean) => void;
 
     /** Callback to update multi-scan enabled state in parent */
     setIsMultiScanEnabled: ((value: boolean) => void) | undefined;
@@ -82,4 +108,4 @@ type ReceiptFile = {
 };
 
 export default IOURequestStepScanProps;
-export type {ReceiptFile, UseReceiptScanParams};
+export type {ReceiptFile, UseMobileReceiptScanParams, UseReceiptScanParams};

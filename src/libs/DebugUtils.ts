@@ -623,6 +623,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 approved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                export: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,

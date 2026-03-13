@@ -92,7 +92,7 @@ import {
     canIOUBePaid,
     canSubmitReport,
     createDraftTransaction,
-    getIOUReportActionToApproveOrPay,
+    getIOUReportActionWithBadge,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReportID,
@@ -137,6 +137,7 @@ import NetworkConnection from './NetworkConnection';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
+import {getBankAccountLastFourDigits} from './PaymentUtils';
 import Permissions from './Permissions';
 import {
     getAccountIDsByLogins,
@@ -830,6 +831,7 @@ type OptionData = {
     alternateText?: string;
     allReportErrors?: Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
@@ -4243,6 +4245,7 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
 type ReasonAndReportActionThatRequiresAttention = {
     reason: ValueOf<typeof CONST.REQUIRES_ATTENTION_REASONS>;
     reportAction?: OnyxEntry<ReportAction>;
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
 };
 
 /**
@@ -4321,7 +4324,7 @@ function getReasonAndReportActionThatRequiresAttention(
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const invoiceReceiverPolicy = invoiceReceiverPolicyID ? getPolicy(invoiceReceiverPolicyID) : undefined;
-    const iouReportActionToApproveOrPay = getIOUReportActionToApproveOrPay(optionOrReport, undefined, optionReportMetadata, invoiceReceiverPolicy);
+    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge(optionOrReport, undefined, optionReportMetadata, invoiceReceiverPolicy);
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
@@ -4337,6 +4340,7 @@ function getReasonAndReportActionThatRequiresAttention(
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
             reportAction: iouReportActionToApproveOrPay,
+            actionBadge,
         };
     }
 
@@ -10456,7 +10460,13 @@ function getTaskAssigneeChatOnyxData(
 /**
  * Return iou report action display message
  */
-function getIOUReportActionDisplayMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>, report?: Report): string {
+function getIOUReportActionDisplayMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction>,
+    transaction?: OnyxEntry<Transaction>,
+    report?: Report,
+    bankAccountList?: OnyxEntry<BankAccountList>,
+): string {
     if (!isMoneyRequestAction(reportAction)) {
         return '';
     }
@@ -10468,7 +10478,7 @@ function getIOUReportActionDisplayMessage(translate: LocalizedTranslate, reportA
     let translationKey: TranslationPaths;
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+        const last4Digits = getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, reportPolicy);
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -12699,6 +12709,7 @@ function generateReportAttributes({
     reportActions?: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     isReportArchived: boolean;
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -12708,7 +12719,7 @@ function generateReportAttributes({
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
-    const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction, isReportArchived);
+    const {reason, actionBadge} = getReasonAndReportActionThatRequiresAttention(report, parentReportAction, isReportArchived) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,
@@ -12717,7 +12728,8 @@ function generateReportAttributes({
         hasErrors,
         oneTransactionThreadReportID,
         parentReportAction,
-        requiresAttention,
+        requiresAttention: !!reason,
+        actionBadge,
     };
 }
 
@@ -13064,31 +13076,6 @@ function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string,
     return {fieldValues, fieldsByName};
 }
 
-function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportViolations?: OnyxEntry<ReportViolations>): boolean {
-    if (!report || !policy?.fieldList || !policy?.areReportFieldsEnabled) {
-        return false;
-    }
-
-    if (!isPaidGroupPolicyExpenseReport(report) && !isInvoiceReport(report)) {
-        return false;
-    }
-
-    const {fieldsByName} = getReportFieldMaps(report, policy.fieldList);
-
-    return Object.values(fieldsByName).some((field) => {
-        if (field.target !== report.type) {
-            return false;
-        }
-        if (shouldHideSingleReportField(field)) {
-            return false;
-        }
-        if (isReportFieldDisabledForUser(report, field, policy)) {
-            return false;
-        }
-        return !!getFieldViolation(reportViolations, field);
-    });
-}
-
 export {
     areAllRequestsBeingSmartScanned,
     buildConciergeGreetingReportAction,
@@ -13275,7 +13262,6 @@ export {
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,
-    hasVisibleReportFieldViolations,
     hasWarningTypeViolations,
     hasNoticeTypeViolations,
     hasAnyViolations,
