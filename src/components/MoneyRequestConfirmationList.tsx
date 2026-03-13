@@ -390,8 +390,8 @@ function MoneyRequestConfirmationList({
     // For the new manual expense flow (beta), track the latest amount/currency the user has typed
     // using refs rather than state to avoid re-rendering 20+ Onyx-watching components on every
     // keystroke. The refs are only read once on final submission to persist the value to Onyx.
-    const pendingAmountRef = useRef<number | null>(null);
-    const pendingCurrencyRef = useRef<string | null>(null);
+    const pendingAmountRef = useRef<number>(iouAmount);
+    const pendingCurrencyRef = useRef<string>(iouCurrencyCode ?? CONST.CURRENCY.USD);
 
     const shouldCalculateDistanceAmount = !pendingAmountRef.current && isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
 
@@ -426,7 +426,7 @@ function MoneyRequestConfirmationList({
     const [showMoreFields, setShowMoreFields] = useState(false);
 
     // Callbacks passed to the footer to capture the user's edits without triggering re-renders
-    const handleAmountChange = useCallback((value: number | null) => {
+    const handleAmountChange = useCallback((value: number) => {
         pendingAmountRef.current = value;
     }, []);
     const handleCurrencyChange = useCallback((value: string) => {
