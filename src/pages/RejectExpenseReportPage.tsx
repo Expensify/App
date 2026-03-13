@@ -160,6 +160,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                         label={translate('iou.rejectReport.rejectReason')}
                         accessibilityLabel={translate('iou.rejectReport.rejectReason')}
                         ref={inputCallbackRef}
+                        multiline
                     />
                 </View>
                 {hasPreviousApprover && (
