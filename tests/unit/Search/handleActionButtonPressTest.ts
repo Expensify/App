@@ -360,7 +360,6 @@ describe('handleBulkPayItemSelected', () => {
         showDelegateNoAccessModal: jest.fn(),
         confirmPayment: jest.fn(),
         userBillingGraceEndPeriods: undefined,
-        businessBankAccountOptions: undefined,
     };
 
     beforeEach(async () => {

@@ -54,15 +54,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
         }
 
         const invoiceParams = getPayMoneyOnSearchInvoiceParams(policyID, payAsBusiness, methodID, paymentMethod);
-        payMoneyRequestOnSearch(hash, [
-            {
-                amount,
-                paymentType: type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>,
-                reportID,
-                ...(isInvoiceReport(iouReport) ? invoiceParams : {}),
-                ...(type === CONST.IOU.PAYMENT_TYPE.VBBA && methodID != null ? {bankAccountID: methodID} : {}),
-            },
-        ]);
+        payMoneyRequestOnSearch(hash, [{amount, paymentType: type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
     };
 
     return (

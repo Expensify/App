@@ -53,7 +53,6 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const fragments = getReportActionMessageFragments(translate, action);
     const isIOUReport = isMoneyRequestAction(action);
@@ -123,7 +122,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? getOriginalMessage(action) : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = getIOUReportActionDisplayMessage(translate, action, transaction, report, bankAccountList);
+            iouMessage = getIOUReportActionDisplayMessage(translate, action, transaction, report);
         }
     }
 

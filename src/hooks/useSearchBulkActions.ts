@@ -9,7 +9,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {BulkPaySelectionData, PaymentData, SearchQueryJSON} from '@components/Search/types';
+import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
@@ -198,7 +198,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs, bankAccountList]);
 
-    const {bulkPayButtonOptions, businessBankAccountOptions, shouldShowBusinessBankAccountOptions} = useBulkPayOptions({
+    const {bulkPayButtonOptions, latestBankItems} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
@@ -540,7 +540,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     ]);
 
     const onBulkPaySelected = useCallback(
-        (paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
+        (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
             if (!hash) {
                 return;
             }
@@ -555,7 +555,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
-            const expenseReportBankAccountID = additionalData?.bankAccountID;
 
             const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGraceEndPeriodCollection);
             if (restrictedPolicyID) {
@@ -575,7 +574,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const isExpenseReport = isExpenseReportUtil(itemReportID);
                 const isIOUReport = isIOUReportUtil(itemReportID);
                 const reportType = getReportType(itemReportID);
-                const lastPolicyPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(itemPolicyID, personalPolicyID, lastPaymentMethods, reportType, isIOUReport);
+                const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, personalPolicyID, lastPaymentMethods, reportType, isIOUReport) ?? paymentMethod;
 
                 if (!lastPolicyPaymentMethod) {
                     Navigation.navigate(
@@ -588,10 +587,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const hasPolicyVBBA = itemPolicyID ? policyIDsWithVBBA.includes(itemPolicyID) : false;
-                // Allow bulk pay when user selected a business bank account, even if that account is not linked to the report's policy
-                const hasSelectedBusinessBankAccount = expenseReportBankAccountID != null;
 
-                if (isExpenseReport && lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA && !hasSelectedBusinessBankAccount) {
+                if (isExpenseReport && lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
                     Navigation.navigate(
                         ROUTES.SEARCH_REPORT.getRoute({
                             reportID: item.reportID,
@@ -621,40 +618,39 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                 }
             }
-            const itemsToPay =
-                selectedReports.length > 0
-                    ? selectedReports.map((report) => ({
-                          reportID: report.reportID,
-                          amount: report.total,
-                          policyID: report.policyID,
-                          chatReportID: report.chatReportID,
-                      }))
+            const paymentAdditionalData = (additionalData as Partial<PaymentData>) ?? {};
+            const paymentData = (
+                selectedReports.length
+                    ? selectedReports.map((report) => {
+                          return {
+                              reportID: report.reportID,
+                              amount: report.total,
+                              paymentType: getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(report.reportID)) ?? paymentMethod,
+                              ...(isInvoiceReport(report.reportID)
+                                  ? getPayMoneyOnSearchInvoiceParams(
+                                        report.policyID,
+                                        paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(report.chatReportID),
+                                        paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(report.policyID, lastPaymentMethods),
+                                        CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                                    )
+                                  : {}),
+                          };
+                      })
                     : Object.values(selectedTransactions).map((transaction) => ({
                           reportID: transaction.reportID,
                           amount: transaction.amount,
-                          policyID: transaction.policyID,
-                          chatReportID: transaction.reportID,
-                      }));
-
-            const paymentData = itemsToPay.map((item) => {
-                const effectivePaymentType = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
-                return {
-                    reportID: item.reportID,
-                    amount: item.amount,
-                    paymentType: effectivePaymentType,
-                    ...(isInvoiceReport(item.reportID)
-                        ? getPayMoneyOnSearchInvoiceParams(
-                              item.policyID,
-                              additionalData?.payAsBusiness ?? isBusinessInvoiceRoom(item.chatReportID),
-                              additionalData?.bankAccountID ?? getLastPolicyBankAccountID(item.policyID, lastPaymentMethods),
-                              CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                          )
-                        : {}),
-                    ...(isExpenseReportUtil(item.reportID) && effectivePaymentType === CONST.IOU.PAYMENT_TYPE.VBBA && expenseReportBankAccountID != null
-                        ? {bankAccountID: expenseReportBankAccountID}
-                        : {}),
-                };
-            }) as PaymentData[];
+                          paymentType:
+                              getLastPolicyPaymentMethod(transaction.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(transaction.reportID)) ?? paymentMethod,
+                          ...(isInvoiceReport(transaction.reportID)
+                              ? getPayMoneyOnSearchInvoiceParams(
+                                    transaction.policyID,
+                                    paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(transaction.reportID),
+                                    paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(transaction.policyID, lastPaymentMethods),
+                                    CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                                )
+                              : {}),
+                      }))
+            ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData);
 
@@ -684,7 +680,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const onBulkPaySelectedRef = useRef(onBulkPaySelected);
     onBulkPaySelectedRef.current = onBulkPaySelected;
-    const stableOnBulkPaySelected = useCallback((paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
+    const stableOnBulkPaySelected = useCallback((paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
         onBulkPaySelectedRef.current?.(paymentMethod, additionalData);
     }, []);
 
@@ -983,17 +979,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
 
         if (shouldShowPayOption) {
-            const hasMultipleBusinessBankAccounts = (businessBankAccountOptions?.length ?? 0) > 1;
-            const shouldShowPaySubmenu = isFirstTimePayment || (shouldShowBusinessBankAccountOptions && hasMultipleBusinessBankAccounts);
-
             const payButtonOption = {
                 icon: expensifyIcons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
-                backButtonText: shouldShowPaySubmenu ? translate('search.bulkActions.pay') : undefined,
-                rightIcon: shouldShowPaySubmenu ? expensifyIcons.ArrowRight : undefined,
+                rightIcon: isFirstTimePayment ? expensifyIcons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
-                subMenuItems: shouldShowPaySubmenu ? bulkPayButtonOptions : undefined,
+                subMenuItems: isFirstTimePayment ? bulkPayButtonOptions : undefined,
                 onSelected: () => onBulkPaySelected(undefined),
             };
             options.push(payButtonOption);
@@ -1210,7 +1202,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissedRejectUseExplanation,
         showDelegateNoAccessModal,
         bulkPayButtonOptions,
-        businessBankAccountOptions?.length,
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
         dismissedHoldUseExplanation,
@@ -1260,7 +1251,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedPolicyIDs,
         selectedTransactionReportIDs,
         selectedReportIDs,
-        businessBankAccountOptions,
+        latestBankItems,
         confirmPayment: stableOnBulkPaySelected,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,

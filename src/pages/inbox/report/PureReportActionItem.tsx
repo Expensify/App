@@ -69,7 +69,6 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
-import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
@@ -1376,8 +1375,8 @@ function PureReportActionItem({
             if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
             } else if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                const originalMessage = getOriginalMessage(action);
-                const last4Digits = getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policy);
+                const last4Digits = policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+
                 if (wasAutoPaid) {
                     const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 

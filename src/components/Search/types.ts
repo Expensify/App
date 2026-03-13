@@ -119,11 +119,6 @@ type PaymentData = {
     ownerEmail?: string;
     policyName?: string;
 };
-type BulkPaySelectionData = {
-    bankAccountID?: number;
-    payAsBusiness?: boolean;
-    paymentMethod?: string;
-};
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
@@ -404,7 +399,6 @@ export type {
     TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
-    BulkPaySelectionData,
     SearchAutocompleteQueryRange,
     SearchParams,
     TableColumnSize,
