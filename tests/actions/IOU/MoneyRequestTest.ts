@@ -14,6 +14,7 @@ import type {QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import * as Split from '../../../src/libs/actions/IOU/Split';
+import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import * as ReportUtils from '../../../src/libs/ReportUtils';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
@@ -115,10 +116,10 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {},
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledTimes(1);
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
             expect(IOU.requestMoney).toHaveBeenCalledTimes(0);
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: fakeReport,
                     isDraftPolicy: false,
@@ -144,7 +145,7 @@ describe('MoneyRequest', () => {
                 }),
             );
 
-            expect(IOU.trackExpense).toHaveBeenLastCalledWith(expect.objectContaining({shouldHandleNavigation: true}));
+            expect(TrackExpense.trackExpense).toHaveBeenLastCalledWith(expect.objectContaining({shouldHandleNavigation: true}));
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -155,7 +156,7 @@ describe('MoneyRequest', () => {
             });
 
             expect(IOU.requestMoney).toHaveBeenCalledTimes(1);
-            expect(IOU.trackExpense).toHaveBeenCalledTimes(0);
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(0);
 
             expect(IOU.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -204,21 +205,21 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {},
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledTimes(files.length);
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
 
-            expect(IOU.trackExpense).toHaveBeenNthCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
                 1,
                 expect.objectContaining({
                     shouldHandleNavigation: false,
                 }),
             );
-            expect(IOU.trackExpense).toHaveBeenNthCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
                 2,
                 expect.objectContaining({
                     shouldHandleNavigation: false,
                 }),
             );
-            expect(IOU.trackExpense).toHaveBeenNthCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
                 3,
                 expect.objectContaining({
                     shouldHandleNavigation: true,
@@ -315,7 +316,7 @@ describe('MoneyRequest', () => {
                 reimbursable: false,
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         billable: true,
@@ -366,7 +367,7 @@ describe('MoneyRequest', () => {
                 gpsPoint,
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         gpsPoint,
@@ -562,7 +563,7 @@ describe('MoneyRequest', () => {
             });
 
             await waitForBatchedUpdates();
-            expect(IOU.trackExpense).not.toHaveBeenCalled();
+            expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
         it('should trackExpense with GPS coordinates when location permission is granted', async () => {
@@ -594,7 +595,7 @@ describe('MoneyRequest', () => {
                 locationPermissionGranted: true,
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         gpsPoint: {
@@ -627,7 +628,7 @@ describe('MoneyRequest', () => {
                 locationPermissionGranted: true,
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         gpsPoint: undefined,
@@ -651,7 +652,7 @@ describe('MoneyRequest', () => {
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: baseParams.report,
                     isDraftPolicy: false,
@@ -971,7 +972,7 @@ describe('MoneyRequest', () => {
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith({
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
                 activePolicyID: undefined,
@@ -1042,7 +1043,7 @@ describe('MoneyRequest', () => {
                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: baseParams.report,
                     isDraftPolicy: false,

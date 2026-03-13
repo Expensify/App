@@ -14,6 +14,7 @@ import type {Policy, TaxRatesWithDefault} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
+import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
 import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -71,6 +72,13 @@ jest.mock('@libs/actions/IOU', () => {
 jest.mock('@libs/actions/IOU/Split', () => {
     return {
         startSplitBill: jest.fn(),
+    };
+});
+jest.mock('@libs/actions/IOU/TrackExpense', () => {
+    const actual = jest.requireActual('@libs/actions/IOU/TrackExpense');
+    return {
+        ...actual,
+        trackExpense: jest.fn(),
     };
 });
 jest.mock('@components/ProductTrainingContext', () => ({
@@ -1194,7 +1202,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
             expect(IOU.requestMoney).toHaveBeenCalled();
-            expect(IOU.trackExpense).not.toHaveBeenCalled();
+            expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
         it('should route unreported distance expense to requestMoney and skip createDistanceRequest', async () => {
