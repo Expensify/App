@@ -315,7 +315,7 @@ describe('handleActionButtonPress', () => {
     const snapshotReport = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}`] ?? {};
     const snapshotPolicy = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}`] ?? {};
 
-    test('Should navigate to item when report has one transaction on hold', () => {
+    test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             hash: searchHash,
@@ -326,7 +326,7 @@ describe('handleActionButtonPress', () => {
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
         });
-        expect(goToItem).toHaveBeenCalledTimes(1);
+        expect(goToItem).not.toHaveBeenCalled();
     });
 
     test('Should not navigate to item when the hold is removed', () => {
