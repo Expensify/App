@@ -24,7 +24,6 @@ function useReportTransactions(reportID: string | undefined): Transaction[] {
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector: reportTransactionsSelector,
-            canBeMissing: true,
         },
         [reportTransactionsSelector],
     );

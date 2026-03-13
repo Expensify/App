@@ -16,7 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
@@ -64,13 +64,14 @@ function IOURequestEditReportCommon({
     createReport,
     isPerDiemRequest,
 }: Props) {
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document'] as const);
     const {translate, localeCompare} = useLocalize();
     const personalDetails = usePersonalDetails();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
+    const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const resolvedReportOwnerAccountID = useMemo(() => {
         if (targetOwnerAccountID !== undefined) {
             return targetOwnerAccountID;
@@ -128,6 +129,10 @@ function IOURequestEditReportCommon({
             .filter((report) => {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
+                if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+                    return false;
+                }
+
                 if (canAddTransaction(report, undefined, true)) {
                     return true;
                 }
@@ -150,7 +155,7 @@ function IOURequestEditReportCommon({
                     icons: getIconsForExpenseReport(report, personalDetails, policy),
                 };
             });
-    }, [debouncedSearchValue, outstandingReports, selectedReportID, personalDetails, localeCompare, allPolicies, currentUserPersonalDetails.accountID]);
+    }, [debouncedSearchValue, outstandingReports, selectedReportID, personalDetails, localeCompare, allPolicies, currentUserPersonalDetails.accountID, isPerDiemRequest]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -209,7 +214,7 @@ function IOURequestEditReportCommon({
             return;
         }
 
-        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID)) {
+        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
             return;
         }
@@ -289,19 +294,18 @@ function IOURequestEditReportCommon({
                 }}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={selectedReportID}
+                shouldScrollToFocusedIndexOnMount={!createReportOption}
                 ListItem={InviteMemberListItem}
+                customListHeaderContent={createReportOption}
                 listFooterContent={
-                    <>
-                        {shouldShowRemoveFromReport && (
-                            <MenuItem
-                                onPress={removeFromReport}
-                                title={translate('iou.removeFromReport')}
-                                description={translate('iou.moveToPersonalSpace')}
-                                icon={icons.Close}
-                            />
-                        )}
-                        {createReportOption}
-                    </>
+                    shouldShowRemoveFromReport ? (
+                        <MenuItem
+                            onPress={removeFromReport}
+                            title={translate('iou.removeFromReport')}
+                            description={translate('iou.moveToPersonalSpace')}
+                            icon={icons.Close}
+                        />
+                    ) : undefined
                 }
                 listEmptyContent={createReportOption}
             />
@@ -309,7 +313,7 @@ function IOURequestEditReportCommon({
                 isVisible={perDiemWarningModalVisible}
                 onConfirm={hidePerDiemWarningModal}
                 onCancel={hidePerDiemWarningModal}
-                title={translate('iou.moveExpenses', {count: transactionIDs?.length ?? 1})}
+                title={translate('iou.moveExpenses')}
                 prompt={translate('iou.moveExpensesError')}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}

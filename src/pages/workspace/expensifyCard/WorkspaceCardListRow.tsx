@@ -67,7 +67,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     </Text>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textLabelSupporting]}
                     >
                         {name}
                     </Text>
@@ -77,7 +77,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                 <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textNormalThemeText, styles.lh16]}
+                        style={[styles.textNormalThemeText]}
                     >
                         {cardType}
                     </Text>
@@ -87,7 +87,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                 <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textNormalThemeText, styles.lh16]}
+                        style={[styles.textNormalThemeText]}
                     >
                         {translate(getTranslationKeyForLimitType(limitType))}
                     </Text>
@@ -127,7 +127,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                 {shouldUseNarrowLayout && (
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textLabelSupporting]}
                     >
                         {cardType}
                     </Text>

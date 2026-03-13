@@ -1,7 +1,9 @@
 import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
+import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -31,22 +33,17 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
 
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        canBeMissing: true,
-    });
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
     const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        canBeMissing: true,
         selector: adminPendingActionSelector,
     });
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
-        canBeMissing: false,
         selector: technicalContactSettingsSelector,
     });
 
@@ -67,9 +64,17 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         pendingAction: domainPendingAction?.[accountID]?.pendingAction,
     });
 
+    const getCustomListHeader = () => (
+        <CustomListHeader
+            canSelectMultiple={false}
+            leftHeaderText={translate('domain.admins.title')}
+        />
+    );
+
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
+
     const headerContent = isAdmin ? (
-        <>
+        <View style={[styles.flexRow, styles.gap2]}>
             <Button
                 success
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
@@ -85,9 +90,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 iconFill={hasSettingsErrors ? theme.danger : undefined}
                 iconHoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
                 innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                style={shouldUseNarrowLayout ? [styles.flexGrow0, styles.mb3] : undefined}
             />
-        </>
+        </View>
     ) : null;
 
     return (
@@ -98,6 +103,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             searchPlaceholder={translate('domain.admins.findAdmin')}
             headerIcon={illustrations.UserShield}
             headerContent={headerContent}
+            getCustomListHeader={getCustomListHeader}
             getCustomRightElement={getCustomRightElement}
             getCustomRowProps={getCustomRowProps}
             onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}

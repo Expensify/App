@@ -5,7 +5,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
-import useCardFeeds from '@hooks/useCardFeeds';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -73,9 +72,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const [cardFeeds] = useCardFeeds(policyID);
     const {environmentURL} = useEnvironment();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -211,7 +209,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
-    const disableRequireCompanyCardToggle = Object.keys(cardFeeds ?? {}).length === 0;
+    const disableRequireCompanyCardToggle = !policy?.areCompanyCardsEnabled && !policy?.areExpensifyCardsEnabled;
 
     // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
     // Control policies if the policy does not contain the attribute
@@ -239,6 +237,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
                             title={item.title}
                             description={translate(item.descriptionTranslationKey)}
                             onPress={item.action}
@@ -253,6 +252,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
                     disabled={disableRequireCompanyCardToggle}
                     showLockIcon={disableRequireCompanyCardToggle}
+                    disabledText={translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
                     wrapperStyle={[styles.mt3]}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}

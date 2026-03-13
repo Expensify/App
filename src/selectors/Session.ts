@@ -5,4 +5,6 @@ const emailSelector = (session: OnyxEntry<Session>) => session?.email;
 
 const accountIDSelector = (session: OnyxEntry<Session>) => session?.accountID;
 
-export {emailSelector, accountIDSelector};
+const authTokenSelector = (session: OnyxEntry<Session>) => session?.authToken;
+
+export {emailSelector, accountIDSelector, authTokenSelector};

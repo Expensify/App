@@ -25,7 +25,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
     const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel;
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const groupPaidPolicies = getActivePolicies(policies, currentUserLogin).filter(isPaidGroupPolicy);
 

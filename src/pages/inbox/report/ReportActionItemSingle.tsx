@@ -81,9 +81,7 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-    });
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const {avatarType, avatars, details, source, reportPreviewSenderID} = useReportActionAvatars({report: potentialIOUReport ?? report, action});
 
@@ -228,10 +226,11 @@ function ReportActionItemSingle({
                 {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>}
                 {!!vacationer && !!submittedTo && (
                     <Text style={[styles.chatDelegateMessage]}>
-                        {translate('statusPage.toAsVacationDelegate', {
-                            submittedToName: submittedToDetails?.displayName ?? submittedTo ?? '',
-                            vacationDelegateName: vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '',
-                        })}
+                        {translate(
+                            'statusPage.toAsVacationDelegate',
+                            submittedToDetails?.displayName ?? submittedTo ?? '',
+                            vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '',
+                        )}
                     </Text>
                 )}
                 {!!managerOnVacation && !isAutomaticAction && (

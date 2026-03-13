@@ -3,6 +3,7 @@ name: Notify on Workflow Failure
 on:
   workflow_run:
     workflows: ["Process new code merged to main", "Remote Build iOS", "Remote Build Android"]
+    branches: [main]
     types:
       - completed
 
