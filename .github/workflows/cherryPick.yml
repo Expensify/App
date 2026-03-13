@@ -212,7 +212,8 @@ jobs:
           fi
 
       - name: Find deploy workflow run
-        if: ${{ !steps.cherryPick.outputs.HAS_CONFLICTS || steps.cherryPick.outputs.HAS_CONFLICTS == 'false' }}
+        # HAS_CONFLICTS is unset for version-bump-only CPs (no PULL_REQUEST_URL), which also passes this check
+        if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
         id: findDeployRun
         run: |
           PUSH_SHA=$(git rev-parse HEAD)
@@ -246,7 +247,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Announce successful CP in #deployer
-        if: ${{ !steps.cherryPick.outputs.HAS_CONFLICTS || steps.cherryPick.outputs.HAS_CONFLICTS == 'false' }}
+        # HAS_CONFLICTS is unset for version-bump-only CPs (no PULL_REQUEST_URL), which also passes this check
+        if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
         uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
           status: custom
@@ -263,7 +265,8 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Write workflow summary
-        if: ${{ !steps.cherryPick.outputs.HAS_CONFLICTS || steps.cherryPick.outputs.HAS_CONFLICTS == 'false' }}
+        # HAS_CONFLICTS is unset for version-bump-only CPs (no PULL_REQUEST_URL), which also passes this check
+        if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
         run: |
           {
             echo "## Cherry-pick successful"
