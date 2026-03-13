@@ -47,7 +47,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const {translate} = useLocalize();
     const insets = useSafeAreaInsets();
 
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'BackArrow', 'Rotate']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'Rotate']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
 
     const camera = useRef<Camera>(null);
@@ -140,7 +140,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
         >
             <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
                 {/* Camera viewfinder area */}
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, {paddingTop: insets.top}]}>
                     {cameraPermissionStatus !== RESULTS.GRANTED && (
                         <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                             <ImageSVG
@@ -186,27 +186,6 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                             </View>
                         </View>
                     )}
-                </View>
-
-                {/* Close button (top-left, overlaid on camera) */}
-                <View
-                    style={[styles.pAbsolute, {top: insets.top + 8, left: 16}]}
-                    pointerEvents="box-none"
-                >
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.close')}
-                        onPress={onClose}
-                        style={styles.p2}
-                        sentryLabel="AttachmentCamera-Close"
-                    >
-                        <Icon
-                            height={24}
-                            width={24}
-                            src={lazyIcons.BackArrow}
-                            fill={theme.icon}
-                        />
-                    </PressableWithFeedback>
                 </View>
 
                 {/* Bottom controls */}
