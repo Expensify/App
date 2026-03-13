@@ -113,6 +113,7 @@ function OptionRowLHNData({
     }, [
         fullReport,
         reportAttributes?.brickRoadStatus,
+        reportAttributes?.actionBadge,
         reportAttributes?.reportName,
         areReportErrorsEqual,
         oneTransactionThreadReport,
@@ -162,6 +163,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             report={fullReport}
+            conciergeReportID={conciergeReportID}
         />
     );
 }
