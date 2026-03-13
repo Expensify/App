@@ -2,13 +2,18 @@ import type {ReactNode} from 'react';
 import {useEffect, useRef} from 'react';
 import {AccessibilityInfo} from 'react-native';
 
+type UseAccessibilityAnnouncementOptions = {
+    shouldAnnounceOnNative?: boolean;
+};
+
 const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
 
-function useFormHelpMessageAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceError: boolean) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, _options?: UseAccessibilityAnnouncementOptions) {
     const previousAnnouncedMessageRef = useRef('');
 
     useEffect(() => {
-        if (!shouldAnnounceError || typeof message !== 'string' || !message.trim()) {
+        if (!shouldAnnounceMessage || typeof message !== 'string' || !message.trim()) {
             previousAnnouncedMessageRef.current = '';
             return;
         }
@@ -25,7 +30,7 @@ function useFormHelpMessageAccessibilityAnnouncement(message: string | ReactNode
         }, DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
 
         return () => clearTimeout(timeout);
-    }, [message, shouldAnnounceError]);
+    }, [message, shouldAnnounceMessage]);
 }
 
-export default useFormHelpMessageAccessibilityAnnouncement;
+export default useAccessibilityAnnouncement;
