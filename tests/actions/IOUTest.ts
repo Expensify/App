@@ -12009,7 +12009,16 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {amount: 1000},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+            });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
             const updates = JSON.parse(params.updates) as {amount: number};
@@ -12068,7 +12077,16 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {amount: 1000},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+            });
 
             expect(writeSpy).not.toHaveBeenCalled();
 
@@ -12116,7 +12134,16 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([firstTransactionID, secondTransactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
+            updateMultipleMoneyRequests({
+                transactionIDs: [firstTransactionID, secondTransactionID],
+                changes: {amount: 1000},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+            });
 
             const getOptimisticTotal = (callIndex: number) => {
                 const onyxData = writeSpy.mock.calls.at(callIndex)?.[2] as {optimisticData: Array<{key: string; value?: {total?: number}}>};
@@ -12173,7 +12200,16 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([transactionID], {amount: -1000}, policy, reports, transactions, {}, undefined);
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {amount: -1000},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+            });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
             const updates = JSON.parse(params.updates) as {amount: number};
@@ -12234,7 +12270,16 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([transactionID], {billable: true, reimbursable: false}, policy, reports, transactions, {}, undefined);
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {billable: true, reimbursable: false},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+            });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
             const updates = JSON.parse(params.updates) as {billable: boolean; reimbursable: boolean};
@@ -12286,7 +12331,16 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {amount: 1000},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+            });
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
             const updates = JSON.parse(params.updates) as {amount: number};
@@ -12336,7 +12390,16 @@ describe('actions/IOU', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             // No canEditFieldOfMoneyRequest mock — unreported expenses must bypass that check
-            updateMultipleMoneyRequests([transactionID], {merchant: 'New merchant'}, policy, reports, transactions, {}, undefined);
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {merchant: 'New merchant'},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+            });
 
             expect(writeSpy).toHaveBeenCalled();
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -12380,7 +12443,16 @@ describe('actions/IOU', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
-            updateMultipleMoneyRequests([transactionID], {amount: 2000}, policy, reports, transactions, {}, undefined);
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {amount: 2000},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+            });
             await waitForBatchedUpdates();
 
             const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
@@ -12425,7 +12497,16 @@ describe('actions/IOU', () => {
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
-            updateMultipleMoneyRequests([transactionID], {category: ''}, policy, reports, transactions, {}, undefined);
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {category: ''},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+            });
             await waitForBatchedUpdates();
 
             const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
