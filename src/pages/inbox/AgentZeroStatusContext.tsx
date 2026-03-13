@@ -50,6 +50,11 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
 /**
  * Inner gate — all Pusher, reasoning, label, and processing state.
  * Only mounted when reportID matches the Concierge report.
+ *
+ * TODO: This was a 1-to-1 move from the former useAgentZeroStatusIndicator hook.
+ * The gate mixes three concerns (Pusher/reasoning, debounced label, processing state)
+ * that should be extracted into focused hooks (e.g. useConciergeReasoning,
+ * useDebouncedStatusLabel). See CLEAN-REACT-PATTERNS-4.
  */
 function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{reportID: string}>) {
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
