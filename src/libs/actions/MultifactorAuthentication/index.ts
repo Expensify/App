@@ -203,6 +203,43 @@ async function revokeMultifactorAuthenticationCredentials(params: RevokeMultifac
     }
 }
 
+async function setPersonalDetailsAndShipExpensifyCardsWithPIN(params: MultifactorAuthenticationScenarioParameters['SET-PIN-ORDER-CARD']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN,
+            {
+                ...params,
+                signedChallenge: JSON.stringify(params.signedChallenge),
+            },
+            {
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: true,
+                        },
+                    },
+                ],
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: false,
+                        },
+                    },
+                ],
+            },
+        );
+
+        const {jsonCode, message} = response ?? {};
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to set personal details and ship card with PIN', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, undefined);
+    }
+}
 /** Check whether a given transaction is still pending review and update the transactionsPending3DSReview key in Onyx */
 async function isTransactionStillPending3DSReview(transactionID: string) {
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW, null, {});
@@ -288,6 +325,7 @@ export {
     revokeMultifactorAuthenticationCredentials,
     markHasAcceptedSoftPrompt,
     clearLocalMFAPublicKeyList,
+    setPersonalDetailsAndShipExpensifyCardsWithPIN,
     isTransactionStillPending3DSReview,
     denyTransaction,
     authorizeTransaction,

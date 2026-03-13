@@ -131,6 +131,7 @@ import {
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
     canBeAutoReimbursed,
+    canSubmitAndIsAwaitingForCurrentUser,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
@@ -9783,16 +9784,17 @@ function canSubmitReport(
     );
 }
 
-function getIOUReportActionToApproveOrPay(
+function getIOUReportActionWithBadge(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     updatedIouReport: OnyxEntry<OnyxTypes.Report>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
-): OnyxEntry<ReportAction> {
+): {reportAction: OnyxEntry<ReportAction>; actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>} {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
-    return Object.values(chatReportActions).find((action) => {
-        if (!action) {
+    let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
+    const reportAction = Object.values(chatReportActions).find((action) => {
+        if (!action || action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
             return false;
         }
         const iouReport = updatedIouReport?.reportID === action.childReportID ? updatedIouReport : getReportOrDraftReport(action.childReportID);
@@ -9800,10 +9802,32 @@ function getIOUReportActionToApproveOrPay(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policy = getPolicy(iouReport?.policyID);
         // Only show to the actual payer, exclude admins with bank account access
-        const shouldShowSettlementButton =
-            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) || canApproveIOU(iouReport, policy, reportMetadata);
-        return action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton && !isDeletedAction(action);
+        if (canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy)) {
+            actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
+            return true;
+        }
+        if (canApproveIOU(iouReport, policy, reportMetadata)) {
+            actionBadge = CONST.REPORT.ACTION_BADGE.APPROVE;
+            return true;
+        }
+        const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
+            iouReport,
+            chatReport,
+            policy,
+            getReportTransactions(iouReport?.reportID),
+            allTransactionViolations,
+            currentUserEmail,
+            userAccountID,
+            getAllReportActions(iouReport?.reportID),
+        );
+        if (isWaitingSubmitFromCurrentUser) {
+            actionBadge = CONST.REPORT.ACTION_BADGE.SUBMIT;
+            return true;
+        }
+        return false;
     });
+
+    return {reportAction, actionBadge};
 }
 
 /**
@@ -13167,7 +13191,7 @@ export {
     updateMoneyRequestTaxRate,
     updateLastLocationPermissionPrompt,
     shouldOptimisticallyUpdateSearch,
-    getIOUReportActionToApproveOrPay,
+    getIOUReportActionWithBadge,
     getNavigationUrlOnMoneyRequestDelete,
     getNavigationUrlAfterTrackExpenseDelete,
     canSubmitReport,

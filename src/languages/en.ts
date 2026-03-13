@@ -191,6 +191,12 @@ const translations = {
         home: 'Home',
         inbox: 'Inbox',
         yourReviewIsRequired: 'Your review is required',
+        actionBadge: {
+            submit: 'Submit',
+            approve: 'Approve',
+            pay: 'Pay',
+            fix: 'Fix',
+        },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
         group: 'Group',
@@ -769,6 +775,9 @@ const translations = {
                 return `${displayCount} other ${otherDeviceCount === 1 ? 'device' : 'devices'}`;
             },
         },
+        setPin: {
+            didNotShipCard: "We didn't ship your card. Please try again.",
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1047,6 +1056,11 @@ const translations = {
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Review ${amount} in potential fraud at ${merchant}`,
                 subtitle: 'Expensify Card',
                 cta: 'Review',
+            },
+            validateAccount: {
+                title: 'Validate your account to continue using Expensify',
+                subtitle: 'Account',
+                cta: 'Validate',
             },
         },
         assignedCards: 'Your Expensify Cards',
@@ -2398,6 +2412,14 @@ const translations = {
             alertMessage: ({cardLastFour, amount, merchant, date}: {cardLastFour: string; amount: string; merchant: string; date: string}) =>
                 `identified suspicious activity on card ending in ${cardLastFour}. Do you recognize this charge?\n\n${amount} for ${merchant} - ${date}`,
         },
+        setYourPin: 'Set the PIN for your card.',
+        confirmYourPin: 'Enter your PIN again to confirm.',
+        pinMustBeFourDigits: 'PIN must be exactly 4 digits.',
+        invalidPin: 'Please choose a more secure PIN.',
+        pinMismatch: 'PINs do not match. Please try again.',
+        revealPin: 'Reveal PIN',
+        hidePin: 'Hide PIN',
+        pin: 'PIN',
         freezeCard: 'Freeze card',
         unfreeze: 'Unfreeze',
         unfreezeCard: 'Unfreeze card',
@@ -8611,6 +8633,7 @@ const translations = {
             title: 'Members',
             findMember: 'Find member',
             addMember: 'Add member',
+            allMembers: 'All members',
             email: 'Email address',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
             forceCloseAccount: () => ({

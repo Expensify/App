@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'ホーム',
         inbox: '受信トレイ',
         yourReviewIsRequired: '確認が必要です',
+        actionBadge: {
+            submit: '送信',
+            approve: '承認する',
+            pay: '支払う',
+            fix: '修正',
+        },
         success: '成功しました',
         group: 'グループ',
         profile: 'プロフィール',
@@ -750,6 +756,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `この操作はお使いのデバイスではサポートされていません。<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> または <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Playストア</a> からExpensifyアプリをダウンロードして、もう一度お試しください。`,
         },
         verificationFailed: '認証に失敗しました',
+        setPin: {didNotShipCard: 'カードを発送できませんでした。もう一度お試しください。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1012,6 +1019,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
+            validateAccount: {title: 'Expensify を引き続きご利用いただくには、アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
         },
         assignedCards: 'お客様の Expensify カード',
         assignedCardsRemaining: ({amount}: {amount: string}) => `残額：${amount}`,
@@ -2345,6 +2353,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${date} の ${merchant} への ${amount}`,
         },
+        setYourPin: 'PIN を設定.',
+        confirmYourPin: 'PIN を確認してください.',
+        pinMustBeFourDigits: 'PIN は 4 桁で入力してください。',
+        invalidPin: 'より安全な暗証番号を選択してください。',
+        pinMismatch: 'PIN が一致しません。もう一度お試しください。',
+        revealPin: 'PIN を表示',
+        hidePin: 'PIN を非表示',
+        pin: 'PIN',
         freezeCard: 'カードを一時停止',
         unfreeze: '再開',
         unfreezeCard: 'カードの一時停止を解除',
@@ -8539,6 +8555,7 @@ ${reportName}
             title: 'メンバー',
             findMember: 'メンバーを検索',
             addMember: 'メンバーを追加',
+            allMembers: 'すべてのメンバー',
             email: 'メールアドレス',
             closeAccount: () => ({
                 one: 'アカウントを閉じる',
