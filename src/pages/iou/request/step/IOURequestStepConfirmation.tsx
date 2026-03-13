@@ -30,6 +30,7 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileSafari} from '@libs/Browser';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -1526,7 +1527,8 @@ function IOURequestStepConfirmation({
     const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
         <ScreenWrapper
-            shouldEnableMaxHeight={canUseTouchScreen()}
+            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             testID="IOURequestStepConfirmation"
         >
             <DragAndDropProvider isDisabled={!showReceiptEmptyState}>
