@@ -67,6 +67,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -139,7 +140,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isRestrictedToPreferredPolicy, isRestrictedPolicyCreation} = usePreferredPolicy();
@@ -354,9 +355,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             }
 
             // Start the scan flow directly
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts, true);
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, true);
         });
-    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID, showRedirectToExpensifyClassicModal]);
+    }, [shouldRedirectToExpensifyClassic, draftTransactionIDs, reportID, showRedirectToExpensifyClassicModal]);
 
     const startQuickScan = useCallback(() => {
         interceptAnonymousUser(() => {
@@ -367,9 +368,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts, true);
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, true);
         });
-    }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts, ownerBillingGraceEndPeriod]);
+    }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, draftTransactionIDs, ownerBillingGraceEndPeriod]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -450,12 +451,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                             showRedirectToExpensifyClassicModal();
                             return;
                         }
-                        startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
+                        startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
                     }),
                 sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE,
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID, icons, showRedirectToExpensifyClassicModal]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, draftTransactionIDs, reportID, icons, showRedirectToExpensifyClassicModal]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -493,6 +494,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         lastDistanceExpenseType,
                         targetAccountPersonalDetails,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
+                        draftTransactionIDs,
                         isFromFloatingActionButton: true,
                     });
                 });
@@ -520,7 +522,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     }
 
                     const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
-                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts, true);
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, true);
                 });
             };
 
@@ -563,7 +565,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         currentUserPersonalDetails.accountID,
         showDelegateNoAccessModal,
         reportID,
-        allTransactionDrafts,
+        draftTransactionIDs,
         allBetas,
         ownerBillingGraceEndPeriod,
     ]);
@@ -599,7 +601,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                         return;
                     }
                     // Start the flow to start tracking a distance request
-                    startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, lastDistanceExpenseType, undefined, undefined, true);
+                    startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, lastDistanceExpenseType, false, undefined, true);
                 });
             },
             sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.TRACK_DISTANCE,
@@ -666,7 +668,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                   return;
                               }
 
-                              startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
+                              startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
                           }),
                       sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE,
                   },
