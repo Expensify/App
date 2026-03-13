@@ -289,12 +289,12 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     );
 
     const statusPopoverComponent = useCallback(
-        ({closeOverlay}: {closeOverlay: () => void}) => (
+        (props: {closeOverlay: () => void}) => (
             <MultiSelectPopup
                 label={translate('common.status')}
                 items={statusItems}
                 value={selectedStatuses}
-                closeOverlay={closeOverlay}
+                closeOverlay={props.closeOverlay}
                 onChange={setSelectedStatuses}
             />
         ),
@@ -309,6 +309,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     onPress={onSelectAll}
                     accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                     accessibilityRole={CONST.ROLE.BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.LIST_HEADER_SELECT_ALL}
                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 >
                     <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
@@ -334,6 +335,25 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             statusPopoverComponent,
         ],
     );
+
+    const listFooterContent = useMemo(() => {
+        if (shouldShowUnreportedTransactionsSkeletons) {
+            return (
+                <UnreportedExpensesSkeleton
+                    fixedNumberOfItems={3}
+                    reasonAttributes={paginationSkeletonReasonAttributes}
+                />
+            );
+        }
+        if (headerMessage) {
+            return (
+                <View style={[styles.ph5, styles.pt3]}>
+                    <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
+                </View>
+            );
+        }
+        return undefined;
+    }, [shouldShowUnreportedTransactionsSkeletons, headerMessage, paginationSkeletonReasonAttributes, styles.ph5, styles.pt3, styles.textLabel, styles.colorMuted]);
 
     const hasSearchTerm = debouncedSearchValue.trim().length > 0;
     const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
@@ -427,18 +447,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
                 addBottomSafeAreaPadding
-                listFooterContent={
-                    shouldShowUnreportedTransactionsSkeletons ? (
-                        <UnreportedExpensesSkeleton
-                            fixedNumberOfItems={3}
-                            reasonAttributes={paginationSkeletonReasonAttributes}
-                        />
-                    ) : headerMessage ? (
-                        <View style={[styles.ph5, styles.pt3]}>
-                            <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
-                        </View>
-                    ) : undefined
-                }
+                listFooterContent={listFooterContent}
                 footerContent={footerContent}
                 disableMaintainingScrollPosition
             />
