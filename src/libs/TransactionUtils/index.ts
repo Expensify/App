@@ -1544,7 +1544,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if any of the given transactions have a pending RTER violation.
  */
-function hasAnyPendingRTERViolation(transactions: OnyxEntry<Transaction>[], allTransactionViolations: OnyxCollection<TransactionViolations>): boolean {
+function hasAnyPendingRTERViolation(transactions: Array<OnyxEntry<Transaction>>, allTransactionViolations: OnyxCollection<TransactionViolations>): boolean {
     return transactions.some((t) => {
         const txViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t?.transactionID}`];
         return hasPendingRTERViolation(txViolations);
