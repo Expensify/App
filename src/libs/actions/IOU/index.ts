@@ -131,6 +131,7 @@ import {
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
     canBeAutoReimbursed,
+    canSubmitAndIsAwaitingForCurrentUser,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
@@ -867,6 +868,7 @@ type PayMoneyRequestFunctionParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     amountOwed: OnyxEntry<number>;
+    methodID?: number;
     onPaid?: () => void;
 };
 
@@ -1409,11 +1411,7 @@ function startMoneyRequest(
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
     if (isFromFloatingActionButton) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
-            isFromFloatingActionButton,
-            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-            ...(requestType && {iouRequestType: requestType}),
-        });
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
     }
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
@@ -9656,6 +9654,7 @@ function getPayMoneyRequestParams({
             optimisticHoldReportID,
             optimisticHoldActionID,
             optimisticHoldReportExpenseActionIDs,
+            ...(bankAccountID != null ? {bankAccountID} : {}),
             ...policyParams,
         },
         onyxData,
@@ -9814,16 +9813,17 @@ function canSubmitReport(
     );
 }
 
-function getIOUReportActionToApproveOrPay(
+function getIOUReportActionWithBadge(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     updatedIouReport: OnyxEntry<OnyxTypes.Report>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
-): OnyxEntry<ReportAction> {
+): {reportAction: OnyxEntry<ReportAction>; actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>} {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
-    return Object.values(chatReportActions).find((action) => {
-        if (!action) {
+    let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
+    const reportAction = Object.values(chatReportActions).find((action) => {
+        if (!action || action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
             return false;
         }
         const iouReport = updatedIouReport?.reportID === action.childReportID ? updatedIouReport : getReportOrDraftReport(action.childReportID);
@@ -9831,10 +9831,32 @@ function getIOUReportActionToApproveOrPay(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policy = getPolicy(iouReport?.policyID);
         // Only show to the actual payer, exclude admins with bank account access
-        const shouldShowSettlementButton =
-            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) || canApproveIOU(iouReport, policy, reportMetadata);
-        return action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton && !isDeletedAction(action);
+        if (canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy)) {
+            actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
+            return true;
+        }
+        if (canApproveIOU(iouReport, policy, reportMetadata)) {
+            actionBadge = CONST.REPORT.ACTION_BADGE.APPROVE;
+            return true;
+        }
+        const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
+            iouReport,
+            chatReport,
+            policy,
+            getReportTransactions(iouReport?.reportID),
+            allTransactionViolations,
+            currentUserEmail,
+            userAccountID,
+            getAllReportActions(iouReport?.reportID),
+        );
+        if (isWaitingSubmitFromCurrentUser) {
+            actionBadge = CONST.REPORT.ACTION_BADGE.SUBMIT;
+            return true;
+        }
+        return false;
     });
+
+    return {reportAction, actionBadge};
 }
 
 /**
@@ -11271,7 +11293,6 @@ function completePaymentOnboarding(
         onboardingPolicyID,
         paymentSelected,
         wasInvited: true,
-        shouldSkipTestDriveModal: true,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
         isSelfTourViewed,
@@ -11295,6 +11316,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         betas,
         isSelfTourViewed,
         amountOwed,
+        methodID,
         onPaid,
     } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
@@ -11319,6 +11341,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         currentUserAccountIDParam: currentUserAccountID,
         betas,
         isSelfTourViewed,
+        bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -13196,7 +13219,7 @@ export {
     updateMoneyRequestTaxRate,
     updateLastLocationPermissionPrompt,
     shouldOptimisticallyUpdateSearch,
-    getIOUReportActionToApproveOrPay,
+    getIOUReportActionWithBadge,
     getNavigationUrlOnMoneyRequestDelete,
     getNavigationUrlAfterTrackExpenseDelete,
     canSubmitReport,

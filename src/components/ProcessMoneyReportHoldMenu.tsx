@@ -41,6 +41,9 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Type of payment */
     paymentType?: PaymentMethodType;
 
+    /** Selected VBBA ID for payment */
+    methodID?: number;
+
     /** Type of action handled */
     requestType?: ActionHandledType;
 
@@ -61,6 +64,7 @@ function ProcessMoneyReportHoldMenu({
     onClose,
     isVisible,
     paymentType,
+    methodID,
     chatReport,
     moneyRequestReport,
     transactionCount,
@@ -125,6 +129,7 @@ function ProcessMoneyReportHoldMenu({
                 isSelfTourViewed,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                methodID,
                 onPaid: startAnimation,
             });
         }
