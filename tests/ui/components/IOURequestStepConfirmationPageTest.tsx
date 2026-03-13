@@ -27,9 +27,9 @@ jest.mock('@rnmapbox/maps', () => {
 });
 
 jest.mock('@src/languages/IntlStore', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const en: Record<string, unknown> = require('@src/languages/en').default;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const flatten: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
     const cache = new Map<string, Record<string, unknown>>();
     cache.set('en', flatten(en));
@@ -49,7 +49,7 @@ jest.mock('@assets/emojis', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         default: actual.default,
         importEmojiLocale: jest.fn(() => Promise.resolve()),
     };
@@ -98,6 +98,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         navigate: jest.fn(),
         goBack: jest.fn(),
         dismissModalWithReport: jest.fn(),
+        setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
         navigationRef: mockRef,
     };
 });
@@ -1263,6 +1264,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
+            await waitForBatchedUpdatesWithAct();
 
             // Unreported distance requests should skip createDistanceRequest and use requestMoney
             expect(IOU.createDistanceRequest).not.toHaveBeenCalled();

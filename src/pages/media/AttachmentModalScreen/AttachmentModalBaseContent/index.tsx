@@ -166,11 +166,12 @@ function AttachmentModalBaseContent({
             return;
         }
 
-        if (onConfirm) {
-            onConfirm(Object.assign(files ?? {}, {source} as FileObject));
-        }
-
         onClose?.();
+
+        // Defer onConfirm to the next frame so the target screen has time to unfreeze and re-mount its refs (e.g. composerRef.clearWorklet)
+        requestAnimationFrame(() => {
+            onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
+        });
     }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
 
     // Close the modal when the escape key is pressed
@@ -330,7 +331,12 @@ function AttachmentModalBaseContent({
                 subTitleLink={currentAttachmentLink ?? ''}
             />
             <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
-                {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
+                {isLoading && (
+                    <FullScreenLoadingIndicator
+                        testID="attachment-loading-spinner"
+                        reasonAttributes={{context: 'AttachmentModalBaseContent'}}
+                    />
+                )}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
                         icon={illustrations.ToddBehindCloud}

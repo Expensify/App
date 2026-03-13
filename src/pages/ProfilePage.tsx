@@ -110,6 +110,7 @@ function ProfilePage({route}: ProfilePageProps) {
     }
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
     const timezone = details?.timezone;
@@ -289,7 +290,12 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                     </ScrollView>
-                    {!hasAvatar && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
+                    {!hasAvatar && isLoading && (
+                        <FullScreenLoadingIndicator
+                            style={styles.flex1}
+                            reasonAttributes={{context: 'ProfilePage', isLoading}}
+                        />
+                    )}
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>

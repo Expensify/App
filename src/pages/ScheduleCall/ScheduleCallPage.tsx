@@ -132,6 +132,7 @@ function ScheduleCallPage() {
     const timeSlotsForSelectedData = scheduleCallDraft?.date ? (timeSlotDateMap?.[scheduleCallDraft?.date] ?? []) : [];
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (calendlySchedule?.isLoading || !firstDate || scheduleCallDraft?.date) {
             return;
         }
@@ -165,7 +166,10 @@ function ScheduleCallPage() {
             />
             <FullPageOfflineBlockingView>
                 {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <FullScreenLoadingIndicator
+                        style={[styles.flex1, styles.pRelative]}
+                        reasonAttributes={{context: 'ScheduleCallPage', isLoading: !!adminReportNameValuePairs?.calendlySchedule?.isLoading}}
+                    />
                 ) : (
                     <ScrollView style={styles.flexGrow1}>
                         <View style={styles.ph5}>

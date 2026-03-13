@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention  */
 import type {
     CommonActions,
     NavigationContainerRefWithCurrent,
@@ -97,10 +98,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
         country?: Country | '';
     };
-    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        country: string;
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: {
+        country?: string;
     };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -150,6 +149,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
         /** cardID of selected card */
@@ -223,11 +223,6 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
         subPage?: string;
         action?: 'edit';
-    };
-    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: {
-        // TODO will be removed once dynamic routes are implemented https://github.com/Expensify/App/issues/73825
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: undefined;
@@ -971,6 +966,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_ADD]: {
         policyID: string;
+        subPage?: string;
+        action?: 'edit';
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD]: {
         policyID: string;
@@ -1287,6 +1284,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TRAVEL_EXPORT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: {
@@ -1861,6 +1861,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: IOUType;
         reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes | undefined;
         action: IOUAction;
         pageIndex: string;
@@ -1929,7 +1930,9 @@ type MoneyRequestNavigatorParamList = {
         iouType: IOUType;
         transactionID: string;
         reportID: string;
+        backToReport?: string;
         imageType: OdometerImageType;
+        isEditingConfirmation?: string;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
@@ -2520,6 +2523,7 @@ type TravelNavigatorParamList = {
         policyID?: string;
     };
     [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
+        policyID?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2831,6 +2835,7 @@ type SharedScreensParamList = {
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes;
         shouldForceLogin: string;
         domain?: Routes;
@@ -2840,6 +2845,7 @@ type SharedScreensParamList = {
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes;
     };
 };
@@ -2919,6 +2925,8 @@ type AttachmentModalScreensParamList = {
         iouType?: IOUType;
         mergeTransactionID?: string;
         imageType?: OdometerImageType;
+        isEditingConfirmation?: boolean;
+        backToReport?: string;
     };
     [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: AttachmentModalContainerModalProps & {
         reportID: string;
@@ -2926,6 +2934,16 @@ type AttachmentModalScreensParamList = {
         action: IOUAction;
         iouType: IOUType;
         readonly: string;
+    };
+    [SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW]: AttachmentModalContainerModalProps & {
+        reportID: string;
+        transactionID: string;
+        action: IOUAction;
+        iouType: IOUType;
+        readonly: string;
+        imageType: OdometerImageType;
+        isEditingConfirmation: boolean;
+        backToReport?: string;
     };
     [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
@@ -3032,10 +3050,13 @@ type RestrictedActionParamList = {
 
 type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS]: {
+        cardID: string;
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
+    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
+        cardID: string;
+    };
 };
 
 type SplitExpenseParamList = {
