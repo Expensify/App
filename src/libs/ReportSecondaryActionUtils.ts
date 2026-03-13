@@ -68,8 +68,8 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
+    hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
-    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOdometerDistanceRequest,
@@ -199,15 +199,13 @@ function isSubmitAction({
         return false;
     }
 
-    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
-
-    if (!transactionAreComplete) {
-        return false;
-    }
-
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
         return false;
     }
 
@@ -802,10 +800,6 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
 
     const reportTransaction = reportTransactions.at(0);
 
-    if (isDistanceRequestTransactionUtils(reportTransaction)) {
-        return false;
-    }
-
     // We can't duplicate per diem expenses that don't have start & end dates.
     const dates = reportTransaction?.comment?.customUnit?.attributes?.dates;
     if (isPerDiemRequestTransactionUtils(reportTransaction) && (!dates?.start || !dates?.end)) {
@@ -960,6 +954,8 @@ function getSecondaryReportActions({
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
 
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);

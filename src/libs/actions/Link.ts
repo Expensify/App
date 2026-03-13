@@ -244,7 +244,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
         });
 
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, introSelected, undefined, [], undefined, '0', true);
+        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true});
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
@@ -335,7 +335,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(conciergeReportID, currentUserAccountID, false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, () => true);
                                     return;
                                 }
 
