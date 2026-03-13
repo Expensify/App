@@ -33,6 +33,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
+import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -47,6 +48,17 @@ const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>
 
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
+
+function MissingPersonalDetailsWithPinContext(props: Record<string, unknown>) {
+    return (
+        <PINContextProvider>
+            <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator
+                /* eslint-disable-next-line react/jsx-props-no-spreading */
+                {...props}
+            />
+        </PINContextProvider>
+    );
+}
 
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
@@ -366,7 +378,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
-                                component={ModalStackNavigators.MissingPersonalDetailsModalStackNavigator}
+                                component={MissingPersonalDetailsWithPinContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}

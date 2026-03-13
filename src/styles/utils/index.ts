@@ -1502,7 +1502,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getIconColorStyle: (isSuccess: boolean, isError: boolean, isStrong = false): string => {
         if (isStrong) {
-            return theme.white;
+            return theme.icon;
         }
         if (isSuccess) {
             return theme.badgeSuccessText;
