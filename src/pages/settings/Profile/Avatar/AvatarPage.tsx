@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
@@ -23,7 +24,6 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import Navigation from '@libs/Navigation/Navigation';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {getDefaultAvatarName, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
-import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
 import {updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -60,6 +60,10 @@ function ProfileAvatar() {
     const [imageData, setImageData] = useState<ImageData>({...EMPTY_FILE});
 
     const isDirty = imageData.uri !== '' || !!selected;
+
+    useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
+    });
 
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
 
@@ -315,7 +319,6 @@ function ProfileAvatar() {
                 imageType={cropImageData.type}
                 buttonLabel={translate('avatarPage.upload')}
             />
-            <DiscardChangesConfirmation getHasUnsavedChanges={() => !isSavingRef.current && isDirty} />
         </ScreenWrapper>
     );
 }
