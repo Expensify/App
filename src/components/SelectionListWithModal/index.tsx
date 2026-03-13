@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
@@ -39,10 +40,11 @@ function SelectionListWithModal<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const theme = useTheme();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
 
@@ -81,9 +83,25 @@ function SelectionListWithModal<TItem extends ListItem>({
 
     useHandleSelectionMode(selectedItems);
 
+    const desktopHeaderStyle = isLargeScreenWidth
+        ? {
+              marginHorizontal: 20,
+              paddingLeft: 16,
+              paddingRight: 8,
+              paddingTop: 8,
+              paddingBottom: 8,
+              minHeight: 40,
+              borderBottomWidth: 1,
+              borderColor: theme.border,
+              borderTopLeftRadius: 8,
+              borderTopRightRadius: 8,
+              backgroundColor: theme.highlightBG,
+          }
+        : undefined;
+
     const style = {
         ...styleProp,
-        listHeaderWrapperStyle: [styles.baseListHeaderWrapperStyle, styleProp?.listHeaderWrapperStyle],
+        listHeaderWrapperStyle: [isLargeScreenWidth ? desktopHeaderStyle : styles.baseListHeaderWrapperStyle, styleProp?.listHeaderWrapperStyle],
     };
 
     const handleLongPressRow = (item: TItem) => {

@@ -469,6 +469,7 @@ function WorkspacesListPage() {
                             isHovered={hovered}
                             disabled={item.disabled}
                             onPress={item.action}
+                            isLastItem={index === filteredWorkspaces.length - 1}
                         />
                     )}
                 </PressableWithoutFeedback>
@@ -624,7 +625,7 @@ function WorkspacesListPage() {
             )}
             {!isLessThanMediumScreen && filteredWorkspaces.length > 0 && (
                 <View
-                    style={[styles.flexRow, styles.gap5, styles.pv2, styles.pl4, styles.pr2, styles.mh5, styles.mnh40, styles.highlightBG, {borderBottomWidth: 1, borderColor: theme.border}]}
+                    style={[styles.flexRow, styles.gap5, styles.pv2, styles.pl4, styles.pr2, styles.mh5, styles.mnh40, styles.highlightBG, {borderBottomWidth: 1, borderColor: theme.border, borderTopLeftRadius: 8, borderTopRightRadius: 8}]}
                 >
                     <View style={[styles.flexRow, styles.flex2]}>
                         <Text
