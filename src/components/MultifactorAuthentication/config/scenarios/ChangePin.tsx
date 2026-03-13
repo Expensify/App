@@ -2,11 +2,7 @@ import React from 'react';
 import {DefaultSuccessScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
-import type {
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioAdditionalParams,
-    MultifactorAuthenticationScenarioCustomConfig,
-} from '@components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 
@@ -18,13 +14,6 @@ type Payload = {
     pin: string;
     cardID: string;
 };
-
-/**
- * Type guard to verify the payload is a ChangePin payload.
- */
-function isChangePinPayload(payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined): payload is Payload {
-    return !!payload && 'cardID' in payload && 'pin' in payload;
-}
 
 const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
@@ -50,18 +39,14 @@ const ChangePINSuccessScreen = createScreenWithDefaults(
  * This scenario is used when a UK/EU cardholder changes the PIN of their physical card.
  *
  * Callback behavior:
- * - Success: Navigate to ExpensifyCardPage and return SKIP_OUTCOME_SCREEN
+ * - Success: Return SHOW_OUTCOME_SCREEN to show success screen
  * - Authentication failure: Return SHOW_OUTCOME_SCREEN to show failure screen
  */
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS],
     action: changePINForCard,
 
-    callback: async (isSuccessful, _callbackInput, payload) => {
-        if (isSuccessful && isChangePinPayload(payload)) {
-            return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
-        }
-
+    callback: async () => {
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
 

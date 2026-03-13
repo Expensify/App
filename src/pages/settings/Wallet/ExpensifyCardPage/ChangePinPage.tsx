@@ -78,7 +78,7 @@ function ChangePinPageContent({cardID}: {cardID: string}) {
     }, [validatePin, isConfirmStep, setIsConfirmStep, executeScenario, confirmPin, cardID]);
 
     const currentPin = isConfirmStep ? confirmPin : enteredPin;
-    const title = isConfirmStep ? translate('cardPage.changeYourPin') : translate('cardPage.confirmYourChangedPin');
+    const title = isConfirmStep ? translate('cardPage.confirmYourChangedPin') : translate('cardPage.changeYourPin');
 
     return (
         <ScreenWrapper

@@ -46,7 +46,6 @@ const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS],
     action: revealPINForCard,
-
     callback: async (isSuccessful, callbackInput, payload) => {
         if (isSuccessful && isRevealPinPayload(payload)) {
             const pin = callbackInput.body?.pin as string | undefined;
