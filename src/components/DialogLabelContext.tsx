@@ -1,67 +1,53 @@
-import React, {createContext, useContext, useRef, useState} from 'react';
+import React, {createContext, useContext, useRef} from 'react';
+import type {View} from 'react-native';
 
-type LabelEntry = {id: number; text: string; ready: boolean};
+type LabelEntry = {id: number; text: string};
 
 type DialogLabelActions = {
     pushLabel: (text: string) => number;
     popLabel: (id: number) => void;
-    updateLabel: (id: number, text: string) => void;
-    markReady: (id: number) => void;
     claimInitialFocus: () => boolean;
+    containerRef: React.RefObject<View | null>;
     isInsideDialog: boolean;
-};
-
-type DialogLabelValue = {
-    labelText: string | undefined;
-    isReady: boolean;
 };
 
 const DialogLabelActionsContext = createContext<DialogLabelActions>({
     pushLabel: () => 0,
     popLabel: () => {},
-    updateLabel: () => {},
-    markReady: () => {},
     claimInitialFocus: () => false,
+    containerRef: {current: null},
     isInsideDialog: false,
 });
 
-const DialogLabelValueContext = createContext<DialogLabelValue>({
-    labelText: undefined,
-    isReady: false,
-});
-
 function DialogLabelProvider({children}: {children: React.ReactNode}) {
+    const containerRef = useRef<View>(null);
     const nextIdRef = useRef(0);
+    const labelStackRef = useRef<LabelEntry[]>([]);
     const initialFocusClaimedRef = useRef(false);
-    const [labelStack, setLabelStack] = useState<LabelEntry[]>([]);
+
+    const updateContainerLabel = () => {
+        const top = labelStackRef.current.at(-1);
+        const node = containerRef.current as unknown as HTMLElement | null;
+        if (!node || typeof node.setAttribute !== 'function') {
+            return;
+        }
+        if (top?.text) {
+            node.setAttribute('aria-label', top.text);
+        } else {
+            node.removeAttribute('aria-label');
+        }
+    };
+
     const pushLabel = (text: string): number => {
         const id = nextIdRef.current++;
-        setLabelStack((prev) => [...prev, {id, text, ready: false}]);
+        labelStackRef.current = [...labelStackRef.current, {id, text}];
+        updateContainerLabel();
         return id;
     };
 
     const popLabel = (id: number) => {
-        setLabelStack((prev) => prev.filter((entry) => entry.id !== id));
-    };
-
-    const updateLabel = (id: number, text: string) => {
-        setLabelStack((prev) => {
-            const existing = prev.find((entry) => entry.id === id);
-            if (existing?.text === text) {
-                return prev;
-            }
-            return prev.map((entry) => (entry.id === id ? {...entry, text} : entry));
-        });
-    };
-
-    const markReady = (id: number) => {
-        setLabelStack((prev) => {
-            const existing = prev.find((entry) => entry.id === id);
-            if (existing?.ready) {
-                return prev;
-            }
-            return prev.map((entry) => (entry.id === id ? {...entry, ready: true} : entry));
-        });
+        labelStackRef.current = labelStackRef.current.filter((entry) => entry.id !== id);
+        updateContainerLabel();
     };
 
     const claimInitialFocus = (): boolean => {
@@ -75,28 +61,16 @@ function DialogLabelProvider({children}: {children: React.ReactNode}) {
     const actions: DialogLabelActions = {
         pushLabel,
         popLabel,
-        updateLabel,
-        markReady,
         claimInitialFocus,
+        containerRef,
         isInsideDialog: true,
     };
 
-    const topEntry = labelStack.at(-1);
-    const value: DialogLabelValue = {labelText: topEntry?.text, isReady: topEntry?.ready ?? false};
-
-    return (
-        <DialogLabelActionsContext.Provider value={actions}>
-            <DialogLabelValueContext.Provider value={value}>{children}</DialogLabelValueContext.Provider>
-        </DialogLabelActionsContext.Provider>
-    );
+    return <DialogLabelActionsContext.Provider value={actions}>{children}</DialogLabelActionsContext.Provider>;
 }
 
 function useDialogLabelActions(): DialogLabelActions {
     return useContext(DialogLabelActionsContext);
 }
 
-function useDialogLabelValue(): DialogLabelValue {
-    return useContext(DialogLabelValueContext);
-}
-
-export {DialogLabelProvider, useDialogLabelActions, useDialogLabelValue};
+export {DialogLabelProvider, useDialogLabelActions};

@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import type {PropsWithChildren} from 'react';
-import {DialogLabelProvider, useDialogLabelActions, useDialogLabelValue} from '@components/DialogLabelContext';
+import {DialogLabelProvider, useDialogLabelActions} from '@components/DialogLabelContext';
 
 function wrapper({children}: PropsWithChildren) {
     return <DialogLabelProvider>{children}</DialogLabelProvider>;
@@ -10,12 +10,9 @@ function wrapper({children}: PropsWithChildren) {
 describe('DialogLabelContext', () => {
     describe('outside provider', () => {
         it('returns defaults when used outside provider', () => {
-            const {result: actionsResult} = renderHook(() => useDialogLabelActions());
-            const {result: valueResult} = renderHook(() => useDialogLabelValue());
+            const {result} = renderHook(() => useDialogLabelActions());
 
-            expect(actionsResult.current.isInsideDialog).toBe(false);
-            expect(valueResult.current.labelText).toBeUndefined();
-            expect(valueResult.current.isReady).toBe(false);
+            expect(result.current.isInsideDialog).toBe(false);
         });
 
         it('claimInitialFocus returns false outside provider', () => {
@@ -32,207 +29,87 @@ describe('DialogLabelContext', () => {
             expect(result.current.isInsideDialog).toBe(true);
         });
 
-        it('pushLabel sets the labelText', () => {
-            const {result} = renderHook(
-                () => ({
-                    actions: useDialogLabelActions(),
-                    value: useDialogLabelValue(),
-                }),
-                {wrapper},
-            );
+        it('pushLabel sets aria-label on the container element', () => {
+            const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
+            const mockElement = document.createElement('div');
+            (result.current.containerRef as {current: unknown}).current = mockElement;
 
             act(() => {
-                result.current.actions.pushLabel('Settings');
+                result.current.pushLabel('Settings');
             });
 
-            expect(result.current.value.labelText).toBe('Settings');
+            expect(mockElement.getAttribute('aria-label')).toBe('Settings');
+        });
+
+        it('pushLabel is safe when containerRef is not set', () => {
+            const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
+
+            let id = -1;
+            act(() => {
+                id = result.current.pushLabel('Settings');
+            });
+
+            expect(id).toBeGreaterThanOrEqual(0);
         });
 
         it('popLabel removes the label and restores the previous one', () => {
-            const {result} = renderHook(
-                () => ({
-                    actions: useDialogLabelActions(),
-                    value: useDialogLabelValue(),
-                }),
-                {wrapper},
-            );
+            const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
+            const mockElement = document.createElement('div');
+            (result.current.containerRef as {current: unknown}).current = mockElement;
 
             let idA: number;
             let idB: number;
 
             act(() => {
-                idA = result.current.actions.pushLabel('Screen A');
+                idA = result.current.pushLabel('Screen A');
             });
             act(() => {
-                idB = result.current.actions.pushLabel('Screen B');
+                idB = result.current.pushLabel('Screen B');
             });
 
-            expect(result.current.value.labelText).toBe('Screen B');
+            expect(mockElement.getAttribute('aria-label')).toBe('Screen B');
 
             act(() => {
-                result.current.actions.popLabel(idB);
+                result.current.popLabel(idB);
             });
 
-            expect(result.current.value.labelText).toBe('Screen A');
+            expect(mockElement.getAttribute('aria-label')).toBe('Screen A');
 
             act(() => {
-                result.current.actions.popLabel(idA);
+                result.current.popLabel(idA);
             });
 
-            expect(result.current.value.labelText).toBeUndefined();
+            expect(mockElement.hasAttribute('aria-label')).toBe(false);
         });
 
         it('popLabel removes by ID, not by stack position', () => {
-            const {result} = renderHook(
-                () => ({
-                    actions: useDialogLabelActions(),
-                    value: useDialogLabelValue(),
-                }),
-                {wrapper},
-            );
+            const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
+            const mockElement = document.createElement('div');
+            (result.current.containerRef as {current: unknown}).current = mockElement;
 
             let idA: number;
             let idB: number;
 
             act(() => {
-                idA = result.current.actions.pushLabel('Screen A');
+                idA = result.current.pushLabel('Screen A');
             });
             act(() => {
-                idB = result.current.actions.pushLabel('Screen B');
+                idB = result.current.pushLabel('Screen B');
             });
 
             // Pop the bottom entry (Screen A), not the top
             act(() => {
-                result.current.actions.popLabel(idA);
+                result.current.popLabel(idA);
             });
 
             // Screen B should still be the active label
-            expect(result.current.value.labelText).toBe('Screen B');
+            expect(mockElement.getAttribute('aria-label')).toBe('Screen B');
 
             act(() => {
-                result.current.actions.popLabel(idB);
+                result.current.popLabel(idB);
             });
 
-            expect(result.current.value.labelText).toBeUndefined();
-        });
-
-        it('updateLabel changes an existing entry without reordering', () => {
-            const {result} = renderHook(
-                () => ({
-                    actions: useDialogLabelActions(),
-                    value: useDialogLabelValue(),
-                }),
-                {wrapper},
-            );
-
-            let idA: number;
-
-            act(() => {
-                idA = result.current.actions.pushLabel('Screen A');
-            });
-            act(() => {
-                result.current.actions.pushLabel('Screen B');
-            });
-
-            expect(result.current.value.labelText).toBe('Screen B');
-
-            // Update Screen A (bottom of stack) — should not change labelText
-            act(() => {
-                result.current.actions.updateLabel(idA, 'Screen A Updated');
-            });
-
-            expect(result.current.value.labelText).toBe('Screen B');
-        });
-
-        it('updateLabel updates the top entry', () => {
-            const {result} = renderHook(
-                () => ({
-                    actions: useDialogLabelActions(),
-                    value: useDialogLabelValue(),
-                }),
-                {wrapper},
-            );
-
-            let idA: number;
-
-            act(() => {
-                idA = result.current.actions.pushLabel('Settings');
-            });
-
-            act(() => {
-                result.current.actions.updateLabel(idA, 'About');
-            });
-
-            expect(result.current.value.labelText).toBe('About');
-        });
-
-        it('actions and value contexts are independent', () => {
-            const {result: actionsResult} = renderHook(() => useDialogLabelActions(), {wrapper});
-            const {result: valueResult} = renderHook(() => useDialogLabelValue());
-
-            // Actions from provider, value from outside — should be independent
-            expect(actionsResult.current.isInsideDialog).toBe(true);
-            expect(valueResult.current.labelText).toBeUndefined();
-        });
-
-        it('markReady sets isReady to true for the top entry', () => {
-            const {result} = renderHook(
-                () => ({
-                    actions: useDialogLabelActions(),
-                    value: useDialogLabelValue(),
-                }),
-                {wrapper},
-            );
-
-            let idA: number;
-
-            act(() => {
-                idA = result.current.actions.pushLabel('Settings');
-            });
-
-            expect(result.current.value.isReady).toBe(false);
-
-            act(() => {
-                result.current.actions.markReady(idA);
-            });
-
-            expect(result.current.value.isReady).toBe(true);
-        });
-
-        it('isReady reflects the top entry after stack changes', () => {
-            const {result} = renderHook(
-                () => ({
-                    actions: useDialogLabelActions(),
-                    value: useDialogLabelValue(),
-                }),
-                {wrapper},
-            );
-
-            let idA: number;
-            let idB: number;
-
-            act(() => {
-                idA = result.current.actions.pushLabel('Screen A');
-            });
-            act(() => {
-                result.current.actions.markReady(idA);
-            });
-
-            expect(result.current.value.isReady).toBe(true);
-
-            // Push a new unready label — isReady should become false
-            act(() => {
-                idB = result.current.actions.pushLabel('Screen B');
-            });
-
-            expect(result.current.value.isReady).toBe(false);
-
-            // Pop Screen B — isReady should restore to Screen A's ready state
-            act(() => {
-                result.current.actions.popLabel(idB);
-            });
-
-            expect(result.current.value.isReady).toBe(true);
+            expect(mockElement.hasAttribute('aria-label')).toBe(false);
         });
 
         it('claimInitialFocus returns true only on the first call', () => {

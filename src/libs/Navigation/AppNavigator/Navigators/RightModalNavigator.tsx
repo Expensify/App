@@ -3,7 +3,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
-import {DialogLabelProvider, useDialogLabelValue} from '@components/DialogLabelContext';
+import {DialogLabelProvider, useDialogLabelActions} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import {
@@ -103,13 +103,13 @@ const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('..
 
 function RHPDialogContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
-    const {labelText} = useDialogLabelValue();
+    const {containerRef} = useDialogLabelActions();
 
     return (
         <View
-            role={labelText ? CONST.ROLE.DIALOG : undefined}
-            aria-modal={labelText ? true : undefined}
-            accessibilityLabel={labelText}
+            ref={containerRef}
+            role={CONST.ROLE.DIALOG}
+            aria-modal
             style={styles.flex1}
         >
             {children}
