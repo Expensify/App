@@ -2124,7 +2124,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replaceDevice: 'Remplacer l’appareil',
         replaceDeviceTitle: 'Remplacer l’appareil d’authentification à deux facteurs',
         verifyOldDeviceTitle: 'Vérifier l’ancien appareil',
-        verifyOldDeviceDescription: 'Saisissez le code à six chiffres depuis votre application d’authentification actuelle pour confirmer que vous y avez accès.',
+        verifyOldDeviceDescription: 'Saisissez le code à six chiffres de votre application d’authentification actuelle pour confirmer que vous y avez accès.',
         verifyNewDeviceTitle: 'Configurer un nouvel appareil',
         verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
     },
