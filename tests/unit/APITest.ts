@@ -458,8 +458,11 @@ describe('APITests', () => {
                 Promise.resolve(NetworkState.setHasRadio(true));
             })
             .then(() => {
-                // When we wait for the sequential queue to finish
-                expect(SequentialQueue.isRunning()).toBe(true);
+                // Wait for the deferred flush (setTimeout in unpause) to start processing
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                // Wait again for the flush's async Onyx operations to complete
                 return waitForBatchedUpdates();
             })
             .then(() => {

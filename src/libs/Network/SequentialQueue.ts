@@ -335,14 +335,18 @@ function flush(shouldResetPromise = true) {
                 const remainingRequests = getAllPersistedRequests().length;
                 Log.info('[SequentialQueue] Finished processing queue.', false, {
                     remainingRequests,
-                    isQueuePaused,
-                    willResolvePromise: isQueuePaused || remainingRequests === 0,
+                    isOffline: isOffline(),
+                    willResolvePromise: isOffline() || remainingRequests === 0,
                 });
 
                 isSequentialQueueRunning = false;
-                if (isQueuePaused || remainingRequests === 0) {
+                // Use isOffline() — not isQueuePaused — to decide whether to resolve isReadyPromise.
+                // isQueuePaused is true for both offline pauses AND shouldPauseQueue (data gap sync).
+                // For shouldPauseQueue, WRITEs are still pending so READs must wait (don't resolve).
+                // For offline, the queue can't process anyway so READs should proceed (resolve).
+                if (isOffline() || remainingRequests === 0) {
                     Log.info('[SequentialQueue] Resolving isReadyPromise', false, {
-                        reason: isQueuePaused ? 'queue paused' : 'queue empty',
+                        reason: isOffline() ? 'offline' : 'queue empty',
                     });
                     resolveIsReadyPromise?.();
                 }
@@ -403,14 +407,18 @@ function unpause() {
         flushOnyxUpdatesQueue();
     }
 
-    // When the queue is paused and then unpaused, we call flush which by defaults recreates the isReadyPromise.
-    // After all the WRITE requests are done, the isReadyPromise is resolved, but since it's a new instance of promise,
-    // the pending READ request never received the resolved callback. That's why we don't want to recreate
-    // the promise when unpausing the queue.
-    Log.info('[SequentialQueue] Calling flush(false) to start processing', false, {
+    // Defer flush to the next macrotask so that pending Onyx.set callbacks from
+    // save()/update() during offline push() calls settle first. Without this,
+    // stale callbacks overwrite in-memory persistedRequests during process(),
+    // causing duplicate API calls (see Issues 3c/4 in https://github.com/Expensify/App/issues/80759).
+    // A proper fix to PersistedRequests would make this setTimeout unnecessary.
+    //
+    // We pass shouldResetPromise=false to preserve the existing isReadyPromise so that
+    // pending READ requests (waiting via waitForIdle()) resolve correctly after WRITEs complete.
+    Log.info('[SequentialQueue] Scheduling flush(false) for next macrotask', false, {
         numberOfPersistedRequests,
     });
-    flush(false);
+    setTimeout(() => flush(false), 0);
 }
 
 function isRunning(): boolean {

@@ -1497,10 +1497,14 @@ describe('actions/Report', () => {
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
 
-        // Need the reportActionID to delete the comments
+        // Need the reportActionID to delete the comments — read before the queue processes the request
         const newComment = PersistedRequests.getAll().at(1);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
+
+        // Let the queue process the online ADD_COMMENT request before going offline.
+        // setHasRadio(false) calls pause() synchronously, which blocks processing immediately.
+        await waitForBatchedUpdates();
 
         NetworkState.setHasRadio(false);
         await waitForBatchedUpdates();
@@ -1994,10 +1998,14 @@ describe('actions/Report', () => {
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
 
-        // Need the reportActionID to delete the comments
+        // Need the reportActionID to delete the comments — read before the queue processes the request
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
+
+        // Let the queue process the online ADD_COMMENT request before going offline
+        await waitForBatchedUpdates();
+
         NetworkState.setHasRadio(false);
         await waitForBatchedUpdates();
 
