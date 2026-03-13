@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {Platform, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
@@ -328,7 +328,8 @@ function BaseTextInput({
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
     const inputNativeID = inputProps.nativeID ?? inputProps.id ?? inputID ?? `text-input-${helpMessageId}`;
-    const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
+    const helpMessageTextID = `${helpMessageId}-text`;
+    const accessibilityLabel = inputProps.accessibilityLabel ?? [label, hint].filter(Boolean).join(', ');
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
         isLoading: !!inputProps.isLoading,
@@ -496,11 +497,13 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
-                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityLabel={accessibilityLabel}
                                 keyboardType={inputProps.keyboardType}
-                                aria-describedby={inputHelpText ? helpMessageId : undefined}
-                                aria-errormessage={errorText ? helpMessageId : undefined}
-                                aria-invalid={Platform.OS === 'web' && !!errorText ? true : undefined}
+                                // Keep aria-describedby for baseline compatibility and issue requirements,
+                                // while aria-errormessage enhances announcement on browsers that support it.
+                                aria-describedby={inputHelpText ? helpMessageTextID : undefined}
+                                aria-errormessage={errorText ? helpMessageTextID : undefined}
+                                aria-invalid={errorText ? true : undefined}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -574,7 +577,7 @@ function BaseTextInput({
                 </PressableWithoutFeedback>
                 {!!inputHelpText && (
                     <FormHelpMessage
-                        nativeID={helpMessageId}
+                        messageNativeID={helpMessageTextID}
                         isError={!!errorText}
                         message={inputHelpText}
                     />

@@ -35,8 +35,8 @@ type FormHelpMessageProps = {
     /** Whether to show information icon */
     isInfo?: boolean;
 
-    /** Native ID for accessibility association (aria-describedby) */
-    nativeID?: string;
+    /** Native ID applied to the message text when a direct text association is needed */
+    messageNativeID?: string;
 };
 
 function FormHelpMessage({
@@ -47,13 +47,16 @@ function FormHelpMessage({
     shouldShowRedDotIndicator = true,
     shouldRenderMessageAsHTML = false,
     isInfo = false,
-    nativeID,
+    messageNativeID,
 }: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const shouldAnnounceError = isError && typeof message === 'string' && !!message && !shouldRenderMessageAsHTML && children == null;
+    // Keep directly described form messages as plain text on web so Safari/VoiceOver
+    // can announce them when focus returns to the associated input.
+    const shouldUseAlertSemanticsOnVisibleMessage = shouldAnnounceError && (!isWeb || !messageNativeID);
 
     const HTMLMessage = useMemo(() => {
         if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
@@ -78,10 +81,7 @@ function FormHelpMessage({
     }
 
     return (
-        <View
-            style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}
-            nativeID={nativeID}
-        >
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
             {isError && shouldShowRedDotIndicator && (
                 <View
                     accessible
@@ -109,11 +109,12 @@ function FormHelpMessage({
                     ) : (
                         <Text
                             style={[isError ? styles.formError : styles.formHelp, styles.mb0]}
-                            role={shouldAnnounceError ? CONST.ROLE.ALERT : undefined}
+                            nativeID={messageNativeID}
+                            role={shouldUseAlertSemanticsOnVisibleMessage ? CONST.ROLE.ALERT : undefined}
                             // TalkBack on some Android versions skips role-only alert announcements,
                             // so keep native accessibilityRole/live-region as a platform fallback.
                             accessibilityRole={!isWeb && shouldAnnounceError ? CONST.ROLE.ALERT : undefined}
-                            accessibilityLiveRegion={shouldAnnounceError ? 'assertive' : undefined}
+                            accessibilityLiveRegion={shouldUseAlertSemanticsOnVisibleMessage ? 'assertive' : undefined}
                         >
                             {message}
                         </Text>
