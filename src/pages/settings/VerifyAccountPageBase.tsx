@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -81,7 +82,10 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
                     title={translate('contacts.validateAccount')}
                     onBackButtonPress={handleCloseWithFallback}
                 />
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <FullScreenLoadingIndicator
+                    style={[styles.flex1, styles.pRelative]}
+                    reasonAttributes={{context: 'VerifyAccountPageBase', isUserValidated} satisfies SkeletonSpanReasonAttributes}
+                />
             </ScreenWrapper>
         );
     }
