@@ -98,7 +98,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             return;
         }
 
-        stopGpsTrip(false, true);
+        await stopGpsTrip(false, true);
 
         switchAccount();
     };
