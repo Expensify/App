@@ -251,7 +251,7 @@ jobs:
             {
               channel: '#deployer',
               attachments: [{
-                color: "#2EB67D",
+                color: 'good',
                 text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* successful\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nDeploy workflow: ${{ steps.findDeployRun.outputs.DEPLOY_RUN_FOUND == 'true' && steps.findDeployRun.outputs.DEPLOY_RUN_URL || '⚠️ Could not locate deploy run — check ' + steps.findDeployRun.outputs.DEPLOY_RUN_URL }}`
               }]
             }
