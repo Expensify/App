@@ -3,7 +3,6 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -132,37 +131,14 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
         );
     };
 
-    const descriptionComponent = isCancelled ? (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            <Badge
-                text={translate('iou.canceled')}
-                isCondensed
-                badgeStyles={styles.ml0}
-            />
-            <Text
-                numberOfLines={1}
-                style={[styles.textLabelSupporting, styles.lh16, styles.flexShrink1]}
-            >
-                {formattedDate}
-            </Text>
-        </View>
-    ) : undefined;
+    const cancelledDescription = isCancelled ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${formattedDate}` : formattedDate;
 
     return (
         <MenuItemWithTopDescription
-            description={isCancelled ? undefined : formattedDate}
+            description={cancelledDescription}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-            titleComponent={
-                isCancelled ? (
-                    <View>
-                        {descriptionComponent}
-                        {titleComponent()}
-                    </View>
-                ) : (
-                    titleComponent()
-                )
-            }
-            accessibilityLabel={isCancelled ? `${translate('iou.canceled')} ${formattedDate}` : undefined}
+            titleComponent={titleComponent()}
+            accessibilityLabel={isCancelled ? cancelledDescription : undefined}
             titleContainerStyle={[styles.justifyContentStart, styles.gap1]}
             secondaryIcon={reservationIcon}
             isSecondaryIconHoverable

@@ -3,7 +3,6 @@ import React, {useMemo} from 'react';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Badge from '@components/Badge';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -99,33 +98,14 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
         );
     }
 
-    const fullTitleComponent = isCancelled ? (
-        <View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                <Badge
-                    text={translate('iou.canceled')}
-                    isCondensed
-                    badgeStyles={styles.ml0}
-                />
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textLabelSupporting, styles.lh16, styles.flexShrink1]}
-                >
-                    {description}
-                </Text>
-            </View>
-            {titleComponent}
-        </View>
-    ) : (
-        titleComponent
-    );
+    const displayDescription = isCancelled ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${description}` : description;
 
     return (
         <MenuItemWithTopDescription
-            description={isCancelled ? undefined : description}
+            description={displayDescription}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-            titleComponent={fullTitleComponent}
-            accessibilityLabel={isCancelled ? `${translate('iou.canceled')} ${description}` : undefined}
+            titleComponent={titleComponent}
+            accessibilityLabel={isCancelled ? displayDescription : undefined}
             titleContainerStyle={styles.gap1}
             secondaryIcon={reservationIcon}
             secondaryIconFill={theme.icon}

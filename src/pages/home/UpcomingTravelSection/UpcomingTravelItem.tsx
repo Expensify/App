@@ -2,10 +2,8 @@ import {differenceInCalendarDays} from 'date-fns';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -97,30 +95,10 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
 
     return (
         <MenuItemWithTopDescription
-            description={isCancelled ? undefined : subtitle}
-            titleComponent={
-                isCancelled ? (
-                    <View>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                            <Badge
-                                text={translate('iou.canceled')}
-                                isCondensed
-                                badgeStyles={styles.ml0}
-                            />
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textLabelSupporting, styles.textSupporting, styles.flexShrink1]}
-                            >
-                                {subtitle}
-                            </Text>
-                        </View>
-                        <Text style={styles.textNormal}>{title}</Text>
-                    </View>
-                ) : undefined
-            }
-            title={isCancelled ? undefined : title}
-            titleStyle={styles.textBold}
-            accessibilityLabel={isCancelled ? `${translate('iou.canceled')} ${subtitle} ${title}` : undefined}
+            description={isCancelled ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${subtitle}` : subtitle}
+            title={title}
+            titleStyle={isCancelled ? styles.textNormal : styles.textBold}
+            accessibilityLabel={isCancelled ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${subtitle} ${title}` : undefined}
             onPress={handlePress}
             shouldShowRightIcon
             leftComponent={
