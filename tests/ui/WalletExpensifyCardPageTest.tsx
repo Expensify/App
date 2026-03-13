@@ -293,4 +293,40 @@ describe('ExpensifyCardPage', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('should show the Get Physical Card button when card state is STATE_NOT_ISSUED', async () => {
+        // Sign in as a test user before running the test.
+        await TestHelper.signInWithTestUser();
+
+        // Add a mock card to Onyx storage with STATE_NOT_ISSUED state.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                [userCardID]: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                    domainName: 'xyz',
+                    fundID: '12345',
+                    nameValuePairs: {
+                        isVirtual: false,
+                        cardTitle: 'Test Physical Card',
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+            });
+        });
+
+        // Render the page with the specified card ID.
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.getPhysicalCard'))).toBeOnTheScreen();
+        });
+
+        // Unmount the component after assertions to clean up.
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });
