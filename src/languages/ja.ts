@@ -1454,10 +1454,10 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'この経費を保留しました',
         unheldExpense: 'この経費の保留を解除しました',
         moveUnreportedExpense: '未報告の経費を移動',
-        addUnreportedExpense: '未報告の経費を追加',
+        addUnreportedExpense: '既存の経費を追加',
         selectUnreportedExpense: 'レポートに追加する経費を少なくとも1件選択してください。',
-        emptyStateUnreportedExpenseTitle: '未報告の経費はありません',
-        emptyStateUnreportedExpenseSubtitle: '未報告の経費はありません。下から新しく作成してみてください。',
+        emptyStateUnreportedExpenseTitle: '既存の経費はありません',
+        emptyStateUnreportedExpenseSubtitle: '既存の経費がありません。下から新しく作成してみてください。',
         addUnreportedExpenseConfirm: 'レポートに追加',
         newReport: '新しいレポート',
         explainHold: () => ({

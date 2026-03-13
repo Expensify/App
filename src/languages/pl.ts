@@ -1461,10 +1461,10 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'wstrzymał ten wydatek',
         unheldExpense: 'zdjął wstrzymanie z tego wydatku',
         moveUnreportedExpense: 'Przenieś nierozliczony wydatek',
-        addUnreportedExpense: 'Dodaj nierozliczony wydatek',
+        addUnreportedExpense: 'Dodaj istniejący wydatek',
         selectUnreportedExpense: 'Wybierz co najmniej jeden wydatek, aby dodać go do raportu.',
-        emptyStateUnreportedExpenseTitle: 'Brak nierozliczonych wydatków',
-        emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych nierozliczonych wydatków. Spróbuj utworzyć jeden poniżej.',
+        emptyStateUnreportedExpenseTitle: 'Brak istniejących wydatków',
+        emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych istniejących wydatków. Spróbuj utworzyć jeden poniżej.',
         addUnreportedExpenseConfirm: 'Dodaj do raportu',
         newReport: 'Nowy raport',
         explainHold: () => ({

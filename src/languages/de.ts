@@ -1467,10 +1467,10 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'hat diese Ausgabe zurückgehalten',
         unheldExpense: 'Zurückgehaltene Ausgabe freigegeben',
         moveUnreportedExpense: 'Nicht gemeldete Ausgabe verschieben',
-        addUnreportedExpense: 'Nicht gemeldete Ausgabe hinzufügen',
+        addUnreportedExpense: 'Vorhandene Ausgabe hinzufügen',
         selectUnreportedExpense: 'Wähle mindestens eine Ausgabe aus, um sie dem Bericht hinzuzufügen.',
-        emptyStateUnreportedExpenseTitle: 'Keine nicht gemeldeten Ausgaben',
-        emptyStateUnreportedExpenseSubtitle: 'Sie scheinen keine nicht eingereichten Ausgaben zu haben. Erstellen Sie unten eine.',
+        emptyStateUnreportedExpenseTitle: 'Keine vorhandenen Ausgaben',
+        emptyStateUnreportedExpenseSubtitle: 'Es scheint, dass du keine vorhandenen Ausgaben hast. Erstelle unten eine neue.',
         addUnreportedExpenseConfirm: 'Zu Bericht hinzufügen',
         newReport: 'Neuer Bericht',
         explainHold: () => ({

@@ -1471,10 +1471,10 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'a mis cette dépense en attente',
         unheldExpense: 'blocage levé pour cette dépense',
         moveUnreportedExpense: 'Déplacer la dépense non déclarée',
-        addUnreportedExpense: 'Ajouter une dépense non déclarée',
+        addUnreportedExpense: 'Ajouter une dépense existante',
         selectUnreportedExpense: 'Sélectionnez au moins une dépense à ajouter à la note de frais.',
-        emptyStateUnreportedExpenseTitle: 'Aucune dépense non déclarée',
-        emptyStateUnreportedExpenseSubtitle: 'Il semble que vous n’ayez aucune dépense non déclarée. Essayez d’en créer une ci-dessous.',
+        emptyStateUnreportedExpenseTitle: 'Aucune dépense existante',
+        emptyStateUnreportedExpenseSubtitle: 'Il semble que vous n’ayez aucune dépense existante. Essayez d’en créer une ci-dessous.',
         addUnreportedExpenseConfirm: 'Ajouter à la note de frais',
         newReport: 'Nouvelle note de frais',
         explainHold: () => ({
