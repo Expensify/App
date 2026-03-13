@@ -9,7 +9,6 @@ function EmbeddedDemo({url, iframeTitle, iframeProps}: EmbeddedDemoProps) {
         <iframe
             title={iframeTitle}
             src={url}
-            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
             style={styles.embeddedDemoIframe}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...iframeProps}
