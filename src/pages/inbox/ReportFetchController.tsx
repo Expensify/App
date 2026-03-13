@@ -55,6 +55,7 @@ function ReportFetchController() {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
@@ -100,8 +101,19 @@ function ReportFetchController() {
                 return;
             }
         }
-        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute});
-    }, [reportMetadata.isOptimisticReport, report, isOffline, isLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete, reportIDFromRoute, reportActionIDFromRoute]);
+        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas});
+    }, [
+        reportMetadata.isOptimisticReport,
+        report,
+        isOffline,
+        isLoadingApp,
+        introSelected,
+        isOnboardingCompleted,
+        isInviteOnboardingComplete,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
+        betas,
+    ]);
 
     // --- Track anonymous user ---
     useEffect(() => {
@@ -186,9 +198,9 @@ function ReportFetchController() {
         if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected});
+        openReport({reportID, introSelected, betas});
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID]);
+    }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID, introSelected, betas]);
 
     // --- Subscribe to leaving events ---
     useEffect(() => {
