@@ -33,6 +33,7 @@ import {
     getSubmitToAccountID,
     hasDynamicExternalWorkflow,
     isCurrentUserMemberOfAnyPolicy,
+    isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {
     getActionableMentionWhisperMessage,
@@ -2052,6 +2053,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         preferredPolicyID,
         currentUserAccountID,
         shouldAlwaysIncludeDM,
+        isTimeRequest = false,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
     const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(option.item, transactionViolations);
@@ -2158,6 +2160,11 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
             return false;
         }
     }
+
+    if (isTimeRequest && isPolicyExpenseChat && !isTimeTrackingEnabled(policy)) {
+        return false;
+    }
+
     return true;
 }
 
@@ -2186,6 +2193,7 @@ function prepareReportOptionsForDisplay(
         shouldBoldTitleByDefault = true,
         shouldSeparateWorkspaceChat,
         isPerDiemRequest = false,
+        isTimeRequest = false,
         showRBR = true,
         shouldShowGBR = false,
         shouldUnreadBeBold = false,
@@ -2279,6 +2287,9 @@ function prepareReportOptionsForDisplay(
                 }
                 const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
                 if (!canSubmitPerDiemExpense && isPerDiemRequest) {
+                    continue;
+                }
+                if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
                     continue;
                 }
             }
