@@ -620,21 +620,16 @@ function MoneyRequestConfirmationList({
             } else {
                 text = translate('common.next');
             }
-        } else if (isNewManualExpenseFlowEnabled) {
-            // In the new manual expense flow (beta), the user edits the amount inline so the
-            // button always reads "Create expense" with no amount — this prevents the button
-            // from re-rendering on every keystroke and avoids showing a stale/incorrect value.
-            text = translate('iou.createExpense');
         } else if (isTypeTrackExpense) {
             text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
+            if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.splitExpense');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute || isPerDiemRequest) {
             text = translate('iou.createExpense');
-            if (iouAmount !== 0) {
+            if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
         } else if (isTypeSplit) {
