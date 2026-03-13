@@ -46,7 +46,7 @@ Expensify offers several plans based on your needs: **Collect, Control,** and **
 1. Go to **Settings > Workspaces**.
 2. Click the **cog icon** next to your Workspace name.
 3. Select **Delete**.
-   - **Note**: Deleting a Workspace removes its settings and members but does not delete their Expensify accounts.
+   - **Note**: Only the Billing Owner can delete a Workspace. Deleting a Workspace removes its settings and members but does not delete members' Expensify accounts.
    - If any members were active that month (submitted, approved, or edited reports), you will be billed for their usage.
 
 ## Annual Subscription
