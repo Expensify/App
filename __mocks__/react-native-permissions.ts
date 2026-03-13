@@ -1,6 +1,13 @@
 import {PERMISSIONS} from 'react-native-permissions/dist/commonjs/permissions';
-import {RESULTS} from 'react-native-permissions/dist/commonjs/results';
 import type {ValueOf} from 'type-fest';
+
+const RESULTS = {
+    UNAVAILABLE: 'unavailable',
+    BLOCKED: 'blocked',
+    DENIED: 'denied',
+    GRANTED: 'granted',
+    LIMITED: 'limited',
+} as const;
 
 type Results = ValueOf<typeof RESULTS>;
 type ResultsCollection = Record<string, Results>;
