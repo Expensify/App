@@ -70,6 +70,7 @@ function IOURequestEditReportCommon({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const resolvedReportOwnerAccountID = useMemo(() => {
@@ -214,7 +215,7 @@ function IOURequestEditReportCommon({
             return;
         }
 
-        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
+        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, amountOwed, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
             return;
         }

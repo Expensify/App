@@ -151,6 +151,7 @@ function EmptySearchViewContent({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
     });
@@ -342,7 +343,7 @@ function EmptySearchViewContent({
 
                                                   if (
                                                       !workspaceIDForReportCreation ||
-                                                      (shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod) &&
+                                                      (shouldRestrictUserBillableActions(workspaceIDForReportCreation, amountOwed, undefined, ownerBillingGraceEndPeriod) &&
                                                           groupPoliciesWithChatEnabled.length > 1)
                                                   ) {
                                                       // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -350,7 +351,7 @@ function EmptySearchViewContent({
                                                       return;
                                                   }
 
-                                                  if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod)) {
+                                                  if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, amountOwed, undefined, ownerBillingGraceEndPeriod)) {
                                                       handleCreateReportClick();
                                                   } else {
                                                       Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));

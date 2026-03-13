@@ -228,7 +228,7 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, 42);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, 42, params.userBillingGraceEndPeriods);
         });
 
         it('should trigger KYC flow for EXPENSIFY payment type when user is validated', () => {

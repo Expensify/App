@@ -43,13 +43,14 @@ function WorkspaceRestrictedActionPage({
     // Watch billing NVPs so the component re-renders when fresh data arrives from the server.
     const [userBillingGracePeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
     useEffect(() => {
         if (isLoadingSubscriptionData !== false) {
             return;
         }
-        if (!shouldRestrictUserBillableActions(policyID, userBillingGracePeriodCollection, undefined, ownerBillingGraceEndPeriod)) {
+        if (!shouldRestrictUserBillableActions(policyID, amountOwed, userBillingGracePeriodCollection, ownerBillingGraceEndPeriod)) {
             Navigation.goBack();
         }
     }, [policyID, isLoadingSubscriptionData, userBillingGracePeriodCollection, ownerBillingGraceEndPeriod]);
