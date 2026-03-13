@@ -16,6 +16,7 @@ import TextInput from '@components/TextInput';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useDebouncedValue from '@hooks/useDebouncedValue';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -1011,7 +1012,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const noResultsFoundText = translate('common.noResultsFound');
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder));
-    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
+
+    const debouncedTextInputValue = useDebouncedValue(textInputValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const hasFinishedTyping = textInputValue === debouncedTextInputValue;
+    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage && hasFinishedTyping;
 
     useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
 
@@ -1019,6 +1023,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         shouldShowHeaderMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                 <Text
+                    key={shouldAnnounceNoResults ? `no-results-${debouncedTextInputValue}` : undefined}
                     style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
                     role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
                     accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}

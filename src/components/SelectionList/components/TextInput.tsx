@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useDebouncedValue from '@hooks/useDebouncedValue';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
@@ -71,7 +72,10 @@ function TextInput({
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
-    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
+
+    const debouncedInputValue = useDebouncedValue(value ?? '', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const hasFinishedTyping = (value ?? '') === debouncedInputValue;
+    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage && hasFinishedTyping;
 
     useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
 
@@ -146,6 +150,7 @@ function TextInput({
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
                     <Text
+                        key={shouldAnnounceNoResults ? `no-results-${debouncedInputValue}` : undefined}
                         style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
                         role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
                         accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
