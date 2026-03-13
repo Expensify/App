@@ -163,7 +163,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                         <Text
                             key={statusAnnouncement.id}
                             role={CONST.ROLE.ALERT}
-                            accessibilityLiveRegion="polite"
                             style={styles.hiddenElementOutsideOfWindow}
                         >
                             {statusAnnouncement.text}
