@@ -3,7 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -46,6 +46,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 Navigation.goBack();
                 Navigation.navigate(ROUTES.HOME);
             });
+            return;
+        }
+        const isLoggingInAsDelegate = isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined);
+
+        if (isLoggingInAsDelegate) {
             return;
         }
 
