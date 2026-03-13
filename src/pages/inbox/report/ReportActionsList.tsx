@@ -874,13 +874,16 @@ function ReportActionsList({
         const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
 
         return (
-            <StaticReportActionsPreview showSpacer={!shouldShowReportRecipientLocalTime && !hideComposer}>
-                {previewItems.map((action) => (
-                    <View key={action.reportActionID}>{renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
-                ))}
-            </StaticReportActionsPreview>
+            <>
+                {!shouldShowReportRecipientLocalTime && !hideComposer && <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} />}
+                <StaticReportActionsPreview>
+                    {previewItems.map((action) => (
+                        <View key={action.reportActionID}>{renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+                    ))}
+                </StaticReportActionsPreview>
+            </>
         );
-    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions]);
+    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
