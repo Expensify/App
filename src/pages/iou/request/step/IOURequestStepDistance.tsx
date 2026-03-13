@@ -184,7 +184,7 @@ function IOURequestStepDistance({
         (participants: Participant[]) => {
             // Get policy report based on transaction participants
             const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
-            const policyReport = participants.at(0) ? participantReport : report;
+            const policyReport = participants.at(0) ? (participantReport ?? report) : report;
 
             const IOUpolicyID = getIOURequestPolicyID(transaction, policyReport);
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
