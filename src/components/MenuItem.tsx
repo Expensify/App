@@ -579,7 +579,7 @@ function MenuItem({
     forwardedFSClass,
     ref,
     isFocused,
-    selected = false,
+    selected,
     sentryLabel,
     rootWrapperStyle,
     role = CONST.ROLE.BUTTON,
