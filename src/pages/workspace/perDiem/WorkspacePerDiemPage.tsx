@@ -229,7 +229,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             return null;
         }
         const header = (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, styles.mr6]}>
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.mr6]}>
                 <View style={styles.flex3}>
                     <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.destination')}</Text>
                 </View>

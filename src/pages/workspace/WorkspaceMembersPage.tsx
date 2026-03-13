@@ -573,7 +573,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         // Show 4 columns only on wide screens for control policies
         if (isControlPolicyWithWideLayout) {
             const header = (
-                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
+                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
                     <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.member')}</Text>
                     </View>

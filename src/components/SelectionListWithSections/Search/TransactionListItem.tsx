@@ -100,7 +100,7 @@ function TransactionListItem<TItem extends ListItem>({
     const pressableStyle = [
         styles.transactionListItemStyle,
         !isLargeScreenWidth && styles.pt3,
-        isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0},
+        isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
         item.isSelected && styles.activeComponentBG,
         isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];

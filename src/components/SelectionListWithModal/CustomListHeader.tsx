@@ -34,8 +34,7 @@ function CustomListHeader({
                 styles.flex1,
                 styles.flexRow,
                 styles.justifyContentBetween,
-                // Required padding accounting for the checkbox in multi-select mode
-                canSelectMultiple && styles.pl3,
+                styles.pl3,
             ]}
         >
             <Text style={[styles.textMicroSupporting, shouldDivideEqualWidth && styles.flex1]}>{leftHeaderText}</Text>
@@ -53,7 +52,7 @@ function CustomListHeader({
             style={[
                 styles.flexRow,
                 isLargeScreenWidth
-                    ? [styles.mh5, styles.pv2, styles.mnh40, styles.alignItemsCenter, {paddingLeft: 16, paddingRight: 8, borderBottomWidth: 1, borderColor: theme.border, borderTopLeftRadius: 8, borderTopRightRadius: 8, backgroundColor: theme.highlightBG}]
+                    ? [styles.mh5, styles.pv2, styles.mnh40, styles.alignItemsCenter, {paddingLeft: 12, paddingRight: 8, borderBottomWidth: 1, borderColor: theme.border, borderTopLeftRadius: 8, borderTopRightRadius: 8, backgroundColor: theme.highlightBG}]
                     : styles.baseListHeaderWrapperStyle,
             ]}
         >

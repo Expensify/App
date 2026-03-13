@@ -185,7 +185,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
-        isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0},
+        isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
         isItemSelected && styles.activeComponentBG,
     ];
 
