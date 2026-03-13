@@ -7509,7 +7509,7 @@ const translations = {
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} joined via the workspace invite link` : `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
+                    didJoinPolicy ? `${email} joined via workspace joining link` : `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {

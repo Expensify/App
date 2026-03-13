@@ -7540,7 +7540,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? `${email} ist über den Arbeitsbereichs-Einladungslink beigetreten` : `${email} als ${role === 'member' ? 'a' : 'an'} ${role} hinzugefügt`,
+                    didJoinPolicy ? `${email} ist über den Einladungslink des Arbeitsbereichs beigetreten` : `${email} als ${role === 'member' ? 'ein' : 'an'} ${role} hinzugefügt`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `hat die Rolle von ${email} in ${newRole} geändert (zuvor ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
