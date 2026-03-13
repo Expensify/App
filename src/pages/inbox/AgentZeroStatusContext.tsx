@@ -112,15 +112,16 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
     useEffect(() => {
         const channelName = `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 
-        Pusher.subscribe(channelName, Pusher.TYPE.CONCIERGE_REASONING, (data: Record<string, unknown>) => {
+        const listener = Pusher.subscribe(channelName, Pusher.TYPE.CONCIERGE_REASONING, (data: Record<string, unknown>) => {
             const eventData = data as {reasoning: string; agentZeroRequestID: string; loopCount: number};
             addReasoning(eventData);
-        }).catch((error: unknown) => {
+        });
+        listener.catch((error: unknown) => {
             Log.hmmm('[AgentZeroStatusGate] Failed to subscribe to Pusher concierge reasoning events', {reportID, error});
         });
 
         return () => {
-            Pusher.unsubscribe(channelName, Pusher.TYPE.CONCIERGE_REASONING);
+            listener.unsubscribe();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- addReasoning is stable (uses only refs + functional updater)
     }, [reportID]);
