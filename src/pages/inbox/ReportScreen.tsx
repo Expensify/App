@@ -38,6 +38,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -175,6 +176,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportOnyx?.policyID)}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
@@ -294,6 +296,16 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
 
+    const isConciergeSidePanel = useMemo(() => isInSidePanel && isConciergeChatReport(report, conciergeReportID), [isInSidePanel, report, conciergeReportID]);
+
+    const {sessionStartTime} = useSidePanelState();
+
+    const hasUserSentMessage = useMemo(() => {
+        if (!isConciergeSidePanel || !sessionStartTime) {
+            return false;
+        }
+        return reportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
+    }, [isConciergeSidePanel, reportActions, currentUserAccountID, sessionStartTime]);
     const viewportOffsetTop = useViewportOffsetTop();
 
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
@@ -491,7 +503,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo((): boolean => {
         const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
-        const isLoading = isLoadingApp !== false || isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
+        const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!reportMetadata?.isLoadingInitialReportActions);
         const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
 
         if (shouldShowNotFoundLinkedAction) {
@@ -523,6 +535,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         shouldShowNotFoundLinkedAction,
         isLoadingApp,
         isLoadingReportData,
+        isOffline,
         reportMetadata?.isLoadingInitialReportActions,
         reportID,
         isOptimisticDelete,
@@ -566,8 +579,19 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute});
-    }, [reportMetadata.isOptimisticReport, report, isOffline, isLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete, reportIDFromRoute, reportActionIDFromRoute]);
+        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas});
+    }, [
+        reportMetadata.isOptimisticReport,
+        report,
+        isOffline,
+        isLoadingApp,
+        introSelected,
+        isOnboardingCompleted,
+        isInviteOnboardingComplete,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
+        betas,
+    ]);
 
     useEffect(() => {
         if (!isAnonymousUser) {
@@ -692,12 +716,12 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected});
+        openReport({reportID, introSelected, betas});
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID]);
+    }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID, introSelected, betas]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
@@ -1056,11 +1080,15 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 report={report}
                                                 reportActions={reportActions}
                                                 isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                                hasOnceLoadedReportActions={reportMetadata?.hasOnceLoadedReportActions}
                                                 hasNewerActions={hasNewerActions}
                                                 hasOlderActions={hasOlderActions}
                                                 parentReportAction={parentReportAction}
                                                 transactionThreadReportID={transactionThreadReportID}
                                                 isReportTransactionThread={isTransactionThreadView}
+                                                isConciergeSidePanel={isConciergeSidePanel}
+                                                hasUserSentMessage={hasUserSentMessage}
+                                                sessionStartTime={sessionStartTime}
                                                 isConciergeProcessing={isConciergeProcessing}
                                                 conciergeReasoningHistory={conciergeReasoningHistory}
                                                 conciergeStatusLabel={conciergeStatusLabel}
@@ -1088,6 +1116,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                                 isInSidePanel={isInSidePanel}
+                                                shouldHideStatusIndicators={isConciergeSidePanel && !hasUserSentMessage}
                                                 kickoffWaitingIndicator={kickoffWaitingIndicator}
                                             />
                                         ) : null}
