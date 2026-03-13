@@ -232,6 +232,7 @@ const translations = {
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
+        banner: 'banner',
         comment: 'Comment',
         download: 'Download',
         downloading: 'Downloading',
