@@ -412,6 +412,7 @@ function NumberWithSymbolForm({
                         small
                         icon={icons.PlusMinus}
                         onPress={handleFlipPress}
+                        onMouseDown={(e) => e.preventDefault()}
                         isContentCentered
                         accessibilityLabel={translate('iou.flip')}
                     />
