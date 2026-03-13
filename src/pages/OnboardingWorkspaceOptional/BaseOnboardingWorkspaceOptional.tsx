@@ -109,6 +109,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                 lastName: currentUserPersonalDetails.lastName,
                 adminsChatReportID: resolvedAdminsChatReportID,
                 onboardingPolicyID: resolvedPolicyID,
+                shouldSkipTestDriveModal: (!!resolvedPolicyID && !resolvedAdminsChatReportID) || engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                 introSelected,
                 betas,
                 isSelfTourViewed,
