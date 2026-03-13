@@ -35,7 +35,7 @@ Expensify offers several plans based on your needs: **Collect, Control,** and **
 
 ## Auto-Renew Subscription
 1. Go to **Settings > Workspaces > Subscription**.
-2. Toggle **Auto-renew** off before your current subscription ends if you do not want it to renew.
+2. Toggle **Auto Renew** off before your current subscription ends if you do not want it to renew.
    - If **Auto-renew** is disabled, your final bill at the annual rate will be issued on the date listed under **Subscriptions**.
 
 ---
