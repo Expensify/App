@@ -405,6 +405,7 @@ function MoneyReportHeader({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
+    const [selectedVBBAToPayFromHoldMenu, setSelectedVBBAToPayFromHoldMenu] = useState<number | undefined>(undefined);
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const connectedIntegration = getValidConnectedIntegration(policy);
@@ -640,6 +641,7 @@ function MoneyReportHeader({
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
+                setSelectedVBBAToPayFromHoldMenu(type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
                 if (getPlatform() === CONST.PLATFORM.IOS) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
@@ -679,6 +681,7 @@ function MoneyReportHeader({
                     isSelfTourViewed,
                     userBillingGraceEndPeriods,
                     amountOwed,
+                    methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -1018,7 +1021,7 @@ function MoneyReportHeader({
         if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
             exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
         } else if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
+            markAsManuallyExported([moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegration);
         }
     }, [connectedIntegration, exportModalStatus, moneyRequestReport?.reportID]);
 
@@ -1124,7 +1127,7 @@ function MoneyReportHeader({
                         setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                         return;
                     }
-                    markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
+                    markAsManuallyExported([moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegration);
                 },
             },
         };
@@ -2085,9 +2088,13 @@ function MoneyReportHeader({
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
-                    onClose={() => setIsHoldMenuVisible(false)}
+                    onClose={() => {
+                        setSelectedVBBAToPayFromHoldMenu(undefined);
+                        setIsHoldMenuVisible(false);
+                    }}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}
+                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
                     hasNonHeldExpenses={!hasOnlyHeldExpenses}
