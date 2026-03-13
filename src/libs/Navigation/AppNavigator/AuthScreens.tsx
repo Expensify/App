@@ -308,6 +308,12 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
+                            name={SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW}
+                            options={attachmentModalScreenOptions}
+                            getComponent={loadAttachmentModalScreen}
+                            listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
                             name={SCREENS.NOT_FOUND}
                             options={rootNavigatorScreenOptions.fullScreen}
                             component={NotFoundPage}

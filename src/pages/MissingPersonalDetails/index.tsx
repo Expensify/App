@@ -7,15 +7,15 @@ import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MissingPersonalDetailsContent from './MissingPersonalDetailsContent';
 
-function MissingPersonalDetails() {
+function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, draftValuesMetadata);
 
     const handleComplete = useCallback(() => {
-        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
-    }, []);
+        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.getRoute(cardID));
+    }, [cardID]);
 
     if (isLoading) {
         return <FullScreenLoadingIndicator />;
@@ -26,6 +26,8 @@ function MissingPersonalDetails() {
             privatePersonalDetails={privatePersonalDetails}
             draftValues={draftValues}
             onComplete={handleComplete}
+            cardID={cardID}
+            isCardOrderFlow
         />
     );
 }

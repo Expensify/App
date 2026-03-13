@@ -1,5 +1,5 @@
 import {format as formatDate} from 'date-fns';
-import React, {createContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useEffect, useState} from 'react';
 import {importEmojiLocale} from '@assets/emojis';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -90,18 +90,15 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
 
-    const localeToApply = useMemo(() => {
-        if (isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
-            return undefined;
-        }
-
+    let localeToApply: Locale | undefined;
+    if (!isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
         if (nvpPreferredLocale && isSupportedLocale(nvpPreferredLocale)) {
-            return nvpPreferredLocale;
+            localeToApply = nvpPreferredLocale;
+        } else {
+            const deviceLocale = getDevicePreferredLocale();
+            localeToApply = isSupportedLocale(deviceLocale) ? deviceLocale : CONST.LOCALES.DEFAULT;
         }
-
-        const deviceLocale = getDevicePreferredLocale();
-        return isSupportedLocale(deviceLocale) ? deviceLocale : CONST.LOCALES.DEFAULT;
-    }, [nvpPreferredLocale, nvpPreferredLocaleMetadata]);
+    }
 
     useEffect(() => {
         if (!localeToApply) {
@@ -122,11 +119,13 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
         importEmojiLocale(normalizedLocale).then(() => {
             endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
-
             buildEmojisTrie(normalizedLocale);
         });
     }, [localeToApply, nvpPreferredLocale]);
 
+    // Sync currentLocale from IntlStore after translations finish loading.
+    // IntlStore.currentLocale is external mutable state that React can't track,
+    // so we use this effect to explicitly update React state when it changes.
     useEffect(() => {
         if (areTranslationsLoading) {
             return;
@@ -140,93 +139,54 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         setCurrentLocale(locale);
     }, [areTranslationsLoading]);
 
-    const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails?.timezone?.selected]);
+    const selectedTimezone = currentUserPersonalDetails?.timezone?.selected;
+    const effectiveTimezone = selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected;
+    const collator = new Intl.Collator(currentLocale, COLLATOR_OPTIONS);
 
-    const collator = useMemo(() => new Intl.Collator(currentLocale, COLLATOR_OPTIONS), [currentLocale]);
+    const translate: LocaleContextProps['translate'] = (path, ...parameters) => translateLocalize(currentLocale, path, ...parameters);
 
-    const translate = useMemo<LocaleContextProps['translate']>(
-        () =>
-            (path, ...parameters) =>
-                translateLocalize(currentLocale, path, ...parameters),
-        [currentLocale],
-    );
+    const numberFormat: LocaleContextProps['numberFormat'] = (number, options) => format(currentLocale, number, options);
 
-    const numberFormat = useMemo<LocaleContextProps['numberFormat']>(() => (number, options) => format(currentLocale, number, options), [currentLocale]);
+    const getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'] = (datetime, currentSelectedTimezone) =>
+        DateUtils.getLocalDateFromDatetime(currentLocale, currentSelectedTimezone ?? effectiveTimezone, datetime);
 
-    const getLocalDateFromDatetime = useMemo<LocaleContextProps['getLocalDateFromDatetime']>(
-        () => (datetime, currentSelectedTimezone) =>
-            DateUtils.getLocalDateFromDatetime(currentLocale, currentSelectedTimezone ?? selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected, datetime),
-        [currentLocale, selectedTimezone],
-    );
+    const datetimeToRelative: LocaleContextProps['datetimeToRelative'] = (datetime) => DateUtils.datetimeToRelative(currentLocale, datetime, effectiveTimezone);
 
-    const datetimeToRelative = useMemo<LocaleContextProps['datetimeToRelative']>(
-        () => (datetime) => DateUtils.datetimeToRelative(currentLocale, datetime, selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected),
-        [currentLocale, selectedTimezone],
-    );
+    const datetimeToCalendarTime: LocaleContextProps['datetimeToCalendarTime'] = (datetime, includeTimezone, isLowercase = false) =>
+        DateUtils.datetimeToCalendarTime(currentLocale, datetime, effectiveTimezone, includeTimezone, isLowercase);
 
-    const datetimeToCalendarTime = useMemo<LocaleContextProps['datetimeToCalendarTime']>(
-        () =>
-            (datetime, includeTimezone, isLowercase = false) =>
-                DateUtils.datetimeToCalendarTime(currentLocale, datetime, selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected, includeTimezone, isLowercase),
-        [currentLocale, selectedTimezone],
-    );
+    const formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP);
 
-    const formatPhoneNumber = useMemo<LocaleContextProps['formatPhoneNumber']>(() => (phoneNumber) => formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP), [countryCodeByIP]);
+    const toLocaleDigit: LocaleContextProps['toLocaleDigit'] = (digit) => toLocaleDigitLocaleDigitUtils(currentLocale, digit);
 
-    const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => toLocaleDigitLocaleDigitUtils(currentLocale, digit), [currentLocale]);
+    const toLocaleOrdinal: LocaleContextProps['toLocaleOrdinal'] = (number, writtenOrdinals = false) => toLocaleOrdinalLocaleDigitUtils(currentLocale, number, writtenOrdinals);
 
-    const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(
-        () =>
-            (number, writtenOrdinals = false) =>
-                toLocaleOrdinalLocaleDigitUtils(currentLocale, number, writtenOrdinals),
-        [currentLocale],
-    );
+    const fromLocaleDigit: LocaleContextProps['fromLocaleDigit'] = (localeDigit) => fromLocaleDigitLocaleDigitUtils(currentLocale, localeDigit);
 
-    const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => fromLocaleDigitLocaleDigitUtils(currentLocale, localeDigit), [currentLocale]);
+    const localeCompare: LocaleContextProps['localeCompare'] = (a, b) => collator.compare(a, b);
 
-    const localeCompare = useMemo<LocaleContextProps['localeCompare']>(() => (a, b) => collator.compare(a, b), [collator]);
+    const formatTravelDate: LocaleContextProps['formatTravelDate'] = (datetime) => {
+        const date = new Date(datetime);
+        const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+        const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT);
+        const at = translateLocalize(currentLocale, 'common.conjunctionAt');
+        return `${formattedDate} ${at} ${formattedHour}`;
+    };
 
-    const formatTravelDate = useMemo<LocaleContextProps['formatTravelDate']>(
-        () => (datetime) => {
-            const date = new Date(datetime);
-            const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
-            const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT);
-            const at = translateLocalize(currentLocale, 'common.conjunctionAt');
-            return `${formattedDate} ${at} ${formattedHour}`;
-        },
-        [currentLocale],
-    );
-
-    const contextValue = useMemo<LocaleContextProps>(
-        () => ({
-            translate,
-            numberFormat,
-            getLocalDateFromDatetime,
-            datetimeToRelative,
-            datetimeToCalendarTime,
-            formatPhoneNumber,
-            toLocaleDigit,
-            toLocaleOrdinal,
-            fromLocaleDigit,
-            localeCompare,
-            formatTravelDate,
-            preferredLocale: currentLocale,
-        }),
-        [
-            translate,
-            numberFormat,
-            getLocalDateFromDatetime,
-            datetimeToRelative,
-            datetimeToCalendarTime,
-            formatPhoneNumber,
-            toLocaleDigit,
-            toLocaleOrdinal,
-            fromLocaleDigit,
-            localeCompare,
-            formatTravelDate,
-            currentLocale,
-        ],
-    );
+    const contextValue: LocaleContextProps = {
+        translate,
+        numberFormat,
+        getLocalDateFromDatetime,
+        datetimeToRelative,
+        datetimeToCalendarTime,
+        formatPhoneNumber,
+        toLocaleDigit,
+        toLocaleOrdinal,
+        fromLocaleDigit,
+        localeCompare,
+        formatTravelDate,
+        preferredLocale: currentLocale,
+    };
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
