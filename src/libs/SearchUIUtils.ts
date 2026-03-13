@@ -4354,7 +4354,7 @@ function getColumnsToShow(
             columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT] = true;
         }
 
-        if (!shouldUseStrictDefaultExpenseColumns && getDescription(transaction) !== '') {
+        if (getDescription(transaction) !== '') {
             columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = true;
         }
 
@@ -4364,7 +4364,7 @@ function getColumnsToShow(
         }
 
         const tag = getTag(transaction);
-        if (!shouldUseStrictDefaultExpenseColumns && tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE) {
+        if (tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE) {
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
         }
 
