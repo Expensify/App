@@ -59,6 +59,7 @@ jest.mock('@libs/EmojiTrie', () => ({
     buildEmojisTrie: jest.fn(),
 }));
 jest.mock('expo-location', () => ({
+    Accuracy: {Lowest: 1, Low: 2, Balanced: 3, High: 4, Highest: 5, BestForNavigation: 6},
     requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
     requestBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
     getCurrentPositionAsync: jest.fn(() => Promise.resolve({coords: {latitude: 0, longitude: 0}, timestamp: Date.now()})),

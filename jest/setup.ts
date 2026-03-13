@@ -322,32 +322,3 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraFormat: jest.fn(() => null),
     useCameraPermission: jest.fn(() => ({hasPermission: false, requestPermission: jest.fn()})),
 }));
-
-// Mock expo-location — jest-expo auto-mocks NativeModulesProxy functions to async () => {},
-// which returns undefined and causes crashes when code accesses response properties.
-jest.mock('expo-location', () => ({
-    Accuracy: {Lowest: 1, Low: 2, Balanced: 3, High: 4, Highest: 5, BestForNavigation: 6},
-    requestForegroundPermissionsAsync: jest.fn(() =>
-        Promise.resolve({
-            status: 'granted',
-            granted: true,
-            canAskAgain: true,
-            expires: 0,
-        }),
-    ),
-    requestBackgroundPermissionsAsync: jest.fn(() =>
-        Promise.resolve({
-            status: 'granted',
-            granted: true,
-            canAskAgain: true,
-            expires: 0,
-        }),
-    ),
-    getCurrentPositionAsync: jest.fn(() =>
-        Promise.resolve({
-            coords: {latitude: 0, longitude: 0, altitude: null, accuracy: null, altitudeAccuracy: null, heading: null, speed: null},
-            timestamp: Date.now(),
-        }),
-    ),
-    PermissionStatus: {GRANTED: 'granted', DENIED: 'denied', UNDETERMINED: 'undetermined'},
-}));
