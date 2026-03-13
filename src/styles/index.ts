@@ -3492,6 +3492,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             ...userSelect.userSelectNone,
+            minHeight: 40,
             paddingTop: 8,
             paddingBottom: 8,
             backgroundColor: theme.highlightBG,
