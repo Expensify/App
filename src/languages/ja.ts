@@ -7725,7 +7725,7 @@ ${reportName}
             confirm: '設定を開く',
             prompt: 'GPSで距離の追跡を開始するには、端末の設定で位置情報へのアクセスを許可してください。',
         },
-        fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
+        gpsFloatingPillText: 'GPS追跡を実行中...',
         liveActivity: {subtitle: '距離の記録', button: '進捗を表示'},
     },
     reportCardLostOrDamaged: {

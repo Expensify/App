@@ -8997,7 +8997,7 @@ ${amount} para ${merchant} - ${date}`,
             confirm: 'Abrir ajustes',
             prompt: 'Por favor, permite el acceso a la ubicación en los ajustes de tu dispositivo para iniciar el seguimiento de distancia por GPS.',
         },
-        fabGpsTripExplained: 'Ir a la pantalla de GPS (Acción flotante)',
+        gpsFloatingPillText: 'Seguimiento GPS en curso...',
         liveActivity: {
             subtitle: 'Seguimiento de distancia',
             button: 'Ver progreso',
