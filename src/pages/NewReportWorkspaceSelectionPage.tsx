@@ -267,7 +267,10 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     />
                     {CreateReportConfirmationModal}
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={{context: 'NewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
+                        />
                     ) : (
                         <>
                             <Text style={[styles.ph5, styles.mb3]}>{translate('report.newReport.chooseWorkspace')}</Text>
