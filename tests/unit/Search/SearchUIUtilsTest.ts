@@ -6469,7 +6469,7 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
-        test('Should hide Description, Tag and To for strict default expense columns', () => {
+        test('Should hide To for strict default expense columns', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
@@ -6496,8 +6496,8 @@ describe('SearchUIUtils', () => {
             expect(nonStrictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
 
             const strictColumns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false, undefined, undefined, false, false, false, true);
-            expect(strictColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
-            expect(strictColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+            expect(strictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+            expect(strictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
             expect(strictColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
         });
 

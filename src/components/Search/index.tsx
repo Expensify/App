@@ -1088,7 +1088,7 @@ function Search({
         ],
     );
 
-    const shouldUseStrictDefaultExpenseColumns = searchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON);
+    const shouldUseStrictDefaultExpenseColumns = currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON);
 
     const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
