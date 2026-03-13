@@ -1,7 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
+import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
+import {isCard, isCardHiddenFromSearch, isExpensifyCard, isPersonalCard, supportsPINManagementFeatures} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,8 +67,8 @@ const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 /**
  * Selects the Expensify Card feed from the card list and returns the first one.
  */
-const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>, translate: LocalizedTranslate) => {
-    const cards = getCardFeedsForDisplay({}, allCards, translate);
+const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
+    const cards = getExpensifyCardFeedsForDisplay(allCards ?? undefined);
     return Object.values(cards)?.at(0);
 };
 
@@ -88,6 +87,10 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
         .filter((card) => isCard(card) && isExpensifyCard(card))
         .every((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
+/** Checks whether the Expensify card matching the given cardID supports UK/EU features (e.g. PIN management). */
+const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID: string): boolean =>
+    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && supportsPINManagementFeatures(card ?? undefined));
+
 export {
     filterCardsHiddenFromSearch,
     filterOutPersonalCards,
@@ -95,5 +98,6 @@ export {
     cardByIdSelector,
     areAllExpensifyCardsShipped,
     buildFeedKeysWithAssignedCards,
+    isExpensifyCardUkEuSupportedSelector,
     getBankLinkedPersonalCards,
 };
