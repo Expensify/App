@@ -8,8 +8,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
-import useDebouncedValue from '@hooks/useDebouncedValue';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {EmojiPickerList, EmojiPickerListItem, HeaderIndices} from '@libs/EmojiUtils';
@@ -83,16 +82,13 @@ function ListEmptyComponent({searchValue}: {searchValue?: string}) {
     const {translate} = useLocalize();
     const noResultsFoundText = translate('common.noResultsFound');
 
-    const debouncedSearchValue = useDebouncedValue(searchValue ?? '', CONST.TIMING.ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME);
-    const hasFinishedTyping = (searchValue ?? '') === debouncedSearchValue;
-
-    useAccessibilityAnnouncement(noResultsFoundText, hasFinishedTyping, {shouldAnnounceOnNative: true});
+    const {shouldAnnounceNow, debouncedSearchValue} = useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue ?? '');
 
     return (
         <Text
-            key={hasFinishedTyping ? `no-results-${debouncedSearchValue}` : undefined}
+            key={shouldAnnounceNow ? `no-results-${debouncedSearchValue}` : undefined}
             style={[styles.textLabel, styles.colorMuted]}
-            role={hasFinishedTyping ? CONST.ROLE.ALERT : undefined}
+            role={shouldAnnounceNow ? CONST.ROLE.ALERT : undefined}
         >
             {noResultsFoundText}
         </Text>

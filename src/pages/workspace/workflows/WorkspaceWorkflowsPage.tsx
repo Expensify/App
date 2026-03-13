@@ -15,10 +15,9 @@ import RenderHTML from '@components/RenderHTML';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useDebouncedValue from '@hooks/useDebouncedValue';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -213,11 +212,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const noResultsMessage = translate('common.noResultsFoundMatching', workflowSearchInput);
     const isNoResults = searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0;
-    const debouncedSearchInput = useDebouncedValue(workflowSearchInput, CONST.TIMING.ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME);
-    const hasFinishedTyping = workflowSearchInput === debouncedSearchInput;
-    const shouldAnnounceNoResults = isNoResults && hasFinishedTyping;
-
-    useAccessibilityAnnouncement(noResultsMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
+    const {shouldAnnounceNow: shouldAnnounceNoResults, debouncedSearchValue: debouncedSearchInput} = useDebouncedAccessibilityAnnouncement(
+        noResultsMessage,
+        isNoResults,
+        workflowSearchInput,
+    );
 
     useEffect(() => {
         if (filteredApprovalWorkflows.length > CONST.APPROVAL_WORKFLOW_SEARCH_LIMIT) {

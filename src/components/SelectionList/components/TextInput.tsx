@@ -6,8 +6,7 @@ import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
-import useDebouncedValue from '@hooks/useDebouncedValue';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
@@ -73,11 +72,11 @@ function TextInput({
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
 
-    const debouncedInputValue = useDebouncedValue(value ?? '', CONST.TIMING.ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME);
-    const hasFinishedTyping = (value ?? '') === debouncedInputValue;
-    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage && hasFinishedTyping;
-
-    useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
+    const {shouldAnnounceNow: shouldAnnounceNoResults, debouncedSearchValue: debouncedInputValue} = useDebouncedAccessibilityAnnouncement(
+        headerMessage ?? '',
+        shouldShowHeaderMessage && isNoResultsFoundMessage,
+        value ?? '',
+    );
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);

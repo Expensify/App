@@ -13,10 +13,9 @@ import SectionList from '@components/SectionList';
 import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useDebouncedValue from '@hooks/useDebouncedValue';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -1013,11 +1012,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder));
 
-    const debouncedTextInputValue = useDebouncedValue(textInputValue, CONST.TIMING.ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME);
-    const hasFinishedTyping = textInputValue === debouncedTextInputValue;
-    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage && hasFinishedTyping;
-
-    useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
+    const {shouldAnnounceNow: shouldAnnounceNoResults, debouncedSearchValue: debouncedTextInputValue} = useDebouncedAccessibilityAnnouncement(
+        headerMessage,
+        shouldShowHeaderMessage && isNoResultsFoundMessage,
+        textInputValue,
+    );
 
     const headerMessageContent = () =>
         shouldShowHeaderMessage && (

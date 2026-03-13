@@ -8,8 +8,7 @@ import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
-import useDebouncedValue from '@hooks/useDebouncedValue';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -55,16 +54,13 @@ function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
     const {translate} = useLocalize();
     const noResultsFoundText = translate('common.noResultsFound');
 
-    const debouncedSearchValue = useDebouncedValue(searchValue, CONST.TIMING.ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME);
-    const hasFinishedTyping = searchValue === debouncedSearchValue;
-
-    useAccessibilityAnnouncement(noResultsFoundText, hasFinishedTyping, {shouldAnnounceOnNative: true});
+    const {shouldAnnounceNow, debouncedSearchValue} = useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue);
 
     return (
         <Text
-            key={hasFinishedTyping ? `no-results-${debouncedSearchValue}` : undefined}
+            key={shouldAnnounceNow ? `no-results-${debouncedSearchValue}` : undefined}
             style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
-            role={hasFinishedTyping ? CONST.ROLE.ALERT : undefined}
+            role={shouldAnnounceNow ? CONST.ROLE.ALERT : undefined}
         >
             {noResultsFoundText}
         </Text>
