@@ -74,7 +74,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         });
     };
 
-    const resetValidationState = () => {
+    const reset = () => {
         setIsValidatingFiles(false);
         setIsValidatingReceipt(undefined);
         setIsValidatingMultipleFiles(false);
@@ -98,7 +98,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         setIsErrorModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            resetValidationState();
+            reset();
         });
     };
 
@@ -146,7 +146,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         } else if (validFiles.current.length > 0) {
             const sortedFiles = sortFilesByOriginalOrder(validFiles.current, originalFileOrder.current);
             onFilesValidated(sortedFiles, dataTransferItemList.current);
-            resetValidationState();
+            reset();
         }
     };
 
@@ -258,7 +258,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             } else if (nonPdfFiles.length > 0) {
                 const sortedFiles = sortFilesByOriginalOrder(nonPdfFiles, originalFileOrder.current);
                 onFilesValidated(sortedFiles, dataTransferItemList.current);
-                resetValidationState();
+                reset();
             }
         }
     }
@@ -323,7 +323,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 if (sortedFiles.length !== 0) {
                     onFilesValidated(sortedFiles, dataTransferItemList.current);
                 }
-                resetValidationState();
+                reset();
             });
         } else {
             if (sortedFiles.length !== 0) {
