@@ -155,7 +155,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         };
     }
 
-    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(orderedAvailableOptions?.userToInvite);
+    const {userToInviteExpenseReport} = useUserToInviteReports(orderedAvailableOptions?.userToInvite);
 
     const shouldShowErrorMessage = selectedOptions.length < 1;
 
@@ -256,15 +256,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              currentUserAccountID,
-                              personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteChatReport,
-                              reportAttributesDerived,
-                          )
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, userToInviteExpenseReport, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 sectionIndex: 3,

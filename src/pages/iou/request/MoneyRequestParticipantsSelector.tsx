@@ -244,7 +244,7 @@ function MoneyRequestParticipantsSelector({
 
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
 
-    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(availableOptions?.userToInvite);
+    const {userToInviteExpenseReport} = useUserToInviteReports(availableOptions?.userToInvite);
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
@@ -359,15 +359,7 @@ function MoneyRequestParticipantsSelector({
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              currentUserAccountID,
-                              personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteChatReport,
-                              reportAttributesDerived,
-                          )
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, userToInviteExpenseReport, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 5,
@@ -395,7 +387,6 @@ function MoneyRequestParticipantsSelector({
         availableOptions.recentReports,
         availableOptions.personalDetails,
         userToInviteExpenseReport,
-        userToInviteChatReport,
         isWorkspacesOnly,
         loginList,
         isPerDiemRequest,
