@@ -1,7 +1,9 @@
 import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
+import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -62,9 +64,17 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         pendingAction: domainPendingAction?.[accountID]?.pendingAction,
     });
 
+    const getCustomListHeader = () => (
+        <CustomListHeader
+            canSelectMultiple={false}
+            leftHeaderText={translate('domain.admins.title')}
+        />
+    );
+
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
+
     const headerContent = isAdmin ? (
-        <>
+        <View style={[styles.flexRow, styles.gap2]}>
             <Button
                 success
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
@@ -80,9 +90,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 iconFill={hasSettingsErrors ? theme.danger : undefined}
                 iconHoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
                 innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                style={shouldUseNarrowLayout ? [styles.flexGrow0, styles.mb3] : undefined}
             />
-        </>
+        </View>
     ) : null;
 
     return (
@@ -93,6 +103,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             searchPlaceholder={translate('domain.admins.findAdmin')}
             headerIcon={illustrations.UserShield}
             headerContent={headerContent}
+            getCustomListHeader={getCustomListHeader}
             getCustomRightElement={getCustomRightElement}
             getCustomRowProps={getCustomRowProps}
             onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}

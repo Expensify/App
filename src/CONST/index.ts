@@ -103,7 +103,7 @@ const connectionsVideoPaths = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
-const brokenConnectionScrapeStatuses: number[] = [200, 531, 530, 500, 666];
+const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
@@ -773,9 +773,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         NEW_DOT_DEW: 'newDotDEW',
-        GPS_MILEAGE: 'gpsMileage',
         ODOMETER_EXPENSES: 'odometerExpenses',
-        NEW_DOT_HOME: 'newDotHome',
         SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
@@ -1137,6 +1135,7 @@ const CONST = {
         BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
         EXPENSIFY_APPROVED_PROGRAM_URL: `${USE_EXPENSIFY_URL}/accountants-program`,
         TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
+        FEES_URL: `${EXPENSIFY_URL}/fees`,
     },
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
@@ -1145,6 +1144,7 @@ const CONST = {
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
         POLICY_CONNECTIONS_URL_ENCODED: (policyID: string) => `policy?param=%7B%22policyID%22%3A%22${policyID}%22%7D#connections`,
         SETTINGS_WALLET_URL: 'settings?param={%22section%22:%22creditcards%22}',
+        PRINTABLE_REPORT: (reportID: string) => `printablereport.php?promptPrint=true&reportID=${reportID}`,
         SIGN_OUT: 'signout',
         SUPPORTAL_RESTORE_STASHED_LOGIN: '_support/index?action=restoreStashedLogin',
     },
@@ -1210,6 +1210,7 @@ const CONST = {
             CANCEL_PAYMENT: 'cancelPayment',
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
+            PRINT: 'print',
             CHANGE_WORKSPACE: 'changeWorkspace',
             CHANGE_APPROVER: 'changeApprover',
             VIEW_DETAILS: 'viewDetails',
@@ -1265,6 +1266,12 @@ const CONST = {
             CREATE_NEW_EXPENSE: 'createNewExpense',
             ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
             TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense',
+        },
+        ACTION_BADGE: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            FIX: 'fix',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -1742,6 +1749,7 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
@@ -1749,6 +1757,9 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
+        BREADCRUMB_CATEGORY_MFA: 'mfa',
+        BREADCRUMB_CATEGORY_3DS_NAVIGATION: '3ds.navigation',
+        BREADCRUMB_CATEGORY_3DS_AUTHORIZE: '3ds.authorize',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
@@ -1780,6 +1791,8 @@ const CONST = {
         TAG_EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
         TAG_EXPENSE_COMMAND: 'expense_command',
         TAG_EXPENSE_JSON_CODE: 'expense_json_code',
+        TAG_MFA_SCENARIO: 'mfa_scenario',
+        TAG_MFA_ERROR_REASON: 'mfa_error_reason',
         TAG_BUILD_TYPE: 'build_type',
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
@@ -1793,8 +1806,8 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT: 'SearchRouter.ModalCloseWait',
         SPAN_SEARCH_ROUTER_OPTIONS_INIT: 'SearchRouter.OptionsInit',
-        SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS: 'SearchRouter.ComputeOptions',
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
+        SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
@@ -1805,6 +1818,7 @@ const CONST = {
         SPAN_CONFIRMATION_RECEIPT_LOAD: 'ManualConfirmationReceiptLoad',
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
+        SPAN_SUBMIT_TO_DESTINATION_VISIBLE: 'ManualSubmitToDestinationVisible',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
@@ -1850,12 +1864,25 @@ const CONST = {
         ATTRIBUTE_SCENARIO: 'scenario',
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
+        /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
+        ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_COLD_START: 'cold_start',
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
+        SUBMIT_FOLLOW_UP_ACTION: {
+            DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
+            NAVIGATE_TO_SEARCH: 'navigate_to_search',
+            DISMISS_MODAL_ONLY: 'dismiss_modal_only',
+        },
+        /** Trigger for useSubmitToDestinationVisible: end span on focus vs on layout. */
+        SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER: {
+            FOCUS: 'focus',
+            LAYOUT: 'layout',
+        },
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
             REQUEST_MONEY_SCAN: 'request_money_scan',
@@ -1866,6 +1893,7 @@ const CONST = {
             SPLIT_GLOBAL: 'split_global',
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
+            SEND_MONEY: 'send_money',
         },
         // Event names
         EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
@@ -2363,7 +2391,7 @@ const CONST = {
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT_SMALL: 96,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
-    EXPENSIFY_MERCHANT: 'Expensify',
+    EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL,
 
     FULLSTORY: {
@@ -2391,6 +2419,7 @@ const CONST = {
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
+    CONCIERGE_GREETING_ACTION_ID: 'concierge-side-panel-greeting',
 
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
@@ -2641,7 +2670,15 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
-        NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
+        NETSUITE_ADD_CUSTOM_LIST: {
+            STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            PAGE_NAME: {
+                NAME: 'name',
+                FIELD_ID: 'field-id',
+                MAPPING_TITLE: 'mapping-title',
+                CONFIRM: 'confirm',
+            },
+        },
         NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
 
@@ -2848,11 +2885,13 @@ const CONST = {
 
     MISSING_PERSONAL_DETAILS: {
         STEP_INDEX_LIST: ['1', '2', '3', '4'],
+        STEP_INDEX_LIST_WITH_PIN: ['1', '2', '3', '4', '5'],
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
             DATE_OF_BIRTH: 'date-of-birth',
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
+            PIN: 'pin',
             CONFIRM: 'confirm',
         },
     },
@@ -2871,6 +2910,14 @@ const CONST = {
             ADDRESS: 2,
             PHONE_NUMBER: 3,
             CONFIRM: 4,
+        },
+        MAPPING_WITH_PIN: {
+            LEGAL_NAME: 0,
+            DATE_OF_BIRTH: 1,
+            ADDRESS: 2,
+            PHONE_NUMBER: 3,
+            PIN: 4,
+            CONFIRM: 5,
         },
         INDEX_LIST: ['1', '2', '3', '4'],
     },
@@ -3321,6 +3368,7 @@ const CONST = {
             IMPORT_SPREADSHEET: 'importSpreadsheet',
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
+            EXPORT: 'export',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -3643,13 +3691,8 @@ const CONST = {
         LARGE_NORMAL: 'large-normal',
     },
 
-    PERSONAL_CARD: {
-        BANK_NAME: {
-            CSV: 'upload',
-        },
-    },
-
     COMPANY_CARD: {
+        // Mostly used for feed details
         FEED_BANK_NAME: {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
@@ -3691,6 +3734,9 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
+        CARD_PROGRAM: {
+            CURRENT: 'CURRENT',
+        },
         FRAUD_TYPES: {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individual',
@@ -3745,6 +3791,85 @@ const CONST = {
             DAMAGED: 'damaged',
         },
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
+        PIN: {
+            LENGTH: 4,
+            INVALID_PINS: [
+                '0000',
+                '1111',
+                '2222',
+                '3333',
+                '4444',
+                '5555',
+                '6666',
+                '7777',
+                '8888',
+                '9999',
+                '1234',
+                '2345',
+                '3456',
+                '4567',
+                '5678',
+                '6789',
+                '7890',
+                '0123',
+                '0987',
+                '9876',
+                '8765',
+                '7654',
+                '6543',
+                '5432',
+                '4321',
+                '3210',
+                '1212',
+                '1004',
+                '6969',
+                '2000',
+                '2015',
+            ],
+        },
+    },
+    PERSONAL_CARDS: {
+        FEED_KEY_SEPARATOR: '#',
+        STEP: {
+            SELECT_BANK: 'SelectBank',
+            BANK_CONNECTION: 'BankConnection',
+            SELECT_COUNTRY: 'SelectCountry',
+            PLAID_CONNECTION: 'PlaidConnection',
+            SUCCESS: 'Success',
+        },
+        // Mostly used for get bank details
+        BANKS: {
+            AMEX: 'American Express',
+            BANK_OF_AMERICA: 'Bank of America',
+            CAPITAL_ONE: 'Capital One',
+            CHASE: 'Chase',
+            CITI_BANK: 'Citibank',
+            WELLS_FARGO: 'Wells Fargo',
+            MOCK_BANK: 'Mock Bank',
+            OTHER: 'Other',
+        },
+        // Mostly used for API calls
+        BANK_CONNECTIONS: {
+            WELLS_FARGO: 'wellsfargo',
+            BANK_OF_AMERICA: 'bankofamerica',
+            CHASE: 'chase',
+            CAPITAL_ONE: 'capitalone',
+            CITI_BANK: 'citibank',
+            AMEX: 'americanexpressfdx',
+            MOCK_BANK: 'mockbank',
+        },
+        // Mostly used for feed details
+        BANK_NAME: {
+            CITIBANK: 'oauth.citibank.com',
+            CAPITAL_ONE: 'oauth.capitalone.com',
+            BANK_OF_AMERICA: 'oauth.bankofamerica.com',
+            CHASE: 'oauth.chase.com',
+            PEX: 'admin.pexcard.com',
+            WELLS_FARGO: 'oauth.wellsfargo.com',
+            AMEX_DIRECT: 'oauth.americanexpressfdx.com',
+            AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
+            CSV: 'upload',
+        },
     },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
@@ -3784,6 +3909,7 @@ const CONST = {
             CUSTOM: 'customFeed',
             DIRECT: 'directFeed',
         },
+        // Mostly used for get bank details
         BANKS: {
             AMEX: 'American Express',
             BANK_OF_AMERICA: 'Bank of America',
@@ -3800,6 +3926,7 @@ const CONST = {
         NON_CONNECTABLE_BANKS: {
             PEX: 'PEX',
         },
+        // Mostly used for API calls
         BANK_CONNECTIONS: {
             WELLS_FARGO: 'wellsfargo',
             BANK_OF_AMERICA: 'bankofamerica',
@@ -4090,6 +4217,7 @@ const CONST = {
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
         FIRST_SPACE: /.+?(?=\s)/,
         TRAILING_DOTS: /\.$/,
+        STARTS_WITH_PUNCTUATION: /^[.,!?]/,
 
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
@@ -4734,7 +4862,7 @@ const CONST = {
     },
 
     PLAID_EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP'] as string[],
-    PLAID_SUPPORT_COUNTRIES: ['US', 'CA', 'GB', 'AT', 'BE', 'DK', 'EE', 'FI', 'FR', 'DE', 'IE', 'IT', 'LV', 'LT', 'NL', 'NO', 'PL', 'PT', 'ES', 'SE'] as string[],
+    PLAID_SUPPORT_COUNTRIES: ['AT', 'BE', 'CA', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'IE', 'IT', 'LT', 'LV', 'NL', 'NO', 'PL', 'PT', 'SE', 'US'] as string[],
 
     BBA_SUPPORTED_COUNTRIES: [
         'AT',
@@ -5740,6 +5868,8 @@ const CONST = {
         LINK: 'link',
         /** Use to identify a list of items. */
         LIST: 'list',
+        /** Use for a list of selectable options (single or multi-select). */
+        LISTBOX: 'listbox',
         /** Use for individual items within a list. */
         LISTITEM: 'listitem',
         /** Use for a list of choices or options. */
@@ -5748,6 +5878,8 @@ const CONST = {
         MENUBAR: 'menubar',
         /** Use for items within a menu. */
         MENUITEM: 'menuitem',
+        /** Use for selectable options within a listbox. */
+        OPTION: 'option',
         /** Use when no specific role is needed. */
         NONE: 'none',
         /** Use for elements that don't require a specific role. */
@@ -6212,6 +6344,7 @@ const CONST = {
             NORMAL: 8,
         },
         DEFAULT_VIDEO_DIMENSIONS: {width: 1900, height: 1400},
+        OFFLINE_THRESHOLD: 7000,
     },
 
     INTRO_CHOICES: {
@@ -7519,6 +7652,7 @@ const CONST = {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
+            FIND_ITEM: 'findItem',
         },
         SEARCH_USER_FRIENDLY_KEYS: {
             TYPE: 'type',
@@ -8374,6 +8508,8 @@ const CONST = {
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
+            ENLARGE_BUTTON: 'Receipt-EnlargeButton',
+            ADD_ATTACHMENT_BUTTON: 'Receipt-AddAttachmentButton',
         },
         RECEIPT_MODAL: {
             REPLACE_RECEIPT: 'ReceiptModal-ReplaceReceipt',
@@ -8528,6 +8664,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            PRINT: 'MoreMenu-Print',
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
@@ -8748,6 +8885,7 @@ const CONST = {
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
+            IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
             COMPANY_CARDS: {
                 TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
                 MORE_DROPDOWN: 'WorkspaceCompanyCards-MoreDropdown',
@@ -8763,6 +8901,8 @@ const CONST = {
                 NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
                 NEW_DOMAIN_BUTTON: 'WorkspaceList-NewDomainButton',
                 THREE_DOT_MENU: 'WorkspaceList-ThreeDotMenu',
+                ROW: 'WorkspaceList-Row',
+                ROW_ARROW: 'WorkspaceList-RowArrow',
             },
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
@@ -8948,8 +9088,8 @@ const CONST = {
             CHECKBOX_RIGHT: 'UserListItem-CheckboxRight',
         },
         USER_LIST_ITEM_WITH_SECTIONS: {
-            CHECKBOX: 'UserListItemWithSections-Checkbox',
-            CHECKBOX_RIGHT: 'UserListItemWithSections-CheckboxRight',
+            LEFT_CHECKBOX: 'UserListItemWithSections-LeftCheckbox',
+            RIGHT_CHECKBOX: 'UserListItemWithSections-RightCheckbox',
         },
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
@@ -9019,6 +9159,7 @@ const CONST = {
         },
         SETTINGS_WALLET: {
             ADD_BANK_ACCOUNT: 'SettingsWallet-AddBankAccount',
+            ADD_PERSONAL_CARD: 'SettingsWallet-AddPersonalCard',
             IMPORT_TRANSACTIONS: 'SettingsWallet-ImportTransactions',
             TRANSFER_BALANCE: 'SettingsWallet-TransferBalance',
             ENABLE_WALLET: 'SettingsWallet-EnableWallet',
