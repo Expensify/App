@@ -411,6 +411,7 @@ function NumberWithSymbolForm({
                         onMouseDown={(e) => e.preventDefault()}
                         isContentCentered
                         accessibilityLabel={translate('iou.flip')}
+                        isDisabled={disabled}
                     />
                 )}
                 {shouldShowCurrencyButton && !!currency && (
@@ -422,6 +423,7 @@ function NumberWithSymbolForm({
                         isContentCentered
                         text={currency}
                         accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                        isDisabled={disabled}
                     />
                 )}
             </View>
