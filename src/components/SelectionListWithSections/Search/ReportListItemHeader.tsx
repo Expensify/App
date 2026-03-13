@@ -254,7 +254,7 @@ function ReportListItemHeader<TItem extends ListItem>({
         });
     };
     return !isLargeScreenWidth ? (
-        <View style={[styles.pv1Half]}>
+        <View style={[styles.pv1]}>
             <UserInfoAndActionButtonRow
                 item={reportItem}
                 handleActionButtonPress={handleOnButtonPress}
