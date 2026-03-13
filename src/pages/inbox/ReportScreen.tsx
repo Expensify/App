@@ -16,6 +16,7 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import AccountManagerBanner from './AccountManagerBanner';
+import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
@@ -79,13 +80,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     <AccountManagerBanner reportID={reportIDFromRoute} />
                                     <View style={[styles.flex1, styles.flexRow]}>
                                         <WideRHPReceiptPanel />
-                                        <View
-                                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                            testID="report-actions-view-wrapper"
-                                        >
-                                            <ReportActionsList />
-                                            <ReportFooter />
-                                        </View>
+                                        <AgentZeroStatusProvider reportID={reportIDFromRoute}>
+                                            <View
+                                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                                testID="report-actions-view-wrapper"
+                                            >
+                                                <ReportActionsList />
+                                                <ReportFooter />
+                                            </View>
+                                        </AgentZeroStatusProvider>
                                     </View>
                                     <PortalHost name="suggestions" />
                                 </ReportDragAndDropProvider>

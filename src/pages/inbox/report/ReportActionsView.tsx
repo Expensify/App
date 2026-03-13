@@ -4,7 +4,6 @@ import {InteractionManager} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useConciergeSidePanelReportActions from '@hooks/useConciergeSidePanelReportActions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -107,18 +106,12 @@ function ReportActionsView({
     // Self-derived state (moved from ReportActionsList)
     const parentReportAction = useParentReportAction(report);
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
-    const isConciergeChat = isConciergeChatReport(report);
     const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
     const {sessionStartTime} = useSidePanelState();
     const hasUserSentMessage =
         !isConciergeSidePanel || !sessionStartTime
             ? false
             : (allReportActions ?? []).some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
-    const {
-        isProcessing: isConciergeProcessing,
-        reasoningHistory: conciergeReasoningHistory,
-        statusLabel: conciergeStatusLabel,
-    } = useAgentZeroStatusIndicator(String(report?.reportID ?? CONST.DEFAULT_NUMBER_ID), isConciergeChat);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
 
@@ -427,9 +420,6 @@ function ReportActionsView({
                 showHiddenHistory={!showFullHistory}
                 hasPreviousMessages={hasPreviousMessages}
                 onShowPreviousMessages={handleShowPreviousMessages}
-                isConciergeProcessing={isConciergeProcessing && !showConciergeSidePanelWelcome}
-                conciergeReasoningHistory={conciergeReasoningHistory}
-                conciergeStatusLabel={conciergeStatusLabel}
             />
             <UserTypingEventListener report={report} />
         </>

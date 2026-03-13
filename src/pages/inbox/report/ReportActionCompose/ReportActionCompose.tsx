@@ -18,7 +18,6 @@ import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
@@ -83,6 +82,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -134,6 +134,7 @@ function ReportActionCompose({reportID, onComposerFocus, onComposerBlur}: Report
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+    const {kickoffWaitingIndicator} = useAgentZeroStatus();
     const isInSidePanel = useIsInSidePanel();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -173,7 +174,6 @@ function ReportActionCompose({reportID, onComposerFocus, onComposerBlur}: Report
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
     // Concierge concerns (moved from ReportFooter)
-    const isConciergeChat = isConciergeChatReport(report);
     const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
     const {sessionStartTime} = useSidePanelState();
     const hasUserSentMessage = (() => {
@@ -182,7 +182,6 @@ function ReportActionCompose({reportID, onComposerFocus, onComposerBlur}: Report
         }
         return reportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserPersonalDetails.accountID && action.created >= sessionStartTime);
     })();
-    const {kickoffWaitingIndicator} = useAgentZeroStatusIndicator(String(report?.reportID ?? CONST.DEFAULT_NUMBER_ID), isConciergeChat);
     const shouldHideStatusIndicators = isConciergeSidePanel && !hasUserSentMessage;
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
@@ -444,9 +443,7 @@ function ReportActionCompose({reportID, onComposerFocus, onComposerBlur}: Report
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
-            if (isConciergeChat && kickoffWaitingIndicator) {
-                kickoffWaitingIndicator();
-            }
+            kickoffWaitingIndicator();
 
             if (attachmentFileRef.current) {
                 addAttachmentWithComment({
@@ -481,7 +478,6 @@ function ReportActionCompose({reportID, onComposerFocus, onComposerBlur}: Report
             }
         },
         [
-            isConciergeChat,
             kickoffWaitingIndicator,
             transactionThreadReport,
             report,
