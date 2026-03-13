@@ -1,6 +1,6 @@
 import React, {createContext, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, View} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import scrollToTabUtil from './scrollToTab';
 
 type TabSelectorContextValue = {

@@ -1,7 +1,6 @@
 import React, {useContext, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import type {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
