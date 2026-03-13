@@ -15,8 +15,10 @@ import RenderHTML from '@components/RenderHTML';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDebouncedValue from '@hooks/useDebouncedValue';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -209,6 +211,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows] = useSearchResults(filteredApprovalWorkflows, filterWorkflow);
 
+    const noResultsMessage = translate('common.noResultsFoundMatching', workflowSearchInput);
+    const isNoResults = searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0;
+    const debouncedSearchInput = useDebouncedValue(workflowSearchInput, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const hasFinishedTyping = workflowSearchInput === debouncedSearchInput;
+    const shouldAnnounceNoResults = isNoResults && hasFinishedTyping;
+
+    useAccessibilityAnnouncement(noResultsMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
+
     useEffect(() => {
         if (filteredApprovalWorkflows.length > CONST.APPROVAL_WORKFLOW_SEARCH_LIMIT) {
             return;
@@ -321,9 +331,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 style={[styles.mt6, {marginHorizontal: 0}]}
                             />
                         )}
-                        {searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0 && (
+                        {isNoResults && (
                             <View style={[styles.pt3, styles.pb5]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', workflowSearchInput)}</Text>
+                                <Text
+                                    key={shouldAnnounceNoResults ? `no-results-${debouncedSearchInput}` : undefined}
+                                    style={[styles.textNormal, styles.colorMuted]}
+                                    role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
+                                    accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
+                                >
+                                    {noResultsMessage}
+                                </Text>
                             </View>
                         )}
                         {searchFilteredWorkflows.map((workflow) => (
@@ -506,6 +523,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         searchFilteredWorkflows,
         workflowSearchInput,
         setWorkflowSearchInput,
+        isNoResults,
+        noResultsMessage,
+        shouldAnnounceNoResults,
+        debouncedSearchInput,
         addApprovalAction,
         isOffline,
         isPolicyAdmin,

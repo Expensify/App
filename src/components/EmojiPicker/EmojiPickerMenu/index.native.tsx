@@ -1,6 +1,6 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
@@ -42,6 +42,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         emojiListRef,
     } = useEmojiPickerMenu();
     const StyleUtils = useStyleUtils();
+    const [searchText, setSearchText] = useState('');
 
     const updateEmojiList = (emojiData: EmojiPickerList | Emoji[], headerData: number[] = []) => {
         setFilteredEmojis(emojiData);
@@ -124,7 +125,10 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
-                    onChangeText={filterEmojis}
+                    onChangeText={(text: string) => {
+                        setSearchText(text);
+                        filterEmojis(text);
+                    }}
                     submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
                     sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />
@@ -145,6 +149,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                 extraData={[filteredEmojis, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
                 alwaysBounceVertical={filteredEmojis.length !== 0}
+                searchValue={searchText}
             />
         </View>
     );

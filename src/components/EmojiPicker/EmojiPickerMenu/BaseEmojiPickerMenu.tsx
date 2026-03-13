@@ -9,6 +9,7 @@ import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useDebouncedValue from '@hooks/useDebouncedValue';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {EmojiPickerList, EmojiPickerListItem, HeaderIndices} from '@libs/EmojiUtils';
@@ -42,6 +43,9 @@ type BaseEmojiPickerMenuProps = {
     /** Whether the list should always bounce vertically */
     alwaysBounceVertical?: boolean;
 
+    /** The current search input value, used for accessibility re-announcements */
+    searchValue?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FlashListRef<EmojiPickerListItem>>;
 };
@@ -74,18 +78,22 @@ const keyExtractor = (item: EmojiPickerListItem, index: number): string => `emoj
 /**
  * Renders the list empty component
  */
-function ListEmptyComponent() {
+function ListEmptyComponent({searchValue}: {searchValue?: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const noResultsFoundText = translate('common.noResultsFound');
 
-    useAccessibilityAnnouncement(noResultsFoundText, true, {shouldAnnounceOnNative: true});
+    const debouncedSearchValue = useDebouncedValue(searchValue ?? '', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const hasFinishedTyping = (searchValue ?? '') === debouncedSearchValue;
+
+    useAccessibilityAnnouncement(noResultsFoundText, hasFinishedTyping, {shouldAnnounceOnNative: true});
 
     return (
         <Text
+            key={hasFinishedTyping ? `no-results-${debouncedSearchValue}` : undefined}
             style={[styles.textLabel, styles.colorMuted]}
-            role={CONST.ROLE.ALERT}
-            accessibilityLiveRegion="polite"
+            role={hasFinishedTyping ? CONST.ROLE.ALERT : undefined}
+            accessibilityLiveRegion={hasFinishedTyping ? 'polite' : undefined}
         >
             {noResultsFoundText}
         </Text>
@@ -102,6 +110,7 @@ function BaseEmojiPickerMenu({
     stickyHeaderIndices = [],
     extraData = [],
     alwaysBounceVertical = false,
+    searchValue,
     ref,
 }: BaseEmojiPickerMenuProps) {
     const styles = useThemeStyles();
@@ -123,7 +132,7 @@ function BaseEmojiPickerMenu({
                     keyExtractor={keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
                     stickyHeaderIndices={stickyHeaderIndices}
-                    ListEmptyComponent={ListEmptyComponent}
+                    ListEmptyComponent={<ListEmptyComponent searchValue={searchValue} />}
                     alwaysBounceVertical={alwaysBounceVertical}
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}

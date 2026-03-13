@@ -59,6 +59,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     // prevent auto focus when open picker for mobile device
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
+    const [searchText, setSearchText] = useState('');
     const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
@@ -330,7 +331,10 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
-                    onChangeText={filterEmojis}
+                    onChangeText={(text: string) => {
+                        setSearchText(text);
+                        filterEmojis(text);
+                    }}
                     defaultValue=""
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
@@ -355,6 +359,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                 renderItem={renderItem}
                 extraData={[focusedIndex, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
+                searchValue={searchText}
             />
         </View>
     );
