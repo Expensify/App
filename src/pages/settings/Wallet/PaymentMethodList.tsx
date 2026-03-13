@@ -291,7 +291,7 @@ function PaymentMethodList({
 
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        plaidUrl: isUserPersonalCard ? undefined : plaidUrl,
+                        plaidUrl,
                         title: cardTitle,
                         description: isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription,
                         interactive: !isDisabled,

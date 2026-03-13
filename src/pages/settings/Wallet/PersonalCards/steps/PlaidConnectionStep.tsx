@@ -112,7 +112,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
             return unsubscribeToNavigationShortcuts;
         }
         if (addNewPersonalCard?.data?.selectedCountry) {
-            openPlaidCompanyCardLogin(addNewPersonalCard.data.selectedCountry, '', feed);
+            openPlaidCompanyCardLogin(addNewPersonalCard.data.selectedCountry, '', feed, true);
             return unsubscribeToNavigationShortcuts;
         }
 
@@ -123,7 +123,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
         if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid && addNewPersonalCard?.data?.selectedCountry) {
-            openPlaidCompanyCardLogin(addNewPersonalCard.data.selectedCountry, '', feed);
+            openPlaidCompanyCardLogin(addNewPersonalCard.data.selectedCountry, '', feed, true);
         }
         previousNetworkState.current = isOffline;
     }, [addNewPersonalCard?.data?.selectedCountry, feed, isAuthenticatedWithPlaid, isOffline]);

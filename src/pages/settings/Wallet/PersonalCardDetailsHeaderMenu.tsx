@@ -80,7 +80,7 @@ function PersonalCardDetailsHeaderMenu({
             >
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                    title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName) ?? card?.cardName}
+                    title={customCardNames?.[cardID] ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName)}
                     shouldShowRightIcon
                     brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.getRoute(cardID))}
