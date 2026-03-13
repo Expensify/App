@@ -575,12 +575,12 @@ function MoneyRequestReportPreviewContent({
                 return;
             }
 
-                carouselRef.current?.scrollToIndex({
-                    index,
-                    viewOffset: -2 * styles.gap2.gap,
-                    animated: true,
-                });
-            }, CONST.ANIMATED_TRANSITION);
+            carouselRef.current?.scrollToIndex({
+                index,
+                viewOffset: -2 * styles.gap2.gap,
+                animated: true,
+            });
+        }, CONST.ANIMATED_TRANSITION);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newTransactionIDs]);
