@@ -48,7 +48,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID, hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
+import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
@@ -81,7 +81,6 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
-    hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasPendingUI,
     isManagedCardTransaction,
     isPending,
@@ -90,7 +89,7 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
-import {markAsCash as markAsCashAction} from '@userActions/Transaction';
+import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -269,20 +268,30 @@ function MoneyRequestReportPreviewContent({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
 
-    const markPendingRTERTransactionsAsCash = useCallback(() => {
-        const reportActionsArray = Object.values(reportActions ?? {});
-        for (const t of transactions) {
-            const txViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`];
-            if (!hasPendingRTERViolationTransactionUtils(txViolations)) {
-                continue;
-            }
-            const iouAction = getIOUActionForTransactionID(reportActionsArray, t.transactionID);
-            const threadReportID = iouAction?.childReportID;
-            if (threadReportID) {
-                markAsCashAction(t.transactionID, threadReportID, txViolations ?? []);
-            }
-        }
+    const handleMarkPendingRTERTransactionsAsCash = useCallback(() => {
+        markPendingRTERTransactionsAsCash(transactions, transactionViolations, Object.values(reportActions ?? {}));
     }, [transactions, transactionViolations, reportActions]);
+
+    const confirmPendingRTERAndProceed = useCallback(
+        (onProceed: () => void) => {
+            if (!hasAnyPendingRTERViolation) {
+                onProceed();
+                return;
+            }
+            showConfirmModal({
+                title: translate('iou.pendingMatchSubmitTitle'),
+                prompt: translate('iou.pendingMatchSubmitDescription'),
+                confirmText: translate('common.yes'),
+                cancelText: translate('common.no'),
+            }).then((result) => {
+                if (result.action === ModalActions.CONFIRM) {
+                    handleMarkPendingRTERTransactionsAsCash();
+                }
+                onProceed();
+            });
+        },
+        [hasAnyPendingRTERViolation, showConfirmModal, translate, handleMarkPendingRTERTransactionsAsCash],
+    );
 
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
@@ -777,43 +786,20 @@ function MoneyRequestReportPreviewContent({
                         showDEWModal();
                         return;
                     }
-                    if (hasAnyPendingRTERViolation) {
-                        showConfirmModal({
-                            title: translate('iou.pendingMatchSubmitTitle'),
-                            prompt: translate('iou.pendingMatchSubmitDescription'),
-                            confirmText: translate('common.yes'),
-                            cancelText: translate('common.no'),
-                        }).then((result) => {
-                            if (result.action === ModalActions.CONFIRM) {
-                                markPendingRTERTransactionsAsCash();
-                            }
-                            startSubmittingAnimation();
-                            submitReport(
-                                iouReport,
-                                policy,
-                                currentUserAccountID,
-                                currentUserEmail,
-                                hasViolations,
-                                isASAPSubmitBetaEnabled,
-                                iouReportNextStep,
-                                userBillingGraceEndPeriods,
-                                amountOwed,
-                            );
-                        });
-                        return;
-                    }
-                    startSubmittingAnimation();
-                    submitReport(
-                        iouReport,
-                        policy,
-                        currentUserAccountID,
-                        currentUserEmail,
-                        hasViolations,
-                        isASAPSubmitBetaEnabled,
-                        iouReportNextStep,
-                        userBillingGraceEndPeriods,
-                        amountOwed,
-                    );
+                    confirmPendingRTERAndProceed(() => {
+                        startSubmittingAnimation();
+                        submitReport(
+                            iouReport,
+                            policy,
+                            currentUserAccountID,
+                            currentUserEmail,
+                            hasViolations,
+                            isASAPSubmitBetaEnabled,
+                            iouReportNextStep,
+                            userBillingGraceEndPeriods,
+                            amountOwed,
+                        );
+                    });
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}

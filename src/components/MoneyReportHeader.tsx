@@ -65,7 +65,6 @@ import {selectPaymentType} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {
     getIOUActionForReportID,
-    getIOUActionForTransactionID,
     getOriginalMessage,
     getReportAction,
     hasPendingDEWApprove,
@@ -114,7 +113,6 @@ import {
     hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     hasDuplicateTransactions,
-    hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDistanceRequest,
     isDuplicate,
     isExpensifyCardTransaction,
@@ -144,7 +142,7 @@ import {
     unapproveExpenseReport,
 } from '@userActions/IOU';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
-import {markAsCash as markAsCashAction} from '@userActions/Transaction';
+import {markAsCash as markAsCashAction, markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -788,18 +786,8 @@ function MoneyReportHeader({
         markAsCashAction(iouTransactionID, reportID, transactionViolations);
     }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID, transactionViolations]);
 
-    const markPendingRTERTransactionsAsCash = useCallback(() => {
-        for (const t of transactions) {
-            const txViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`];
-            if (!hasPendingRTERViolationTransactionUtils(txViolations)) {
-                continue;
-            }
-            const action = getIOUActionForTransactionID(reportActions, t.transactionID);
-            const threadReportID = action?.childReportID;
-            if (threadReportID) {
-                markAsCashAction(t.transactionID, threadReportID, txViolations ?? []);
-            }
-        }
+    const handleMarkPendingRTERTransactionsAsCash = useCallback(() => {
+        markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
     }, [transactions, allTransactionViolations, reportActions]);
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -1219,6 +1207,27 @@ function MoneyReportHeader({
         startSubmittingAnimation,
     ]);
 
+    const confirmPendingRTERAndProceed = useCallback(
+        (onProceed: () => void) => {
+            if (!hasAnyPendingRTERViolation) {
+                onProceed();
+                return;
+            }
+            showConfirmModal({
+                title: translate('iou.pendingMatchSubmitTitle'),
+                prompt: translate('iou.pendingMatchSubmitDescription'),
+                confirmText: translate('common.yes'),
+                cancelText: translate('common.no'),
+            }).then((result) => {
+                if (result.action === ModalActions.CONFIRM) {
+                    handleMarkPendingRTERTransactionsAsCash();
+                }
+                onProceed();
+            });
+        },
+        [hasAnyPendingRTERViolation, showConfirmModal, translate, handleMarkPendingRTERTransactionsAsCash],
+    );
+
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
             <AnimatedSubmitButton
@@ -1232,21 +1241,7 @@ function MoneyReportHeader({
                         showDWEModal();
                         return;
                     }
-                    if (hasAnyPendingRTERViolation) {
-                        showConfirmModal({
-                            title: translate('iou.pendingMatchSubmitTitle'),
-                            prompt: translate('iou.pendingMatchSubmitDescription'),
-                            confirmText: translate('common.yes'),
-                            cancelText: translate('common.no'),
-                        }).then((result) => {
-                            if (result.action === ModalActions.CONFIRM) {
-                                markPendingRTERTransactionsAsCash();
-                            }
-                            proceedWithSubmit();
-                        });
-                        return;
-                    }
-                    proceedWithSubmit();
+                    confirmPendingRTERAndProceed(proceedWithSubmit);
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
@@ -1512,21 +1507,9 @@ function MoneyReportHeader({
                     showDWEModal();
                     return;
                 }
-                if (hasAnyPendingRTERViolation) {
-                    showConfirmModal({
-                        title: translate('iou.pendingMatchSubmitTitle'),
-                        prompt: translate('iou.pendingMatchSubmitDescription'),
-                        confirmText: translate('common.yes'),
-                        cancelText: translate('common.no'),
-                    }).then((result) => {
-                        if (result.action === ModalActions.CONFIRM) {
-                            markPendingRTERTransactionsAsCash();
-                        }
-                        submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
-                    });
-                    return;
-                }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
+                confirmPendingRTERAndProceed(() => {
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
