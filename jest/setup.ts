@@ -322,3 +322,19 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraFormat: jest.fn(() => null),
     useCameraPermission: jest.fn(() => ({hasPermission: false, requestPermission: jest.fn()})),
 }));
+
+// Mock expo-location — the native ExpoLocation module is unavailable in Jest
+jest.mock('expo-location', () => ({
+    Accuracy: {Lowest: 1, Low: 2, Balanced: 3, High: 4, Highest: 5, BestForNavigation: 6},
+    PermissionStatus: {GRANTED: 'granted', UNDETERMINED: 'undetermined', DENIED: 'denied'},
+    getCurrentPositionAsync: jest.fn(),
+    requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 'never'})),
+    requestBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 'never'})),
+    getForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'undetermined', granted: false, canAskAgain: true, expires: 'never'})),
+    getBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'undetermined', granted: false, canAskAgain: true, expires: 'never'})),
+    hasStartedLocationUpdatesAsync: jest.fn(() => Promise.resolve(false)),
+    startLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
+    stopLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
+    hasServicesEnabledAsync: jest.fn(() => Promise.resolve(true)),
+    reverseGeocodeAsync: jest.fn(() => Promise.resolve([])),
+}));
