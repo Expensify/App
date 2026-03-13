@@ -111,20 +111,49 @@ class ShareViewController: UIViewController {
     private func loadData(for attachment: NSItemProvider, in folder: URL, group: DispatchGroup, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Loading data for attachment")
         let isURL = attachment.hasItemConformingToTypeIdentifier("public.url") && !attachment.hasItemConformingToTypeIdentifier("public.file-url")
-        let typeIdentifier = isURL ? (kUTTypeURL as String) : (kUTTypeData as String)
-        
-        attachment.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { (data, error) in
-            DispatchQueue.main.async {
-                if let error = error {
-                    os_log("Sharing error: %@", error.localizedDescription)
-                    completion(.CouldNotLoad)
-                    return
+
+        if isURL {
+            attachment.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { (data, error) in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        os_log("Sharing error: %@", error.localizedDescription)
+                        completion(.CouldNotLoad)
+                        return
+                    }
+                    if let url = data as? URL {
+                        os_log("Handling URL: %@", url.absoluteString)
+                        self.handleURL(url, folder: folder, completion: completion)
+                    } else {
+                        completion(.CouldNotLoad)
+                    }
                 }
-                
-                if isURL, let url = data as? URL {
-                    os_log("Handling URL: %@", url.absoluteString)
-                    self.handleURL(url, folder: folder, completion: completion)
-                } else {
+            }
+        } else if attachment.canLoadObject(ofClass: UIImage.self) {
+            os_log("Loading image via loadObject API")
+            attachment.loadObject(ofClass: UIImage.self) { (object, error) in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        os_log("Image load error: %@", error.localizedDescription)
+                        completion(.CouldNotLoad)
+                        return
+                    }
+                    if let image = object as? UIImage {
+                        os_log("Handling image from loadObject")
+                        self.handleImageData(image, folder: folder, completion: completion)
+                    } else {
+                        os_log("loadObject returned nil image")
+                        completion(.CouldNotLoad)
+                    }
+                }
+            }
+        } else {
+            attachment.loadItem(forTypeIdentifier: kUTTypeData as String, options: nil) { (data, error) in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        os_log("Sharing error: %@", error.localizedDescription)
+                        completion(.CouldNotLoad)
+                        return
+                    }
                     os_log("Handling data for attachment")
                     self.handleData(data, folder: folder, completion: completion)
                 }
@@ -179,8 +208,16 @@ class ShareViewController: UIViewController {
     }
     
     private func handleStringData(_ dataString: String, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
-        os_log("Handling string data without file prefix")
-        if !dataString.hasPrefix("file://") {
+        if dataString.hasPrefix("file://") {
+            os_log("Handling string data with file:// prefix")
+            if let url = NSURL(string: dataString) {
+                handleURLData(url, folder: folder, completion: completion)
+            } else {
+                os_log("Invalid file:// URL string")
+                completion(.URLError)
+            }
+        } else {
+            os_log("Handling string data as text")
             processAndSave(data: dataString.data(using: .utf8), filename: READ_FROM_FILE_FILE_NAME, folder: folder, completion: completion)
         }
     }
