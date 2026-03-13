@@ -1,5 +1,5 @@
 import {parseHttpRequest} from '@libs/MultifactorAuthentication/shared/helpers';
-import VALUES from '@libs/MultifactorAuthentication/shared/VALUES';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 describe('MultifactorAuthentication shared helpers', () => {
     describe('parseHttpRequest', () => {

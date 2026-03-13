@@ -3,7 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import TestToolMenu from '@components/TestToolMenu';
-import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/shared/VALUES';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 

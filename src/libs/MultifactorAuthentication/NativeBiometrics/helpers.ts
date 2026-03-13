@@ -2,7 +2,7 @@
  * Helper utilities for native biometrics Expo error decoding.
  */
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
-import VALUES from './VALUES';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 /**
  * Decodes Expo error messages and maps them to authentication error reasons.

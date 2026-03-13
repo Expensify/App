@@ -2,7 +2,7 @@
  * Helper utilities for passkey/WebAuthn error decoding.
  */
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
-import VALUES from './VALUES';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 function isWebAuthnErrorName(name: string): name is keyof typeof VALUES.WEBAUTHN_ERROR_MAPPINGS {
     return name in VALUES.WEBAUTHN_ERROR_MAPPINGS;

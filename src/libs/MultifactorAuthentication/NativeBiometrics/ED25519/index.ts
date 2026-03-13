@@ -3,8 +3,8 @@ import type {Bytes} from '@noble/ed25519';
 import {sha256, sha512} from '@noble/hashes/sha2';
 import {utf8ToBytes} from '@noble/hashes/utils';
 import 'react-native-get-random-values';
-import VALUES from '@libs/MultifactorAuthentication/NativeBiometrics/VALUES';
 import type {ChallengeFlags, MultifactorAuthenticationChallengeObject, SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import Base64URL from '@src/utils/Base64URL';
 import type {Base64URLString} from '@src/utils/Base64URL';
 

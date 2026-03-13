@@ -5,8 +5,10 @@
  */
 import NATIVE_BIOMETRICS_VALUES from './NativeBiometrics/VALUES';
 import PASSKEY_VALUES from './Passkeys/VALUES';
+import SHARED_VALUES from './shared/VALUES';
 
 const MULTIFACTOR_AUTHENTICATION_VALUES = {
+    ...SHARED_VALUES,
     ...NATIVE_BIOMETRICS_VALUES,
     ...PASSKEY_VALUES,
 } as const;

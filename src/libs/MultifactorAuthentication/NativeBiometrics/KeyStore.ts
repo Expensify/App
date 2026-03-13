@@ -1,11 +1,11 @@
 /**
  * Manages secure storage and retrieval of cryptographic keys for multifactor authentication.
  */
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {decodeExpoMessage} from './helpers';
 import {SECURE_STORE_METHODS, SECURE_STORE_VALUES} from './SecureStore';
 import type {SecureStoreOptions} from './SecureStore';
 import type {MultifactorAuthenticationKeyStoreStatus, MultifactorAuthenticationKeyType, MultifactorKeyStoreOptions} from './types';
-import VALUES from './VALUES';
 
 /**
  * Static options for secure store operations.

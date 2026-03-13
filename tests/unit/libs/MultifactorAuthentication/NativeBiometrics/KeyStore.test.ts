@@ -1,6 +1,6 @@
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/NativeBiometrics/KeyStore';
 import {SECURE_STORE_METHODS} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
-import VALUES from '@libs/MultifactorAuthentication/NativeBiometrics/VALUES';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/SecureStore');
 

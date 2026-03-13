@@ -34,8 +34,6 @@ const WEBAUTHN_ERROR_MAPPINGS = {
 const PASSKEY_VALUES = {
     WEBAUTHN_ERRORS,
     WEBAUTHN_ERROR_MAPPINGS,
-
-    ...SHARED_VALUES,
 } as const;
 
 export default PASSKEY_VALUES;
