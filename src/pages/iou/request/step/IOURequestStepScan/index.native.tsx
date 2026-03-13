@@ -35,6 +35,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -51,7 +52,6 @@ import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
 import useReceiptScan from './useReceiptScan';
-import useScanShortcutSpan from './useScanShortcutSpan';
 
 function IOURequestStepScan({
     report,
@@ -95,8 +95,6 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-
-    useScanShortcutSpan(initialTransaction);
 
     // Track camera init telemetry
     const cameraInitSpanStarted = useRef(false);
@@ -439,6 +437,12 @@ function IOURequestStepScan({
         askForPermissions,
     ]);
 
+    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepScan',
+        cameraPermissionGranted: cameraPermissionStatus === RESULTS.GRANTED,
+        deviceAvailable: device != null,
+    };
+
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
         return null;
@@ -491,6 +495,7 @@ function IOURequestStepScan({
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 style={[styles.flex1]}
                                 color={theme.textSupporting}
+                                reasonAttributes={cameraLoadingReasonAttributes}
                             />
                         </View>
                     )}

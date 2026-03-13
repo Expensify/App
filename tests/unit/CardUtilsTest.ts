@@ -34,6 +34,9 @@ import {
     getCustomOrFormattedFeedName,
     getDefaultExpensifyCardLimitType,
     getDisplayableExpensifyCards,
+    getEligibleBankAccountsForCard,
+    getEligibleBankAccountsForUkEuCard,
+    getFeedConnectionBrokenCard,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -60,7 +63,18 @@ import {
     splitCardFeedWithDomainID,
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    Card,
+    CardFeeds,
+    CardList,
+    CompanyCardFeed,
+    CompanyCardFeedWithDomainID,
+    ExpensifyCardSettings,
+    PersonalDetailsList,
+    Policy,
+    WorkspaceCardsList,
+} from '@src/types/onyx';
 import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
@@ -1567,6 +1581,18 @@ describe('CardUtils', () => {
             const feedName = getBankName(feed as unknown as CompanyCardFeed);
             expect(feedName).toBe('');
         });
+
+        it('Should return the same value for repeated calls with the same feedType (cache)', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            expect(getBankName(feed)).toBe('Chase');
+            expect(getBankName(feed)).toBe('Chase');
+        });
+
+        it('Should match longest prefix first (e.g. AMEX_1205 before AMEX)', () => {
+            const feedWithAmex1205Prefix = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205}something` as CompanyCardFeed;
+            const feedName = getBankName(feedWithAmex1205Prefix);
+            expect(feedName).toBe('American Express');
+        });
     });
 
     describe('getCardFeedIcon', () => {
@@ -2222,7 +2248,7 @@ describe('CardUtils', () => {
                 accountID: 1,
                 bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
                 cardID: 1,
-                cardName: 'Personal Visa •••• 1234',
+                cardName: 'Visa • 1234',
                 domainName: '',
                 fraud: 'none',
                 lastFourPAN: '1234',
@@ -2231,7 +2257,7 @@ describe('CardUtils', () => {
                 state: 3,
             };
             const description = getCardDescription(personalCard, translateLocal);
-            expect(description).toBe('Personal Visa •••• 1234');
+            expect(description).toBe('Visa • 1234');
         });
     });
 
@@ -3476,6 +3502,75 @@ describe('CardUtils', () => {
             expect(result?.domainName).toBe('legacy.com');
         });
     });
+
+    describe('getFeedConnectionBrokenCard', () => {
+        it('Should return undefined when feedCards is undefined', () => {
+            expect(getFeedConnectionBrokenCard(undefined)).toBeUndefined();
+        });
+
+        it('Should return undefined when feedCards is empty', () => {
+            expect(getFeedConnectionBrokenCard({})).toBeUndefined();
+        });
+
+        it('Should return the card with a broken connection status', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            const result = getFeedConnectionBrokenCard(feedCards);
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(1);
+        });
+
+        it('Should return undefined when all cards have ignored statuses (200, 434, etc.)', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 200, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+                card2: {bank: 'oauth.chase.com', lastScrapeResult: 434, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards)).toBeUndefined();
+        });
+
+        it('Should return undefined when cards have no lastScrapeResult', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards)).toBeUndefined();
+        });
+
+        it('Should exclude cards matching feedToExclude', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com')).toBeUndefined();
+        });
+
+        it('Should return a broken card from a different feed when feedToExclude is set', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+                card2: {bank: 'oauth.amex.com', lastScrapeResult: 403, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            const result = getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com');
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(2);
+        });
+
+        it('Should skip empty card objects', () => {
+            const feedCards: CardList = {
+                card1: {} as unknown as Card,
+                card2: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            const result = getFeedConnectionBrokenCard(feedCards);
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(2);
+        });
+
+        it('Should return undefined when all non-ignored statuses belong to excluded feed', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+                card2: {bank: 'oauth.amex.com', lastScrapeResult: 200, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com')).toBeUndefined();
+        });
+    });
 });
 
 describe('formatMaskedCardName', () => {
@@ -3489,5 +3584,86 @@ describe('formatMaskedCardName', () => {
 
     it('returns non-commercial card names unchanged', () => {
         expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
+    });
+});
+
+describe('getEligibleBankAccountsForCard', () => {
+    const openBusinessAccount: BankAccountList = {
+        '1': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    const setupBusinessAccount: BankAccountList = {
+        '2': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.SETUP},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    const verifyingBusinessAccount: BankAccountList = {
+        '3': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.VERIFYING},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    const pendingBusinessAccount: BankAccountList = {
+        '4': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.PENDING},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    it('includes bank accounts with OPEN state', () => {
+        expect(getEligibleBankAccountsForCard(openBusinessAccount)).toHaveLength(1);
+    });
+
+    it('excludes bank accounts with SETUP state', () => {
+        expect(getEligibleBankAccountsForCard(setupBusinessAccount)).toHaveLength(0);
+    });
+
+    it('excludes bank accounts with VERIFYING state', () => {
+        expect(getEligibleBankAccountsForCard(verifyingBusinessAccount)).toHaveLength(0);
+    });
+
+    it('excludes bank accounts with PENDING state', () => {
+        expect(getEligibleBankAccountsForCard(pendingBusinessAccount)).toHaveLength(0);
+    });
+
+    it('filters partially set up accounts from a mixed list', () => {
+        const mixedList: BankAccountList = {
+            ...openBusinessAccount,
+            ...setupBusinessAccount,
+            ...pendingBusinessAccount,
+        };
+        const result = getEligibleBankAccountsForCard(mixedList);
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.accountData?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
+    });
+});
+
+describe('getEligibleBankAccountsForUkEuCard', () => {
+    it('excludes partially set up accounts', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'GBP',
+                bankCountry: 'GB',
+            },
+            '2': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.SETUP},
+                bankCurrency: 'GBP',
+                bankCountry: 'GB',
+            },
+        };
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, 'GBP');
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.accountData?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
     });
 });
