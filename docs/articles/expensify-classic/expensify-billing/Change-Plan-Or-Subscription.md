@@ -12,7 +12,7 @@ Expensify offers several plans based on your needs: **Collect, Control,** and **
 # Changing Your Subscription
 
 **Web:**
-1. Go to **Settings > Workspaces > Group > [Your Group Workspace]**.
+1. Go to **Settings > Workspaces > [Your Workspace]**.
 2. Click **Overview** and select **Switch** under your desired plan.
 
 **Mobile:**
