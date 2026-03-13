@@ -1,10 +1,13 @@
 import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
+import useDialogContainerFocus from '@hooks/useDialogContainerFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import {useDialogLabelActions} from './DialogLabelContext';
 import EnvironmentBadge from './EnvironmentBadge';
+import ScreenWrapperStatusContext from './ScreenWrapper/ScreenWrapperStatusContext';
 import Text from './Text';
 import TextLink from './TextLink';
 
@@ -36,6 +39,43 @@ type HeaderProps = {
 
 function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = '', numberOfTitleLines = 2}: HeaderProps) {
     const styles = useThemeStyles();
+    const {isInsideDialog, pushLabel, popLabel, updateLabel, markReady, claimInitialFocus} = useDialogLabelActions();
+    const labelIdRef = useRef<number | undefined>(undefined);
+    const titleRef = useRef<React.ComponentRef<typeof Text>>(null);
+    const screenWrapperStatus = useContext(ScreenWrapperStatusContext);
+    const isTransitionReady = !!isInsideDialog && !!screenWrapperStatus?.didScreenTransitionEnd;
+
+    useDialogContainerFocus(titleRef, isTransitionReady, claimInitialFocus);
+
+    useEffect(() => {
+        if (!isInsideDialog || typeof title !== 'string' || !title) {
+            return;
+        }
+        if (labelIdRef.current === undefined) {
+            labelIdRef.current = pushLabel(title);
+        } else {
+            updateLabel(labelIdRef.current, title);
+        }
+    }, [isInsideDialog, title, pushLabel, updateLabel]);
+
+    useEffect(() => {
+        if (!isInsideDialog || labelIdRef.current === undefined || !screenWrapperStatus?.didScreenTransitionEnd) {
+            return;
+        }
+        markReady(labelIdRef.current);
+    }, [isInsideDialog, screenWrapperStatus?.didScreenTransitionEnd, markReady]);
+
+    useEffect(
+        () => () => {
+            if (labelIdRef.current === undefined) {
+                return;
+            }
+            popLabel(labelIdRef.current);
+            labelIdRef.current = undefined;
+        },
+        [popLabel],
+    );
+
     const renderedSubtitle = useMemo(
         () => (
             <>
@@ -76,10 +116,12 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                 {typeof title === 'string'
                     ? !!title && (
                           <Text
+                              ref={isInsideDialog ? titleRef : undefined}
                               numberOfLines={numberOfTitleLines}
-                              style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
+                              style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles, isInsideDialog && styles.noOutline]}
                               accessibilityRole={CONST.ROLE.HEADER}
                               accessibilityLabel={title}
+                              tabIndex={isInsideDialog ? -1 : undefined}
                           >
                               {title}
                           </Text>
