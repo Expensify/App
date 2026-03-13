@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
+import shouldAnnounceSelectedLabel from './shouldAnnounceSelectedLabel';
 import type {BasePickerProps} from './types';
 
 type IconToRender = () => ReactElement;
@@ -174,7 +175,7 @@ function BasePicker<TPickerValue>({
             return selectedLabel || '';
         }
         if (selectedLabel) {
-            return `${defaultAccessibilityLabel}, ${selectedLabel}, ${translate(isHighlighted ? 'common.expanded' : 'common.collapsed')}`;
+            return `${defaultAccessibilityLabel}${shouldAnnounceSelectedLabel ? `, ${selectedLabel}` : ''}, ${translate(isHighlighted ? 'common.expanded' : 'common.collapsed')}`;
         }
         return defaultAccessibilityLabel;
     }, [accessibilityLabel, label, selectedLabel, isHighlighted, translate]);
