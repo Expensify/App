@@ -46,8 +46,7 @@ jobs:
             code:
               - 'src/**'
             docs:
-              - 'docs/**/*.md'
-              - 'docs/**/*.csv'
+              - 'docs/**'
 
       - name: Add claude utility scripts to PATH
         run: |
