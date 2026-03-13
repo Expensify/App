@@ -2671,6 +2671,8 @@ ${amount} voor ${merchant} - ${date}`,
                 label: 'Apparaatinstellingen gebruiken',
             },
         },
+        highContrastMode: 'Hoog contrast',
+        highContrastDescription: 'Verhoogt het visuele contrast van randen, pictogrammen en tekst om de leesbaarheid te verbeteren.',
         chooseThemeBelowOrSync: 'Kies hieronder een thema, of synchroniseer met de instellingen van je apparaat.',
     },
     termsOfUse: {

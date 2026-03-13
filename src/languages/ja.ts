@@ -2652,6 +2652,8 @@ ${date} の ${merchant} への ${amount}`,
                 label: 'デバイスの設定を使用',
             },
         },
+        highContrastMode: 'ハイコントラストモード',
+        highContrastDescription: '枠線、アイコン、テキストの視覚的コントラストを高めて読みやすさを向上させます。',
         chooseThemeBelowOrSync: '以下からテーマを選択するか、デバイスの設定と同期してください。',
     },
     termsOfUse: {

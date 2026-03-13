@@ -1275,7 +1275,7 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 8,
             paddingBottom: 0,
             borderRadius: 8,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
         },
 
         cannotBeEditedSplitInputContainer: {
@@ -1368,7 +1368,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'transparent',
             borderRadius: variables.componentBorderRadiusNormal,
             height: variables.inputComponentSizeNormal,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             borderWidth: 1,
             color: theme.text,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -1421,7 +1421,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomWidth: 2,
             paddingLeft: 0,
             borderStyle: 'solid',
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             justifyContent: 'center',
             backgroundColor: 'transparent',
             height: variables.inputHeight,
@@ -2131,7 +2131,7 @@ const staticStyles = (theme: ThemeColors) =>
             theme,
             {
                 backgroundColor: theme.componentBG,
-                borderColor: theme.border,
+                borderColor: theme.bordersBold,
                 color: theme.text,
                 ...FontUtils.fontFamily.platform.EXP_NEUE,
                 fontSize: variables.fontSizeNormal,
@@ -2185,7 +2185,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         textInputComposeBorder: {
             borderLeftWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
         },
 
         chatItemSubmitButton: {
@@ -2857,7 +2857,7 @@ const staticStyles = (theme: ThemeColors) =>
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             borderWidth: 1,
             borderRadius: variables.componentSizeSmall / 2,
             justifyContent: 'center',
@@ -3026,7 +3026,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 14,
             height: 28,
             width: 28,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
@@ -3037,7 +3037,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusRounded,
             height: variables.iconSizeNormal,
             width: variables.iconSizeNormal,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             borderWidth: 2,
             justifyContent: 'center',
             alignItems: 'center',
@@ -3456,7 +3456,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchAutocompleteInputResults: {
             borderWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             height: 54,
         },
 

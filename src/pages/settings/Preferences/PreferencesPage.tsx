@@ -137,7 +137,7 @@ function PreferencesPage() {
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`themePage.themes.${preferredTheme ?? CONST.THEME.DEFAULT}.label`)}
+                                title={translate(`themePage.themes.${(preferredTheme ?? CONST.THEME.DEFAULT).replace('-contrast', '') as 'light' | 'dark' | 'system'}.label`)}
                                 description={translate('themePage.theme')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}

@@ -2537,6 +2537,8 @@ ${amount} para ${merchant} - ${date}`,
                 label: 'Utiliza los ajustes del dispositivo',
             },
         },
+        highContrastMode: 'Modo de alto contraste',
+        highContrastDescription: 'Aumenta el contraste visual de bordes, iconos y texto para mejorar la legibilidad.',
         chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
     },
     termsOfUse: {

@@ -2612,6 +2612,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 label: '使用设备设置',
             },
         },
+        highContrastMode: '高对比度模式',
+        highContrastDescription: '增强边框、图标和文本的视觉对比度，以提高可读性。',
         chooseThemeBelowOrSync: '请选择下方的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
