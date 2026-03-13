@@ -1,11 +1,11 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import ScrollView from '@components/ScrollView';
 import getBackgroundColor from '@components/TabSelector/getBackground';
 import getOpacity from '@components/TabSelector/getOpacity';
 import type {TabSelectorBaseProps} from '@components/TabSelector/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {useScrollableTabSelectorActions, useScrollableTabSelectorState} from './ScrollableTabSelectorContext';
+import {ScrollableTabSelectorContext} from './ScrollableTabSelectorContext';
 import ScrollableTabSelectorItem from './ScrollableTabSelectorItem';
 
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
@@ -28,8 +28,7 @@ function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, p
 
     const activeIndex = tabs.findIndex((tab) => tab.key === activeTabKey);
 
-    const {containerRef} = useScrollableTabSelectorState();
-    const {onContainerLayout, onContainerScroll} = useScrollableTabSelectorActions();
+    const {containerRef, onContainerLayout, onContainerScroll} = useContext(ScrollableTabSelectorContext);
 
     return (
         <ScrollView

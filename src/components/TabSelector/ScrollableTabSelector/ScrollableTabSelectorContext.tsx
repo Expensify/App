@@ -1,12 +1,32 @@
-import React, {createContext, useContext, useRef} from 'react';
+import React, {createContext, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, View} from 'react-native';
-import {defaultScrollableTabSelectorActionsContextValue, defaultScrollableTabSelectorStateContextValue} from './default';
 import scrollToTabUtil from './scrollToTab';
-import type {ScrollableTabSelectorActionsContextType, ScrollableTabSelectorContextProviderProps, ScrollableTabSelectorStateContextType} from './types';
 
-const ScrollableTabSelectorStateContext = createContext<ScrollableTabSelectorStateContextType>(defaultScrollableTabSelectorStateContextValue);
-const ScrollableTabSelectorActionsContext = createContext<ScrollableTabSelectorActionsContextType>(defaultScrollableTabSelectorActionsContextValue);
+type ScrollableTabSelectorContextValue = {
+    containerRef: React.RefObject<RNScrollView | null>;
+    onContainerLayout: (event: LayoutChangeEvent) => void;
+    onContainerScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    scrollToTab: (tabKey: string) => void;
+    registerTab: (tabKey: string, ref: HTMLDivElement | View | null) => void;
+    onTabLayout: (tabKey: string, event: LayoutChangeEvent) => void;
+};
+
+type ScrollableTabSelectorContextProviderProps = {
+    activeTabKey: string;
+    children: React.ReactNode;
+};
+
+const defaultValue: ScrollableTabSelectorContextValue = {
+    containerRef: {current: null},
+    onContainerLayout: () => {},
+    onContainerScroll: () => {},
+    scrollToTab: () => {},
+    registerTab: () => {},
+    onTabLayout: () => {},
+};
+
+const ScrollableTabSelectorContext = createContext<ScrollableTabSelectorContextValue>(defaultValue);
 
 function ScrollableTabSelectorContextProvider({children, activeTabKey}: ScrollableTabSelectorContextProviderProps) {
     const containerRef = useRef<RNScrollView>(null);
@@ -53,23 +73,14 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
         scrollToTabUtil({tabX, tabWidth, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
     };
 
-    const stateValue: ScrollableTabSelectorStateContextType = {containerRef};
-    const actionsValue: ScrollableTabSelectorActionsContextType = {onContainerLayout, onContainerScroll, scrollToTab, registerTab, onTabLayout};
+    // React Compiler auto-memoization
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const contextValue = {containerRef, registerTab, onTabLayout, onContainerLayout, onContainerScroll, scrollToTab};
 
-    return (
-        <ScrollableTabSelectorStateContext.Provider value={stateValue}>
-            <ScrollableTabSelectorActionsContext.Provider value={actionsValue}>{children}</ScrollableTabSelectorActionsContext.Provider>
-        </ScrollableTabSelectorStateContext.Provider>
-    );
+    // eslint-disable-next-line rulesdir/context-provider-split-values
+    return <ScrollableTabSelectorContext.Provider value={contextValue}>{children}</ScrollableTabSelectorContext.Provider>;
 }
 
-function useScrollableTabSelectorState(): ScrollableTabSelectorStateContextType {
-    return useContext(ScrollableTabSelectorStateContext);
-}
-
-function useScrollableTabSelectorActions(): ScrollableTabSelectorActionsContextType {
-    return useContext(ScrollableTabSelectorActionsContext);
-}
-
-export {useScrollableTabSelectorState, useScrollableTabSelectorActions};
 export default ScrollableTabSelectorContextProvider;
+
+export {ScrollableTabSelectorContext};
