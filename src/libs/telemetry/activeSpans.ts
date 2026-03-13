@@ -44,6 +44,7 @@ function endSpan(spanId: string) {
     const startTimestamp = spanToJSON(span).start_timestamp;
     const durationMs = Math.round(now - startTimestamp * 1000);
     Log.info(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, undefined, {spanId, durationMs, timestamp: now});
+    console.log(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, undefined, {spanId, durationMs, timestamp: now});
     span.setStatus({code: 1});
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
     span.end();

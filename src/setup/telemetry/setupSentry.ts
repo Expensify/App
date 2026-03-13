@@ -14,14 +14,13 @@ function setupSentry(): void {
     //     return;
     // }
 
-    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration].filter((integration) => !!integration);
+    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration];
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
         transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
-        // 1. When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
-        profilesSampleRate: 0.1,
+        profilesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations,
