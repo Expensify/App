@@ -58,6 +58,12 @@ jest.mock('@assets/emojis', () => {
 jest.mock('@libs/EmojiTrie', () => ({
     buildEmojisTrie: jest.fn(),
 }));
+jest.mock('expo-location', () => ({
+    requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    requestBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getCurrentPositionAsync: jest.fn(() => Promise.resolve({coords: {latitude: 0, longitude: 0}, timestamp: Date.now()})),
+    PermissionStatus: {GRANTED: 'granted', DENIED: 'denied', UNDETERMINED: 'undetermined'},
+}));
 jest.mock('@libs/actions/IOU', () => {
     const actualNav = jest.requireActual<typeof IOU>('@libs/actions/IOU');
     return {
