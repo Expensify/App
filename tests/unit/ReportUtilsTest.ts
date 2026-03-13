@@ -77,6 +77,7 @@ import {
     getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
     getMostRecentlyVisitedReport,
+    getNextApproverAccountID,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
@@ -117,6 +118,7 @@ import {
     reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
     requiresManualSubmission,
+    shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
@@ -10216,6 +10218,170 @@ describe('ReportUtils', () => {
             const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, '', transactions);
 
             expect(result).toBe(true);
+        });
+    });
+
+    describe('shouldBlockSubmitDueToPreventSelfApproval', () => {
+        const policyID = '1';
+
+        it('should return false when policy is undefined', () => {
+            const report: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, undefined)).toBe(false);
+        });
+
+        it('should return false when policy has preventSelfApproval false', () => {
+            const policyWithPreventOff: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                preventSelfApproval: false,
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOff)).toBe(false);
+        });
+
+        it('should return false when report is not owned by current user even with preventSelfApproval true', () => {
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                preventSelfApproval: true,
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: 999,
+                managerID: 888,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn)).toBe(false);
+        });
+
+        it('should return true when preventSelfApproval is true, report is open expense, and owner is same as next approver', async () => {
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(100),
+                id: policyID,
+                preventSelfApproval: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+                owner: currentUserEmail,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                reportID: 'prevent-self-report-open',
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+            });
+            await waitForBatchedUpdates();
+
+            expect(getNextApproverAccountID(report)).toBe(currentUserAccountID);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn)).toBe(true);
+        });
+
+        it('should return true when preventSelfApproval is true, report is processing, and owner is same as manager', async () => {
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                preventSelfApproval: true,
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn)).toBe(true);
+        });
+
+        it('should return false when preventSelfApproval is true, report is open, and owner is not same as next approver', async () => {
+            const otherUserEmail = 'other@test.com';
+            const otherAccountID = 42;
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                preventSelfApproval: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: otherUserEmail,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: otherUserEmail,
+                    },
+                    [otherUserEmail]: {
+                        email: otherUserEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                    },
+                },
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                ...participantsPersonalDetails,
+                [otherAccountID]: {accountID: otherAccountID, login: otherUserEmail},
+            });
+            await waitForBatchedUpdates();
+
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn)).toBe(false);
+        });
+
+        it('should return false when preventSelfApproval is true but report is not open or processing', () => {
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                preventSelfApproval: true,
+            };
+            const approvedReport: Report = {
+                ...createExpenseReport(1),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+            expect(shouldBlockSubmitDueToPreventSelfApproval(approvedReport, policyWithPreventOn)).toBe(false);
         });
     });
 
