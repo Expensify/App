@@ -60,6 +60,42 @@ type MobileWebCameraViewProps = {
     shouldShowWrapper: boolean;
 };
 
+/**
+ * Preload camera permission state at module load so first render can use a cached value.
+ */
+let cachedPermissionState: PermissionState | undefined;
+
+if (typeof navigator !== 'undefined' && navigator.permissions) {
+    navigator.permissions
+        .query({name: 'camera'})
+        .then((status) => {
+            cachedPermissionState = status.state;
+            if ('addEventListener' in status) {
+                status.addEventListener('change', () => {
+                    cachedPermissionState = status.state;
+                });
+            }
+        })
+        .catch(() => {
+            cachedPermissionState = 'denied';
+        });
+}
+
+function queryCameraPermission(): Promise<PermissionState> {
+    if (cachedPermissionState !== undefined) {
+        return Promise.resolve(cachedPermissionState);
+    }
+
+    if (typeof navigator === 'undefined' || !navigator.permissions) {
+        return Promise.resolve('denied');
+    }
+
+    return navigator.permissions
+        .query({name: 'camera'})
+        .then((status) => status.state)
+        .catch(() => 'denied');
+}
+
 function MobileWebCameraView({
     initialTransaction,
     initialTransactionID,
@@ -101,11 +137,12 @@ function MobileWebCameraView({
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
     const isTabActive = useIsFocused();
-    const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
+    const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>(() => cachedPermissionState ?? 'prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state: boolean) => !state, false);
     const [isTorchAvailable, setIsTorchAvailable] = useState(false);
-    const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
-    const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
+    const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(() => cachedPermissionState !== undefined);
+    const [deviceConstraints, setDeviceConstraints] = useState<MediaTrackConstraints>();
+    const videoConstraints = isTabActive ? deviceConstraints : undefined;
     const cameraRef = useRef<Webcam>(null);
     const trackRef = useRef<MediaStreamTrack | null>(null);
     const viewfinderLayout = useRef<LayoutRectangle>(null);
@@ -135,12 +172,12 @@ function MobileWebCameraView({
                         }
                     }
                     if (deviceId) {
-                        setVideoConstraints({deviceId});
+                        setDeviceConstraints({deviceId});
                         return;
                     }
                 }
                 if (!navigator.mediaDevices.enumerateDevices) {
-                    setVideoConstraints(defaultConstraints);
+                    setDeviceConstraints(defaultConstraints);
                     return;
                 }
                 navigator.mediaDevices.enumerateDevices().then((devices) => {
@@ -153,30 +190,26 @@ function MobileWebCameraView({
                         }
                     }
                     if (!lastBackDeviceId) {
-                        setVideoConstraints(defaultConstraints);
+                        setDeviceConstraints(defaultConstraints);
                         return;
                     }
-                    setVideoConstraints({deviceId: lastBackDeviceId});
+                    setDeviceConstraints({deviceId: lastBackDeviceId});
                 });
             })
             .catch(() => {
-                setVideoConstraints(defaultConstraints);
+                setDeviceConstraints(defaultConstraints);
                 setCameraPermissionState('denied');
             });
     }, []);
 
     useEffect(() => {
         if (!isTabActive) {
-            setVideoConstraints(undefined);
             return;
         }
-        navigator.permissions
-            .query({
-                name: 'camera',
-            })
-            .then((permissionState) => {
-                setCameraPermissionState(permissionState.state);
-                if (permissionState.state === 'granted') {
+        queryCameraPermission()
+            .then((state) => {
+                setCameraPermissionState(state);
+                if (state === 'granted') {
                     requestCameraPermission();
                 }
             })
@@ -186,9 +219,8 @@ function MobileWebCameraView({
             .finally(() => {
                 setIsQueriedPermissionState(true);
             });
-        // We only want to get the camera permission status when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isTabActive]);
+        // Refresh permission state whenever this tab regains focus.
+    }, [isTabActive, requestCameraPermission]);
 
     useEffect(
         () => () => {
@@ -214,46 +246,43 @@ function MobileWebCameraView({
         setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);
     };
 
-    const clearTorchConstraints = useCallback(() => {
+    const clearTorchConstraints = () => {
         if (!trackRef.current) {
             return;
         }
         trackRef.current.applyConstraints({
             advanced: [{torch: false}],
         });
-    }, []);
+    };
 
-    const onCapture = useCallback(
-        (file: FileObject, filename: string, source: string) => {
-            const transaction =
-                isMultiScanEnabled && initialTransaction?.receipt?.source
-                    ? buildOptimisticTransactionAndCreateDraft({
-                          initialTransaction,
-                          currentUserPersonalDetails,
-                          reportID,
-                      })
-                    : initialTransaction;
-            const transactionID = transaction?.transactionID ?? initialTransactionID;
-            const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
+    const onCapture = (file: FileObject, filename: string, source: string) => {
+        const transaction =
+            isMultiScanEnabled && initialTransaction?.receipt?.source
+                ? buildOptimisticTransactionAndCreateDraft({
+                      initialTransaction,
+                      currentUserPersonalDetails,
+                      reportID,
+                  })
+                : initialTransaction;
+        const transactionID = transaction?.transactionID ?? initialTransactionID;
+        const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
 
-            setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
-            setReceiptFiles(newReceiptFiles);
+        setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
+        setReceiptFiles(newReceiptFiles);
 
-            if (isMultiScanEnabled) {
-                return;
-            }
+        if (isMultiScanEnabled) {
+            return;
+        }
 
-            if (isEditing) {
-                updateScanAndNavigate(file, source);
-                return;
-            }
+        if (isEditing) {
+            updateScanAndNavigate(file, source);
+            return;
+        }
 
-            submitReceipts(newReceiptFiles);
-        },
-        [isMultiScanEnabled, initialTransaction, currentUserPersonalDetails, reportID, initialTransactionID, receiptFiles, isEditing, submitReceipts, setReceiptFiles, updateScanAndNavigate],
-    );
+        submitReceipts(newReceiptFiles);
+    };
 
-    const getScreenshot = useCallback(() => {
+    const getScreenshot = () => {
         if (!cameraRef.current) {
             requestCameraPermission();
             return;
@@ -298,9 +327,9 @@ function MobileWebCameraView({
             endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             onCapture(file, filename, source);
         });
-    }, [isMultiScanEnabled, showBlink, requestCameraPermission, onCapture]);
+    };
 
-    const capturePhoto = useCallback(() => {
+    const capturePhoto = () => {
         if (trackRef.current && isFlashLightOn) {
             trackRef.current
                 .applyConstraints({
@@ -316,7 +345,7 @@ function MobileWebCameraView({
         }
 
         getScreenshot();
-    }, [isFlashLightOn, getScreenshot, clearTorchConstraints]);
+    };
 
     return (
         <StepScreenWrapper
