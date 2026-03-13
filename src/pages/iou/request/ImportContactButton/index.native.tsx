@@ -17,7 +17,8 @@ function ImportContactButton({showImportContacts, inputHelperText, isInSearch = 
     const {translate} = useLocalize();
     const noResultsFoundText = translate('common.noResultsFound');
 
-    useAccessibilityAnnouncement(noResultsFoundText, !!isInSearch, {shouldAnnounceOnNative: true});
+    const shouldAnnounce = !!isInSearch && !!showImportContacts && !!inputHelperText;
+    useAccessibilityAnnouncement(noResultsFoundText, shouldAnnounce, {shouldAnnounceOnNative: true});
 
     return showImportContacts && inputHelperText ? (
         <View style={[styles.ph5, styles.pb5, styles.flexRow]}>
