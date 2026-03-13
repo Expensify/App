@@ -1234,6 +1234,10 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
     Navigation.goBack();
 }
 
+function updateThemeInPlace(theme: ValueOf<typeof CONST.THEME>) {
+    Onyx.set(ONYXKEYS.PREFERRED_THEME, theme as ValueOf<typeof CONST.THEME>);
+}
+
 /**
  * Sets a custom status
  */
@@ -1913,6 +1917,7 @@ export {
     clearDraftMerchantRule,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
+    updateThemeInPlace,
 };
 
 export {type LockAccountOnyxKey};

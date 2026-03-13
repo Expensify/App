@@ -2679,7 +2679,6 @@ ${amount} für ${merchant} – ${date}`,
             },
         },
         highContrastMode: 'Hoher Kontrast',
-        highContrastDescription: 'Erhöht den visuellen Kontrast für Rahmen, Symbole und Text, um die Lesbarkeit zu verbessern.',
         chooseThemeBelowOrSync: 'Wählen Sie unten ein Design aus oder synchronisieren Sie es mit den Einstellungen Ihres Geräts.',
     },
     termsOfUse: {

@@ -1,6 +1,5 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {updateTheme as updateThemeUserAction} from '@userActions/User';
+import {updateThemeInPlace, updateTheme as updateThemeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -71,7 +70,7 @@ function ThemePage() {
 
     const onToggleHighContrast = (enabled: boolean) => {
         const newTheme = enabled ? (CONTRAST_MAP[currentBaseTheme] ?? currentTheme) : currentBaseTheme;
-        Onyx.set(ONYXKEYS.PREFERRED_THEME, newTheme as ValueOf<typeof CONST.THEME>);
+        updateThemeInPlace(newTheme as ValueOf<typeof CONST.THEME>);
     };
 
     return (

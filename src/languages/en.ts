@@ -2710,7 +2710,6 @@ const translations = {
             },
         },
         highContrastMode: 'High contrast mode',
-        highContrastDescription: 'Increases visual contrast for borders, icons, and text to improve readability.',
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {

@@ -2684,7 +2684,6 @@ ${amount} pour ${merchant} - ${date}`,
             },
         },
         highContrastMode: 'Mode contraste élevé',
-        highContrastDescription: "Augmente le contraste visuel des bordures, icônes et textes pour améliorer la lisibilité.",
         chooseThemeBelowOrSync: 'Choisissez un thème ci-dessous ou synchronisez avec les réglages de votre appareil.',
     },
     termsOfUse: {
