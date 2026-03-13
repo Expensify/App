@@ -8063,11 +8063,13 @@ ${amount} para ${merchant} - ${date}`,
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Inicia un chat y <success><strong>recomienda a un amigo</strong></success>',
             header: 'Inicia un chat, recomienda a un amigo',
+            closeAccessibilityLabel: 'Cerrar, inicia un chat, recomienda a un amigo, banner',
             body: '¿Quieres que tus amigos también usen Expensify? Simplemente inicia un chat con ellos y nosotros nos encargaremos del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Presenta un gasto y <success><strong>recomienda a tu equipo</strong></success>',
             header: 'Envía un gasto, recomienda a tu equipo',
+            closeAccessibilityLabel: 'Cerrar, envía un gasto, recomienda a tu equipo, banner',
             body: '¿Quieres que tu equipo también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
