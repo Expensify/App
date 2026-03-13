@@ -72,6 +72,7 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         currency: 'USD',
         didConfirm: false,
         distance: 0,
+        amount: 10000,
         formattedAmount: '100',
         formattedAmountPerAttendee: '50',
         formError: '',
