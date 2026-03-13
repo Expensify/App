@@ -4,9 +4,8 @@ import {Alert, Linking, Platform} from 'react-native';
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {FileValidationError} from '@libs/AttachmentValidation';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -682,7 +681,7 @@ type GetFileValidationErrorTextOptions = {
 
 const getFileValidationErrorText = (
     translate: LocalizedTranslate,
-    validationError: FileValidationError | null,
+    validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
     additionalData: TranslationAdditionalData = {},
     options: GetFileValidationErrorTextOptions = {},
 ): {

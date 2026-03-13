@@ -2320,7 +2320,6 @@ const CONST = {
     },
 
     FILE_VALIDATION_ERRORS: {
-        NO_FILE_PROVIDED: 'noFileProvided',
         FILE_INVALID: 'fileInvalid',
         WRONG_FILE_TYPE: 'wrongFileType',
         FILE_TOO_LARGE: 'fileTooLarge',
