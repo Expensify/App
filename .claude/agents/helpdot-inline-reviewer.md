@@ -79,37 +79,30 @@ internalScope: Audience is [target role]. Covers [main topic]. Does not cover [e
      - For files >1000 lines: Read in overlapping chunks using offset/limit to maintain context
      - **Never rely on grep alone** - semantic violations require understanding context, not just pattern matching
 
-3. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
+3. **For each violation, create an inline comment using the MCP tool.** You must call **`mcp__github_inline_comment__create_inline_comment`** for every violation you find.
+   - **Use only this tool for inline comments.** Do NOT use Bash, `gh api`, or `gh pr review` to post inline comments. Those do not create proper review comments on the diff.
+   - Parameters for each call: `path` (full file path), `line` (line number in the diff), `body` (concise violation text — see Comment Format below).
+   - **path**: Full file path (e.g., `docs/articles/new-expensify/chat/Create-a-New-Chat.md`) — must be a file that appears in the PR diff.
+   - **line**: Line number where the issue occurs — must be a line that appears in the PR diff (added or modified). Do not use line numbers from unchanged portions of the file.
+   - **body**: Concise description of the violation and fix.
 
-4. **Required parameters for each inline comment:**
-   - `path`: Full file path (e.g., "docs/articles/new-expensify/chat/Create-a-New-Chat.md")
-   - `line`: Line number where the issue occurs — **must be a line that appears in the PR diff (added or modified)**. Do not use line numbers from unchanged portions of the file.
-   - `body`: Concise description of the violation and fix
+4. **If no violations are found,** do not call the tool; you are done.
 
-## Tool Usage Example
-For each violation, call the tool like this:
-```
-mcp__github_inline_comment__create_inline_comment:
-  path: 'docs/articles/new-expensify/chat/Create-a-New-Chat.md'
-  line: 9
-  body: '**Terminology violation**: Use "workspace" instead of "policy" to match Expensify standards.'
-```
+5. **Do NOT post inline comments via Bash or `gh api`.** Only **`mcp__github_inline_comment__create_inline_comment`** creates the correct inline review comments. Calling `gh api repos/.../pulls/.../comments` or similar will not produce the expected inline comments on the diff.
 
-**IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
-
-Example:
-```bash
-# Good
-gh pr comment --body 'Use "workspace" instead of "policy"'
-
-# Bad
-gh pr comment --body "Use "workspace" instead of "policy""
-```
-
-## Comment Format
-Keep inline comments concise and actionable:
+## Comment Format (for each violation's `body`)
+Keep each body concise and actionable:
 - **Issue type in bold**: Brief explanation
 - Suggest specific fix
 - Include why it matters (if not obvious)
 
-**CRITICAL**: You must actually call the mcp__github_inline_comment__create_inline_comment tool for each violation. Don't just describe what you found - create the actual inline comments!
+## Tool usage example
+For each violation, call the tool like this:
+```
+mcp__github_inline_comment__create_inline_comment:
+  path: 'docs/articles/new-expensify/settings/fake-article.md'
+  line: 9
+  body: '**Terminology violation**: Use "Workspace" instead of "Policy" to match Expensify standards.'
+```
+
+**CRITICAL**: You must call `mcp__github_inline_comment__create_inline_comment` for each violation you find. Do not describe violations in a single PR comment — create one inline comment per violation using this tool.
