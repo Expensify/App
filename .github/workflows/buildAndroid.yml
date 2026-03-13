@@ -194,6 +194,17 @@ jobs:
         if: ${{ inputs.variant == 'Adhoc' }}
         run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
+      - name: Verify Sentry debug metadata in APK
+        if: ${{ env.ARTIFACT_PATH != '' }}
+        run: |
+          echo "Checking APK: $ARTIFACT_PATH"
+          if unzip -l "$ARTIFACT_PATH" | grep -q 'sentry-debug-meta.properties'; then
+            echo "✅ sentry-debug-meta.properties found in APK"
+            unzip -p "$ARTIFACT_PATH" 'assets/sentry-debug-meta.properties' 2>/dev/null || unzip -p "$ARTIFACT_PATH" '*/sentry-debug-meta.properties' 2>/dev/null || true
+          else
+            echo "::warning::sentry-debug-meta.properties NOT found in APK — Sentry may not be able to process this build"
+          fi
+
       - name: Upload Android build to Sentry for size analysis
         id: sentry-upload
         if: ${{ env.ARTIFACT_PATH != '' }}
