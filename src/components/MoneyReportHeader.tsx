@@ -390,14 +390,14 @@ function MoneyReportHeader({
     const {isOffline} = useNetwork();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const hasMultipleSplits = useMemo(() => {
         if (!transaction?.comment?.originalTransactionID) {
             return false;
         }
-        const children = getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID);
+        const children = getChildTransactions(allTransactions, transaction?.comment?.originalTransactionID);
         return children.length > 1;
-    }, [allTransactions, allReports, transaction?.comment?.originalTransactionID]);
+    }, [allTransactions, transaction?.comment?.originalTransactionID]);
+
     const isReportOpen = isOpenReport(moneyRequestReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
