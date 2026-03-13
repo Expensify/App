@@ -6424,7 +6424,7 @@ function buildOptimisticAddCommentReportAction(
 
 function buildConciergeGreetingReportAction(reportID: string, greetingText: string, created: string): ReportAction {
     return {
-        reportActionID: String(CONST.CONCIERGE_GREETING_ACTION_ID),
+        reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID,
         reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
@@ -11614,7 +11614,14 @@ function prepareOnboardingOnyxData({
         (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && getPolicyRole(policy, currentUserEmail) === CONST.POLICY.ROLE.ADMIN,
     );
 
-    const testDriveURL = ROUTES.TEST_DRIVE_DEMO_ROOT;
+    let testDriveURL: string;
+    if (([CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE] as OnboardingPurpose[]).includes(engagementChoice)) {
+        testDriveURL = ROUTES.TEST_DRIVE_DEMO_ROOT;
+    } else if (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE) {
+        testDriveURL = ROUTES.TEST_DRIVE_DEMO_ROOT;
+    } else {
+        testDriveURL = ROUTES.TEST_DRIVE_MODAL_ROOT.route;
+    }
 
     const onboardingTaskParams: OnboardingTaskLinks = {
         integrationName,
