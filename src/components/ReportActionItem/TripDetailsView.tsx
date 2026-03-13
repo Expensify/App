@@ -22,7 +22,7 @@ import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
-import {formatAirportInfo, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import {formatAirportInfo, formatCancelledDescription, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -131,14 +131,14 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
         );
     };
 
-    const cancelledDescription = isCancelled ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${formattedDate}` : formattedDate;
+    const descriptionWithStatus = formatCancelledDescription(translate('iou.canceled'), formattedDate, isCancelled);
 
     return (
         <MenuItemWithTopDescription
-            description={cancelledDescription}
+            description={descriptionWithStatus}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent()}
-            accessibilityLabel={isCancelled ? cancelledDescription : undefined}
+            accessibilityLabel={isCancelled ? descriptionWithStatus : undefined}
             titleContainerStyle={[styles.justifyContentStart, styles.gap1]}
             secondaryIcon={reservationIcon}
             isSecondaryIconHoverable

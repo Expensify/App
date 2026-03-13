@@ -11,7 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTripReservationIcon} from '@libs/TripReservationUtils';
+import {formatCancelledDescription, getTripReservationIcon} from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -95,10 +95,10 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
 
     return (
         <MenuItemWithTopDescription
-            description={isCancelled ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${subtitle}` : subtitle}
+            description={formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)}
             title={title}
             titleStyle={isCancelled ? styles.textNormal : styles.textBold}
-            accessibilityLabel={isCancelled ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${subtitle} ${title}` : undefined}
+            accessibilityLabel={isCancelled ? `${formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)} ${title}` : undefined}
             onPress={handlePress}
             shouldShowRightIcon
             leftComponent={

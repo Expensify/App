@@ -21,7 +21,7 @@ import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReservationData} from '@libs/TripReservationUtils';
-import {getReservationsFromTripReport, getTripReservationIcon, getTripTotal} from '@libs/TripReservationUtils';
+import {formatCancelledDescription, getReservationsFromTripReport, getTripReservationIcon, getTripTotal} from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -98,7 +98,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
         );
     }
 
-    const displayDescription = isCancelled ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${description}` : description;
+    const displayDescription = formatCancelledDescription(translate('iou.canceled'), description, isCancelled);
 
     return (
         <MenuItemWithTopDescription
