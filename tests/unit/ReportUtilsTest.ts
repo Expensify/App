@@ -13658,26 +13658,62 @@ describe('ReportUtils', () => {
         const mockIouReportID = '12345';
 
         it('should return exactly 3 dropdown options', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
             expect(result).toHaveLength(3);
         });
 
         it('should return options with correct values', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, undefined, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: undefined,
+                ownerBillingGraceEndPeriod: undefined,
+            });
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
             expect(result.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
         });
 
         it('should return options with correct translated text', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
             expect(result.at(2)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.addUnreportedExpense'));
         });
 
         it('should return options with correct sentry labels', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
             expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED);
@@ -13687,7 +13723,16 @@ describe('ReportUtils', () => {
             const mockPolicy = createRandomPolicy(0);
             mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
             const amountOwed = 100;
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, amountOwed, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: mockPolicy,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             // Trigger each onSelected - the function should not throw
             for (const option of result) {
@@ -13698,7 +13743,16 @@ describe('ReportUtils', () => {
         it('should return options with zero amountOwed without triggering billing restrictions', () => {
             const mockPolicy = createRandomPolicy(0);
             mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: mockPolicy,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             expect(result).toHaveLength(3);
             // Each onSelected should work without issues when amountOwed is 0
@@ -13708,7 +13762,16 @@ describe('ReportUtils', () => {
         });
 
         it('should handle undefined iouReportID in CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE onSelected', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: undefined,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
             expect(() => result.at(0)?.onSelected?.()).not.toThrow();
@@ -13718,7 +13781,16 @@ describe('ReportUtils', () => {
         });
 
         it('should handle undefined policy gracefully', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             expect(result).toHaveLength(3);
             for (const option of result) {
@@ -13728,13 +13800,31 @@ describe('ReportUtils', () => {
 
         it('should accept amountOwed as a number parameter', () => {
             const amountOwed = 500;
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, amountOwed, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             expect(result).toHaveLength(3);
         });
 
         it('should use the provided icons for Location and ReceiptPlus', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
             expect(result.at(1)?.icon).toBe(mockIcons.Location);
             expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
         });
@@ -13890,7 +13980,16 @@ describe('ReportUtils', () => {
         });
 
         it('should return 3 dropdown options with correct values', () => {
-            const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, undefined, undefined, undefined, undefined);
+            const options = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: undefined,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             expect(options).toHaveLength(3);
             expect(options.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
@@ -13900,7 +13999,16 @@ describe('ReportUtils', () => {
 
         describe('CREATE_NEW_EXPENSE', () => {
             it('should return early when iouReportID is undefined', () => {
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, undefined, undefined);
+                const options = getAddExpenseDropdownOptions({
+                    translate: mockTranslate,
+                    icons: mockIcons,
+                    iouReportID: undefined,
+                    policy: undefined,
+                    userBillingGraceEndPeriodCollection: undefined,
+                    draftTransactionIDs: undefined,
+                    amountOwed: undefined,
+                    ownerBillingGraceEndPeriod: undefined,
+                });
                 options.at(0)?.onSelected?.();
 
                 expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -13922,7 +14030,16 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined, undefined);
+                const options = getAddExpenseDropdownOptions({
+                    translate: mockTranslate,
+                    icons: mockIcons,
+                    iouReportID,
+                    policy: testPolicy,
+                    userBillingGraceEndPeriodCollection: pastDueCollection,
+                    draftTransactionIDs: undefined,
+                    amountOwed: undefined,
+                    ownerBillingGraceEndPeriod: undefined,
+                });
                 options.at(0)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -13945,7 +14062,16 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined, undefined);
+                const options = getAddExpenseDropdownOptions({
+                    translate: mockTranslate,
+                    icons: mockIcons,
+                    iouReportID,
+                    policy: testPolicy,
+                    userBillingGraceEndPeriodCollection: pastDueCollection,
+                    draftTransactionIDs: undefined,
+                    amountOwed: undefined,
+                    ownerBillingGraceEndPeriod: undefined,
+                });
                 options.at(2)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -13962,7 +14088,16 @@ describe('ReportUtils', () => {
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
                 await waitForBatchedUpdates();
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, undefined, undefined, gracePeriodEnd);
+                const options = getAddExpenseDropdownOptions({
+                    translate: mockTranslate,
+                    icons: mockIcons,
+                    iouReportID,
+                    policy: testPolicy,
+                    userBillingGraceEndPeriodCollection: undefined,
+                    draftTransactionIDs: undefined,
+                    amountOwed: undefined,
+                    ownerBillingGraceEndPeriod: gracePeriodEnd,
+                });
                 options.at(2)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));

@@ -42,16 +42,17 @@ function WorkspaceRestrictedActionPage({
 
     // Watch billing NVPs so the component re-renders when fresh data arrives from the server.
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
     useEffect(() => {
         if (isLoadingSubscriptionData !== false) {
             return;
         }
-        if (!shouldRestrictUserBillableActions(policyID, userBillingGracePeriods)) {
+        if (!shouldRestrictUserBillableActions(policyID, userBillingGracePeriods, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.goBack();
         }
-    }, [policyID, isLoadingSubscriptionData, userBillingGracePeriods]);
+    }, [policyID, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGraceEndPeriod]);
 
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.
