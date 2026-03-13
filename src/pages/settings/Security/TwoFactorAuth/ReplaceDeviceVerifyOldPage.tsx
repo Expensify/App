@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearAccountMessages, replaceTwoFactorDevice} from '@userActions/Session';
+import {clearAccountMessages, clearTwoFactorAuthSecretKey, replaceTwoFactorDevice} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,6 +35,7 @@ function ReplaceDeviceVerifyOldPage() {
 
     useEffect(() => {
         clearAccountMessages();
+        clearTwoFactorAuthSecretKey();
         return () => {
             clearAccountMessages();
         };
