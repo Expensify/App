@@ -133,6 +133,7 @@ import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
+import {getCurrentUserEmail} from './Network/NetworkStore';
 import NetworkConnection from './NetworkConnection';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
@@ -1140,8 +1141,8 @@ Onyx.connect({
     callback: (value) => (betaConfiguration = value ?? {}),
 });
 
-let allTransactions: OnyxCollection<Transaction> = {};
-let reportsTransactions: Record<string, Transaction[]> = {};
+let deprecatedAllTransactions: OnyxCollection<Transaction> = {};
+let deprecatedReportsTransactions: Record<string, Transaction[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -1149,9 +1150,9 @@ Onyx.connect({
         if (!value) {
             return;
         }
-        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => transaction));
+        deprecatedAllTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => transaction));
 
-        reportsTransactions = Object.values(value).reduce<Record<string, Transaction[]>>((all, transaction) => {
+        deprecatedReportsTransactions = Object.values(value).reduce<Record<string, Transaction[]>>((all, transaction) => {
             const reportsMap = all;
             if (!transaction?.reportID) {
                 return reportsMap;
@@ -1210,18 +1211,6 @@ Onyx.connect({
             return;
         }
         allReportNameValuePair = value;
-    },
-});
-
-let allReportsViolations: OnyxCollection<ReportViolations>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportsViolations = value;
     },
 });
 
@@ -1299,7 +1288,7 @@ function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, r
     return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
 }
 
-function getReportTransactions(reportID: string | undefined, allReportsTransactions: Record<string, Transaction[]> = reportsTransactions): Transaction[] {
+function getReportTransactions(reportID: string | undefined, allReportsTransactions: Record<string, Transaction[]> = deprecatedReportsTransactions): Transaction[] {
     if (!reportID) {
         return [];
     }
@@ -2335,7 +2324,7 @@ function hasExpenses(reportID?: string, transactions?: Array<OnyxEntry<Transacti
     if (transactions) {
         return !!transactions?.find((transaction) => transaction?.reportID === reportID);
     }
-    return !!Object.values(allTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
+    return !!Object.values(deprecatedAllTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
 }
 
 /**
@@ -4399,7 +4388,7 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
 /**
  * Checks if the report contains at least one Non-Reimbursable transaction
  */
-function hasNonReimbursableTransactions(iouReportID: string | undefined, reportsTransactionsParam: Record<string, Transaction[]> = reportsTransactions): boolean {
+function hasNonReimbursableTransactions(iouReportID: string | undefined, reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions): boolean {
     const transactions = getReportTransactions(iouReportID, reportsTransactionsParam);
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
@@ -4897,7 +4886,7 @@ function canEditFieldOfMoneyRequest(
 
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
-    const transaction = linkedTransaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
+    const transaction = linkedTransaction ?? deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
@@ -5087,7 +5076,7 @@ function canHoldUnholdReportAction(
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iouTransaction: OnyxEntry<Transaction>): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -5100,13 +5089,12 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
 
     const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
 
-    if (!transactionID) {
-        Log.warn('Missing transactionID during the change of the money request hold status');
+    if (!transactionID || !iouTransaction) {
+        Log.warn('Missing transactionID or iouTransaction during the change of the money request hold status');
         return;
     }
 
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
-    const isOnHold = isOnHoldTransactionUtils(transaction);
+    const isOnHold = isOnHoldTransactionUtils(iouTransaction);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`];
 
     if (isOnHold) {
@@ -5181,7 +5169,7 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
         transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
     }
 
-    return transactions ? transactions.find((transaction) => transaction.transactionID === transactionID) : allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    return transactions ? transactions.find((transaction) => transaction.transactionID === transactionID) : deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
 /**
@@ -5901,6 +5889,8 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
                 policyID,
                 movedFromReport,
                 movedToReport,
+                // Temporarily retrieves current user email from getCurrentUserEmail, since getReportName is deprecated and no longer requires this parameter to be passed explicitly.
+                currentUserLogin: getCurrentUserEmail() ?? '',
             });
             return formatReportLastMessageText(modifiedMessage);
         }
@@ -6436,7 +6426,7 @@ function buildOptimisticAddCommentReportAction(
 
 function buildConciergeGreetingReportAction(reportID: string, greetingText: string, created: string): ReportAction {
     return {
-        reportActionID: String(CONST.CONCIERGE_GREETING_ACTION_ID),
+        reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID,
         reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
@@ -8872,7 +8862,7 @@ function hasEmptyReportsForPolicy(
     reports: OnyxCollection<Report> | undefined,
     policyID: string | undefined,
     accountID?: number,
-    reportsTransactionsParam: Record<string, Transaction[]> = reportsTransactions,
+    reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions,
 ): boolean {
     if (!accountID || !policyID) {
         return false;
@@ -8914,7 +8904,7 @@ function hasEmptyReportsForPolicy(
 function getPolicyIDsWithEmptyReportsForAccount(
     reports: OnyxCollection<Report> | undefined,
     accountID?: number,
-    reportsTransactionsParam: Record<string, Transaction[]> = reportsTransactions,
+    reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions,
 ): Record<string, boolean> {
     if (!accountID) {
         return {};
@@ -10650,7 +10640,7 @@ function getReportActionWithSmartscanError(reportActions: ReportAction[], report
         }
 
         const transactionID = isSplitOrTrackAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
+        const transaction = deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
         const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction as Transaction, report);
 
         return isTransactionThreadError;
@@ -11258,7 +11248,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
+    const transaction = deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
 
     if (!transaction || !reportActions) {
@@ -11626,7 +11616,14 @@ function prepareOnboardingOnyxData({
         (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && getPolicyRole(policy, currentUserEmail) === CONST.POLICY.ROLE.ADMIN,
     );
 
-    const testDriveURL = ROUTES.TEST_DRIVE_DEMO_ROOT;
+    let testDriveURL: string;
+    if (([CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE] as OnboardingPurpose[]).includes(engagementChoice)) {
+        testDriveURL = ROUTES.TEST_DRIVE_DEMO_ROOT;
+    } else if (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE) {
+        testDriveURL = ROUTES.TEST_DRIVE_DEMO_ROOT;
+    } else {
+        testDriveURL = ROUTES.TEST_DRIVE_MODAL_ROOT.route;
+    }
 
     const onboardingTaskParams: OnboardingTaskLinks = {
         integrationName,
@@ -13081,6 +13078,11 @@ function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string,
     return {fieldValues, fieldsByName};
 }
 
+function getLinkedIOUTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions: Transaction[]): OnyxEntry<Transaction> {
+    const transactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
+    return transactionID ? transactions.find((item) => item.transactionID === transactionID) : undefined;
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildConciergeGreetingReportAction,
@@ -13491,6 +13493,7 @@ export {
     getReportForHeader,
     isReportOpenOrUnsubmitted,
     getIconsForExpenseReport,
+    getLinkedIOUTransaction,
 };
 
 export type {
