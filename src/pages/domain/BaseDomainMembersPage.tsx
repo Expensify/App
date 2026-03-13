@@ -6,6 +6,7 @@ import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
+import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -193,29 +194,39 @@ function BaseDomainMembersPage({
     };
 
     const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
+    const shouldShowEmptySearchMessage = (!!searchBarAccessory || (!!shouldShowSearchBar && inputValue.length !== 0)) && filteredData.length === 0;
     const listHeaderContent =
         searchBarAccessory || shouldShowSearchBar ? (
-            <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
-                {!!searchBarAccessory && (
-                    <View
-                        style={[
-                            shouldUseNarrowLayout && styles.w100,
-                            shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13,
-                            shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter,
-                        ]}
-                    >
-                        {searchBarAccessory}
-                    </View>
-                )}
-                {shouldShowSearchBar && (
-                    <View style={[shouldUseNarrowLayout && styles.w100]}>
-                        <SearchBar
-                            inputValue={inputValue}
-                            onChangeText={setInputValue}
-                            label={searchPlaceholder}
-                            shouldShowEmptyState={!filteredData.length}
-                            style={[styles.flex1, styles.mh0, styles.mb0]}
-                        />
+            <View style={styles.flexColumn}>
+                <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
+                    {!!searchBarAccessory && (
+                        <View
+                            style={[
+                                shouldUseNarrowLayout && styles.w100,
+                                shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13,
+                                shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter,
+                            ]}
+                        >
+                            {searchBarAccessory}
+                        </View>
+                    )}
+                    {shouldShowSearchBar && (
+                        <View style={[shouldUseNarrowLayout && styles.w100]}>
+                            <SearchBar
+                                inputValue={inputValue}
+                                onChangeText={setInputValue}
+                                label={searchPlaceholder}
+                                shouldShowEmptyState={false}
+                                style={[styles.flex1, styles.mh0, styles.mb0]}
+                            />
+                        </View>
+                    )}
+                </View>
+                {shouldShowEmptySearchMessage && (
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>
+                            {inputValue.length !== 0 ? translate('common.noResultsFoundMatching', inputValue) : translate('common.noResultsFound')}
+                        </Text>
                     </View>
                 )}
             </View>
