@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -33,6 +34,7 @@ type SavedSearchListProps = {
 function SavedSearchList({hash}: SavedSearchListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -116,7 +118,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     return (
         <MenuItemList
             menuItems={savedSearchesMenuItems}
-            wrapperStyle={styles.sectionMenuItem}
+            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
             icon={expensifyIcons.Bookmark}
             iconWidth={variables.iconSizeNormal}
             iconHeight={variables.iconSizeNormal}
