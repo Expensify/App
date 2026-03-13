@@ -18,6 +18,7 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type {HoldMenuCallback} from '@components/Search';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -690,6 +691,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     customCardNames?: Record<number, string>;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+    /** Callback to fire when hold menu should be opened */
+    onHoldMenuOpen?: HoldMenuCallback;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
     /** The last payment method used per policy */
@@ -719,6 +722,9 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
 
+    /** Callback to fire when hold menu should be opened */
+    onHoldMenuOpen?: HoldMenuCallback;
+
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
 
@@ -739,6 +745,8 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+    /** Callback to fire when hold menu should be opened */
+    onHoldMenuOpen?: HoldMenuCallback;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
     /** The last payment method used per policy */

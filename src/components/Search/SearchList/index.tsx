@@ -54,6 +54,7 @@ import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
+import type {HoldMenuCallback} from '..';
 import BaseSearchList from './BaseSearchList';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
@@ -128,6 +129,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+
+    /** Callback to fire when hold menu should be opened */
+    onHoldMenuOpen?: HoldMenuCallback;
 
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
@@ -221,6 +225,7 @@ function SearchList({
     violations,
     customCardNames,
     onDEWModalOpen,
+    onHoldMenuOpen,
     isDEWBetaEnabled,
     selectedTransactions,
     hasLoadedAllTransactions,
@@ -446,6 +451,7 @@ function SearchList({
                         customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        onHoldMenuOpen={onHoldMenuOpen}
                     />
                 </Animated.View>
             );
@@ -479,6 +485,7 @@ function SearchList({
             lastPaymentMethod,
             personalPolicyID,
             customCardNames,
+            onHoldMenuOpen,
         ],
     );
 

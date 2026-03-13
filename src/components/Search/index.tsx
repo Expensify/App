@@ -8,6 +8,8 @@ import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming}
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
+import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
 import type {
     ReportActionListItemType,
@@ -42,7 +44,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getNonHeldAndFullAmount, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -76,7 +78,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, SaveSearch, Transaction} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -97,6 +100,8 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
+
+type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => void;
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
@@ -227,6 +232,18 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useWideRHPActions();
+    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
+    const [holdMenuParams, setHoldMenuParams] = useState<{
+        chatReport: OnyxEntry<Report>;
+        fullAmount: string;
+        moneyRequestReport: OnyxEntry<Report>;
+        transactionCount: number;
+        nonHeldAmount: string;
+        requestType: ActionHandledType;
+        paymentType?: PaymentMethodType;
+        hasValidNonHeldAmount: boolean;
+        hasNoneHeldExpenses: boolean;
+    } | null>(null);
 
     const {
         currentSearchHash,
@@ -285,6 +302,27 @@ function Search({
     const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {
         selector: savedSearchSelector,
     });
+
+    const handleHoldMenuOpen = useCallback(
+        (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => {
+            const chatReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
+            const moneyRequestReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, item.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false);
+            setHoldMenuParams({
+                chatReport,
+                moneyRequestReport,
+                transactionCount: item.transactionCount ?? 0,
+                fullAmount,
+                requestType,
+                paymentType,
+                nonHeldAmount,
+                hasValidNonHeldAmount,
+                hasNoneHeldExpenses: item.transactions.some((t) => !isOnHold(t)),
+            });
+            setIsHoldMenuVisible(true);
+        },
+        [searchResults?.data],
+    );
 
     const handleDEWModalOpen = useCallback(() => {
         if (onDEWModalOpen) {
@@ -1467,7 +1505,22 @@ function Search({
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
                     customCardNames={customCardNames}
+                    onHoldMenuOpen={handleHoldMenuOpen}
                 />
+                {isHoldMenuVisible && !!holdMenuParams && (
+                    <ProcessMoneyReportHoldMenu
+                        isVisible={isHoldMenuVisible}
+                        onClose={() => setIsHoldMenuVisible(false)}
+                        chatReport={holdMenuParams.chatReport}
+                        fullAmount={holdMenuParams.fullAmount}
+                        moneyRequestReport={holdMenuParams.moneyRequestReport}
+                        transactionCount={holdMenuParams.transactionCount}
+                        hasNonHeldExpenses={holdMenuParams?.hasNoneHeldExpenses}
+                        nonHeldAmount={holdMenuParams.hasNoneHeldExpenses && holdMenuParams.hasValidNonHeldAmount ? holdMenuParams.nonHeldAmount : undefined}
+                        requestType={holdMenuParams.requestType}
+                        paymentType={holdMenuParams.paymentType}
+                    />
+                )}
             </Animated.View>
         </SearchScopeProvider>
     );
@@ -1475,7 +1528,7 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type {SearchProps};
+export type {SearchProps, HoldMenuCallback};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 

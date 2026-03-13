@@ -44,6 +44,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     shouldSyncFocus,
     onCheckboxPress,
     onDEWModalOpen,
+    onHoldMenuOpen,
     isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
@@ -135,6 +136,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            onHoldMenuOpen,
         });
     }, [
         currentSearchHash,
@@ -149,6 +151,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        onHoldMenuOpen,
     ]);
 
     const handleCheckboxPress = useCallback(() => {
