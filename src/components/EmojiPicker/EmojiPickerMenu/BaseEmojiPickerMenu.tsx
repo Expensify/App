@@ -93,7 +93,6 @@ function ListEmptyComponent({searchValue}: {searchValue?: string}) {
             key={hasFinishedTyping ? `no-results-${debouncedSearchValue}` : undefined}
             style={[styles.textLabel, styles.colorMuted]}
             role={hasFinishedTyping ? CONST.ROLE.ALERT : undefined}
-            accessibilityLiveRegion={hasFinishedTyping ? 'polite' : undefined}
         >
             {noResultsFoundText}
         </Text>

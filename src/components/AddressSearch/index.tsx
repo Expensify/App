@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useDebouncedValue from '@hooks/useDebouncedValue';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -329,8 +330,11 @@ function AddressSearch({
     }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
     const noResultsFoundText = translate('common.noResultsFound');
+    const debouncedSearchValue = useDebouncedValue(searchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const hasFinishedTyping = searchValue === debouncedSearchValue;
+    const shouldAnnounceNoResults = isTyping && hasFinishedTyping;
 
-    useAccessibilityAnnouncement(noResultsFoundText, isTyping, {shouldAnnounceOnNative: true});
+    useAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
 
     const listEmptyComponent = useMemo(() => {
         if (!isTyping) {
@@ -338,14 +342,14 @@ function AddressSearch({
         }
         return (
             <Text
+                key={shouldAnnounceNoResults ? `no-results-${debouncedSearchValue}` : undefined}
                 style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
-                role={CONST.ROLE.ALERT}
-                accessibilityLiveRegion="polite"
+                role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
             >
                 {noResultsFoundText}
             </Text>
         );
-    }, [isTyping, noResultsFoundText, styles]);
+    }, [isTyping, noResultsFoundText, styles, shouldAnnounceNoResults, debouncedSearchValue]);
 
     const listLoader = useMemo(() => {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};

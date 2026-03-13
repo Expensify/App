@@ -1026,7 +1026,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     key={shouldAnnounceNoResults ? `no-results-${debouncedTextInputValue}` : undefined}
                     style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
                     role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
-                    accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
                 >
                     {headerMessage}
                 </Text>

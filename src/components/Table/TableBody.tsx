@@ -71,7 +71,6 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
             <Text
                 style={[styles.textNormal, styles.colorMuted]}
                 role={CONST.ROLE.ALERT}
-                accessibilityLiveRegion="polite"
             >
                 {message}
             </Text>

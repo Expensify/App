@@ -55,7 +55,6 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
                     <Text
                         style={[styles.textNormal, styles.colorMuted]}
                         role={CONST.ROLE.ALERT}
-                        accessibilityLiveRegion="polite"
                     >
                         {noResultsMessage}
                     </Text>

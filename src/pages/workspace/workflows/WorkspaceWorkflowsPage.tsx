@@ -337,7 +337,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     key={shouldAnnounceNoResults ? `no-results-${debouncedSearchInput}` : undefined}
                                     style={[styles.textNormal, styles.colorMuted]}
                                     role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
-                                    accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
                                 >
                                     {noResultsMessage}
                                 </Text>
