@@ -3,11 +3,11 @@ import useOnyx from '@hooks/useOnyx';
 import {decodeWebAuthnError} from '@libs/MultifactorAuthentication/Passkeys/helpers';
 import {
     arrayBufferToBase64URL,
-    buildAllowCredentials,
-    buildCreationOptions,
-    buildRequestOptions,
-    createPasskey,
-    getPasskeyAssertion,
+    authenticateWithPasskey,
+    buildAllowedCredentialDescriptors,
+    buildPublicKeyCredentialCreationOptions,
+    buildPublicKeyCredentialRequestOptions,
+    createPasskeyCredential,
     isSupportedTransport,
     isWebAuthnSupported,
     PASSKEY_AUTH_TYPE,
@@ -57,12 +57,12 @@ function usePasskeys(): UseBiometricsReturn {
             backendCredentials,
             localCredentials: localPasskeyCredentials ?? null,
         });
-        const excludeCredentials = buildAllowCredentials(reconciledExisting);
-        const publicKeyOptions = buildCreationOptions(registrationChallenge, excludeCredentials);
+        const excludeCredentials = buildAllowedCredentialDescriptors(reconciledExisting);
+        const publicKeyOptions = buildPublicKeyCredentialCreationOptions(registrationChallenge, excludeCredentials);
 
         let credential: PublicKeyCredential;
         try {
-            credential = await createPasskey(publicKeyOptions);
+            credential = await createPasskeyCredential(publicKeyOptions);
         } catch (error) {
             onResult({
                 success: false,
@@ -131,12 +131,12 @@ function usePasskeys(): UseBiometricsReturn {
             return;
         }
 
-        const allowCredentials = buildAllowCredentials(reconciled);
-        const publicKeyOptions = buildRequestOptions(challenge, allowCredentials);
+        const allowCredentials = buildAllowedCredentialDescriptors(reconciled);
+        const publicKeyOptions = buildPublicKeyCredentialRequestOptions(challenge, allowCredentials);
 
         let assertion: PublicKeyCredential;
         try {
-            assertion = await getPasskeyAssertion(publicKeyOptions);
+            assertion = await authenticateWithPasskey(publicKeyOptions);
         } catch (error) {
             onResult({
                 success: false,
