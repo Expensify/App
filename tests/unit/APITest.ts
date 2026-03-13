@@ -458,11 +458,7 @@ describe('APITests', () => {
                 Promise.resolve(NetworkState.setHasRadio(true));
             })
             .then(() => {
-                // Wait for the deferred flush (setTimeout in unpause) to start processing
-                return waitForBatchedUpdates();
-            })
-            .then(() => {
-                // Wait again for the flush's async Onyx operations to complete
+                // Wait for the deferred flush and queue processing to complete
                 return waitForBatchedUpdates();
             })
             .then(() => {
