@@ -28,14 +28,14 @@ diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.k
 +          // Add currentTid_ field to SamplingProfilerPosix struct
 +          if (!content.contains("currentTid_")) {
 +            content = content.replace(
-+              "/// Registered runtime thread\n  pthread_t currentThread_;",
-+              "/// Registered runtime thread\n  pthread_t currentThread_;\n\n  /// Kernel thread ID for safe signal delivery via tgkill syscall.\n  pid_t currentTid_;"
++              "pthread_t currentThread_;",
++              "pthread_t currentThread_;\n\n  /// Kernel thread ID for safe signal delivery via tgkill syscall.\n  pid_t currentTid_;"
 +            )
 +
-+            // Initialize currentTid_ in constructor
++            // Initialize currentTid_ in constructor body
 +            content = content.replace(
-+              "currentThread_ = pthread_self();",
-+              "currentThread_ = pthread_self();\n  currentTid_ = static_cast<pid_t>(syscall(__NR_gettid));"
++              "currentThread_{pthread_self()} {",
++              "currentThread_{pthread_self()} {\n  currentTid_ = static_cast<pid_t>(syscall(__NR_gettid));"
 +            )
 +
 +            // Replace pthread_kill with tgkill in platformSuspendVMAndWalkStack
@@ -55,8 +55,8 @@ diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.k
 +
 +            // Update currentTid_ in setRuntimeThread
 +            content = content.replace(
-+              "profiler->currentThread_ = pthread_self();\n}",
-+              "profiler->currentThread_ = pthread_self();\n  profiler->currentTid_ = static_cast<pid_t>(syscall(__NR_gettid));\n}"
++              "profiler->currentThread_ = pthread_self();",
++              "profiler->currentThread_ = pthread_self();\n  profiler->currentTid_ = static_cast<pid_t>(syscall(__NR_gettid));"
 +            )
 +          }
 +
@@ -64,5 +64,5 @@ diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.k
 +        }
 +      }
      }
-
+ 
  // NOTE: ideally, we would like CMake to be installed automatically by the `externalNativeBuild`
