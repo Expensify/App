@@ -209,16 +209,9 @@ function BasePicker<TPickerValue>({
                     onClose={disableHighlight}
                     textInputProps={{
                         allowFontScaling: false,
-                        importantForAccessibility: 'no-hide-descendants',
                     }}
                     touchableDoneProps={{
                         accessibilityRole: CONST.ROLE.BUTTON,
-                    }}
-                    touchableWrapperProps={{
-                        accessible: true,
-                        accessibilityRole: CONST.ROLE.COMBOBOX,
-                        accessibilityLabel,
-                        accessibilityState: {disabled: isDisabled, expanded: isHighlighted},
                     }}
                     pickerProps={{
                         ref: picker,
