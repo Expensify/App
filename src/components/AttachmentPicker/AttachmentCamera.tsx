@@ -140,7 +140,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
         >
             <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
                 {/* Camera viewfinder area */}
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, {paddingTop: insets.top}]}>
                     {cameraPermissionStatus !== RESULTS.GRANTED && (
                         <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                             <ImageSVG
