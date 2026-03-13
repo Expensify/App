@@ -17,12 +17,12 @@ export default function getAccountTabScreenToOpen(subscriptionPlan: ValueOf<type
 
     const settingsTabState = getSettingsTabStateFromSessionStorage();
     if (!settingsTabState) {
-        return {screen: SCREENS.SETTINGS.PROFILE.ROOT, params: {}};
+        return {screen: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE, params: {}};
     }
 
     const focusedRoute = findFocusedRoute(settingsTabState) as NavigationPartialRoute<keyof SettingsSplitNavigatorParamList> | undefined;
     if ((!subscriptionPlan && focusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) || !focusedRoute) {
-        return {screen: SCREENS.SETTINGS.PROFILE.ROOT, params: {}};
+        return {screen: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE, params: {}};
     }
 
     return {screen: focusedRoute.name};

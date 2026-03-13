@@ -3,11 +3,13 @@ import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -57,13 +59,13 @@ describe('Navigate', () => {
 
             // When navigate to the page from the same split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute());
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.path));
             });
 
             // Then push a new page to the current split navigator
             const settingsSplitAfterGoBack = navigationRef.current?.getRootState().routes.at(0);
             expect(settingsSplitAfterGoBack?.state?.index).toBe(1);
-            expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+            expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE);
         });
 
         it('to the page within the same navigator using replace action', () => {
@@ -82,7 +84,7 @@ describe('Navigate', () => {
                                             name: SCREENS.SETTINGS.ROOT,
                                         },
                                         {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                            name: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE,
                                         },
                                     ],
                                 },
@@ -94,7 +96,7 @@ describe('Navigate', () => {
 
             const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(1);
-            expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+            expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE);
 
             // When navigate to the page from the same split navigator using replace action
             act(() => {
@@ -215,7 +217,7 @@ describe('Navigate', () => {
                                             name: SCREENS.SETTINGS.ROOT,
                                         },
                                         {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                            name: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE,
                                         },
                                     ],
                                 },
@@ -229,7 +231,7 @@ describe('Navigate', () => {
             const lastSplitBeforeNavigate = rootStateBeforeNavigate?.routes.at(-1);
             expect(rootStateBeforeNavigate?.index).toBe(0);
             expect(lastSplitBeforeNavigate?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
-            expect(lastSplitBeforeNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+            expect(lastSplitBeforeNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE);
 
             // When navigate to the page from the same split navigator
             act(() => {

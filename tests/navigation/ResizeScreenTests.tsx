@@ -47,7 +47,7 @@ describe('Resize screen', () => {
             >
                 <Split.Navigator
                     sidebarScreen={SCREENS.SETTINGS.ROOT}
-                    defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
+                    defaultCentralScreen={SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE}
                     parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
                 >
                     <Split.Screen
@@ -55,7 +55,7 @@ describe('Resize screen', () => {
                         component={InitialSettingsPage}
                     />
                     <Split.Screen
-                        name={SCREENS.SETTINGS.PROFILE.ROOT}
+                        name={SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE}
                         component={ProfilePage}
                     />
                 </Split.Navigator>
@@ -86,7 +86,7 @@ describe('Resize screen', () => {
 
         // Then the settings profile page should be displayed on the screen
         expect(rootStateAfterResize?.routes.at(0)?.name).toBe(SCREENS.SETTINGS.ROOT);
-        expect(rootStateAfterResize?.routes.at(1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+        expect(rootStateAfterResize?.routes.at(1)?.name).toBe(SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE);
         expect(rootStateAfterResize?.index).toBe(1);
     });
 });

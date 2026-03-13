@@ -2134,10 +2134,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
             screens: {
                 [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
-                [SCREENS.SETTINGS.PROFILE.ROOT]: {
-                    path: ROUTES.SETTINGS_PROFILE.route,
-                    exact: true,
-                },
+                [SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE]: DYNAMIC_ROUTES.PROFILE.path,
                 [SCREENS.SETTINGS.SECURITY]: {
                     path: ROUTES.SETTINGS_SECURITY,
                     exact: true,

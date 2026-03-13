@@ -86,7 +86,7 @@ function TestSettingsSplitNavigator() {
     return (
         <SettingsSplit.Navigator
             sidebarScreen={SCREENS.SETTINGS.ROOT}
-            defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
+            defaultCentralScreen={SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE}
             parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
         >
             <SettingsSplit.Screen
@@ -94,7 +94,7 @@ function TestSettingsSplitNavigator() {
                 getComponent={getEmptyComponent}
             />
             <SettingsSplit.Screen
-                name={SCREENS.SETTINGS.PROFILE.ROOT}
+                name={SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE}
                 getComponent={getEmptyComponent}
             />
             <SettingsSplit.Screen

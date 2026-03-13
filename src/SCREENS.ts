@@ -122,6 +122,7 @@ const SCREENS = {
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
 
         PROFILE: {
+            DYNAMIC_PROFILE: 'Dynamic_Settings_Profile',
             ROOT: 'Settings_Profile',
             DISPLAY_NAME: 'Settings_Display_Name',
             CONTACT_METHODS: 'Settings_ContactMethods',
