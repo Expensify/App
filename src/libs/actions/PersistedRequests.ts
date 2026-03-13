@@ -270,16 +270,13 @@ function processNextRequest(): AnyRequest | null {
         newQueueLength: persistedRequests.length,
     });
 
-    if (ongoingRequest && ongoingRequest.persistWhenOngoing) {
-        Log.info('[PersistedRequests] Persisting ongoingRequest to disk', false, {
-            command: ongoingRequest.command,
-        });
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, ongoingRequest);
-    } else {
-        Log.info('[PersistedRequests] NOT persisting ongoingRequest to disk (persistWhenOngoing=false)', false, {
-            command: ongoingRequest?.command ?? 'null',
-        });
-    }
+    // Persist both the updated queue and the ongoing request to disk atomically.
+    // This ensures that if the app crashes mid-flight, the ongoing request is not
+    // lost (Bug #80759 Issue 3a) and the queue on disk matches memory (Issue 3c).
+    Onyx.multiSet({
+        [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+        ...(ongoingRequest ? {[ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest} : {}),
+    });
 
     return ongoingRequest;
 }
@@ -313,6 +310,13 @@ function rollbackOngoingRequest() {
         rolledBackCommand: requestToRollback.command,
         newQueueLength: persistedRequests.length,
         ongoingRequestCleared: true,
+    });
+
+    // Persist both changes to disk so a crash after rollback doesn't lose
+    // the rolled-back request or leave a stale ongoingRequest on disk.
+    Onyx.multiSet({
+        [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+        [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
     });
 }
 
