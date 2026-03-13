@@ -4867,7 +4867,6 @@ type CompleteOnboardingProps = {
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
     selectedInterestedFeatures?: string[];
-    shouldSkipTestDriveModal?: boolean;
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldWaitForRHPVariantInitialization?: boolean;
@@ -4888,7 +4887,6 @@ async function completeOnboarding({
     userReportedIntegration,
     wasInvited,
     selectedInterestedFeatures,
-    shouldSkipTestDriveModal,
     isInvitedAccountant,
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
@@ -4932,27 +4930,6 @@ async function completeOnboarding({
         bespokeWelcomeMessage,
         optimisticConciergeReportActionID,
     };
-
-    // We should only set testDriveModalDismissed to false if it's not already true (i.e., if the modal hasn't been dismissed yet).
-    if (!shouldSkipTestDriveModal && onboarding?.testDriveModalDismissed !== true) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ONBOARDING,
-            value: {testDriveModalDismissed: false},
-        });
-
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ONBOARDING,
-            value: {testDriveModalDismissed: false},
-        });
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ONBOARDING,
-            value: {testDriveModalDismissed: null},
-        });
-    }
 
     if (shouldWaitForRHPVariantInitialization) {
         // Wait for the workspace to be created before completing the guided setup
