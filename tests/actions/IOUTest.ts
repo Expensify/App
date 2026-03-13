@@ -31,6 +31,7 @@ import {
     initMoneyRequest,
     markRejectViolationAsResolved,
     payMoneyRequest,
+    rejectExpenseReport,
     rejectMoneyRequest,
     replaceReceipt,
     requestMoney,
@@ -13938,6 +13939,114 @@ describe('actions/IOU', () => {
                 }),
                 expect.anything(),
             );
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('rejectExpenseReport', () => {
+        const comment = 'This report is rejected';
+        const TEST_USER_ACCOUNT_ID = 1;
+        const SUBMITTER_ACCOUNT_ID = 2;
+        const APPROVER_ACCOUNT_ID = 3;
+        const CURRENT_USER_DISPLAY_NAME = 'Test User';
+        const CURRENT_USER_AVATAR = 'https://example.com/avatar.png';
+
+        let policy: OnyxEntry<Policy>;
+        let expenseReport: OnyxEntry<Report>;
+
+        beforeEach(async () => {
+            policy = createRandomPolicy(1);
+
+            expenseReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: SUBMITTER_ACCOUNT_ID,
+                managerID: APPROVER_ACCOUNT_ID,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                policyID: policy?.id,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`, expenseReport);
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            jest.clearAllMocks();
+        });
+
+        it('should call API.write with REJECT_EXPENSE_REPORT command', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            rejectExpenseReport(expenseReport!.reportID, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.REJECT_EXPENSE_REPORT,
+                expect.objectContaining({
+                    reportID: expenseReport!.reportID,
+                    targetAccountID: SUBMITTER_ACCOUNT_ID,
+                    comment,
+                }),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
+        });
+
+        it('should optimistically update the report when rejecting to submitter', async () => {
+            rejectExpenseReport(expenseReport!.reportID, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport!.reportID}`);
+            expect(updatedReport?.managerID).toBe(SUBMITTER_ACCOUNT_ID);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+        });
+
+        it('should optimistically update the report when rejecting to a previous approver', async () => {
+            rejectExpenseReport(expenseReport!.reportID, APPROVER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport!.reportID}`);
+            expect(updatedReport?.managerID).toBe(APPROVER_ACCOUNT_ID);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
+
+        it('should create optimistic report actions with passed user details', async () => {
+            rejectExpenseReport(expenseReport!.reportID, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            await waitForBatchedUpdates();
+
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport!.reportID}`);
+            const actions = Object.values(reportActions ?? {});
+
+            const rejectAction = actions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER);
+            expect(rejectAction).toBeDefined();
+            expect(rejectAction?.actorAccountID).toBe(TEST_USER_ACCOUNT_ID);
+            expect(rejectAction?.person?.[0]?.text).toBe(CURRENT_USER_DISPLAY_NAME);
+            expect(rejectAction?.avatar).toBe(CURRENT_USER_AVATAR);
+
+            const commentAction = actions.find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+            expect(commentAction).toBeDefined();
+            expect(commentAction?.actorAccountID).toBe(TEST_USER_ACCOUNT_ID);
+            expect(commentAction?.person?.[0]?.text).toBe(CURRENT_USER_DISPLAY_NAME);
+            expect(commentAction?.avatar).toBe(CURRENT_USER_AVATAR);
+        });
+
+        it('should not reject if report does not exist', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            rejectExpenseReport('nonExistentReportID', SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).not.toHaveBeenCalled();
             writeSpy.mockRestore();
         });
     });
