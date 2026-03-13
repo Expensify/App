@@ -4,7 +4,9 @@ import Checkbox from '@components/Checkbox';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
@@ -63,7 +65,9 @@ function MoneyRequestReportGroupHeader({
     pendingAction,
 }: MoneyRequestReportGroupHeaderProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
 
     const cleanedGroupName = isGroupedByTag && group.groupName ? getCommaSeparatedTagNameWithSanitizedColons(group.groupName) : group.groupName;
@@ -73,7 +77,7 @@ function MoneyRequestReportGroupHeader({
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
     const conditionalHeight = useMemo(
-        () => (shouldUseNarrowLayout ? {height: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX} : {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT}),
+        () => (shouldUseNarrowLayout ? {height: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX} : {minHeight: 40}),
         [shouldUseNarrowLayout, shouldShowCheckbox],
     );
 
@@ -91,7 +95,7 @@ function MoneyRequestReportGroupHeader({
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
-            <View style={[styles.reportLayoutGroupHeader, conditionalHeight]}>
+            <View style={[styles.reportLayoutGroupHeader, conditionalHeight, isLargeScreenWidth && {borderBottomWidth: 1, borderColor: theme.border}]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {shouldShowCheckbox && (
                         <Checkbox
