@@ -304,18 +304,25 @@ describe('validateAttachmentFile', () => {
         });
 
         it('returns valid result when file has getAsFile and uses converted file', async () => {
-            const blob = new Blob(['content'], {type: 'text/plain'});
-            const convertedFile = new File([blob], 'file.txt', {type: 'text/plain'});
-            const file = {
-                name: 'file.txt',
-                size: 7,
-                getAsFile: () => convertedFile,
-            } as unknown as FileObject;
+            // In Node/Jest the react-native-url-polyfill throws for createObjectURL (no BlobModule).
+            // Mock it so the File path that assigns file.uri can run.
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+            try {
+                const blob = new Blob(['content'], {type: 'text/plain'});
+                const convertedFile = new File([blob], 'file.txt', {type: 'text/plain'});
+                const file = {
+                    name: 'file.txt',
+                    size: 7,
+                    getAsFile: () => convertedFile,
+                } as unknown as FileObject;
 
-            const error = await validateAttachmentFile(file);
+                const error = await validateAttachmentFile(file);
 
-            expect(error.isValid).toBe(true);
-            expect(mockFileUtils.normalizeFileObject).toHaveBeenCalledWith(convertedFile);
+                expect(error.isValid).toBe(true);
+                expect(mockFileUtils.normalizeFileObject).toHaveBeenCalledWith(convertedFile);
+            } finally {
+                createObjectURLSpy.mockRestore();
+            }
         });
     });
 });
