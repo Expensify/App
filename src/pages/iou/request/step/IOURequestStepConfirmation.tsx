@@ -398,11 +398,15 @@ function IOURequestStepConfirmation({
             return;
         }
 
+        let ignore = false;
         setIsStitchingReceipt(true);
         setStitchError('');
 
         stitchOdometerImages(odometerStartImage, odometerEndImage)
             .then((stitchedImage) => {
+                if (ignore) {
+                    return;
+                }
                 if (!(stitchedImage ?? odometerStartImage ?? odometerEndImage)) {
                     return;
                 }
@@ -419,10 +423,22 @@ function IOURequestStepConfirmation({
                 setMoneyRequestReceipt(currentTransactionID, uri, name, shouldUseTransactionDraft(action));
             })
             .catch((error: unknown) => {
-                Log.warn('stitchOdometerImages failed on confirmation page', {error});
+                if (ignore) {
+                    return;
+                }
+                Log.warn('stitchOdometerImages failed', {error});
                 setStitchError(translate('iou.error.stitchOdometerImagesFailed'));
             })
-            .finally(() => setIsStitchingReceipt(false));
+            .finally(() => {
+                if (ignore) {
+                    return;
+                }
+                setIsStitchingReceipt(false);
+            });
+
+        return () => {
+            ignore = true;
+        };
     }, [isOdometerDistanceRequest, currentTransactionID, odometerStartImage, odometerEndImage, action, translate]);
 
     const defaultBillable = !!policy?.defaultBillable;
