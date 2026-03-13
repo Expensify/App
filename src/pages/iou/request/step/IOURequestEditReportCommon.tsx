@@ -16,7 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
@@ -71,6 +71,7 @@ function IOURequestEditReportCommon({
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const resolvedReportOwnerAccountID = useMemo(() => {
@@ -134,6 +135,10 @@ function IOURequestEditReportCommon({
                     return false;
                 }
 
+                if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+                    return false;
+                }
+
                 if (canAddTransaction(report, undefined, true)) {
                     return true;
                 }
@@ -156,7 +161,7 @@ function IOURequestEditReportCommon({
                     icons: getIconsForExpenseReport(report, personalDetails, policy),
                 };
             });
-    }, [debouncedSearchValue, outstandingReports, selectedReportID, personalDetails, localeCompare, allPolicies, currentUserPersonalDetails.accountID]);
+    }, [debouncedSearchValue, outstandingReports, selectedReportID, personalDetails, localeCompare, allPolicies, currentUserPersonalDetails.accountID, isPerDiemRequest, isTimeRequest]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -215,7 +220,7 @@ function IOURequestEditReportCommon({
             return;
         }
 
-        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID)) {
+        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
             return;
         }
