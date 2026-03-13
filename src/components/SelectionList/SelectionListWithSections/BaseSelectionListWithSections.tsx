@@ -13,6 +13,7 @@ import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSy
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
 import type {ButtonOrCheckBoxRoles} from '@components/SelectionList/types';
+import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -88,7 +89,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const triggerScrollEvent = useScrollEventEmitter();
-
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
@@ -367,6 +367,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 renderListEmptyContent()
             ) : (
                 <FlashList
+                    role={getListboxRole(canSelectMultiple)}
                     data={flattenedData}
                     renderItem={renderItem}
                     ref={listRef}

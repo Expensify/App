@@ -27,6 +27,7 @@ import useSearchFocusSync from './hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
 import ListItemRenderer from './ListItem/ListItemRenderer';
 import type {ButtonOrCheckBoxRoles, DataDetailsType, ListItem, SelectionListProps} from './types';
+import {getListboxRole} from './utils/getListboxRole';
 
 const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
@@ -550,6 +551,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 <>
                     {!shouldHeaderBeInsideList && header}
                     <FlashList
+                        role={getListboxRole(canSelectMultiple)}
                         data={data}
                         renderItem={renderItem}
                         ref={listRef}

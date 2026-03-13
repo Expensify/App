@@ -30,6 +30,10 @@ type ReportAttributes = {
      */
     requiresAttention: boolean;
     /**
+     * The action badge to display instead of the GBR/RBR dot (e.g. 'submit', 'approve', 'pay').
+     */
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    /**
      * The errors of the report.
      */
     reportErrors: Errors;

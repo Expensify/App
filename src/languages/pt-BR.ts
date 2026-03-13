@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Início',
         inbox: 'Caixa de entrada',
         yourReviewIsRequired: 'Sua revisão é necessária',
+        actionBadge: {
+            submit: 'Enviar',
+            approve: 'Aprovar',
+            pay: 'Pagar',
+            fix: 'Corrigir',
+        },
         success: 'Concluído',
         group: 'Grupo',
         profile: 'Perfil',
@@ -747,6 +753,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.`,
         },
         verificationFailed: 'Falha na verificação',
+        setPin: {didNotShipCard: 'Não enviamos seu cartão. Tente novamente.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2352,6 +2359,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} para ${merchant} - ${date}`,
         },
+        setYourPin: 'Defina seu PIN.',
+        confirmYourPin: 'Confirme seu PIN.',
+        pinMustBeFourDigits: 'O PIN deve ter exatamente 4 dígitos.',
+        invalidPin: 'Escolha um PIN mais seguro.',
+        pinMismatch: 'Os PINs não coincidem. Tente novamente.',
+        revealPin: 'Revelar PIN',
+        hidePin: 'Ocultar PIN',
+        pin: 'PIN',
         freezeCard: 'Bloquear cartão',
         unfreeze: 'Desbloquear',
         unfreezeCard: 'Desbloquear cartão',
@@ -8600,6 +8615,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             title: 'Membros',
             findMember: 'Encontrar membro',
             addMember: 'Adicionar membro',
+            allMembers: 'Todos os membros',
             email: 'Endereço de e-mail',
             closeAccount: () => ({
                 one: 'Encerrar conta',
