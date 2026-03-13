@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handlePlaidError, openPlaidBankAccountSelector, openPlaidBankLogin, setPlaidEvent} from '@libs/actions/BankAccounts';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {handleRestrictedEvent} from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -229,9 +230,13 @@ function AddPlaidBankAccount({
         }
 
         if (plaidData?.isLoading) {
+            const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddPlaidBankAccount', isLoading: !!plaidData.isLoading};
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={reasonAttributes}
+                    />
                 </View>
             );
         }
