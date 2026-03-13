@@ -16,7 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
@@ -129,6 +129,10 @@ function IOURequestEditReportCommon({
             .filter((report) => {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
+                if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+                    return false;
+                }
+
                 if (canAddTransaction(report, undefined, true)) {
                     return true;
                 }
@@ -151,7 +155,7 @@ function IOURequestEditReportCommon({
                     icons: getIconsForExpenseReport(report, personalDetails, policy),
                 };
             });
-    }, [debouncedSearchValue, outstandingReports, selectedReportID, personalDetails, localeCompare, allPolicies, currentUserPersonalDetails.accountID]);
+    }, [debouncedSearchValue, outstandingReports, selectedReportID, personalDetails, localeCompare, allPolicies, currentUserPersonalDetails.accountID, isPerDiemRequest]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
