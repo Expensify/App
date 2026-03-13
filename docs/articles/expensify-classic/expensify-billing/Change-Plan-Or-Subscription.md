@@ -22,7 +22,7 @@ Expensify offers several plans based on your needs: **Collect, Control,** and **
 ---
 
 ## Adjust Subscription Size
-1. Go to **Settings > Workspaces > Group > Subscription**.
+1. Go to **Settings > Workspaces > Subscription**.
 2. Enter the desired number in the **Subscription size** field.
    - If left blank, your subscription size will be set automatically:
      - **New Workspaces**: Based on active users in the first month.
