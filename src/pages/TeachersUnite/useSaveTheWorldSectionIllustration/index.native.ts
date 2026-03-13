@@ -1,24 +1,11 @@
 import LottieAnimations from '@components/LottieAnimations';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useSectionIllustrationWithMotion from '@hooks/useSectionIllustrationWithMotion';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Accessibility from '@libs/Accessibility';
 import type UseSaveTheWorldSectionIllustration from './types';
 
 const useSaveTheWorldSectionIllustration: UseSaveTheWorldSectionIllustration = () => {
-    const isReduceMotionEnabled = Accessibility.useReducedMotion();
-    const illustrations = useMemoizedLazyIllustrations(['SaveTheWorldScale']);
     const styles = useThemeStyles();
-
-    if (isReduceMotionEnabled) {
-        return {
-            illustration: illustrations.SaveTheWorldScale,
-            illustrationStyle: styles.saveTheWorldStaticIllustration,
-        };
-    }
-
-    return {
-        illustration: LottieAnimations.SaveTheWorld,
-    };
+    return useSectionIllustrationWithMotion(LottieAnimations.SaveTheWorld, 'SaveTheWorldScale', styles.saveTheWorldStaticIllustration);
 };
 
 export default useSaveTheWorldSectionIllustration;

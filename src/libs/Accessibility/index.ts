@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState, useSyncExternalStore} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {AccessibilityInfo} from 'react-native';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
@@ -18,50 +18,29 @@ const useScreenReaderStatus = (): boolean => {
     return isScreenReaderEnabled;
 };
 
-/**
- * Hook that returns whether the user has enabled the "reduce motion" accessibility setting.
- * This is used to disable animations for users who are sensitive to motion.
- * Works on iOS, Android, and Web (via react-native-web which uses prefers-reduced-motion media query).
- */
-// Module-level cache so new hook instances start with the last known value
-// instead of defaulting to false (which causes a race condition on remount)
 let cachedReduceMotionValue = false;
 
-const useReducedMotion = (): boolean => {
-    const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(cachedReduceMotionValue);
+function subscribeReduceMotion(callback: () => void) {
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
+        cachedReduceMotionValue = enabled;
+        callback();
+    });
 
-    useEffect(() => {
-        let isMounted = true;
-
-        const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
+    AccessibilityInfo.isReduceMotionEnabled()
+        .then((enabled) => {
             cachedReduceMotionValue = enabled;
-            setIsReduceMotionEnabled(enabled);
-        });
+            callback();
+        })
+        .catch(() => {});
 
-        AccessibilityInfo.isReduceMotionEnabled()
-            .then((enabled) => {
-                cachedReduceMotionValue = enabled;
-                if (!isMounted) {
-                    return;
-                }
-                setIsReduceMotionEnabled(enabled);
-            })
-            .catch(() => {
-                // If the check fails, default to false (animations enabled)
-                if (!isMounted) {
-                    return;
-                }
-                setIsReduceMotionEnabled(false);
-            });
+    return () => subscription?.remove();
+}
 
-        return () => {
-            isMounted = false;
-            subscription?.remove();
-        };
-    }, []);
+function getReduceMotionSnapshot() {
+    return cachedReduceMotionValue;
+}
 
-    return isReduceMotionEnabled;
-};
+const useReducedMotion = (): boolean => useSyncExternalStore(subscribeReduceMotion, getReduceMotionSnapshot, () => false);
 
 const getHitSlopForSize = ({x, y}: HitSlop) => {
     /* according to https://developer.apple.com/design/human-interface-guidelines/ios/visual-design/adaptivity-and-layout/
