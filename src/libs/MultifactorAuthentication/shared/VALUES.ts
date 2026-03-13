@@ -1,6 +1,5 @@
 /**
- * Shared constants for multifactor authentication flow and API responses.
- * Technology-agnostic — no references to ED25519, SecureStore, Expo, or WebAuthn.
+ * Constants for multifactor authentication biometrics flow and API responses.
  */
 import type {ValueOf} from 'type-fest';
 import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthentication/config/scenarios/names';
@@ -69,6 +68,15 @@ const REASON = {
         CHALLENGE_MISSING: 'Challenge is missing',
         CHALLENGE_SIGNED: 'Challenge signed successfully',
     },
+    EXPO: {
+        CANCELED: 'Authentication canceled by user',
+        IN_PROGRESS: 'Authentication already in progress',
+        NOT_IN_FOREGROUND: 'Application must be in the foreground',
+        KEY_EXISTS: 'This key already exists',
+        NO_METHOD_AVAILABLE: 'No authentication methods available',
+        NOT_SUPPORTED: 'This feature is not supported on the device',
+        GENERIC: 'An error occurred',
+    },
     GENERIC: {
         SIGNATURE_MISSING: 'Signature is missing',
         /** The device supports biometrics but the user has none enrolled (e.g. no fingerprint/face set up in device settings). */
@@ -92,15 +100,6 @@ const REASON = {
         KEY_RETRIEVED: 'Key successfully retrieved from SecureStore',
         KEY_NOT_FOUND: 'Key not found in SecureStore',
         UNABLE_TO_RETRIEVE_KEY: 'Failed to retrieve key from SecureStore',
-    },
-    EXPO: {
-        CANCELED: 'Authentication canceled by user',
-        IN_PROGRESS: 'Authentication already in progress',
-        NOT_IN_FOREGROUND: 'Application must be in the foreground',
-        KEY_EXISTS: 'This key already exists',
-        NO_METHOD_AVAILABLE: 'No authentication methods available',
-        NOT_SUPPORTED: 'This feature is not supported on the device',
-        GENERIC: 'An error occurred',
     },
     WEBAUTHN: {
         NOT_ALLOWED: 'WebAuthn operation was denied by the user or timed out',
@@ -252,8 +251,19 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
 ]);
 
 const SHARED_VALUES = {
+    /**
+     * Scenario name mappings.
+     */
     SCENARIO: SCENARIO_NAMES,
+
+    /**
+     * Prompt name mappings.
+     */
     PROMPT: PROMPT_NAMES,
+
+    /**
+     * Authentication type identifiers.
+     */
     TYPE: {
         BIOMETRICS: 'BIOMETRICS',
         PASSKEYS: 'PASSKEYS',
@@ -262,6 +272,11 @@ const SHARED_VALUES = {
         REGISTRATION: 'registration',
         AUTHENTICATION: 'authentication',
     },
+
+    /**
+     * One of these parameters are always present in any MFA request.
+     * Validate code in the registration and signedChallenge in the authentication.
+     */
     BASE_PARAMETERS: {
         SIGNED_CHALLENGE: 'signedChallenge',
         VALIDATE_CODE: 'validateCode',
