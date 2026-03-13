@@ -189,7 +189,10 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={{context: 'ReportChangeWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                        />
                     ) : (
                         <SelectionList<WorkspaceListItemType>
                             ListItem={UserListItem}

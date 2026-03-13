@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,8 +58,13 @@ function EnablePaymentsPage() {
         }
     }, [isOffline, isPendingOnfidoResult, hasFailedOnfido, userWallet?.isLoading]);
 
-    if (isEmptyObject(userWallet) || userWallet?.isLoading) {
-        return <FullScreenLoadingIndicator />;
+    const isUserWalletEmpty = isEmptyObject(userWallet);
+    if (isUserWalletEmpty || userWallet?.isLoading) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'EnablePaymentsPage',
+            isUserWalletEmpty,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

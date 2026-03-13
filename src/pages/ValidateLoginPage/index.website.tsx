@@ -93,7 +93,16 @@ function ValidateLoginPage({
                     code={validateCode}
                 />
             )}
-            {(!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) && <FullScreenLoadingIndicator />}
+            {(!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) && (
+                <FullScreenLoadingIndicator
+                    reasonAttributes={{
+                        context: 'ValidateLoginPage',
+                        isSigningIn: autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN,
+                        shouldStartSignInWithValidateCode,
+                        hasAutoAuthState: !!autoAuthState,
+                    }}
+                />
+            )}
         </>
     );
 }

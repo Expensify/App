@@ -602,6 +602,7 @@ function WalletPage() {
     }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: !!isLoadingApp};
         return (
             <ScreenWrapper
                 testID="WalletPage"
@@ -609,7 +610,7 @@ function WalletPage() {
             >
                 {headerWithBackButton}
                 <View style={styles.flex1}>
-                    <FullScreenLoadingIndicator />
+                    <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />
                 </View>
             </ScreenWrapper>
         );
