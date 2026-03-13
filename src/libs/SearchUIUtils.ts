@@ -1146,13 +1146,6 @@ function isGroupEntry(key: string): key is SearchGroupKey {
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX);
 }
 
-/**
- * @private
- */
-function isPolicyEntry(key: string): key is PolicyKey {
-    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
-}
-
 function isViolationEntry(key: string): key is ViolationKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 }
