@@ -316,6 +316,9 @@ type OpenReportActionParams = {
 
     /** The current user's account ID */
     currentUserAccountID?: number;
+
+    /** The list of enabled betas for the user */
+    betas?: OnyxEntry<Beta[]>;
 };
 
 type PregeneratedResponseParams = {
