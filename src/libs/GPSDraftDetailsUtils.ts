@@ -92,6 +92,12 @@ function coordinatesToString(gpsPoint: {lat: number; long: number}): string {
     return `${gpsPoint.lat},${gpsPoint.long}`;
 }
 
+async function getLastPoint() {
+    const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+
+    return gpsTrip?.gpsPoints?.at(-1);
+}
+
 async function stopGpsTrip(isOffline: boolean, skipLastPointAddressFetching = false) {
     const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
 
@@ -103,12 +109,18 @@ async function stopGpsTrip(isOffline: boolean, skipLastPointAddressFetching = fa
     stopGpsTripNotification();
 
     if (skipLastPointAddressFetching) {
+        const lastPoint = await getLastPoint();
+
+        if (!lastPoint) {
+            return;
+        }
+
+        const formattedCoordinates = coordinatesToString(lastPoint);
+        setEndAddress({value: formattedCoordinates, type: 'coordinates'});
         return;
     }
 
-    const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
-
-    const lastPoint = gpsTrip?.gpsPoints?.at(-1);
+    const lastPoint = await getLastPoint();
 
     if (!lastPoint) {
         return;
