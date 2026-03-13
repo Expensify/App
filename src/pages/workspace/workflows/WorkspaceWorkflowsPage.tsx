@@ -213,7 +213,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const noResultsMessage = translate('common.noResultsFoundMatching', workflowSearchInput);
     const isNoResults = searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0;
-    const debouncedSearchInput = useDebouncedValue(workflowSearchInput, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const debouncedSearchInput = useDebouncedValue(workflowSearchInput, CONST.TIMING.ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME);
     const hasFinishedTyping = workflowSearchInput === debouncedSearchInput;
     const shouldAnnounceNoResults = isNoResults && hasFinishedTyping;
 

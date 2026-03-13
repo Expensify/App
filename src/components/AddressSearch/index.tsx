@@ -55,7 +55,7 @@ function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
     const {translate} = useLocalize();
     const noResultsFoundText = translate('common.noResultsFound');
 
-    const debouncedSearchValue = useDebouncedValue(searchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const debouncedSearchValue = useDebouncedValue(searchValue, CONST.TIMING.ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME);
     const hasFinishedTyping = searchValue === debouncedSearchValue;
 
     useAccessibilityAnnouncement(noResultsFoundText, hasFinishedTyping, {shouldAnnounceOnNative: true});

@@ -1013,7 +1013,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder));
 
-    const debouncedTextInputValue = useDebouncedValue(textInputValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const debouncedTextInputValue = useDebouncedValue(textInputValue, CONST.TIMING.ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME);
     const hasFinishedTyping = textInputValue === debouncedTextInputValue;
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage && hasFinishedTyping;
 

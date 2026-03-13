@@ -73,7 +73,7 @@ function TextInput({
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
 
-    const debouncedInputValue = useDebouncedValue(value ?? '', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const debouncedInputValue = useDebouncedValue(value ?? '', CONST.TIMING.ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME);
     const hasFinishedTyping = (value ?? '') === debouncedInputValue;
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage && hasFinishedTyping;
 
