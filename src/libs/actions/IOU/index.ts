@@ -13464,6 +13464,7 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
                 value: {
                     lastReadTime: optimisticReportAction.created,
+                    reportID: transactionThreadReportID,
                 },
             });
             failureData.push({
