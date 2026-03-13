@@ -23,18 +23,20 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<RootTabNavi
     usePreloadFullScreenNavigators();
 
     return (
-        <Stack.Navigator
-            screenOptions={centralScreenOptions}
-            defaultCentralScreen={SCREENS.SEARCH.ROOT}
-            parentRoute={route}
-        >
-            <Stack.Screen
-                name={SCREENS.SEARCH.ROOT}
-                getComponent={loadSearchPage}
-                initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
-                options={{animation: Animations.NONE}}
-            />
-        </Stack.Navigator>
+        <FreezeWrapper freezeWhenInTabBackground>
+            <Stack.Navigator
+                screenOptions={centralScreenOptions}
+                defaultCentralScreen={SCREENS.SEARCH.ROOT}
+                parentRoute={route}
+            >
+                <Stack.Screen
+                    name={SCREENS.SEARCH.ROOT}
+                    getComponent={loadSearchPage}
+                    initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
+                    options={{animation: Animations.NONE}}
+                />
+            </Stack.Navigator>
+        </FreezeWrapper>
     );
 }
 

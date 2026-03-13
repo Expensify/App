@@ -65,24 +65,26 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<RootTabNavigato
     };
 
     return (
-        <Split.Navigator
-            persistentScreens={[SCREENS.INBOX]}
-            sidebarScreen={SCREENS.INBOX}
-            defaultCentralScreen={SCREENS.REPORT}
-            parentRoute={route}
-            screenOptions={splitNavigatorScreenOptions.centralScreen}
-        >
-            <Split.Screen
-                name={SCREENS.INBOX}
-                getComponent={loadSidebarScreen}
-                options={splitNavigatorScreenOptions.sidebarScreen}
-            />
-            <Split.Screen
-                name={SCREENS.REPORT}
-                initialParams={reportScreenInitialParams}
-                getComponent={loadReportScreen}
-            />
-        </Split.Navigator>
+        <FreezeWrapper freezeWhenInTabBackground>
+            <Split.Navigator
+                persistentScreens={[SCREENS.INBOX]}
+                sidebarScreen={SCREENS.INBOX}
+                defaultCentralScreen={SCREENS.REPORT}
+                parentRoute={route}
+                screenOptions={splitNavigatorScreenOptions.centralScreen}
+            >
+                <Split.Screen
+                    name={SCREENS.INBOX}
+                    getComponent={loadSidebarScreen}
+                    options={splitNavigatorScreenOptions.sidebarScreen}
+                />
+                <Split.Screen
+                    name={SCREENS.REPORT}
+                    initialParams={reportScreenInitialParams}
+                    getComponent={loadReportScreen}
+                />
+            </Split.Navigator>
+        </FreezeWrapper>
     );
 }
 

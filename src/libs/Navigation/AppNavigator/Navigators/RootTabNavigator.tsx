@@ -13,6 +13,7 @@ import HomePage from '@pages/home/HomePage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import { View } from 'react-native';
 
 const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
     [SCREENS.HOME]: NAVIGATION_TABS.HOME,
@@ -37,7 +38,13 @@ const LazyWorkspaceSplitNavigator = lazy(() => import('./WorkspaceSplitNavigator
 function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.LazyExoticComponent<React.ComponentType<P>>) {
     function SuspenseWrapper(props: P) {
         return (
-            <Suspense fallback={<FullScreenLoadingIndicator />}>
+            <Suspense
+                fallback={
+                    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white'}}>
+                        <FullScreenLoadingIndicator />
+                    </View>
+                }
+            >
                 {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <LazyComponent {...props} />
             </Suspense>
