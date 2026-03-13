@@ -231,6 +231,7 @@ const translations: TranslationDeepObject<typeof en> = {
         contacts: '联系人',
         recents: '最近',
         close: '关闭',
+        banner: '横幅',
         comment: '评论',
         download: '下载',
         downloading: '正在下载',
