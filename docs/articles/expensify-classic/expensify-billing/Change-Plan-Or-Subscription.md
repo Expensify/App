@@ -43,7 +43,7 @@ Expensify offers several plans based on your needs: **Collect, Control,** and **
 # Downgrading to a Free Account
 
 ## Pay-Per-Use Plan
-1. Go to **Settings > Workspaces > Group**.
+1. Go to **Settings > Workspaces**.
 2. Click the **cog icon** next to your Workspace name.
 3. Select **Delete**.
    - **Note**: Deleting a Workspace removes its settings and members but does not delete their Expensify accounts.
