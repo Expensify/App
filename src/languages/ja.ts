@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'ホーム',
         inbox: '受信トレイ',
         yourReviewIsRequired: '確認が必要です',
+        actionBadge: {
+            submit: '送信',
+            approve: '承認する',
+            pay: '支払う',
+            fix: '修正',
+        },
         success: '成功しました',
         group: 'グループ',
         profile: 'プロフィール',
@@ -362,6 +368,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: 'あたり',
         mi: 'マイル',
         km: 'キロメートル',
+        milesAbbreviated: 'マイル',
+        kilometersAbbreviated: 'キロ',
         copied: 'コピーしました！',
         someone: '誰か',
         total: '合計',
@@ -544,6 +552,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: '四半期',
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
+        concierge: {sidePanelGreeting: 'こんにちは、どのようにお手伝いできますか？', showHistory: '履歴を表示'},
         duplicateReport: 'レポートを複製',
         approver: '承認者',
     },
@@ -681,7 +690,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: '生体認証テスト',
             authenticationSuccessful: '認証に成功しました',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `${authType} を使用して正常に認証されました。`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `生体認証（${registered ? '登録済み' : '未登録'}）`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `生体認証（${status}）`,
             yourAttemptWasUnsuccessful: '認証を試みましたが、成功しませんでした。',
             youCouldNotBeAuthenticated: '認証できませんでした',
             areYouSureToReject: '本当に終了しますか？この画面を閉じると、認証の試行は拒否されます。',
@@ -697,6 +706,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: '未登録',
+            statusNotRegistered: '未登録',
+            statusRegisteredThisDevice: '登録済み',
+            statusRegisteredOtherDevice: () => ({one: '別のデバイスが登録されました', other: '登録済みの他のデバイス'}),
         },
         pleaseEnableInSystemSettings: {
             start: '顔認証/指紋認証を有効にするか、デバイスのパスコードを設定してください',
@@ -716,20 +729,31 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: '顔や指紋を使って、素早く安全に認証できます。パスワードやコードは不要です。',
         },
         revoke: {
-            title: '顔認証／指紋認証とパスキー',
-            explanation: '1 つ以上のデバイスで顔／指紋またはパスキーによる認証が有効になっています。アクセスを取り消すと、次回どのデバイスで認証する場合もマジックコードが必要になります。',
-            confirmationPrompt: '本当に実行しますか？次回以降、どのデバイスでも認証にはマジックコードが必要になります。',
+            title: '顔／指紋 & パスキー',
+            explanation: '1 台以上の端末で顔／指紋またはパスキー認証が有効になっています。アクセスを取り消すと、その端末で次回認証する際にマジックコードが必要になります。',
+            confirmationPrompt: '本当によろしいですか？そのデバイスで次回の認証を行うには、マジックコードが必要になります。',
             cta: 'アクセスを取り消す',
-            noDevices: '顔認証／指紋認証またはパスキー認証用に登録されているデバイスがありません。デバイスを登録すると、そのアクセスをここで取り消せるようになります。',
+            noDevices: '顔認証・指紋認証またはパスキー認証に登録されているデバイスがありません。デバイスを登録すると、そのアクセス権をここで取り消すことができるようになります。',
             dismiss: '了解しました',
             error: 'リクエストに失敗しました。後でもう一度お試しください。',
             revoke: '取り消す',
+            confirmationPromptAll: '本当に実行してよろしいですか？今後どの端末でも、次回の認証にはマジックコードが必要になります。',
+            ctaAll: 'すべて取り消す',
+            thisDevice: 'このデバイス',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['1', '二', '三', '四', '五', '六', '七', '8', '9'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `その他${displayCount}件の${otherDeviceCount === 1 ? 'デバイス' : 'デバイス'}`;
+            },
+            confirmationPromptThisDevice: '本当によろしいですか？このデバイスで次回の認証を行うには、マジックコードが必要になります。',
+            confirmationPromptMultiple: 'よろしいですか？その端末で次回の認証を行うには、マジックコードが必要になります。',
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
             pleaseDownloadMobileApp: `この操作はお使いのデバイスではサポートされていません。<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> または <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Playストア</a> からExpensifyアプリをダウンロードして、もう一度お試しください。`,
         },
         verificationFailed: '認証に失敗しました',
+        setPin: {didNotShipCard: 'カードを発送できませんでした。もう一度お試しください。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -992,6 +1016,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
+            validateAccount: {title: 'Expensify を引き続きご利用いただくには、アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
         },
         assignedCards: 'お客様の Expensify カード',
         assignedCardsRemaining: ({amount}: {amount: string}) => `残額：${amount}`,
@@ -1574,7 +1599,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
         correctRateError: 'レートのエラーを修正して、もう一度お試しください。',
-        AskToExplain: `・<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明</strong></a> &#x2728;`,
+        AskToExplain: `・<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">説明<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '経費を「精算対象」に指定しました' : '経費を「精算対象外」にマークしました'),
@@ -1947,7 +1972,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: '保存済みログインを復元',
         signOutConfirmationText: 'サインアウトすると、オフライン中の変更内容はすべて失われます。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro><a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>と<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシー</a>をお読みください。</muted-text-micro>`,
+        readTheTermsAndPrivacy: `<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>と<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>をお読みください。`,
         help: 'ヘルプ',
         whatIsNew: '新機能',
         accountSettings: 'アカウント設定',
@@ -2325,6 +2350,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${date} の ${merchant} への ${amount}`,
         },
+        setYourPin: 'PIN を設定.',
+        confirmYourPin: 'PIN を確認してください.',
+        pinMustBeFourDigits: 'PIN は 4 桁で入力してください。',
+        invalidPin: 'より安全な暗証番号を選択してください。',
+        pinMismatch: 'PIN が一致しません。もう一度お試しください。',
+        revealPin: 'PIN を表示',
+        hidePin: 'PIN を非表示',
+        pin: 'PIN',
         freezeCard: 'カードを一時停止',
         unfreeze: '再開',
         unfreezeCard: 'カードの一時停止を解除',
@@ -2624,7 +2657,7 @@ ${date} の ${merchant} への ${amount}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>ログインすると、<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>および<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>に同意したものとみなされます。</muted-text-xs>`,
-        license: `<muted-text-xs>資金移動サービスは、その<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">ライセンス</a>に基づき、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）によって提供されています。</muted-text-xs>`,
+        license: `資金移動サービスは、その<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">認可</a>に基づき、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）によって提供されています。`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'マジックコードを受け取っていませんか？',
@@ -2733,6 +2766,7 @@ ${date} の ${merchant} への ${amount}`,
         },
         workEmailValidationError: {
             publicEmail: 'プライベートドメインの有効な勤務先メールアドレスを入力してください（例：mitch@company.com）',
+            sameAsSignupEmail: 'サインアップ時に使用したものとは別のメールアドレスを入力してください',
             offline: 'オフラインのため、勤務先のメールアドレスを追加できませんでした',
         },
         mergeBlockScreen: {
@@ -3012,7 +3046,7 @@ ${
                 descriptionTwo: '経費を分類してタグ付けする',
                 descriptionThree: 'レポートを作成して共有',
             },
-            price: 'まずは30日間無料でお試しいただき、その後はわずか<strong>$5/ユーザー/月</strong>でアップグレードできます。',
+            price: (price?: string) => `まずは30日間無料でお試しいただき、その後はわずか<strong>${price ?? '$5'}/ユーザー/月</strong>でアップグレードできます。`,
             createWorkspace: 'ワークスペースを作成',
         },
         confirmWorkspace: {
@@ -3970,6 +4004,8 @@ ${
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信されたレシートは、このワークスペースに表示されます。`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
+            outstandingBalanceWarning: '最後のワークスペースを削除する前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
+            settleBalance: 'サブスクリプションに移動',
             unavailable: '利用できないワークスペース',
             memberNotFound: 'メンバーが見つかりません。ワークスペースに新しいメンバーを招待するには、上の招待ボタンを使用してください。',
             notAuthorized: `このページへのアクセス権がありません。このワークスペースに参加しようとしている場合は、ワークスペースのオーナーに依頼してメンバーとして追加してもらってください。別のご用件ですか？${CONST.EMAIL.CONCIERGE} までご連絡ください。`,
@@ -6791,6 +6827,8 @@ ${reportName}
                     return `${enabled ? '有効' : '無効'} 会計`;
                 case 'Expensify Cards':
                     return `${enabled ? '有効' : '無効'} Expensify カード`;
+                case 'travel invoicing':
+                    return `${enabled ? '有効' : '無効'} トラベルインボイス`;
                 case 'company cards':
                     return `${enabled ? '有効' : '無効'} 件の会社カード`;
                 case 'invoicing':
@@ -8185,6 +8223,7 @@ ${reportName}
         switchAccount: 'アカウントを切り替え:',
         copilotDelegatedAccess: 'Copilot：代理アクセス',
         copilotDelegatedAccessDescription: '他のメンバーがあなたのアカウントにアクセスできるようにする',
+        learnMoreAboutDelegatedAccess: '代理アクセスの詳細',
         addCopilot: 'コパイロットを追加',
         membersCanAccessYourAccount: '次のメンバーがあなたのアカウントにアクセスできます:',
         youCanAccessTheseAccounts: 'これらのアカウントには、アカウント切り替え機能からアクセスできます。',
@@ -8513,6 +8552,7 @@ ${reportName}
             title: 'メンバー',
             findMember: 'メンバーを検索',
             addMember: 'メンバーを追加',
+            allMembers: 'すべてのメンバー',
             email: 'メールアドレス',
             closeAccount: () => ({
                 one: 'アカウントを閉じる',

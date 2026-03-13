@@ -211,21 +211,28 @@
 - E/App issue: [#83000](https://github.com/Expensify/App/issues/83000)
 - PR introducing patch: [#83256](https://github.com/Expensify/App/pull/83256)
 
-### [react-native+0.83.1+028+fix-fetching-files-android.patch](react-native+0.83.1+028+fix-fetching-files-android.patch)
+### [react-native+0.83.1+028+log-soft-exception-if-viewState-not-found.patch](react-native+0.83.1+028+log-soft-exception-if-viewState-not-found.patch)
+
+- Reason: This patch prevents app crashes by soft-logging the exception when JS try to send events to native views even if they are removed from view hierarchy. The approach follows existing patterns in the same file where similar events are already handled this way and is based on suggestions from other developers in upstream discussions.
+- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
+- E/App issue: [#82611](https://github.com/Expensify/App/issues/82611)
+- PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303)
+
+### [react-native+0.83.1+029+fix-fetching-files-android.patch](react-native+0.83.1+029+fix-fetching-files-android.patch)
 
 - Reason: Fixes fetching files (blobs, file URIs) on Android
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/55706
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79962
 
-### [react-native+0.83.1+029+fix-view-stealing-first-responder.patch](react-native+0.83.1+029+fix-view-stealing-first-responder.patch)
+### [react-native+0.83.1+030+fix-view-stealing-first-responder.patch](react-native+0.83.1+030+fix-view-stealing-first-responder.patch)
 
 - Reason: In RN 0.83, `RCTViewComponentView.canBecomeFirstResponder` unconditionally returns `YES` (added for the `enableImperativeFocus` feature). This causes UIKit to promote parent views to first responder after navigation transitions complete (`_promoteSelfOrDescendantToFirstResponderIfNecessary`), stealing focus from text inputs and triggering an immediate focus→blur cycle. The fix gates `canBecomeFirstResponder` behind the `enableImperativeFocus` feature flag, which defaults to `false`.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/55908
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79962
 
-### [react-native+0.83.1+030+fix-exif-orientation.patch](react-native+0.83.1+030+fix-exif-orientation.patch)
+### [react-native+0.83.1+031+fix-exif-orientation.patch](react-native+0.83.1+031+fix-exif-orientation.patch)
 
 - Reason: In RN 0.83, PR [#54127](https://github.com/facebook/react-native/pull/54127) changed `RCTDecodeImageWithData` to use `CGImageSourceCreateImageAtIndex` instead of `CGImageSourceCreateThumbnailAtIndex` for full-size images (to fix memory crashes with large images). However, `CGImageSourceCreateImageAtIndex` does NOT apply EXIF orientation transform to pixels, unlike the previous thumbnail API which used `kCGImageSourceCreateThumbnailWithTransform`. The code still hardcodes `UIImageOrientationUp`, so EXIF orientation is silently lost. This causes camera-captured images (which have EXIF orientation metadata) to appear rotated when processed by `expo-image-manipulator`. The fix reads the EXIF orientation from image properties and passes it to `UIImage` for the full-size code path.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/55934
