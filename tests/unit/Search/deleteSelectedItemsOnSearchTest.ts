@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import {WRITE_COMMANDS} from '@src/libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {createRandomReport} from '../../utils/collections/reports';
+import * as TestHelper from '../../utils/TestHelper';
 
 jest.mock('@userActions/Report', () => ({
     deleteAppReport: jest.fn(),
@@ -76,12 +77,51 @@ describe('bulkDeleteReports', () => {
             const currentUserEmail = '';
             const transactions = {};
             const transactionsViolations = {};
-            bulkDeleteReports(reports, undefined, hash, selectedTransactions, currentUserEmail, 1, transactions, transactionsViolations, {});
+            bulkDeleteReports({
+                reports,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: currentUserEmail,
+                currentUserAccountIDParam: 1,
+                reportTransactions: transactions,
+                transactionsViolations,
+                bankAccountList: {},
+                personalPolicy: undefined,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
 
             // Should call deleteAppReport for each empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(2);
-            expect(deleteAppReport).toHaveBeenCalledWith(reports.report_123, undefined, currentUserEmail, 1, transactions, transactionsViolations, {});
-            expect(deleteAppReport).toHaveBeenCalledWith(reports.report_456, undefined, currentUserEmail, 1, transactions, transactionsViolations, {});
+            expect(deleteAppReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: reports.report_123,
+                    selfDMReport: undefined,
+                    currentUserEmailParam: currentUserEmail,
+                    currentUserAccountIDParam: 1,
+                    reportTransactions: transactions,
+                    allTransactionViolations: transactionsViolations,
+                    bankAccountList: {},
+                    personalPolicy: undefined,
+                    translate: TestHelper.translateLocal,
+                    toLocaleDigit: TestHelper.toLocaleDigit,
+                }),
+            );
+            expect(deleteAppReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: reports.report_456,
+                    selfDMReport: undefined,
+                    currentUserEmailParam: currentUserEmail,
+                    currentUserAccountIDParam: 1,
+                    reportTransactions: transactions,
+                    allTransactionViolations: transactionsViolations,
+                    bankAccountList: {},
+                    personalPolicy: undefined,
+                    translate: TestHelper.translateLocal,
+                    toLocaleDigit: TestHelper.toLocaleDigit,
+                }),
+            );
         });
 
         it('should handle mixed selection of empty reports and transactions', () => {
@@ -144,11 +184,37 @@ describe('bulkDeleteReports', () => {
             const currentUserEmail = '';
             const transactions = {};
             const transactionsViolations = {};
-            bulkDeleteReports(reports, undefined, hash, selectedTransactions, currentUserEmail, 1, transactions, transactionsViolations, {});
+            bulkDeleteReports({
+                reports,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: currentUserEmail,
+                currentUserAccountIDParam: 1,
+                reportTransactions: transactions,
+                transactionsViolations,
+                bankAccountList: {},
+                personalPolicy: undefined,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
 
             // Should call deleteAppReport for empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(deleteAppReport).toHaveBeenCalledWith(reports.report_123, undefined, currentUserEmail, 1, transactions, transactionsViolations, {});
+            expect(deleteAppReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: reports.report_123,
+                    selfDMReport: undefined,
+                    currentUserEmailParam: currentUserEmail,
+                    currentUserAccountIDParam: 1,
+                    reportTransactions: transactions,
+                    allTransactionViolations: transactionsViolations,
+                    bankAccountList: {},
+                    personalPolicy: undefined,
+                    translate: TestHelper.translateLocal,
+                    toLocaleDigit: TestHelper.toLocaleDigit,
+                }),
+            );
         });
 
         it('should not delete reports when no empty reports are selected', () => {
@@ -188,7 +254,20 @@ describe('bulkDeleteReports', () => {
                 },
             };
 
-            bulkDeleteReports(undefined, undefined, hash, selectedTransactions, '', 1, {}, {}, {});
+            bulkDeleteReports({
+                reports: undefined,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: '',
+                currentUserAccountIDParam: 1,
+                reportTransactions: {},
+                transactionsViolations: {},
+                bankAccountList: {},
+                personalPolicy: undefined,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
 
             // Should not call deleteAppReport
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -198,7 +277,20 @@ describe('bulkDeleteReports', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {};
 
-            bulkDeleteReports(undefined, undefined, hash, selectedTransactions, '', 1, {}, {}, {});
+            bulkDeleteReports({
+                reports: undefined,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: '',
+                currentUserAccountIDParam: 1,
+                reportTransactions: {},
+                transactionsViolations: {},
+                bankAccountList: {},
+                personalPolicy: undefined,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
 
             // Should not call any deletion functions
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -248,12 +340,51 @@ describe('bulkDeleteReports', () => {
             const currentUserEmail = '';
             const transactions = {};
             const transactionsViolations = {};
-            bulkDeleteReports(reports, undefined, hash, selectedTransactions, currentUserEmail, 1, transactions, transactionsViolations, {});
+            bulkDeleteReports({
+                reports,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: currentUserEmail,
+                currentUserAccountIDParam: 1,
+                reportTransactions: transactions,
+                transactionsViolations,
+                bankAccountList: {},
+                personalPolicy: undefined,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
 
             // Should only call deleteAppReport for the first report where key === reportID
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(deleteAppReport).toHaveBeenCalledWith(reports.report_123, undefined, currentUserEmail, 1, transactions, transactionsViolations, {});
-            expect(deleteAppReport).not.toHaveBeenCalledWith(reports.report_456, undefined, currentUserEmail, 1, transactions, transactionsViolations);
+            expect(deleteAppReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: reports.report_123,
+                    selfDMReport: undefined,
+                    currentUserEmailParam: currentUserEmail,
+                    currentUserAccountIDParam: 1,
+                    reportTransactions: transactions,
+                    allTransactionViolations: transactionsViolations,
+                    bankAccountList: {},
+                    personalPolicy: undefined,
+                    translate: TestHelper.translateLocal,
+                    toLocaleDigit: TestHelper.toLocaleDigit,
+                }),
+            );
+            expect(deleteAppReport).not.toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: reports.report_456,
+                    selfDMReport: undefined,
+                    currentUserEmailParam: currentUserEmail,
+                    currentUserAccountIDParam: 1,
+                    reportTransactions: transactions,
+                    allTransactionViolations: transactionsViolations,
+                    bankAccountList: {},
+                    personalPolicy: undefined,
+                    translate: TestHelper.translateLocal,
+                    toLocaleDigit: TestHelper.toLocaleDigit,
+                }),
+            );
         });
     });
 
@@ -295,7 +426,20 @@ describe('bulkDeleteReports', () => {
                 },
             };
 
-            bulkDeleteReports(undefined, undefined, hash, selectedTransactions, '', 1, {}, {}, {});
+            bulkDeleteReports({
+                reports: undefined,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: '',
+                currentUserAccountIDParam: 1,
+                reportTransactions: {},
+                transactionsViolations: {},
+                bankAccountList: {},
+                personalPolicy: undefined,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
 
             // Should not call deleteAppReport for transactions
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -363,11 +507,37 @@ describe('bulkDeleteReports', () => {
             const currentUserEmail = '';
             const transactions = {};
             const transactionsViolations = {};
-            bulkDeleteReports(reports, undefined, hash, selectedTransactions, currentUserEmail, 1, transactions, transactionsViolations, {});
+            bulkDeleteReports({
+                reports,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: currentUserEmail,
+                currentUserAccountIDParam: 1,
+                reportTransactions: transactions,
+                transactionsViolations,
+                bankAccountList: {},
+                personalPolicy: undefined,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
 
             // Should call deleteAppReport for the report
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(deleteAppReport).toHaveBeenCalledWith(reports.report_123, undefined, currentUserEmail, 1, transactions, transactionsViolations, {});
+            expect(deleteAppReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: reports.report_123,
+                    selfDMReport: undefined,
+                    currentUserEmailParam: currentUserEmail,
+                    currentUserAccountIDParam: 1,
+                    reportTransactions: transactions,
+                    allTransactionViolations: transactionsViolations,
+                    bankAccountList: {},
+                    personalPolicy: undefined,
+                    translate: TestHelper.translateLocal,
+                    toLocaleDigit: TestHelper.toLocaleDigit,
+                }),
+            );
 
             // Should call API.write with DELETE_MONEY_REQUEST_ON_SEARCH only for transaction_456 (not transaction_789 since its report is being deleted)
             expect(write).toHaveBeenCalledWith(
@@ -417,7 +587,20 @@ describe('bulkDeleteReports', () => {
                 },
             };
 
-            bulkDeleteReports(undefined, undefined, hash, selectedTransactions, '', 1, {}, {}, {});
+            bulkDeleteReports({
+                reports: undefined,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: '',
+                currentUserAccountIDParam: 1,
+                reportTransactions: {},
+                transactionsViolations: {},
+                bankAccountList: {},
+                personalPolicy: undefined,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
 
             // Should not call deleteAppReport
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -479,11 +662,37 @@ describe('bulkDeleteReports', () => {
             const currentUserEmail = '';
             const transactions = {};
             const transactionsViolations = {};
-            bulkDeleteReports(reports, undefined, hash, selectedTransactions, currentUserEmail, 1, transactions, transactionsViolations, {});
+            bulkDeleteReports({
+                reports,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: currentUserEmail,
+                currentUserAccountIDParam: 1,
+                reportTransactions: transactions,
+                transactionsViolations,
+                bankAccountList: {},
+                personalPolicy: undefined,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
 
             // Should call deleteAppReport for the report
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(deleteAppReport).toHaveBeenCalledWith(reports.report_123, undefined, currentUserEmail, 1, transactions, transactionsViolations, {});
+            expect(deleteAppReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: reports.report_123,
+                    selfDMReport: undefined,
+                    currentUserEmailParam: currentUserEmail,
+                    currentUserAccountIDParam: 1,
+                    reportTransactions: transactions,
+                    allTransactionViolations: transactionsViolations,
+                    bankAccountList: {},
+                    personalPolicy: undefined,
+                    translate: TestHelper.translateLocal,
+                    toLocaleDigit: TestHelper.toLocaleDigit,
+                }),
+            );
 
             // Should NOT call API.write with DELETE_MONEY_REQUEST_ON_SEARCH since all transactions belong to the report being deleted
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -511,7 +720,20 @@ describe('bulkDeleteReports', () => {
                 },
             };
 
-            bulkDeleteReports(undefined, undefined, hash, selectedTransactions, '', 1, {}, {}, {});
+            bulkDeleteReports({
+                reports: undefined,
+                selfDMReport: undefined,
+                hash,
+                selectedTransactions,
+                currentUserEmailParam: '',
+                currentUserAccountIDParam: 1,
+                reportTransactions: {},
+                transactionsViolations: {},
+                bankAccountList: {},
+                personalPolicy: undefined,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
 
             // Should call API.write with DELETE_MONEY_REQUEST_ON_SEARCH for transaction with no reportID
             // eslint-disable-next-line rulesdir/no-multiple-api-calls

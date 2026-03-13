@@ -41,6 +41,9 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Type of payment */
     paymentType?: PaymentMethodType;
 
+    /** Selected VBBA ID for payment */
+    methodID?: number;
+
     /** Type of action handled */
     requestType?: ActionHandledType;
 
@@ -61,6 +64,7 @@ function ProcessMoneyReportHoldMenu({
     onClose,
     isVisible,
     paymentType,
+    methodID,
     chatReport,
     moneyRequestReport,
     transactionCount,
@@ -74,6 +78,7 @@ function ProcessMoneyReportHoldMenu({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -98,18 +103,19 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            approveMoneyRequest(
-                moneyRequestReport,
-                activePolicy,
-                currentUserDetails.accountID,
-                currentUserDetails.email ?? '',
+            approveMoneyRequest({
+                expenseReport: moneyRequestReport,
+                policy: activePolicy,
+                currentUserAccountIDParam: currentUserDetails.accountID,
+                currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                moneyRequestReportNextStep,
+                expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 betas,
                 userBillingGraceEndPeriods,
+                amountOwed,
                 full,
-            );
+            });
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
@@ -127,6 +133,8 @@ function ProcessMoneyReportHoldMenu({
                 betas,
                 isSelfTourViewed,
                 userBillingGraceEndPeriods,
+                amountOwed,
+                methodID,
             });
         }
         onClose();
