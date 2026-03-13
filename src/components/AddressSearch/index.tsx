@@ -50,6 +50,27 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
+function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const noResultsFoundText = translate('common.noResultsFound');
+
+    const debouncedSearchValue = useDebouncedValue(searchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const hasFinishedTyping = searchValue === debouncedSearchValue;
+
+    useAccessibilityAnnouncement(noResultsFoundText, hasFinishedTyping, {shouldAnnounceOnNative: true});
+
+    return (
+        <Text
+            key={hasFinishedTyping ? `no-results-${debouncedSearchValue}` : undefined}
+            style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
+            role={hasFinishedTyping ? CONST.ROLE.ALERT : undefined}
+        >
+            {noResultsFoundText}
+        </Text>
+    );
+}
+
 function AddressSearch({
     canUseCurrentLocation = false,
     containerStyles,
@@ -329,27 +350,7 @@ function AddressSearch({
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const noResultsFoundText = translate('common.noResultsFound');
-    const debouncedSearchValue = useDebouncedValue(searchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
-    const hasFinishedTyping = searchValue === debouncedSearchValue;
-    const shouldAnnounceNoResults = isTyping && hasFinishedTyping;
-
-    useAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
-
-    const listEmptyComponent = useMemo(() => {
-        if (!isTyping) {
-            return undefined;
-        }
-        return (
-            <Text
-                key={shouldAnnounceNoResults ? `no-results-${debouncedSearchValue}` : undefined}
-                style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
-                role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
-            >
-                {noResultsFoundText}
-            </Text>
-        );
-    }, [isTyping, noResultsFoundText, styles, shouldAnnounceNoResults, debouncedSearchValue]);
+    const listEmptyComponent = isTyping ? <AddressSearchListEmptyComponent searchValue={searchValue} /> : undefined;
 
     const listLoader = useMemo(() => {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
