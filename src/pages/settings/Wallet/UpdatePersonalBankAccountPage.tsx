@@ -1,7 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -11,7 +10,6 @@ import useSubPage from '@hooks/useSubPage';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompletedStepsForBankAccount} from '@libs/BankAccountUtils';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
@@ -84,7 +82,6 @@ function UpdatePersonalBankAccountPage() {
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const bankAccountID = personalBankAccount?.bankAccountID;
-    const errorMessage = getLatestErrorMessage(personalBankAccount ?? {});
 
     const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
 
@@ -200,13 +197,6 @@ function UpdatePersonalBankAccountPage() {
                 onNext={handleNextPage}
                 onMove={() => {}}
             />
-            {!!errorMessage && (
-                <FormHelpMessage
-                    style={[styles.mh5, styles.mb5]}
-                    isError
-                    message={errorMessage}
-                />
-            )}
         </ScreenWrapper>
     );
 }
