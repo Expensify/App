@@ -1,8 +1,9 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useContext, useEffect, useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import React, {useContext, useMemo} from 'react';
+import type {Role, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useDebouncedValue from '@hooks/useDebouncedValue';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +38,14 @@ type FormHelpMessageProps = {
 
     /** Native ID for accessibility association (aria-describedby) */
     nativeID?: string;
+
+    /** Whether this message should be re-announced on repeated form submissions.
+     *  All error messages announce on first appearance. This prop controls whether
+     *  the message also re-announces when the form is re-submitted with the same errors. */
+    shouldReannounceOnSubmit?: boolean;
 };
+
+const ANNOUNCEMENT_DEBOUNCE_DELAY = 100;
 
 function FormHelpMessage({
     message = '',
@@ -48,6 +56,7 @@ function FormHelpMessage({
     shouldRenderMessageAsHTML = false,
     isInfo = false,
     nativeID,
+    shouldReannounceOnSubmit = false,
 }: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -65,21 +74,21 @@ function FormHelpMessage({
         return shouldRenderMessageAsHTML ? Parser.htmlToText(trimmedMessage) : trimmedMessage;
     }, [isError, message, shouldRenderMessageAsHTML]);
 
-    const shouldAnnounceError = errorAnnouncementText.length > 0;
+    const hasError = errorAnnouncementText.length > 0;
 
-    // Two-phase DOM update: remove the alert element, then re-add after a delay.
-    // Screen readers ignore same-frame unmount+remount (React key changes),
-    // but detect a real gap where the element is absent from the DOM.
-    const [isAnnouncementMounted, setIsAnnouncementMounted] = useState(false);
-    useEffect(() => {
-        if (!shouldAnnounceError) {
-            setIsAnnouncementMounted(false);
-            return;
-        }
-        setIsAnnouncementMounted(false);
-        const timer = setTimeout(() => setIsAnnouncementMounted(true), 100);
-        return () => clearTimeout(timer);
-    }, [shouldAnnounceError, errorAnnouncementKey]);
+    // Debounce the announcement key so the alert role briefly drops when
+    // errorAnnouncementKey changes (key goes to undefined), then re-appears
+    // after the delay. This gap lets screen readers detect a fresh alert.
+    // Only used for shouldReannounceOnSubmit instances (the summary message).
+    const debouncedAnnouncementKey = useDebouncedValue(errorAnnouncementKey, ANNOUNCEMENT_DEBOUNCE_DELAY);
+    const isReAnnouncementReady = shouldReannounceOnSubmit && hasError && errorAnnouncementKey === debouncedAnnouncementKey;
+
+    // All error messages announce on first appearance via shouldAnnounceOnNative.
+    // shouldReannounceOnSubmit instances additionally re-announce via announcementKey.
+    useAccessibilityAnnouncement(errorAnnouncementText, hasError, {
+        shouldAnnounceOnNative: true,
+        ...(shouldReannounceOnSubmit && {announcementKey: errorAnnouncementKey}),
+    });
 
     const HTMLMessage = useMemo(() => {
         if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
@@ -95,12 +104,24 @@ function FormHelpMessage({
         return `<muted-text-label>${replacedText}</muted-text-label>`;
     }, [isError, message, shouldRenderMessageAsHTML]);
 
-    useAccessibilityAnnouncement(message, shouldAnnounceError);
-
     const errorIconLabel = isError && shouldShowRedDotIndicator ? CONST.ACCESSIBILITY_LABELS.ERROR : undefined;
 
     if (isEmpty(message) && isEmpty(children)) {
         return null;
+    }
+
+    // Web announcement strategy:
+    // - All errors: role="alert" on the visible View so screen readers announce on first appearance
+    // - shouldReannounceOnSubmit: debounced key creates a gap (role drops then re-appears)
+    //   so screen readers detect a fresh alert on form re-submission
+    let viewKey: string | undefined;
+    let viewRole: Role | undefined;
+
+    if (shouldReannounceOnSubmit) {
+        viewKey = isReAnnouncementReady ? `error-${errorAnnouncementKey}` : undefined;
+        viewRole = isReAnnouncementReady ? CONST.ROLE.ALERT : undefined;
+    } else if (hasError) {
+        viewRole = CONST.ROLE.ALERT;
     }
 
     return (
@@ -128,17 +149,11 @@ function FormHelpMessage({
                     additionalStyles={[styles.mr1]}
                 />
             )}
-            <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
-                {isAnnouncementMounted && (
-                    <Text
-                        role={CONST.ROLE.ALERT}
-                        accessibilityRole={CONST.ROLE.ALERT}
-                        accessibilityLiveRegion="assertive"
-                        style={[styles.opacity0, styles.pAbsolute, {width: 1, height: 1, overflow: 'hidden'}]}
-                    >
-                        {errorAnnouncementText}
-                    </Text>
-                )}
+            <View
+                key={viewKey}
+                role={viewRole}
+                style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}
+            >
                 {children ?? (shouldRenderMessageAsHTML ? <RenderHTML html={HTMLMessage} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>)}
             </View>
         </View>

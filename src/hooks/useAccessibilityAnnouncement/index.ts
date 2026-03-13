@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 
 type UseAccessibilityAnnouncementOptions = {
     shouldAnnounceOnNative?: boolean;
+    announcementKey?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

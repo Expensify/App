@@ -78,6 +78,7 @@ function FormAlertWrapper({
                     message={announcementMessage}
                     shouldRenderMessageAsHTML={isMessageHtml}
                     style={[styles.mb3, errorMessageStyle]}
+                    shouldReannounceOnSubmit
                 >
                     {content}
                 </FormHelpMessage>
