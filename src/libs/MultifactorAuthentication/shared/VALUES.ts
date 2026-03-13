@@ -5,15 +5,6 @@ import type {ValueOf} from 'type-fest';
 import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthentication/config/scenarios/names';
 
 /**
- * Callback registry for multifactor authentication flow events.
- */
-const MultifactorAuthenticationCallbacks: {
-    onFulfill: Record<string, () => void>;
-} = {
-    onFulfill: {},
-};
-
-/**
  * Backend message strings as returned by the API.
  * Used as keys in API_RESPONSE_MAP for matching against actual backend responses.
  */
@@ -325,5 +316,4 @@ const SHARED_VALUES = {
     },
 } as const;
 
-export {MultifactorAuthenticationCallbacks};
 export default SHARED_VALUES;
