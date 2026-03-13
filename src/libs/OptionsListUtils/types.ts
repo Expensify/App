@@ -167,6 +167,7 @@ type GetValidReportsConfig = {
     shouldSeparateSelfDMChat?: boolean;
     excludeNonAdminWorkspaces?: boolean;
     isPerDiemRequest?: boolean;
+    isTimeRequest?: boolean;
     showRBR?: boolean;
     shouldShowGBR?: boolean;
     isRestrictedToPreferredPolicy?: boolean;
@@ -197,6 +198,7 @@ type IsValidReportsConfig = Pick<
     | 'isRestrictedToPreferredPolicy'
     | 'preferredPolicyID'
     | 'shouldAlwaysIncludeDM'
+    | 'isTimeRequest'
 > & {
     currentUserAccountID: number;
 };
