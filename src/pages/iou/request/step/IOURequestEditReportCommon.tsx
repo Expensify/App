@@ -90,7 +90,7 @@ function IOURequestEditReportCommon({
     // instead of defaulting to the user's active workspace
     // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, selectedReport?.policyID ?? transactionPolicyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, selectedReport?.policyID ?? transactionPolicyID);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
 
