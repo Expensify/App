@@ -36,7 +36,7 @@ function EnabledPage() {
         },
         [login],
     );
-    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
+    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const showTwoFactorAuthRequireModal = () => {

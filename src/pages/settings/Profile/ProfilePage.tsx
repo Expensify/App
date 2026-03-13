@@ -28,6 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -44,12 +45,12 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
@@ -67,7 +68,7 @@ function ProfilePage() {
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
 
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const publicOptions = [
@@ -75,6 +76,7 @@ function ProfilePage() {
             description: translate('displayNamePage.headerTitle'),
             title: formatPhoneNumber(getDisplayNameOrDefault(currentUserPersonalDetails)),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
         },
         {
             description: translate('contacts.contactMethods'),
@@ -85,22 +87,26 @@ function ProfilePage() {
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
             testID: 'contact-method-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHODS,
         },
         {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
             brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
         {
             description: translate('pronounsPage.pronouns'),
             title: getPronouns(),
             pageRoute: ROUTES.SETTINGS_PRONOUNS,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PRONOUNS,
         },
         {
             description: translate('timezonePage.timezone'),
             title: currentUserPersonalDetails?.timezone?.selected ?? '',
             pageRoute: ROUTES.SETTINGS_TIMEZONE,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.TIMEZONE,
         },
     ];
 
@@ -108,6 +114,7 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
             action: () => {
                 if (isActingAsDelegate) {
                     showDelegateNoAccessModal();
@@ -119,6 +126,7 @@ function ProfilePage() {
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
             action: () => {
                 if (isActingAsDelegate) {
                     showDelegateNoAccessModal();
@@ -130,6 +138,7 @@ function ProfilePage() {
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
             action: () => {
                 if (isActingAsDelegate) {
                     showDelegateNoAccessModal();
@@ -142,6 +151,7 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.address'),
             title: getFormattedAddress(privateDetails),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
             action: () => {
                 if (isActingAsDelegate) {
                     showDelegateNoAccessModal();
@@ -151,6 +161,11 @@ function ProfilePage() {
             },
         },
     ];
+
+    const privateSectionReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ProfilePage.privateSection',
+        isLoadingApp: !!isLoadingApp,
+    };
 
     return (
         <ScreenWrapper
@@ -169,6 +184,7 @@ function ProfilePage() {
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 icon={Profile}
                 shouldUseHeadlineHeader
             />
@@ -189,7 +205,15 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
+                                    <AvatarSkeleton
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        reasonAttributes={{
+                                            context: 'ProfilePage',
+                                            isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
+                                            isAccountIDInvalid: accountID === -1,
+                                            hasNoAvatarURL: !avatarURL,
+                                        }}
+                                    />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
                                         <AvatarButtonWithIcon
@@ -202,6 +226,7 @@ function ProfilePage() {
                                             pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                             fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                             editIconStyle={styles.profilePageAvatar}
+                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}
                                         />
                                     </MenuItemGroup>
                                 )}
@@ -217,6 +242,7 @@ function ProfilePage() {
                                     onPress={() => Navigation.navigate(detail.pageRoute)}
                                     brickRoadIndicator={detail.brickRoadIndicator}
                                     pressableTestID={detail?.testID}
+                                    sentryLabel={detail.sentryLabel}
                                 />
                             ))}
                             <Button
@@ -225,6 +251,7 @@ function ProfilePage() {
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
                                 icon={icons.QrCode}
                                 style={[styles.alignSelfStart, styles.mt6]}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.SHARE_CODE}
                             />
                         </Section>
                         <Section
@@ -237,7 +264,10 @@ function ProfilePage() {
                         >
                             {isLoadingApp ? (
                                 <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
-                                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                                    <ActivityIndicator
+                                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                        reasonAttributes={privateSectionReasonAttributes}
+                                    />
                                 </View>
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
@@ -251,6 +281,7 @@ function ProfilePage() {
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
                                             onPress={detail.action}
                                             brickRoadIndicator={detail.brickRoadIndicator}
+                                            sentryLabel={detail.sentryLabel}
                                         />
                                     ))}
                                 </MenuItemGroup>

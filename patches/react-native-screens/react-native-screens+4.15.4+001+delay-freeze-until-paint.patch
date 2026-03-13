@@ -1,0 +1,23 @@
+diff --git a/node_modules/react-native-screens/src/components/helpers/DelayedFreeze.tsx b/node_modules/react-native-screens/src/components/helpers/DelayedFreeze.tsx
+index 443da63..72517fd 100644
+--- a/node_modules/react-native-screens/src/components/helpers/DelayedFreeze.tsx
++++ b/node_modules/react-native-screens/src/components/helpers/DelayedFreeze.tsx
+@@ -12,12 +12,17 @@ function DelayedFreeze({ freeze, children }: FreezeWrapperProps) {
+   // flag used for determining whether freeze should be enabled
+   const [freezeState, setFreezeState] = React.useState(false);
+ 
++  // We use requestAnimationFrame to ensure the current frame is fully painted
++  // before scheduling the freeze. This prevents freezing the screen while
++  // transitional UI states (e.g. opacity from useSingleExecution) are still visible.
+   React.useEffect(() => {
++    let rafID: number;
+     const id = setTimeout(() => {
+-      setFreezeState(freeze);
++      rafID = requestAnimationFrame(() => setFreezeState(freeze));
+     }, 0);
+     return () => {
+       clearTimeout(id);
++      cancelAnimationFrame(rafID);
+     };
+   }, [freeze]);
+ 

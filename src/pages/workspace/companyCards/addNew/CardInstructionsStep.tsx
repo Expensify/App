@@ -40,7 +40,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const data = addNewCard?.data;
     const feedProvider = data?.feedType ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;

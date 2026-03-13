@@ -4,7 +4,7 @@ import {AttachmentContext} from '@components/AttachmentContext';
 import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
-import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +25,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const {translate} = useLocalize();
 
     // Re-render this component when account.shouldUseStagingServer changes
-    useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
+    useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
 
     const htmlAttribs = tnode.attributes;
     const isDeleted = isDeletedNode(tnode);
@@ -90,53 +90,52 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
         />
     );
 
+    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
+
     return imagePreviewModalDisabled ? (
         thumbnailImageComponent
     ) : (
-        <ShowContextMenuContext.Consumer>
-            {({onShowContextMenu, anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
-                <AttachmentContext.Consumer>
-                    {({reportID, accountID, type}) => (
-                        <PressableWithoutFocus
-                            style={[styles.noOutline]}
-                            onPress={() => {
-                                if (!source || !type) {
-                                    return;
-                                }
+        <AttachmentContext.Consumer>
+            {({reportID, accountID, type}) => (
+                <PressableWithoutFocus
+                    style={[styles.noOutline]}
+                    onPress={() => {
+                        if (!source || !type) {
+                            return;
+                        }
 
-                                const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.REPORT_ATTACHMENTS?.getRoute({
-                                    attachmentID,
-                                    reportID,
-                                    type,
-                                    source,
-                                    accountID,
-                                    isAuthTokenRequired: isAttachmentOrReceipt,
-                                    originalFileName: fileName,
-                                    attachmentLink,
-                                });
-                                Navigation.navigate(route);
-                            }}
-                            onLongPress={(event) => {
-                                if (isDisabled || !shouldDisplayContextMenu) {
-                                    return;
-                                }
-                                return onShowContextMenu(() =>
-                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
-                                );
-                            }}
-                            isNested
-                            shouldUseHapticsOnLongPress
-                            role={getButtonRole(true)}
-                            accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.IMAGE}
-                        >
-                            {thumbnailImageComponent}
-                        </PressableWithoutFocus>
-                    )}
-                </AttachmentContext.Consumer>
+                        const attachmentLink = tnode.parent?.attributes?.href;
+                        const route = ROUTES.REPORT_ATTACHMENTS?.getRoute({
+                            attachmentID,
+                            reportID,
+                            type,
+                            source,
+                            accountID,
+                            isAuthTokenRequired: isAttachmentOrReceipt,
+                            originalFileName: fileName,
+                            attachmentLink,
+                        });
+                        Navigation.navigate(route);
+                    }}
+                    onLongPress={(event) => {
+                        if (isDisabled || !shouldDisplayContextMenu) {
+                            return;
+                        }
+                        return onShowContextMenu(() =>
+                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
+                        );
+                    }}
+                    isNested
+                    shouldUseHapticsOnLongPress
+                    role={getButtonRole(true)}
+                    accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                    sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.IMAGE}
+                >
+                    {thumbnailImageComponent}
+                </PressableWithoutFocus>
             )}
-        </ShowContextMenuContext.Consumer>
+        </AttachmentContext.Consumer>
     );
 }
 

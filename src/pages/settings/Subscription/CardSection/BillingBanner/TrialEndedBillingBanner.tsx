@@ -10,7 +10,7 @@ import BillingBanner from './BillingBanner';
 
 function TrialEndedBillingBanner() {
     const {translate} = useLocalize();
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const {asset: Tire} = useMemoizedLazyAsset(() => loadIllustration('Tire' as IllustrationName));
     if (doesUserHavePaymentCardAdded(userBillingFundID)) {
         return null;

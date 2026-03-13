@@ -1,34 +1,36 @@
 import {differenceInDays} from 'date-fns';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import Section from '@components/Section';
 import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {resetExitSurveyForm, switchToOldDot} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import colors from '@styles/theme/colors';
 import {clearOnyxAndResetApp} from '@userActions/App';
 import CONFIG from '@src/CONFIG';
@@ -38,9 +40,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
 
-type BaseMenuItem = {
+type BaseMenuItem = WithSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     action: () => void | Promise<void>;
@@ -53,15 +56,30 @@ function TroubleshootPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction, isDevelopment} = useEnvironment();
-    const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoading, setIsLoading] = useState(false);
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
-    const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
+    const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
     const {resetOptions} = useOptionsList({shouldInitialize: false});
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const {showConfirmModal} = useConfirmModal();
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
-    const {setShouldResetSearchQuery} = useSearchContext();
+    const {setShouldResetSearchQuery} = useSearchActionsContext();
+    const showResetAndRefreshModal = async () => {
+        const result = await showConfirmModal({
+            title: translate('common.areYouSure'),
+            prompt: translate('initialSettingsPage.troubleshoot.confirmResetDescription'),
+            confirmText: translate('initialSettingsPage.troubleshoot.resetAndRefresh'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        resetOptions();
+        setShouldResetSearchQuery(true);
+        clearOnyxAndResetApp();
+    };
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
@@ -69,7 +87,7 @@ function TroubleshootPage() {
         });
     }, [shouldMaskOnyxState]);
 
-    const surveyCompletedWithinLastMonth = useMemo(() => {
+    const getSurveyCompletedWithinLastMonth = () => {
         const surveyThresholdInDays = 30;
         const {dismissedReasons} = tryNewDot?.classicRedirect ?? {};
         if (dismissedReasons?.length === 0) {
@@ -92,9 +110,10 @@ function TroubleshootPage() {
 
         const daysSinceLastSurvey = differenceInDays(new Date(), timestampToCheck);
         return daysSinceLastSurvey < surveyThresholdInDays;
-    }, [tryNewDot?.classicRedirect]);
+    };
+    const surveyCompletedWithinLastMonth = getSurveyCompletedWithinLastMonth();
 
-    const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
+    const getClassicRedirectMenuItem = (): BaseMenuItem | null => {
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
             return null;
         }
@@ -102,6 +121,7 @@ function TroubleshootPage() {
         return {
             translationKey: 'exitSurvey.goToExpensifyClassic',
             icon: icons.ExpensifyLogoNew,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TROUBLESHOOT.GO_TO_CLASSIC,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
                       action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
@@ -109,6 +129,7 @@ function TroubleshootPage() {
                 : {
                       action() {
                           if (surveyCompletedWithinLastMonth) {
+                              switchToOldDot('');
                               openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                               return;
                           }
@@ -123,18 +144,21 @@ function TroubleshootPage() {
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage, isTrackingGPS]);
+    };
+    const classicRedirectMenuItem = getClassicRedirectMenuItem();
 
-    const menuItems = useMemo(() => {
+    const getMenuItems = () => {
         const baseMenuItems: BaseMenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
                 icon: icons.RotateLeft,
-                action: () => setIsConfirmationModalVisible(true),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TROUBLESHOOT.CLEAR_CACHE,
+                action: showResetAndRefreshModal,
             },
             {
                 translationKey: 'initialSettingsPage.troubleshoot.exportOnyxState',
                 icon: icons.Download,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TROUBLESHOOT.EXPORT_ONYX,
                 action: exportOnyxState,
             },
         ];
@@ -148,9 +172,11 @@ function TroubleshootPage() {
                 icon: item.icon,
                 onPress: item.action,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
+                sentryLabel: item.sentryLabel,
             }))
             .reverse();
-    }, [icons.RotateLeft, icons.Download, exportOnyxState, classicRedirectMenuItem, translate, styles.sectionMenuItemTopDescription]);
+    };
+    const menuItems = getMenuItems();
 
     useEffect(() => {
         openTroubleshootSettingsPage();
@@ -166,11 +192,12 @@ function TroubleshootPage() {
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
                 icon={illustrations.Lightbulb}
                 shouldUseHeadlineHeader
             />
-            {isLoading && <FullScreenLoadingIndicator />}
+            {isLoading && <FullScreenLoadingIndicator reasonAttributes={{context: 'TroubleshootPage', isLoading} satisfies SkeletonSpanReasonAttributes} />}
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
@@ -214,21 +241,6 @@ function TroubleshootPage() {
                                     <SentryDebugToolMenu />
                                 </View>
                             )}
-
-                            <ConfirmModal
-                                title={translate('common.areYouSure')}
-                                isVisible={isConfirmationModalVisible}
-                                onConfirm={() => {
-                                    setIsConfirmationModalVisible(false);
-                                    resetOptions();
-                                    setShouldResetSearchQuery(true);
-                                    clearOnyxAndResetApp();
-                                }}
-                                onCancel={() => setIsConfirmationModalVisible(false)}
-                                prompt={translate('initialSettingsPage.troubleshoot.confirmResetDescription')}
-                                confirmText={translate('initialSettingsPage.troubleshoot.resetAndRefresh')}
-                                cancelText={translate('common.cancel')}
-                            />
                         </View>
                     </Section>
                 </View>
