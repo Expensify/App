@@ -1,4 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -67,6 +68,7 @@ import {
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getAttendees,
     getDefaultTaxCode,
@@ -91,11 +93,10 @@ import {
     setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
     startMoneyRequest,
-    submitPerDiemExpenseForSelfDM,
-    submitPerDiemExpense as submitPerDiemExpenseIOUActions,
     trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
+import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
@@ -223,6 +224,7 @@ function IOURequestStepConfirmation({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const reportAttributesDerived = useReportAttributes();
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
@@ -417,6 +419,7 @@ function IOURequestStepConfirmation({
             // When starting to create an expense from the global FAB, If there is not an existing report yet, a random optimistic reportID is generated and used
             // for all of the routes in the creation flow.
             reportID ?? generateReportID(),
+            draftTransactionIDs,
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoadingTransaction]);
@@ -699,7 +702,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     existingTransactionDraft,
-                    draftTransactionIDs: transactionIDs,
+                    draftTransactionIDs,
                     isSelfTourViewed,
                     betas,
                     personalDetails,
@@ -743,6 +746,7 @@ function IOURequestStepConfirmation({
             betas,
             personalDetails,
             isGPSDistanceRequest,
+            draftTransactionIDs,
         ],
     );
 
@@ -907,6 +911,8 @@ function IOURequestStepConfirmation({
                     quickAction,
                     recentWaypoints,
                     betas,
+                    draftTransactionIDs,
+                    isSelfTourViewed,
                 });
             }
         },
@@ -935,6 +941,8 @@ function IOURequestStepConfirmation({
             quickAction,
             recentWaypoints,
             betas,
+            draftTransactionIDs,
+            isSelfTourViewed,
         ],
     );
 
@@ -1064,19 +1072,28 @@ function IOURequestStepConfirmation({
                 hasReceiptFiles,
             });
 
+            const submitSpanAttributes = {
+                [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
+                [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
+                [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
+                [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
+                [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
+            };
+
             startSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE, {
                 name: 'submit-expense',
                 op: CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
-                attributes: {
-                    [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
-                    [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
-                    [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
-                    [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
-                    [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
-                },
+                attributes: submitSpanAttributes,
+            });
+
+            startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+                name: 'submit-to-destination-visible',
+                op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+                attributes: submitSpanAttributes,
             });
 
             // IMPORTANT: Every branch below must call markSubmitExpenseEnd() after dispatching the expense action.
+            // The submit follow-up action span above is ended by the target screen (ReportScreen, Search, etc.) or by runAfterInteractions for dismiss_modal_only.
             // This ensures the telemetry span started above is always closed, including inside async getCurrentPosition callbacks.
             // If missed, the impact is benign (an orphaned Sentry span), but it pollutes telemetry data.
             if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
@@ -1161,6 +1178,7 @@ function IOURequestStepConfirmation({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
+                        personalDetails,
                     });
                 }
                 markSubmitExpenseEnd();
@@ -1194,6 +1212,7 @@ function IOURequestStepConfirmation({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
+                        personalDetails,
                     });
                 }
                 markSubmitExpenseEnd();
@@ -1349,6 +1368,7 @@ function IOURequestStepConfirmation({
             requestType,
             betas,
             allPolicyTags,
+            personalDetails,
         ],
     );
 
@@ -1479,7 +1499,11 @@ function IOURequestStepConfirmation({
     };
 
     if (isLoadingTransaction) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'IOURequestStepConfirmation',
+            isLoadingTransaction,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     const showNextTransaction = () => {
@@ -1546,7 +1570,15 @@ function IOURequestStepConfirmation({
                             />
                         ) : null}
                     </HeaderWithBackButton>
-                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
+                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
+                        <FullScreenLoadingIndicator
+                            reasonAttributes={{
+                                context: 'IOURequestStepConfirmation',
+                                isLoading,
+                                isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
+                            }}
+                        />
+                    )}
                     {PDFValidationComponent}
                     <DragAndDropConsumer onDrop={handleDroppingReceipt}>
                         <DropZoneUI

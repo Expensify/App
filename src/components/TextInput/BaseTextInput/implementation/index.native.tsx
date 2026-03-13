@@ -26,6 +26,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -289,6 +290,10 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BaseTextInput.isLoading',
+        isLoading: !!inputProps.isLoading,
+    };
 
     return (
         <>
@@ -444,6 +449,7 @@ function BaseTextInput({
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
+                                    reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
                             )}
                             {/* Render rightHandSideComponent only when clear button is not shown 
