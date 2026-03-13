@@ -142,7 +142,7 @@ const SCREENS = {
             PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
             AVATAR: 'Settings_Avatar',
-            ADDRESS_COUNTRY: 'Settings_Address_Country',
+            DYNAMIC_ADDRESS_COUNTRY: 'Dynamic_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
         },
 
@@ -254,8 +254,6 @@ const SCREENS = {
         SUCCESS: 'Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
         DISABLE: 'Settings_TwoFactorAuth_Disable',
-        REPLACE_VERIFY_OLD: 'Settings_TwoFactorAuth_Replace_VerifyOld',
-        REPLACE_VERIFY_NEW: 'Settings_TwoFactorAuth_Replace_VerifyNew',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
