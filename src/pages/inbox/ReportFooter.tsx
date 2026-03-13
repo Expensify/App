@@ -64,6 +64,7 @@ function ReportFooter() {
     const [policyRole] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {
         selector: policyRoleSelector,
     });
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
     const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
@@ -85,7 +86,7 @@ function ReportFooter() {
     // Happy path — user can compose
     if (!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth)) {
         return (
-            <View style={styles.chatFooter}>
+            <View style={[styles.chatFooter, isComposerFullSize && styles.chatFooterFullCompose]}>
                 <SwipeableView onSwipeDown={Keyboard.dismiss}>
                     <ReportActionCompose reportID={report.reportID} />
                 </SwipeableView>
