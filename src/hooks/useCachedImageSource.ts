@@ -68,7 +68,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                     URL.revokeObjectURL(objectURL);
                 }
             } catch (error) {
-                if ((error as Error).message?.includes('Quota exceeded')) {
+                if (error instanceof DOMException && error.name === 'QuotaExceededError') {
                     await clearAuthImagesCache();
                 }
                 if (!revoked) {
