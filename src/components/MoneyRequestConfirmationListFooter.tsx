@@ -227,7 +227,7 @@ type MoneyRequestConfirmationListFooterProps = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The transaction ID */
-    transactionID?: string;
+    transactionID: string | undefined;
 
     /** Whether the receipt can be replaced */
     isReceiptEditable?: boolean;
@@ -320,7 +320,7 @@ function MoneyRequestConfirmationListFooter({
     shouldShowAmountField = true,
     shouldShowTax,
     transaction,
-    transactionID = '-1',
+    transactionID,
     unit,
     onPDFLoadError,
     onPDFPassword,
