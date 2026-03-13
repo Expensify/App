@@ -93,7 +93,13 @@ function SearchEditMultiplePage() {
     const policyTagLists = getTagLists(policyTags);
 
     const isTaxTrackingEnabled = !hasPerDiemOrTimeTransaction && selectedTransactionContexts.every(({transactionPolicy}) => !!transactionPolicy?.tax?.trackingEnabled);
-    const areCategoriesEnabled = !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
+    const areSelectedTransactionsNotIOU = selectedTransactionContexts.every(({transaction, report}) => {
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return true;
+        }
+        return !isIOUReport(report);
+    });
+    const areCategoriesEnabled = areSelectedTransactionsNotIOU && !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     const areTagsEnabled = !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
 
     useEffect(() => {
