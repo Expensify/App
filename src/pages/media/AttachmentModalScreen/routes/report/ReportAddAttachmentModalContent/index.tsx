@@ -4,10 +4,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
-import {validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canUserPerformWriteAction, isReportNotFound} from '@libs/ReportUtils';
+import validateAttachmentFile from '@libs/validateAttachmentFile';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
@@ -88,12 +88,18 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             }
 
             const files = Array.isArray(fileParam) ? fileParam : [fileParam];
-            const result = await validateMultipleAttachmentFiles(files);
+            const results = await Promise.all(files.map(async (file) => validateAttachmentFile(file)));
 
-            if (result.isValid) {
-                setSource(result.validatedFiles.at(0)?.source ?? '');
-                setValidFiles(result.validatedFiles.map((r) => r.file));
+            const validResults = results.filter((r) => r.isValid);
+            if (validResults.length === 0) {
+                return;
             }
+
+            const validatedFiles = validResults.map((r) => r.file);
+            const firstValidSource = validResults.at(0)?.file.uri;
+
+            setSource(firstValidSource);
+            setValidFiles(validatedFiles);
         }
 
         validateFiles();

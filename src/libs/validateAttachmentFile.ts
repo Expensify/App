@@ -2,31 +2,41 @@ import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {hasHeicOrHeifExtension, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
+import {cleanFileName, hasHeicOrHeifExtension, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
 
-type AttachmentValidationResult = ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null;
+type ValidateAttachmentValidResult = {
+    isValid: true;
+    file: FileObject;
+};
 
-async function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isValidatingReceipts = false): Promise<AttachmentValidationResult> {
+type ValidateAttachmentInvalidResult = {
+    isValid: false;
+    error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
+};
+
+type ValidateAttachmentResult = ValidateAttachmentValidResult | ValidateAttachmentInvalidResult;
+
+async function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isValidatingReceipts = false): Promise<ValidateAttachmentResult> {
     if (!file.name || file.size == null) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_INVALID;
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
     }
 
     if (isValidatingReceipts && !isValidReceiptExtension(file)) {
-        return CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
     }
 
     if (hasHeicOrHeifExtension(file)) {
-        return CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE;
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE};
     }
 
     const isImage = Str.isImage(file.name);
     const maxFileSize = isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
     if (!isImage && !hasHeicOrHeifExtension(file) && file.size > maxFileSize) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE};
     }
 
     if (isValidatingReceipts && file.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL};
     }
 
     let fileObject = file;
@@ -36,21 +46,37 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
     }
 
     if (!fileObject) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_INVALID;
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
     }
 
     if (isDataTransferItemDirectory(item)) {
-        return CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED;
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED};
     }
 
     const normalizedFile = await normalizeFileObject(fileObject);
     try {
         await validateImageForCorruption(normalizedFile);
     } catch (error) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED;
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED};
     }
 
-    return null;
+    if (normalizedFile instanceof File) {
+        /**
+         * Cleaning file name, done here so that it covers all cases:
+         * upload, drag and drop, copy-paste
+         */
+        let updatedFile = normalizedFile;
+        const cleanName = cleanFileName(updatedFile.name);
+        if (updatedFile.name !== cleanName) {
+            updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
+        }
+        const inputSource = URL.createObjectURL(updatedFile);
+        updatedFile.uri = inputSource;
+
+        return {isValid: true, file: updatedFile};
+    }
+
+    return {isValid: true, file: normalizedFile};
 }
 
 function isDataTransferItemDirectory(item: DataTransferItem | undefined) {
@@ -62,3 +88,4 @@ function isDataTransferItemDirectory(item: DataTransferItem | undefined) {
 }
 
 export default validateAttachmentFile;
+export type {ValidateAttachmentResult, ValidateAttachmentValidResult, ValidateAttachmentInvalidResult};

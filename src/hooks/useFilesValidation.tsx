@@ -164,18 +164,18 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
         const validatedFiles = await Promise.all(
             files.map(async (file, index) => {
-                const error = await validateAttachmentFile(file, items.at(index), validationOptions?.isValidatingReceipts ?? isValidatingReceipt);
+                const result = await validateAttachmentFile(file, items.at(index), validationOptions?.isValidatingReceipts ?? isValidatingReceipt);
 
-                if (error) {
-                    const errorData = {
-                        error,
-                        fileExtension: error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE ? splitExtensionFromFileName(file.name ?? '').fileExtension : undefined,
-                    };
-                    collectedErrors.current.push(errorData);
-                    return null;
+                if (result.isValid) {
+                    return result.file;
                 }
 
-                return file;
+                const errorData = {
+                    error: result.error,
+                    fileExtension: result.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE ? splitExtensionFromFileName(file.name ?? '').fileExtension : undefined,
+                };
+                collectedErrors.current.push(errorData);
+                return null;
             }),
         );
 
