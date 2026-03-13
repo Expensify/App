@@ -28,7 +28,7 @@ function HTMLMessagesRow({errors, onDismiss}: HTMLMessagesRowProps) {
                     ),
                 }}
                 onDismiss={onDismiss}
-                containerStyles={[styles.mh5, styles.mb3]}
+                containerStyles={[styles.mh5, styles.mt3]}
             />
         )
     );
