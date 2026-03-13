@@ -199,7 +199,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             await Promise.all(
                 filesToConvert.map(
                     (file) =>
-                        new Promise<void>((resolve, reject) => {
+                        new Promise<void>((resolve) => {
                             convertHeicImage(file, {
                                 onSuccess: (convertedFile) => {
                                     if (isValidatingReceipts && convertedFile.size && convertedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
@@ -209,7 +209,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
                                     if (!isValidatingReceipts && convertedFile.size && convertedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                                         collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE});
-                                        reject();
+                                        resolve();
                                     }
 
                                     convertedFiles.push(convertedFile);
@@ -217,7 +217,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                                 },
                                 onError: () => {
                                     collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED});
-                                    reject();
+                                    resolve();
                                 },
                             });
                         }),
