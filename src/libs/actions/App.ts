@@ -268,6 +268,8 @@ AppState.addEventListener('change', (nextAppState) => {
 
     if (nextAppState === 'active' && appState?.match(/inactive|background/)) {
         Log.info('App coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        cancelAllSpans();
     }
     appState = nextAppState;
 });

@@ -14,6 +14,7 @@ import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@componen
 import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 type PieChartProps = ChartProps & {
     /** Callback when a slice is pressed */
@@ -43,17 +44,17 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, valueUni
         setCanvasHeight(event.nativeEvent.layout.height);
     };
 
+    // Calculate pie geometry
+    const pieGeometry = {radius: Math.min(canvasWidth, canvasHeight) / 2, centerX: canvasWidth / 2, centerY: canvasHeight / 2};
+
     // Slices are sorted by absolute value (largest first) for color assignment,
     // so slice indices don't match the original data array. We map back via
     // originalIndex so the tooltip can display the original (possibly negative) value.
-    const processedSlices = processDataIntoSlices(data, PIE_CHART_START_ANGLE);
+    const processedSlices = processDataIntoSlices(data, PIE_CHART_START_ANGLE, pieGeometry);
     const activeOriginalDataIndex = activeSliceIndex >= 0 ? (processedSlices.at(activeSliceIndex)?.originalIndex ?? -1) : -1;
 
     const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
     const tooltipData = useTooltipData(activeOriginalDataIndex, data, formatValue);
-
-    // Calculate pie geometry
-    const pieGeometry = {radius: Math.min(canvasWidth, canvasHeight) / 2, centerX: canvasWidth / 2, centerY: canvasHeight / 2};
 
     // Handle hover state updates
     const updateActiveSlice = (x: number, y: number) => {
@@ -125,6 +126,13 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, valueUni
             <View
                 key={`legend-${slice.label}`}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.mr4, styles.mb2]}
+                onMouseEnter={() => {
+                    tooltipPosition.set(slice.tooltipPosition);
+                    setActiveSliceIndex(slice.ordinalIndex);
+                }}
+                onMouseLeave={() => {
+                    setActiveSliceIndex(-1);
+                }}
             >
                 <View style={[styles.pieChartLegendDot, {backgroundColor: slice.color}]} />
                 <Text style={[styles.textNormal, styles.ml2]}>{slice.label}</Text>
@@ -133,9 +141,13 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, valueUni
     };
 
     if (isLoading) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PieChartContent', isLoading};
         return (
             <View style={[styles.pieChartContainer, styles.highlightBG, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <ActivityIndicator size="large" />
+                <ActivityIndicator
+                    size="large"
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
         );
     }
