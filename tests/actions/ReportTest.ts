@@ -1853,7 +1853,7 @@ describe('actions/Report', () => {
 
         const REPORT_ID = '1';
         const COMMENT_ACTION_ID = '1000';
-        const WHISPER_ACTION_ID = '2000';
+        const WHISPER_ACTION_ID = '1001'; // backend creates ACTIONABLE_MENTION_WHISPER at parentCommentID + 1
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
 
         // Seed Onyx with a report action and an unresolved ACTIONABLE_MENTION_WHISPER
@@ -1904,6 +1904,89 @@ describe('actions/Report', () => {
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
         const whisper = reportActions?.[WHISPER_ACTION_ID];
         expect(getOriginalMessage(whisper)).toMatchObject({deleted: expect.any(String)});
+    });
+
+
+    it('should only delete the whisper linked to the deleted comment, not other whispers in the same report', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+
+        const REPORT_ID = '1';
+        // Two comments, each triggering a whisper at parentID + 1
+        const COMMENT_A_ID = '1000'; // triggers ACTIONABLE_MENTION_WHISPER at 1001
+        const WHISPER_A_ID = '1001';
+        const COMMENT_B_ID = '2000'; // triggers ACTIONABLE_MENTION_WHISPER at 2001
+        const WHISPER_B_ID = '2001';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+
+        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: {
+                [COMMENT_A_ID]: {
+                    reportActionID: COMMENT_A_ID,
+                    reportID: REPORT_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2024-11-19 08:04:13.728',
+                    message: [{html: '@someone', text: '@someone', type: 'COMMENT', whisperedTo: []}],
+                },
+                [WHISPER_A_ID]: {
+                    reportActionID: WHISPER_A_ID,
+                    reportID: REPORT_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                    created: '2024-11-19 08:04:13.730',
+                    originalMessage: {inviteeAccountIDs: [111], inviteeEmails: ['a@example.com'], whisperedTo: [1]},
+                },
+                [COMMENT_B_ID]: {
+                    reportActionID: COMMENT_B_ID,
+                    reportID: REPORT_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2024-11-19 08:05:00.000',
+                    message: [{html: '@another', text: '@another', type: 'COMMENT', whisperedTo: []}],
+                },
+                [WHISPER_B_ID]: {
+                    reportActionID: WHISPER_B_ID,
+                    reportID: REPORT_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                    created: '2024-11-19 08:05:00.002',
+                    originalMessage: {inviteeAccountIDs: [222], inviteeEmails: ['b@example.com'], whisperedTo: [1]},
+                },
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const commentBAction = {
+            reportActionID: COMMENT_B_ID,
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2024-11-19 08:05:00.000',
+            message: [{html: '@another', text: '@another', type: 'COMMENT', whisperedTo: []}],
+        } as OnyxTypes.ReportAction;
+
+        const reportActionsForReport = {
+            [COMMENT_A_ID]: {reportActionID: COMMENT_A_ID, reportID: REPORT_ID, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2024-11-19 08:04:13.728'} as OnyxTypes.ReportAction,
+            [WHISPER_A_ID]: {
+                reportActionID: WHISPER_A_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:04:13.730',
+                originalMessage: {inviteeAccountIDs: [111], inviteeEmails: ['a@example.com'], whisperedTo: [1]},
+            } as OnyxTypes.ReportAction,
+            [COMMENT_B_ID]: commentBAction,
+            [WHISPER_B_ID]: {
+                reportActionID: WHISPER_B_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2024-11-19 08:05:00.002',
+                originalMessage: {inviteeAccountIDs: [222], inviteeEmails: ['b@example.com'], whisperedTo: [1]},
+            } as OnyxTypes.ReportAction,
+        };
+
+        // Delete comment B — only whisper B (at commentB + 1) should be marked deleted
+        Report.deleteReportComment(REPORT, commentBAction, [], undefined, undefined, '', undefined, reportActionsForReport);
+        await waitForBatchedUpdates();
+
+        const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
+        expect(getOriginalMessage(reportActions?.[WHISPER_B_ID])).toMatchObject({deleted: expect.any(String)});
+        // Whisper A must NOT be touched
+        expect(getOriginalMessage(reportActions?.[WHISPER_A_ID])?.deleted).toBeUndefined();
     });
 
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
