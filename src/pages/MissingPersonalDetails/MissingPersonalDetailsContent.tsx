@@ -4,24 +4,32 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
+import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
+import type SetPersonalDetailsAndShipExpensifyCardsParams from '@libs/API/parameters/SetPersonalDetailsAndShipExpensifyCardsParams';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {findPageIndex} from '@libs/SubPageUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isExpensifyCardUkEuSupportedSelector} from '@src/selectors/Card';
 import type {PersonalDetailsForm} from '@src/types/form';
-import type {PrivatePersonalDetails} from '@src/types/onyx';
+import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
+import {usePIN} from './PINContext';
 import Address from './subPages/Address';
 import Confirmation from './subPages/Confirmation';
 import DateOfBirth from './subPages/DateOfBirth';
 import LegalName from './subPages/LegalName';
 import PhoneNumber from './subPages/PhoneNumber';
+import PINStep from './subPages/PIN';
 import type {CustomSubPageProps} from './types';
 import {getInitialSubPage, getSubPageValues} from './utils';
 
@@ -34,36 +42,79 @@ type MissingPersonalDetailsContentProps = {
 
     /** Completion handler */
     onComplete: () => void;
+
+    /** Card ID for the card that the user is adding personal details to */
+    cardID: string;
+
+    /** Whether this is the card-ordering flow */
+    isCardOrderFlow?: boolean;
 };
 
-const formPages = [
+const baseFormPages = [
     {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME, component: LegalName},
     {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.DATE_OF_BIRTH, component: DateOfBirth},
     {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.ADDRESS, component: Address},
     {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PHONE_NUMBER, component: PhoneNumber},
-    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation},
 ];
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
+const PINPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN, component: PINStep};
+const confirmPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation};
+
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID, isCardOrderFlow = false}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const {executeScenario} = useMultifactorAuthentication();
     const {translate} = useLocalize();
+    const isUKEUCardSelector = useCallback((cardList: OnyxEntry<CardList>) => isExpensifyCardUkEuSupportedSelector(cardList, cardID), [cardID]);
+    const [isUKEUCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: isUKEUCardSelector});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const {PIN, isConfirmStep, setIsConfirmStep} = usePIN();
+    const shouldCollectPIN = isCardOrderFlow && !!isUKEUCard;
+
+    // Build form pages dynamically based on whether this is a UK/EU card
+    const formPages = useMemo(() => {
+        if (shouldCollectPIN) {
+            return [...baseFormPages, PINPage, confirmPage];
+        }
+        return [...baseFormPages, confirmPage];
+    }, [shouldCollectPIN]);
+
+    const stepIndexList = shouldCollectPIN ? CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST;
 
     const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
-    const startFrom = useMemo(() => findPageIndex<CustomSubPageProps>(formPages, getInitialSubPage(values)), [values]);
+    const startFrom = useMemo(() => {
+        const initialPage = getInitialSubPage(values, shouldCollectPIN, PIN);
+        return findPageIndex<CustomSubPageProps>(formPages, initialPage);
+    }, [formPages, values, shouldCollectPIN, PIN]);
 
-    const handleFinishStep = useCallback(() => {
-        if (!values) {
-            return;
+    const handleFinishStep = () => {
+        if (shouldCollectPIN) {
+            if (isOffline || !cardID) {
+                return;
+            }
+
+            if (!PIN) {
+                Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN));
+                return;
+            }
+
+            const personalDetailsParams: Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
+            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD, {
+                ...personalDetailsParams,
+                pin: PIN,
+                cardID,
+            });
+        } else {
+            onComplete();
         }
-        onComplete();
-    }, [onComplete, values]);
+    };
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
         pages: formPages,
         startFrom,
         onFinished: handleFinishStep,
-        buildRoute: (pageName, action) => ROUTES.MISSING_PERSONAL_DETAILS.getRoute(pageName, action),
+        buildRoute: (pageName, action) => ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, pageName, action),
     });
 
     if (isRedirecting) {
@@ -71,8 +122,14 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     }
 
     const handleBackButtonPress = () => {
+        // If on PIN confirmation step, go back to PIN entry step
+        if (currentPageName === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN && isConfirmStep) {
+            setIsConfirmStep(false);
+            return;
+        }
+
         if (isEditing) {
-            Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM));
+            Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM));
             return;
         }
 
@@ -97,7 +154,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubPageHeader
-                    stepNames={CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST}
+                    stepNames={stepIndexList}
                     currentStepIndex={pageIndex}
                     onStepSelected={moveTo}
                 />
@@ -108,6 +165,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 onMove={moveTo}
                 currentPageName={currentPageName}
                 personalDetailsValues={values}
+                shouldCollectPin={shouldCollectPIN}
             />
         </ScreenWrapper>
     );
