@@ -57,7 +57,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
                 />
                 <SearchTypeMenu queryJSON={currentSearchQueryJSON} />
             </View>
-            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>
     );
 }

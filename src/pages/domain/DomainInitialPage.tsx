@@ -153,7 +153,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                         ))}
                     </View>
                 </ScrollView>
-                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

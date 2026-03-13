@@ -26,7 +26,7 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
 function RootTabNavigatorTabBar({state}: {state: TabNavigationState<ParamListBase>}) {
     const selectedRouteName = state.routes[state.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
-    return <NavigationTabBar selectedTab={selectedTab} />;
+    return <NavigationTabBar selectedTab={selectedTab}/>;
 }
 
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
