@@ -1018,7 +1018,13 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const headerMessageContent = () =>
         shouldShowHeaderMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                <Text
+                    style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                    role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
+                    accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
+                >
+                    {headerMessage}
+                </Text>
             </View>
         );
 

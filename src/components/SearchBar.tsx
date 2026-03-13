@@ -1,6 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,6 +26,10 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
+    const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
+    const shouldAnnounceNoResults = !!shouldShowEmptyState && inputValue.length !== 0;
+
+    useAccessibilityAnnouncement(noResultsMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
 
     return (
         <>
@@ -45,9 +50,15 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
                     shouldHideClearButton={!inputValue?.length}
                 />
             </View>
-            {!!shouldShowEmptyState && inputValue.length !== 0 && (
+            {shouldAnnounceNoResults && (
                 <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', inputValue)}</Text>
+                    <Text
+                        style={[styles.textNormal, styles.colorMuted]}
+                        role={CONST.ROLE.ALERT}
+                        accessibilityLiveRegion="polite"
+                    >
+                        {noResultsMessage}
+                    </Text>
                 </View>
             )}
         </>

@@ -145,7 +145,13 @@ function TextInput({
             </View>
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                    <Text
+                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                        role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
+                        accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
+                    >
+                        {headerMessage}
+                    </Text>
                 </View>
             )}
         </>

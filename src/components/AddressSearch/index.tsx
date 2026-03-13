@@ -8,6 +8,7 @@ import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -327,10 +328,24 @@ function AddressSearch({
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const listEmptyComponent = useMemo(
-        () => (!isTyping ? undefined : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
-        [isTyping, styles, translate],
-    );
+    const noResultsFoundText = translate('common.noResultsFound');
+
+    useAccessibilityAnnouncement(noResultsFoundText, isTyping, {shouldAnnounceOnNative: true});
+
+    const listEmptyComponent = useMemo(() => {
+        if (!isTyping) {
+            return undefined;
+        }
+        return (
+            <Text
+                style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
+                role={CONST.ROLE.ALERT}
+                accessibilityLiveRegion="polite"
+            >
+                {noResultsFoundText}
+            </Text>
+        );
+    }, [isTyping, noResultsFoundText, styles]);
 
     const listLoader = useMemo(() => {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};

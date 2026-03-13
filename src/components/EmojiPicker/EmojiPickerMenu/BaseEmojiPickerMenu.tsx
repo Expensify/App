@@ -8,6 +8,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {EmojiPickerList, EmojiPickerListItem, HeaderIndices} from '@libs/EmojiUtils';
@@ -76,8 +77,19 @@ const keyExtractor = (item: EmojiPickerListItem, index: number): string => `emoj
 function ListEmptyComponent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const noResultsFoundText = translate('common.noResultsFound');
 
-    return <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>;
+    useAccessibilityAnnouncement(noResultsFoundText, true, {shouldAnnounceOnNative: true});
+
+    return (
+        <Text
+            style={[styles.textLabel, styles.colorMuted]}
+            role={CONST.ROLE.ALERT}
+            accessibilityLiveRegion="polite"
+        >
+            {noResultsFoundText}
+        </Text>
+    );
 }
 
 function BaseEmojiPickerMenu({
