@@ -347,7 +347,7 @@ describe('SearchQueryUtils', () => {
                 expect(result).not.toContain('limit:');
             });
 
-            test('quotes limit value containing spaces to prevent keyword contamination', () => {
+            test('non-integer limit value is discarded to prevent keyword contamination', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
                     keyword: 'hi',
@@ -356,27 +356,69 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues);
 
-                expect(result).toContain('limit:"10 90"');
-                expect(result).toEqual('type:expense hi limit:"10 90"');
+                // "10 90" is not a valid positive integer, so limit is dropped entirely
+                expect(result).not.toContain('limit');
+                expect(result).toEqual('type:expense hi');
             });
 
-            test('limit value with spaces does not leak into keyword when round-tripped through parser', () => {
+            test('non-numeric limit value (JSON-like) is discarded to prevent keyword contamination', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
                     keyword: 'hi',
-                    limit: '10 90',
+                    limit: '{ "keyword": "hi", "limit": 10 }',
                 };
 
-                const queryString = buildQueryStringFromFilterFormValues(filterValues);
-                const queryJSON = buildSearchQueryJSON(queryString);
+                const result = buildQueryStringFromFilterFormValues(filterValues);
 
-                // "10 90" is not a valid integer, so limit is normalized to undefined
+                // JSON-like string is not a valid positive integer, so limit is dropped
+                expect(result).not.toContain('limit');
+                expect(result).toEqual('type:expense hi');
+
+                // Round-trip: keyword must NOT be contaminated
+                const queryJSON = buildSearchQueryJSON(result);
                 expect(queryJSON?.limit).toBeUndefined();
-
-                // The keyword must NOT be contaminated with "90" from the limit value
                 const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
                 expect(keywordFilter?.filters).toHaveLength(1);
                 expect(keywordFilter?.filters.at(0)?.value).toBe('hi');
+            });
+
+            test('valid integer limit is included in query string', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    limit: '25',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+                expect(result).toContain('limit:25');
+            });
+
+            test('valid limit round-trips through parser without keyword contamination', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    keyword: 'hello',
+                    limit: '50',
+                };
+
+                const queryString = buildQueryStringFromFilterFormValues(filterValues);
+                expect(queryString).toEqual('type:expense hello limit:50');
+
+                const queryJSON = buildSearchQueryJSON(queryString);
+                expect(queryJSON?.limit).toBe(50);
+
+                const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
+                expect(keywordFilter?.filters).toHaveLength(1);
+                expect(keywordFilter?.filters.at(0)?.value).toBe('hello');
+            });
+
+            test('form limit takes priority over options limit', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    limit: '30',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+                expect(result).toContain('limit:30');
+                expect(result).not.toContain('limit:10');
             });
         });
 
