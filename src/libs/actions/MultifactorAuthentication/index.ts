@@ -9,7 +9,7 @@ import type {DenyTransactionParams, RevokeMultifactorAuthenticationCredentialsPa
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
-import {parseHttpRequest} from '@libs/MultifactorAuthentication/shared/helpers';
+import parseHttpRequest from '@libs/MultifactorAuthentication/shared/helpers';
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

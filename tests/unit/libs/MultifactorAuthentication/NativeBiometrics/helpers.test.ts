@@ -1,4 +1,4 @@
-import {decodeExpoMessage} from '@libs/MultifactorAuthentication/NativeBiometrics/helpers';
+import decodeExpoMessage from '@libs/MultifactorAuthentication/NativeBiometrics/helpers';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 describe('NativeBiometrics helpers', () => {

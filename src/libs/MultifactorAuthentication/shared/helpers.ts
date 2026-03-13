@@ -73,5 +73,4 @@ function parseHttpRequest(
     };
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {parseHttpRequest};
+export default parseHttpRequest;

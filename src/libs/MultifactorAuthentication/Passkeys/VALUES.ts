@@ -31,7 +31,10 @@ const WEBAUTHN_ERROR_MAPPINGS = {
     ConstraintError: REASON.WEBAUTHN.CONSTRAINT_ERROR,
 } as const;
 
+const RELYING_PARTY_NAME = 'Expensify';
+
 const PASSKEY_VALUES = {
+    RELYING_PARTY_NAME,
     WEBAUTHN_ERRORS,
     WEBAUTHN_ERROR_MAPPINGS,
 } as const;

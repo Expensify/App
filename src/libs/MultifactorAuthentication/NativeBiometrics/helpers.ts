@@ -29,5 +29,4 @@ const decodeMultifactorAuthenticationExpoMessage = (message: unknown, fallback?:
     return decodedMessage === VALUES.REASON.EXPO.GENERIC && fallback ? fallback : decodedMessage;
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export {decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage};
+export default decodeMultifactorAuthenticationExpoMessage;

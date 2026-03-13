@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
 
@@ -34,7 +35,7 @@ function buildPublicKeyCredentialCreationOptions(challenge: RegistrationChalleng
         challenge: base64URLToArrayBuffer(challenge.challenge),
         rp: {
             id: challenge.rp.id,
-            name: 'Expensify',
+            name: VALUES.RELYING_PARTY_NAME,
         },
         user: {
             id: base64URLToArrayBuffer(challenge.user.id),

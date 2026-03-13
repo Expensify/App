@@ -19,5 +19,4 @@ function decodeWebAuthnError(error: unknown): MultifactorAuthenticationReason {
     return VALUES.REASON.WEBAUTHN.GENERIC;
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {decodeWebAuthnError};
+export default decodeWebAuthnError;
