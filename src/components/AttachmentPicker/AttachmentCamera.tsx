@@ -40,9 +40,6 @@ type AttachmentCameraProps = {
     onClose: () => void;
 };
 
-// Spacer to match the flash toggle width for centering the shutter button
-const spacerStyle = {width: 32, height: 32} as const;
-
 function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -50,14 +47,15 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const {translate} = useLocalize();
     const insets = useSafeAreaInsets();
 
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'BackArrow']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'BackArrow', 'Rotate']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
 
     const camera = useRef<Camera>(null);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const isCapturing = useRef(false);
+    const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
 
-    const device = useCameraDevice('back', {
+    const device = useCameraDevice(cameraPosition, {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
     const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {photoResolution: 'max'}]);
@@ -246,8 +244,21 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         />
                     </PressableWithFeedback>
 
-                    {/* Empty spacer for layout symmetry with flash toggle */}
-                    <View style={spacerStyle} />
+                    {/* Camera flip button */}
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flipCamera')}
+                        style={styles.alignItemsEnd}
+                        onPress={() => setCameraPosition((prev) => (prev === 'back' ? 'front' : 'back'))}
+                        sentryLabel="AttachmentCamera-FlipCamera"
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={lazyIcons.Rotate}
+                            fill={theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
                 </View>
             </View>
         </Modal>

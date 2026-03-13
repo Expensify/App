@@ -1147,6 +1147,7 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'błysk',
         multiScan: 'wielokrotne skanowanie',
         shutter: 'migawka',
+        flipCamera: 'przełącz kamerę',
         gallery: 'galeria',
         deleteReceipt: 'Usuń paragon',
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
