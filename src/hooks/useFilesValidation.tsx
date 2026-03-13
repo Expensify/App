@@ -147,11 +147,12 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             convertHeicImage(file, {
                 onSuccess: (convertedFile) => resolve(convertedFile),
-                onError: (nonConvertedFile) => {
-                    reject(nonConvertedFile);
+                onError: (_error, originalFile) => {
+                    Log.warn('HEIC conversion failed, falling back to original file', {fileName: file.name});
+                    resolve(originalFile);
                 },
             });
         });
