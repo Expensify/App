@@ -454,7 +454,7 @@ function BaseTextInput({
                             )}
                             {/* Render rightHandSideComponent only when clear button is not shown 
                                 This prevents UI conflicts between clear button and custom components like flip/currency buttons */}
-                            {!shouldShowClearButton && shouldHideClearButton && !inputProps.isLoading && rightHandSideComponent && (
+                            {!shouldShowClearButton && shouldHideClearButton && !inputProps.isLoading && !!rightHandSideComponent && (
                                 <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>
                             )}
                             {!!inputProps.secureTextEntry && (
