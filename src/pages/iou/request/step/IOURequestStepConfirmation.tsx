@@ -1,7 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -285,8 +285,6 @@ function IOURequestStepConfirmation({
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
-    const [isNavigationTransitionComplete, setIsNavigationTransitionComplete] = useState(false);
-
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
@@ -355,14 +353,6 @@ function IOURequestStepConfirmation({
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this to run on mount/unmount
-    }, []);
-
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const handle = InteractionManager.runAfterInteractions(() => {
-            setIsNavigationTransitionComplete(true);
-        });
-        return () => handle.cancel();
     }, []);
 
     useEffect(() => {
@@ -1563,12 +1553,11 @@ function IOURequestStepConfirmation({
                             />
                         ) : null}
                     </HeaderWithBackButton>
-                    {(!isNavigationTransitionComplete || isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
+                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
                         <FullScreenLoadingIndicator
                             reasonAttributes={{
                                 context: 'IOURequestStepConfirmation',
                                 isLoading,
-                                isNavigationTransitionComplete,
                                 isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
                             }}
                         />
@@ -1604,8 +1593,7 @@ function IOURequestStepConfirmation({
                             }}
                         />
                     )}
-                    {isNavigationTransitionComplete && (
-                        <MoneyRequestConfirmationList
+                    <MoneyRequestConfirmationList
                             transaction={transaction}
                             selectedParticipants={participants}
                             iouAmount={transaction?.amount ?? 0}
@@ -1646,8 +1634,7 @@ function IOURequestStepConfirmation({
                             iouTimeCount={transaction?.comment?.units?.count}
                             iouTimeRate={transaction?.comment?.units?.rate}
                             shouldHideToSection={shouldHideToSection}
-                        />
-                    )}
+                    />
                 </View>
             </DragAndDropProvider>
         </ScreenWrapper>
