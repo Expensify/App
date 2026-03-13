@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -9,7 +9,7 @@ import TabLabel from '@components/TabSelector/TabLabel';
 import type {TabSelectorItemProps} from '@components/TabSelector/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {ScrollableTabSelectorContext} from './ScrollableTabSelectorContext';
+import {useScrollableTabSelectorActions} from './ScrollableTabSelectorContext';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
@@ -32,7 +32,7 @@ function ScrollableTabSelectorItem({
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
 
-    const {onTabLayout, registerTab, scrollToTab} = useContext(ScrollableTabSelectorContext);
+    const {onTabLayout, registerTab, scrollToTab} = useScrollableTabSelectorActions();
 
     return (
         <AnimatedPressableWithFeedback
