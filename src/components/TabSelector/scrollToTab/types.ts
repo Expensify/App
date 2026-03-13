@@ -3,7 +3,6 @@ import type {ScrollView as RNScrollView, View} from 'react-native';
 
 type ScrollToTabProps = {
     animated?: boolean;
-    tabRef: HTMLDivElement | View | null;
     containerRef: React.RefObject<RNScrollView | null>;
     containerX: number;
     containerWidth: number;

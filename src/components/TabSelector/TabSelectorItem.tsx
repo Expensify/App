@@ -37,13 +37,12 @@ function TabSelectorItem({
     const [isHovered, setIsHovered] = useState(false);
     const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
 
-    const {onTabLayout, registerTab, scrollToTab} = useContext(TabSelectorContext);
+    const {onTabLayout, scrollToTab} = useContext(TabSelectorContext);
 
     const accessibilityState = {selected: isActive};
 
     const children = (
         <AnimatedPressableWithFeedback
-            ref={(ref: HTMLDivElement | View | null) => registerTab(tabKey, ref)}
             accessibilityLabel={title}
             accessibilityState={accessibilityState}
             accessibilityRole={CONST.ROLE.TAB}
