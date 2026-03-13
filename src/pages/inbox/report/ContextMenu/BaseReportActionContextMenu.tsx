@@ -407,6 +407,7 @@ function BaseReportActionContextMenu({
                             currentUserAccountID: currentUserPersonalDetails?.accountID,
                             currentUserPersonalDetails,
                             encryptedAuthToken,
+                            iouTransaction,
                             bankAccountList,
                         };
 
