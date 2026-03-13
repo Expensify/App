@@ -406,7 +406,7 @@ function NumberWithSymbolForm({
      */
     const textInputRightHandSideComponent = useMemo(() => {
         return (
-            <View style={[styles.flexRow, styles.gap2, styles.pr2, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                 {shouldShowFlipButton && canUseTouchScreen && (
                     <Button
                         small
