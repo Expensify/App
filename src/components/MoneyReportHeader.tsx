@@ -447,7 +447,10 @@ function MoneyReportHeader({
         [transactions, violations, email, accountID, moneyRequestReport, policy],
     );
     // Check if any transactions have pending RTER violations (for showing the submit confirmation modal)
-    const hasAnyPendingRTERViolation = useMemo(() => hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations), [transactions, allTransactionViolations]);
+    const hasAnyPendingRTERViolation = useMemo(
+        () => hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, policy),
+        [transactions, allTransactionViolations, email, accountID, moneyRequestReport, policy],
+    );
 
     // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);

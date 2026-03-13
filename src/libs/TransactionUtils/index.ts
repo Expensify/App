@@ -1542,12 +1542,19 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
- * Check if any of the given transactions have a pending RTER violation.
+ * Check if any of the given transactions have a pending RTER violation that has not been dismissed (e.g. via mark-as-cash).
  */
-function hasAnyPendingRTERViolation(transactions: Array<OnyxEntry<Transaction>>, allTransactionViolations: OnyxCollection<TransactionViolations>): boolean {
+function hasAnyPendingRTERViolation(
+    transactions: Array<OnyxEntry<Transaction>>,
+    allTransactionViolations: OnyxCollection<TransactionViolations>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+): boolean {
     return transactions.some((t) => {
-        const txViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t?.transactionID}`];
-        return hasPendingRTERViolation(txViolations);
+        const filteredViolations = getTransactionViolations(t, allTransactionViolations, currentUserEmail, currentUserAccountID, report, policy);
+        return hasPendingRTERViolation(filteredViolations);
     });
 }
 

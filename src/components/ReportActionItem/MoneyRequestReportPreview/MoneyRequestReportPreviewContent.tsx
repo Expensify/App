@@ -204,7 +204,10 @@ function MoneyRequestReportPreviewContent({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-    const hasAnyPendingRTERViolation = useMemo(() => hasAnyPendingRTERViolationTransactionUtils(transactions, transactionViolations), [transactions, transactionViolations]);
+    const hasAnyPendingRTERViolation = useMemo(
+        () => hasAnyPendingRTERViolationTransactionUtils(transactions, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, policy),
+        [transactions, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, policy],
+    );
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
