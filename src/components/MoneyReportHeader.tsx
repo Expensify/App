@@ -1982,6 +1982,10 @@ function MoneyReportHeader({
         hasOptimisticNextStep: !!optimisticNextStep,
     };
 
+    const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MoneyReportHeader.PDFModal',
+    };
+
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -2198,6 +2202,7 @@ function MoneyReportHeader({
                                         size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
                                         color={theme.textSupporting}
                                         style={styles.ml3}
+                                        reasonAttributes={pdfLoadingReasonAttributes}
                                     />
                                 </View>
                             )}
