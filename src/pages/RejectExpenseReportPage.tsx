@@ -121,10 +121,10 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             }
 
             const targetAccountID = hasPreviousApprover ? Number(selectedTargetAccountID) : submitterAccountID;
-            rejectExpenseReport(reportID, targetAccountID, values[INPUT_IDS.COMMENT], currentUserPersonalDetails?.displayName, currentUserPersonalDetails?.avatar);
+            rejectExpenseReport(reportID, targetAccountID, values[INPUT_IDS.COMMENT], currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.displayName, currentUserPersonalDetails?.avatar);
             Navigation.dismissModal();
         },
-        [hasPreviousApprover, reportID, selectedTargetAccountID, submitterAccountID, translate, currentUserPersonalDetails?.displayName, currentUserPersonalDetails?.avatar],
+        [hasPreviousApprover, reportID, selectedTargetAccountID, submitterAccountID, translate, currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.displayName, currentUserPersonalDetails?.avatar],
     );
 
     return (

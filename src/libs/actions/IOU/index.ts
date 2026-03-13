@@ -13118,7 +13118,7 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
-function rejectExpenseReport(reportID: string, targetAccountID: number, comment: string, currentUserDisplayName: string | undefined, currentUserAvatarSource: AvatarSource | undefined) {
+function rejectExpenseReport(reportID: string, targetAccountID: number, comment: string, currentUserAccountID: number | undefined, currentUserDisplayName: string | undefined, currentUserAvatarSource: AvatarSource | undefined) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         return;
@@ -13126,8 +13126,8 @@ function rejectExpenseReport(reportID: string, targetAccountID: number, comment:
 
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
     const baseTimestamp = DateUtils.getDBTime();
-    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, targetAccountID, currentUserDisplayName, currentUserAvatarSource, baseTimestamp);
-    const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(comment, currentUserDisplayName, currentUserAvatarSource, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
+    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, targetAccountID, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, baseTimestamp);
+    const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(comment, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
 
     const optimisticStateNum = isRejectToSubmitter ? CONST.REPORT.STATE_NUM.OPEN : CONST.REPORT.STATE_NUM.SUBMITTED;
     const optimisticStatusNum = isRejectToSubmitter ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.SUBMITTED;

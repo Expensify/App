@@ -12888,6 +12888,7 @@ function buildOptimisticRejectReportActionComment(comment: string, created = Dat
 function buildOptimisticReportLevelRejectAction(
     isRejectToSubmitter: boolean,
     targetAccountID: number,
+    actorAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
     created = DateUtils.getDBTime(),
@@ -12896,7 +12897,7 @@ function buildOptimisticReportLevelRejectAction(
         reportActionID: rand64(),
         actionName: isRejectToSubmitter ? CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER : CONST.REPORT.ACTIONS.TYPE.REJECTED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        actorAccountID: currentUserAccountID,
+        actorAccountID,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -12923,6 +12924,7 @@ function buildOptimisticReportLevelRejectAction(
  */
 function buildOptimisticReportLevelRejectCommentAction(
     comment: string,
+    actorAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
     created = DateUtils.getDBTime(),
@@ -12931,7 +12933,7 @@ function buildOptimisticReportLevelRejectCommentAction(
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        actorAccountID: currentUserAccountID,
+        actorAccountID,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
