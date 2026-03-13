@@ -236,7 +236,7 @@ function SearchEditMultiplePage() {
         ...(isTaxTrackingEnabled
             ? [
                   {
-                      description: translate('iou.taxRate'),
+                      description: policy?.taxRates?.name ?? translate('common.tax'),
                       title: draftTransaction?.taxCode ? (getTaxName(policy, draftTransaction) ?? '') : '',
                       route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
                       disabled: hasPartiallyEditableTaxRateTransaction,

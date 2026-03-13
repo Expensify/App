@@ -56,7 +56,7 @@ function SearchEditMultipleTaxPage() {
             testID="SearchEditMultipleTaxPage"
         >
             <HeaderWithBackButton
-                title={translate('iou.taxRate')}
+                title={policy?.taxRates?.name ?? translate('common.tax')}
                 onBackButtonPress={Navigation.goBack}
             />
             <View style={[styles.flex1, styles.w100]}>
