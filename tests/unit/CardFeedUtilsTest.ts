@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
-import {getCardFeedNamesWithType, getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy, getExpensifyCardFeedsForDisplay, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+import {
+    getCardFeedNamesWithType,
+    getCardFeedsForDisplay,
+    getCardFeedsForDisplayPerPolicy,
+    getExpensifyCardFeedsForDisplay,
+    getFeedInfo,
+    getSelectedCardsFromFeeds,
+} from '@libs/CardFeedUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeeds, CardList, CompanyCardFeed, WorkspaceCardsList} from '@src/types/onyx';
@@ -195,6 +202,62 @@ describe('Card Feed Utils', () => {
         expect(result.POL2).toHaveLength(1);
         expect(result.POL2?.at(0)?.linkedPolicyIDs).toEqual(linkedPolicyIDs);
         expect(result.POL2?.at(0)?.id).toBe('1234_stripe');
+    });
+});
+
+describe('getFeedInfo', () => {
+    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(cardFeedsMock, translateLocal);
+
+    it('returns undefined when feedId is empty', () => {
+        expect(getFeedInfo('', cardFeedsByPolicy)).toBeUndefined();
+    });
+
+    it('returns undefined when cardFeedsByPolicy is undefined', () => {
+        expect(getFeedInfo('1234_vcf', undefined)).toBeUndefined();
+    });
+
+    it('returns undefined when cardFeedsByPolicy is empty', () => {
+        expect(getFeedInfo('1234_vcf', {})).toBeUndefined();
+    });
+
+    it('returns undefined when feedId does not match any feed', () => {
+        expect(getFeedInfo('9999_nonexistent', cardFeedsByPolicy)).toBeUndefined();
+    });
+
+    it('returns the feed when found in first policy', () => {
+        const result = getFeedInfo('1234_oauth.americanexpressfdx.com 1001', cardFeedsByPolicy);
+        expect(result).toEqual({
+            id: '1234_oauth.americanexpressfdx.com 1001',
+            fundID: '1234',
+            feed: 'oauth.americanexpressfdx.com 1001',
+            name: 'American Express',
+            linkedPolicyIDs: undefined,
+            country: '',
+        });
+    });
+
+    it('returns the feed when found in another policy', () => {
+        const result = getFeedInfo('1234_vcf', cardFeedsByPolicy);
+        expect(result).toEqual({
+            id: '1234_vcf',
+            fundID: '1234',
+            feed: 'vcf',
+            name: 'Custom feed name',
+            linkedPolicyIDs: undefined,
+            country: '',
+        });
+    });
+
+    it('returns the feed when id matches in policy with multiple feeds', () => {
+        const result = getFeedInfo('1234_stripe', cardFeedsByPolicy);
+        expect(result).toEqual({
+            id: '1234_stripe',
+            fundID: '1234',
+            feed: 'stripe',
+            name: 'Stripe',
+            linkedPolicyIDs: undefined,
+            country: '',
+        });
     });
 });
 

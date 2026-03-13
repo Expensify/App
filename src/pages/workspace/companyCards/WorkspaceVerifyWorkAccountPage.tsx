@@ -3,6 +3,8 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+import {getFeedInfo} from '@libs/CardFeedUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -22,26 +24,12 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
     const {policyID, feed} = route.params;
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [onboardingEmail] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
-    const workEmail = onboardingEmail?.onboardingWorkEmail;
+    const workEmail = usePrimaryContactMethod();
 
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
     const isWorkEmailValidated = workEmail ? !!loginList?.[workEmail]?.validatedDate : false;
-
-    const getFeedInfo = () => {
-        if (!feed || !cardFeedsByPolicy) {
-            return undefined;
-        }
-        for (const cardFeeds of Object.values(cardFeedsByPolicy)) {
-            const found = cardFeeds.find((item) => item.id === feed);
-            if (found) {
-                return found;
-            }
-        }
-        return undefined;
-    };
-    const feedInfo = getFeedInfo();
+    const feedInfo = getFeedInfo(feed, cardFeedsByPolicy);
 
     const sendValidateCode = () => {
         if (!workEmail) {

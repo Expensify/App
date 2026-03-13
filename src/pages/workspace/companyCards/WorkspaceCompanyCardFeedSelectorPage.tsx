@@ -9,22 +9,21 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
-import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOtherFeedsForFeedSelector from '@hooks/useOtherFeedsForFeedSelector';
+import type {CardFeedListItem} from '@hooks/useOtherFeedsForFeedSelector';
 import usePolicy from '@hooks/usePolicy';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
@@ -40,20 +39,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
-
-type CardFeedListItem = ListItem & {
-    /** Combined feed key */
-    value: CompanyCardFeedWithDomainID;
-
-    /** Card feed value */
-    feed: CompanyCardFeedWithNumber;
-
-    /** Feed fund value */
-    fundID?: number;
-
-    /** Feed country value */
-    country?: string;
-};
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
 
@@ -72,7 +57,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
-    const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
+    const otherFeeds = useOtherFeedsForFeedSelector(policyID);
     const primaryContactMethod = usePrimaryContactMethod();
 
     const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
@@ -113,56 +98,6 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         };
     });
 
-    const getOtherFeeds = () => {
-        const otherPolicyFeeds: CardFeedListItem[] = [];
-        for (const [feedPolicyID, cardFeeds] of Object.entries(cardFeedsByPolicy ?? {}) as Array<[CompanyCardFeedWithDomainID, CardFeedForDisplay[]]>) {
-            if (feedPolicyID === policyID) {
-                continue;
-            }
-            for (const feed of cardFeeds) {
-                if (feed?.linkedPolicyIDs?.includes(policyID)) {
-                    continue;
-                }
-                const feedName = feed.feed;
-                const plaidUrl = getPlaidInstitutionIconUrl(feedName);
-                const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feed.fundID}`];
-                const feedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${feedPolicyID}`];
-                const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
-
-                const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedName];
-
-                otherPolicyFeeds.push({
-                    value: feed.id as CompanyCardFeedWithDomainID,
-                    feed: feedName as CompanyCardFeedWithNumber,
-                    fundID: Number(feed.fundID),
-                    country: feed?.country,
-                    alternateText: domainName ?? feedPolicy?.name,
-                    text: getCustomOrFormattedFeedName(translate, feedName, feed.name),
-                    keyForList: feed.id,
-                    isSelected: feed.id === selectedFeedName,
-                    brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                    canShowSeveralIndicators: shouldShowRBR,
-                    leftElement: plaidUrl ? (
-                        <PlaidCardFeedIcon
-                            plaidUrl={plaidUrl}
-                            style={styles.mr3}
-                        />
-                    ) : (
-                        <Icon
-                            src={getCardFeedIcon(feed.feed, illustrations, companyCardFeedIcons)}
-                            height={variables.cardIconHeight}
-                            width={variables.cardIconWidth}
-                            additionalStyles={[styles.mr3, styles.cardIcon]}
-                        />
-                    ),
-                });
-            }
-        }
-        return otherPolicyFeeds;
-    };
-
-    const otherFeeds = getOtherFeeds();
-
     const onAddCardsPress = () => {
         clearAddNewCardFlow();
         if (isBlockedToAddNewFeeds) {
@@ -182,7 +117,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     };
 
     const selectOtherFeed = (feed: CardFeedListItem) => {
-        if (isUserFromPublicDomain) {
+        if (!isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
             return;
         }

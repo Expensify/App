@@ -1061,7 +1061,7 @@ function linkCardFeedToPolicy(domainAccountID: number, policyID: string, feedTyp
         domainAccountID,
         feedType,
         feedName,
-        feedCountry: feedCountry && feedCountry?.length > 0 ? feedCountry : CONST.COUNTRY.US,
+        feedCountry: feedCountry && feedCountry.length > 0 ? feedCountry : CONST.COUNTRY.US,
     };
 
     API.write(WRITE_COMMANDS.LINK_CARD_FEED_TO_POLICY, parameters);
