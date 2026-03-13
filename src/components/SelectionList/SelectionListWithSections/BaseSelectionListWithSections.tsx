@@ -27,6 +27,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
 
@@ -71,6 +72,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldScrollToFocusedIndex = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldDisableHoverStyle = false,
+    setShouldDisableHoverStyle = () => {},
     canShowProductTrainingTooltip,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
@@ -131,6 +134,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused: isScreenFocused,
+        onArrowUpDownCallback: () => setShouldDisableHoverStyle(true),
     });
 
     const getFocusedItem = (): TItem | undefined => {
@@ -279,7 +283,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const renderListEmptyContent = () => {
         if (shouldShowLoadingPlaceholder) {
-            return <OptionsListSkeletonView />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'BaseSelectionListWithSections',
+                shouldShowLoadingPlaceholder,
+            };
+            return <OptionsListSkeletonView reasonAttributes={reasonAttributes} />;
         }
         if (shouldShowListEmptyContent) {
             return listEmptyContent;
@@ -330,6 +338,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
+                        shouldDisableHoverStyle={shouldDisableHoverStyle}
                     />
                 );
             }

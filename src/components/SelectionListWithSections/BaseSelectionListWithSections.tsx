@@ -25,6 +25,7 @@ import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -448,7 +449,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     }, [setShouldDisableHoverStyle]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
@@ -665,16 +666,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </>
     );
 
-    const setCurrentHoverIndex = useCallback(
-        (hoverIndex: number | null) => {
-            if (shouldDisableHoverStyle) {
-                return;
-            }
-            currentHoverIndexRef.current = hoverIndex;
-        },
-        [currentHoverIndexRef, shouldDisableHoverStyle],
-    );
-
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -683,15 +674,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
-            <View
-                onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
-                onMouseMove={() => setCurrentHoverIndex(normalizedIndex)}
-                onMouseEnter={() => setCurrentHoverIndex(normalizedIndex)}
-                onMouseLeave={(e) => {
-                    e.stopPropagation();
-                    setCurrentHoverIndex(null);
-                }}
-            >
+            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
                     item={{
@@ -728,7 +711,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
-                    shouldStopMouseLeavePropagation={false}
                 />
             </View>
         );
@@ -736,11 +718,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const renderListEmptyContent = () => {
         if (shouldShowLoadingPlaceholder) {
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'BaseSelectionListWithSections',
+                shouldShowLoadingPlaceholder,
+                shouldUseUserSkeletonView,
+            };
             return (
                 <LoadingPlaceholderComponent
                     fixedNumItems={fixedNumItemsForLoader}
                     shouldStyleAsTable={shouldUseUserSkeletonView}
                     speed={loaderSpeed}
+                    reasonAttributes={reasonAttributes}
                 />
             );
         }
