@@ -97,6 +97,7 @@ import {
     rejectMoneyRequestReason,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
@@ -1932,9 +1933,7 @@ function MoneyReportHeader({
     }, [originalSelectedTransactionsOptions, showDeleteModal, dismissedRejectUseExplanation, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
-    const shouldPopoverUseScrollView =
-        selectedTransactionsOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD ||
-        selectedTransactionsOptions.some((option) => (option.subMenuItems?.length ?? 0) >= CONST.DROPDOWN_SCROLL_THRESHOLD);
+    const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
 
     if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
@@ -2026,7 +2025,7 @@ function MoneyReportHeader({
                                     })}
                                     isSplitButton={false}
                                     shouldAlwaysShowDropdownMenu
-                                    shouldPopoverUseScrollView={shouldPopoverUseScrollView}
+                                    shouldPopoverUseScrollView={popoverUseScrollView}
                                     wrapperStyle={styles.w100}
                                 />
                             </View>
@@ -2045,7 +2044,7 @@ function MoneyReportHeader({
                             })}
                             isSplitButton={false}
                             shouldAlwaysShowDropdownMenu
-                            shouldPopoverUseScrollView={shouldPopoverUseScrollView}
+                            shouldPopoverUseScrollView={popoverUseScrollView}
                             wrapperStyle={styles.w100}
                         />
                     </View>
