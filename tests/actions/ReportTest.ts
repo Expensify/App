@@ -1906,7 +1906,6 @@ describe('actions/Report', () => {
         expect(getOriginalMessage(whisper)).toMatchObject({deleted: expect.any(String)});
     });
 
-
     it('should only delete the whisper linked to the deleted comment, not other whispers in the same report', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
@@ -1961,7 +1960,12 @@ describe('actions/Report', () => {
         } as OnyxTypes.ReportAction;
 
         const reportActionsForReport = {
-            [COMMENT_A_ID]: {reportActionID: COMMENT_A_ID, reportID: REPORT_ID, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2024-11-19 08:04:13.728'} as OnyxTypes.ReportAction,
+            [COMMENT_A_ID]: {
+                reportActionID: COMMENT_A_ID,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-11-19 08:04:13.728',
+            } as OnyxTypes.ReportAction,
             [WHISPER_A_ID]: {
                 reportActionID: WHISPER_A_ID,
                 reportID: REPORT_ID,
@@ -1986,7 +1990,7 @@ describe('actions/Report', () => {
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
         expect(getOriginalMessage(reportActions?.[WHISPER_B_ID])).toMatchObject({deleted: expect.any(String)});
         // Whisper A must NOT be touched
-        expect(getOriginalMessage(reportActions?.[WHISPER_A_ID])?.deleted).toBeUndefined();
+        expect(getOriginalMessage(reportActions?.[WHISPER_A_ID])).not.toMatchObject({deleted: expect.any(String)});
     });
 
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
