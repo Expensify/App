@@ -9,13 +9,7 @@ type LocalNotificationData = {
 };
 
 type LocalNotificationModule = {
-    showCommentNotification: (
-        report: Report,
-        reportAction: ReportAction,
-        onClick: LocalNotificationClickHandler,
-        conciergeReportID: string | undefined,
-        reportAttributes?: ReportAttributesDerivedValue['reports'],
-    ) => void;
+    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, reportAttributes?: ReportAttributesDerivedValue['reports']) => void;
     showUpdateAvailableNotification: () => void;
     showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => void;
     clearReportNotifications: ClearReportNotifications;
