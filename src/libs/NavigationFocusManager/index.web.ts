@@ -17,6 +17,7 @@
 import Log from '@libs/Log';
 import extractNavigationKeys from '@libs/Navigation/helpers/extractNavigationKeys';
 import type {State} from '@libs/Navigation/types';
+import {NAVIGATION_FOCUS_ROUTE_DATA_ATTRIBUTE, NAVIGATION_FOCUS_ROUTE_SELECTOR} from './constants';
 import type {InteractionProvenance, NavigationFocusManagerModule} from './types';
 
 /**
@@ -181,6 +182,15 @@ function clearInteractionProvenanceForRoute(routeKey: string): void {
     clearInteractionProvenance();
 }
 
+function resolveRouteKeyForElement(element: HTMLElement | null): string | null {
+    if (!element) {
+        return currentFocusedRouteKey;
+    }
+
+    const routeBoundary = element.closest<HTMLElement>(NAVIGATION_FOCUS_ROUTE_SELECTOR);
+    return routeBoundary?.getAttribute(NAVIGATION_FOCUS_ROUTE_DATA_ATTRIBUTE) ?? currentFocusedRouteKey;
+}
+
 function buildCandidateMatch(candidate: HTMLElement, identifier: ElementIdentifier): CandidateMatch {
     const hasAriaLabelMatch = !!identifier.ariaLabel && candidate.getAttribute('aria-label') === identifier.ariaLabel;
     const hasRoleMatch = !!identifier.role && candidate.getAttribute('role') === identifier.role;
@@ -321,13 +331,15 @@ function findMatchingElement(identifier: ElementIdentifier): HTMLElement | null 
 function handleInteraction(event: PointerEvent): void {
     // Mouse/touch interaction clears any pending keyboard flag
     wasKeyboardInteraction = false;
+
+    const targetElement = event.target as HTMLElement;
+    const routeKey = resolveRouteKeyForElement(targetElement);
+
     setInteractionProvenance({
         interactionType: 'pointer',
         interactionTrigger: 'pointer',
-        routeKey: currentFocusedRouteKey,
+        routeKey,
     });
-
-    const targetElement = event.target as HTMLElement;
 
     if (targetElement && targetElement !== document.body && targetElement.tagName !== 'HTML') {
         // Menu items are transient (exist only while popover is open) and will be
@@ -350,20 +362,27 @@ function handleInteraction(event: PointerEvent): void {
         // Note: [role="menuitem"] is intentionally excluded - we skip those above.
         const interactiveElement = targetElement.closest<HTMLElement>('button, a, [role="button"], [tabindex]:not([tabindex="-1"])');
         const elementToCapture = interactiveElement ?? targetElement;
+        const captureRouteKey = resolveRouteKeyForElement(elementToCapture);
+
+        setInteractionProvenance({
+            interactionType: 'pointer',
+            interactionTrigger: 'pointer',
+            routeKey: captureRouteKey,
+        });
 
         lastInteractionCapture = {
             element: elementToCapture,
-            forRoute: currentFocusedRouteKey,
+            forRoute: captureRouteKey,
         };
 
         // IMMEDIATE CAPTURE: Store element identifier for non-persistent screens
         // This enables focus restoration even after screen unmounts and remounts with new DOM
-        if (currentFocusedRouteKey) {
+        if (captureRouteKey) {
             const identifier = extractElementIdentifier(elementToCapture);
-            updateRouteFocusEntry(currentFocusedRouteKey, {
+            updateRouteFocusEntry(captureRouteKey, {
                 element: {
                     element: elementToCapture,
-                    forRoute: currentFocusedRouteKey,
+                    forRoute: captureRouteKey,
                 },
                 identifier,
             });
@@ -391,10 +410,13 @@ function handleKeyDown(event: KeyboardEvent): void {
     // ALWAYS set keyboard interaction flag for modal auto-focus and navigation
     // This must happen BEFORE any early returns (e.g., menuitem protection)
     wasKeyboardInteraction = true;
+    const activeElement = document.activeElement as HTMLElement;
+    const routeKey = resolveRouteKeyForElement(activeElement);
+
     setInteractionProvenance({
         interactionType: 'keyboard',
         interactionTrigger: event.key === 'Escape' ? 'escape' : 'enterOrSpace',
-        routeKey: currentFocusedRouteKey,
+        routeKey,
     });
 
     // For Escape key (back navigation), we only need the flag, not element capture
@@ -402,8 +424,6 @@ function handleKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
         return;
     }
-
-    const activeElement = document.activeElement as HTMLElement;
 
     if (activeElement && activeElement !== document.body && activeElement.tagName !== 'HTML') {
         const isMenuitem = !!activeElement.closest('[role="menuitem"]');
@@ -418,16 +438,16 @@ function handleKeyDown(event: KeyboardEvent): void {
 
         lastInteractionCapture = {
             element: activeElement,
-            forRoute: currentFocusedRouteKey,
+            forRoute: routeKey,
         };
 
         // IMMEDIATE CAPTURE: Store element identifier for non-persistent screens
-        if (currentFocusedRouteKey) {
+        if (routeKey) {
             const identifier = extractElementIdentifier(activeElement);
-            updateRouteFocusEntry(currentFocusedRouteKey, {
+            updateRouteFocusEntry(routeKey, {
                 element: {
                     element: activeElement,
-                    forRoute: currentFocusedRouteKey,
+                    forRoute: routeKey,
                 },
                 identifier,
             });

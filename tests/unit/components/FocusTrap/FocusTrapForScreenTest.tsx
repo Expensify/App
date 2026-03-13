@@ -26,9 +26,10 @@
  * P0-5: Element focus checks
  */
 /* eslint-disable @typescript-eslint/naming-convention */
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 import type {ReactNode} from 'react';
 import React from 'react';
+import {View} from 'react-native';
 // ============================================================================
 // Imports (must come after mocks)
 // ============================================================================
@@ -36,6 +37,7 @@ import React from 'react';
 // eslint-disable-next-line import/first
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen/index.web';
 import type FocusUtilsModule from '@libs/focusUtils/types';
+import {NAVIGATION_FOCUS_ROUTE_DATASET_KEY} from '@libs/NavigationFocusManager/constants';
 import type {NavigationFocusManagerModule} from '@libs/NavigationFocusManager/types';
 
 // ============================================================================
@@ -218,6 +220,36 @@ describe('FocusTrapForScreen', () => {
 
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    describe('Route boundary markers', () => {
+        it('should add the current route marker to a single child container', () => {
+            render(
+                <FocusTrapForScreen>
+                    <View testID="route-boundary" />
+                </FocusTrapForScreen>,
+            );
+
+            expect(screen.getByTestId('route-boundary').props.dataSet).toEqual({
+                [NAVIGATION_FOCUS_ROUTE_DATASET_KEY]: 'test-route',
+            });
+        });
+
+        it('should preserve existing dataset values when adding the current route marker', () => {
+            render(
+                <FocusTrapForScreen>
+                    <View
+                        testID="route-boundary"
+                        dataSet={{existingValue: 'keep-me'}}
+                    />
+                </FocusTrapForScreen>,
+            );
+
+            expect(screen.getByTestId('route-boundary').props.dataSet).toEqual({
+                existingValue: 'keep-me',
+                [NAVIGATION_FOCUS_ROUTE_DATASET_KEY]: 'test-route',
+            });
+        });
     });
 
     describe('P0-1: Initial page load - no focus restoration (guards #46109)', () => {

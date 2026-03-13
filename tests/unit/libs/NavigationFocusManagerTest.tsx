@@ -1,3 +1,5 @@
+import {NAVIGATION_FOCUS_ROUTE_DATA_ATTRIBUTE} from '@libs/NavigationFocusManager/constants';
+
 /**
  * Unit Tests for NavigationFocusManager - Issue #76921
  *
@@ -468,6 +470,78 @@ describe('NavigationFocusManager Gap Tests', () => {
 
             // Then: Should return null (already consumed)
             expect(secondRetrieval).toBeNull();
+        });
+    });
+
+    describe('Route boundary ownership resolution', () => {
+        it('should prefer the closest route boundary over a registered wrapper route on pointer capture', () => {
+            const wrapperBoundary = document.createElement('div');
+            wrapperBoundary.setAttribute(NAVIGATION_FOCUS_ROUTE_DATA_ATTRIBUTE, 'workspace-split-route');
+
+            const leafBoundary = document.createElement('div');
+            leafBoundary.setAttribute(NAVIGATION_FOCUS_ROUTE_DATA_ATTRIBUTE, 'workspace-categories-route');
+
+            const button = document.createElement('button');
+            button.id = 'add-category-button';
+
+            leafBoundary.appendChild(button);
+            wrapperBoundary.appendChild(leafBoundary);
+            document.body.appendChild(wrapperBoundary);
+
+            NavigationFocusManager.registerFocusedRoute('workspace-split-route');
+
+            const pointerEvent = new PointerEvent('pointerdown', {
+                bubbles: true,
+                cancelable: true,
+            });
+            Object.defineProperty(pointerEvent, 'target', {value: button});
+            document.dispatchEvent(pointerEvent);
+
+            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toEqual({
+                interactionType: 'pointer',
+                interactionTrigger: 'pointer',
+                routeKey: 'workspace-categories-route',
+            });
+
+            NavigationFocusManager.captureForRoute('workspace-categories-route');
+
+            expect(NavigationFocusManager.retrieveForRoute('workspace-categories-route')).toBe(button);
+            expect(NavigationFocusManager.retrieveForRoute('workspace-split-route')).toBeNull();
+        });
+
+        it('should prefer the closest route boundary over a registered wrapper route on keyboard capture', () => {
+            const wrapperBoundary = document.createElement('div');
+            wrapperBoundary.setAttribute(NAVIGATION_FOCUS_ROUTE_DATA_ATTRIBUTE, 'workspace-split-route');
+
+            const leafBoundary = document.createElement('div');
+            leafBoundary.setAttribute(NAVIGATION_FOCUS_ROUTE_DATA_ATTRIBUTE, 'distance-rates-route');
+
+            const button = document.createElement('button');
+            button.id = 'add-rate-button';
+
+            leafBoundary.appendChild(button);
+            wrapperBoundary.appendChild(leafBoundary);
+            document.body.appendChild(wrapperBoundary);
+
+            NavigationFocusManager.registerFocusedRoute('workspace-split-route');
+            button.focus();
+
+            const keyEvent = new KeyboardEvent('keydown', {
+                key: 'Enter',
+                bubbles: true,
+            });
+            document.dispatchEvent(keyEvent);
+
+            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toEqual({
+                interactionType: 'keyboard',
+                interactionTrigger: 'enterOrSpace',
+                routeKey: 'distance-rates-route',
+            });
+
+            NavigationFocusManager.captureForRoute('distance-rates-route');
+
+            expect(NavigationFocusManager.retrieveForRoute('distance-rates-route')).toBe(button);
+            expect(NavigationFocusManager.retrieveForRoute('workspace-split-route')).toBeNull();
         });
     });
 
