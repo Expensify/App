@@ -108,6 +108,7 @@ function useReportActionAvatars({
 
     const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce : chatReportIDAdmins}`);
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
@@ -150,6 +151,7 @@ function useReportActionAvatars({
                 ...(personalDetails?.[workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
                 shouldDisplayAllActors: false,
                 isWorkspaceActor: false,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 actorHint: String(policyID).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
                 accountID: workspaceAccountID,
                 delegateAccountID: undefined,
@@ -187,6 +189,7 @@ function useReportActionAvatars({
             !shouldShowConvertedSubscriptAvatar) ||
         shouldUseCardFeed;
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldUseMultipleAvatars = shouldUseAccountIDs || shouldShowAllActors || shouldShowConvertedSubscriptAvatar;
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
@@ -288,6 +291,7 @@ function useReportActionAvatars({
         const iouReportIcons = getIconsWithDefaults(iouReport);
         secondaryAvatar = iouReportIcons.at(iouReportIcons.at(1)?.id === primaryAvatar.id ? 0 : 1);
     } else if (!isWorkspaceActor) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         secondaryAvatar = reportIcons.at(chatReport?.isOwnPolicyExpenseChat || isAWorkspaceChat ? 0 : 1);
     } else if (isAInvoiceReport) {
         secondaryAvatar = reportIcons.at(1);
@@ -307,6 +311,7 @@ function useReportActionAvatars({
         avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && avatars.at(0)?.type === CONST.ICON_TYPE_AVATAR && avatars.at(1)?.type === CONST.ICON_TYPE_WORKSPACE;
     const isWorkspaceWithUserAvatar =
         avatars.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && avatars.at(1)?.type === CONST.ICON_TYPE_AVATAR && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE;
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const wasReportPreviewMovedToDifferentPolicy = shouldUseChangedPolicyID && isAReportPreviewAction;
 
     if (shouldUseInvoiceExpenseIcons) {

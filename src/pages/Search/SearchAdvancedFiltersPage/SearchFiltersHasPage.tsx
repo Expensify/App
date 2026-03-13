@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHasOptions} from '@libs/SearchUIUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +27,7 @@ function SearchFiltersHasPage() {
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const currentType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION);
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION);
     const [selectedItems, setSelectedItems] = useState<string[]>(() => {
         if (!searchAdvancedFiltersForm?.has) {
             return [];
@@ -44,33 +45,37 @@ function SearchFiltersHasPage() {
         }));
     }, [items, selectedItems]);
 
-    const updateSelectedItems = useCallback(
-        (listItem: ListItem) => {
-            if (listItem.isSelected) {
-                setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList));
-                return;
-            }
+    const updateSelectedItems = (listItem: ListItem) => {
+        if (shouldShowProductTrainingTooltip) {
+            hideProductTrainingTooltip();
+        }
+        if (listItem.isSelected) {
+            setSelectedItems(selectedItems.filter((i) => i !== listItem.keyForList));
+            return;
+        }
 
-            const newItem = items.find((i) => i.value === listItem.keyForList)?.value;
+        const newItem = items.find((i) => i.value === listItem.keyForList)?.value;
 
-            if (newItem) {
-                setSelectedItems([...selectedItems, newItem]);
-            }
-        },
-        [items, selectedItems],
-    );
+        if (newItem) {
+            setSelectedItems([...selectedItems, newItem]);
+        }
+    };
 
-    const resetChanges = useCallback(() => {
+    const resetChanges = () => {
         setSelectedItems([]);
-    }, []);
+    };
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         updateAdvancedFilters({has: selectedItems});
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [selectedItems]);
+    };
 
     if (searchAdvancedFiltersFormResult.status === 'loading') {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SearchFiltersHasPage',
+            isLoading: searchAdvancedFiltersFormResult.status === 'loading',
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

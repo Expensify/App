@@ -85,6 +85,9 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
          */
         isFocused?: boolean;
 
+        /** Whether this screen should be hidden from accessibility tree */
+        shouldHideFromAccessibility?: boolean;
+
         /** Reference to the outer element */
         ref?: ForwardedRef<View>;
     }>;
@@ -109,6 +112,7 @@ function ScreenWrapperContainer({
     includePaddingTop = true,
     includeSafeAreaPaddingBottom = false,
     isFocused = true,
+    shouldHideFromAccessibility = false,
     ref,
     forwardedFSClass,
 }: ScreenWrapperContainerProps) {
@@ -212,8 +216,12 @@ function ScreenWrapperContainer({
             {...panResponder.panHandlers}
             testID={testID}
             fsClass={forwardedFSClass}
+            tabIndex={-1}
+            accessibilityElementsHidden={shouldHideFromAccessibility}
+            aria-hidden={shouldHideFromAccessibility}
         >
             <View
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
                 style={[shouldEnableMaxHeight && {marginTop: viewportOffsetTop}, style, paddingTopStyle]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...keyboardDismissPanResponder.panHandlers}
