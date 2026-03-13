@@ -17,7 +17,7 @@ type ModalProps = {
 };
 
 type ModalContextType = {
-    showModal<P extends ModalProps>(options: {component: React.FunctionComponent<P>; props?: Omit<P, 'closeModal'>; id?: string; isCloseable?: boolean}): Promise<ModalStateChangePayload>;
+    showModal<P extends ModalProps>(options: {component: React.FunctionComponent<P>; props?: Omit<P, 'closeModal'>; isCloseable?: boolean}): Promise<ModalStateChangePayload>;
     closeModal(data?: ModalStateChangePayload): void;
 };
 
@@ -42,23 +42,17 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     const modalIDRef = useRef(1);
     const modalPromisesStack = useRef<Record<string, CloseModalPromiseWithResolvers>>({});
 
-    const showModal: ModalContextType['showModal'] = ({component, props, id, isCloseable = true}) => {
-        // This is a promise that will resolve when the modal is closed
-        let closeModalPromise: CloseModalPromiseWithResolvers | null = id ? modalPromisesStack.current?.[id] : null;
+    const showModal: ModalContextType['showModal'] = ({component, props, isCloseable = true}) => {
+        const newModalId = String(modalIDRef.current++);
 
-        const newModalId = id ?? String(modalIDRef.current++);
+        // Create a new promise with resolvers to be resolved when the modal is closed
+        const closeModalPromise = Promise.withResolvers<ModalStateChangePayload>();
 
-        if (!closeModalPromise) {
-            // Create a new promise with resolvers to be resolved when the modal is closed
-            const promiseWithResolvers = Promise.withResolvers<ModalStateChangePayload>();
-            closeModalPromise = promiseWithResolvers;
-
-            // New modal => update modals stack
-            setModalStack((prevState) => ({
-                ...prevState,
-                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, isCloseable, id: newModalId}],
-            }));
-        }
+        // New modal => update modals stack
+        setModalStack((prevState) => ({
+            ...prevState,
+            modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, isCloseable, id: newModalId}],
+        }));
 
         modalPromisesStack.current[newModalId] = closeModalPromise;
 
