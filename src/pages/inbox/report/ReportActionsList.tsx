@@ -25,7 +25,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -135,14 +134,6 @@ type ReportActionsListProps = {
 
     /** Callback to show previous messages */
     onShowPreviousMessages?: () => void;
-    /** If concierge is currently processing a request */
-    isConciergeProcessing?: boolean;
-
-    /** Concierge reasoning history for display */
-    conciergeReasoningHistory?: ReasoningEntry[];
-
-    /** Concierge status label */
-    conciergeStatusLabel?: string;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -186,9 +177,6 @@ function ReportActionsList({
     showHiddenHistory,
     hasPreviousMessages,
     onShowPreviousMessages,
-    isConciergeProcessing = false,
-    conciergeReasoningHistory,
-    conciergeStatusLabel,
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -845,20 +833,14 @@ function ReportActionsList({
 
         return (
             <>
-                {isConciergeProcessing && (
-                    <ConciergeThinkingMessage
-                        report={report}
-                        reasoningHistory={conciergeReasoningHistory}
-                        statusLabel={conciergeStatusLabel}
-                    />
-                )}
+                <ConciergeThinkingMessage report={report} />
                 <ListBoundaryLoader
                     type={CONST.LIST_COMPONENTS.HEADER}
                     onRetry={retryLoadNewerChatsError}
                 />
             </>
         );
-    }, [canShowHeader, isConciergeProcessing, report, conciergeReasoningHistory, conciergeStatusLabel, retryLoadNewerChatsError]);
+    }, [canShowHeader, report, retryLoadNewerChatsError]);
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 

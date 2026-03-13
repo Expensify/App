@@ -14,10 +14,10 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -30,15 +30,11 @@ type ConciergeThinkingMessageProps = {
 
     /** The report action if available */
     action?: OnyxEntry<ReportAction>;
-
-    /** Reasoning history to display */
-    reasoningHistory?: ReasoningEntry[];
-
-    /** Status label text */
-    statusLabel?: string;
 };
 
-function ConciergeThinkingMessage({report, action, reasoningHistory, statusLabel}: ConciergeThinkingMessageProps) {
+function ConciergeThinkingMessage({report, action}: ConciergeThinkingMessageProps) {
+    const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatus();
+
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -92,6 +88,11 @@ function ConciergeThinkingMessage({report, action, reasoningHistory, statusLabel
     }));
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    if (!isProcessing) {
+        return null;
+    }
+
     const accountID = action?.actorAccountID ?? CONST.ACCOUNT_ID.CONCIERGE;
     const displayName = action?.person?.[0]?.text ?? getDisplayNameOrDefault(personalDetails?.[accountID]) ?? CONST.CONCIERGE_DISPLAY_NAME;
     const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;

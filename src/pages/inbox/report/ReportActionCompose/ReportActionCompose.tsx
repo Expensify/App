@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -21,31 +22,52 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShortMentionsList from '@hooks/useShortMentionsList';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
-import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {addDomainToShortMention} from '@libs/ParsingUtils';
+import {
+    getCombinedReportActions,
+    getFilteredReportActionsForReportView,
+    getLinkedTransactionID,
+    getOneTransactionThreadReportID,
+    getReportAction,
+    isCreatedAction,
+    isMoneyRequestAction,
+    isSentMoneyReportAction,
+} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
+    canEditReportAction,
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     chatIncludesChronos,
     chatIncludesConcierge,
     getParentReport,
+    getReportOfflinePendingActionAndErrors,
     getReportRecipientAccountIDs,
     isChatRoom,
     isConciergeChatReport,
@@ -58,17 +80,18 @@ import {
 } from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
+import {generateAccountID} from '@libs/UserUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
-import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
+import {addAttachmentWithComment, addComment, setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
@@ -87,38 +110,12 @@ type SuggestionsRef = {
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
-type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize' | 'lastReportAction'> & {
-    /** A method to call when the form is submitted */
-    onSubmit: (newComment: string, reportActionID?: string) => void;
-
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The ID of the transaction thread report if there is a single transaction */
-    transactionThreadReportID?: string;
-
-    /** Report transactions */
-    reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
-
-    /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction;
-
+type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID'> & {
     /** A method to call when the input is focus */
     onComposerFocus?: () => void;
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
-
-    /** Whether the main composer was hidden */
-    didHideComposerInput?: boolean;
-
-    /** Whether the report screen is being displayed in the side panel */
-    isInSidePanel?: boolean;
-
-    /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
-    shouldHideStatusIndicators?: boolean;
-    /** Function to trigger optimistic waiting indicator for Concierge */
-    kickoffWaitingIndicator?: () => void;
 };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -130,31 +127,64 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
 
-function ReportActionCompose({
-    isComposerFullSize = false,
-    onSubmit,
-    pendingAction,
-    report,
-    reportID,
-    lastReportAction,
-    onComposerFocus,
-    onComposerBlur,
-    didHideComposerInput,
-    reportTransactions,
-    transactionThreadReportID,
-    isInSidePanel = false,
-    shouldHideStatusIndicators = false,
-    kickoffWaitingIndicator,
-}: ReportActionComposeProps) {
+function ReportActionCompose({reportID, onComposerFocus, onComposerBlur}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+    const {kickoffWaitingIndicator} = useAgentZeroStatus();
+    const isInSidePanel = useIsInSidePanel();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
+
+    // Self-subscribe to report and derived data (moved from ReportFooter)
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const parentReportAction = useParentReportAction(report);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const allReportTransactions = useReportTransactionsCollection(reportID);
+    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+    let visibleTransactions: OnyxTypes.Transaction[];
+    let reportTransactionIDs: string[];
+    if (isOffline) {
+        visibleTransactions = reportTransactions;
+        reportTransactionIDs = reportTransactions.map((t) => t.transactionID);
+    } else {
+        visibleTransactions = [];
+        reportTransactionIDs = [];
+        for (const t of reportTransactions) {
+            if (t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                visibleTransactions.push(t);
+                reportTransactionIDs.push(t.transactionID);
+            }
+        }
+    }
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+    const [transactionThreadReportActions = {} as OnyxTypes.ReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+    const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
+    const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- canEditReportAction type is loose
+    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
+    const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
+
+    // Concierge concerns (moved from ReportFooter)
+    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
+    const {sessionStartTime} = useSidePanelState();
+    const hasUserSentMessage = (() => {
+        if (!isConciergeSidePanel || !sessionStartTime) {
+            return false;
+        }
+        return reportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserPersonalDetails.accountID && action.created >= sessionStartTime);
+    })();
+    const shouldHideStatusIndicators = isConciergeSidePanel && !hasUserSentMessage;
+
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
@@ -167,9 +197,89 @@ function ReportActionCompose({
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID}`);
     const ancestors = useAncestors(transactionThreadReport ?? report);
     const {scrollOffsetRef} = useContext(ActionListContext);
+
+    // Comment submission + task creation (moved from ReportFooter)
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const {availableLoginsList} = useShortMentionsList();
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+
+    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
+    useEffect(() => {
+        if (didHideComposerInput || shouldShowComposeInput) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDidHideComposerInput(true);
+    }, [shouldShowComposeInput, didHideComposerInput]);
+
+    const handleCreateTask = (text: string): boolean => {
+        const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
+        if (!match) {
+            return false;
+        }
+        let title = match[3] ? match[3].trim().replaceAll('\n', ' ') : undefined;
+        if (!title) {
+            return false;
+        }
+        const mention = match[1] ? match[1].trim() : '';
+        const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail) ? '' : Str.extractEmailDomain(currentUserEmail);
+        const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
+        const isValidMention = Str.isValidEmail(mentionWithDomain);
+
+        let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
+        let assigneeChatReport;
+        if (mentionWithDomain) {
+            if (isValidMention) {
+                assignee = Object.values(personalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
+                if (!Object.keys(assignee ?? {}).length) {
+                    const optimisticDataForNewAssignee = setNewOptimisticAssignee(currentUserPersonalDetails.accountID, {
+                        accountID: generateAccountID(mentionWithDomain),
+                        login: mentionWithDomain,
+                    });
+                    assignee = optimisticDataForNewAssignee.assignee;
+                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                }
+            } else {
+                title = `@${mentionWithDomain} ${title}`;
+            }
+        }
+        createTaskAndNavigate({
+            parentReport: report,
+            title,
+            description: '',
+            assigneeEmail: assignee?.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserEmail,
+            assigneeAccountID: assignee?.accountID,
+            assigneeChatReport,
+            policyID: report?.policyID,
+            isCreatedUsingMarkdown: true,
+            quickAction,
+            ancestors,
+        });
+        return true;
+    };
+
+    const onSubmitComment = (text: string, reportActionID?: string) => {
+        const isTaskCreated = handleCreateTask(text);
+        if (isTaskCreated) {
+            return;
+        }
+        addComment({
+            report: transactionThreadReport ?? report,
+            notifyReportID: reportID,
+            ancestors,
+            text,
+            timezoneParam: currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            shouldPlaySound: true,
+            isInSidePanel,
+            reportActionID,
+        });
+    };
 
     /**
      * Updates the Highlight state of the composer
@@ -221,18 +331,14 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
-
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
+    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canEvict: false,
     });
 
-    const personalDetail = useCurrentUserPersonalDetails();
-
-    const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
+    const iouAction = rawReportActions ? Object.values(rawReportActions).find((action) => isMoneyRequestAction(action)) : null;
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
 
     const transactionID = useMemo(() => getTransactionID(report) ?? linkedTransactionID, [report, linkedTransactionID]);
@@ -240,9 +346,10 @@ function ReportActionCompose({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
-    const parentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const effectiveParentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const canEditReceipt = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT) && !transaction?.receipt?.isTestDriveReceipt;
+    const canEditReceipt =
+        canUserPerformWriteAction && canEditFieldOfMoneyRequest(effectiveParentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT) && !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
@@ -336,9 +443,7 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
-            if (isConciergeChat && kickoffWaitingIndicator) {
-                kickoffWaitingIndicator();
-            }
+            kickoffWaitingIndicator();
 
             if (attachmentFileRef.current) {
                 addAttachmentWithComment({
@@ -348,7 +453,7 @@ function ReportActionCompose({
                     attachments: attachmentFileRef.current,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     text: newCommentTrimmed,
-                    timezone: personalDetail.timezone,
+                    timezone: currentUserPersonalDetails.timezone,
                     shouldPlaySound: true,
                     isInSidePanel,
                 });
@@ -369,20 +474,19 @@ function ReportActionCompose({
                         },
                     });
                 }
-                onSubmit(newCommentTrimmed, optimisticReportActionID);
+                onSubmitComment(newCommentTrimmed, optimisticReportActionID);
             }
         },
         [
-            isConciergeChat,
             kickoffWaitingIndicator,
             transactionThreadReport,
             report,
             reportID,
             ancestors,
             currentUserPersonalDetails.accountID,
-            personalDetail.timezone,
+            currentUserPersonalDetails.timezone,
             isInSidePanel,
-            onSubmit,
+            onSubmitComment,
             scrollOffsetRef,
         ],
     );
