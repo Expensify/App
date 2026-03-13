@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Accueil',
         inbox: 'Boîte de réception',
         yourReviewIsRequired: 'Votre révision est requise',
+        actionBadge: {
+            submit: 'Soumettre',
+            approve: 'Approuver',
+            pay: 'Payer',
+            fix: 'Corriger',
+        },
         success: 'Réussi',
         group: 'Groupe',
         profile: 'Profil',
@@ -513,7 +519,6 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Activé',
         before: 'Avant',
         after: 'Après',
-        range: 'Intervalle',
         reschedule: 'Reprogrammer',
         general: 'Général',
         workspacesTabTitle: 'Espaces de travail',
@@ -753,6 +758,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `Cette action n'est pas prise en charge sur votre appareil. Veuillez télécharger l'application Expensify depuis l'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou le <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> et réessayer.`,
         },
         verificationFailed: 'Échec de la vérification',
+        setPin: {didNotShipCard: 'Nous n’avons pas envoyé votre carte. Veuillez réessayer.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1022,6 +1028,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Réparer la connexion de la carte personnelle ${cardName}` : 'Corriger la connexion de la carte personnelle'),
                 subtitle: 'Portefeuille',
             },
+            validateAccount: {title: 'Validez votre compte pour continuer à utiliser Expensify', subtitle: 'Compte', cta: 'Valider'},
         },
         assignedCards: 'Vos cartes Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restant`,
@@ -2371,6 +2378,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} pour ${merchant} - ${date}`,
         },
+        setYourPin: 'Définir votre code PIN.',
+        confirmYourPin: 'Confirmez votre code PIN.',
+        pinMustBeFourDigits: 'Le code PIN doit comporter exactement 4 chiffres.',
+        invalidPin: 'Veuillez choisir un code PIN plus sécurisé.',
+        pinMismatch: 'Les codes PIN ne correspondent pas. Veuillez réessayer.',
+        revealPin: 'Afficher le code PIN',
+        hidePin: 'Masquer le code PIN',
+        pin: 'Code PIN',
         freezeCard: 'Geler la carte',
         unfreeze: 'Dégeler',
         unfreezeCard: 'Dégeler la carte',
@@ -7327,8 +7342,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 before: (date?: string) => `Avant ${date ?? ''}`,
                 after: (date?: string) => `Après ${date ?? ''}`,
                 on: (date?: string) => `Le ${date ?? ''}`,
-                customDate: 'Date personnalisée',
-                customRange: 'Intervalle personnalisé',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
@@ -7439,9 +7452,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
         },
         spendOverTime: 'Dépenses dans le temps',
     },
@@ -8674,6 +8684,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             title: 'Membres',
             findMember: 'Trouver un membre',
             addMember: 'Ajouter un membre',
+            allMembers: 'Tous les membres',
             email: 'Adresse e-mail',
             closeAccount: () => ({
                 one: 'Fermer le compte',
