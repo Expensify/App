@@ -36,6 +36,18 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
     const onContainerLayout = (event: LayoutChangeEvent) => {
         const width = event.nativeEvent.layout.width;
         containerLayoutRef.current.width = width;
+
+        const tabData = tabsRef.current[activeTabKey];
+
+        if (!tabData) {
+            return;
+        }
+
+        const {ref: tabRef, x: tabX, width: tabWidth} = tabData;
+
+        if (tabWidth) {
+            scrollToTabUtil({tabX, tabWidth, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x, animated: false});
+        }
     };
 
     const onContainerScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -55,7 +67,7 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
         const {x, width} = event.nativeEvent.layout;
         tabsRef.current[tabKey] = {...tabsRef.current[tabKey], x, width};
 
-        if (tabKey === activeTabKey) {
+        if (tabKey === activeTabKey && containerLayoutRef.current.width !== 0) {
             const {ref: tabRef} = tabsRef.current[tabKey];
             scrollToTabUtil({tabX: x, tabWidth: width, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x, animated: false});
         }
