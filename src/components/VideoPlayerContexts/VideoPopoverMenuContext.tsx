@@ -9,9 +9,10 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
+import type {PlaybackSpeed, VideoPopoverMenuActionsContextType, VideoPopoverMenuStateContextType} from './types';
 
-const Context = React.createContext<VideoPopoverMenuContext | null>(null);
+const VideoPopoverMenuStateContext = React.createContext<VideoPopoverMenuStateContextType | null>(null);
+const VideoPopoverMenuActionsContext = React.createContext<VideoPopoverMenuActionsContextType | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Download', 'Meter'] as const);
@@ -78,16 +79,36 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         return items;
     }, [icons.Checkmark, icons.Download, icons.Meter, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
-    const contextValue = useMemo(() => ({menuItems, updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: setSource}), [menuItems, updatePlaybackSpeed, setSource]);
-    return <Context.Provider value={contextValue}>{children}</Context.Provider>;
+    const stateValue = {menuItems};
+    const actionsValue = {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: setSource};
+
+    return (
+        <VideoPopoverMenuStateContext.Provider value={stateValue}>
+            <VideoPopoverMenuActionsContext.Provider value={actionsValue}>{children}</VideoPopoverMenuActionsContext.Provider>
+        </VideoPopoverMenuStateContext.Provider>
+    );
+}
+
+function useVideoPopoverMenuState() {
+    const context = useContext(VideoPopoverMenuStateContext);
+    if (!context) {
+        throw new Error('useVideoPopoverMenuState must be used within a VideoPopoverMenuContextProvider');
+    }
+    return context;
+}
+
+function useVideoPopoverMenuActions() {
+    const context = useContext(VideoPopoverMenuActionsContext);
+    if (!context) {
+        throw new Error('useVideoPopoverMenuActions must be used within a VideoPopoverMenuContextProvider');
+    }
+    return context;
 }
 
 function useVideoPopoverMenuContext() {
-    const videoPopoverMenuContext = useContext(Context);
-    if (!videoPopoverMenuContext) {
-        throw new Error('useVideoPopoverMenuContext must be used within a VideoPopoverMenuContext');
-    }
-    return videoPopoverMenuContext;
+    const state = useVideoPopoverMenuState();
+    const actions = useVideoPopoverMenuActions();
+    return {...state, ...actions};
 }
 
-export {VideoPopoverMenuContextProvider, useVideoPopoverMenuContext};
+export {VideoPopoverMenuContextProvider, useVideoPopoverMenuContext, useVideoPopoverMenuState, useVideoPopoverMenuActions};

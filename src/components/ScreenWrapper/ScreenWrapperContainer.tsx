@@ -90,7 +90,6 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
 
         /** Optional dataset values forwarded to the outer web container */
         dataSet?: ViewProps['dataSet'];
-
         /** Reference to the outer element */
         ref?: ForwardedRef<View>;
     }>;

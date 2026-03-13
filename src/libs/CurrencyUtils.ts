@@ -137,6 +137,14 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     });
 }
 
+/** Same intended use as convertToDisplayString, but purposely omit currency symbol if not provided */
+function convertToDisplayStringWithExplicitCurrency(amountInCents: number, currency: string | undefined): string {
+    if (!currency) {
+        return convertToDisplayStringWithoutCurrency(amountInCents);
+    }
+    return convertToDisplayString(amountInCents, currency);
+}
+
 /**
  * Given the amount in the "cents", convert it to a short string (no decimals) for display in the UI.
  * The backend always handle things in "cents" (subunit equal to 1/100)
@@ -226,6 +234,7 @@ export {
     convertToDisplayString,
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    convertToDisplayStringWithExplicitCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
 };
