@@ -7617,11 +7617,13 @@ ${reportName}
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: '开始聊天，<success><strong>推荐好友</strong></success>。',
             header: '开始聊天，推荐好友',
+            closeAccessibilityLabel: '关闭，开始聊天，推荐好友，横幅',
             body: '也想让你的朋友使用 Expensify 吗？只需与他们开始一个聊天，剩下的交给我们。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: '提交报销，<success><strong>推荐你的团队</strong></success>。',
             header: '报销一笔费用，推荐你的团队',
+            closeAccessibilityLabel: '关闭，报销一笔费用，推荐你的团队，横幅',
             body: '也想让你的团队使用 Expensify 吗？只需向他们提交一笔报销，我们会帮你处理剩下的一切。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
