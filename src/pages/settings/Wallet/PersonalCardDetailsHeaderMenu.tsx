@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable} from '@userActions/Card';
@@ -54,6 +55,7 @@ function PersonalCardDetailsHeaderMenu({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Trashcan'] as const);
+    const isLoadingLastUpdatedReasonAttributes: SkeletonSpanReasonAttributes = {context: 'PersonalCardDetailsHeaderMenu', isLoadingLastUpdated: !!card?.isLoadingLastUpdated};
 
     return (
         <>
@@ -102,7 +104,12 @@ function PersonalCardDetailsHeaderMenu({
 
             <MenuItemWithTopDescription
                 shouldShowRightComponent={card?.isLoadingLastUpdated}
-                rightComponent={<ActivityIndicator style={[styles.popoverMenuIcon]} />}
+                rightComponent={
+                    <ActivityIndicator
+                        style={[styles.popoverMenuIcon]}
+                        reasonAttributes={isLoadingLastUpdatedReasonAttributes}
+                    />
+                }
                 description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
                 title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
                 interactive={false}
