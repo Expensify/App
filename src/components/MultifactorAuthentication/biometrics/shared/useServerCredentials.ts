@@ -1,5 +1,7 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Account} from '@src/types/onyx';
 
 type UseServerCredentialsReturn = {
     serverHasAnyCredentials: boolean;
@@ -7,9 +9,11 @@ type UseServerCredentialsReturn = {
     haveCredentialsEverBeenConfigured: boolean;
 };
 
+const selectMFAPublicKeyIDs = (data: OnyxEntry<Account>) => data?.multifactorAuthenticationPublicKeyIDs;
+
 function useServerCredentials(): UseServerCredentialsReturn {
     const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (data) => data?.multifactorAuthenticationPublicKeyIDs,
+        selector: selectMFAPublicKeyIDs,
     });
     const serverKnownCredentialIDs = multifactorAuthenticationPublicKeyIDs ?? [];
     const serverHasAnyCredentials = serverKnownCredentialIDs.length > 0;
