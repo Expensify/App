@@ -15,11 +15,18 @@ type SelectionListWrapperProps = {
     canSelectMultiple?: boolean;
 };
 
-// FlashList requires layout events to render items; mock it with FlatList for tests
+// FlashList requires layout events to render items; mock it with FlatList for tests.
 jest.mock('@shopify/flash-list', () => {
     const RN = jest.requireActual<typeof ReactNative>('react-native');
     return {
-        FlashList: RN.FlatList,
+        FlashList: ({data, ...props}: React.ComponentProps<typeof RN.FlatList>) => (
+            <RN.FlatList
+                data={data}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                initialNumToRender={data?.length}
+            />
+        ),
     };
 });
 
