@@ -34,6 +34,35 @@ import type {PersonalDetails} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails, SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
+type PersonalDetailsFormValues = {
+    legalFirstName?: string;
+    legalLastName?: string;
+    phoneNumber?: string;
+    city: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    zipPostCode?: string;
+    country: Country | '';
+    addressState?: string;
+    state: string;
+    dob: string;
+};
+
+function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDetailsFormValues, countryCode: number): Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> {
+    return {
+        legalFirstName: values.legalFirstName?.trim() ?? '',
+        legalLastName: values.legalLastName?.trim() ?? '',
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        addressCity: values.city.trim(),
+        addressStreet: values.addressLine1?.trim() ?? '',
+        addressStreet2: values.addressLine2?.trim() ?? '',
+        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
+        addressCountry: values.country,
+        addressState: (values.addressState ?? values.state).trim(),
+        dob: values.dob,
+    };
+}
+
 function updatePronouns(pronouns: string, currentUserAccountID: number) {
     if (!currentUserAccountID) {
         return;
@@ -506,16 +535,7 @@ function clearPersonalDetailsErrors() {
 
 function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
-        legalFirstName: values.legalFirstName?.trim() ?? '',
-        legalLastName: values.legalLastName?.trim() ?? '',
-        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
-        addressCity: values.city.trim(),
-        addressStreet: values.addressLine1?.trim() ?? '',
-        addressStreet2: values.addressLine2?.trim() ?? '',
-        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
-        addressCountry: values.country,
-        addressState: values.state.trim(),
-        dob: values.dob,
+        ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
         validateCode,
     };
 
@@ -549,16 +569,7 @@ function setPersonalDetailsAndRevealExpensifyCard(
 ): Promise<{pan: string; expiration: string; cvv: string}> {
     return new Promise((resolve, reject) => {
         const parameters: SetPersonalDetailsAndRevealExpensifyCardParams = {
-            legalFirstName: values.legalFirstName?.trim() ?? '',
-            legalLastName: values.legalLastName?.trim() ?? '',
-            phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
-            addressCity: values.city.trim(),
-            addressStreet: values.addressLine1?.trim() ?? '',
-            addressStreet2: values.addressLine2?.trim() ?? '',
-            addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
-            addressCountry: values.country,
-            addressState: values.state.trim(),
-            dob: values.dob,
+            ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
             validateCode,
             cardID,
         };
@@ -658,4 +669,5 @@ export {
     updatePersonalDetailsAndShipExpensifyCards,
     setPersonalDetailsAndRevealExpensifyCard,
     clearPersonalDetailsErrors,
+    buildSetPersonalDetailsAndShipExpensifyCardsParams,
 };
