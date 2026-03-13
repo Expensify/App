@@ -2329,7 +2329,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastReadTime,
-                ...(lastActorAccountID !== undefined && {lastActorAccountID}),
+                // ...(lastActorAccountID !== undefined && {lastActorAccountID}),
             },
         },
     ];

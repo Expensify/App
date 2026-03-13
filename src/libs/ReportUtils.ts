@@ -8979,7 +8979,7 @@ function getLatestReportActionFromOtherUsers(reportActions: ReportActions | null
 }
 
 // We need oneTransactionThreadReport to get the correct last visible action created
-function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
+function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined, reportActions?: ReportActions): boolean {
     if (!report) {
         return false;
     }
@@ -8987,8 +8987,7 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     if (isEmptyReport(report, isReportArchived)) {
         return false;
     }
-    const reportActions = getAllReportActions(report.reportID);
-    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions, currentUserAccountID);
+    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions ?? null, currentUserAccountID);
 
     if (!report.lastReadTime) {
         return true;
@@ -8998,8 +8997,8 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     const lastReadTime = report.lastReadTime ?? '';
     const lastMentionedTime = report.lastMentionedTime ?? '';
 
-    // Unread when lastReadTime is before the latest action from other users (or lastVisibleActionCreated as fallback), or when the user was mentioned and has not read it
-    return lastReadTime < (latestReportActionFromOtherUsers?.created ?? lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime;
+    // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
+    return lastReadTime < (lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime || lastReadTime < (latestReportActionFromOtherUsers?.created ?? '');
 }
 
 function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>): boolean {
@@ -9550,7 +9549,7 @@ function reasonForReportToBeInOptionList({
     if (isInFocusMode) {
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, currentReportActions);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        return isUnread(report, oneTransactionThreadReport, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
+        return isUnread(report, oneTransactionThreadReport, isReportArchived, undefined) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
             ? CONST.REPORT_IN_LHN_REASONS.IS_UNREAD
             : null;
     }
