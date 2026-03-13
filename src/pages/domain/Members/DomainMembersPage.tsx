@@ -6,7 +6,13 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -62,6 +68,55 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: memberAccountIDsSelector,
     });
+
+    const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
+
+    const groupPopoverComponent = ({closeOverlay}: PopoverComponentProps) => (
+        <SingleSelectPopup
+            label={translate('common.group')}
+            items={groupOptions}
+            value={selectedGroup ?? groupOptions.at(0) ?? null}
+            closeOverlay={closeOverlay}
+            onChange={handleGroupChange}
+            defaultValue={groupOptions.at(0)?.value}
+            selectionListStyle={{listItemWrapperStyle: {minHeight: 40}}}
+        />
+    );
+
+    const groupFilterDropdown =
+        groupOptions.length > 1 ? (
+            <DropdownButton
+                label={dropdownLabel}
+                value={null}
+                PopoverComponent={groupPopoverComponent}
+                innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
+                wrapperStyle={shouldUseNarrowLayout && styles.w100}
+                labelStyle={styles.fontSizeLabel}
+                caretWrapperStyle={styles.gap2}
+                medium
+            />
+        ) : null;
+
+    const getGroupRightElement = (accountID: number) => {
+        if (!groups) {
+            return undefined;
+        }
+        const group = groups.find((g) => String(accountID) in g.details.shared);
+        return <Text style={styles.flex1}>{group?.details.name ?? '-'}</Text>;
+    };
+
+    const getCustomListHeader = () => {
+        return (
+            <CustomListHeader
+                canSelectMultiple={canSelectMultiple}
+                leftHeaderText={translate('domain.members.title')}
+                rightHeaderText={translate('common.group')}
+                shouldDivideEqualWidth
+                shouldShowRightCaret
+                shouldAdjustWidthForAvatar
+            />
+        );
+    };
 
     useSearchBackPress({
         onClearSelection: clearSelectedMembers,
@@ -229,7 +284,9 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             <BaseDomainMembersPage
                 domainAccountID={domainAccountID}
                 accountIDs={memberIDs ?? []}
+                preFilter={groupPreFilter}
                 headerTitle={translate('domain.members.title')}
+                getCustomListHeader={getCustomListHeader}
                 searchPlaceholder={translate('domain.members.findMember')}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
                 headerIcon={illustrations.Profile}
@@ -239,6 +296,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 setSelectedMembers={setSelectedMembers}
                 canSelectMultiple={canSelectMultiple}
                 useSelectionModeHeader={selectionModeHeader}
+                getCustomRightElement={getGroupRightElement}
+                searchBarAccessory={groupFilterDropdown}
                 turnOnSelectionModeOnLongPress
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
