@@ -3,7 +3,7 @@
  * derivation, Onyx subscriptions, and edit handlers live in one place rather
  * than being duplicated across every surface that renders a transaction.
  */
-import {useCallback, useMemo, useRef} from 'react';
+import {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {
@@ -94,6 +94,7 @@ function useTransactionInlineEdit({
         (reportActions: ReportActions | undefined) => (reportActionID ? reportActions?.[reportActionID] : getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)),
         [reportActionID, transactionID],
     );
+
     const [internalParentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {
         selector: parentReportActionSelector,
     });
@@ -116,28 +117,23 @@ function useTransactionInlineEdit({
 
     // For unreported expenses (SelfDM), get the user's default policy for moving expenses.
     // This policy determines whether category/tag editing is allowed.
-    const isUnreported = useMemo(() => isExpenseUnreported(transaction), [transaction]);
+    const isUnreported = isExpenseUnreported(transaction);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(undefined, undefined);
     const policyForPermissions = isUnreported ? policyForMovingExpenses : undefined;
 
-    // Memoize permissions with all dependencies to ensure recalculation when any data changes
-    const permissions = useMemo(
-        () =>
-            getTransactionEditPermissions({
-                transaction,
-                parentReportAction,
-                parentReport,
-                policyForMovingExpenses: policyForPermissions,
-                parentPolicy: policy,
-                transactionThreadReport,
-                policyCategories,
-                policyTags,
-                transactionThreadNVP,
-                chatReportNVP,
-                queryJSON,
-            }),
-        [transaction, parentReportAction, parentReport, policyForPermissions, policy, transactionThreadReport, policyCategories, policyTags, transactionThreadNVP, chatReportNVP, queryJSON],
-    );
+    const permissions = getTransactionEditPermissions({
+        transaction,
+        parentReportAction,
+        parentReport,
+        policyForMovingExpenses: policyForPermissions,
+        parentPolicy: policy,
+        transactionThreadReport,
+        policyCategories,
+        policyTags,
+        transactionThreadNVP,
+        chatReportNVP,
+        queryJSON,
+    });
 
     const wasEditingOnMouseDownRef = useRef(false);
 
