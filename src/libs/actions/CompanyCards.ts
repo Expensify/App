@@ -814,7 +814,7 @@ function clearCompanyCardErrorField(domainOrWorkspaceAccountID: number, cardID: 
     });
 }
 
-function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID: number, translate: LocaleContextProps['translate']) {
+function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID: number, emailList: string[], translate: LocaleContextProps['translate']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -851,6 +851,7 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
 
     const params: OpenPolicyExpensifyCardsPageParams = {
         policyID,
+        emailList: JSON.stringify(emailList),
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, successData, failureData});

@@ -17,7 +17,7 @@ function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonal
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reactionReportActionID = reportActionID || CONST.DEFAULT_NUMBER_ID;
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reactionReportActionID}`, {canBeMissing: true});
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reactionReportActionID}`);
     const {isPopoverVisible, hideReactionList, showReactionList, popoverAnchorPosition, reactionListRef, getReactionInformation} = useBasePopoverReactionList({
         emojiName,
         emojiReactions,

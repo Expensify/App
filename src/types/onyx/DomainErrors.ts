@@ -1,7 +1,7 @@
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
- * Basic errors for domain members
+ * Basic errors for domain members and admins
  */
 type GeneralDomainMemberErrors = {
     /**
@@ -9,6 +9,26 @@ type GeneralDomainMemberErrors = {
      */
     errors: OnyxCommon.Errors;
 };
+
+/**
+ * Errors for domain members
+ */
+type DomainMemberErrors = {
+    /**
+     * Errors related to a specific domain vacation delegate
+     */
+    vacationDelegateErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the list of emails exempt from the 2FA requirement
+     */
+    twoFactorAuthExemptEmailsError?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to specific domain member lock account status.
+     */
+    lockAccountErrors?: OnyxCommon.Errors;
+} & GeneralDomainMemberErrors;
 
 /**
  * Collection of errors related to domain operations received from the backend
@@ -30,9 +50,9 @@ type DomainErrors = {
     useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
 
     /**
-     * Errors related to specific domain member, keyed by their accountID. memberErrors are keyed with user email, NOT accountID
+     * Errors related to specific domain member, keyed by their user email, (NOT accountID)
      */
-    memberErrors?: Record<string | number, GeneralDomainMemberErrors>;
+    memberErrors?: Record<string | number, DomainMemberErrors>;
 
     /**
      * Errors for the domain itself
@@ -45,4 +65,5 @@ type DomainErrors = {
     setTwoFactorAuthRequiredError?: OnyxCommon.Errors;
 };
 
+export type {GeneralDomainMemberErrors, DomainMemberErrors};
 export default DomainErrors;

@@ -12,11 +12,15 @@ function useParentReportAction(report: OnyxEntry<Report>) {
         [report?.parentReportActionID],
     );
 
+    const parentReportID = getNonEmptyStringOnyxID(report?.parentReportID);
+
     const [parentReportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`,
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
         {
-            canEvict: false,
-            canBeMissing: true,
+            // Only set canEvict when we have a valid parentReportID — reportActions_<id> is an evictable key,
+            // but reportActions_undefined is not and will throw if canEvict is specified.
+            canEvict: parentReportID ? false : undefined,
+
             selector: getParentReportAction,
         },
         [getParentReportAction],

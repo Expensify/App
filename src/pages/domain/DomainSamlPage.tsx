@@ -10,6 +10,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import colors from '@styles/theme/colors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,16 +38,16 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['LaptopOnDeskWithCoffeeAndKey', 'LockClosed', 'OpenSafe', 'ShieldYellow']);
 
     const domainAccountID = route.params?.domainAccountID;
-    const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
-    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
+    const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
     const [domainSettings, domainSettingsResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
-        canBeMissing: false,
         selector: domainMemberSettingsSelector,
     });
 
     const isSamlEnabled = !!domainSettings?.samlEnabled;
     const isSamlRequired = !!domainSettings?.samlRequired;
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
+    useDomainDocumentTitle(domainName, 'domain.saml');
     const doesDomainExist = !!domain;
 
     const samlFeatures: FeatureListItem[] = useMemo(
@@ -67,7 +69,13 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     );
 
     if (isLoadingOnyxValue(domainResults, isAdminResults, domainSettingsResults)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DomainSamlPage',
+            isLoadingDomain: isLoadingOnyxValue(domainResults),
+            isLoadingAdmin: isLoadingOnyxValue(isAdminResults),
+            isLoadingDomainSettings: isLoadingOnyxValue(domainSettingsResults),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

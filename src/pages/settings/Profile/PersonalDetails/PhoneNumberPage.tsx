@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getEarliestErrorField} from '@libs/ErrorUtils';
 import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
 import {clearPhoneNumberError, updatePhoneNumber as updatePhone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -23,9 +24,9 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 function PhoneNumberPage() {
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -86,7 +87,10 @@ function PhoneNumberPage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <FullscreenLoadingIndicator
+                        style={[styles.flex1, styles.pRelative]}
+                        reasonAttributes={{context: 'PhoneNumberPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
+                    />
                 ) : (
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
@@ -119,6 +123,7 @@ function PhoneNumberPage() {
                                     }
                                     clearPhoneNumberError();
                                 }}
+                                autoComplete="tel"
                             />
                         </OfflineWithFeedback>
                     </FormProvider>

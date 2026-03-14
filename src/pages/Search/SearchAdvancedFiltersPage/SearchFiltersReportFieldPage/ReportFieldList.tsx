@@ -29,7 +29,7 @@ type ListItem = {
 function ReportFieldList({field, close}: ReportFieldListProps) {
     const formKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${field.name.toLowerCase().replaceAll(' ', '-')}` as const;
     const formSelector = useCallback((form: OnyxEntry<SearchAdvancedFiltersForm>) => form?.[formKey], [formKey]);
-    const [value = null] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: formSelector}, [formKey]);
+    const [value = null] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: formSelector}, [formKey]);
 
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);

@@ -2,9 +2,9 @@ import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -38,8 +38,9 @@ function UserListItem<TItem extends ListItem>({
     pressableStyle,
     shouldUseDefaultRightHandSideCheckmark,
     forwardedFSClass,
+    shouldDisableHoverStyle,
 }: UserListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -59,7 +60,6 @@ function UserListItem<TItem extends ListItem>({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
-        canBeMissing: true,
         selector: reportExistsSelector,
     });
 
@@ -70,6 +70,11 @@ function UserListItem<TItem extends ListItem>({
     const isThereOnlyWorkspaceIcon = item.icons?.length === 1 && item.icons?.at(0)?.type === CONST.ICON_TYPE_WORKSPACE;
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
+
+    // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
+    const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
+    const shouldDisableAccessibleGrouping = !!renderedRightComponent && !canSelectMultiple;
+    const contactAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
 
     return (
         <BaseListItem
@@ -82,7 +87,7 @@ function UserListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
+            rightHandSideComponent={renderedRightComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
             pressableStyle={pressableStyle}
@@ -94,100 +99,113 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            accessible={shouldDisableAccessibleGrouping ? false : undefined}
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
         >
-            {(hovered?: boolean) => (
-                <>
-                    {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                        <PressableWithFeedback
-                            accessibilityLabel={item.text ?? ''}
-                            role={CONST.ROLE.BUTTON}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
-                        >
-                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                {!!item.isSelected && (
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={theme.textLight}
-                                        height={14}
-                                        width={14}
-                                    />
-                                )}
-                            </View>
-                        </PressableWithFeedback>
-                    )}
-                    {(!!reportExists || !!itemAccountID || !!policyID) && (
-                        <ReportActionAvatars
-                            subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                            shouldShowTooltip={showTooltip}
-                            secondaryAvatarContainerStyle={[
-                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                            ]}
-                            reportID={reportExists ? item.reportID : undefined}
-                            /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
-                            accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
-                            policyID={!reportExists && !!policyID ? policyID : undefined}
-                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                            fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                        />
-                    )}
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={Str.removeSMSDomain(item.text ?? '')}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                item.isBold !== false && styles.sidebarLinkTextBold,
-                                styles.pre,
-                                item.alternateText ? styles.mb1 : null,
-                            ]}
-                        />
-                        {!!item.alternateText && (
-                            <TextWithTooltip
+            {(hovered?: boolean) => {
+                const isHovered = !!hovered && !shouldDisableHoverStyle;
+
+                return (
+                    <View
+                        accessible={shouldDisableAccessibleGrouping || undefined}
+                        accessibilityLabel={shouldDisableAccessibleGrouping ? contactAccessibilityLabel : undefined}
+                        role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                    >
+                        {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                            <PressableWithFeedback
+                                sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.LEFT_CHECKBOX}
+                                accessibilityLabel={item.text ?? ''}
+                                role={CONST.ROLE.BUTTON}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                disabled={isDisabled || item.isDisabledCheckbox}
+                                onPress={handleCheckboxPress}
+                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
+                            >
+                                <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
+                                    {!!item.isSelected && (
+                                        <Icon
+                                            src={icons.Checkmark}
+                                            fill={theme.textLight}
+                                            height={14}
+                                            width={14}
+                                        />
+                                    )}
+                                </View>
+                            </PressableWithFeedback>
+                        )}
+                        {(!!reportExists || !!itemAccountID || !!policyID) && (
+                            <ReportActionAvatars
+                                subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                 shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.alternateText ?? '')}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                forwardedFSClass={forwardedFSClass}
+                                secondaryAvatarContainerStyle={[
+                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                    isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                ]}
+                                reportID={reportExists ? item.reportID : undefined}
+                                /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
+                                accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
+                                policyID={!reportExists && !!policyID ? policyID : undefined}
+                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                             />
                         )}
-                    </View>
-                    {!!item.rightElement && item.rightElement}
-                    {!!item.shouldShowRightIcon && (
-                        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
-                            <Icon
-                                src={icons.ArrowRight}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, false, false, !!isDisabled, item.isInteractive !== false))}
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={Str.removeSMSDomain(item.text ?? '')}
+                                style={[
+                                    styles.optionDisplayName,
+                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                    item.isBold !== false && styles.sidebarLinkTextBold,
+                                    styles.pre,
+                                    item.alternateText ? styles.mb1 : null,
+                                ]}
                             />
+                            {!!item.alternateText && (
+                                <TextWithTooltip
+                                    shouldShowTooltip={showTooltip}
+                                    text={Str.removeSMSDomain(item.alternateText ?? '')}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    forwardedFSClass={forwardedFSClass}
+                                />
+                            )}
                         </View>
-                    )}
-                    {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                        <PressableWithFeedback
-                            accessibilityLabel={item.text ?? ''}
-                            role={CONST.ROLE.BUTTON}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
-                        >
-                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                {!!item.isSelected && (
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={theme.textLight}
-                                        height={14}
-                                        width={14}
-                                    />
-                                )}
+                        {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
+                        {!!item.shouldShowRightIcon && (
+                            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
+                                <Icon
+                                    src={icons.ArrowRight}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(isHovered, false, false, !!isDisabled, item.isInteractive !== false))}
+                                />
                             </View>
-                        </PressableWithFeedback>
-                    )}
-                </>
-            )}
+                        )}
+                        {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                            <PressableWithFeedback
+                                sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.RIGHT_CHECKBOX}
+                                accessibilityLabel={item.text ?? ''}
+                                role={CONST.ROLE.BUTTON}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                disabled={isDisabled || item.isDisabledCheckbox}
+                                onPress={handleCheckboxPress}
+                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
+                            >
+                                <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
+                                    {!!item.isSelected && (
+                                        <Icon
+                                            src={icons.Checkmark}
+                                            fill={theme.textLight}
+                                            height={14}
+                                            width={14}
+                                        />
+                                    )}
+                                </View>
+                            </PressableWithFeedback>
+                        )}
+                    </View>
+                );
+            }}
         </BaseListItem>
     );
 }
