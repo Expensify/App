@@ -20,10 +20,11 @@ const VISUALLY_HIDDEN_STYLE: Partial<CSSStyleDeclaration> = {
 
 /**
  * VoiceOver on Mac echoes the completed word ~500-750ms after the last keystroke
- * and takes ~300-500ms to speak it. This web-only delay ensures our role="alert"
- * announcement fires after VoiceOver finishes speaking the word echo.
+ * and takes ~300-500ms to speak it. Combined with the 1000ms debounce in
+ * useDebouncedAccessibilityAnnouncement, this delay ensures the announcement
+ * fires after VoiceOver finishes the word echo (~1300ms total from last keystroke).
  */
-const ANNOUNCEMENT_DELAY_MS = 1000;
+const ANNOUNCEMENT_DELAY_MS = 300;
 
 let wrapper: HTMLDivElement | null = null;
 
@@ -33,6 +34,8 @@ function getWrapper(): HTMLDivElement {
     }
 
     wrapper = document.createElement('div');
+    wrapper.setAttribute('aria-live', 'assertive');
+    wrapper.setAttribute('aria-atomic', 'true');
     Object.assign(wrapper.style, VISUALLY_HIDDEN_STYLE);
     document.body.appendChild(wrapper);
 
