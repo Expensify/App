@@ -2,8 +2,8 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -65,6 +65,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const [isOutstandingBalanceModalVisible, setIsOutstandingBalanceModalVisible] = useState(false);
     const [isPayBalanceModalVisible, setIsPayBalanceModalVisible] = useState(false);
 
+    // Ref to track if the "Update to USD" modal is open
+    const isCurrencyModalOpen = useRef(false);
     // Ref to track if we should auto-resume the toggle flow after returning from TravelLegalNamePage
     const shouldResumeToggleRef = useRef(false);
 
@@ -243,7 +245,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     };
 
     // Dismiss the "Update to USD" modal check if the currency changes to USD externally (e.g. from another device)
-    const isCurrencyModalOpen = useRef(false);
     useEffect(() => {
         if (policy?.outputCurrency !== CONST.CURRENCY.USD || !isCurrencyModalOpen.current) {
             return;

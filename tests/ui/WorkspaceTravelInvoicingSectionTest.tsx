@@ -8,12 +8,12 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {payTravelInvoicingSpend} from '@libs/actions/TravelInvoicing';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTravelInvoicingSection';
+import {updateGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import {updateGeneralSettings} from '@userActions/Policy/Policy';
 
 // Test constants - these values MUST match the literals used in jest.mock() below
 // because jest.mock() is hoisted before variable declarations are evaluated
@@ -507,11 +507,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
             expect(mockShowConfirmModal).toHaveBeenCalled();
 
             // The updateGeneralSettings function should be called
-            expect(updateGeneralSettings).toHaveBeenCalledWith(
-                expect.objectContaining({outputCurrency: 'GBP', name: 'GBP Workspace'}),
-                'GBP Workspace',
-                CONST.CURRENCY.USD
-            );
+            expect(updateGeneralSettings).toHaveBeenCalledWith(expect.objectContaining({outputCurrency: 'GBP', name: 'GBP Workspace'}), 'GBP Workspace', CONST.CURRENCY.USD);
         });
     });
 });
