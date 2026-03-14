@@ -12,9 +12,8 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 /**
- * Selector that returns a sorted array of report keys pending deletion.
- * Returning a sorted string[] allows Onyx's shallowEqual to cheaply detect changes
- * without expensive deepEqual on mapped objects or Sets.
+ * Returns sorted keys of reports pending deletion.
+ * Sorted string[] keeps Onyx comparison cheap (PERF-11).
  */
 const selectPendingDeleteReportKeys = (reports: OnyxCollection<Report>): string[] => {
     const keys: string[] = [];

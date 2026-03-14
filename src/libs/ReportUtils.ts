@@ -10140,9 +10140,7 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
 }
 
 /**
- * Check if a report is pending deletion (optimistic delete).
- * This checks both pendingAction and pendingFields.preview since deletion
- * can be tracked via either field depending on the deletion flow.
+ * Check if a report is pending deletion via pendingAction or pendingFields.preview.
  */
 function isReportPendingDelete(report: OnyxEntry<Pick<Report, 'pendingAction' | 'pendingFields'>>): boolean {
     return report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;

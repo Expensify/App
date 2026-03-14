@@ -82,7 +82,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox]);
 
-    // Use live report data (parentReport) for pending delete check as search snapshot (reportItem) can be stale.
+    // Prefer live Onyx data over stale search snapshot for pending delete check.
     const reportForPendingDeleteCheck = parentReport ?? reportItem;
     const isPendingDelete = isReportPendingDelete(reportForPendingDeleteCheck);
 
