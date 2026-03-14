@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
+import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
 import {getIsEditingCell} from '@components/Table/EditableCell';
@@ -81,28 +81,34 @@ function BaseSearchList({
         [focusedIndex, renderItem, setFocusedIndex],
     );
 
-    const selectFocusedOption = useCallback(() => {
-        // Do not navigate while an inline cell edit is active — the Enter key is being
-        // used to confirm the edit, not to open the row.
-        if (getIsEditingCell()) {
-            return;
-        }
+    const selectFocusedOption = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
+            // When not editing, stop propagation to prevent unintended button activation and handle row selection.
+            if (getIsEditingCell()) {
+                return;
+            }
 
-        const focusedItem = data.at(focusedIndex);
+            event?.stopPropagation();
 
-        if (!focusedItem) {
-            return;
-        }
+            const focusedItem = data.at(focusedIndex);
 
-        onSelectRow(focusedItem);
-    }, [data, focusedIndex, onSelectRow]);
+            if (!focusedItem) {
+                return;
+            }
+
+            onSelectRow(focusedItem);
+        },
+        [data, focusedIndex, onSelectRow],
+    );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
         isActive: isFocused && focusedIndex >= 0,
-        shouldStopPropagation: true,
+        // Propagation is controlled manually in selectFocusedOption based on editing state
+        shouldStopPropagation: false,
     });
 
     useEffect(() => {
