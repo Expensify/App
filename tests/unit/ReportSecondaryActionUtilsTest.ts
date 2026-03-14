@@ -3498,7 +3498,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({type: CONST.REPORT.TYPE.IOU});
             const policies = createPolicies(POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
         });
 
         it('should return false when IOU report and user is neither submitter nor manager', () => {
@@ -3506,7 +3506,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({type: CONST.REPORT.TYPE.IOU});
             const policies = createPolicies(POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
         });
 
         it('should return false when there are no available policies', () => {
@@ -3514,7 +3514,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport();
             const policies = createPolicies(POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
         });
 
         it('should return false when only one available policy and it is the same as current report policy', () => {
@@ -3522,7 +3522,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: POLICY_ID});
             const policies = createPolicies(POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
         });
 
         it('should return true when only one available policy but report has no policy', () => {
@@ -3530,7 +3530,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: undefined});
             const policies = createPolicies(POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
         });
 
         it('should return true when only one available policy and it is different from current report policy', () => {
@@ -3538,7 +3538,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
         });
 
         it('should return false when cannot edit report policy', () => {
@@ -3546,7 +3546,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
         });
 
         it('should return false when report is exported', () => {
@@ -3554,7 +3554,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies, [])).toBe(false);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL, [])).toBe(false);
         });
 
         it('should return true when multiple available policies exist', () => {
@@ -3562,7 +3562,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID, 'another_policy');
 
-            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
         });
 
         it('should return true when IOU report with single user and user is submitter', () => {
@@ -3570,7 +3570,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({type: CONST.REPORT.TYPE.IOU, policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
         });
 
         it('should return true when IOU report with single user and user is manager', () => {
@@ -3578,7 +3578,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const report = createReport({type: CONST.REPORT.TYPE.IOU, policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
-            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
         });
     });
 });
