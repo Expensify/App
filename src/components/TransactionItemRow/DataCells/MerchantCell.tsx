@@ -5,6 +5,7 @@ import TextInput from '@components/TextInput';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
+import StringUtils from '@libs/StringUtils';
 
 type MerchantOrDescriptionCellProps = {
     merchantOrDescription: string;
@@ -20,12 +21,23 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
         if (!isDescription) {
             return merchantOrDescription;
         }
-        return Parser.htmlToText(merchantOrDescription).replaceAll('\n', ' ');
+        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(merchantOrDescription));
     }, [merchantOrDescription, isDescription]);
 
     const {isEditing, localValue, setLocalValue, startEditing, save} = useInlineEditState(canEdit, text, onSave);
 
-    // Prevent double-save: for non-multiline inputs, pressing Enter fires onSubmitEditing then
+    const isMultilineInput = isDescription;
+
+    const handleChangeText = (value: string) => {
+        // Sanitize line breaks on change for single line inputs.
+        if (!isMultilineInput) {
+            setLocalValue(StringUtils.lineBreaksToSpaces(value));
+            return;
+        }
+        setLocalValue(value);
+    };
+
+    // Prevent double-save: pressing Enter can fires onSubmitEditing (on single-line inputs) then
     // immediately triggers a blur (blurOnSubmit=true by default), which would call save twice.
     const submitFiredRef = useRef(false);
 
@@ -42,8 +54,6 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
         save();
     };
 
-    const isMultiline = isDescription;
-
     return (
         <EditableCell
             canEdit={canEdit}
@@ -53,11 +63,13 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
                 <TextInput
                     accessibilityLabel={isDescription ? 'Description input' : 'Merchant input'}
                     value={localValue}
-                    onChangeText={setLocalValue}
+                    onChangeText={handleChangeText}
                     onBlur={handleBlur}
                     onSubmitEditing={handleSubmitEditing}
                     autoFocus
-                    multiline={isMultiline}
+                    // We use a multiline TextInput for both merchant and description to keep editing behavior consistent.
+                    // Since merchants are single-line, we sanitize line breaks before storing.
+                    multiline
                     submitBehavior="blurAndSubmit"
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress TextInput's own border and background to avoid visual conflicts.
@@ -72,7 +84,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
                 shouldShowTooltip={shouldShowTooltip}
                 text={localValue}
                 numberOfLines={shouldUseNarrowLayout ? 1 : 2}
-                style={shouldUseNarrowLayout ? [styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1] : [styles.lineHeightXLarge, isMultiline ? styles.preWrap : styles.pre]}
+                style={shouldUseNarrowLayout ? [styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1] : [styles.lineHeightXLarge, styles.preWrap]}
             />
         </EditableCell>
     );
