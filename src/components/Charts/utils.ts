@@ -1,6 +1,6 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
-import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from './constants';
+import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
 
 /**
@@ -152,7 +152,7 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
-function processDataIntoSlices(data: ChartDataPoint[], startAngle: number): PieSlice[] {
+function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGeometry: {centerX: number; centerY: number; radius: number}): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
     if (total === 0) {
         return [];
@@ -165,6 +165,9 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number): PieS
             (acc, slice, index) => {
                 const fraction = slice.absTotal / total;
                 const sweepAngle = fraction * 360;
+                const angle = acc.angle + sweepAngle / 2;
+                const tooltipX = pieGeometry.centerX + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.cos((angle * Math.PI) / 180);
+                const tooltipY = pieGeometry.centerY + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.sin((angle * Math.PI) / 180);
                 acc.slices.push({
                     label: slice.label,
                     value: slice.absTotal,
@@ -173,6 +176,8 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number): PieS
                     startAngle: acc.angle,
                     endAngle: acc.angle + sweepAngle,
                     originalIndex: slice.originalIndex,
+                    ordinalIndex: index,
+                    tooltipPosition: {x: tooltipX, y: tooltipY},
                 });
                 acc.angle += sweepAngle;
                 return acc;
@@ -283,6 +288,63 @@ function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: Labe
     }
     return Infinity;
 }
+// Point-in-convex-polygon test using cross products
+// Vertices in clockwise order: rightUpper -> rightLower -> leftLower -> leftUpper
+function isCursorInSkewedLabel(cursorX: number, cursorY: number, corners: Array<{x: number; y: number}>): boolean {
+    'worklet';
+
+    let sign = 0;
+    for (let i = 0; i < corners.length; i++) {
+        const a = corners.at(i);
+        const b = corners.at((i + 1) % corners.length);
+        if (a == null || b == null) {
+            continue;
+        }
+        const cross = (b.x - a.x) * (cursorY - a.y) - (b.y - a.y) * (cursorX - a.x);
+        if (cross !== 0) {
+            const crossSign = cross > 0 ? 1 : -1;
+            if (sign === 0) {
+                sign = crossSign;
+            } else if (crossSign !== sign) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/** Params for axis-aligned and 45° label hit-test; 90° uses yMin90/yMax90. */
+type ChartLabelHitTestParams = {
+    cursorX: number;
+    cursorY: number;
+    targetX: number;
+    labelY: number;
+    angleRad: number;
+    halfWidth: number;
+    padding: number;
+    /** For 45°: corners [rightUpper, rightLower, leftLower, leftUpper]. */
+    corners45?: Array<{x: number; y: number}>;
+    /** For 90° vertical label: vertical bounds. */
+    yMin90: number;
+    yMax90: number;
+};
+
+/**
+ * Shared hit-test for chart x-axis labels at 0°, 45°, or 90°.
+ * Used by BarChart and LineChart to detect cursor over rotated labels.
+ */
+function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, halfWidth, padding, corners45, yMin90, yMax90}: ChartLabelHitTestParams): boolean {
+    'worklet';
+
+    if (angleRad === 0) {
+        return cursorY >= labelY - padding && cursorY <= labelY + padding && cursorX >= targetX - halfWidth && cursorX <= targetX + halfWidth;
+    }
+    if (angleRad < 1 && corners45?.length === 4) {
+        return isCursorInSkewedLabel(cursorX, cursorY, corners45);
+    }
+    // 90°
+    return cursorX >= targetX - padding && cursorX <= targetX + padding && cursorY >= yMin90 && cursorY <= yMax90;
+}
 
 export {
     getChartColor,
@@ -302,4 +364,8 @@ export {
     labelOverhang,
     edgeLabelsFit,
     edgeMaxLabelWidth,
+    isCursorInSkewedLabel,
+    isCursorOverChartLabel,
 };
+
+export type {ChartLabelHitTestParams};

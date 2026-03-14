@@ -42,4 +42,25 @@ async function checkAndCleanGpsNotification() {
     }
 }
 
-export {startGpsTripNotification, stopGpsTripNotification, checkAndCleanGpsNotification};
+function shouldUpdateGpsNotificationUnit() {
+    return false;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function updateGpsTripNotificationDistance(_distanceInMeters: number) {}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function updateGpsTripNotificationUnit(_translate: LocalizedTranslate, _unit: Unit) {}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function updateGpsTripNotificationLanguage(_translate: LocalizedTranslate) {}
+
+export {
+    startGpsTripNotification,
+    stopGpsTripNotification,
+    updateGpsTripNotificationDistance,
+    updateGpsTripNotificationUnit,
+    updateGpsTripNotificationLanguage,
+    checkAndCleanGpsNotification,
+    shouldUpdateGpsNotificationUnit,
+};
