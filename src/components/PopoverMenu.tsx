@@ -316,11 +316,11 @@ function BasePopoverMenu({
     const isWeb = platform === CONST.PLATFORM.WEB;
     const isAndroid = platform === CONST.PLATFORM.ANDROID;
     const isIOS = platform === CONST.PLATFORM.IOS;
-    const shouldCoordinateDismissAccessibility = isIOS || isMobileSafari();
+    const shouldDeferDismissButtonAccessibility = isIOS || isMobileSafari();
     const firstMenuItemRef = useRef<RNView>(null);
     const isVisibleRef = useRef(isVisible);
     const hasFocusedFirstItemOnCurrentOpenRef = useRef(false);
-    const [isBottomDockedDismissAccessible, setIsBottomDockedDismissAccessible] = useState(!shouldCoordinateDismissAccessibility);
+    const [shouldEnableBottomDockedDismissAccessibility, setShouldEnableBottomDockedDismissAccessibility] = useState(!shouldDeferDismissButtonAccessibility);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
@@ -328,23 +328,23 @@ function BasePopoverMenu({
     useEffect(() => {
         isVisibleRef.current = isVisible;
         if (isVisible) {
-            if (shouldCoordinateDismissAccessibility) {
-                setIsBottomDockedDismissAccessible(false);
+            if (shouldDeferDismissButtonAccessibility) {
+                setShouldEnableBottomDockedDismissAccessibility(false);
             }
             return;
         }
         hasFocusedFirstItemOnCurrentOpenRef.current = false;
-        if (shouldCoordinateDismissAccessibility) {
-            setIsBottomDockedDismissAccessible(false);
+        if (shouldDeferDismissButtonAccessibility) {
+            setShouldEnableBottomDockedDismissAccessibility(false);
         }
-    }, [isVisible, shouldCoordinateDismissAccessibility]);
+    }, [isVisible, shouldDeferDismissButtonAccessibility]);
 
     useEffect(() => {
-        if (shouldCoordinateDismissAccessibility) {
+        if (shouldDeferDismissButtonAccessibility) {
             return;
         }
-        setIsBottomDockedDismissAccessible(true);
-    }, [shouldCoordinateDismissAccessibility]);
+        setShouldEnableBottomDockedDismissAccessibility(true);
+    }, [shouldDeferDismissButtonAccessibility]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -514,29 +514,34 @@ function BasePopoverMenu({
     // can cause the parent view to scroll when the space bar is pressed.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWeb && isVisible, shouldPreventDefault: false});
 
-    const focusFirstMenuItemOnWeb = useCallback(() => {
+    const getFirstMenuItemTarget = useCallback(() => {
         if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
-            return false;
+            return null;
         }
-        const target = firstMenuItemRef.current;
+
+        return firstMenuItemRef.current;
+    }, []);
+
+    const markFirstMenuItemFocused = useCallback(() => {
+        hasFocusedFirstItemOnCurrentOpenRef.current = true;
+        if (shouldDeferDismissButtonAccessibility) {
+            setShouldEnableBottomDockedDismissAccessibility(true);
+        }
+    }, [shouldDeferDismissButtonAccessibility]);
+
+    const focusFirstMenuItemOnWeb = useCallback(() => {
+        const target = getFirstMenuItemTarget();
         if (!target || !('focus' in target) || typeof target.focus !== 'function') {
             return false;
         }
 
         target.focus();
-        hasFocusedFirstItemOnCurrentOpenRef.current = true;
-        if (shouldCoordinateDismissAccessibility) {
-            setIsBottomDockedDismissAccessible(true);
-        }
+        markFirstMenuItemFocused();
         return true;
-    }, [shouldCoordinateDismissAccessibility]);
+    }, [getFirstMenuItemTarget, markFirstMenuItemFocused]);
 
     const focusFirstMenuItemOnNative = useCallback(() => {
-        if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
-            return false;
-        }
-
-        const target = firstMenuItemRef.current;
+        const target = getFirstMenuItemTarget();
         if (!target) {
             return false;
         }
@@ -547,12 +552,9 @@ function BasePopoverMenu({
         }
 
         Accessibility.moveAccessibilityFocus(firstMenuItemRef);
-        hasFocusedFirstItemOnCurrentOpenRef.current = true;
-        if (shouldCoordinateDismissAccessibility) {
-            setIsBottomDockedDismissAccessible(true);
-        }
+        markFirstMenuItemFocused();
         return true;
-    }, [isAndroid, shouldCoordinateDismissAccessibility]);
+    }, [getFirstMenuItemTarget, isAndroid, markFirstMenuItemFocused]);
 
     const focusFirstMenuItem = useCallback(() => {
         if (isWeb) {
@@ -748,7 +750,7 @@ function BasePopoverMenu({
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
-            isBottomDockedDismissAccessible={shouldCoordinateDismissAccessibility ? isBottomDockedDismissAccessible : undefined}
+            shouldEnableBottomDockedDismissAccessibility={shouldDeferDismissButtonAccessibility ? shouldEnableBottomDockedDismissAccessibility : undefined}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}

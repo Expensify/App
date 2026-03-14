@@ -72,7 +72,7 @@ function BaseModal({
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     ref,
     shouldDisplayBelowModals = false,
-    isBottomDockedDismissAccessible,
+    shouldEnableBottomDockedDismissAccessibility,
 }: BaseModalProps) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
@@ -270,7 +270,7 @@ function BaseModal({
     );
 
     const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
-    const isNativeIOSBottomDockedDismissAccessible = !isNativeIOS || !shouldShowBottomDockedDismissButton || isBottomDockedDismissAccessible === true;
+    const shouldHideBottomDockedDismissFromAccessibility = isNativeIOS && shouldShowBottomDockedDismissButton && shouldEnableBottomDockedDismissAccessibility === false;
 
     const modalPaddingStyles = useMemo(() => {
         const paddings = StyleUtils.getModalPaddingStyles({
@@ -403,11 +403,11 @@ function BaseModal({
                             {!isWeb && shouldShowBottomDockedDismissButton && (
                                 <PressableWithoutFeedback
                                     onPress={handleBackdropPress}
-                                    accessible={isNativeIOSBottomDockedDismissAccessible}
+                                    accessible={!shouldHideBottomDockedDismissFromAccessibility}
                                     accessibilityRole={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('common.dismiss')}
-                                    accessibilityElementsHidden={!isNativeIOSBottomDockedDismissAccessible}
-                                    importantForAccessibility={isNativeIOSBottomDockedDismissAccessible ? 'auto' : 'no-hide-descendants'}
+                                    accessibilityElementsHidden={shouldHideBottomDockedDismissFromAccessibility}
+                                    importantForAccessibility={shouldHideBottomDockedDismissFromAccessibility ? 'no-hide-descendants' : 'auto'}
                                     sentryLabel="Modal-DismissDialog"
                                     style={styles.bottomDockedModalDismissButton}
                                     shouldUseAutoHitSlop
