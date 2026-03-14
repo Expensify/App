@@ -4,7 +4,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import SuggestionsAvailabilityAnnouncement from '@components/SelectionList/components/SuggestionsAvailabilityAnnouncement';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -12,6 +11,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 // eslint-disable-next-line no-restricted-imports
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
@@ -410,6 +410,7 @@ function SearchAutocompleteList({
     const suggestionsCount = sections.reduce((total, section) => total + section.data.filter((item) => item.keyForList !== 'findItem').length, 0);
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue || undefined) : '';
+    useAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, {shouldAnnounceOnNative: true});
 
     const firstRecentReportKey = styledRecentReports.at(0)?.keyForList;
     const firstRecentReportFlatIndex = useMemo(() => {
@@ -501,10 +502,6 @@ function SearchAutocompleteList({
                     setIsInitialRender(false);
                     innerListRef.current?.updateExternalTextInputFocus(textInputRef?.current?.isFocused() ?? false);
                 }}
-            />
-            <SuggestionsAvailabilityAnnouncement
-                announcement={suggestionsAnnouncement}
-                delayMS={CONST.ANIMATED_TRANSITION * 2}
             />
         </>
     );
