@@ -1,13 +1,27 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import {selectFilteredReportActions} from '@libs/ReportUtils';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {isReportPendingDelete, selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+
+type ReportPendingFields = Pick<Report, 'pendingAction' | 'pendingFields'>;
+
+const selectReportsPendingFields = (reports: OnyxCollection<Report>) =>
+    mapOnyxCollectionItems(reports, (report): ReportPendingFields | undefined =>
+        report
+            ? {
+                  pendingAction: report.pendingAction,
+                  pendingFields: report.pendingFields,
+              }
+            : undefined,
+    );
 
 type UseSearchSectionsResult = {
     allReports: Array<string | undefined>;
@@ -18,6 +32,7 @@ type UseSearchSectionsResult = {
 function useSearchSections(): UseSearchSectionsResult {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
+    const [liveReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: selectReportsPendingFields});
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
@@ -41,7 +56,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const currentUserEmail = currentUserDetails.email ?? '';
     const searchKey = lastSearchQuery?.searchKey;
 
-    let allReports: Array<string | undefined> = [];
+    let results: Array<string | undefined> = [];
     if (!!type && !!searchResultsData && !!searchResultsSearch) {
         const [searchData] = getSections({
             type,
@@ -60,8 +75,16 @@ function useSearchSections(): UseSearchSectionsResult {
             allReportMetadata,
             cardList,
         });
-        allReports = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
+        results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
+
+    const allReports = results.filter((id) => {
+        if (!id) {
+            return false;
+        }
+        const liveReport = liveReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
+        return !isReportPendingDelete(liveReport);
+    });
 
     return {allReports, isSearchLoading: !!currentSearchResults?.search?.isLoading, lastSearchQuery};
 }
