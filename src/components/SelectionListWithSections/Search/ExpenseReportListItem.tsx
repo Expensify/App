@@ -145,6 +145,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         snapshotReport,
         snapshotPolicy,
         lastPaymentMethod,
+        userBillingGraceEndPeriods,
         personalPolicyID,
         currentSearchKey,
         onDEWModalOpen,
