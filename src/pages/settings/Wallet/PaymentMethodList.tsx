@@ -344,18 +344,20 @@ function PaymentMethodList({
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
-                    description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
+                    title: isTravelCard ? translate('walletPage.travelCVV.title') : card?.nameValuePairs?.cardTitle || card.bank,
+                    description: isTravelCard ? translate('walletPage.travelCVV.subtitle') : cardDescription,
+                    onPress: isTravelCard
+                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV)
+                        : () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                         pressHandler({
                             event: e,
                             cardData: card,
                             icon: {
-                                icon,
-                                iconStyles: [styles.cardIcon],
-                                iconWidth: variables.cardIconWidth,
-                                iconHeight: variables.cardIconHeight,
+                                icon: isTravelCard ? expensifyIcons.LuggageWithLines : icon,
+                                iconStyles: isTravelCard ? styles.travelInvoicingIcon : [styles.cardIcon],
+                                iconWidth: isTravelCard ? undefined : variables.cardIconWidth,
+                                iconHeight: isTravelCard ? undefined : variables.cardIconHeight,
                             },
                             cardID: card.cardID,
                         }),
@@ -368,10 +370,11 @@ function PaymentMethodList({
                     canDismissError: true,
                     pendingAction: card.pendingAction,
                     brickRoadIndicator,
-                    icon,
-                    iconStyles: [styles.cardIcon],
-                    iconWidth: variables.cardIconWidth,
-                    iconHeight: variables.cardIconHeight,
+                    icon: isTravelCard ? expensifyIcons.LuggageWithLines : icon,
+                    iconFill: isTravelCard ? colors.productLight100 : undefined,
+                    iconStyles: isTravelCard ? styles.travelInvoicingIcon : [styles.cardIcon],
+                    iconWidth: isTravelCard ? undefined : variables.cardIconWidth,
+                    iconHeight: isTravelCard ? undefined : variables.cardIconHeight,
                     isCardFrozen: isCardFrozen(card),
                 });
             }
