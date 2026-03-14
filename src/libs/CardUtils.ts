@@ -1438,7 +1438,7 @@ function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<Expens
     const country = card?.nameValuePairs?.country;
     if (feedCountry === CONST.COUNTRY.GB) {
         // Only Gibraltar and UK use GBP. If country is not set at all, also assume GBP.
-        if (!country || country === CONST.COUNTRY.GB || country == CONST.COUNTRY.GI) {
+        if (!country || country === CONST.COUNTRY.GB || country === CONST.COUNTRY.GI) {
             return CONST.CURRENCY.GBP;
         }
 
