@@ -1012,12 +1012,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder));
 
-    useDebouncedAccessibilityAnnouncement(headerMessage, shouldShowHeaderMessage && isNoResultsFoundMessage, textInputValue);
+    useDebouncedAccessibilityAnnouncement(headerMessage, shouldShowHeaderMessage, textInputValue);
 
     const headerMessageContent = () =>
         shouldShowHeaderMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                <Text
+                    style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                    aria-hidden
+                >
+                    {headerMessage}
+                </Text>
             </View>
         );
 

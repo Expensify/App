@@ -72,7 +72,7 @@ function TextInput({
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
 
-    useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage && isNoResultsFoundMessage && !isLoading, value ?? '');
+    useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage && !isLoading, value ?? '');
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -144,7 +144,12 @@ function TextInput({
             </View>
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                    <Text
+                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                        aria-hidden
+                    >
+                        {headerMessage}
+                    </Text>
                 </View>
             )}
         </>

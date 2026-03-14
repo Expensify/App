@@ -3,10 +3,9 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import {useTableContext} from './TableContext';
 
 /**
@@ -64,13 +63,13 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
 
     const message = getEmptyMessage();
 
-    useAccessibilityAnnouncement(message, isEmptyResult, {shouldAnnounceOnNative: true});
+    useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
             <Text
                 style={[styles.textNormal, styles.colorMuted]}
-                role={CONST.ROLE.ALERT}
+                aria-hidden
             >
                 {message}
             </Text>

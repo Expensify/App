@@ -1,7 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,7 +29,7 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
     const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
     const shouldAnnounceNoResults = !!shouldShowEmptyState && inputValue.length !== 0;
 
-    useAccessibilityAnnouncement(noResultsMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
+    useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldAnnounceNoResults, inputValue);
 
     return (
         <>
@@ -54,7 +54,7 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
                 <View style={[styles.ph5, styles.pt3, styles.pb5]}>
                     <Text
                         style={[styles.textNormal, styles.colorMuted]}
-                        role={CONST.ROLE.ALERT}
+                        aria-hidden
                     >
                         {noResultsMessage}
                     </Text>
