@@ -28,6 +28,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         canEvict: false,
     });
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
     const originalReportID = useOriginalReportID(reportID, reportActionID ? (reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID] ?? {reportActionID}) : undefined);
@@ -56,8 +57,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     }, [isOffline, reportActionReportID, isLoadingApp, report, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport]);
 
     const fetchReport = useCallback(() => {
-        openReport({reportID: reportActionReportID, introSelected, reportActionID});
-    }, [reportActionReportID, introSelected, reportActionID]);
+        openReport({reportID: reportActionReportID, introSelected, reportActionID, betas});
+    }, [reportActionReportID, introSelected, reportActionID, betas]);
 
     useEffect(() => {
         if (!reportActionReportID || !shouldFetchReport) {

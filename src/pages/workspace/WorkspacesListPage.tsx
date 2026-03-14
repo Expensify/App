@@ -25,6 +25,7 @@ import Text from '@components/Text';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -132,6 +133,7 @@ function WorkspacesListPage() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
+    useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -719,6 +721,7 @@ function WorkspacesListPage() {
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen
             testID="WorkspacesListPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
