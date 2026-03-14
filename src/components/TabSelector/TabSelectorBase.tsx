@@ -64,6 +64,7 @@ function TabSelectorBase({
             contentContainerStyle={styles.tabSelectorContentContainer}
             horizontal
             showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
         >
             {tabs.map((tab, index) => {
                 const isActive = index === activeIndex;
