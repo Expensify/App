@@ -315,10 +315,15 @@ function PaymentMethodList({
                 }
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
-                const isTravelCard = !!card?.nameValuePairs?.isVirtual && !!card?.nameValuePairs?.isTravelCard;
+                const isTravelCard = card?.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US;
+
+                // Travel cards are handled by the dedicated travelCardGrouped section below
+                if (isTravelCard) {
+                    continue;
+                }
 
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
-                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard && !isTravelCard) {
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
                     const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
@@ -344,25 +349,23 @@ function PaymentMethodList({
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title: isTravelCard ? translate('walletPage.travelCVV.title') : card?.nameValuePairs?.cardTitle || card.bank,
-                    description: isTravelCard ? translate('walletPage.travelCVV.subtitle') : cardDescription,
-                    onPress: isTravelCard
-                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV)
-                        : () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
+                    title: card?.nameValuePairs?.cardTitle || card.bank,
+                    description: cardDescription,
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                         pressHandler({
                             event: e,
                             cardData: card,
                             icon: {
-                                icon: isTravelCard ? expensifyIcons.LuggageWithLines : icon,
-                                iconStyles: isTravelCard ? styles.travelInvoicingIcon : [styles.cardIcon],
-                                iconWidth: isTravelCard ? undefined : variables.cardIconWidth,
-                                iconHeight: isTravelCard ? undefined : variables.cardIconHeight,
+                                icon,
+                                iconStyles: [styles.cardIcon],
+                                iconWidth: variables.cardIconWidth,
+                                iconHeight: variables.cardIconHeight,
                             },
                             cardID: card.cardID,
                         }),
                     cardID: card.cardID,
-                    isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
+                    isGroupedCardDomain: !isAdminIssuedVirtualCard,
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
@@ -370,11 +373,10 @@ function PaymentMethodList({
                     canDismissError: true,
                     pendingAction: card.pendingAction,
                     brickRoadIndicator,
-                    icon: isTravelCard ? expensifyIcons.LuggageWithLines : icon,
-                    iconFill: isTravelCard ? colors.productLight100 : undefined,
-                    iconStyles: isTravelCard ? styles.travelInvoicingIcon : [styles.cardIcon],
-                    iconWidth: isTravelCard ? undefined : variables.cardIconWidth,
-                    iconHeight: isTravelCard ? undefined : variables.cardIconHeight,
+                    icon,
+                    iconStyles: [styles.cardIcon],
+                    iconWidth: variables.cardIconWidth,
+                    iconHeight: variables.cardIconHeight,
                     isCardFrozen: isCardFrozen(card),
                 });
             }
