@@ -401,7 +401,7 @@ function PaymentMethodList({
             if (companyCardsGrouped.length > 0 && personalCardsGrouped.length > 0) {
                 return [...companyCards, ...personalCards];
             }
-            return [...companyCardsGrouped, ...personalCardsGrouped];
+            return [...companyCardsGrouped, ...travelCardGrouped, ...personalCardsGrouped];
         }
 
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
