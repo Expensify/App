@@ -1,15 +1,5 @@
 import type {State} from '@libs/Navigation/types';
 
-type InteractionType = 'keyboard' | 'pointer' | 'unknown';
-
-type InteractionTrigger = 'enterOrSpace' | 'escape' | 'pointer' | 'unknown';
-
-type InteractionProvenance = {
-    interactionType: InteractionType;
-    interactionTrigger: InteractionTrigger;
-    routeKey: string | null;
-};
-
 type NavigationFocusManagerModule = {
     initialize: () => void;
     destroy: () => void;
@@ -23,8 +13,6 @@ type NavigationFocusManagerModule = {
     clearKeyboardInteractionFlag: () => void;
     getCapturedAnchorElement: () => HTMLElement | null;
     cleanupRemovedRoutes: (state: State) => void;
-    setElementQueryStrategyForTests: (queryStrategy?: (tagNameSelector: string) => readonly HTMLElement[]) => void;
-    getInteractionProvenanceForTests: () => InteractionProvenance | null;
 };
 
-export type {InteractionProvenance, InteractionTrigger, InteractionType, NavigationFocusManagerModule};
+export default NavigationFocusManagerModule;

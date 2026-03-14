@@ -70,11 +70,16 @@ function createDeferredPromise() {
 }
 
 function createInput() {
+    const focusOwner = document.createElement('input');
     const focus = jest.fn();
+    const isFocused = jest.fn(() => activeElement === focusOwner);
+    const input = {} as TextInput;
+    input.focus = focus;
+    input.isFocused = isFocused;
 
     return {
         focus,
-        input: {focus} as unknown as TextInput,
+        input,
     };
 }
 

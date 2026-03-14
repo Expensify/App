@@ -10,7 +10,37 @@ import {NAVIGATION_FOCUS_ROUTE_DATASET_KEY} from '@libs/NavigationFocusManager/c
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@libs/Log');
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: {
+        isHybridApp: () => false,
+    },
+}));
+
 jest.mock('@react-navigation/native');
+jest.mock('@components/LocaleContextProvider', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+
+    return {
+        LocaleContext: ReactModule.createContext({
+            translate: () => '',
+            numberFormat: () => '',
+            getLocalDateFromDatetime: () => new Date(),
+            datetimeToRelative: () => '',
+            datetimeToCalendarTime: () => '',
+            formatPhoneNumber: () => '',
+            toLocaleDigit: () => '',
+            toLocaleOrdinal: () => '',
+            fromLocaleDigit: () => '',
+            localeCompare: () => 0,
+            formatTravelDate: () => '',
+            preferredLocale: undefined,
+        }),
+        LocaleContextProvider: ({children}: {children: React.ReactNode}) => children,
+    };
+});
 
 // Force the real web implementation so this test covers the same route-marker path
 // used by desktop web and mWeb rather than Jest's default no-op implementation.

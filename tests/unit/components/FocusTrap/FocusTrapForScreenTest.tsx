@@ -38,7 +38,7 @@ import {View} from 'react-native';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen/index.web';
 import type FocusUtilsModule from '@libs/focusUtils/types';
 import {NAVIGATION_FOCUS_ROUTE_DATASET_KEY} from '@libs/NavigationFocusManager/constants';
-import type {NavigationFocusManagerModule} from '@libs/NavigationFocusManager/types';
+import type NavigationFocusManagerModule from '@libs/NavigationFocusManager/types';
 
 // ============================================================================
 // Test-specific configurable mocks (kept inline as they need per-test values)
@@ -86,7 +86,7 @@ jest.mock('@libs/NavigationFocusManager', () => {
 });
 
 jest.mock('@libs/focusUtils', () => {
-    const webFocusUtils = jest.requireActual<{default: FocusUtilsModule}>('../../../../src/libs/focusUtils/index.ts');
+    const webFocusUtils = jest.requireActual<{default: FocusUtilsModule}>('../../../../src/libs/focusUtils/index.web.ts');
     return webFocusUtils;
 });
 

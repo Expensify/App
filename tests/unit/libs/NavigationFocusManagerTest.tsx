@@ -31,6 +31,8 @@ if (typeof global.PointerEvent === 'undefined') {
     global.PointerEvent = PointerEventPolyfill;
 }
 
+jest.mock('@libs/Log');
+
 // ============================================================================
 // NavigationFocusManager Unit Tests
 // ============================================================================
@@ -160,38 +162,6 @@ describe('NavigationFocusManager Gap Tests', () => {
     });
 
     describe('Element matching determinism', () => {
-        it('should allow injecting a query strategy for matching tests', () => {
-            const originalButton = document.createElement('button');
-            originalButton.setAttribute('aria-label', 'Anchor');
-            originalButton.setAttribute('role', 'button');
-            originalButton.textContent = 'Workspace Settings';
-            document.body.appendChild(originalButton);
-
-            NavigationFocusManager.registerFocusedRoute('query-strategy-route');
-            const pointerEvent = new PointerEvent('pointerdown', {
-                bubbles: true,
-                cancelable: true,
-            });
-            Object.defineProperty(pointerEvent, 'target', {value: originalButton});
-            document.dispatchEvent(pointerEvent);
-            NavigationFocusManager.unregisterFocusedRoute('query-strategy-route');
-            originalButton.remove();
-
-            const recreatedButton = document.createElement('button');
-            recreatedButton.setAttribute('aria-label', 'Anchor');
-            recreatedButton.setAttribute('role', 'button');
-            recreatedButton.textContent = 'Workspace Settings';
-            document.body.appendChild(recreatedButton);
-
-            const queryStrategy = jest.fn(() => [recreatedButton]);
-            NavigationFocusManager.setElementQueryStrategyForTests(queryStrategy);
-
-            const retrieved = NavigationFocusManager.retrieveForRoute('query-strategy-route');
-
-            expect(queryStrategy).toHaveBeenCalledWith('BUTTON');
-            expect(retrieved).toBe(recreatedButton);
-        });
-
         it('should prefer aria-label match over text-only exact match when scores tie', () => {
             const originalButton = document.createElement('button');
             originalButton.setAttribute('aria-label', 'Workspace actions');
@@ -252,82 +222,38 @@ describe('NavigationFocusManager Gap Tests', () => {
         });
     });
 
-    describe('Phase 1 provenance scaffolding', () => {
-        it('should record escape provenance without creating an Escape interaction capture', () => {
+    describe('Escape-key behavior', () => {
+        it('should mark the interaction as keyboard-driven without storing a focus target on Escape alone', () => {
             const button = document.createElement('button');
             document.body.appendChild(button);
             button.focus();
 
-            NavigationFocusManager.registerFocusedRoute('escape-metadata-route');
+            NavigationFocusManager.registerFocusedRoute('escape-route');
             const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
             document.dispatchEvent(escapeEvent);
-            NavigationFocusManager.unregisterFocusedRoute('escape-metadata-route');
 
-            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toEqual({
-                interactionType: 'keyboard',
-                interactionTrigger: 'escape',
-                routeKey: 'escape-metadata-route',
-            });
+            expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
 
-            NavigationFocusManager.captureForRoute('escape-metadata-route');
-            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toBeNull();
+            NavigationFocusManager.clearKeyboardInteractionFlag();
+
+            expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
+            expect(NavigationFocusManager.retrieveForRoute('escape-route')).toBeNull();
         });
 
-        it('should clear provenance in cleanupRemovedRoutes and destroy', () => {
+        it('should clear keyboard interaction state on destroy', () => {
             const button = document.createElement('button');
             document.body.appendChild(button);
             button.focus();
 
-            NavigationFocusManager.registerFocusedRoute('lifecycle-route');
+            NavigationFocusManager.registerFocusedRoute('destroy-route');
             const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
             document.dispatchEvent(escapeEvent);
 
-            expect(NavigationFocusManager.getInteractionProvenanceForTests()).not.toBeNull();
-
-            const mockNavigationState = {
-                routes: [{key: 'other-route', name: 'OtherScreen'}],
-                index: 0,
-                stale: false,
-                type: 'stack',
-                key: 'root',
-                routeNames: ['OtherScreen'],
-            };
-            NavigationFocusManager.cleanupRemovedRoutes(mockNavigationState);
-
-            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toBeNull();
+            expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
 
             NavigationFocusManager.destroy();
             NavigationFocusManager.initialize();
-            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toBeNull();
-        });
-
-        it('should clear provenance-only route state in cleanupRemovedRoutes', () => {
-            const button = document.createElement('button');
-            document.body.appendChild(button);
-            button.focus();
-
-            NavigationFocusManager.registerFocusedRoute('escape-only-route');
-            const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
-            document.dispatchEvent(escapeEvent);
-            NavigationFocusManager.unregisterFocusedRoute('escape-only-route');
-
-            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toEqual({
-                interactionType: 'keyboard',
-                interactionTrigger: 'escape',
-                routeKey: 'escape-only-route',
-            });
-
-            const mockNavigationState = {
-                routes: [{key: 'other-route', name: 'OtherScreen'}],
-                index: 0,
-                stale: false,
-                type: 'stack',
-                key: 'root',
-                routeNames: ['OtherScreen'],
-            };
-            NavigationFocusManager.cleanupRemovedRoutes(mockNavigationState);
-
-            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toBeNull();
+            expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
         });
     });
 
@@ -497,12 +423,6 @@ describe('NavigationFocusManager Gap Tests', () => {
             Object.defineProperty(pointerEvent, 'target', {value: button});
             document.dispatchEvent(pointerEvent);
 
-            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toEqual({
-                interactionType: 'pointer',
-                interactionTrigger: 'pointer',
-                routeKey: 'workspace-categories-route',
-            });
-
             NavigationFocusManager.captureForRoute('workspace-categories-route');
 
             expect(NavigationFocusManager.retrieveForRoute('workspace-categories-route')).toBe(button);
@@ -531,12 +451,6 @@ describe('NavigationFocusManager Gap Tests', () => {
                 bubbles: true,
             });
             document.dispatchEvent(keyEvent);
-
-            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toEqual({
-                interactionType: 'keyboard',
-                interactionTrigger: 'enterOrSpace',
-                routeKey: 'distance-rates-route',
-            });
 
             NavigationFocusManager.captureForRoute('distance-rates-route');
 

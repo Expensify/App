@@ -1,4 +1,4 @@
-import type {NavigationFocusManagerModule} from './types';
+import type NavigationFocusManagerModule from './types';
 
 const NavigationFocusManager: NavigationFocusManagerModule = {
     initialize: () => {},
@@ -13,8 +13,6 @@ const NavigationFocusManager: NavigationFocusManagerModule = {
     clearKeyboardInteractionFlag: () => {},
     getCapturedAnchorElement: () => null,
     cleanupRemovedRoutes: () => {},
-    setElementQueryStrategyForTests: () => {},
-    getInteractionProvenanceForTests: () => null,
 };
 
 export default NavigationFocusManager;

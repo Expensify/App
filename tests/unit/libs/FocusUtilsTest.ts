@@ -1,7 +1,7 @@
 import type FocusUtilsModule from '@libs/focusUtils/types';
 
-const FocusUtils = jest.requireActual<{default: FocusUtilsModule}>('../../../src/libs/focusUtils/index.ts').default;
-const FocusUtilsFallback = jest.requireActual<{default: FocusUtilsModule}>('../../../src/libs/focusUtils/index.native.ts').default;
+const FocusUtils = jest.requireActual<{default: FocusUtilsModule}>('../../../src/libs/focusUtils/index.web.ts').default;
+const FocusUtilsFallback = jest.requireActual<{default: FocusUtilsModule}>('../../../src/libs/focusUtils/index.ts').default;
 
 function createMockElement(tagName: string, id: string, options?: {appendToBody?: boolean; width?: number; height?: number}) {
     const element = document.createElement(tagName);

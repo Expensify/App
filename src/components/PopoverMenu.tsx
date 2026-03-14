@@ -14,7 +14,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
-import FocusUtils from '@libs/focusUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
@@ -31,6 +30,7 @@ import MenuItem from './MenuItem';
 import type ReanimatedModalProps from './Modal/ReanimatedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
+import {buildKeyPathFromIndexPath, getInitialFocusTargetFromContainer, resolveIndexPathByKeyPath} from './PopoverMenuUtils';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import ScrollView from './ScrollView';
 import Text from './Text';
@@ -205,72 +205,6 @@ function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
 
 function getMenuContainerElement(containerRefValue: unknown): HTMLElement | null {
     return containerRefValue instanceof HTMLElement ? containerRefValue : null;
-}
-
-function getInitialFocusTargetFromContainer(container: HTMLElement): HTMLElement | false {
-    const candidates = container.querySelectorAll('[role="button"], [role="menuitem"]');
-    for (const candidate of candidates) {
-        if (FocusUtils.isFocusableActionableElement(candidate)) {
-            return candidate;
-        }
-    }
-    return false;
-}
-
-/**
- * Return a stable string key for a menu item.
- * Prefers explicit `key` property on the item. If missing, falls back to `text`.
- *
- * IMPORTANT: the key must be stable and unique across the whole menu tree for the
- * path-resolution algorithm to work reliably when menu arrays change.
- */
-const getItemKey = (item: PopoverMenuItem) => item.key ?? item.text;
-
-/**
- * Build a key-path (array of keys) by walking the `root` using `indexPath`.
- *
- * The `indexPath` is an array of indexes which represent the path previously
- * selected by the user (e.g. [1, 2] means: at root index 1, then its subMenuItems index 2).
- *
- * We iterate down the `root` following `indexPath` and collect getItemKey(node)
- * for each visited node. If any index is out-of-bounds for a level, we stop
- * and return the keys collected so far (could be empty).
- */
-function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: readonly number[]): string[] {
-    const keys: string[] = [];
-    let level: PopoverMenuItem[] | undefined = root;
-
-    for (const idx of indexPath) {
-        const node: PopoverMenuItem | undefined = level?.[idx];
-        if (!node) {
-            break;
-        }
-        keys.push(getItemKey(node));
-        level = node.subMenuItems;
-    }
-    return keys;
-}
-
-/**
- * Try to resolve a key-path against the current `root` and return the corresponding index-path
- * and the `itemsAtLeaf` (the subMenuItems array of the final matched node, or an empty array).
- *
- * Returns `{found: false}` if any key in keyPath cannot be found at the expected level.
- */
-function resolveIndexPathByKeyPath(root: PopoverMenuItem[], keyPath: string[]) {
-    let level: PopoverMenuItem[] = root;
-    const indexes: number[] = [];
-
-    for (const key of keyPath) {
-        const i = level.findIndex((n) => getItemKey(n) === key);
-        if (i === -1) {
-            return {found: false as const};
-        }
-        indexes.push(i);
-        const next = level.at(i)?.subMenuItems;
-        level = next ?? [];
-    }
-    return {found: true as const, indexes, itemsAtLeaf: level};
 }
 
 function PopoverMenu(props: PopoverMenuProps) {
@@ -712,6 +646,4 @@ export default React.memo(
         prevProps.withoutOverlay === nextProps.withoutOverlay &&
         prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
-export {getInitialFocusTargetFromContainer};
 export type {PopoverMenuItem, PopoverMenuProps};
-export {getItemKey, buildKeyPathFromIndexPath, resolveIndexPathByKeyPath};

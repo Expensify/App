@@ -25,9 +25,11 @@ function shouldPreserveExistingFocus(target: TextInput | null): boolean {
     }
 
     const activeElement = document.activeElement;
-    const currentTarget = target as unknown as Element | null;
+    if (!activeElement || activeElement === document.body || activeElement === document.documentElement) {
+        return false;
+    }
 
-    return !!activeElement && activeElement !== document.body && activeElement !== document.documentElement && activeElement !== currentTarget;
+    return !target?.isFocused?.();
 }
 
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {

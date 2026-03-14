@@ -3,12 +3,22 @@ import React from 'react';
 import type {PropsWithChildren} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import PopoverMenu, {buildKeyPathFromIndexPath, getInitialFocusTargetFromContainer, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
+import PopoverMenu from '@components/PopoverMenu';
+import {buildKeyPathFromIndexPath, getInitialFocusTargetFromContainer, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenuUtils';
 import type FocusUtilsModule from '@libs/focusUtils/types';
 import CONST from '@src/CONST';
 
+jest.mock('@libs/Log');
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: {
+        isHybridApp: () => false,
+    },
+}));
+
 jest.mock('@libs/focusUtils', () => {
-    const webFocusUtils = jest.requireActual<{default: FocusUtilsModule}>('../../../src/libs/focusUtils/index.ts');
+    const webFocusUtils = jest.requireActual<{default: FocusUtilsModule}>('../../../src/libs/focusUtils/index.web.ts');
     return webFocusUtils;
 });
 

@@ -18,7 +18,17 @@ import Log from '@libs/Log';
 import extractNavigationKeys from '@libs/Navigation/helpers/extractNavigationKeys';
 import type {State} from '@libs/Navigation/types';
 import {NAVIGATION_FOCUS_ROUTE_DATA_ATTRIBUTE, NAVIGATION_FOCUS_ROUTE_SELECTOR} from './constants';
-import type {InteractionProvenance, NavigationFocusManagerModule} from './types';
+import type NavigationFocusManagerModule from './types';
+
+type InteractionType = 'keyboard' | 'pointer' | 'unknown';
+
+type InteractionTrigger = 'enterOrSpace' | 'escape' | 'pointer' | 'unknown';
+
+type InteractionProvenance = {
+    interactionType: InteractionType;
+    interactionTrigger: InteractionTrigger;
+    routeKey: string | null;
+};
 
 /**
  * Scoring weights for element matching during focus restoration.
@@ -122,7 +132,6 @@ const routeElementIdentifierMap = new Map<string, ElementIdentifier>();
 /** Legacy: stores element references for persistent screens (that stay mounted) */
 const routeFocusMap = new Map<string, CapturedFocus>();
 let isInitialized = false;
-let elementQueryStrategy: ElementQueryStrategy = defaultElementQueryStrategy;
 
 // Track current focused screen's route key for immediate capture
 // This allows capturing to routeFocusMap during interaction, before screen unmounts
@@ -285,7 +294,7 @@ function extractElementIdentifier(element: HTMLElement): ElementIdentifier {
  * Uses a scoring system to find the best match.
  */
 function findMatchingElement(identifier: ElementIdentifier): HTMLElement | null {
-    const candidates = Array.from(elementQueryStrategy(identifier.tagName));
+    const candidates = Array.from(defaultElementQueryStrategy(identifier.tagName));
 
     if (candidates.length === 0) {
         return null;
@@ -470,7 +479,6 @@ function clearLocalStateOnDestroy(): void {
     clearInteractionProvenance();
     currentFocusedRouteKey = null;
     wasKeyboardInteraction = false;
-    elementQueryStrategy = defaultElementQueryStrategy;
 }
 
 /**
@@ -799,18 +807,6 @@ function cleanupRemovedRoutes(state: State): void {
     }
 }
 
-/**
- * Testing seam only. Allows unit tests to provide deterministic candidate sets
- * without coupling tests to global document.querySelectorAll.
- */
-function setElementQueryStrategyForTests(queryStrategy?: ElementQueryStrategy): void {
-    elementQueryStrategy = queryStrategy ?? defaultElementQueryStrategy;
-}
-
-function getInteractionProvenanceForTests(): InteractionProvenance | null {
-    return lastInteractionProvenance;
-}
-
 const NavigationFocusManager: NavigationFocusManagerModule = {
     initialize,
     destroy,
@@ -824,8 +820,6 @@ const NavigationFocusManager: NavigationFocusManagerModule = {
     clearKeyboardInteractionFlag,
     getCapturedAnchorElement,
     cleanupRemovedRoutes,
-    setElementQueryStrategyForTests,
-    getInteractionProvenanceForTests,
 };
 
 export default NavigationFocusManager;
