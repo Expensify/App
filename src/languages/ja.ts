@@ -7316,6 +7316,7 @@ ${reportName}
         searchIn: '検索対象',
         searchPlaceholder: '何かを検索',
         suggestions: '提案',
+        suggestionsAvailable: ({count}: {count: number}, query?: string) => `候補があります${query ? `: ${query}` : ''}。${count}件の結果。`,
         exportSearchResults: {
             title: 'エクスポートを作成',
             description: 'おっと、アイテムがたくさんありますね！まとめて整理して、間もなくConciergeからファイルをお送りします。',

@@ -7199,6 +7199,7 @@ ${reportName}
         searchIn: '搜索范围',
         searchPlaceholder: '搜索内容',
         suggestions: '建议',
+        suggestionsAvailable: ({count}: {count: number}, query?: string) => `有可用建议${query ? `：${query}` : ''}。共${count}条结果。`,
         exportSearchResults: {
             title: '创建导出',
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',

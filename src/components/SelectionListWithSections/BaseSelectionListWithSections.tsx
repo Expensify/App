@@ -10,6 +10,7 @@ import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
+import SuggestionsAvailabilityAnnouncement from '@components/SelectionList/components/SuggestionsAvailabilityAnnouncement';
 import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -857,6 +858,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const prevTextInputValue = usePrevious(textInputValue);
     const prevSelectedOptionsLength = usePrevious(flattenedSections.selectedOptions.length);
     const prevAllOptionsLength = usePrevious(flattenedSections.allOptions.length);
+    const trimmedSearchValue = textInputValue.trim();
+    const suggestionsAnnouncement =
+        shouldShowTextInput && !isLoadingNewOptions && flattenedSections.allOptions.length > 0
+            ? translate('search.suggestionsAvailable', {count: flattenedSections.allOptions.length}, trimmedSearchValue || undefined)
+            : '';
 
     useEffect(() => {
         if (prevTextInputValue === textInputValue) {
@@ -1039,6 +1045,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
+            <SuggestionsAvailabilityAnnouncement
+                announcement={suggestionsAnnouncement}
+                delayMS={CONST.ANIMATED_TRANSITION * 2}
+            />
             {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
             {!shouldShowHeaderMessageAfterHeader && headerMessageContent()}

@@ -7415,6 +7415,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         searchIn: 'Suchen in',
         searchPlaceholder: 'Nach etwas suchen',
         suggestions: 'Vorschläge',
+        suggestionsAvailable: ({count}: {count: number}, query?: string) => `Vorschläge verfügbar${query ? ` für ${query}` : ''}. ${count} ${count === 1 ? 'Ergebnis' : 'Ergebnisse'}.`,
         exportSearchResults: {
             title: 'Export erstellen',
             description: 'Wow, das sind aber viele Elemente! Wir bündeln sie, und Concierge schickt dir in Kürze eine Datei.',

@@ -7384,6 +7384,7 @@ const translations = {
         searchIn: 'Search in',
         searchPlaceholder: 'Search for something',
         suggestions: 'Suggestions',
+        suggestionsAvailable: ({count}: {count: number}, query?: string) => `Suggestions available${query ? ` for ${query}` : ''}. ${count} ${count === 1 ? 'result' : 'results'}.`,
         exportSearchResults: {
             title: 'Create export',
             description: "Whoa, that's a lot of items! We'll bundle them up, and Concierge will send you a file shortly.",

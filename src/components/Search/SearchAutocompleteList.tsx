@@ -1,9 +1,10 @@
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import SuggestionsAvailabilityAnnouncement from '@components/SelectionList/components/SuggestionsAvailabilityAnnouncement';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -344,73 +345,78 @@ function SearchAutocompleteList({
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
     /* Sections generation */
-    const sections: Array<Section<AutocompleteListItem>> = [];
-    let sectionIndex = 0;
+    const {sections, styledRecentReports} = useMemo(() => {
+        const nextSections: Array<Section<AutocompleteListItem>> = [];
+        let sectionIndex = 0;
 
-    if (searchQueryItem) {
-        sections.push({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
-    }
-
-    const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
-
-    if (additionalSections) {
-        for (const section of additionalSections) {
-            sections.push(section);
-            sectionIndex++;
+        if (searchQueryItem) {
+            nextSections.push({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
         }
-    }
 
-    if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
-        sections.push({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
-    }
-    const styledRecentReports = recentReportsOptions.map((option) => {
-        const report = getReportOrDraftReport(option.reportID);
-        const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-        const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
-        return {
-            ...option,
-            keyForList,
-            pressableStyle: styles.br2,
-            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-            wrapperStyle: [styles.pr3, styles.pl3],
-        } as AutocompleteListItem;
-    });
+        const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
 
-    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports, sectionIndex: sectionIndex++});
+        if (additionalSections) {
+            for (const section of additionalSections) {
+                nextSections.push(section);
+                sectionIndex++;
+            }
+        }
 
-    if (autocompleteSuggestions.length > 0) {
-        const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
+        if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
+            nextSections.push({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
+        }
+
+        const nextStyledRecentReports = recentReportsOptions.map((option) => {
+            const report = getReportOrDraftReport(option.reportID);
+            const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+            const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
             return {
-                text: getAutocompleteDisplayText(filterKey, text),
-                mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
-                singleIcon: expensifyIcons.MagnifyingGlass,
-                searchQuery: text,
-                autocompleteID,
-                keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
-                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
-            };
+                ...option,
+                keyForList,
+                pressableStyle: styles.br2,
+                text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+                wrapperStyle: [styles.pr3, styles.pl3],
+            } as AutocompleteListItem;
         });
 
-        sections.push({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
-    }
+        nextSections.push({
+            title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
+            data: nextStyledRecentReports,
+            sectionIndex: sectionIndex++,
+        });
+
+        if (autocompleteSuggestions.length > 0) {
+            const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
+                return {
+                    text: getAutocompleteDisplayText(filterKey, text),
+                    mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
+                    singleIcon: expensifyIcons.MagnifyingGlass,
+                    searchQuery: text,
+                    autocompleteID,
+                    keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
+                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
+                };
+            });
+
+            nextSections.push({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
+        }
+
+        return {sections: nextSections, styledRecentReports: nextStyledRecentReports};
+    }, [autocompleteQueryValue, autocompleteSuggestions, expensifyIcons, getAdditionalSections, recentReportsOptions, recentSearchesData, searchOptions, searchQueryItem, styles, translate]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
+    const suggestionsCount = sections.reduce((total, section) => total + section.data.filter((item) => item.keyForList !== 'findItem').length, 0);
+    const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
+    const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue || undefined) : '';
 
     const firstRecentReportKey = styledRecentReports.at(0)?.keyForList;
-
-    // When options initialize after the list is already mounted, initiallyFocusedItemKey has no effect
-    // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
-    // Imperatively focus the first recent report once options become available (desktop only).
-    useEffect(() => {
-        if (shouldUseNarrowLayout || !areOptionsInitialized || hasSetInitialFocusRef.current || !firstRecentReportKey) {
-            return;
+    const firstRecentReportFlatIndex = useMemo(() => {
+        if (!firstRecentReportKey) {
+            return -1;
         }
-        hasSetInitialFocusRef.current = true;
 
-        // Compute the flat index of firstRecentReportKey by replicating the flattening logic
-        // from useFlattenedSections: each section may prepend a header row when it has a title/customHeader.
         let flatIndex = 0;
         for (const section of sections) {
             const hasData = (section.data?.length ?? 0) > 0;
@@ -420,13 +426,26 @@ function SearchAutocompleteList({
             }
             for (const item of section.data ?? []) {
                 if (item.keyForList === firstRecentReportKey) {
-                    innerListRef.current?.updateAndScrollToFocusedIndex(flatIndex, false);
-                    return;
+                    return flatIndex;
                 }
                 flatIndex++;
             }
         }
-    }, [areOptionsInitialized, firstRecentReportKey, sections, shouldUseNarrowLayout]);
+
+        return -1;
+    }, [firstRecentReportKey, sections]);
+
+    // When options initialize after the list is already mounted, initiallyFocusedItemKey has no effect
+    // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
+    // Imperatively focus the first recent report once options become available (desktop only).
+    useEffect(() => {
+        if (shouldUseNarrowLayout || !areOptionsInitialized || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
+            return;
+        }
+        hasSetInitialFocusRef.current = true;
+
+        innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, false);
+    }, [areOptionsInitialized, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
@@ -456,32 +475,38 @@ function SearchAutocompleteList({
     }
 
     return (
-        <SelectionListWithSections<AutocompleteListItem>
-            shouldShowLoadingPlaceholder
-            sections={sections}
-            onSelectRow={onListItemPress}
-            ListItem={SearchRouterItem}
-            style={{
-                containerStyle: [styles.mh100],
-                listStyle: [styles.ph2, styles.overscrollBehaviorContain],
-                contentContainerStyle: styles.pb2,
-                listItemWrapperStyle: [styles.pr0, styles.pl0],
-                sectionTitleStyles: styles.mhn2,
-            }}
-            shouldSingleExecuteRowSelect
-            ref={setListRef}
-            initialScrollIndex={0}
-            initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
-            shouldScrollToFocusedIndex={!isInitialRender}
-            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
-            addBottomSafeAreaPadding
-            onLayout={() => {
-                endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
-                setPerformanceTimersEnd();
-                setIsInitialRender(false);
-                innerListRef.current?.updateExternalTextInputFocus(textInputRef?.current?.isFocused() ?? false);
-            }}
-        />
+        <>
+            <SelectionListWithSections<AutocompleteListItem>
+                shouldShowLoadingPlaceholder
+                sections={sections}
+                onSelectRow={onListItemPress}
+                ListItem={SearchRouterItem}
+                style={{
+                    containerStyle: [styles.mh100],
+                    listStyle: [styles.ph2, styles.overscrollBehaviorContain],
+                    contentContainerStyle: styles.pb2,
+                    listItemWrapperStyle: [styles.pr0, styles.pl0],
+                    sectionTitleStyles: styles.mhn2,
+                }}
+                shouldSingleExecuteRowSelect
+                ref={setListRef}
+                initialScrollIndex={0}
+                initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
+                shouldScrollToFocusedIndex={!isInitialRender}
+                disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+                addBottomSafeAreaPadding
+                onLayout={() => {
+                    endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+                    setPerformanceTimersEnd();
+                    setIsInitialRender(false);
+                    innerListRef.current?.updateExternalTextInputFocus(textInputRef?.current?.isFocused() ?? false);
+                }}
+            />
+            <SuggestionsAvailabilityAnnouncement
+                announcement={suggestionsAnnouncement}
+                delayMS={CONST.ANIMATED_TRANSITION * 2}
+            />
+        </>
     );
 }
 

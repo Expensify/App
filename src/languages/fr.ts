@@ -7437,6 +7437,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         searchIn: 'Rechercher dans',
         searchPlaceholder: 'Rechercher quelque chose',
         suggestions: 'Suggestions',
+        suggestionsAvailable: ({count}: {count: number}, query?: string) => `Suggestions disponibles${query ? ` pour ${query}` : ''}. ${count} ${count === 1 ? 'résultat' : 'résultats'}.`,
         exportSearchResults: {
             title: 'Créer l’export',
             description: 'Ouah, ça fait beaucoup d’éléments ! Nous allons les regrouper et Concierge vous enverra un fichier sous peu.',

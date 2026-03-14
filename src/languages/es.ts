@@ -7238,6 +7238,7 @@ ${amount} para ${merchant} - ${date}`,
         searchIn: 'Buscar en',
         searchPlaceholder: 'Busca algo',
         suggestions: 'Sugerencias',
+        suggestionsAvailable: ({count}: {count: number}, query?: string) => `Sugerencias disponibles${query ? ` para ${query}` : ''}. ${count} ${count === 1 ? 'resultado' : 'resultados'}.`,
         exportSearchResults: {
             title: 'Crear exportación',
             description: '¡Wow, esos son muchos elementos! Los agruparemos y Concierge te enviará un archivo en breve.',

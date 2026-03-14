@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
+import SuggestionsAvailabilityAnnouncement from './SuggestionsAvailabilityAnnouncement';
 
 type TextInputProps = {
     /** Reference to the BaseTextInput component */
@@ -74,6 +75,9 @@ function TextInput({
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
 
     useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
+    const trimmedSearchValue = value?.trim() ?? '';
+    const suggestionsCount = dataLength ?? 0;
+    const suggestionsAnnouncement = !isLoadingNewOptions && suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedSearchValue || undefined) : '';
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -148,6 +152,10 @@ function TextInput({
                     <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
                 </View>
             )}
+            <SuggestionsAvailabilityAnnouncement
+                announcement={suggestionsAnnouncement}
+                delayMS={CONST.ANIMATED_TRANSITION * 2}
+            />
         </>
     );
 }
