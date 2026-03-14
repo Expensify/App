@@ -53,6 +53,7 @@ function AuthScreensInitHandler() {
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -130,7 +131,7 @@ function AuthScreensInitHandler() {
         } else if (SessionUtils.didUserLogInDuringSession()) {
             const reportID = getReportIDFromLink(initialURL ?? null);
             if (reportID && !isAuthenticatedAtStartup) {
-                Report.openReport({reportID, introSelected});
+                Report.openReport({reportID, introSelected, betas});
                 // Don't want to call `openReport` again when logging out and then logging in
                 setIsAuthenticatedAtStartup(true);
             }

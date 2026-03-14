@@ -191,6 +191,12 @@ const translations = {
         home: 'Home',
         inbox: 'Inbox',
         yourReviewIsRequired: 'Your review is required',
+        actionBadge: {
+            submit: 'Submit',
+            approve: 'Approve',
+            pay: 'Pay',
+            fix: 'Fix',
+        },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
         group: 'Group',
@@ -1048,6 +1054,11 @@ const translations = {
                 subtitle: 'Expensify Card',
                 cta: 'Review',
             },
+            validateAccount: {
+                title: 'Validate your account to continue using Expensify',
+                subtitle: 'Account',
+                cta: 'Validate',
+            },
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
@@ -1446,6 +1457,7 @@ const translations = {
             distanceAmountTooLargeReduceDistance: 'The total amount is too large. Reduce the distance.',
             distanceAmountTooLargeReduceRate: 'The total amount is too large. Lower the rate.',
             odometerReadingTooLarge: (formattedMax: string) => `Odometer readings cannot exceed ${formattedMax}.`,
+            stitchOdometerImagesFailed: 'Failed to combine odometer images. Please try again later.',
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount',
@@ -8619,6 +8631,7 @@ const translations = {
             title: 'Members',
             findMember: 'Find member',
             addMember: 'Add member',
+            allMembers: 'All members',
             email: 'Email address',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
             forceCloseAccount: () => ({
