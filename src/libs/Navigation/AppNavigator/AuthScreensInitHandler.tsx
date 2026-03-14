@@ -24,15 +24,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-function initializePusher(conciergeReportID: string | undefined, currentUserAccountID?: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
+function initializePusher(currentUserAccountID?: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, conciergeReportID, getReportAttributes);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, getReportAttributes);
     });
 }
 
@@ -60,7 +59,6 @@ function AuthScreensInitHandler() {
 
     const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
 
@@ -85,12 +83,9 @@ function AuthScreensInitHandler() {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
         }
-        if (isLoadingOnyxValue(conciergeReportIDMetadata)) {
-            return;
-        }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(conciergeReportID, session?.accountID, () => reportAttributesRef.current);
-    }, [session?.accountID, conciergeReportID, conciergeReportIDMetadata]);
+        initializePusher(session?.accountID, () => reportAttributesRef.current);
+    }, [session?.accountID]);
 
     useEffect(() => {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
@@ -113,7 +108,7 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(conciergeReportID, session?.accountID, () => reportAttributesRef.current).finally(() => {
+        initializePusher(session?.accountID, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 

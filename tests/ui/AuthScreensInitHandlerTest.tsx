@@ -161,7 +161,7 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockedPusherInit).toHaveBeenCalled();
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, conciergeReportID);
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, expect.any(Function));
     });
 
     it('calls initializePusher when SIGN_IN_MODAL is active and conciergeReportID is loaded', async () => {
@@ -177,7 +177,7 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         // subscribeToUserEvents should be called with conciergeReportID from both mount and sign-in modal effects
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, conciergeReportID);
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, expect.any(Function));
     });
 
     it('does not call initializePusher from sign-in modal effect when conciergeReportID is still loading', async () => {
@@ -190,7 +190,7 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         // The mount effect calls subscribeToUserEvents with undefined conciergeReportID
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, undefined);
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, expect.any(Function));
     });
 
     it('passes undefined conciergeReportID when not set', async () => {
@@ -200,7 +200,7 @@ describe('AuthScreensInitHandler', () => {
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, undefined);
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, expect.any(Function));
     });
 
     it('signs out when logging in as new user during transition', async () => {

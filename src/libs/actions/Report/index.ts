@@ -3997,7 +3997,6 @@ function showReportActionNotification(
     reportAction: ReportAction,
     currentUserAccountID: number,
     currentUserLogin: string,
-    conciergeReportID: string | undefined,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     if (!shouldShowReportActionNotification(reportID, currentUserAccountID, reportAction)) {

@@ -847,7 +847,6 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@user.com';
         const REPORT_ID = '1';
-        const CONCIERGE_REPORT_ID = '42';
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
@@ -855,7 +854,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
             .then(waitForBatchedUpdates)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -872,7 +871,7 @@ describe('actions/Report', () => {
                 return SequentialQueue.getCurrentRequest().then(waitForBatchedUpdates);
             })
             .then(() => {
-                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
             });
     });
 
@@ -880,7 +879,6 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@user.com';
         const REPORT_ID = '1';
-        const CONCIERGE_REPORT_ID = '99';
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
@@ -888,7 +886,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
             .then(waitForBatchedUpdates)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -905,7 +903,7 @@ describe('actions/Report', () => {
                 return SequentialQueue.getCurrentRequest().then(waitForBatchedUpdates);
             })
             .then(() => {
-                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
             });
     });
 
@@ -914,7 +912,6 @@ describe('actions/Report', () => {
         const TEST_USER_LOGIN = 'test@user.com';
         const REPORT_ID_1 = '1';
         const REPORT_ID_2 = '2';
-        const CONCIERGE_REPORT_ID = '55';
         const REPORT_ACTION_1 = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
@@ -925,7 +922,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
             .then(waitForBatchedUpdates)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -951,8 +948,8 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 expect(Report.showReportActionNotification).toHaveBeenCalledTimes(2);
-                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID_1, REPORT_ACTION_1, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
-                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID_2, REPORT_ACTION_2, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
+                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID_1, REPORT_ACTION_1, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID_2, REPORT_ACTION_2, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
             });
     });
 
@@ -960,7 +957,6 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@user.com';
         const REPORT_ID = '1';
-        const CONCIERGE_REPORT_ID = '77';
         const REPORT_ACTION_1 = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
@@ -971,7 +967,7 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
             .then(waitForBatchedUpdates)
             .then(() => {
-                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+                User.subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -990,8 +986,8 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 expect(Report.showReportActionNotification).toHaveBeenCalledTimes(2);
-                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID, REPORT_ACTION_1, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
-                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID, REPORT_ACTION_2, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, CONCIERGE_REPORT_ID);
+                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID, REPORT_ACTION_1, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
+                expect(Report.showReportActionNotification).toHaveBeenCalledWith(REPORT_ID, REPORT_ACTION_2, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
             });
     });
 
