@@ -1,5 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useContext, useMemo} from 'react';
+import React, {useContext, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -25,7 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
-import type {SearchQueryJSON} from './types';
+import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
 type SearchBulkActionsButtonProps = {
     queryJSON: SearchQueryJSON;
@@ -55,7 +55,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         selectedPolicyIDs,
         selectedTransactionReportIDs,
         selectedReportIDs,
-        latestBankItems,
+        businessBankAccountOptions,
         confirmPayment,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
@@ -73,9 +73,13 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`);
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
+    const pendingPaymentAdditionalDataRef = useRef<BulkPaySelectionData | undefined>(undefined);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+    const shouldPopoverUseScrollView =
+        headerButtonsOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD || headerButtonsOptions.some((option) => (option.subMenuItems?.length ?? 0) >= CONST.DROPDOWN_SCROLL_THRESHOLD);
 
     const selectedItemsCount = useMemo(() => {
         if (!selectedTransactions) {
@@ -106,7 +110,10 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 addBankAccountRoute={
                     isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: currentSelectedPolicyID, backTo: Navigation.getActiveRoute()}) : undefined
                 }
-                onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
+                onSuccessfulKYC={(paymentType) => {
+                    confirmPayment?.(paymentType, pendingPaymentAdditionalDataRef.current);
+                    pendingPaymentAdditionalDataRef.current = undefined;
+                }}
             >
                 {(triggerKYCFlow, buttonRef) =>
                     shouldUseNarrowLayout ? (
@@ -118,7 +125,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 shouldAlwaysShowDropdownMenu
                                 isDisabled={headerButtonsOptions.length === 0}
                                 onPress={() => null}
-                                shouldPopoverUseScrollView={headerButtonsOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
                                 onSubItemSelected={(subItem) =>
                                     handleBulkPayItemSelected({
                                         item: subItem,
@@ -126,7 +133,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         isAccountLocked,
                                         showLockedAccountModal,
                                         policy: currentPolicy,
-                                        latestBankItems,
+                                        businessBankAccountOptions,
                                         activeAdminPolicies,
                                         isUserValidated,
                                         isDelegateAccessRestricted,
@@ -134,6 +141,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         confirmPayment,
                                         userBillingGraceEndPeriods,
                                         amountOwed,
+                                        setPendingPaymentAdditionalData: (data) => {
+                                            pendingPaymentAdditionalDataRef.current = data;
+                                        },
                                     })
                                 }
                                 success
@@ -155,6 +165,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
+                                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
                                 onSubItemSelected={(subItem) =>
                                     handleBulkPayItemSelected({
                                         item: subItem,
@@ -162,7 +173,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         isAccountLocked,
                                         showLockedAccountModal,
                                         policy: currentPolicy,
-                                        latestBankItems,
+                                        businessBankAccountOptions,
                                         activeAdminPolicies,
                                         isUserValidated,
                                         isDelegateAccessRestricted,
@@ -170,6 +181,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         confirmPayment,
                                         userBillingGraceEndPeriods,
                                         amountOwed,
+                                        setPendingPaymentAdditionalData: (data) => {
+                                            pendingPaymentAdditionalDataRef.current = data;
+                                        },
                                     })
                                 }
                                 isSplitButton={false}
