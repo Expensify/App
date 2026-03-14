@@ -327,9 +327,8 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-    const inputNativeID = inputProps.nativeID ?? inputProps.id ?? inputID ?? `text-input-${helpMessageId}`;
     const helpMessageTextID = `${helpMessageId}-text`;
-    const accessibilityLabel = inputProps.accessibilityLabel ?? [label, hint].filter(Boolean).join(', ');
+    const accessibilityLabel = [label, hint, errorText].filter(Boolean).join(', ');
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
         isLoading: !!inputProps.isLoading,
@@ -389,7 +388,7 @@ function BaseTextInput({
                                     label={label}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
-                                    for={inputNativeID}
+                                    for={inputProps.nativeID}
                                     isMultiline={isMultiline}
                                 />
                             </>
@@ -451,7 +450,6 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                nativeID={inputNativeID}
                                 // Filter out role="presentation" so it doesn't strip the native
                                 // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
                                 role={role === CONST.ROLE.PRESENTATION ? undefined : role}
@@ -497,12 +495,9 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
-                                accessibilityLabel={accessibilityLabel}
+                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
                                 keyboardType={inputProps.keyboardType}
-                                // Keep aria-describedby for baseline compatibility and issue requirements,
-                                // while aria-errormessage enhances announcement on browsers that support it.
                                 aria-describedby={inputHelpText ? helpMessageTextID : undefined}
-                                aria-errormessage={errorText ? helpMessageTextID : undefined}
                                 aria-invalid={errorText ? true : undefined}
                             />
                             {!!suffixCharacter && (
@@ -577,7 +572,7 @@ function BaseTextInput({
                 </PressableWithoutFeedback>
                 {!!inputHelpText && (
                     <FormHelpMessage
-                        messageNativeID={helpMessageTextID}
+                        nativeID={helpMessageTextID}
                         isError={!!errorText}
                         message={inputHelpText}
                     />
