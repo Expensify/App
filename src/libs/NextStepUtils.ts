@@ -92,11 +92,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
-    const isReportContainingTransactions =
-        report &&
-        ((report.total !== 0 && report.total !== undefined) ||
-            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
-            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const isReportContainingTransactions = (report?.transactionCount ?? 0) > 0;
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -187,7 +183,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
 
             // Manual submission
-            if (report?.total !== 0 && !policy?.harvesting?.enabled) {
+            if (isReportContainingTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -472,11 +468,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
         shouldChangeUserDisplayName: true,
     });
-    const isReportContainingTransactions =
-        report &&
-        ((report.total !== 0 && report.total !== undefined) ||
-            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
-            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const isReportContainingTransactions = (report?.transactionCount ?? 0) > 0;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const ownerDisplayName =
@@ -661,7 +653,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             }
 
             // Manual submission
-            if (report?.total !== 0 && !policy?.harvesting?.enabled) {
+            if (isReportContainingTransactions && !policy?.harvesting?.enabled) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
