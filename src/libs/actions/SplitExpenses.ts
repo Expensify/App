@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
-import {initSplitExpenseItemData, updateSplitExpenseDistanceFromAmount} from './IOU/Split';
+import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, updateSplitExpenseDistanceFromAmount} from './IOU/Split';
 
 // We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
 // this avoids unnecessary re-rendering for components when any transaction changes. This data should ONLY
@@ -38,7 +38,7 @@ Onyx.connectWithoutView({
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>): void {
+function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>, {navigateToEditSplitExpense = false}: {navigateToEditSplitExpense?: boolean} = {}): void {
     if (!transaction) {
         return;
     }
@@ -75,6 +75,14 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
         });
 
         Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
+        if (navigateToEditSplitExpense) {
+            const splitExpenseOverviewRoute = isSearchTopmostFullScreenRoute()
+                ? ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute())
+                : ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute());
+            initDraftSplitExpenseDataForEdit(draftTransaction, transaction.transactionID, reportID);
+            Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, originalTransactionID, transaction.transactionID, splitExpenseOverviewRoute));
+            return;
+        }
         if (isSearchTopmostFullScreenRoute()) {
             Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
         } else {

@@ -3,9 +3,10 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {deleteMoneyRequest, getIOURequestPolicyID} from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU/Split';
+import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
+import {getChildTransactions, getOriginalTransactionWithSplitInfo, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
@@ -64,6 +65,18 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
         ): string[] => {
             if (!transactionIDs.length) {
                 return [];
+            }
+
+            if (transactionIDs.length === 1) {
+                const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`];
+                const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.comment?.originalTransactionID}`];
+                const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+                const shouldOpenSplitExpenseEditFlowOnDelete = isExpenseSplit && isPerDiemRequest(originalTransaction ?? transaction);
+
+                if (transaction && shouldOpenSplitExpenseEditFlowOnDelete) {
+                    initSplitExpense(transaction, policy, {navigateToEditSplitExpense: true});
+                    return [];
+                }
             }
 
             const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
