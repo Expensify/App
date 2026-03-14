@@ -12,7 +12,7 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isReportApproved, isSettled} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -364,10 +364,6 @@ function getTransactionEditPermissions(
 
     // All remaining expense types require a resolved parentReportAction.
     if (!parentReportAction) {
-        return NO_EDIT;
-    }
-
-    if (isSettled(parentReport) || !!isReportApproved({report: parentReport})) {
         return NO_EDIT;
     }
 
