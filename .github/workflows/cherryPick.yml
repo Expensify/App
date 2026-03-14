@@ -235,13 +235,17 @@ jobs:
           FALLBACK_URL="https://github.com/${{ github.repository }}/actions/workflows/deploy.yml"
           if [ -z "$DEPLOY_RUN_URL" ]; then
             echo "::warning::Could not find deploy workflow run for SHA $PUSH_SHA"
-            echo "DEPLOY_RUN_FOUND=false" >> "$GITHUB_OUTPUT"
-            echo "DEPLOY_RUN_URL=$FALLBACK_URL" >> "$GITHUB_OUTPUT"
-            echo "DEPLOY_RUN_MESSAGE=⚠️ Could not locate deploy run — check $FALLBACK_URL" >> "$GITHUB_OUTPUT"
+            {
+              echo "DEPLOY_RUN_FOUND=false"
+              echo "DEPLOY_RUN_URL=$FALLBACK_URL"
+              echo "DEPLOY_RUN_MESSAGE=⚠️ Could not locate deploy run — check $FALLBACK_URL"
+            } >> "$GITHUB_OUTPUT"
           else
-            echo "DEPLOY_RUN_FOUND=true" >> "$GITHUB_OUTPUT"
-            echo "DEPLOY_RUN_URL=$DEPLOY_RUN_URL" >> "$GITHUB_OUTPUT"
-            echo "DEPLOY_RUN_MESSAGE=$DEPLOY_RUN_URL" >> "$GITHUB_OUTPUT"
+            {
+              echo "DEPLOY_RUN_FOUND=true"
+              echo "DEPLOY_RUN_URL=$DEPLOY_RUN_URL"
+              echo "DEPLOY_RUN_MESSAGE=$DEPLOY_RUN_URL"
+            } >> "$GITHUB_OUTPUT"
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
