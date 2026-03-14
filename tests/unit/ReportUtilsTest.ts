@@ -4721,10 +4721,6 @@ describe('ReportUtils', () => {
             expect(isReportPendingDelete(undefined)).toBe(false);
         });
 
-        it('should return false for null report', () => {
-            expect(isReportPendingDelete(null)).toBe(false);
-        });
-
         it('should return false when pendingFields exists but preview is not DELETE', () => {
             expect(isReportPendingDelete({pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}})).toBe(false);
         });

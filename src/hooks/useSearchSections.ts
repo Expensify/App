@@ -1,27 +1,30 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isReportPendingDelete, selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
-type ReportPendingFields = Pick<Report, 'pendingAction' | 'pendingFields'>;
-
-const selectReportsPendingFields = (reports: OnyxCollection<Report>) =>
-    mapOnyxCollectionItems(reports, (report): ReportPendingFields | undefined =>
-        report
-            ? {
-                  pendingAction: report.pendingAction,
-                  pendingFields: report.pendingFields,
-              }
-            : undefined,
-    );
+/**
+ * Selector that returns a sorted array of report keys pending deletion.
+ * Returning a sorted string[] allows Onyx's shallowEqual to cheaply detect changes
+ * without expensive deepEqual on mapped objects or Sets.
+ */
+const selectPendingDeleteReportKeys = (reports: OnyxCollection<Report>): string[] => {
+    const keys: string[] = [];
+    for (const [key, report] of Object.entries(reports ?? {})) {
+        if (isReportPendingDelete(report)) {
+            keys.push(key);
+        }
+    }
+    return keys.sort();
+};
 
 type UseSearchSectionsResult = {
     allReports: Array<string | undefined>;
@@ -32,7 +35,8 @@ type UseSearchSectionsResult = {
 function useSearchSections(): UseSearchSectionsResult {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
-    const [liveReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: selectReportsPendingFields});
+    const [pendingDeleteReportKeys = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: selectPendingDeleteReportKeys});
+    const pendingDeleteReportKeysSet = new Set(pendingDeleteReportKeys);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
@@ -82,8 +86,7 @@ function useSearchSections(): UseSearchSectionsResult {
         if (!id) {
             return false;
         }
-        const liveReport = liveReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
-        return !isReportPendingDelete(liveReport);
+        return !pendingDeleteReportKeysSet.has(`${ONYXKEYS.COLLECTION.REPORT}${id}`);
     });
 
     return {allReports, isSearchLoading: !!currentSearchResults?.search?.isLoading, lastSearchQuery};
