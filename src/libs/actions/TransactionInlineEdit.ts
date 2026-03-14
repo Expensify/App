@@ -6,20 +6,19 @@
  * the canonical Onyx record, the API write, and failure rollback.
  */
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
-    OnyxInputOrEntry,
     Policy,
     PolicyCategories,
     PolicyTagLists,
@@ -150,15 +149,6 @@ Onyx.connectWithoutView({
     },
 });
 
-let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReportNameValuePairs = value;
-    },
-});
-
 const NO_EDIT: Readonly<TransactionEditPermissions> = Object.freeze({
     canEditDate: false,
     canEditMerchant: false,
@@ -169,25 +159,25 @@ const NO_EDIT: Readonly<TransactionEditPermissions> = Object.freeze({
 });
 
 type TransactionEditPermissionsParams = {
-    transaction: OnyxInputOrEntry<Transaction>;
+    transaction: OnyxEntry<Transaction>;
 
-    parentReportAction: OnyxInputOrEntry<ReportAction>;
+    parentReportAction: OnyxEntry<ReportAction>;
 
-    parentReport: OnyxInputOrEntry<Report>;
+    parentReport: OnyxEntry<Report>;
 
-    policyForMovingExpenses?: OnyxInputOrEntry<Policy>;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
 
-    parentPolicy?: OnyxInputOrEntry<Policy>;
+    parentPolicy?: OnyxEntry<Policy>;
 
-    transactionThreadReport?: OnyxInputOrEntry<Report>;
+    transactionThreadReport?: OnyxEntry<Report>;
 
-    policyCategories?: OnyxInputOrEntry<PolicyCategories>;
+    policyCategories?: OnyxEntry<PolicyCategories>;
 
-    policyTags?: OnyxInputOrEntry<PolicyTagLists>;
+    policyTags?: OnyxEntry<PolicyTagLists>;
 
-    transactionThreadNVP?: OnyxInputOrEntry<ReportNameValuePairs>;
+    transactionThreadNVP?: OnyxEntry<ReportNameValuePairs>;
 
-    chatReportNVP?: OnyxInputOrEntry<ReportNameValuePairs>;
+    chatReportNVP?: OnyxEntry<ReportNameValuePairs>;
 
     /** Search query context. When provided, applies editable-tab guard for Search table. */
     queryJSON?: SearchQueryJSON;
@@ -346,11 +336,6 @@ function editTransactionTagInline(hash: number | undefined, transactionID: strin
 
 /**
  * Core inline-edit permission check, shared by the Search table and the Expense Report page.
- *
- * @param transaction - The transaction to check
- * @param parentReportAction - The parent IOU report action
- * @param parentReport - The parent report
- * @param options - Additional options for permission checks
  */
 function getTransactionEditPermissions({
     transaction,
@@ -386,85 +371,91 @@ function getTransactionEditPermissions({
         return NO_EDIT;
     }
 
+    const policyID = parentReport?.policyID;
+    const policyTagLists = getTagLists(policyTags);
+    const canEditCategoryForPolicy = () => !!policyID && policyID !== CONST.POLICY.ID_FAKE && !!parentPolicy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
+    const canEditTagForPolicy = () => !isMultiLevelTags(policyTags) && (!!transaction?.tag || hasEnabledTags(policyTagLists));
+
     // Unreported track expenses (SelfDM) have no parent report or report action.
     // They are always editable by the creator. Category/tag logic matches MoneyRequestView:
     // - Category: editable if no policy OR policy has enabled categories
     // - Tag: editable if policy has enabled tags
     if (isExpenseUnreported(transaction)) {
-        // Use passed-in policyCategories/policyTags or fall back to module cache
-        const effectivePolicyCategories =
-            policyCategories ?? (policyForMovingExpenses?.id ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpenses.id}`] : undefined);
-        const effectivePolicyTags = policyTags ?? (policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : undefined);
-        const policyTagLists = getTagLists(effectivePolicyTags);
-
         return {
             canEditDate: true,
             canEditMerchant: true,
             canEditDescription: true,
             canEditAmount: true,
-            canEditCategory: !policyForMovingExpenses || hasEnabledOptions(effectivePolicyCategories ?? {}),
+            canEditCategory: !policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {}),
             canEditTag: hasEnabledTags(policyTagLists),
         };
     }
 
     // All remaining expense types require a resolved parentReportAction.
+    // However, when offline (or during sync), the parent action may not be in Onyx yet.
+    // In that case, allow editing if the user owns the transaction and the report is not archived.
     if (!parentReportAction) {
-        return NO_EDIT;
+        // If we have no parent report, we can't determine ownership or archive status
+        if (!parentReport) {
+            return NO_EDIT;
+        }
+
+        // Check if the parent report is archived
+        const isChatReportArchived = isArchivedReport(chatReportNVP);
+        if (isChatReportArchived) {
+            return NO_EDIT;
+        }
+
+        // Check if the user owns this transaction (through the parent report)
+        const isCurrentUserTransactionOwner = parentReport.ownerAccountID === currentUserAccountID;
+        if (!isCurrentUserTransactionOwner) {
+            return NO_EDIT;
+        }
+
+        // When settled or approved, only non-restricted fields (category, tag, description) can be edited.
+        // Restricted fields (date, merchant, amount) cannot be edited once settled/approved.
+        const isSettledOrApproved = isSettled(parentReport.reportID) || isReportIDApproved(parentReport.reportID);
+
+        // Allow basic edits for owned transactions even without parentReportAction
+        // This handles the offline case where the action hasn't synced yet
+        return {
+            canEditDate: !isSettledOrApproved,
+            canEditMerchant: !isSettledOrApproved,
+            canEditDescription: true,
+            canEditAmount: !isSettledOrApproved,
+            canEditCategory: canEditCategoryForPolicy(),
+            canEditTag: canEditTagForPolicy(),
+        };
     }
 
-    // Use passed-in transaction thread report or fall back to module cache
-    const effectiveTransactionThreadReport =
-        transactionThreadReport ?? (parentReportAction.childReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportAction.childReportID}`] : undefined);
-
-    // Use passed-in name-value pairs or fall back to module cache
-    const effectiveTransactionThreadNVP =
-        transactionThreadNVP ??
-        (parentReportAction.childReportID ? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReportAction.childReportID}`] : undefined);
-    const effectiveChatReportNVP =
-        chatReportNVP ?? (parentReport?.chatReportID ? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport.chatReportID}`] : undefined);
-
-    const isTransactionThreadArchived = isArchivedReport(effectiveTransactionThreadNVP);
-    const isChatReportArchived = isArchivedReport(effectiveChatReportNVP);
+    const isTransactionThreadArchived = isArchivedReport(transactionThreadNVP);
+    const isChatReportArchived = isArchivedReport(chatReportNVP);
 
     // Check if user can perform write actions on the transaction thread report
-    const canUserEdit = canUserPerformWriteAction(effectiveTransactionThreadReport, isTransactionThreadArchived);
+    const canUserEdit = canUserPerformWriteAction(transactionThreadReport, isTransactionThreadArchived);
     if (!canUserEdit) {
         return NO_EDIT;
     }
-
-    // Use passed-in parentPolicy or fall back to module cache
-    const policyID = parentReport?.policyID;
-    const effectiveParentPolicy = parentPolicy ?? (policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined);
 
     if (!isMoneyRequestAction(parentReportAction)) {
         return NO_EDIT;
     }
 
-    if (!canEditMoneyRequest(parentReportAction, isChatReportArchived, parentReport, effectiveParentPolicy, transaction)) {
+    if (!canEditMoneyRequest(parentReportAction, isChatReportArchived, parentReport, parentPolicy, transaction)) {
         return NO_EDIT;
     }
 
-    // Use passed-in policyTags or fall back to module cache
-    const effectivePolicyTags = policyTags ?? (policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined);
-    const policyTagLists = getTagLists(effectivePolicyTags);
-
     return {
-        canEditDate: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, false, false, undefined, transaction, parentReport, effectiveParentPolicy),
-        canEditMerchant: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, false, false, undefined, transaction, parentReport, effectiveParentPolicy),
-        canEditDescription: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DESCRIPTION, false, false, undefined, transaction, parentReport, effectiveParentPolicy),
+        canEditDate: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, false, false, undefined, transaction, parentReport, parentPolicy),
+        canEditMerchant: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, false, false, undefined, transaction, parentReport, parentPolicy),
+        canEditDescription: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DESCRIPTION, false, false, undefined, transaction, parentReport, parentPolicy),
         // Only expenses tied to a real workspace with categories enabled.
         canEditCategory:
-            !!policyID &&
-            policyID !== CONST.POLICY.ID_FAKE &&
-            !!effectiveParentPolicy?.areCategoriesEnabled &&
-            canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CATEGORY, false, false, undefined, transaction, parentReport, effectiveParentPolicy),
-        canEditAmount: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, false, false, undefined, transaction, parentReport, effectiveParentPolicy),
+            canEditCategoryForPolicy() && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CATEGORY, false, false, undefined, transaction, parentReport, parentPolicy),
+        canEditAmount: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, false, false, undefined, transaction, parentReport, parentPolicy),
         // Multi-level tags need a picker UI not available inline.
         // Allow editing if transaction already has a tag OR if there are enabled tags.
-        canEditTag:
-            !isMultiLevelTags(effectivePolicyTags) &&
-            (!!transaction?.tag || hasEnabledTags(policyTagLists)) &&
-            canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.TAG, false, false, undefined, transaction, parentReport, effectiveParentPolicy),
+        canEditTag: canEditTagForPolicy() && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.TAG, false, false, undefined, transaction, parentReport, parentPolicy),
     };
 }
 
