@@ -4,6 +4,7 @@ import {AccessibilityInfo} from 'react-native';
 
 type UseAccessibilityAnnouncementOptions = {
     shouldAnnounceOnNative?: boolean;
+    shouldAnnounceOnWeb?: boolean;
 };
 
 const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;

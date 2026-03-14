@@ -72,11 +72,7 @@ function TextInput({
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
 
-    const {shouldAnnounceNow: shouldAnnounceNoResults, debouncedSearchValue: debouncedInputValue} = useDebouncedAccessibilityAnnouncement(
-        headerMessage ?? '',
-        shouldShowHeaderMessage && isNoResultsFoundMessage,
-        value ?? '',
-    );
+    useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage && isNoResultsFoundMessage && !isLoading, value ?? '');
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -148,13 +144,7 @@ function TextInput({
             </View>
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
-                    <Text
-                        key={shouldAnnounceNoResults ? `no-results-${debouncedInputValue}` : undefined}
-                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                        role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
-                    >
-                        {headerMessage}
-                    </Text>
+                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
                 </View>
             )}
         </>

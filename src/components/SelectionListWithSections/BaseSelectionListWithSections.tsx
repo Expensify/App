@@ -1012,22 +1012,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder));
 
-    const {shouldAnnounceNow: shouldAnnounceNoResults, debouncedSearchValue: debouncedTextInputValue} = useDebouncedAccessibilityAnnouncement(
-        headerMessage,
-        shouldShowHeaderMessage && isNoResultsFoundMessage,
-        textInputValue,
-    );
+    useDebouncedAccessibilityAnnouncement(headerMessage, shouldShowHeaderMessage && isNoResultsFoundMessage, textInputValue);
 
     const headerMessageContent = () =>
         shouldShowHeaderMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                <Text
-                    key={shouldAnnounceNoResults ? `no-results-${debouncedTextInputValue}` : undefined}
-                    style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                    role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
-                >
-                    {headerMessage}
-                </Text>
+                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
             </View>
         );
 

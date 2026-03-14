@@ -54,17 +54,9 @@ function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
     const {translate} = useLocalize();
     const noResultsFoundText = translate('common.noResultsFound');
 
-    const {shouldAnnounceNow, debouncedSearchValue} = useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue);
+    useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue);
 
-    return (
-        <Text
-            key={shouldAnnounceNow ? `no-results-${debouncedSearchValue}` : undefined}
-            style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
-            role={shouldAnnounceNow ? CONST.ROLE.ALERT : undefined}
-        >
-            {noResultsFoundText}
-        </Text>
-    );
+    return <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{noResultsFoundText}</Text>;
 }
 
 function AddressSearch({

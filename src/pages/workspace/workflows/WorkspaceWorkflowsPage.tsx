@@ -214,11 +214,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const noResultsMessage = translate('common.noResultsFoundMatching', workflowSearchInput);
     const isNoResults = searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0;
-    const {shouldAnnounceNow: shouldAnnounceNoResults, debouncedSearchValue: debouncedSearchInput} = useDebouncedAccessibilityAnnouncement(
-        noResultsMessage,
-        isNoResults,
-        workflowSearchInput,
-    );
+    useDebouncedAccessibilityAnnouncement(noResultsMessage, isNoResults, workflowSearchInput);
 
     useEffect(() => {
         if (filteredApprovalWorkflows.length > CONST.APPROVAL_WORKFLOW_SEARCH_LIMIT) {
@@ -334,13 +330,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         )}
                         {isNoResults && (
                             <View style={[styles.pt3, styles.pb5]}>
-                                <Text
-                                    key={shouldAnnounceNoResults ? `no-results-${debouncedSearchInput}` : undefined}
-                                    style={[styles.textNormal, styles.colorMuted]}
-                                    role={shouldAnnounceNoResults ? CONST.ROLE.ALERT : undefined}
-                                >
-                                    {noResultsMessage}
-                                </Text>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{noResultsMessage}</Text>
                             </View>
                         )}
                         {searchFilteredWorkflows.map((workflow) => (
@@ -525,8 +515,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         setWorkflowSearchInput,
         isNoResults,
         noResultsMessage,
-        shouldAnnounceNoResults,
-        debouncedSearchInput,
         addApprovalAction,
         isOffline,
         isPolicyAdmin,

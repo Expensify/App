@@ -4,6 +4,7 @@ import {AccessibilityInfo} from 'react-native';
 
 type UseAccessibilityAnnouncementOptions = {
     shouldAnnounceOnNative?: boolean;
+    shouldAnnounceOnWeb?: boolean;
 };
 
 function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, options?: UseAccessibilityAnnouncementOptions) {
