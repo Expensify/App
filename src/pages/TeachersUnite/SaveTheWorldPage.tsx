@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,6 +27,7 @@ function SaveTheWorldPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
+    useDocumentTitle(translate('sidebarScreen.saveTheWorld'));
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
     const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();

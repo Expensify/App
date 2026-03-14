@@ -12,6 +12,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -63,6 +64,7 @@ function AboutPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
+    useDocumentTitle(translate('initialSettingsPage.about'));
     const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -198,8 +200,8 @@ function AboutPage() {
                         </View>
                     </Section>
                 </View>
-                <View style={[styles.renderHTML, styles.pl5, styles.mb5]}>
-                    <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy')} />
+                <View style={[styles.renderHTML, styles.ph5, styles.mb5]}>
+                    <RenderHTML html={`<muted-text-micro>${translate('initialSettingsPage.readTheTermsAndPrivacy')} ${translate('termsOfUse.license')}</muted-text-micro>`} />
                 </View>
             </ScrollView>
         </ScreenWrapper>

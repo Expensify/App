@@ -34,6 +34,7 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
             return;
         }
         showConfirmModal({
+            id: 'import-spreadsheet-confirm',
             title: titleText,
             prompt: promptText,
             confirmText: translate('common.buttonConfirm'),

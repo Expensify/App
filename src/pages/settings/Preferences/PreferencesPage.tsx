@@ -9,6 +9,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -49,6 +50,7 @@ function PreferencesPage() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
+    useDocumentTitle(translate('common.preferences'));
 
     return (
         <ScreenWrapper

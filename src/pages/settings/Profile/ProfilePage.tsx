@@ -16,6 +16,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,6 +30,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -51,6 +53,7 @@ function ProfilePage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
+    useDocumentTitle(translate('common.profile'));
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
@@ -138,6 +141,11 @@ function ProfilePage() {
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
         },
     ];
+
+    const privateSectionReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ProfilePage.privateSection',
+        isLoadingApp: !!isLoadingApp,
+    };
 
     return (
         <ScreenWrapper
@@ -240,7 +248,10 @@ function ProfilePage() {
                         >
                             {isLoadingApp ? (
                                 <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
-                                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                                    <ActivityIndicator
+                                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                        reasonAttributes={privateSectionReasonAttributes}
+                                    />
                                 </View>
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>

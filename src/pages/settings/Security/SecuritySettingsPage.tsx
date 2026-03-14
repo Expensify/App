@@ -21,6 +21,7 @@ import TextLink from '@components/TextLink';
 import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -77,6 +78,7 @@ function SecuritySettingsPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
+    useDocumentTitle(translate('initialSettingsPage.security'));
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -462,7 +464,7 @@ function SecuritySettingsPage() {
                                             <TextLink
                                                 style={[styles.link]}
                                                 href={CONST.COPILOT_HELP_URL}
-                                                accessibilityLabel={translate('delegate.copilotDelegatedAccess')}
+                                                accessibilityLabel={translate('delegate.learnMoreAboutDelegatedAccess')}
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>
