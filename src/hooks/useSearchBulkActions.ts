@@ -52,7 +52,7 @@ import {
 } from '@libs/ReportUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasTransactionBeenRejected, isManagedCardTransaction, isScanning} from '@libs/TransactionUtils';
+import {hasTransactionBeenRejected, isManagedCardTransaction, isPerDiemRequest, isScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid, dismissRejectUseExplanation} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
@@ -1200,7 +1200,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactionsKeys.length > 0 &&
             selectedTransactionsKeys.every((id) => {
                 const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                return transaction && !isManagedCardTransaction(transaction) && !isScanning(transaction);
+                if (!transaction || isManagedCardTransaction(transaction) || isScanning(transaction)) {
+                    return false;
+                }
+                const dates = transaction?.comment?.customUnit?.attributes?.dates;
+                if (isPerDiemRequest(transaction) && (!dates?.start || !dates?.end)) {
+                    return false;
+                }
+                const reportID = selectedTransactions[id]?.reportID;
+                if (reportID && !isCurrentUserSubmitter(getReportOrDraftReport(reportID))) {
+                    return false;
+                }
+                return true;
             });
 
         if (shouldShowDuplicateOption) {
