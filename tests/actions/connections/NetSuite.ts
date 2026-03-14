@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {isAuthenticationError, isConnectionUnverified} from '@libs/actions/connections';
+import {shouldUseUpdateNetSuiteTokens} from '@libs/actions/connections';
 import {connectPolicyToNetSuite, updateNetSuiteTokens} from '@libs/actions/connections/NetSuiteCommands';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
@@ -30,6 +30,20 @@ function getFirstWriteCall(): {command: WriteCommand; onyxData?: AnyOnyxData} {
     }
     const [command, , onyxData] = call;
     return {command, onyxData};
+}
+
+function createPolicy(options: {isAuthError?: boolean; verified?: boolean}): OnyxEntry<Policy> {
+    return {
+        id: MOCK_POLICY_ID,
+        connections: {
+            netsuite: {
+                verified: options.verified ?? false,
+                lastSync: {
+                    isAuthenticationError: options.isAuthError ?? false,
+                },
+            },
+        },
+    } as unknown as Policy;
 }
 
 describe('actions/connections/NetSuite', () => {
@@ -118,72 +132,29 @@ describe('actions/connections/NetSuite', () => {
         });
     });
 
-    describe('credential command selection logic', () => {
-        // These tests verify the branching logic used in NetSuiteTokenInputForm:
-        // - Auth error + verified connection → updateNetSuiteTokens (preserves config)
-        // - Auth error + unverified connection → connectPolicyToNetSuite (full init)
-        // - No auth error → connectPolicyToNetSuite
-
-        function createPolicy(options: {isAuthError?: boolean; verified?: boolean}): OnyxEntry<Policy> {
-            return {
-                id: MOCK_POLICY_ID,
-                connections: {
-                    netsuite: {
-                        verified: options.verified ?? false,
-                        lastSync: {
-                            isAuthenticationError: options.isAuthError ?? false,
-                        },
-                    },
-                },
-            } as unknown as Policy;
-        }
-
-        it('returns true for isAuthenticationError when lastSync has authentication error', () => {
-            const policy = createPolicy({isAuthError: true});
-            expect(isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)).toBe(true);
-        });
-
-        it('returns false for isAuthenticationError when lastSync has no authentication error', () => {
-            const policy = createPolicy({isAuthError: false});
-            expect(isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)).toBe(false);
-        });
-
-        it('returns false for isAuthenticationError when policy is null', () => {
-            expect(isAuthenticationError(null, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)).toBe(false);
-        });
-
-        it('returns true for isConnectionUnverified when NetSuite connection is not verified', () => {
-            const policy = createPolicy({verified: false});
-            expect(isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)).toBe(true);
-        });
-
-        it('returns false for isConnectionUnverified when NetSuite connection is verified', () => {
-            const policy = createPolicy({verified: true});
-            expect(isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)).toBe(false);
-        });
-
-        it('should use connectPolicyToNetSuite for unverified connection with auth error (regression case)', () => {
+    describe('shouldUseUpdateNetSuiteTokens', () => {
+        it('returns false for unverified connection with auth error (regression case)', () => {
             const policy = createPolicy({isAuthError: true, verified: false});
-
-            // This is the regression scenario: first-time connection failed with bad tokens
-            // isAuthenticationError is true but connection is unverified, so we must NOT use updateNetSuiteTokens
-            const shouldUseUpdate = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE) && !isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-            expect(shouldUseUpdate).toBe(false);
+            expect(shouldUseUpdateNetSuiteTokens(policy)).toBe(false);
         });
 
-        it('should use updateNetSuiteTokens for verified connection with auth error', () => {
+        it('returns true for verified connection with auth error', () => {
             const policy = createPolicy({isAuthError: true, verified: true});
-
-            // Existing verified connection lost auth — use updateNetSuiteTokens to preserve config
-            const shouldUseUpdate = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE) && !isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-            expect(shouldUseUpdate).toBe(true);
+            expect(shouldUseUpdateNetSuiteTokens(policy)).toBe(true);
         });
 
-        it('should use connectPolicyToNetSuite when there is no auth error', () => {
+        it('returns false when there is no auth error', () => {
             const policy = createPolicy({isAuthError: false, verified: true});
+            expect(shouldUseUpdateNetSuiteTokens(policy)).toBe(false);
+        });
 
-            const shouldUseUpdate = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE) && !isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-            expect(shouldUseUpdate).toBe(false);
+        it('returns false when policy is null', () => {
+            expect(shouldUseUpdateNetSuiteTokens(null)).toBe(false);
+        });
+
+        it('returns false for unverified connection without auth error', () => {
+            const policy = createPolicy({isAuthError: false, verified: false});
+            expect(shouldUseUpdateNetSuiteTokens(policy)).toBe(false);
         });
     });
 });
