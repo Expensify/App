@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import type {EditableProps} from '@components/Table/EditableCell/types';
@@ -42,6 +42,14 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
     // Prevent double-save: pressing Enter can fires onSubmitEditing (on single-line inputs) then
     // immediately triggers a blur (blurOnSubmit=true by default), which would call save twice.
     const submitFiredRef = useRef(false);
+
+    // Reset the submit flag when entering edit mode to ensure clean state for each editing session
+    useEffect(() => {
+        if (!isEditing) {
+            return;
+        }
+        submitFiredRef.current = false;
+    }, [isEditing]);
 
     const handleSubmitEditing = () => {
         submitFiredRef.current = true;
