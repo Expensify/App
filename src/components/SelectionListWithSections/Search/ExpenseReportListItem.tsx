@@ -267,6 +267,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         isDisabledCheckbox={isDisabledCheckbox}
                         isHovered={hovered}
                         isFocused={isFocused}
+                        isPendingDelete={isPendingDelete}
                     />
                     {getDescription}
                 </View>

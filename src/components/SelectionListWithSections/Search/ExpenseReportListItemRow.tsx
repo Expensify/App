@@ -44,6 +44,7 @@ type ExpenseReportListItemRowProps = {
     isDisabledCheckbox?: boolean;
     isHovered?: boolean;
     isFocused?: boolean;
+    isPendingDelete?: boolean;
     columns?: SearchColumnType[];
 };
 
@@ -62,6 +63,7 @@ function ExpenseReportListItemRow({
     columns = [],
     isHovered = false,
     isFocused = false,
+    isPendingDelete = false,
 }: ExpenseReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -202,6 +204,7 @@ function ExpenseReportListItemRow({
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={item.total}
+                    shouldDisablePointerEvents={isPendingDelete}
                 />
             </View>
         ),
@@ -307,7 +310,7 @@ function ExpenseReportListItemRow({
                         hash={item.hash}
                         amount={item.total}
                         extraSmall
-                        shouldDisablePointerEvents={isInMobileSelectionMode}
+                        shouldDisablePointerEvents={isInMobileSelectionMode || isPendingDelete}
                     />
                 </View>
             </View>
