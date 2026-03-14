@@ -21,6 +21,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -53,6 +54,7 @@ import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {openOldDotLink} from '@userActions/Link';
+import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,6 +94,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
     const policyID = policy?.id;
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const icons = useMemoizedLazyExpensifyIcons([
@@ -209,6 +212,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         setDateTimeToRelative('');
     }, [getDatetimeToRelative, successfulDate]);
+
+    useEffect(() => {
+        if (!policyID || !policy?.areExpensifyCardsEnabled || !workspaceAccountID) {
+            return;
+        }
+        openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
+    }, [policyID, policy?.areExpensifyCardsEnabled, workspaceAccountID]);
 
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
