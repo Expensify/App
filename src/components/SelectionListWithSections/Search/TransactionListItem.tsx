@@ -178,6 +178,7 @@ function TransactionListItem<TItem extends ListItem>({
         // We check the ref rather than getIsEditingCell() because blur fires before onPress and resets the state.
         if (wasEditingOnMouseDownRef.current) {
             wasEditingOnMouseDownRef.current = false;
+            return;
         }
         // react-native-web fires onPress on Space for role="button" elements; suppress it while a cell is being edited.
         if (getIsEditingCell()) {
