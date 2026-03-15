@@ -112,11 +112,27 @@ describe('DialogLabelContext', () => {
             expect(mockElement.hasAttribute('aria-label')).toBe(false);
         });
 
-        it('claimInitialFocus returns true only on the first call', () => {
+        it('claimInitialFocus returns true on first call, false on subsequent calls', () => {
             const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
 
             expect(result.current.claimInitialFocus()).toBe(true);
             expect(result.current.claimInitialFocus()).toBe(false);
+            expect(result.current.claimInitialFocus()).toBe(false);
+        });
+
+        it('pushLabel resets the focus claim so each new screen can claim', () => {
+            const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
+
+            // First screen claims focus
+            expect(result.current.claimInitialFocus()).toBe(true);
+            expect(result.current.claimInitialFocus()).toBe(false);
+
+            // Second screen pushes a label — claim resets
+            act(() => {
+                result.current.pushLabel('Screen B');
+            });
+
+            expect(result.current.claimInitialFocus()).toBe(true);
             expect(result.current.claimInitialFocus()).toBe(false);
         });
 
