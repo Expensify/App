@@ -103,13 +103,15 @@ const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('..
 
 function RHPDialogContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {containerRef} = useDialogLabelActions();
 
+    // Narrow layouts already get dialog semantics from createModalStackNavigator.
     return (
         <View
             ref={containerRef}
-            role={CONST.ROLE.DIALOG}
-            aria-modal
+            role={shouldUseNarrowLayout ? undefined : CONST.ROLE.DIALOG}
+            aria-modal={shouldUseNarrowLayout ? undefined : true}
             style={styles.flex1}
         >
             {children}
