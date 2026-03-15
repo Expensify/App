@@ -1,10 +1,6 @@
 import type {ReactNode} from 'react';
 import {useEffect, useRef} from 'react';
-
-type UseAccessibilityAnnouncementOptions = {
-    shouldAnnounceOnNative?: boolean;
-    shouldAnnounceOnWeb?: boolean;
-};
+import type UseAccessibilityAnnouncementOptions from './types';
 
 const VISUALLY_HIDDEN_STYLE: Partial<CSSStyleDeclaration> = {
     position: 'absolute',

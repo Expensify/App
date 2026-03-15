@@ -84,7 +84,14 @@ function ListEmptyComponent({searchValue}: {searchValue?: string}) {
 
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue ?? '');
 
-    return <Text style={[styles.textLabel, styles.colorMuted]}>{noResultsFoundText}</Text>;
+    return (
+        <Text
+            style={[styles.textLabel, styles.colorMuted]}
+            aria-hidden
+        >
+            {noResultsFoundText}
+        </Text>
+    );
 }
 
 function BaseEmojiPickerMenu({

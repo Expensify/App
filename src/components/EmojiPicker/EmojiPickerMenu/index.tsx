@@ -111,7 +111,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         allowNegativeIndexes: true,
     });
 
-    const filterEmojis = throttle((searchTerm: string) => {
+    const filterCallbackRef = useRef<(searchTerm: string) => void>(undefined);
+    filterCallbackRef.current = (searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
         emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
@@ -129,7 +130,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         setHeaderIndices([]);
         setHighlightFirstEmoji(true);
         setIsUsingKeyboardMovement(false);
-    }, throttleTime);
+    };
+
+    // Stable throttled function that delegates to the latest callback via ref,
+    // preventing re-renders from recreating the throttle timer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const filterEmojis = useMemo(() => throttle((text: string) => filterCallbackRef.current?.(text), throttleTime), []);
 
     const keyDownHandler = useCallback(
         (keyBoardEvent: KeyboardEvent) => {

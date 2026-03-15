@@ -1,6 +1,6 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
@@ -56,10 +56,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         });
     };
 
-    /**
-     * Filter the entire list of emojis to only emojis that have the search term in their keywords
-     */
-    const filterEmojis = lodashDebounce((searchTerm: string) => {
+    const filterCallbackRef = useRef<(searchTerm: string) => void>(undefined);
+    filterCallbackRef.current = (searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
         if (normalizedSearchTerm === '') {
@@ -67,7 +65,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         } else {
             updateEmojiList(newFilteredEmojiList ?? [], []);
         }
-    }, 300);
+    };
+
+    // Stable debounced function that delegates to the latest callback via ref,
+    // preventing re-renders from recreating the debounce timer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const filterEmojis = useMemo(() => lodashDebounce((text: string) => filterCallbackRef.current?.(text), 300), []);
 
     const scrollToHeader = useCallback(
         (headerIndex: number) => {

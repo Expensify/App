@@ -56,7 +56,14 @@ function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
 
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue);
 
-    return <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{noResultsFoundText}</Text>;
+    return (
+        <Text
+            style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
+            aria-hidden
+        >
+            {noResultsFoundText}
+        </Text>
+    );
 }
 
 function AddressSearch({

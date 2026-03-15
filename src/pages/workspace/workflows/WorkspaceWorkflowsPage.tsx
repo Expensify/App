@@ -74,6 +74,27 @@ import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFre
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
+function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: string; shouldShow: boolean; searchValue: string}) {
+    const styles = useThemeStyles();
+
+    useDebouncedAccessibilityAnnouncement(message, shouldShow, searchValue);
+
+    if (!shouldShow) {
+        return null;
+    }
+
+    return (
+        <View style={[styles.pt3, styles.pb5]}>
+            <Text
+                style={[styles.textNormal, styles.colorMuted]}
+                aria-hidden
+            >
+                {message}
+            </Text>
+        </View>
+    );
+}
+
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate, localeCompare} = useLocalize();
@@ -212,10 +233,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows] = useSearchResults(filteredApprovalWorkflows, filterWorkflow);
 
-    const noResultsMessage = translate('common.noResultsFoundMatching', workflowSearchInput);
-    const isNoResults = searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0;
-    useDebouncedAccessibilityAnnouncement(noResultsMessage, isNoResults, workflowSearchInput);
-
     useEffect(() => {
         if (filteredApprovalWorkflows.length > CONST.APPROVAL_WORKFLOW_SEARCH_LIMIT) {
             return;
@@ -328,11 +345,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 style={[styles.mt6, {marginHorizontal: 0}]}
                             />
                         )}
-                        {isNoResults && (
-                            <View style={[styles.pt3, styles.pb5]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{noResultsMessage}</Text>
-                            </View>
-                        )}
+                        <WorkflowNoResultsView
+                            message={translate('common.noResultsFoundMatching', workflowSearchInput)}
+                            shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
+                            searchValue={workflowSearchInput}
+                        />
                         {searchFilteredWorkflows.map((workflow) => (
                             <OfflineWithFeedback
                                 key={workflow.approvers.at(0)?.email}
@@ -513,8 +530,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         searchFilteredWorkflows,
         workflowSearchInput,
         setWorkflowSearchInput,
-        isNoResults,
-        noResultsMessage,
         addApprovalAction,
         isOffline,
         isPolicyAdmin,
