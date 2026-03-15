@@ -135,9 +135,10 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     }, [isFocused, setSearchValue, shouldShowTextInput, userSearchPhrase]);
 
     useEffect(() => {
-        if (isAnnounceRoom(report)) {
-            openRoomMembersPage(report.reportID);
+        if (!isAnnounceRoom(report)) {
+            return;
         }
+        openRoomMembersPage(report.reportID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
