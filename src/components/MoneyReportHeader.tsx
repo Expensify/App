@@ -1845,6 +1845,7 @@ function MoneyReportHeader({
             iconFill: isDuplicateReportActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_REPORT,
+            shouldShow: !!(policy && isPolicyMember(policy, currentUserLogin)) || !!defaultExpensePolicy,
             shouldCloseModalOnSelect: false,
             onSelected: () => {
                 if (!isDuplicateReportActive) {

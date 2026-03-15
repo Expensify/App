@@ -20,7 +20,17 @@ import {
     getTransactionDetails,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getRequestType, getTransactionType, isDistanceRequest, isExpenseSplit, isFromCreditCardImport, isPartialTransaction, isScanning} from '@libs/TransactionUtils';
+import {
+    getRequestType,
+    getTransactionType,
+    hasCustomUnitOutOfPolicyViolation,
+    isDistanceRequest,
+    isExpenseSplit,
+    isFromCreditCardImport,
+    isPartialTransaction,
+    isPerDiemRequest,
+    isScanning,
+} from '@libs/TransactionUtils';
 import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -780,8 +790,16 @@ function duplicateReport({
     translate,
     recentWaypoints,
 }: DuplicateReportParams) {
+    if (!targetPolicy) {
+        return;
+    }
+
     const newReportName = translate('common.copyOfReportName', sourceReportName);
     const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
+
+    const sourceReportID = sourceReportTransactions.at(0)?.reportID;
+    const sourceReport = sourceReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] : undefined;
+    const isCrossWorkspace = sourceReport?.policyID !== targetPolicy?.id;
 
     const eligibleTransactions = sourceReportTransactions.filter((transaction) => {
         if (isFromCreditCardImport(transaction)) {
@@ -791,6 +809,13 @@ function duplicateReport({
             return false;
         }
         if (isPartialTransaction(transaction) || isScanning(transaction)) {
+            return false;
+        }
+        const txnViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+        if (hasCustomUnitOutOfPolicyViolation(txnViolations)) {
+            return false;
+        }
+        if (isCrossWorkspace && (isPerDiemRequest(transaction) || isDistanceRequest(transaction))) {
             return false;
         }
         return true;
