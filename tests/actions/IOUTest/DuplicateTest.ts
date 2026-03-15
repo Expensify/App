@@ -1949,14 +1949,14 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
         });
 
-        it('should not duplicate expenses when no parent chat report exists', async () => {
+        it('should not duplicate expenses when no target policy exists', async () => {
             const tx1 = createCashTransaction('tx1');
             const tx2 = createCashTransaction('tx2');
 
             duplicateReport(getDefaultParams([tx1, tx2], {targetPolicy: undefined}));
             await waitForBatchedUpdates();
 
-            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(0);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
 
             expect(Navigation.navigate).not.toHaveBeenCalled();

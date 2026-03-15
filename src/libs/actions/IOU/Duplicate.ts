@@ -799,7 +799,7 @@ function duplicateReport({
 
     const sourceReportID = sourceReportTransactions.at(0)?.reportID;
     const sourceReport = sourceReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] : undefined;
-    const isCrossWorkspace = sourceReport?.policyID !== targetPolicy?.id;
+    const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 
     const eligibleTransactions = sourceReportTransactions.filter((transaction) => {
         if (isFromCreditCardImport(transaction)) {
