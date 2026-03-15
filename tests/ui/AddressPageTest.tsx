@@ -83,4 +83,49 @@ describe('AddressPageTest', () => {
         const stateInputAfterParams = screen.getByLabelText('State / Province');
         expect(stateInputAfterParams.props.value).toEqual('Test');
     });
+
+    it('should prefill address line 2 from explicit street2', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.PRIVATE_PERSONAL_DETAILS}`, {
+                addresses: [
+                    {
+                        country: 'US',
+                        street: '123 Main St\nLegacy Suite',
+                        street2: 'Suite 500',
+                    },
+                ],
+            });
+            await Onyx.merge(`${ONYXKEYS.IS_LOADING_APP}`, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByDisplayValue('Suite 500')).toBeDefined();
+    });
+
+    it('should prefill address line 2 from legacy newline when street2 is missing', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.PRIVATE_PERSONAL_DETAILS}`, {
+                addresses: [
+                    {
+                        country: 'US',
+                        street: '123 Main St\nLegacy Suite',
+                    },
+                ],
+            });
+            await Onyx.merge(`${ONYXKEYS.IS_LOADING_APP}`, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByDisplayValue('Legacy Suite')).toBeDefined();
+    });
 });
