@@ -202,7 +202,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && styles.pv2, styles.flex1, isLargeScreenWidth && isLastTransaction(index) && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8}]}
+                        style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && styles.pv1, styles.flex1, isLargeScreenWidth && isLastTransaction(index) && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8}]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         shouldShowBottomBorder={shouldShowBottomBorder}
