@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -7,21 +6,20 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getReportNotificationPreference, goBackToDetailsPage, isArchivedNonExpenseReport, isHiddenForCurrentUser, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
-import type {ReportSettingsNavigatorParamList} from '@navigation/types';
+import Navigation from '@libs/Navigation/Navigation';
+import {getReportNotificationPreference, isArchivedNonExpenseReport, isHiddenForCurrentUser, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import {updateNotificationPreference} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-type NotificationPreferencePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>;
+type DynamicNotificationPreferencePageProps = WithReportOrNotFoundProps;
 
-function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
-    const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>>();
+function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferencePageProps) {
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -37,10 +35,11 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
             keyForList: preference,
             isSelected: preference === currentNotificationPreference,
         }));
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADDRESS_COUNTRY.path);
 
     const goBack = useCallback(() => {
-        goBackToDetailsPage(report, route.params.backTo);
-    }, [report, route.params.backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const updateNotificationPreferenceForReportAction = useCallback(
         (value: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>) => {
@@ -72,4 +71,4 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     );
 }
 
-export default withReportOrNotFound()(NotificationPreferencePage);
+export default withReportOrNotFound()(DynamicNotificationPreferencePage);
