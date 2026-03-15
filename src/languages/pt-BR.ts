@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Início',
         inbox: 'Caixa de entrada',
         yourReviewIsRequired: 'Sua revisão é necessária',
+        actionBadge: {
+            submit: 'Enviar',
+            approve: 'Aprovar',
+            pay: 'Pagar',
+            fix: 'Corrigir',
+        },
         success: 'Concluído',
         group: 'Grupo',
         profile: 'Perfil',
@@ -362,6 +368,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: 'por',
         mi: 'milha',
         km: 'quilômetro',
+        milesAbbreviated: 'mi',
+        kilometersAbbreviated: 'km',
         copied: 'Copiado!',
         someone: 'Alguém',
         total: 'Total',
@@ -475,6 +483,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validar',
         downloadAsPDF: 'Baixar como PDF',
         downloadAsCSV: 'Baixar como CSV',
+        print: 'Imprimir',
         help: 'Ajuda',
         expenseReport: 'Relatório de despesas',
         expenseReports: 'Relatórios de despesas',
@@ -542,6 +551,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Delegado de férias',
         expensifyLogo: 'Logo da Expensify',
+        concierge: {sidePanelGreeting: 'Oi, como posso ajudar?', showHistory: 'Mostrar histórico'},
         duplicateReport: 'Duplicar relatório',
         approver: 'Aprovador',
     },
@@ -679,7 +689,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: 'Teste de biometria',
             authenticationSuccessful: 'Autenticação bem-sucedida',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Você se autenticou com sucesso usando ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometria (${registered ? 'Registrado' : 'Não registrado'})`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometria (${status})`,
             yourAttemptWasUnsuccessful: 'Sua tentativa de autenticação não foi bem-sucedida.',
             youCouldNotBeAuthenticated: 'Não foi possível autenticar você',
             areYouSureToReject: 'Tem certeza? A tentativa de autenticação será rejeitada se você fechar esta tela.',
@@ -695,6 +705,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: 'Nunca registrado',
+            statusNotRegistered: 'Não registrado',
+            statusRegisteredThisDevice: 'Registrado',
+            statusRegisteredOtherDevice: () => ({one: 'Outro dispositivo registrado', other: 'Outros dispositivos registrados'}),
         },
         pleaseEnableInSystemSettings: {
             start: 'Ative a verificação por rosto/digital ou defina um código de acesso do dispositivo no seu',
@@ -714,21 +728,32 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Ative uma verificação rápida e segura usando seu rosto ou impressão digital. Nenhuma senha ou código é necessário.',
         },
         revoke: {
-            title: 'Face/digital & passkeys',
+            title: 'Reconhecimento facial/digital e passkeys',
             explanation:
-                'A verificação por rosto/digital ou por chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo.',
-            confirmationPrompt: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação em qualquer dispositivo.',
+                'A verificação por rosto/digital ou chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico na próxima verificação nesse dispositivo.',
+            confirmationPrompt: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação nesse dispositivo.',
             cta: 'Revogar acesso',
-            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se registrar algum, você poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
             error: 'Falha na solicitação. Tente novamente mais tarde.',
             revoke: 'Revogar',
+            confirmationPromptAll: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação em qualquer dispositivo.',
+            ctaAll: 'Revogar tudo',
+            thisDevice: 'Este dispositivo',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['Um', 'Dois', 'Três', 'Quatro', 'Cinco', 'Seis', 'Sete', 'Oito', 'Nove'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} outro(a) ${otherDeviceCount === 1 ? 'dispositivo' : 'dispositivos'}`;
+            },
+            confirmationPromptThisDevice: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação neste dispositivo.',
+            confirmationPromptMultiple: 'Você tem certeza? Você vai precisar de um código mágico para a próxima verificação nesses dispositivos.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',
             pleaseDownloadMobileApp: `Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.`,
         },
         verificationFailed: 'Falha na verificação',
+        setPin: {didNotShipCard: 'Não enviamos seu cartão. Tente novamente.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -997,6 +1022,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Corrigir conexão do cartão pessoal ${cardName}` : 'Corrigir conexão do cartão pessoal'),
                 subtitle: 'Carteira',
             },
+            validateAccount: {title: 'Valide sua conta para continuar usando o Expensify', subtitle: 'Conta', cta: 'Validar'},
         },
         assignedCards: 'Seus Cartões Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
@@ -1418,6 +1444,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
             manySplitsProvided: `O número máximo de divisões permitido é ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
+            stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o comprovante que você enviou. Tem certeza?',
@@ -1569,7 +1596,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Escolha um workspace',
-        routedDueToDEW: (to: string) => `relatório encaminhado para ${to} devido ao fluxo de aprovação personalizado`,
+        routedDueToDEW: (to: string, reason?: string) => `relatório encaminhado para ${to}${reason ? ` porque ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hora' : 'horas'} @ ${rate} / hora`,
             hrs: 'h',
@@ -1578,7 +1605,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'O valor total é muito alto. Diminua as horas ou reduza a tarifa.',
         },
         correctRateError: 'Corrija o erro de taxa e tente novamente.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Explicar<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcou a despesa como "reembolsável"' : 'marcou a despesa como “não reembolsável”'),
@@ -1951,7 +1978,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: 'Restaurar login armazenado',
         signOutConfirmationText: 'Você perderá quaisquer alterações offline se sair.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>Leia os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e a <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Política de Privacidade</a>.</muted-text-micro>`,
+        readTheTermsAndPrivacy: `Leia os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e a <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Política de Privacidade</a>.`,
         help: 'Ajuda',
         whatIsNew: 'Novidades',
         accountSettings: 'Configurações da conta',
@@ -2070,6 +2097,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: 'Escaneie o código QR usando seu',
         authenticatorApp: 'aplicativo autenticador',
         addKey: 'Ou adicione esta chave secreta ao seu app autenticador:',
+        secretKey: 'chave secreta',
         enterCode: 'Em seguida, insira o código de seis dígitos gerado pelo seu app autenticador.',
         stepSuccess: 'Concluído',
         enabled: 'Autenticação em duas etapas ativada',
@@ -2333,6 +2361,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} para ${merchant} - ${date}`,
         },
+        setYourPin: 'Defina seu PIN.',
+        confirmYourPin: 'Confirme seu PIN.',
+        pinMustBeFourDigits: 'O PIN deve ter exatamente 4 dígitos.',
+        invalidPin: 'Escolha um PIN mais seguro.',
+        pinMismatch: 'Os PINs não coincidem. Tente novamente.',
+        revealPin: 'Revelar PIN',
+        hidePin: 'Ocultar PIN',
+        pin: 'PIN',
         freezeCard: 'Bloquear cartão',
         unfreeze: 'Desbloquear',
         unfreezeCard: 'Desbloquear cartão',
@@ -2634,7 +2670,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>Ao entrar, você concorda com os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e a <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidade</a>.</muted-text-xs>`,
-        license: `<muted-text-xs>A transmissão de dinheiro é fornecida por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de acordo com suas <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenças</a>.</muted-text-xs>`,
+        license: `A transmissão de dinheiro é fornecida por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (ID NMLS:2017010) de acordo com suas <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenças</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Não recebeu um código mágico?',
@@ -2742,6 +2778,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         workEmailValidationError: {
             publicEmail: 'Insira um e-mail de trabalho válido de um domínio privado, por exemplo: mitch@company.com',
+            sameAsSignupEmail: 'Insira um e-mail diferente daquele com que você se cadastrou',
             offline: 'Não foi possível adicionar seu e-mail profissional, pois você parece estar offline',
         },
         mergeBlockScreen: {
@@ -3021,7 +3058,7 @@ ${
                 descriptionTwo: 'Classifique e categorize despesas',
                 descriptionThree: 'Criar e compartilhar relatórios',
             },
-            price: 'Experimente grátis por 30 dias e depois faça upgrade por apenas <strong>US$5/usuário/mês</strong>.',
+            price: (price?: string) => `Experimente grátis por 30 dias e depois faça upgrade por apenas <strong>${price ?? 'US$5'}/usuário/mês</strong>.`,
             createWorkspace: 'Criar espaço de trabalho',
         },
         confirmWorkspace: {
@@ -3981,6 +4018,9 @@ ${
             defaultNote: `Recibos enviados para ${CONST.EMAIL.RECEIPTS} aparecerão neste workspace.`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
+            outstandingBalanceWarning:
+                'Você tem um saldo pendente que precisa ser quitado antes de excluir seu último espaço de trabalho. Acesse as configurações de assinatura para resolver o pagamento.',
+            settleBalance: 'Ir para a assinatura',
             unavailable: 'Espaço de trabalho indisponível',
             memberNotFound: 'Membro não encontrado. Para convidar um novo membro para o workspace, use o botão de convite acima.',
             notAuthorized: `Você não tem acesso a esta página. Se estiver tentando entrar neste workspace, peça ao proprietário do workspace para adicioná-lo como membro. Outra coisa? Fale com ${CONST.EMAIL.CONCIERGE}.`,
@@ -5246,6 +5286,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         learnHow: 'Saiba como.',
                         subsections: {
                             currentTravelSpendLabel: 'Gasto atual com viagens',
+                            currentTravelSpendPaymentQueued: (amount: string) => `O pagamento de ${amount} está na fila e será processado em breve.`,
                             currentTravelSpendCta: 'Pagar saldo',
                             currentTravelLimitLabel: 'Limite de viagem atual',
                             settlementAccountLabel: 'Conta de liquidação',
@@ -5264,6 +5305,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         body: 'Você ainda tem um saldo de viagem pendente. Pague esse saldo primeiro.',
                         confirm: 'Entendi',
                     },
+                    payBalanceModal: {
+                        title: (amount: string) => `Pagar saldo de ${amount}?`,
+                        body: 'O pagamento será colocado em fila e processado em breve. Essa ação não poderá ser desfeita depois de iniciada.',
+                    },
+                    exportToPDF: 'Exportar para PDF',
+                    exportToCSV: 'Exportar para CSV',
+                    selectDateRangeError: 'Selecione um intervalo de datas para exportar',
+                    invalidDateRangeError: 'A data de início deve ser anterior à data de término',
                     enabled: 'Faturamento centralizado ativado!',
                     enabledDescription: 'Todos os gastos de viagem neste workspace agora serão centralizados em uma fatura mensal.',
                 },
@@ -6827,6 +6876,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     return `Contabilidade ${enabled ? 'ativado' : 'desativado'}`;
                 case 'Expensify Cards':
                     return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
+                case 'travel invoicing':
+                    return `Faturamento de viagens ${enabled ? 'ativado' : 'desativado'}`;
                 case 'company cards':
                     return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
                 case 'invoicing':
@@ -7630,6 +7681,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         notActivated: 'Não ativado',
         outOfPocket: 'Reembolsável',
         companySpend: 'Não reembolsável',
+        personalCard: 'Cartão pessoal',
+        companyCard: 'Cartão corporativo',
+        expensifyCard: 'Cartão Expensify',
     },
     distance: {
         addStop: 'Adicionar parada',
@@ -7733,6 +7787,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
         },
         fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
+        liveActivity: {subtitle: 'Rastreamento de distância', button: 'Ver progresso'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Boletim perdido ou danificado',
@@ -8232,6 +8287,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         switchAccount: 'Trocar de conta:',
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
         copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
+        learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
         addCopilot: 'Adicionar copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
         youCanAccessTheseAccounts: 'Você pode acessar essas contas pelo alternador de conta:',
@@ -8479,7 +8535,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         goToDomain: 'Ir para o domínio',
         samlLogin: {
             title: 'Login SAML',
-            subtitle: `<muted-text>Configure o login de membros com <a href="${CONST.SAML_HELP_URL}">logon único SAML (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configure o login de membros com <a href="${CONST.SAML_HELP_URL}">logon único SAML (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'Ativar login SAML',
             allowMembers: 'Permitir que membros façam login com SAML.',
             requireSamlLogin: 'Exigir login SAML',
@@ -8562,6 +8618,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             title: 'Membros',
             findMember: 'Encontrar membro',
             addMember: 'Adicionar membro',
+            allMembers: 'Todos os membros',
             email: 'Endereço de e-mail',
             closeAccount: () => ({
                 one: 'Encerrar conta',

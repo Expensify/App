@@ -46,6 +46,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
     accessibilityRole = getButtonRole(true),
+    accessible,
 }: BaseListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator'] as const);
     const theme = useTheme();
@@ -80,8 +81,14 @@ function BaseListItem<TItem extends ListItem>({
     const defaultAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
     const accessibilityLabel = item.accessibilityLabel ?? defaultAccessibilityLabel;
 
+    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
+    // For multi-select (checkbox/radio), keep existing role and state.
+    const isSelectableOption = !canSelectMultiple && accessibilityRole !== CONST.ROLE.CHECKBOX && accessibilityRole !== CONST.ROLE.RADIO;
+    const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : accessibilityRole;
     const accessibilityState =
-        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
+        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
+
+    const accessibleProps = accessible === false ? {accessible: false as const, role: undefined} : {accessibilityLabel, role: accessibilityRole};
 
     return (
         <OfflineWithFeedback
@@ -111,9 +118,10 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={accessibilityLabel}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...accessibleProps}
                 accessibilityState={accessibilityState}
-                role={accessibilityRole}
+                role={effectiveRole}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
@@ -131,11 +139,10 @@ function BaseListItem<TItem extends ListItem>({
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
-                testID={testID}
+                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
             >
                 <View
-                    testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!isFocused}}
+                    testID={testID}
                     style={[
                         wrapperStyle,
                         isFocused &&
