@@ -22,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
-import {getRequestType, hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
+import {getRequestType, hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isOdometerDistanceRequest, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps, ThreeDotsMenuItemFactory} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
@@ -36,7 +36,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
-    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType} = route.params;
+    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType, isEditingConfirmation, backToReport} = route.params;
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -50,6 +50,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const policy = usePolicy(report?.policyID);
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
@@ -122,22 +123,23 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     // Use odometer image if imageType is provided (it's present only when we display odometer image) otherwise use receipt
     const receiptSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
-    const source = isOdometerImage && odometerImage ? (odometerImageSource ?? receiptSource) : receiptSource;
+    const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const canDeleteReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true);
 
-    const shouldShowReplaceReceiptButton = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
+    const receiptFilename = transaction?.receipt?.filename;
+    const isImage = !!receiptFilename && Str.isImage(receiptFilename);
+    const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
+
+    const shouldShowReplaceReceiptButton = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt && !isStitchedOdometerReceipt;
     const shouldShowDeleteReceiptButton = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
 
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
     const iouType = useMemo(() => iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseActionValue, iouTypeParam]);
-
-    const receiptFilename = transaction?.receipt?.filename;
-    const isImage = !!receiptFilename && Str.isImage(receiptFilename);
 
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isRotating, setIsRotating] = useState(false);
@@ -150,7 +152,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport(reportID, introSelected);
+        openReport({reportID, introSelected, betas});
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -328,7 +330,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, []);
 
     const saveCrop = useCallback(() => {
-        if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect) {
+        if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect || cropRect.width < 1 || cropRect.height < 1) {
+            exitCropMode();
             return;
         }
 
@@ -380,13 +383,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     });
                 }
                 setIsCropSaving(false);
-                setIsCropping(false);
-                setCropRect(null);
+                exitCropMode();
             })
             .catch(() => {
                 setIsCropSaving(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, cropRect, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, cropRect, receiptFilename, policyCategories, transaction?.receipt?.type, policy, exitCropMode]);
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
@@ -510,7 +512,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         onPress={() => {
                             const getDestinationRoute = () => {
                                 return isOdometerImage
-                                    ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType)
+                                    ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType, isEditingConfirmation, backToReport)
                                     : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                           action ?? CONST.IOU.ACTION.EDIT,
                                           iouType,
@@ -566,6 +568,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         transactionID,
         reportID,
         imageType,
+        isEditingConfirmation,
+        backToReport,
         draftTransactionID,
         transaction?.transactionID,
         report?.reportID,
