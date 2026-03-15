@@ -88,6 +88,20 @@ function TaskPreview({
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
     // Prefer the live task report name so offline title edits are reflected immediately.
     const taskTitle = taskReport?.reportName ?? action?.childReportName ?? '';
+    const taskContextReport = React.useMemo(
+        () =>
+            taskReport ??
+            ({
+                reportID: taskReportID,
+                parentReportID: chatReportID,
+                parentReportActionID: action?.reportActionID,
+                ownerAccountID: action?.childOwnerAccountID,
+                managerID: action?.childManagerAccountID,
+                stateNum: action?.childStateNum,
+                statusNum: action?.childStatusNum,
+            } as Report),
+        [action?.childManagerAccountID, action?.childOwnerAccountID, action?.childStateNum, action?.childStatusNum, action?.reportActionID, chatReportID, taskReport, taskReportID],
+    );
 
     const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
@@ -97,12 +111,12 @@ function TaskPreview({
     const isTaskCompleted = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-    const parentReportAction = useParentReportAction(taskReport);
-    const taskAssigneeAccountID = getTaskAssigneeAccountID(taskReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const parentReport = useParentReport(taskReport?.reportID);
+    const parentReportAction = useParentReportAction(taskContextReport);
+    const taskAssigneeAccountID = getTaskAssigneeAccountID(taskContextReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const parentReport = useParentReport(taskContextReport?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const hasOutstandingChildTask = useHasOutstandingChildTask(taskReport);
-    const isTaskActionable = canActionTask(taskReport, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(taskContextReport);
+    const isTaskActionable = canActionTask(taskContextReport, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
     const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? icons.FallbackAvatar;
@@ -110,7 +124,7 @@ function TaskPreview({
     const isDeletedParentAction = isCanceledTaskReport(taskReport, action);
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
 
-    const shouldShowGreenDotIndicator = isOpenTaskReport(taskReport, action) && isReportManager(taskReport);
+    const shouldShowGreenDotIndicator = isOpenTaskReport(taskContextReport, action) && isReportManager(taskContextReport);
     if (isDeletedParentAction) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />;
     }
@@ -151,9 +165,9 @@ function TaskPreview({
                             disabled={!isTaskActionable}
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
-                                    reopenTask(taskReport, parentReport, currentUserPersonalDetails.accountID, taskReportID);
+                                    reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, taskReportID);
                                 } else {
-                                    completeTask(taskReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, taskReportID);
+                                    completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, taskReportID);
                                 }
                             })}
                             accessibilityLabel={translate('task.task')}

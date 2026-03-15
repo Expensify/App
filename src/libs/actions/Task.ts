@@ -418,12 +418,15 @@ function buildTaskData(
         },
     ];
 
-    if (parentReportAction) {
+    const parentReportID = taskReport?.parentReportID;
+    const parentReportActionID = parentReportAction?.reportActionID ?? taskReport?.parentReportActionID;
+
+    if (parentReportID && parentReportActionID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport?.parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
-                [parentReportAction.reportActionID]: {
+                [parentReportActionID]: {
                     childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 },
@@ -432,9 +435,9 @@ function buildTaskData(
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport?.parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
-                [parentReportAction.reportActionID]: {
+                [parentReportActionID]: {
                     childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                     childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 },
@@ -535,6 +538,19 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, parentReport: OnyxE
         },
     ];
 
+    if (taskReport?.parentReportID && taskReport?.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
+            value: {
+                [taskReport.parentReportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                },
+            },
+        });
+    }
+
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -572,6 +588,19 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, parentReport: OnyxE
             },
         },
     ];
+
+    if (taskReport?.parentReportID && taskReport?.parentReportActionID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`,
+            value: {
+                [taskReport.parentReportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+            },
+        });
+    }
 
     const parameters: ReopenTaskParams = {
         taskReportID,
