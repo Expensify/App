@@ -100,6 +100,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                         role={CONST.ROLE.PRESENTATION}
                         shouldAllowNegative
                         uncontrolled
+                        autoFocus
                     />
                 </FormProvider>
             </ScreenWrapper>

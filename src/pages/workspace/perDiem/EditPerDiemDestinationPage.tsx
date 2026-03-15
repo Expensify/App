@@ -106,6 +106,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                         accessibilityLabel={translate('common.destination')}
                         inputID={INPUT_IDS.DESTINATION}
                         role={CONST.ROLE.PRESENTATION}
+                        autoFocus
                     />
                 </FormProvider>
             </ScreenWrapper>
