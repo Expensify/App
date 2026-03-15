@@ -101,7 +101,7 @@ const DYNAMIC_ROUTES = {
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
-        entryScreens: [SCREENS.REPORT_DETAILS.ROOT, SCREENS.RIGHT_MODAL.REPORT_SETTINGS, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.SEARCH.ROOT],
+        entryScreens: [SCREENS.REPORT_DETAILS.ROOT],
     },
     ADDRESS_COUNTRY: {
         path: 'country',
