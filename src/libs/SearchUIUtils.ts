@@ -3994,14 +3994,10 @@ function getGroupByOptions(translate: LocalizedTranslate) {
 }
 
 function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
-    const groupByOptions = getGroupByOptions(translate);
-    const optionsByValue = new Map(groupByOptions.map((option) => [option.value, option]));
-    const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> =>
-        optionsByValue.get(groupBy) ?? {
-            text: translate(`search.filters.groupBy.${groupBy}`),
-            value: groupBy,
-        };
-
+    const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> => ({
+        text: translate(`search.filters.groupBy.${groupBy}`),
+        value: groupBy,
+    });
     return [
         {
             options: [getOption(CONST.SEARCH.GROUP_BY.FROM), getOption(CONST.SEARCH.GROUP_BY.CARD)],
