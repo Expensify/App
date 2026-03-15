@@ -8,6 +8,8 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+// eslint-disable-next-line no-restricted-syntax -- Ignoring type errors for testing purposes
+import * as HoldUtils from '@libs/actions/IOU/Hold';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
@@ -57,6 +59,7 @@ import {
     canRejectReportAction,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
+    changeMoneyRequestHoldStatus,
     createDraftTransactionAndNavigateToParticipantSelector,
     doesReportBelongToWorkspace,
     excludeParticipantsForDisplay,
@@ -76,6 +79,7 @@ import {
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
+    getLinkedIOUTransaction,
     getMostRecentlyVisitedReport,
     getOriginalReportID,
     getOutstandingChildRequest,
@@ -243,7 +247,18 @@ const computeReportName = (
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
     currentUserID = currentUserAccountID,
-) => computeReportNameOriginal(report, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserID);
+) =>
+    computeReportNameOriginal({
+        report,
+        reports,
+        policies,
+        transactions,
+        allReportNameValuePairs,
+        personalDetailsList,
+        reportActions,
+        currentUserAccountID: currentUserID,
+        currentUserLogin: currentUserEmail,
+    });
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
         accountID: 1,
@@ -4471,6 +4486,159 @@ describe('ReportUtils', () => {
                 canHoldRequest: false,
                 canUnholdRequest: true,
             });
+        });
+    });
+
+    describe('changeMoneyRequestHoldStatus', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should unhold request when transaction is already on hold', async () => {
+            // Given a money request report, report action, and transaction that is on hold
+            const reportID = '101';
+            const policyID = '102';
+            const transactionID = '123';
+            const childReportID = '555';
+            const moneyRequestReport = {
+                ...createExpenseReport(101),
+                reportID,
+                policyID,
+            } as Report;
+            const reportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 123,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID,
+                iouReportID: moneyRequestReport.reportID,
+            });
+            reportAction.childReportID = childReportID;
+
+            const iouTransaction = {
+                ...createRandomTransaction(123),
+                transactionID,
+                reportID: moneyRequestReport.reportID,
+                comment: {
+                    hold: '999',
+                },
+            } as Transaction;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`, moneyRequestReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`, {
+                id: moneyRequestReport.policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+            });
+            await waitForBatchedUpdates();
+
+            const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
+
+            // When changeMoneyRequestHoldStatus is called
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction);
+
+            // Then unholdRequest should be called with the correct parameters and navigation should not be called
+            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}));
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('should navigate to hold reason when transaction is not on hold', async () => {
+            // Given a money request report, report action, and transaction that is not on hold
+            const reportID = '201';
+            const policyID = '202';
+            const transactionID = '456';
+            const childReportID = '777';
+            const moneyRequestReport = {
+                ...createExpenseReport(201),
+                reportID,
+                policyID,
+            } as Report;
+
+            const reportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 123,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID,
+                iouReportID: moneyRequestReport.reportID,
+            });
+            reportAction.childReportID = childReportID;
+
+            const iouTransaction = {
+                ...createRandomTransaction(456),
+                transactionID,
+                reportID: moneyRequestReport.reportID,
+                comment: {},
+            } as Transaction;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`, moneyRequestReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`, {
+                id: moneyRequestReport.policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+            });
+            await waitForBatchedUpdates();
+
+            // When changeMoneyRequestHoldStatus is called
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction);
+
+            // Then navigation should be called with the correct parameters
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(CONST.POLICY.TYPE.TEAM, transactionID, childReportID, encodeURIComponent('mock-route')),
+            );
+        });
+    });
+
+    describe('getLinkedIOUTransaction', () => {
+        it('should return the matching transaction for a money request action', () => {
+            const transactionID = 'txn-123';
+            const transaction = {
+                ...createRandomTransaction(100),
+                transactionID,
+            } as Transaction;
+            const otherTransaction = {
+                ...createRandomTransaction(200),
+                transactionID: 'txn-other',
+            } as Transaction;
+
+            const reportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID,
+                iouReportID: 'report-1',
+            });
+
+            const result = getLinkedIOUTransaction(reportAction, [otherTransaction, transaction]);
+            expect(result).toBe(transaction);
+        });
+
+        it('should return undefined when no matching transaction exists', () => {
+            const reportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: 'txn-missing',
+                iouReportID: 'report-1',
+            });
+
+            const result = getLinkedIOUTransaction(reportAction, []);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined for non-money-request actions', () => {
+            const action = buildOptimisticCreatedReportAction('user@test.com');
+            const transaction = {
+                ...createRandomTransaction(100),
+                transactionID: 'txn-123',
+            } as Transaction;
+
+            const result = getLinkedIOUTransaction(action, [transaction]);
+            expect(result).toBeUndefined();
         });
     });
 
@@ -13417,6 +13585,45 @@ describe('ReportUtils', () => {
             });
             expect(result).toBe('Report Fallback Name');
         });
+
+        it('should return noPolicyFound when policy, policies, and allPolicies are all empty and report has no policyName', async () => {
+            // Clear all policies from Onyx so allPolicies is empty
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonexistent',
+                policyName: undefined,
+                oldPolicyName: undefined,
+            };
+
+            const result = getPolicyName({report, returnEmptyIfNotFound: true});
+            expect(result).toBe('');
+        });
+
+        it('should not trigger early return when allPolicies has data even if policy and policies params are empty', async () => {
+            const onyxPolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'guardTestPolicy',
+                name: 'Guard Test Policy',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${onyxPolicy.id}`, onyxPolicy);
+            await waitForBatchedUpdates();
+
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'guardTestPolicy',
+                policyName: undefined,
+            };
+
+            // No policy or policies passed, but allPolicies has the policy via Onyx
+            const result = getPolicyName({report});
+            expect(result).toBe('Guard Test Policy');
+
+            // Cleanup
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${onyxPolicy.id}`, null);
+        });
     });
 
     describe('getBillableAndTaxTotal', () => {
@@ -13608,26 +13815,62 @@ describe('ReportUtils', () => {
         const mockIouReportID = '12345';
 
         it('should return exactly 3 dropdown options', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
             expect(result).toHaveLength(3);
         });
 
         it('should return options with correct values', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, undefined, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: undefined,
+                ownerBillingGraceEndPeriod: undefined,
+            });
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
             expect(result.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
         });
 
         it('should return options with correct translated text', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
             expect(result.at(2)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.addUnreportedExpense'));
         });
 
         it('should return options with correct sentry labels', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
             expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED);
@@ -13637,7 +13880,16 @@ describe('ReportUtils', () => {
             const mockPolicy = createRandomPolicy(0);
             mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
             const amountOwed = 100;
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, amountOwed, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: mockPolicy,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             // Trigger each onSelected - the function should not throw
             for (const option of result) {
@@ -13648,7 +13900,16 @@ describe('ReportUtils', () => {
         it('should return options with zero amountOwed without triggering billing restrictions', () => {
             const mockPolicy = createRandomPolicy(0);
             mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: mockPolicy,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             expect(result).toHaveLength(3);
             // Each onSelected should work without issues when amountOwed is 0
@@ -13658,7 +13919,16 @@ describe('ReportUtils', () => {
         });
 
         it('should handle undefined iouReportID in CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE onSelected', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: undefined,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
             expect(() => result.at(0)?.onSelected?.()).not.toThrow();
@@ -13668,7 +13938,16 @@ describe('ReportUtils', () => {
         });
 
         it('should handle undefined policy gracefully', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             expect(result).toHaveLength(3);
             for (const option of result) {
@@ -13678,13 +13957,31 @@ describe('ReportUtils', () => {
 
         it('should accept amountOwed as a number parameter', () => {
             const amountOwed = 500;
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, amountOwed, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             expect(result).toHaveLength(3);
         });
 
         it('should use the provided icons for Location and ReceiptPlus', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGraceEndPeriod: undefined,
+            });
             expect(result.at(1)?.icon).toBe(mockIcons.Location);
             expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
         });
@@ -13840,7 +14137,16 @@ describe('ReportUtils', () => {
         });
 
         it('should return 3 dropdown options with correct values', () => {
-            const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, undefined, undefined, undefined, undefined);
+            const options = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID,
+                policy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: undefined,
+                ownerBillingGraceEndPeriod: undefined,
+            });
 
             expect(options).toHaveLength(3);
             expect(options.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
@@ -13850,7 +14156,16 @@ describe('ReportUtils', () => {
 
         describe('CREATE_NEW_EXPENSE', () => {
             it('should return early when iouReportID is undefined', () => {
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, undefined, undefined);
+                const options = getAddExpenseDropdownOptions({
+                    translate: mockTranslate,
+                    icons: mockIcons,
+                    iouReportID: undefined,
+                    policy: undefined,
+                    userBillingGraceEndPeriodCollection: undefined,
+                    draftTransactionIDs: undefined,
+                    amountOwed: undefined,
+                    ownerBillingGraceEndPeriod: undefined,
+                });
                 options.at(0)?.onSelected?.();
 
                 expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -13872,7 +14187,16 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined, undefined);
+                const options = getAddExpenseDropdownOptions({
+                    translate: mockTranslate,
+                    icons: mockIcons,
+                    iouReportID,
+                    policy: testPolicy,
+                    userBillingGraceEndPeriodCollection: pastDueCollection,
+                    draftTransactionIDs: undefined,
+                    amountOwed: undefined,
+                    ownerBillingGraceEndPeriod: undefined,
+                });
                 options.at(0)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -13895,7 +14219,16 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined, undefined);
+                const options = getAddExpenseDropdownOptions({
+                    translate: mockTranslate,
+                    icons: mockIcons,
+                    iouReportID,
+                    policy: testPolicy,
+                    userBillingGraceEndPeriodCollection: pastDueCollection,
+                    draftTransactionIDs: undefined,
+                    amountOwed: undefined,
+                    ownerBillingGraceEndPeriod: undefined,
+                });
                 options.at(2)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -13912,7 +14245,16 @@ describe('ReportUtils', () => {
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
                 await waitForBatchedUpdates();
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, undefined, undefined, gracePeriodEnd);
+                const options = getAddExpenseDropdownOptions({
+                    translate: mockTranslate,
+                    icons: mockIcons,
+                    iouReportID,
+                    policy: testPolicy,
+                    userBillingGraceEndPeriodCollection: undefined,
+                    draftTransactionIDs: undefined,
+                    amountOwed: undefined,
+                    ownerBillingGraceEndPeriod: gracePeriodEnd,
+                });
                 options.at(2)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
