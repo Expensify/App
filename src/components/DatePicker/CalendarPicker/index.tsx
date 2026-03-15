@@ -180,9 +180,9 @@ function CalendarPicker({
     const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
     const headerPaddingStyle = headerContainerStyle ?? themeStyles.ph5;
     // On mobile (isSmallScreenWidth is always true on native), the height animation is skipped
-    // so using Animated.View is unnecessary. Using a plain View avoids activating Reanimated's
-    // Fabric commit hook, which can interfere with React's reconciliation of child view styles
-    // on Android and prevent day-selection background changes from painting.
+    // so using Animated.View is unnecessary. Using a plain View with collapsable={false} avoids
+    // activating Reanimated's Fabric commit hook, which on Android can interfere with React's
+    // reconciliation of child view styles and prevent day-selection background changes from painting.
     const CalendarBody = isSmallScreenWidth ? View : Animated.View;
 
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
@@ -264,10 +264,14 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            <CalendarBody style={calendarContainerStyle}>
+            <CalendarBody
+                collapsable={false}
+                style={calendarContainerStyle}
+            >
                 {calendarDaysMatrix?.map((week) => (
                     <View
                         key={`week-${week.toString()}`}
+                        collapsable={false}
                         style={[themeStyles.flexRow, themeStyles.calendarWeekContainer]}
                     >
                         {week.map((day, index) => {

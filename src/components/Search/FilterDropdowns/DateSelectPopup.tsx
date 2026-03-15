@@ -141,7 +141,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     // Widen the popover when Range is selected, reset when not
     useEffect(() => {
         if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-            setPopoverWidth?.(CONST.POPOVER_DATE_WIDTH);
+            setPopoverWidth?.(CONST.POPOVER_DATE_RANGE_WIDTH);
         } else {
             setPopoverWidth?.(undefined);
         }
