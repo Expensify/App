@@ -69,6 +69,15 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
     return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType})}</next-step>`;
 }
 
+function isReportContainingTransactions(report: OnyxEntry<Report>): boolean {
+    return (
+        (report?.transactionCount ?? 0) > 0 ||
+        (report?.total !== 0 && report?.total !== undefined) ||
+        (report?.unheldTotal !== 0 && report?.unheldTotal !== undefined) ||
+        (report?.unheldNonReimbursableTotal !== 0 && report?.unheldNonReimbursableTotal !== undefined)
+    );
+}
+
 function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
     const {
         report,
@@ -92,11 +101,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
-    const isReportContainingTransactions =
-        (report?.transactionCount ?? 0) > 0 ||
-        (report?.total !== 0 && report?.total !== undefined) ||
-        (report?.unheldTotal !== 0 && report?.unheldTotal !== undefined) ||
-        (report?.unheldNonReimbursableTotal !== 0 && report?.unheldNonReimbursableTotal !== undefined);
+    const hasTransactions = isReportContainingTransactions(report);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -143,7 +148,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             };
 
             // Scheduled submit enabled
-            if (policy?.harvesting?.enabled && isReportContainingTransactions) {
+            if (policy?.harvesting?.enabled && hasTransactions) {
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -187,7 +192,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
 
             // Manual submission
-            if (isReportContainingTransactions && !policy?.harvesting?.enabled) {
+            if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -472,11 +477,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
         shouldChangeUserDisplayName: true,
     });
-    const isReportContainingTransactions =
-        (report?.transactionCount ?? 0) > 0 ||
-        (report?.total !== 0 && report?.total !== undefined) ||
-        (report?.unheldTotal !== 0 && report?.unheldTotal !== undefined) ||
-        (report?.unheldNonReimbursableTotal !== 0 && report?.unheldNonReimbursableTotal !== undefined);
+    const hasTransactions = isReportContainingTransactions(report);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const ownerDisplayName =
@@ -598,7 +599,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                         text: ' to ',
                     },
                     {
-                        text: isReportContainingTransactions ? 'submit' : 'add',
+                        text: hasTransactions ? 'submit' : 'add',
                     },
                     {
                         text: ' %expenses.',
@@ -607,7 +608,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             };
 
             // Scheduled submit enabled
-            if (policy?.harvesting?.enabled && isReportContainingTransactions) {
+            if (policy?.harvesting?.enabled && hasTransactions) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -661,7 +662,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             }
 
             // Manual submission
-            if (isReportContainingTransactions && !policy?.harvesting?.enabled) {
+            if (hasTransactions && !policy?.harvesting?.enabled) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
