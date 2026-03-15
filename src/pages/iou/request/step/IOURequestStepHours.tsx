@@ -134,7 +134,9 @@ function IOURequestStepHours({
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType, transactionID, reportID));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType, transactionID, reportID),
+        );
     };
 
     return (
