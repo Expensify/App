@@ -70,7 +70,7 @@ function PayAndDowngradePage() {
     }, []);
 
     if (isLoadingOnyxValue(metadata)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'PayAndDowngradePage'}} />;
     }
 
     return (
