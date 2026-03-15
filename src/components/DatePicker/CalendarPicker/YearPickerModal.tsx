@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {Keyboard} from 'react-native';
+import {Keyboard, Platform} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -54,6 +54,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             headerMessage,
             maxLength: 4,
             inputMode: CONST.INPUT_MODE.NUMERIC,
+            disableAutoFocus: Platform.OS === CONST.PLATFORM.ANDROID,
         }),
         [headerMessage, searchText, translate],
     );
