@@ -88,20 +88,17 @@ function TaskPreview({
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
     // Prefer the live task report name so offline title edits are reflected immediately.
     const taskTitle = taskReport?.reportName ?? action?.childReportName ?? '';
-    const taskContextReport = React.useMemo(
-        () =>
-            taskReport ??
-            ({
-                reportID: taskReportID,
-                parentReportID: chatReportID,
-                parentReportActionID: action?.reportActionID,
-                ownerAccountID: action?.childOwnerAccountID,
-                managerID: action?.childManagerAccountID,
-                stateNum: action?.childStateNum,
-                statusNum: action?.childStatusNum,
-            } as Report),
-        [action?.childManagerAccountID, action?.childOwnerAccountID, action?.childStateNum, action?.childStatusNum, action?.reportActionID, chatReportID, taskReport, taskReportID],
-    );
+    const taskContextReport =
+        taskReport ??
+        ({
+            reportID: taskReportID,
+            parentReportID: chatReportID,
+            parentReportActionID: action?.reportActionID,
+            ownerAccountID: action?.childOwnerAccountID,
+            managerID: action?.childManagerAccountID,
+            stateNum: action?.childStateNum,
+            statusNum: action?.childStatusNum,
+        } as Report);
 
     const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
