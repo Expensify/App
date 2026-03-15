@@ -191,6 +191,19 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedReports = [];
         mockAreAllMatchingItemsSelected = false;
         mockDefaultExpensePolicy = undefined;
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+
+        const defaultReportIDs = ['report1', 'r0', 'r1', 'r2', 'r3'];
+        for (const reportID of defaultReportIDs) {
+            // eslint-disable-next-line no-await-in-loop
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                reportName: `Report ${reportID}`,
+            });
+        }
     });
 
     afterEach(async () => {
@@ -285,7 +298,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
     });
 
-    it('should show duplicate option for a Per Diem expense', async () => {
+    it('should show duplicate option for a Per Diem expense with dates', async () => {
         const txnID = '1500';
         const txn = {
             ...createRandomTransaction(1),
@@ -294,7 +307,10 @@ describe('useSearchBulkActions - duplicate option', () => {
             iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL},
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    attributes: {dates: {start: '2026-03-01', end: '2026-03-05'}},
+                },
             },
         };
 
@@ -333,7 +349,13 @@ describe('useSearchBulkActions - duplicate option', () => {
             transactionID: '1701',
             managedCard: false,
             iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}},
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    attributes: {dates: {start: '2026-03-01', end: '2026-03-05'}},
+                },
+            },
         };
         const distanceTxn = {...createRandomDistanceRequestTransaction(3), transactionID: '1702', managedCard: false};
 
@@ -360,7 +382,13 @@ describe('useSearchBulkActions - duplicate option', () => {
             transactionID: '1801',
             managedCard: false,
             iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}},
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    attributes: {dates: {start: '2026-03-01', end: '2026-03-05'}},
+                },
+            },
         };
         const distanceTxn = {...createRandomDistanceRequestTransaction(3), transactionID: '1802', managedCard: false};
 
@@ -670,6 +698,124 @@ describe('useSearchBulkActions - duplicate option', () => {
                 }),
             }),
         );
+    });
+
+    it('should not show duplicate option for per-diem expense on non-default workspace', async () => {
+        const defaultPolicyID = 'DEFAULT_POLICY';
+        const otherPolicyID = 'OTHER_POLICY';
+        mockDefaultExpensePolicy = {id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'} as Policy;
+
+        const txnID = '2100';
+        const txn = {
+            ...createRandomTransaction(1),
+            transactionID: txnID,
+            managedCard: false,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}},
+        };
+
+        const report: Report = {
+            reportID: 'r_other',
+            policyID: otherPolicyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            reportName: 'Other WS Report',
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r_other`, report);
+
+        mockSelectedTransactions = {[txnID]: makeSelectedTransaction({reportID: 'r_other', policyID: otherPolicyID})};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
+
+        expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
+    });
+
+    it('should not show duplicate option for transaction with custom unit out of policy violation', async () => {
+        const txnID = '2200';
+        const txn = {...createRandomTransaction(1), transactionID: txnID, managedCard: false};
+
+        mockSelectedTransactions = {[txnID]: makeSelectedTransaction()};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${txnID}`, [{name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
+
+        expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
+    });
+
+    it('should not show duplicate option for distance expense from archived report', async () => {
+        const txnID = '2300';
+        const reportID = 'r_archived';
+        const txn = {
+            ...createRandomDistanceRequestTransaction(1),
+            transactionID: txnID,
+            managedCard: false,
+        };
+
+        const report: Report = {
+            reportID,
+            policyID: 'policy1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            reportName: 'Archived Report',
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {private_isArchived: new Date().toISOString()});
+
+        mockSelectedTransactions = {[txnID]: makeSelectedTransaction({reportID})};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
+
+        expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
+    });
+
+    it('should not show duplicate option for distance expense from DM chat', async () => {
+        const defaultPolicyID = 'DEFAULT_POLICY';
+        mockDefaultExpensePolicy = {id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'} as Policy;
+
+        const txnID = '2400';
+        const expenseReportID = 'r_expense_dm';
+        const chatReportID = 'r_chat_dm';
+        const txn = {
+            ...createRandomDistanceRequestTransaction(1),
+            transactionID: txnID,
+            managedCard: false,
+        };
+
+        const policyExpenseChat: Report = {
+            reportID: 'pec_dm',
+            policyID: defaultPolicyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            reportName: 'Default WS',
+        };
+        const chatReport: Report = {
+            reportID: chatReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            reportName: 'DM Chat',
+        };
+        const expenseReport: Report = {
+            reportID: expenseReportID,
+            policyID: defaultPolicyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID,
+            reportName: 'DM Expense',
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+
+        mockSelectedTransactions = {[txnID]: makeSelectedTransaction({reportID: expenseReportID})};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
+
+        expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeUndefined();
     });
 
     it('should not show duplicate option when all selected transactions are scanning', async () => {
