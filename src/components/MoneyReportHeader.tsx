@@ -1858,23 +1858,26 @@ function MoneyReportHeader({
                 const targetPolicy = sourcePolicy && isPolicyMember(sourcePolicy, currentUserLogin) ? sourcePolicy : defaultExpensePolicy;
                 const targetPolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy?.id}`] ?? {};
 
-                duplicateReportAction({
-                    sourceReportTransactions: nonPendingDeleteTransactions,
-                    sourceReportName: moneyRequestReport?.reportName ?? '',
-                    targetPolicy: targetPolicy ?? undefined,
-                    targetPolicyCategories,
-                    targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy?.id}`] ?? {},
-                    ownerPersonalDetails: currentUserPersonalDetails,
-                    isASAPSubmitBetaEnabled,
-                    betas,
-                    personalDetails,
-                    quickAction,
-                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    draftTransactionIDs,
-                    isSelfTourViewed,
-                    transactionViolations: allTransactionViolations,
-                    translate,
-                    recentWaypoints: recentWaypoints ?? [],
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    duplicateReportAction({
+                        sourceReportTransactions: nonPendingDeleteTransactions,
+                        sourceReportName: moneyRequestReport?.reportName ?? '',
+                        targetPolicy: targetPolicy ?? undefined,
+                        targetPolicyCategories,
+                        targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy?.id}`] ?? {},
+                        ownerPersonalDetails: currentUserPersonalDetails,
+                        isASAPSubmitBetaEnabled,
+                        betas,
+                        personalDetails,
+                        quickAction,
+                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        draftTransactionIDs,
+                        isSelfTourViewed,
+                        transactionViolations: allTransactionViolations,
+                        translate,
+                        recentWaypoints: recentWaypoints ?? [],
+                    });
                 });
             },
         },
