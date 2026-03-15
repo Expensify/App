@@ -20,6 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -95,7 +96,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         const navigateToTransactionThread = () => {
             if (!transactionItem?.reportAction?.childReportID) {
-                createAndOpenSearchTransactionThread(transactionItem, introSelected, backTo, transactionItem?.reportAction?.childReportID);
+                createAndOpenSearchTransactionThread(
+                    transactionItem,
+                    introSelected,
+                    backTo,
+                    currentUserDetails.email ?? '',
+                    currentUserDetails.accountID,
+                    transactionItem?.reportAction?.childReportID,
+                );
                 return;
             }
             markReportIDAsExpense(reportID);
@@ -126,6 +134,11 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         } else if (!isOffline && transactionsQueryJSON) {
             searchTransactions(CONST.SEARCH.RESULTS_PAGE_SIZE);
         }
+    };
+
+    const transactionGroupLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TransactionGroupListExpanded',
+        isOffline: !!isOffline,
     };
 
     if (shouldDisplayEmptyView) {
@@ -250,6 +263,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         color={theme.spinner}
                         size={25}
                         style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
+                        reasonAttributes={transactionGroupLoadingReasonAttributes}
                     />
                 </View>
             )}

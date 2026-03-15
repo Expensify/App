@@ -1,5 +1,5 @@
 import {format, subDays} from 'date-fns';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -26,19 +27,11 @@ function TransactionStartDateStep() {
     const isEditing = assignCard?.isEditing;
     const cardToAssign = assignCard?.cardToAssign;
 
-    const [dateOptionSelected, setDateOptionSelected] = useState(cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+    const [localDateOption, setLocalDateOption] = useState<string>();
     const [errorText, setErrorText] = useState('');
-    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
-
-    useEffect(() => {
-        if (cardToAssign?.dateOption) {
-            setDateOptionSelected(cardToAssign.dateOption);
-        }
-
-        if (cardToAssign?.startDate) {
-            setStartDate(cardToAssign.startDate);
-        }
-    }, [cardToAssign?.dateOption, cardToAssign?.startDate]);
+    const [localStartDate, setLocalStartDate] = useState<string>();
+    const dateOptionSelected = localDateOption ?? cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+    const startDate = localStartDate ?? cardToAssign?.startDate ?? assignCard?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -51,11 +44,11 @@ function TransactionStartDateStep() {
 
     const handleSelectDateOption = (dateOption: string) => {
         setErrorText('');
-        setDateOptionSelected(dateOption);
+        setLocalDateOption(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
         }
-        setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+        setLocalStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     };
 
     const submit = () => {
@@ -93,6 +86,10 @@ function TransactionStartDateStep() {
     ];
 
     const isLoading = isLoadingOnyxValue(assignCardMeta);
+    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TransactionStartDateStep',
+        isLoading,
+    };
 
     return (
         <InteractiveStepWrapper
@@ -105,6 +102,7 @@ function TransactionStartDateStep() {
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={styles.h100}
+                    reasonAttributes={activityReasonAttributes}
                 />
             ) : (
                 <>
@@ -141,7 +139,7 @@ function TransactionStartDateStep() {
                                                 } else {
                                                     setErrorText('');
                                                 }
-                                                setStartDate(value);
+                                                setLocalStartDate(value);
                                             }}
                                             minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                                             maxDate={new Date()}

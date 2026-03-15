@@ -16,8 +16,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
-import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
-import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
+import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,11 +54,13 @@ function BaseVideoPlayer({
     onTap,
 }: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
-    const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus} = usePlaybackStateContext();
-    const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus} = usePlaybackActionsContext();
+    const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus, shareVersion} = usePlaybackStateContext();
+    const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
+        usePlaybackActionsContext();
     const {isFullScreenRef} = useFullScreenState();
 
     const isOffline = useNetwork().isOffline;
+    const [isVideoOffline, setIsVideoOffline] = useState(false);
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const [duration, setDuration] = useState(videoDuration);
@@ -109,41 +111,61 @@ function BaseVideoPlayer({
     });
 
     useEffect(() => {
-        if (!(isOffline && isLoading)) {
+        if (!isOffline) {
+            setIsVideoOffline(false);
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setIsVideoOffline(true);
+        }, CONST.VIDEO_PLAYER.OFFLINE_THRESHOLD);
+
+        return () => clearTimeout(timer);
+    }, [isOffline]);
+
+    useEffect(() => {
+        if (!(isVideoOffline && isLoading && isOffline)) {
             return;
         }
         videoPlayerRef.current.replaceAsync('');
-    }, [isLoading, isOffline]);
+    }, [isLoading, isVideoOffline, isOffline]);
 
     const videoViewRef = useRef<VideoView | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
     const isReadyForDisplayRef = useRef(false);
+    const savedCurrentTimeRef = useRef(0);
+    const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
+    // This needs to be updated synchronously during render (not in an effect) so that
+    // cleanup functions of useLayoutEffect always read the latest value.
+    // eslint-disable-next-line react-hooks/refs
+    shouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
     const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const shouldShowErrorIndicator = useMemo(() => {
-        // No need to set hasError while offline, since the offline indicator is already shown.
+        // No need to set hasError while confirmed offline, since the offline indicator is already shown.
         // Once the user reconnects, if the video is unsupported, the error will be triggered again.
-        return hasError && !isOffline;
-    }, [hasError, isOffline]);
+        return hasError && !isVideoOffline;
+    }, [hasError, isVideoOffline]);
     const shouldShowLoadingIndicator = useMemo(() => {
         // We want to show LoadingIndicator when video's loading and paused, except when it's loading
-        // for the first time, then playing/loading may vary. Video should be online and without errors.
-        return isLoading && (!isPlaying || currentTime <= 0) && !isOffline && !hasError;
-    }, [currentTime, hasError, isLoading, isOffline, isPlaying]);
+        // for the first time, then playing/loading may vary. Video should not be confirmed offline and without errors.
+        return isLoading && (!isPlaying || currentTime <= 0) && !isVideoOffline && !hasError;
+    }, [currentTime, hasError, isLoading, isVideoOffline, isPlaying]);
     const shouldShowOfflineIndicator = useMemo(() => {
-        return isOffline && currentTime + bufferedPosition <= 0;
-    }, [bufferedPosition, currentTime, isOffline]);
-    const {updateVolume, lastNonZeroVolume} = useVolumeContext();
+        return isVideoOffline && currentTime + bufferedPosition <= 0;
+    }, [bufferedPosition, currentTime, isVideoOffline]);
+    const {updateVolume} = useVolumeActions();
+    const {lastNonZeroVolume} = useVolumeState();
     useHandleNativeVideoControls({
         videoViewRef,
         isOffline,
         isLocalFile: isUploading,
     });
 
-    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuContext();
+    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuActions();
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
@@ -281,6 +303,13 @@ function BaseVideoPlayer({
     });
 
     useEffect(() => {
+        if (currentTime <= 0) {
+            return;
+        }
+        savedCurrentTimeRef.current = currentTime;
+    }, [currentTime]);
+
+    useEffect(() => {
         if (!videoPlayerRef.current.duration) {
             return;
         }
@@ -300,7 +329,11 @@ function BaseVideoPlayer({
     // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
     useLayoutEffect(
         () => () => {
-            if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
+            // Use ref to read the latest value of shouldUseSharedVideoElement, preventing
+            // destructive cleanup when this value changes during viewport resize.
+            // Without the ref, the cleanup captures the stale (old) closure value and
+            // incorrectly destroys the player when transitioning between shared/non-shared modes.
+            if (shouldUseSharedVideoElementRef.current || videoPlayerRef.current !== currentVideoPlayerRef.current) {
                 return;
             }
             if (currentVideoPlayerRef.current) {
@@ -309,7 +342,8 @@ function BaseVideoPlayer({
                 currentVideoPlayerRef.current = null;
             }
         },
-        [currentVideoPlayerRef, mountedVideoPlayersRef, shouldUseSharedVideoElement, url],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [currentVideoPlayerRef, mountedVideoPlayersRef, url],
     );
 
     useEffect(() => {
@@ -331,14 +365,29 @@ function BaseVideoPlayer({
 
     useEffect(
         () => () => {
-            if (shouldUseSharedVideoElement || !isCurrentlyURLSetRef.current) {
+            // Use ref to read the latest value of shouldUseSharedVideoElement, preventing
+            // premature URL clearing when this value changes during viewport resize.
+            if (shouldUseSharedVideoElementRef.current || !isCurrentlyURLSetRef.current) {
                 return;
             }
 
             setCurrentlyPlayingURL(null);
         },
-        [setCurrentlyPlayingURL, shouldUseSharedVideoElement],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [setCurrentlyPlayingURL],
     );
+
+    // When transitioning from non-shared to shared mode (e.g. narrow → wide viewport), the stale
+    // non-shared player refs remain in the context. Request all donors to re-register so the real
+    // donor (e.g. the chat player) reclaims the context refs.
+    const prevShouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
+    useEffect(() => {
+        const wasShared = prevShouldUseSharedVideoElementRef.current;
+        if (shouldUseSharedVideoElement && !wasShared) {
+            requestDonorReRegistration();
+        }
+        prevShouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
+    }, [shouldUseSharedVideoElement, requestDonorReRegistration, url]);
 
     // update shared video elements
     useEffect(() => {
@@ -358,6 +407,7 @@ function BaseVideoPlayer({
         currentlyPlayingURL,
         shouldUseSharedVideoElement,
         shareVideoPlayerElements,
+        shareVersion,
         url,
         isUploading,
         reportID,
@@ -393,6 +443,11 @@ function BaseVideoPlayer({
             } else {
                 newParentRef.appendChild(sharedElement as HTMLDivElement);
             }
+        }
+        // Restore the playback position after moving the video element in the DOM.
+        // Moving elements can reset currentTime to 0 in some browsers/video implementations.
+        if (videoPlayerRef.current && savedCurrentTimeRef.current > 0 && videoPlayerRef.current.currentTime === 0) {
+            videoPlayerRef.current.currentTime = savedCurrentTimeRef.current;
         }
         return () => {
             if (!originalParent || !('appendChild' in originalParent)) {
@@ -479,7 +534,6 @@ function BaseVideoPlayer({
                                             }
                                             videoPlayerElementParentRef.current = el;
                                         }}
-                                        pointerEvents="none"
                                     >
                                         <VideoView
                                             // has to be switched to fullscreenOptions={{enable: true}} when mobile Safari gets fixed
