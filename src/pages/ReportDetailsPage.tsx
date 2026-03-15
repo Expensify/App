@@ -464,6 +464,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         amountOwed,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
+                        transaction: iouTransaction,
                     });
                 },
             });
@@ -485,6 +486,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriodCollection,
                             amountOwed,
+                            transaction: iouTransaction,
                         });
                     },
                 });
@@ -505,6 +507,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             activePolicy,
                             userBillingGraceEndPeriodCollection,
                             amountOwed,
+                            transaction: iouTransaction,
                         });
                     },
                 });

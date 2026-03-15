@@ -579,6 +579,8 @@ function PureReportActionItem({
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
+    const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -951,6 +953,7 @@ function PureReportActionItem({
                             amountOwed,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
+                            transaction: trackExpenseTransaction,
                         });
                     },
                 },
@@ -972,6 +975,7 @@ function PureReportActionItem({
                                 activePolicy,
                                 userBillingGraceEndPeriodCollection,
                                 amountOwed,
+                                transaction: trackExpenseTransaction,
                             });
                         },
                     },
@@ -989,6 +993,7 @@ function PureReportActionItem({
                                 activePolicy,
                                 userBillingGraceEndPeriodCollection,
                                 amountOwed,
+                                transaction: trackExpenseTransaction,
                             });
                         },
                     },
@@ -1135,6 +1140,7 @@ function PureReportActionItem({
         personalPolicyID,
         userBillingGraceEndPeriodCollection,
         amountOwed,
+        trackExpenseTransaction,
     ]);
 
     /**

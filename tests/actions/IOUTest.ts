@@ -637,6 +637,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriodCollection: undefined,
                 amountOwed: 0,
+                transaction,
             });
             await waitForBatchedUpdates();
 
@@ -1210,6 +1211,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriodCollection: undefined,
                 amountOwed: 0,
+                transaction: createdTransaction,
             });
             await waitForBatchedUpdates();
 
@@ -1866,6 +1868,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriodCollection: undefined,
                 amountOwed: 0,
+                transaction: transactionToCategorize,
             });
             await waitForBatchedUpdates();
 
@@ -1914,6 +1917,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriodCollection: undefined,
                 amountOwed: 0,
+                transaction: originalTransaction,
             });
             await waitForBatchedUpdates();
 
@@ -1982,6 +1986,7 @@ describe('actions/IOU', () => {
                 allTransactionDrafts: {},
                 activePolicy: undefined,
                 userBillingGraceEndPeriodCollection: undefined,
+                transaction,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();

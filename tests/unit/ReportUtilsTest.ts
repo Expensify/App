@@ -12911,6 +12911,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriodCollection: undefined,
                     amountOwed: 1,
+                    transaction,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -12946,6 +12947,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriodCollection,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -12984,6 +12986,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriodCollection: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the category step
@@ -13024,6 +13027,7 @@ describe('ReportUtils', () => {
                     activePolicy: undefined,
                     userBillingGraceEndPeriodCollection: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -13051,6 +13055,7 @@ describe('ReportUtils', () => {
                     activePolicy: undefined,
                     userBillingGraceEndPeriodCollection: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -13099,6 +13104,7 @@ describe('ReportUtils', () => {
                     activePolicy: undefined,
                     userBillingGraceEndPeriodCollection: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -13143,6 +13149,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriodCollection: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should log a warning and not navigate
@@ -13185,6 +13192,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriodCollection: undefined,
                     amountOwed: 0,
+                    transaction,
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -13219,6 +13227,7 @@ describe('ReportUtils', () => {
                     activePolicy,
                     userBillingGraceEndPeriodCollection: undefined,
                     amountOwed: 50,
+                    transaction,
                 });
 
                 // Then it should navigate to restricted action page
