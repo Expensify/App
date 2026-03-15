@@ -140,9 +140,6 @@ type TransactionItemRowProps = {
     customCardNames?: Record<number, string>;
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
-
-    /** Whether to remove flex from the total amount column */
-    shouldRemoveTotalColumnFlex?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -195,7 +192,6 @@ function TransactionItemRow({
     customCardNames,
     reportActions,
     checkboxSentryLabel,
-    shouldRemoveTotalColumnFlex = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -524,19 +520,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[
-                            StyleUtils.getReportTableColumnStyles(
-                                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-                                undefined,
-                                isAmountColumnWide,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                shouldRemoveTotalColumnFlex,
-                            ),
-                        ]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, isAmountColumnWide)]}
                     >
                         <TotalCell
                             transactionItem={transactionItem}

@@ -161,7 +161,6 @@ function MoneyRequestReportTransactionItem({
                         }}
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
-                        shouldRemoveTotalColumnFlex
                     />
                 )}
             </PressableWithFeedback>

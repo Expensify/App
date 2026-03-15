@@ -1795,7 +1795,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isApprovedColumnWide = false,
         isPostedColumnWide = false,
         isExportedColumnWide = false,
-        shouldRemoveTotalColumnFlex = false,
     ): ViewStyle => {
         let columnWidth;
         switch (columnName) {
@@ -1854,7 +1853,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
-                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...styles.flex1, ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
