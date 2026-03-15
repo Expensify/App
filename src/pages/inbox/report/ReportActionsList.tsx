@@ -4,7 +4,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import Button from '@components/Button';
@@ -28,6 +28,7 @@ import {isSafari} from '@libs/Browser';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
+import getPlatform from '@libs/getPlatform';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -815,6 +816,12 @@ function ReportActionsList({
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
+    const platform = getPlatform();
+    const isWeb = platform === CONST.PLATFORM.WEB;
+
+    // Web: reversed via `unshift`, `justifyContentEnd` only needed for normal chat (pushes content down), not when `shouldFocusToTopOnMount`.
+    // Native: flipped via scaleY(-1), `justifyContentEnd` always needed since "end" aligns to visual top.
+    const chatContentContainerStyle = [styles.chatContentScrollView, (isWeb ? !shouldFocusToTopOnMount : shouldFocusToTopOnMount) ? styles.justifyContentEnd : undefined];
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
@@ -918,7 +925,7 @@ function ReportActionsList({
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, !shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
+                    contentContainerStyle={chatContentContainerStyle}
                     shouldHideContent={shouldScrollToEndAfterLayout}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
                     showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}

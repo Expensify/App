@@ -2,6 +2,8 @@ import React from 'react';
 import FlatList from '@components/FlatList/FlatList';
 import useFlatListScrollKey from '@components/FlatList/hooks/useFlatListScrollKey';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import CellRendererComponent from './CellRendererComponent';
 import shouldRemoveClippedSubviews from './shouldRemoveClippedSubviews';
 import type {InvertedFlatListProps} from './types';
@@ -40,6 +42,8 @@ function InvertedFlatList<T>({
         ref,
     });
     const styles = useThemeStyles();
+    const platform = getPlatform();
+    const isWeb = platform === CONST.PLATFORM.WEB;
 
     return (
         <FlatList<T>
@@ -54,7 +58,7 @@ function InvertedFlatList<T>({
             onStartReached={handleStartReached}
             CellRendererComponent={CellRendererComponent}
             removeClippedSubviews={shouldRemoveClippedSubviews}
-            contentContainerStyle={[restProps.contentContainerStyle, restProps.horizontal ? styles.flexRowReverse : styles.flexColumnReverse]}
+            contentContainerStyle={[restProps.contentContainerStyle, !isWeb ? undefined : restProps.horizontal ? styles.flexRowReverse : styles.flexColumnReverse]}
         />
     );
 }
