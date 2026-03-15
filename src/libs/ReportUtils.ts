@@ -11229,7 +11229,7 @@ type CreateDraftTransactionParams = {
     amountOwed: OnyxEntry<number>;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
-    transaction?: OnyxEntry<Transaction>;
+    transaction: OnyxEntry<Transaction>;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
