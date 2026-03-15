@@ -44,15 +44,18 @@ import {
     getIntegrationIcon,
     getPolicyExpenseChat,
     getReportOrDraftReport,
+    isArchivedReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
+    isDM,
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
+    isSelfDM,
 } from '@libs/ReportUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasTransactionBeenRejected, isManagedCardTransaction, isPerDiemRequest, isScanning} from '@libs/TransactionUtils';
+import {hasCustomUnitOutOfPolicyViolation, hasTransactionBeenRejected, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid, dismissRejectUseExplanation} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
@@ -105,6 +108,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const personalPolicy = usePersonalPolicy();
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
@@ -1195,6 +1199,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
         const shouldShowDuplicateOption =
             !typeExpenseReport &&
             selectedTransactionsKeys.length > 0 &&
@@ -1210,6 +1215,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const reportID = selectedTransactions[id]?.reportID;
                 if (reportID && !isCurrentUserSubmitter(getReportOrDraftReport(reportID))) {
                     return false;
+                }
+                const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`];
+                if (hasCustomUnitOutOfPolicyViolation(transactionViolations)) {
+                    return false;
+                }
+                if (isPerDiemRequest(transaction)) {
+                    const report = reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : undefined;
+                    if (report?.policyID && defaultExpensePolicy?.id !== report.policyID) {
+                        return false;
+                    }
+                }
+                if (isDistanceRequest(transaction) && reportID) {
+                    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                    const chatReportID = report?.chatReportID ?? report?.parentReportID;
+                    const chatReport = chatReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+                    const reportNVP = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+                    const chatReportNVP = chatReportID ? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportID}`] : undefined;
+                    const isReportArchived = isArchivedReport(reportNVP) || isArchivedReport(chatReportNVP);
+                    if (isReportArchived || (activePolicyExpenseChat && chatReport && (isDM(chatReport) || isSelfDM(chatReport)))) {
+                        return false;
+                    }
                 }
                 return true;
             });
@@ -1318,6 +1344,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransaction,
         firstTransactionPolicy,
         allTransactions,
+        allReportNameValuePairs,
+        defaultExpensePolicy?.id,
         handleDuplicateSelectedTransactions,
         handleDeleteSelectedTransactions,
         theme.icon,
