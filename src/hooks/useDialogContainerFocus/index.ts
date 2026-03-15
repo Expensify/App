@@ -7,11 +7,15 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
         if (!isReady || !claimInitialFocus?.()) {
             return;
         }
-        const active = document.activeElement;
-        if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement) {
-            return;
-        }
-        (ref.current as unknown as HTMLElement)?.focus();
+        // Deferred so useAutoFocusInput can focus its input before we check activeElement.
+        const frameId = requestAnimationFrame(() => {
+            const active = document.activeElement;
+            if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement) {
+                return;
+            }
+            (ref.current as unknown as HTMLElement)?.focus();
+        });
+        return () => cancelAnimationFrame(frameId);
     }, [isReady, ref, claimInitialFocus]);
 };
 

@@ -41,6 +41,7 @@ function DialogLabelProvider({children}: {children: React.ReactNode}) {
     const pushLabel = (text: string): number => {
         const id = nextIdRef.current++;
         labelStackRef.current = [...labelStackRef.current, {id, text}];
+        initialFocusClaimedRef.current = false;
         updateContainerLabel();
         return id;
     };
