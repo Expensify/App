@@ -1306,8 +1306,16 @@ function canActionTask(
         return false;
     }
 
-    // The task can only be actioned by the task report owner or the task assignee
-    return sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport, parentReportAction);
+    // The task can only be actioned by the task report owner, the task assignee or any participant of the parent report if it is a group chat or a chat room
+    if (sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport, parentReportAction)) {
+        return true;
+    }
+
+    if (parentReport && (ReportUtils.isGroupChat(parentReport) || ReportUtils.isChatRoom(parentReport))) {
+        return ReportUtils.isReportParticipant(sessionAccountID, parentReport);
+    }
+
+    return false;
 }
 
 function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, currentUserAccountID: number, introSelected: OnyxEntry<OnyxTypes.IntroSelected>) {
