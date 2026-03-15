@@ -14,7 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
-import {isMobileSafari, isSafari} from '@libs/Browser';
+import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
@@ -316,7 +316,9 @@ function BasePopoverMenu({
     const isWeb = platform === CONST.PLATFORM.WEB;
     const isAndroid = platform === CONST.PLATFORM.ANDROID;
     const isIOS = platform === CONST.PLATFORM.IOS;
-    const shouldDeferDismissButtonAccessibility = isIOS || isMobileSafari();
+    // Native iOS can announce the dismiss control before the first menu item unless it is gated
+    // until the first item receives accessibility focus.
+    const shouldDeferDismissButtonAccessibility = isIOS;
     const firstMenuItemRef = useRef<RNView>(null);
     const isVisibleRef = useRef(isVisible);
     const hasFocusedFirstItemOnCurrentOpenRef = useRef(false);
@@ -325,7 +327,15 @@ function BasePopoverMenu({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
 
+    const markFirstMenuItemUnfocused = useCallback(() => {
+        hasFocusedFirstItemOnCurrentOpenRef.current = false;
+        if (shouldDeferDismissButtonAccessibility) {
+            setShouldEnableBottomDockedDismissAccessibility(false);
+        }
+    }, [shouldDeferDismissButtonAccessibility]);
+
     useEffect(() => {
+        // Reset the dismiss accessibility gating for each modal close before the next open.
         isVisibleRef.current = isVisible;
         if (isVisible) {
             if (shouldDeferDismissButtonAccessibility) {
@@ -333,18 +343,8 @@ function BasePopoverMenu({
             }
             return;
         }
-        hasFocusedFirstItemOnCurrentOpenRef.current = false;
-        if (shouldDeferDismissButtonAccessibility) {
-            setShouldEnableBottomDockedDismissAccessibility(false);
-        }
-    }, [isVisible, shouldDeferDismissButtonAccessibility]);
-
-    useEffect(() => {
-        if (shouldDeferDismissButtonAccessibility) {
-            return;
-        }
-        setShouldEnableBottomDockedDismissAccessibility(true);
-    }, [shouldDeferDismissButtonAccessibility]);
+        markFirstMenuItemUnfocused();
+    }, [isVisible, markFirstMenuItemUnfocused, shouldDeferDismissButtonAccessibility]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);

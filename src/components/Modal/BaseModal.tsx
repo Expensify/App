@@ -270,6 +270,8 @@ function BaseModal({
     );
 
     const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
+    // The explicit accessibility-tree hiding is only needed on native iOS. Other platforms keep
+    // the expected swipe order with the existing first-item focus handoff.
     const shouldHideBottomDockedDismissFromAccessibility = isNativeIOS && shouldShowBottomDockedDismissButton && shouldEnableBottomDockedDismissAccessibility === false;
 
     const modalPaddingStyles = useMemo(() => {
