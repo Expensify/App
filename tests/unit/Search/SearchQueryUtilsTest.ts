@@ -831,6 +831,106 @@ describe('SearchQueryUtils', () => {
                 expect(result.view).toEqual(CONST.SEARCH.VIEW.BAR);
             });
         });
+
+        test('tag filter validates against policy tags', () => {
+            const policyID = generatePolicyID();
+            const queryString = `sortBy:date sortOrder:desc type:expense tag:Engineering,Marketing,NonExistent policyID:${policyID}`;
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]: {
+                    Department: {
+                        name: 'Department',
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true},
+                            Sales: {name: 'Sales', enabled: true},
+                        },
+                    },
+                },
+            } as unknown as OnyxCollection<OnyxTypes.PolicyTagLists>;
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // NonExistent should be filtered out since it's not in any policy's tags
+            expect(result.tag).toEqual(['Engineering', 'Marketing']);
+        });
+
+        test('currency filter validates against currency list', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense currency:USD,EUR,INVALID';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {USD: {}, EUR: {}, GBP: {}} as unknown as OnyxTypes.CurrencyList;
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // INVALID should be filtered out
+            expect(result.currency).toEqual(['USD', 'EUR']);
+        });
+
+        test('tax rate filter validates against tax rates', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense taxRate:id_vat,id_gst,nonexistent';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {VAT: ['id_vat'], GST: ['id_gst']};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // nonexistent should be filtered out
+            expect(result.taxRate).toEqual(['id_vat', 'id_gst']);
+        });
+
+        test('expense type filter validates against valid types', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense expenseType:cash,card,invalid';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // invalid should be filtered out, cash and card are valid CONST.SEARCH.TRANSACTION_TYPE values
+            expect(result.expenseType).toEqual(['cash', 'card']);
+        });
     });
 
     describe('shouldHighlight', () => {
