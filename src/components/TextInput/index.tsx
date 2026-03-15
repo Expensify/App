@@ -30,17 +30,14 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
         }
 
         // On mobile Chrome, restore keyboard after returning from background by blurring and
-        // refocusing with a delay. We use window.focus because visibilitychange doesn't always fire.
+        // refocusing with a delay. Both visibilitychange and window.focus call the same function,
+        // with isRestoringKeyboardFocus preventing duplicate execution for the same transition.
         // See: https://developer.android.com/develop/ui/views/touch-and-input/keyboard-input/visibility#ShowReliably
         let focusTimeoutId: ReturnType<typeof setTimeout>;
         let flagResetTimeoutId: ReturnType<typeof setTimeout>;
 
-        const handleWindowFocus = () => {
-            if (!isMobileChrome() || !textInputRef.current) {
-                return;
-            }
-
-            if (DomUtils.getActiveElement() !== textInputRef.current) {
+        const restoreKeyboardFocus = () => {
+            if (isRestoringKeyboardFocus || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
                 return;
             }
 
@@ -61,16 +58,15 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
         };
 
         if (typeof window !== 'undefined' && isMobileChrome()) {
-            window.addEventListener('focus', handleWindowFocus);
+            window.addEventListener('focus', restoreKeyboardFocus);
         }
 
         let removeVisibilityListener = removeVisibilityListenerRef.current;
         removeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
+            if (!isMobileChrome() || !Visibility.isVisible()) {
                 return;
             }
-            textInputRef.current.blur();
-            textInputRef.current.focus();
+            restoreKeyboardFocus();
         });
 
         return () => {
@@ -78,7 +74,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
             clearTimeout(flagResetTimeoutId);
             isRestoringKeyboardFocus = false;
             if (typeof window !== 'undefined') {
-                window.removeEventListener('focus', handleWindowFocus);
+                window.removeEventListener('focus', restoreKeyboardFocus);
             }
             if (removeVisibilityListener) {
                 removeVisibilityListener();
