@@ -15,6 +15,17 @@ function hasTransactions(transactions?: TransactionMap | null): transactions is 
     return !!transactions && Object.keys(transactions).length > 0;
 }
 
+function mergeTransactions(searchTransactions?: TransactionMap, fullTransactionCollection?: TransactionMap): TransactionMap | undefined {
+    if (!hasTransactions(searchTransactions) && !hasTransactions(fullTransactionCollection)) {
+        return undefined;
+    }
+
+    return {
+        ...(searchTransactions ?? {}),
+        ...(fullTransactionCollection ?? {}),
+    };
+}
+
 function getSearchTransactions(searchResultsRecord?: Record<string, unknown>): TransactionMap | undefined {
     if (!searchResultsRecord) {
         return undefined;
@@ -44,22 +55,23 @@ function useSearchDeleteTransactions() {
                 return;
             }
 
+            const searchTransactions = getSearchTransactions(searchResultsRecord);
             const fullTransactionCollection = hasTransactions(transactions as TransactionMap | null | undefined) ? (transactions as TransactionMap) : undefined;
-            const availableTransactions = fullTransactionCollection ?? getSearchTransactions(searchResultsRecord);
+            const mergedTransactions = mergeTransactions(searchTransactions, fullTransactionCollection);
 
-            if (!hasTransactions(availableTransactions)) {
+            if (!hasTransactions(mergedTransactions)) {
                 deleteMoneyRequestOnSearch(hash, transactionIDs, transactions);
                 return;
             }
 
-            const transactionsToInspect = fullTransactionCollection ?? availableTransactions;
             const splitsByOriginalID: Record<string, string[]> = {};
             const nonSplitIDs: string[] = [];
 
             for (const transactionID of transactionIDs) {
-                const transaction = availableTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+                const transaction = searchTransactions?.[transactionKey] ?? mergedTransactions[transactionKey];
                 const originalTransactionID = transaction?.comment?.originalTransactionID;
-                const originalTransaction = originalTransactionID ? transactionsToInspect[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] : undefined;
+                const originalTransaction = originalTransactionID ? mergedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] : undefined;
                 const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
                 if (isExpenseSplit && originalTransactionID) {
@@ -71,7 +83,7 @@ function useSearchDeleteTransactions() {
 
             for (const [originalTransactionID, splitTransactionIDs] of Object.entries(splitsByOriginalID)) {
                 const deletingIDs = new Set(splitTransactionIDs);
-                const childTransactions = getChildTransactions(transactionsToInspect as OnyxCollection<Transaction>, allReports, originalTransactionID, true).filter(
+                const childTransactions = getChildTransactions(mergedTransactions as OnyxCollection<Transaction>, allReports, originalTransactionID, true).filter(
                     (transaction) => transaction?.transactionID === undefined || !deletingIDs.has(transaction.transactionID),
                 );
                 const reportedChildTransactions = childTransactions.filter((transaction) => transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
@@ -101,13 +113,15 @@ function useSearchDeleteTransactions() {
                     const optimisticDeletedSplitTransactions: Record<string, Transaction> = {};
                     for (const transactionID of splitTransactionIDList) {
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-                        const splitTransaction = availableTransactions[transactionKey];
+                        const splitTransaction = mergedTransactions[transactionKey];
 
                         if (splitTransaction) {
                             optimisticDeletedSplitTransactions[transactionKey] = splitTransaction;
                         }
                     }
-                    const optimisticOriginalTransaction = availableTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
+                    const originalTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`;
+                    const optimisticOriginalTransaction = mergedTransactions[originalTransactionKey];
+                    const previousSnapshotOriginalTransaction = searchTransactions?.[originalTransactionKey];
                     const remainingModifiedAmount = hasValidModifiedAmount(remaining) ? remaining.modifiedAmount : '';
                     const optimisticRestoredTransaction: Transaction = {
                         ...remaining,
@@ -138,14 +152,15 @@ function useSearchDeleteTransactions() {
                         odometerEnd: remaining.comment?.odometerEnd,
                         waypoints: remaining.comment?.waypoints ? JSON.stringify(remaining.comment.waypoints) : undefined,
                     } as RevertSplitTransactionParams;
-                    revertSplitTransactionOnSearch(
-                        hash,
-                        originalTransactionID,
-                        revertSplitTransactionParams,
-                        optimisticDeletedSplitTransactions,
-                        optimisticRestoredTransaction,
-                        optimisticOriginalTransaction,
-                    );
+                        revertSplitTransactionOnSearch(
+                            hash,
+                            originalTransactionID,
+                            revertSplitTransactionParams,
+                            optimisticDeletedSplitTransactions,
+                            optimisticRestoredTransaction,
+                            optimisticOriginalTransaction,
+                            previousSnapshotOriginalTransaction,
+                        );
                     continue;
                 }
 
@@ -153,7 +168,7 @@ function useSearchDeleteTransactions() {
             }
 
             if (nonSplitIDs.length > 0) {
-                deleteMoneyRequestOnSearch(hash, nonSplitIDs, availableTransactions as OnyxCollection<Transaction>);
+                deleteMoneyRequestOnSearch(hash, nonSplitIDs, mergedTransactions as OnyxCollection<Transaction>);
             }
         },
         [allReports, searchResultsRecord],

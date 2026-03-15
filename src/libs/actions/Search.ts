@@ -925,6 +925,7 @@ function revertSplitTransactionOnSearch(
     optimisticDeletedSplitTransactions: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> = {},
     optimisticRestoredTransaction?: Transaction,
     optimisticOriginalTransaction?: Transaction,
+    previousSnapshotOriginalTransaction?: Transaction,
 ) {
     let optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     let failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
@@ -974,7 +975,7 @@ function revertSplitTransactionOnSearch(
 
         const failureSnapshotData: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction | null> = {
             ...optimisticDeletedSplitTransactions,
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: previousSnapshotOriginalTransaction ?? null,
         };
 
         const failureSnapshotUpdate: OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> = {
