@@ -1,5 +1,6 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -147,6 +148,7 @@ function EmptySearchViewContent({
         selector: accountIDSelector,
     });
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -236,7 +238,7 @@ function EmptySearchViewContent({
                 handleRedirectToExpensifyClassic();
                 return;
             }
-            startMoneyRequest(iouType, generateReportID());
+            startMoneyRequest(iouType, generateReportID(), draftTransactionIDs);
         });
     };
 

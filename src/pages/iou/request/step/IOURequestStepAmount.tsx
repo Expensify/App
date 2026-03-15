@@ -308,6 +308,8 @@ function IOURequestStepAmount({
                         quickAction,
                         recentWaypoints,
                         betas,
+                        draftTransactionIDs,
+                        isSelfTourViewed,
                     });
                     return;
                 }
