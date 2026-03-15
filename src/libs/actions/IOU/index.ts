@@ -1433,21 +1433,12 @@ function startDistanceRequest(
     }
 }
 
-function setMoneyRequestReceiptState(transactionID: string, isDraft: boolean) {
-    if (!isDraft) {
-        return;
-    }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}});
-}
-
 function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
-    setMoneyRequestReceiptState(transactionID, true);
 }
 
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
-    setMoneyRequestReceiptState(transactionID, isDraft);
 }
 
 function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
@@ -1461,12 +1452,10 @@ function setMoneyRequestCurrency(transactionID: string, currency: string, isEdit
 
 function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
-    setMoneyRequestReceiptState(transactionID, isDraft);
 }
 
 function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
-    setMoneyRequestReceiptState(transactionID, isDraft);
 }
 
 function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
@@ -1673,13 +1662,13 @@ function revokeOdometerImageUri(image: FileObject | string | null | undefined, n
  * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  */
-function setMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: File | string, isDraft: boolean) {
+function setMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: FileObject | string, isDraft: boolean) {
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
     const normalizedFile: FileObject | string =
         typeof file === 'string'
             ? file
             : {
-                  uri: file.uri ?? (typeof URL !== 'undefined' ? URL.createObjectURL(file) : undefined),
+                  uri: file.uri ?? (typeof URL !== 'undefined' ? URL.createObjectURL(file as Blob) : undefined),
                   name: file.name,
                   type: file.type,
                   size: file.size,
