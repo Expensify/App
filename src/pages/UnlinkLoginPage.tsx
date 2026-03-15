@@ -4,6 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {PublicScreensParamList} from '@navigation/types';
 import {unlinkLogin} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -33,7 +34,10 @@ function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
         Navigation.goBack();
     }, [prevIsLoading, account?.isLoading]);
 
-    return <FullScreenLoadingIndicator />;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'UnlinkLoginPage',
+    };
+    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
 }
 
 export default UnlinkLoginPage;
