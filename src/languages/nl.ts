@@ -20,21 +20,16 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AddBudgetParams,
-    AddedOrDeletedPolicyReportFieldParams,
-    AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
-    DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
-    ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
     InvalidValueParams,
@@ -59,23 +54,14 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
-    UpdatedBudgetParams,
-    UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAutoHarvestingParams,
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementChoiceParams,
-    UpdatedPolicyReimbursementEnabledParams,
-    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagListParams,
@@ -87,9 +73,6 @@ import type {
     UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
-    UpdatePolicyCustomUnitDefaultCategoryParams,
-    UpdatePolicyCustomUnitParams,
-    UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UsePlusButtonParams,
@@ -122,12 +105,8 @@ import type {
     WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
-    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
-    WorkspaceRouteParams,
     WorkspaceShareNoteParams,
-    WorkspacesListRouteParams,
-    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -2230,7 +2209,7 @@ const translations: TranslationDeepObject<typeof en> = {
         upgradeDescription: 'Meer kaarten toevoegen? Maak een werkruimte om extra persoonlijke kaarten toe te voegen of bedrijfskaarten aan het hele team toe te wijzen.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
             `<muted-text>Beschikbaar in het Collect-abonnement, <strong>${formattedPrice}</strong> per lid per maand.</muted-text>`,
-        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+        note: (subscriptionLink: string) =>
             `<muted-text>Maak een werkruimte om deze functie te gebruiken, of <a href="${subscriptionLink}">meer informatie</a> over onze abonnementen en prijzen.</muted-text>`,
         workspaceCreated: 'Werkruimte aangemaakt',
         newWorkspace: 'Je hebt een werkruimte aangemaakt!',
@@ -3268,7 +3247,7 @@ ${
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Om een bankrekening te koppelen, <a href="${contactMethodRoute}">voeg eerst een e-mailadres toe als je primaire login</a> en probeer het daarna opnieuw. Je kunt je telefoonnummer toevoegen als secundaire login.`,
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van je bankrekening. Wacht een paar minuten en probeer het opnieuw.',
-        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+        hasCurrencyError: (workspaceRoute: string) =>
             `Oeps! Het lijkt erop dat de valuta van je workspace is ingesteld op een andere valuta dan USD. Ga naar <a href="${workspaceRoute}">de instellingen van je workspace</a>, stel deze in op USD en probeer het opnieuw.`,
         bbaAdded: 'Zakelijke bankrekening toegevoegd!',
         bbaAddedDescription: 'Het is klaar om voor betalingen te worden gebruikt.',
@@ -5744,7 +5723,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             addedWithPrimary: 'Sommige leden zijn toegevoegd met hun primaire login.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Toegevoegd door secundair login ${secondaryLogin}.`,
-            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Totaal aantal werkruimteleden: ${count}`,
+            workspaceMembersCount: (count: number) => `Totaal aantal werkruimteleden: ${count}`,
             importMembers: 'Leden importeren',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
                 `Als je ${approver} uit deze workspace verwijdert, vervangen we diegene in de goedkeuringsworkflow door ${workspaceOwner}, de eigenaar van de workspace.`,
@@ -6373,7 +6352,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 perActiveMember: 'per actieve deelnemer per maand.',
                 perMember: 'per lid per maand.',
             },
-            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            note: (subscriptionLink: string) =>
                 `<muted-text>Upgrade om toegang te krijgen tot deze functie, of <a href="${subscriptionLink}">lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
             upgradeToUnlock: 'Deze functie ontgrendelen',
             completed: {
@@ -6710,7 +6689,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             `${approverName} (${approverEmail}) toegevoegd als fiatteur voor het veld ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `heeft ${approverName} (${approverEmail}) verwijderd als fiatteur voor het veld ${field} „${name}”`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
+        updateApprovalRule: (field: string, name: string, newApproverEmail: string, newApproverName: string | undefined, oldApproverEmail: string, oldApproverName: string | undefined) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `heeft de fiatteur voor het ${field} „${name}” gewijzigd in ${formatApprover(newApproverName, newApproverEmail)} (voorheen ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
@@ -6759,7 +6738,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             }
             return `heeft de categorie „${categoryName}” gewijzigd naar ${newValue} (voorheen ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName: string, oldValue: string | undefined, newValue: string) => {
             if (!oldValue) {
                 return `heeft de categorie "${categoryName}" bijgewerkt door Gespecificeerde bonnetten te wijzigen in ${newValue}`;
             }
@@ -6787,9 +6766,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             }
             return `heeft de tag ‘${tagName}’ in de lijst ‘${tagListName}’ bijgewerkt door een ${updatedField} met de waarde ‘${newValue}’ toe te voegen`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+        updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `heeft de ${customUnitName} ${updatedField} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
-        updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie op afstandstarieven`,
+        updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie op afstandstarieven`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `heeft een nieuw ${customUnitName}-tarief "${rateName}" toegevoegd`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `heeft het tarief van de ${customUnitName} ${updatedField} "${customUnitRateName}" gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
@@ -6808,8 +6787,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} het ${customUnitName}-tarief "${customUnitRateName}"`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `heeft het tarief „${rateName}” van de eenheid „${customUnitName}” verwijderd`,
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType} rapportveld "${fieldName}" toegevoegd`,
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `heeft het tarief „${rateName}” van de eenheid „${customUnitName}” verwijderd`,
+        addedReportField: (fieldType: string, fieldName?: string) => `${fieldType} rapportveld "${fieldName}" toegevoegd`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `stel de standaardwaarde van rapportveld "${fieldName}" in op "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `heeft de optie ‘${optionName}’ toegevoegd aan het rapportveld ‘${fieldName}’`,
@@ -6865,7 +6844,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         downgradedWorkspace: 'heeft deze workspace teruggezet naar het Collect-abonnement',
         updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `heeft het percentage rapporten dat willekeurig voor handmatige goedkeuring wordt doorgestuurd gewijzigd naar ${Math.round(newAuditRate * 100)}% (voorheen ${Math.round(oldAuditRate * 100)}%)`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
+        updatedManualApprovalThreshold: (oldLimit: string, newLimit: string) =>
             `heeft de handmatige goedkeuringslimiet voor alle declaraties gewijzigd naar ${newLimit} (voorheen ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
@@ -6963,16 +6942,14 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             oldValue ? `heeft de naam van het factuurbedrijf gewijzigd naar ‘${newValue}’ (voorheen ‘${oldValue}’)` : `stel de bedrijfsnaam op de factuur in op ‘${newValue}’`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `heeft de bedrijfswebsite op de factuur gewijzigd naar "${newValue}" (voorheen "${oldValue}")` : `stel de bedrijfswebsite van de factuur in op "${newValue}"`,
-        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+        changedReimburser: (newReimburser: string, previousReimburser?: string) =>
             previousReimburser
                 ? `heeft de gemachtigde betaler gewijzigd in „${newReimburser}” (voorheen „${previousReimburser}”)`
                 : `heeft de gemachtigde betaler gewijzigd naar ‘${newReimburser}’`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} terugbetalingen`,
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `de aangepaste belastingnaam gewijzigd in "${newName}" (voorheen "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
-            `heeft het standaardbelastingtarief van de werkruimtevaluta gewijzigd in "${newName}" (voorheen "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `heeft het standaardbelastingtarief voor vreemde valuta gewijzigd in '${newName}' (voorheen '${oldName}')`,
+        updateReimbursementEnabled: (enabled: boolean) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} terugbetalingen`,
+        updateCustomTaxName: (oldName: string, newName: string) => `de aangepaste belastingnaam gewijzigd in "${newName}" (voorheen "${oldName}")`,
+        updateCurrencyDefaultTax: (oldName: string, newName: string) => `heeft het standaardbelastingtarief van de werkruimtevaluta gewijzigd in "${newName}" (voorheen "${oldName}")`,
+        updateForeignCurrencyDefaultTax: (oldName: string, newName: string) => `heeft het standaardbelastingtarief voor vreemde valuta gewijzigd in '${newName}' (voorheen '${oldName}')`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting ‘${taxName}’ toegevoegd`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting ‘${taxName}’ verwijderd`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7012,14 +6989,14 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             `heeft taglijst "${tagListsName}" gewijzigd naar ${isRequired ? 'vereist' : 'niet vereist'}`,
         importTags: 'geïmporteerde labels uit een spreadsheet',
         deletedAllTags: 'alle tags verwijderd',
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
+        updateCustomUnitDefaultCategory: (customUnitName: string, newValue?: string, oldValue?: string) =>
             `heeft de standaardcategorie voor ${customUnitName} gewijzigd in „${newValue}” ${oldValue ? `(eerder "${oldValue}")` : ''}`,
-        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `geïmporteerde tarieven voor aangepaste eenheid "${customUnitName}"`,
+        importCustomUnitRates: (customUnitName: string) => `geïmporteerde tarieven voor aangepaste eenheid "${customUnitName}"`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
             `heeft "${customUnitName}" tarief "${customUnitRateName}" subtarief "${customUnitSubRateName}" ${updatedField} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `heeft subtarief „${removedSubRateName}” verwijderd uit tarief „${customUnitRateName}” van eenheid „${customUnitName}”`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+        addBudget: (frequency: string, entityName: string, entityType: string, shared?: string, individual?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `met een meldingsdrempel van "${notificationThreshold}%"` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `heeft ${frequency} individueel budget „${individual}” en ${frequency} gedeeld budget „${shared}”${thresholdSuffix} toegevoegd aan de ${entityType} „${entityName}”`;
@@ -7029,18 +7006,18 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             }
             return `heeft ${frequency} gedeeld budget van "${shared}"${thresholdSuffix} toegevoegd aan de ${entityType} "${entityName}"`;
         },
-        updateBudget: ({
-            entityType,
-            entityName,
-            oldFrequency,
-            newFrequency,
-            oldIndividual,
-            newIndividual,
-            oldShared,
-            newShared,
-            oldNotificationThreshold,
-            newNotificationThreshold,
-        }: UpdatedBudgetParams) => {
+        updateBudget: (
+            entityType: string,
+            entityName: string,
+            oldFrequency?: string,
+            newFrequency?: string,
+            oldIndividual?: string,
+            newIndividual?: string,
+            oldShared?: string,
+            newShared?: string,
+            oldNotificationThreshold?: number,
+            newNotificationThreshold?: number,
+        ) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -7075,7 +7052,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             }
             return `bijgewerkt budget voor de ${entityType} "${entityName}": ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+        deleteBudget: (entityType: string, entityName: string, frequency?: string, individual?: string, shared?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `met een meldingsdrempel van "${notificationThreshold}%"` : '';
             if (shared && individual) {
                 return `heeft ${frequency} gedeeld budget van „${shared}” en individueel budget van „${individual}”${thresholdSuffix} verwijderd uit de ${entityType} „${entityName}”`;
@@ -8265,7 +8242,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 title: 'Abonnement geannuleerd',
                 subtitle: 'Je jaarlijkse abonnement is opgezegd.',
                 info: 'Als je je werkruimte(s) op basis van betalen-per-gebruik wilt blijven gebruiken, ben je helemaal klaar.',
-                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                preventFutureActivity: (workspacesListRoute: string) =>
                     `Als je toekomstige activiteit en kosten wilt voorkomen, moet je je <a href="${workspacesListRoute}">werkruimte(s) verwijderen</a>. Let op: wanneer je je werkruimte(s) verwijdert, worden eventuele openstaande activiteiten die in de huidige kalendermaand hebben plaatsgevonden alsnog in rekening gebracht.`,
             },
             requestSubmitted: {

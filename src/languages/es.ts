@@ -10,7 +10,6 @@ import type {
     PaidElsewhereParams,
     UpdatedPolicyTagParams,
     ViolationsRterParams,
-    WorkspaceUpgradeNoteParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -2113,7 +2112,7 @@ const translations: TranslationDeepObject<typeof en> = {
         upgradeDescription: '¿Necesitas añadir más tarjetas? Crea un espacio de trabajo para añadir tarjetas personales o asignar tarjetas de empresa a todo el equipo.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
             `<muted-text>Disponible en el plan Collect, que cuesta <strong>${formattedPrice}</strong> por miembro al mes.</muted-text>`,
-        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+        note: (subscriptionLink) =>
             `<muted-text>Crea un espacio de trabajo para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
         workspaceCreated: 'Espacio de trabajo creado',
         newWorkspace: '¡Has creado un espacio de trabajo!',
@@ -3158,7 +3157,7 @@ ${amount} para ${merchant} - ${date}`,
         hasPhoneLoginError: (contactMethodRoute) =>
             `Para añadir una cuenta bancaria verificada, <a href="${contactMethodRoute}">asegúrate de que tu nombre de usuario principal sea un correo electrónico válido</a> y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.`,
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
-        hasCurrencyError: ({workspaceRoute}) =>
+        hasCurrencyError: (workspaceRoute) =>
             `¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Para continuar, ve a <a href="${workspaceRoute}">la configuración del área de trabajo</a>, configúrala en USD e inténtalo nuevamente.`,
         bbaAdded: '¡Cuenta bancaria empresarial agregada!',
         bbaAddedDescription: 'Está lista para ser utilizada en pagos.',
@@ -5613,7 +5612,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
-            workspaceMembersCount: ({count}) => `Total de miembros del espacio de trabajo: ${count}`,
+            workspaceMembersCount: (count) => `Total de miembros del espacio de trabajo: ${count}`,
             importMembers: 'Importar miembros',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
                 `Si eliminas a ${approver} de este espacio de trabajo, lo reemplazaremos en el flujo de aprobación por ${workspaceOwner}, el propietario del espacio de trabajo.`,
@@ -6248,7 +6247,7 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Los múltiples niveles de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
-            note: ({subscriptionLink}) => `<muted-text>Mejore para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
+            note: (subscriptionLink) => `<muted-text>Mejore para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
             pricing: {
                 perActiveMember: 'por miembro activo al mes.',
                 perMember: 'por miembro al mes.',
@@ -6569,7 +6568,7 @@ ${amount} para ${merchant} - ${date}`,
             previousAddress ? `cambió la dirección de la empresa a "${newAddress}" (anteriormente "${previousAddress}")` : `estableció la dirección de la empresa en "${newAddress}"`,
         addApprovalRule: (approverEmail, approverName, field, name) => `añadió a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
         deleteApprovalRule: (approverEmail, approverName, field, name) => `eliminó a ${approverName} (${approverEmail}) como aprobador para la ${field} "${name}"`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}) => {
+        updateApprovalRule: (field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
 
             return `cambió el aprobador para la ${field} "${name}" a ${formatApprover(newApproverName, newApproverEmail)} (previamente ${formatApprover(oldApproverName, oldApproverEmail)})`;
@@ -6628,7 +6627,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `cambió la categoría "${categoryName}" a ${newValue} (previamente ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName, oldValue, newValue) => {
             if (!oldValue) {
                 return `actualizó la categoría "${categoryName}" cambiando Recibos detallados a ${newValue}`;
             }
@@ -6652,18 +6651,18 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}) => `cambió el ${customUnitName} ${updatedField} a "${newValue}" (previamente "${oldValue}")`,
-        updateCustomUnitTaxEnabled: ({newValue}) => `${newValue ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos en tasas de distancia`,
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}) =>
+        updateCustomUnit: (customUnitName, newValue, oldValue, updatedField) => `cambió el ${customUnitName} ${updatedField} a "${newValue}" (previamente "${oldValue}")`,
+        updateCustomUnitTaxEnabled: (newValue) => `${newValue ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos en tasas de distancia`,
+        updateCustomUnitDefaultCategory: (customUnitName, newValue, oldValue) =>
             `cambió la categoría predeterminada de ${customUnitName} a "${newValue}" ${oldValue ? `(anteriormente "${oldValue}")` : ''}`,
-        importCustomUnitRates: ({customUnitName}) => `importó tasas para la unidad personalizada "${customUnitName}"`,
+        importCustomUnitRates: (customUnitName) => `importó tasas para la unidad personalizada "${customUnitName}"`,
         addCustomUnitRate: (customUnitName, rateName) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
-        deleteCustomUnitRate: ({customUnitName, rateName}) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
+        deleteCustomUnitRate: (customUnitName, rateName) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}) =>
             `cambió la sub-tasa "${customUnitSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}" ${updatedField} a "${newValue}" (anteriormente "${oldValue}")`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}) =>
             `eliminó la sub-tasa "${removedSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}"`,
-        addedReportField: ({fieldType, fieldName}) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
+        addedReportField: (fieldType, fieldName) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updatedCustomUnitRate: (customUnitName, customUnitRateName, updatedField, newValue, oldValue) =>
             `cambió la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue) => {
@@ -6746,11 +6745,11 @@ ${amount} para ${merchant} - ${date}`,
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
         updatedAuditRate: (oldAuditRate, newAuditRate) =>
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
-        changedReimburser: ({newReimburser, previousReimburser}) =>
+        changedReimburser: (newReimburser, previousReimburser) =>
             previousReimburser ? `cambió el pagador autorizado a "${newReimburser}" (previamente "${previousReimburser}")` : `cambió el pagador autorizado a "${newReimburser}"`,
-        updateReimbursementEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}) => {
+        updateReimbursementEnabled: (enabled) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos`,
+        updatedManualApprovalThreshold: (oldLimit, newLimit) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
+        addBudget: (frequency, entityName, entityType, shared, individual, notificationThreshold) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
             let entityLabel = entityType;
             if (entityType === 'category') {
@@ -6766,7 +6765,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `añadió presupuesto ${frequency} compartido de "${shared}"${thresholdSuffix} a ${entityLabel} "${entityName}"`;
         },
-        updateBudget: ({entityType, entityName, oldFrequency, newFrequency, oldIndividual, newIndividual, oldShared, newShared, oldNotificationThreshold, newNotificationThreshold}) => {
+        updateBudget: (entityType, entityName, oldFrequency, newFrequency, oldIndividual, newIndividual, oldShared, newShared, oldNotificationThreshold, newNotificationThreshold) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -6820,7 +6819,7 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `actualizó el presupuesto para ${entityLabel} "${entityName}": ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}) => {
+        deleteBudget: (entityType, entityName, frequency, individual, shared, notificationThreshold) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
             let entityLabel = entityType;
             if (entityType === 'category') {
@@ -6968,9 +6967,9 @@ ${amount} para ${merchant} - ${date}`,
             previousForwardsTo
                 ? `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados (anteriormente reenviados a ${previousForwardsTo})`
                 : `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados`,
-        updateCustomTaxName: ({oldName, newName}) => `cambió el nombre del impuesto personalizado a "${newName}" (antes "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda del espacio de trabajo a "${newName}" (anteriormente "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda extranjera a "${newName}" (anteriormente "${oldName}")`,
+        updateCustomTaxName: (oldName, newName) => `cambió el nombre del impuesto personalizado a "${newName}" (antes "${oldName}")`,
+        updateCurrencyDefaultTax: (oldName, newName) => `cambió la tasa impositiva predeterminada de la moneda del espacio de trabajo a "${newName}" (anteriormente "${oldName}")`,
+        updateForeignCurrencyDefaultTax: (oldName, newName) => `cambió la tasa impositiva predeterminada de la moneda extranjera a "${newName}" (anteriormente "${oldName}")`,
         changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `cambió el nombre de la empresa de la factura a "${newValue}" (previamente "${oldValue}")` : `estableció el nombre de la empresa de la factura como "${newValue}"`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
@@ -8521,7 +8520,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Suscripción cancelada',
                 subtitle: 'Tu suscripción anual ha sido cancelada.',
                 info: 'Ya puedes seguir utilizando tu(s) espacio(s) de trabajo en la modalidad de pago por uso.',
-                preventFutureActivity: ({workspacesListRoute}) =>
+                preventFutureActivity: (workspacesListRoute) =>
                     `Si quieres evitar actividad y cargos futuros, debes <a href="${workspacesListRoute}">eliminar tu(s) espacio(s) de trabajo.</a> Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.`,
             },
             requestSubmitted: {

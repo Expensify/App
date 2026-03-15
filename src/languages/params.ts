@@ -70,13 +70,13 @@ type CreatedReportForUnapprovedTransactionsParams = {
     isReportDeleted: boolean;
 };
 
-type WorkspacesListRouteParams = {
-    workspacesListRoute: string;
-};
+// type WorkspacesListRouteParams = {
+//     workspacesListRoute: string;
+// };
 
-type WorkspaceRouteParams = {
-    workspaceRoute: string;
-};
+// type WorkspaceRouteParams = {
+//     workspaceRoute: string;
+// };
 
 type UserSplitParams = {amount: string};
 
@@ -154,7 +154,7 @@ type LogSizeAndDateParams = {size: number; date: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
-type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
+// type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
 
 type UpdatedPolicyTaxParams = {taxName: string; oldValue?: string | boolean | number; newValue?: string | boolean | number; updatedField?: string};
 
@@ -168,23 +168,23 @@ type UpdatedPolicyTagListParams = {tagListName: string};
 
 type UpdatedPolicyTagListRequiredParams = {tagListsName: string; isRequired: boolean};
 
-type UpdatePolicyCustomUnitTaxEnabledParams = {newValue: boolean};
+// type UpdatePolicyCustomUnitTaxEnabledParams = {newValue: boolean};
 
-type ImportPolicyCustomUnitRatesParams = {customUnitName: string};
+// type ImportPolicyCustomUnitRatesParams = {customUnitName: string};
 
-type UpdatePolicyCustomUnitDefaultCategoryParams = {customUnitName: string; newValue?: string; oldValue?: string};
+// type UpdatePolicyCustomUnitDefaultCategoryParams = {customUnitName: string; newValue?: string; oldValue?: string};
 
-type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
+// type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
 
 type UpdatedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; customUnitSubRateName: string; oldValue: string; newValue: string; updatedField: string};
 
 type RemovedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; removedSubRateName: string};
 
-type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
+// type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
 
-type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName?: string; newApproverEmail: string; newApproverName?: string; field: string; name: string};
+// type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName?: string; newApproverEmail: string; newApproverName?: string; field: string; name: string};
 
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
@@ -214,45 +214,45 @@ type UpdatedPolicyReimbursementChoiceParams = {newReimbursementChoice: string; o
 
 type UpdatedPolicyDefaultTitleParams = {newDefaultTitle: string; oldDefaultTitle: string};
 
-type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
+// type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
-type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
+// type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
 
-type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
+// type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
 
-type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
+// type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
 
-type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
+// type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
 
-type UpdatedPolicyReimburserParams = {newReimburser: string; previousReimburser?: string};
+// type UpdatedPolicyReimburserParams = {newReimburser: string; previousReimburser?: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
-type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
+// type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
 
-type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+// type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
 
-type UpdatedBudgetParams = {
-    entityType: string;
-    entityName: string;
-    oldFrequency?: string;
-    newFrequency?: string;
-    oldIndividual?: string;
-    newIndividual?: string;
-    oldShared?: string;
-    newShared?: string;
-    oldNotificationThreshold?: number;
-    newNotificationThreshold?: number;
-};
+// type UpdatedBudgetParams = {
+//     entityType: string;
+//     entityName: string;
+//     oldFrequency?: string;
+//     newFrequency?: string;
+//     oldIndividual?: string;
+//     newIndividual?: string;
+//     oldShared?: string;
+//     newShared?: string;
+//     oldNotificationThreshold?: number;
+//     newNotificationThreshold?: number;
+// };
 
-type DeleteBudgetParams = {
-    entityType: string;
-    entityName: string;
-    frequency?: string;
-    individual?: string;
-    shared?: string;
-    notificationThreshold?: number;
-};
+// type DeleteBudgetParams = {
+//     entityType: string;
+//     entityName: string;
+//     frequency?: string;
+//     individual?: string;
+//     shared?: string;
+//     notificationThreshold?: number;
+// };
 
 type IntegrationsMessageParams = {
     label: string;
@@ -298,7 +298,7 @@ type LowerUpperParams = {lower: string; upper: string};
 
 type UpdatedPolicyCategoriesParams = {count: number};
 
-type WorkspaceMembersCountParams = {count: number};
+// type WorkspaceMembersCountParams = {count: number};
 
 type WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams = {workspaceOwnerName: string};
 
@@ -360,9 +360,9 @@ type CustomUnitRateParams = {
     rate: number;
 };
 
-type WorkspaceUpgradeNoteParams = {
-    subscriptionLink: string;
-};
+// type WorkspaceUpgradeNoteParams = {
+//     subscriptionLink: string;
+// };
 
 type WorkflowSettingsParam = {workflowSettingLink: string};
 
@@ -484,27 +484,27 @@ export type {
     RemovedPolicyCustomUnitSubRateParams,
     UpdatedPolicyCustomUnitSubRateParams,
     YourPlanPriceValueParams,
-    AddedOrDeletedPolicyReportFieldParams,
-    UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyReimbursementEnabledParams,
-    UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyReimburserParams,
-    UpdatePolicyCustomUnitTaxEnabledParams,
-    ImportPolicyCustomUnitRatesParams,
-    UpdatePolicyCustomUnitDefaultCategoryParams,
-    UpdatePolicyCustomUnitParams,
-    UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    WorkspaceMembersCountParams,
-    WorkspacesListRouteParams,
-    WorkspaceRouteParams,
-    AddBudgetParams,
-    UpdatedBudgetParams,
-    DeleteBudgetParams,
-    AddOrDeletePolicyCustomUnitRateParams,
-    WorkspaceUpgradeNoteParams,
+    // AddedOrDeletedPolicyReportFieldParams,
+    // UpdatedPolicyManualApprovalThresholdParams,
+    // UpdatedPolicyReimbursementEnabledParams,
+    // UpdatedPolicyCustomTaxNameParams,
+    // UpdatedPolicyCurrencyDefaultTaxParams,
+    // UpdatedPolicyForeignCurrencyDefaultTaxParams,
+    // UpdatedPolicyReimburserParams,
+    // UpdatePolicyCustomUnitTaxEnabledParams,
+    // ImportPolicyCustomUnitRatesParams,
+    // UpdatePolicyCustomUnitDefaultCategoryParams,
+    // UpdatePolicyCustomUnitParams,
+    // UpdatedPolicyApprovalRuleParams,
+    // UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    // WorkspaceMembersCountParams,
+    // WorkspacesListRouteParams,
+    // WorkspaceRouteParams,
+    // AddBudgetParams,
+    // UpdatedBudgetParams,
+    // DeleteBudgetParams,
+    // AddOrDeletePolicyCustomUnitRateParams,
+    // WorkspaceUpgradeNoteParams,
     WorkflowSettingsParam,
     WorkspaceShareNoteParams,
     UpgradeSuccessMessageParams,

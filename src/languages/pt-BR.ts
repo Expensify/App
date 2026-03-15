@@ -20,21 +20,16 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AddBudgetParams,
-    AddedOrDeletedPolicyReportFieldParams,
-    AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
-    DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
-    ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
     InvalidValueParams,
@@ -59,23 +54,14 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
-    UpdatedBudgetParams,
-    UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAutoHarvestingParams,
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementChoiceParams,
-    UpdatedPolicyReimbursementEnabledParams,
-    UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagListParams,
@@ -87,9 +73,6 @@ import type {
     UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
-    UpdatePolicyCustomUnitDefaultCategoryParams,
-    UpdatePolicyCustomUnitParams,
-    UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UsePlusButtonParams,
@@ -122,12 +105,8 @@ import type {
     WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
-    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
-    WorkspaceRouteParams,
     WorkspaceShareNoteParams,
-    WorkspacesListRouteParams,
-    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -2226,7 +2205,7 @@ const translations: TranslationDeepObject<typeof en> = {
         upgradeDescription: 'Precisa adicionar mais cartões? Crie um espaço de trabalho para adicionar cartões pessoais ou atribuir cartões corporativos a toda a equipe.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
             `<muted-text>Disponível no plano Collect por <strong>${formattedPrice}</strong> por membro por mês.</muted-text>`,
-        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+        note: (subscriptionLink: string) =>
             `<muted-text>Crie um espaço de trabalho para acessar este recurso ou <a href="${subscriptionLink}">saiba mais</a> sobre nossos planos e preços.</muted-text>`,
         workspaceCreated: 'Espaço de trabalho criado',
         newWorkspace: 'Você criou um espaço de trabalho!',
@@ -3260,7 +3239,7 @@ ${
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Para conectar uma conta bancária, <a href="${contactMethodRoute}">adicione um e-mail como seu login principal</a> e tente novamente. Você pode adicionar seu número de telefone como login secundário.`,
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Aguarde alguns minutos e tente novamente.',
-        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+        hasCurrencyError: (workspaceRoute: string) =>
             `Ops! Parece que a moeda do seu workspace está definida como diferente de USD. Para continuar, acesse as <a href="${workspaceRoute}">configurações do seu workspace</a>, defina-a como USD e tente novamente.`,
         bbaAdded: 'Conta bancária empresarial adicionada!',
         bbaAddedDescription: 'Está pronto para ser usado para pagamentos.',
@@ -5744,7 +5723,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             },
             addedWithPrimary: 'Alguns membros foram adicionados com seus logins principais.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Adicionado pelo login secundário ${secondaryLogin}.`,
-            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Total de membros no workspace: ${count}`,
+            workspaceMembersCount: (count: number) => `Total de membros no workspace: ${count}`,
             importMembers: 'Importar membros',
             removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
                 `Se você remover ${approver} deste workspace, nós o substituiremos no fluxo de aprovação por ${workspaceOwner}, o proprietário do workspace.`,
@@ -6372,7 +6351,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 perActiveMember: 'por membro ativo por mês.',
                 perMember: 'por membro por mês.',
             },
-            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            note: (subscriptionLink: string) =>
                 `<muted-text>Faça upgrade para acessar este recurso ou <a href="${subscriptionLink}">saiba mais</a> sobre nossos planos e preços.</muted-text>`,
             upgradeToUnlock: 'Desbloquear este recurso',
             completed: {
@@ -6707,7 +6686,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             previousAddress ? `alterou o endereço da empresa para "${newAddress}" (antes "${previousAddress}")` : `definir o endereço da empresa como "${newAddress}"`,
         addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `adicionou ${approverName} (${approverEmail}) como aprovador de ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `removeu ${approverName} (${approverEmail}) como aprovador de ${field} "${name}"`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
+        updateApprovalRule: (field: string, name: string, newApproverEmail: string, newApproverName: string | undefined, oldApproverEmail: string, oldApproverName: string | undefined) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `alterou o aprovador de ${field} "${name}" para ${formatApprover(newApproverName, newApproverEmail)} (antes ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
@@ -6756,7 +6735,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             }
             return `alterou a categoria "${categoryName}" para ${newValue} (antes ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName: string, oldValue: string | undefined, newValue: string) => {
             if (!oldValue) {
                 return `atualizou a categoria "${categoryName}" alterando Recibos detalhados para ${newValue}`;
             }
@@ -6783,9 +6762,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             }
             return `atualizou a tag "${tagName}" na lista "${tagListName}" adicionando um(a) ${updatedField} de "${newValue}"`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+        updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `alterou o campo ${updatedField} da unidade personalizada ${customUnitName} para "${newValue}" (antes "${oldValue}")`,
-        updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `rastreamento de impostos em taxas de distância ${newValue ? 'ativado' : 'desativado'}`,
+        updateCustomUnitTaxEnabled: (newValue: boolean) => `rastreamento de impostos em taxas de distância ${newValue ? 'ativado' : 'desativado'}`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `adicionou uma nova taxa de ${customUnitName} "${rateName}"`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `alterou a taxa de ${customUnitName} ${updatedField} "${customUnitRateName}" para "${newValue}" (antes "${oldValue}")`,
@@ -6804,8 +6783,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'ativado' : 'desativado'} a taxa de ${customUnitName} "${customUnitRateName}"`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removeu a taxa "${rateName}" da unidade personalizada "${customUnitName}"`,
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `adicionou o campo de relatório de ${fieldType} "${fieldName}"`,
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `removeu a taxa "${rateName}" da unidade personalizada "${customUnitName}"`,
+        addedReportField: (fieldType: string, fieldName?: string) => `adicionou o campo de relatório de ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `definir o valor padrão do campo de relatório "${fieldName}" como "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `adicionou a opção "${optionName}" ao campo de relatório "${fieldName}"`,
@@ -6859,8 +6838,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         downgradedWorkspace: 'rebaixou este espaço de trabalho para o plano Collect',
         updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `alterou a taxa de relatórios encaminhados aleatoriamente para aprovação manual para ${Math.round(newAuditRate * 100)}% (antes era ${Math.round(oldAuditRate * 100)}%)`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
-            `alterou o limite de aprovação manual para todas as despesas para ${newLimit} (anteriormente ${oldLimit})`,
+        updatedManualApprovalThreshold: (oldLimit: string, newLimit: string) => `alterou o limite de aprovação manual para todas as despesas para ${newLimit} (anteriormente ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
@@ -6957,14 +6935,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             oldValue ? `alterou o nome da empresa da fatura para "${newValue}" (antes "${oldValue}")` : `definir o nome da empresa na fatura como "${newValue}"`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `alterou o site da empresa da fatura para "${newValue}" (antes "${oldValue}")` : `definir o site da empresa da fatura como "${newValue}"`,
-        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+        changedReimburser: (newReimburser: string, previousReimburser?: string) =>
             previousReimburser ? `alterou o pagador autorizado para "${newReimburser}" (anteriormente "${previousReimburser}")` : `alterou o pagador autorizado para "${newReimburser}"`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `reembolsos ${enabled ? 'ativado' : 'desativado'}`,
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `alterou o nome do imposto personalizado para "${newName}" (antes "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
-            `alterou a taxa de imposto padrão da moeda do workspace para "${newName}" (anteriormente "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `alterou a alíquota de imposto padrão em moeda estrangeira para "${newName}" (anteriormente "${oldName}")`,
+        updateReimbursementEnabled: (enabled: boolean) => `reembolsos ${enabled ? 'ativado' : 'desativado'}`,
+        updateCustomTaxName: (oldName: string, newName: string) => `alterou o nome do imposto personalizado para "${newName}" (antes "${oldName}")`,
+        updateCurrencyDefaultTax: (oldName: string, newName: string) => `alterou a taxa de imposto padrão da moeda do workspace para "${newName}" (anteriormente "${oldName}")`,
+        updateForeignCurrencyDefaultTax: (oldName: string, newName: string) => `alterou a alíquota de imposto padrão em moeda estrangeira para "${newName}" (anteriormente "${oldName}")`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removeu o imposto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7004,14 +6980,14 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             `alterou a lista de tags "${tagListsName}" para ${isRequired ? 'obrigatório' : 'não obrigatório'}`,
         importTags: 'importou tags de uma planilha',
         deletedAllTags: 'excluiu todas as tags',
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
+        updateCustomUnitDefaultCategory: (customUnitName: string, newValue?: string, oldValue?: string) =>
             `alterou a categoria padrão de ${customUnitName} para "${newValue}" ${oldValue ? `(antes "${oldValue}")` : ''}`,
-        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `taxas importadas para a unidade personalizada "${customUnitName}"`,
+        importCustomUnitRates: (customUnitName: string) => `taxas importadas para a unidade personalizada "${customUnitName}"`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
             `alterou a tarifa "${customUnitName}" taxa "${customUnitRateName}" sub‑taxa "${customUnitSubRateName}" ${updatedField} para "${newValue}" (antes "${oldValue}")`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `removeu a tarifa "${customUnitName}" tarifa "${customUnitRateName}" subtarifa "${removedSubRateName}"`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+        addBudget: (frequency: string, entityName: string, entityType: string, shared?: string, individual?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `com limite de notificação de “${notificationThreshold}%”` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `adicionou ${frequency} orçamento individual de "${individual}" e ${frequency} orçamento compartilhado de "${shared}"${thresholdSuffix} ao(à) ${entityType} "${entityName}"`;
@@ -7021,18 +6997,18 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             }
             return `adicionou orçamento compartilhado ${frequency} de "${shared}"${thresholdSuffix} ao/à ${entityType} "${entityName}"`;
         },
-        updateBudget: ({
-            entityType,
-            entityName,
-            oldFrequency,
-            newFrequency,
-            oldIndividual,
-            newIndividual,
-            oldShared,
-            newShared,
-            oldNotificationThreshold,
-            newNotificationThreshold,
-        }: UpdatedBudgetParams) => {
+        updateBudget: (
+            entityType: string,
+            entityName: string,
+            oldFrequency?: string,
+            newFrequency?: string,
+            oldIndividual?: string,
+            newIndividual?: string,
+            oldShared?: string,
+            newShared?: string,
+            oldNotificationThreshold?: number,
+            newNotificationThreshold?: number,
+        ) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -7067,7 +7043,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             }
             return `orçamento atualizado para ${entityType} "${entityName}": ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+        deleteBudget: (entityType: string, entityName: string, frequency?: string, individual?: string, shared?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `com limite de notificação de “${notificationThreshold}%”` : '';
             if (shared && individual) {
                 return `removeu o orçamento compartilhado de ${frequency} "${shared}" e o orçamento individual de "${individual}"${thresholdSuffix} do(a) ${entityType} "${entityName}"`;
@@ -8257,7 +8233,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 title: 'Assinatura cancelada',
                 subtitle: 'Sua assinatura anual foi cancelada.',
                 info: 'Se você quiser continuar usando seu(s) espaço(s) de trabalho com pagamento por uso, está tudo pronto.',
-                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                preventFutureActivity: (workspacesListRoute: string) =>
                     `Se você quiser evitar atividades e cobranças futuras, você deve <a href="${workspacesListRoute}">excluir seu(s) workspace(s)</a>. Observe que, ao excluir seu(s) workspace(s), será cobrado qualquer valor pendente referente à atividade ocorrida durante o mês calendário atual.`,
             },
             requestSubmitted: {
