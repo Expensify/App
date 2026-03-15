@@ -131,6 +131,7 @@ describe('useSearchDeleteTransactions', () => {
                 }),
             }),
             undefined,
+            undefined,
         );
     });
 

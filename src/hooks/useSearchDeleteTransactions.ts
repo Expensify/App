@@ -152,15 +152,15 @@ function useSearchDeleteTransactions() {
                         odometerEnd: remaining.comment?.odometerEnd,
                         waypoints: remaining.comment?.waypoints ? JSON.stringify(remaining.comment.waypoints) : undefined,
                     } as RevertSplitTransactionParams;
-                        revertSplitTransactionOnSearch(
-                            hash,
-                            originalTransactionID,
-                            revertSplitTransactionParams,
-                            optimisticDeletedSplitTransactions,
-                            optimisticRestoredTransaction,
-                            optimisticOriginalTransaction,
-                            previousSnapshotOriginalTransaction,
-                        );
+                    revertSplitTransactionOnSearch(
+                        hash,
+                        originalTransactionID,
+                        revertSplitTransactionParams,
+                        optimisticDeletedSplitTransactions,
+                        optimisticRestoredTransaction,
+                        optimisticOriginalTransaction,
+                        previousSnapshotOriginalTransaction,
+                    );
                     continue;
                 }
 
