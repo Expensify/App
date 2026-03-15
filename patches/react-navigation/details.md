@@ -39,14 +39,6 @@
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155) 
 
-### [@react-navigation+native-stack+7.3.14+003+freeze-screen-below-focused.patch](@react-navigation+native-stack+7.3.14+003+freeze-screen-below-focused.patch)
-
-- Reason: Removes the `isBelowFocused` exception on Fabric that prevented freezing the screen directly below the focused one. This is now safe because `DelayedFreeze` in `react-native-screens` defers freezing to the next macrotask, and native-stack transition animations run on the UI thread independently of the React tree.
-- Upstream PR/issue: N/A
-- E/App issue: N/A
-- PR Introducing Patch: https://github.com/Expensify/App/pull/82764
-- PR Updating Patch: N/A
-
 ### [@react-navigation+native+7.1.10+001+initial.patch](@react-navigation+native+7.1.10+001+initial.patch)
 
 - Reason: Allows us to use some more advanced navigation actions without messing up the browser history
