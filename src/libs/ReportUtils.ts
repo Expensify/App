@@ -11244,13 +11244,12 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     amountOwed,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID,
-    transaction: transactionParam,
+    transaction,
 }: CreateDraftTransactionParams): void {
     if (!transactionID || !reportID) {
         return;
     }
 
-    const transaction = transactionParam ?? ({} as Transaction);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
 
     if (!transaction || !reportActions) {
