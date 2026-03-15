@@ -67,15 +67,14 @@ function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DY
     const buildNestedState = (routes: string[], currentIndex: number): RouteNode => {
         const currentRoute = routes.at(currentIndex);
 
-        // If this is the last route, create leaf node with path and inherited params
+        // If this is the last route, create leaf node with path and merged params
         if (currentIndex === routes.length - 1) {
+            const mergedParams = parentRouteParams || params ? {...(parentRouteParams ?? {}), ...(params ?? {})} : undefined;
+            const paramsSpread = mergedParams ? {params: mergedParams} : {};
             return {
                 name: currentRoute ?? '',
                 path,
-                params: {
-                    ...params,
-                    ...(parentRouteParams ?? {}),
-                },
+                ...paramsSpread,
             };
         }
 
