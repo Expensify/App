@@ -18,7 +18,6 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
         isHybridApp: () => false,
     },
 }));
-
 jest.mock('@react-navigation/native');
 jest.mock('@components/LocaleContextProvider', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
@@ -66,6 +65,50 @@ const wrapper = ({children}: {children: React.ReactNode}) => (
     </OnyxListItemProvider>
 );
 
+function getDataSet(nodeProps: unknown): Record<string, string> | undefined {
+    if (!nodeProps || typeof nodeProps !== 'object' || !('dataSet' in nodeProps)) {
+        return undefined;
+    }
+
+    const {dataSet} = nodeProps as {dataSet?: unknown};
+    if (!dataSet || typeof dataSet !== 'object') {
+        return undefined;
+    }
+
+    return dataSet as Record<string, string>;
+}
+
+function countRouteBoundaryNodes(tree: unknown, routeKey: string): number {
+    if (!tree) {
+        return 0;
+    }
+
+    if (Array.isArray(tree)) {
+        let total = 0;
+
+        for (const child of tree) {
+            total += countRouteBoundaryNodes(child, routeKey);
+        }
+
+        return total;
+    }
+
+    if (typeof tree !== 'object') {
+        return 0;
+    }
+
+    const node = tree as {props?: unknown; children?: unknown};
+    const childNodes: unknown[] = Array.isArray(node.children) ? node.children : [];
+    const isRouteBoundary = getDataSet(node.props)?.[NAVIGATION_FOCUS_ROUTE_DATASET_KEY] === routeKey ? 1 : 0;
+    let childRouteBoundaryCount = 0;
+
+    for (const child of childNodes) {
+        childRouteBoundaryCount += countRouteBoundaryNodes(child, routeKey);
+    }
+
+    return isRouteBoundary + childRouteBoundaryCount;
+}
+
 describe('ScreenWrapper route boundary forwarding', () => {
     beforeAll(() => {
         Onyx.init({
@@ -86,9 +129,9 @@ describe('ScreenWrapper route boundary forwarding', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should forward the current route marker to the outer ScreenWrapper host on web', async () => {
+    it('should keep the current route marker inside the web FocusTrap wrapper without widening the ScreenWrapper host', async () => {
         // Given: ScreenWrapper is rendered through the real web FocusTrapForScreen path
-        render(
+        const {toJSON} = render(
             <ScreenWrapper testID="screen-wrapper">
                 <View testID="screen-content" />
             </ScreenWrapper>,
@@ -99,10 +142,10 @@ describe('ScreenWrapper route boundary forwarding', () => {
         // When: The ScreenWrapperContainer host is resolved by testID
         const screenWrapperHost = screen.getByTestId('screen-wrapper');
 
-        // Then: The outer host should carry the current route marker because
-        // NavigationFocusManager later resolves ownership from DOM ancestry.
-        expect(screenWrapperHost.props.dataSet).toEqual({
-            [NAVIGATION_FOCUS_ROUTE_DATASET_KEY]: 'workspace-overview-route',
-        });
+        // Then: ScreenWrapperContainer should remain free of the web-only marker
+        // while the rendered tree still contains a stamped route boundary for
+        // NavigationFocusManager ownership resolution.
+        expect(screenWrapperHost.props.dataSet).toBeUndefined();
+        expect(countRouteBoundaryNodes(toJSON(), 'workspace-overview-route')).toBe(1);
     });
 });

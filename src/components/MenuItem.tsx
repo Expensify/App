@@ -813,7 +813,7 @@ function MenuItem({
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
-                                accessible={interactive && shouldBeAccessible}
+                                accessible={shouldBeAccessible}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}

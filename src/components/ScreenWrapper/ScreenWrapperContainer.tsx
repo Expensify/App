@@ -1,6 +1,6 @@
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {useContext, useEffect, useMemo} from 'react';
-import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import {useInputBlurActions, useInputBlurState} from '@components/InputBlurContext';
@@ -88,8 +88,6 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
         /** Whether this screen should be hidden from accessibility tree */
         shouldHideFromAccessibility?: boolean;
 
-        /** Optional dataset values forwarded to the outer web container */
-        dataSet?: ViewProps['dataSet'];
         /** Reference to the outer element */
         ref?: ForwardedRef<View>;
     }>;
@@ -115,7 +113,6 @@ function ScreenWrapperContainer({
     includeSafeAreaPaddingBottom = false,
     isFocused = true,
     shouldHideFromAccessibility = false,
-    dataSet,
     ref,
     forwardedFSClass,
 }: ScreenWrapperContainerProps) {
@@ -170,7 +167,6 @@ function ScreenWrapperContainer({
         [isUsingEdgeToEdgeMode, edgeToEdgeBottomContentStyle, legacyBottomContentStyle, bottomContentStyleProp],
     );
 
-    // Keep a stable responder instance without reading ref.current during render.
     const panResponder = useMemo(
         () =>
             PanResponder.create({
@@ -180,8 +176,6 @@ function ScreenWrapperContainer({
         [],
     );
 
-    // This responder intentionally tracks runtime opt-in changes because some
-    // screens disable keyboard dismissal while reusing ScreenWrapperContainer.
     const keyboardDismissPanResponder = useMemo(
         () =>
             PanResponder.create({
@@ -229,7 +223,6 @@ function ScreenWrapperContainer({
             tabIndex={-1}
             accessibilityElementsHidden={shouldHideFromAccessibility}
             aria-hidden={shouldHideFromAccessibility}
-            dataSet={dataSet}
         >
             <View
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access

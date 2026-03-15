@@ -10,7 +10,8 @@
  *
  * Solution (post-fix):
  * - MenuItem with interactive={false} passes onPress={undefined} to inner Pressable
- * - Combined with role={undefined}, accessible={false}, tabIndex={-1}
+ * - Combined with role={undefined} and tabIndex={-1}
+ * - Accessibility stays caller-controlled through shouldBeAccessible
  * - Inner Pressable doesn't participate in responder negotiation
  * - Events bubble to outer wrapper correctly
  *
@@ -28,6 +29,18 @@ import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
+jest.mock('@libs/Log');
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: {
+        isHybridApp: () => false,
+    },
+}));
+jest.mock('@userActions/Session', () => ({
+    callFunctionIfActionIsAllowed: (callback: unknown) => callback,
+}));
 
 // Mock hooks and dependencies
 jest.mock('@hooks/useLocalize', () =>
@@ -62,13 +75,13 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
     describe('interactive={false} props', () => {
         /**
          * When interactive={false}, MenuItem should render with:
-         * - accessible={false} - not announced as interactive element
+         * - accessible remains caller-controlled
          * - role={undefined} - no menuitem role (critical for .closest() selector)
          * - tabIndex={-1} - not keyboard focusable
          * - onPress={undefined} - doesn't claim responder status
          */
 
-        it('should set accessible={false} when interactive={false}', () => {
+        it('should preserve accessible={true} by default when interactive={false}', () => {
             renderWithProvider(
                 <MenuItem
                     title="Display Only Item"
@@ -79,9 +92,25 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
 
             const menuItem = screen.getByTestId('menu-item-non-interactive');
 
-            // accessible={false} means screen readers won't announce this as interactive
-            expect(menuItem.props.accessible).toBe(false);
+            // Display-only content can still be readable to assistive tech unless the caller opts out.
+            expect(menuItem.props.accessible).toBe(true);
             // onPress must be omitted so the outer wrapper can handle the interaction
+            expect(menuItem.props.onPress).toBeUndefined();
+        });
+
+        it('should respect explicit shouldBeAccessible={false} when interactive={false}', () => {
+            renderWithProvider(
+                <MenuItem
+                    title="Approval Workflow Inner Item"
+                    interactive={false}
+                    shouldBeAccessible={false}
+                    pressableTestID="menu-item-explicitly-hidden"
+                />,
+            );
+
+            const menuItem = screen.getByTestId('menu-item-explicitly-hidden');
+
+            expect(menuItem.props.accessible).toBe(false);
             expect(menuItem.props.onPress).toBeUndefined();
         });
 
@@ -165,8 +194,8 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
         /**
          * ApprovalWorkflowSection uses this pattern:
          * <PressableWithoutFeedback role="button" onPress={navigate}>
-         *     <MenuItem interactive={false} /> <!-- display-only -->
-         *     <MenuItem interactive={false} /> <!-- display-only -->
+         *     <MenuItem interactive={false} shouldBeAccessible={false} /> <!-- display-only -->
+         *     <MenuItem interactive={false} shouldBeAccessible={false} /> <!-- display-only -->
          * </PressableWithoutFeedback>
          *
          * The fix ensures:
@@ -197,6 +226,7 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
                     <MenuItem
                         title="Inner Content"
                         interactive={false}
+                        shouldBeAccessible={false}
                         pressableTestID="non-focusable-inner"
                     />
                 </PressableWithoutFeedback>,
@@ -211,7 +241,7 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
             // Inner should NOT match any selector:
             // - Not a button element
             // - No role="menuitem" or role="button"
-            // - accessible={false} means it won't have tabindex="0"
+            // - explicit shouldBeAccessible={false} keeps it out of accessibility navigation
             expect(inner.props.accessibilityRole).toBeUndefined();
             expect(inner.props.accessible).toBe(false);
         });

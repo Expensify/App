@@ -208,6 +208,50 @@ function resetMocks() {
     }
 }
 
+function getDataSet(nodeProps: unknown): Record<string, string> | undefined {
+    if (!nodeProps || typeof nodeProps !== 'object' || !('dataSet' in nodeProps)) {
+        return undefined;
+    }
+
+    const {dataSet} = nodeProps as {dataSet?: unknown};
+    if (!dataSet || typeof dataSet !== 'object') {
+        return undefined;
+    }
+
+    return dataSet as Record<string, string>;
+}
+
+function countRouteBoundaryNodes(tree: unknown, routeKey: string): number {
+    if (!tree) {
+        return 0;
+    }
+
+    if (Array.isArray(tree)) {
+        let total = 0;
+
+        for (const child of tree) {
+            total += countRouteBoundaryNodes(child, routeKey);
+        }
+
+        return total;
+    }
+
+    if (typeof tree !== 'object') {
+        return 0;
+    }
+
+    const node = tree as {props?: unknown; children?: unknown};
+    const childNodes: unknown[] = Array.isArray(node.children) ? node.children : [];
+    const isRouteBoundary = getDataSet(node.props)?.[NAVIGATION_FOCUS_ROUTE_DATASET_KEY] === routeKey ? 1 : 0;
+    let childRouteBoundaryCount = 0;
+
+    for (const child of childNodes) {
+        childRouteBoundaryCount += countRouteBoundaryNodes(child, routeKey);
+    }
+
+    return isRouteBoundary + childRouteBoundaryCount;
+}
+
 // ============================================================================
 // Tests
 // ============================================================================
@@ -223,20 +267,19 @@ describe('FocusTrapForScreen', () => {
     });
 
     describe('Route boundary markers', () => {
-        it('should add the current route marker to a single child container', () => {
-            render(
+        it('should render a single route-boundary wrapper for the current screen', () => {
+            const {toJSON} = render(
                 <FocusTrapForScreen>
                     <View testID="route-boundary" />
                 </FocusTrapForScreen>,
             );
 
-            expect(screen.getByTestId('route-boundary').props.dataSet).toEqual({
-                [NAVIGATION_FOCUS_ROUTE_DATASET_KEY]: 'test-route',
-            });
+            expect(countRouteBoundaryNodes(toJSON(), 'test-route')).toBe(1);
+            expect(screen.getByTestId('route-boundary').props.dataSet).toBeUndefined();
         });
 
-        it('should preserve existing dataset values when adding the current route marker', () => {
-            render(
+        it('should preserve existing child dataset values when adding the route marker wrapper', () => {
+            const {toJSON} = render(
                 <FocusTrapForScreen>
                     <View
                         testID="route-boundary"
@@ -245,9 +288,9 @@ describe('FocusTrapForScreen', () => {
                 </FocusTrapForScreen>,
             );
 
+            expect(countRouteBoundaryNodes(toJSON(), 'test-route')).toBe(1);
             expect(screen.getByTestId('route-boundary').props.dataSet).toEqual({
                 existingValue: 'keep-me',
-                [NAVIGATION_FOCUS_ROUTE_DATASET_KEY]: 'test-route',
             });
         });
     });

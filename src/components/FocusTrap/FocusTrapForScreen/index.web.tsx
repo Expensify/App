@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {FocusTrap} from 'focus-trap-react';
 import React, {useEffect, useLayoutEffect, useMemo, useRef} from 'react';
-import type {ViewProps} from 'react-native';
+import {View} from 'react-native';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
@@ -12,10 +12,6 @@ import NavigationFocusManager from '@libs/NavigationFocusManager';
 import {NAVIGATION_FOCUS_ROUTE_DATASET_KEY} from '@libs/NavigationFocusManager/constants';
 import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
-
-type FocusBoundaryChildProps = {
-    dataSet?: ViewProps['dataSet'];
-};
 
 function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     const isFocused = useIsFocused();
@@ -88,23 +84,15 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
         return isFocused;
     }, [isFocused, shouldUseNarrowLayout, route.name, focusTrapSettings?.active]);
 
-    const childrenWithRouteBoundary = useMemo(() => {
-        if (!routeKey || !React.isValidElement<FocusBoundaryChildProps>(children) || children.type === React.Fragment) {
-            return children;
-        }
-
-        const existingDataSet = children.props.dataSet;
-        if (existingDataSet?.[NAVIGATION_FOCUS_ROUTE_DATASET_KEY] === routeKey) {
-            return children;
-        }
-
-        return React.cloneElement(children, {
-            dataSet: {
-                ...existingDataSet,
-                [NAVIGATION_FOCUS_ROUTE_DATASET_KEY]: routeKey,
-            },
-        });
-    }, [children, routeKey]);
+    const routeBoundaryDataSet = useMemo(
+        () =>
+            routeKey
+                ? {
+                      [NAVIGATION_FOCUS_ROUTE_DATASET_KEY]: routeKey,
+                  }
+                : undefined,
+        [routeKey],
+    );
 
     // Capture focus transitions synchronously.
     // Keep this effect minimal to avoid doing deferred restore work in layout phase.
@@ -222,7 +210,14 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
                 ...(focusTrapSettings?.focusTrapOptions ?? {}),
             }}
         >
-            {childrenWithRouteBoundary}
+            <View
+                // Keep the route marker inside the web-only FocusTrap path so
+                // shared containers do not need a dedicated forwarding prop.
+                style={{flex: 1}}
+                dataSet={routeBoundaryDataSet}
+            >
+                {children}
+            </View>
         </FocusTrap>
     );
 }
