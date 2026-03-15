@@ -121,13 +121,20 @@ function IOURequestStepHours({
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
 
                 return Navigation.setNavigationActionToMicrotaskQueue(() =>
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, policyExpenseChat.reportID)),
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CREATE,
+                            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                            transactionID,
+                            policyExpenseChat.reportID,
+                        ),
+                    ),
                 );
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType, transactionID, reportID));
     };
 
     return (
