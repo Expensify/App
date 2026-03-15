@@ -5591,12 +5591,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             genericFailureMessage: 'Une erreur s’est produite lors de la mise à jour du champ de note de frais. Veuillez réessayer.',
         },
         invoiceFields: {
-            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
-            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
-            disableInvoiceFields: 'Disable invoice fields',
-            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
-            delete: 'Delete invoice field',
-            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
+            subtitle: 'Les champs de facture peuvent être utiles lorsque vous souhaitez inclure des informations supplémentaires.',
+            importedFromAccountingSoftware: 'Les champs de facture ci-dessous sont importés depuis votre',
+            disableInvoiceFields: 'Désactiver les champs de facture',
+            disableInvoiceFieldsConfirmation: 'Êtes-vous sûr ? Les champs de facture seront désactivés sur les factures.',
+            delete: 'Supprimer le champ de facture',
+            deleteConfirmation: 'Voulez-vous vraiment supprimer ce champ de facture ?',
         },
         tags: {
             tagName: 'Nom du tag',

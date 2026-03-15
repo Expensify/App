@@ -5560,12 +5560,12 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             genericFailureMessage: 'Si è verificato un errore durante l’aggiornamento del campo del report. Riprova.',
         },
         invoiceFields: {
-            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
-            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
-            disableInvoiceFields: 'Disable invoice fields',
-            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
-            delete: 'Delete invoice field',
-            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
+            subtitle: 'I campi della fattura possono essere utili quando vuoi includere informazioni aggiuntive.',
+            importedFromAccountingSoftware: 'I campi della fattura riportati di seguito sono importati dal tuo',
+            disableInvoiceFields: 'Disattiva i campi della fattura',
+            disableInvoiceFieldsConfirmation: 'Sei sicuro? I campi della fattura verranno disattivati nelle fatture.',
+            delete: 'Elimina campo della fattura',
+            deleteConfirmation: 'Sei sicuro di voler eliminare questo campo della fattura?',
         },
         tags: {
             tagName: 'Nome tag',

@@ -5502,12 +5502,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             genericFailureMessage: 'レポートフィールドの更新中にエラーが発生しました。もう一度お試しください。',
         },
         invoiceFields: {
-            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
-            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
-            disableInvoiceFields: 'Disable invoice fields',
-            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
-            delete: 'Delete invoice field',
-            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
+            subtitle: '追加情報を含めたい場合、請求書フィールドが役立ちます。',
+            importedFromAccountingSoftware: '以下の請求書フィールドは、次からインポートされます',
+            disableInvoiceFields: '請求書フィールドを無効にする',
+            disableInvoiceFieldsConfirmation: 'よろしいですか？請求書フィールドは請求書で無効になります。',
+            delete: '請求書フィールドを削除',
+            deleteConfirmation: 'この請求書フィールドを削除してもよろしいですか？',
         },
         tags: {
             tagName: 'タグ名',

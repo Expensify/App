@@ -5571,12 +5571,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             genericFailureMessage: 'Beim Aktualisieren des Berichtfelds ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         },
         invoiceFields: {
-            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
-            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
-            disableInvoiceFields: 'Disable invoice fields',
-            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
-            delete: 'Delete invoice field',
-            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
+            subtitle: 'Rechnungsfelder können hilfreich sein, wenn du zusätzliche Informationen einfügen möchtest.',
+            importedFromAccountingSoftware: 'Die folgenden Rechnungsfelder werden importiert aus Ihrem',
+            disableInvoiceFields: 'Rechnungsfelder deaktivieren',
+            disableInvoiceFieldsConfirmation: 'Sind Sie sicher? Rechnungsfelder werden auf Rechnungen deaktiviert.',
+            delete: 'Rechnungsfeld löschen',
+            deleteConfirmation: 'Sind Sie sicher, dass Sie dieses Rechnungsfeld löschen möchten?',
         },
         tags: {
             tagName: 'Tag-Name',

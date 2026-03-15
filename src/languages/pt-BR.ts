@@ -5541,12 +5541,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Tente novamente.',
         },
         invoiceFields: {
-            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
-            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
-            disableInvoiceFields: 'Disable invoice fields',
-            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
-            delete: 'Delete invoice field',
-            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
+            subtitle: 'Os campos da fatura podem ser úteis quando você quiser incluir informações extras.',
+            importedFromAccountingSoftware: 'Os campos da fatura abaixo são importados do seu',
+            disableInvoiceFields: 'Desativar campos da fatura',
+            disableInvoiceFieldsConfirmation: 'Tem certeza? Os campos da fatura serão desativados nas faturas.',
+            delete: 'Excluir campo da fatura',
+            deleteConfirmation: 'Tem certeza de que deseja excluir este campo da fatura?',
         },
         tags: {
             tagName: 'Nome da tag',

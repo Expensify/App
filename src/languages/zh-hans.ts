@@ -5416,12 +5416,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             genericFailureMessage: '更新报表字段时出错。请重试。',
         },
         invoiceFields: {
-            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
-            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
-            disableInvoiceFields: 'Disable invoice fields',
-            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
-            delete: 'Delete invoice field',
-            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
+            subtitle: '当你想添加更多信息时，发票字段会很有帮助。',
+            importedFromAccountingSoftware: '以下发票字段是从你的',
+            disableInvoiceFields: '禁用发票字段',
+            disableInvoiceFieldsConfirmation: '确定吗？发票字段将在发票中被禁用。',
+            delete: '删除发票字段',
+            deleteConfirmation: '确定要删除此发票字段吗？',
         },
         tags: {
             tagName: '标签名称',

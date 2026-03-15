@@ -5541,12 +5541,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
         },
         invoiceFields: {
-            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
-            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
-            disableInvoiceFields: 'Disable invoice fields',
-            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
-            delete: 'Delete invoice field',
-            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
+            subtitle: 'Factuurvelden kunnen handig zijn als je extra informatie wilt toevoegen.',
+            importedFromAccountingSoftware: 'De onderstaande factuurvelden zijn geïmporteerd uit je',
+            disableInvoiceFields: 'Factuurvelden uitschakelen',
+            disableInvoiceFieldsConfirmation: 'Weet je het zeker? Factuurvelden worden uitgeschakeld op facturen.',
+            delete: 'Factuurveld verwijderen',
+            deleteConfirmation: 'Weet je zeker dat je dit factuurveld wilt verwijderen?',
         },
         tags: {
             tagName: 'Tagnaam',

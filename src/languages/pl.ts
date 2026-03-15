@@ -5537,12 +5537,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             genericFailureMessage: 'Wystąpił błąd podczas aktualizowania pola raportu. Spróbuj ponownie.',
         },
         invoiceFields: {
-            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
-            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
-            disableInvoiceFields: 'Disable invoice fields',
-            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
-            delete: 'Delete invoice field',
-            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
+            subtitle: 'Pola faktury mogą być pomocne, gdy chcesz dodać dodatkowe informacje.',
+            importedFromAccountingSoftware: 'Poniższe pola faktury są importowane z Twojego',
+            disableInvoiceFields: 'Wyłącz pola faktury',
+            disableInvoiceFieldsConfirmation: 'Czy na pewno? Pola faktury zostaną wyłączone na fakturach.',
+            delete: 'Usuń pole faktury',
+            deleteConfirmation: 'Czy na pewno chcesz usunąć to pole faktury?',
         },
         tags: {
             tagName: 'Nazwa tagu',
