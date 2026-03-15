@@ -3,13 +3,13 @@ import type {OnyxCollection} from 'react-native-onyx';
 import AddUnreportedExpenseFooter from '@components/AddUnreportedExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -23,6 +23,7 @@ import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -32,6 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
@@ -40,6 +42,7 @@ type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpens
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
@@ -55,7 +58,21 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+
+    const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'AddUnreportedExpense.InitialSkeleton',
+        isLoadingUnreportedTransactions,
+    };
+
+    const paginationSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'AddUnreportedExpense.PaginationSkeleton',
+        isLoadingUnreportedTransactions,
+        hasMoreUnreportedTransactionsResults,
+        isOffline,
+    };
 
     const getUnreportedTransactions = useCallback(
         (transactions: OnyxCollection<Transaction>) => {
@@ -218,6 +235,19 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         [errorMessage],
     );
 
+    const onSelectAll = () => {
+        setSelectedIds((prevSelectedIDs) => {
+            const availableUnreportedExpenses = unreportedExpenses.filter(({isDisabled}) => !isDisabled);
+            if (availableUnreportedExpenses.some(({transactionID}) => prevSelectedIDs.has(transactionID))) {
+                return new Set();
+            }
+            if (errorMessage) {
+                setErrorMessage('');
+            }
+            return new Set(availableUnreportedExpenses.map(({transactionID}) => transactionID));
+        });
+    };
+
     const hasSearchTerm = debouncedSearchValue.trim().length > 0;
     const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
 
@@ -235,7 +265,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     title={translate('iou.addUnreportedExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <UnreportedExpensesSkeleton />
+                <UnreportedExpensesSkeleton reasonAttributes={initialSkeletonReasonAttributes} />
             </ScreenWrapper>
         );
     }
@@ -255,24 +285,22 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 />
                 <EmptyStateComponent
                     cardStyles={[styles.appBG]}
-                    cardContentStyles={[styles.pt5, styles.pb0]}
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                    headerMedia={LottieAnimations.GenericEmptyState}
+                    cardContentStyles={[styles.pb0]}
+                    headerMedia={illustrations.FolderWithPapersAndWatch}
                     title={translate('iou.emptyStateUnreportedExpenseTitle')}
                     subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
                     headerStyles={[styles.emptyStateMoneyRequestReport]}
-                    lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                    headerContentStyles={styles.emptyStateFolderWebStyles}
+                    headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
                     buttons={[
                         {
                             buttonText: translate('iou.createExpense'),
                             buttonAction: () => {
-                                if (report && report.policyID && shouldRestrictUserBillableActions(report.policyID)) {
+                                if (report && report.policyID && shouldRestrictUserBillableActions(report.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
                                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
                                     return;
                                 }
                                 interceptAnonymousUser(() => {
-                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, undefined, false, backToReport);
+                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
                                 });
                             },
                             success: true,
@@ -301,6 +329,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 data={unreportedExpenses}
                 ref={selectionListRef}
                 onSelectRow={onSelectRow}
+                onSelectAll={onSelectAll}
+                style={{listHeaderWrapperStyle: styles.ph8}}
                 textInputOptions={textInputOptions}
                 shouldShowTextInput={shouldShowTextInput}
                 canSelectMultiple
@@ -308,7 +338,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
                 addBottomSafeAreaPadding
-                listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
+                listFooterContent={
+                    shouldShowUnreportedTransactionsSkeletons ? (
+                        <UnreportedExpensesSkeleton
+                            fixedNumberOfItems={3}
+                            reasonAttributes={paginationSkeletonReasonAttributes}
+                        />
+                    ) : undefined
+                }
                 footerContent={footerContent}
                 disableMaintainingScrollPosition
             />

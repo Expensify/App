@@ -1,7 +1,7 @@
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
@@ -30,7 +30,8 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -163,6 +164,28 @@ function SearchAutocompleteList({
     const taxRates = getAllTaxRates(policies);
 
     const {options, areOptionsInitialized} = useOptionsList();
+
+    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
+
+    useEffect(() => {
+        return () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+        };
+    }, []);
+
+    const {areOptionsInitialized: contextAreOptionsInitialized} = useContext(OptionsListStateContext);
+    const coldStartAttributeSet = useRef(false);
+    useEffect(() => {
+        if (coldStartAttributeSet.current) {
+            return;
+        }
+        const parentSpan = getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
+        if (parentSpan) {
+            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, !contextAreOptionsInitialized);
+            coldStartAttributeSet.current = true;
+        }
+    }, [contextAreOptionsInitialized]);
+
     const searchOptions = (() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
@@ -218,9 +241,15 @@ function SearchAutocompleteList({
         prevQueryRef.current = autocompleteQueryValue;
 
         if (queryChanged) {
-            // When query changes, focus on the search query item (index 0) and scroll to top
-            // onHighlightFirstItem will switch focus to the first result when there's a good match
-            innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+            if (autocompleteQueryValue === '') {
+                // When query is cleared, reset the initial focus guard so the initial focus
+                // effect can re-fire and correctly focus the first focusable item (skipping section headers).
+                hasSetInitialFocusRef.current = false;
+            } else {
+                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top
+                // onHighlightFirstItem will switch focus to the first result when there's a good match
+                innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+            }
         }
     }, [autocompleteQueryValue, isInitialRender]);
 
@@ -403,7 +432,7 @@ function SearchAutocompleteList({
                 flatIndex++;
             }
         }
-    }, [areOptionsInitialized, firstRecentReportKey, shouldUseNarrowLayout]);
+    }, [areOptionsInitialized, firstRecentReportKey, sections, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
@@ -413,8 +442,13 @@ function SearchAutocompleteList({
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
-    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
     const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
+
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SearchAutocompleteList',
+        isRecentSearchesDataLoaded,
+        areOptionsInitialized,
+    };
 
     if (isLoading) {
         return (
@@ -422,13 +456,14 @@ function SearchAutocompleteList({
                 fixedNumItems={4}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                reasonAttributes={reasonAttributes}
             />
         );
     }
 
     return (
         <SelectionListWithSections<AutocompleteListItem>
-            showLoadingPlaceholder
+            shouldShowLoadingPlaceholder
             sections={sections}
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
@@ -447,6 +482,7 @@ function SearchAutocompleteList({
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
             addBottomSafeAreaPadding
             onLayout={() => {
+                endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
                 setPerformanceTimersEnd();
                 setIsInitialRender(false);
                 innerListRef.current?.updateExternalTextInputFocus(textInputRef?.current?.isFocused() ?? false);
@@ -459,4 +495,4 @@ SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
 export default React.memo(SearchAutocompleteList);
 export {SearchRouterItem};
-export type {GetAdditionalSectionsCallback};
+export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};

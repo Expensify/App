@@ -28,7 +28,7 @@ type TopBarProps = {
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
-function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar = false, children}: TopBarProps) {
+function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -75,7 +75,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 {displaySearch && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
-            <LoadingBar shouldShow={!isWideRHPVisible && (shouldShowLoadingBarForReports || shouldShowLoadingBar)} />
+            <LoadingBar shouldShow={!isWideRHPVisible && (shouldShowLoadingBar ?? shouldShowLoadingBarForReports)} />
         </View>
     );
 }
