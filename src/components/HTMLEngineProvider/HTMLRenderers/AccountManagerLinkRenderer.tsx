@@ -16,7 +16,7 @@ type AccountManagerLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
 
 function AccountManagerLinkRenderer({tnode, style}: AccountManagerLinkRendererProps) {
     const styles = useThemeStyles();
-    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
+    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID);
 
     // Define link style based on context
     let linkStyle: StyleProp<TextStyle> = styles.link;

@@ -146,7 +146,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const policy = usePolicy(policyID);
     const {currencyList} = useCurrencyListState();
 
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);

@@ -61,11 +61,11 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
         selector: policyReportIDsSelector,
     });
 
-    const listValuesCount = formDraft?.[INPUT_IDS.LIST_VALUES]?.length ?? 0;
+    const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            const shouldClearListInitialValue = values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && listValuesCount <= 1;
+            const shouldClearListInitialValue = values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0;
             createReportField({
                 policy,
                 name: values[INPUT_IDS.NAME],
@@ -78,7 +78,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
             });
             Navigation.goBack();
         },
-        [formDraft, isInvoiceField, listValuesCount, policy, policyReportIDs],
+        [availableListValuesLength, formDraft, isInvoiceField, policy, policyReportIDs],
     );
 
     const targetFieldList = useMemo(
@@ -101,7 +101,6 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
             } else if (isReportFieldNameExisting(targetFieldList, name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
             } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
                 addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', [...name].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
             }
 
@@ -109,8 +108,6 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                 errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
             }
 
-            // formInitialValue can be undefined because the InitialValue component is rendered conditionally.
-            // If it's not been rendered when the validation is executed, formInitialValue will be undefined.
             if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', formInitialValue.length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH);
             }
@@ -119,9 +116,13 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
             }
 
+            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
+            }
+
             return errors;
         },
-        [policy?.fieldList, targetFieldList, translate],
+        [availableListValuesLength, policy?.fieldList, targetFieldList, translate],
     );
 
     const validateName = useCallback(
@@ -138,8 +139,6 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
 
     const handleOnValueCommitted = useCallback(
         (inputValues: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => (initialValue: string) => {
-            // Mirror optimisticType logic from createReportField: if user enters a formula
-            // while type is Text, automatically switch the type to Formula in the form, otherwise back to Text.
             const isFormula = hasFormulaPartsInInitialValue(initialValue);
             if (isFormula) {
                 formRef.current?.resetForm({
@@ -242,23 +241,6 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                 />
                             )}
 
-                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && listValuesCount > 1 && (
-                                <InputWrapper
-                                    InputComponent={InitialListValueSelector}
-                                    inputID={INPUT_IDS.INITIAL_VALUE}
-                                    label={translate('common.initialValue')}
-                                    subtitle={translate('workspace.reportFields.initialValueInputSubtitle')}
-                                />
-                            )}
-
-                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
-                                <MenuItemWithTopDescription
-                                    description={translate('common.initialValue')}
-                                    title={translate('common.currentDate')}
-                                    interactive={false}
-                                />
-                            )}
-
                             {(inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.TEXT || inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.FORMULA) && (
                                 <InputWrapper
                                     InputComponent={TextPicker}
@@ -271,6 +253,24 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
                                     onValueCommitted={handleOnValueCommitted(inputValues)}
+                                />
+                            )}
+
+                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
+                                <MenuItemWithTopDescription
+                                    description={translate('common.initialValue')}
+                                    title={translate('common.currentDate')}
+                                    rightLabel={translate('common.required')}
+                                    interactive={false}
+                                />
+                            )}
+
+                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && (
+                                <InputWrapper
+                                    InputComponent={InitialListValueSelector}
+                                    inputID={INPUT_IDS.INITIAL_VALUE}
+                                    label={translate('common.initialValue')}
+                                    subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
                                 />
                             )}
                         </View>

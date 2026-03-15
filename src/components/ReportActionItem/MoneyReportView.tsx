@@ -5,12 +5,12 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -39,6 +39,7 @@ import {
     isSettled as isSettledReportUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
@@ -67,9 +68,20 @@ type MoneyReportViewProps = {
     shouldHideThreadDividerLine: boolean;
 
     pendingAction?: PendingAction;
+
+    /** Whether we should display the animated banner above the component */
+    shouldShowAnimatedBackground?: boolean;
 };
 
-function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTotal = true, shouldHideThreadDividerLine, pendingAction}: MoneyReportViewProps) {
+function MoneyReportView({
+    report,
+    policy,
+    isCombinedReport = false,
+    shouldShowTotal = true,
+    shouldHideThreadDividerLine,
+    pendingAction,
+    shouldShowAnimatedBackground = true,
+}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -90,6 +102,11 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
     const isPartiallyPaid = !!report?.pendingFields?.partial;
+    const totalActivityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MoneyReportView.Total',
+        isTotalUpdated,
+        isOffline,
+    };
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
         styles.taskTitleMenuItem,
@@ -98,7 +115,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
+    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
 
     const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
         const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
@@ -140,11 +157,12 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
             ),
         [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
     );
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
 
     return (
         <>
             <View style={[styles.pRelative]}>
-                <AnimatedEmptyStateBackground />
+                {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
                         {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
@@ -207,7 +225,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     {isSettled && !isPartiallyPaid && (
                                         <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
                                             <Icon
-                                                src={Expensicons.Checkmark}
+                                                src={icons.Checkmark}
                                                 fill={theme.success}
                                             />
                                         </View>
@@ -216,6 +234,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                         <ActivityIndicator
                                             style={[styles.moneyRequestLoadingHeight]}
                                             color={theme.textSupporting}
+                                            reasonAttributes={totalActivityReasonAttributes}
                                         />
                                     ) : (
                                         <Text

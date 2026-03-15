@@ -9,8 +9,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Policy, Report, Transaction} from '../../src/types/onyx';
-import type {CardList} from '../../src/types/onyx/Card';
+import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -425,6 +424,73 @@ describe('TransactionUtils', () => {
                 merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             });
         });
+
+        it('should negate modifiedAmount when isFromExpenseReport is true', () => {
+            const transaction = generateTransaction();
+            const newAmount = 500;
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: newAmount},
+            });
+
+            expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
+        });
+
+        it('should not negate modifiedAmount when isFromExpenseReport is false', () => {
+            const transaction = generateTransaction();
+            const newAmount = 500;
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {amount: newAmount},
+            });
+
+            expect(updatedTransaction.modifiedAmount).toBe(newAmount);
+        });
+    });
+
+    describe('isScanning', () => {
+        it('returns true for a scan-eligible transaction without a manual amount override', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(true);
+        });
+
+        it('returns false when a scan-eligible transaction has a manual amount override', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: 1234,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(false);
+        });
+
+        it('returns false when the receipt is not in a scanning state', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.OPEN,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(false);
+        });
     });
 
     describe('getTransactionType', () => {
@@ -459,18 +525,15 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM);
         });
 
-        it('returns cash when the transaction cardID maps to a cash card in the card list', () => {
-            const cardID = 101;
-            const cardList = {
-                [cardID]: {
-                    cardName: '__CASH__',
-                },
-            } as unknown as CardList;
+        it('returns cash when the card has a cash card name', () => {
+            const card = {
+                cardName: CONST.COMPANY_CARDS.CARD_NAME.CASH,
+            } as Card;
             const transaction = generateTransaction({
-                cardID,
+                cardID: 101,
             });
 
-            expect(TransactionUtils.getTransactionType(transaction, cardList)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+            expect(TransactionUtils.getTransactionType(transaction, card)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
 
         it('returns cash when the transaction card name includes the cash card name substring', () => {
@@ -630,63 +693,23 @@ describe('TransactionUtils', () => {
             expect(merchant).toBe('Modified Merchant');
         });
 
-        it('should return distance merchant if transaction is distance expense and pending create', () => {
+        it('should return the stored merchant for a distance expense', () => {
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                merchant: '10.00 mi @ USD 0.67 / mi',
             });
-            const policy: Policy = {
-                ...createRandomPolicy(10),
-                role: CONST.POLICY.ROLE.ADMIN,
-                customUnits: {},
-            };
-            const merchant = TransactionUtils.getMerchant(transaction, policy);
-            expect(merchant).toBe('Pending...');
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('10.00 mi @ USD 0.67 / mi');
         });
 
-        it('should return distance merchant if transaction is created distance expense', () => {
-            return waitForBatchedUpdates()
-                .then(async () => {
-                    const fakePolicy: Policy = {
-                        ...createRandomPolicy(0),
-                        customUnits: {
-                            Unit1: {
-                                customUnitID: 'Unit1',
-                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                                rates: {
-                                    Rate1: {
-                                        customUnitRateID: 'Rate1',
-                                        currency: CONST.CURRENCY.USD,
-                                        rate: 100,
-                                    },
-                                },
-                                enabled: true,
-                                attributes: {
-                                    unit: 'mi',
-                                },
-                            },
-                        },
-                        outputCurrency: CONST.CURRENCY.USD,
-                    };
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`, {policyID: fakePolicy.id});
-                })
-                .then(() => {
-                    const transaction = generateTransaction({
-                        comment: {
-                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                            customUnit: {
-                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                                customUnitID: 'Unit1',
-                                customUnitRateID: 'Rate1',
-                                quantity: 100,
-                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                            },
-                        },
-                        reportID: FAKE_OPEN_REPORT_ID,
-                    });
-                    const merchant = TransactionUtils.getMerchant(transaction);
-                    expect(merchant).toBe('100.00 mi @ USD 1.00 / mi');
-                });
+        it('should return modifiedMerchant over merchant for a distance expense', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                merchant: '10.00 mi @ USD 0.67 / mi',
+                modifiedMerchant: '10.00 mi @ USD 1.00 / mi',
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('10.00 mi @ USD 1.00 / mi');
         });
     });
     describe('getTransactionPendingAction', () => {
@@ -1798,6 +1821,158 @@ describe('TransactionUtils', () => {
                 convertedAmount: -100,
             });
             expect(TransactionUtils.getConvertedAmount(transaction, true, false, false, true)).toBe(-100);
+        });
+    });
+
+    describe('hasTaxRateWithMatchingValue', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            taxRates: CONST.DEFAULT_TAX,
+        };
+
+        it('should return true when transaction has no taxValue and a matching tax rate exists', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: undefined,
+            });
+
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(policy, transaction);
+
+            expect(result).toBe(true);
+        });
+
+        it('should return false when transaction has no taxValue and no matching tax rate exists', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_CUSTOM',
+                taxValue: undefined,
+            });
+
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(policy, transaction);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return true when transaction has taxValue and the tax rate value matches exactly', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+            });
+
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(policy, transaction);
+
+            expect(result).toBe(true);
+        });
+
+        it('should return false when transaction has taxValue but the tax rate value does not match', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '15%',
+            });
+
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(policy, transaction);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy is undefined', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '10%',
+            });
+
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(undefined, transaction);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when transaction is undefined', () => {
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(policy, undefined);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when both policy and transaction are undefined', () => {
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(undefined, undefined);
+
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('getTaxRateTitle', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            taxRates: CONST.DEFAULT_TAX,
+        };
+
+        const policyForMovingExpenses: Policy = {
+            ...createRandomPolicy(1),
+            taxRates: {
+                ...CONST.DEFAULT_TAX,
+                taxes: {
+                    ...CONST.DEFAULT_TAX.taxes,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    id_TAX_RATE_1: {
+                        name: 'Tax Rate 1 - Default Policy',
+                        value: '15%',
+                        code: 'id_TAX_RATE_1',
+                    },
+                },
+            },
+        };
+
+        it('should return tax name with fallback when tax exists and not moving from track expense', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
+
+            expect(result).toBe('Tax Rate 1 (5%)');
+        });
+
+        it('should return default policy tax name when moving from track expense', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '15%',
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policy, transaction, true, policyForMovingExpenses);
+
+            expect(result).toBe('Tax Rate 1 - Default Policy (15%)');
+        });
+
+        it('should return chosen policy tax name with fallback when moving from track expense but tax rate value is the same', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policy, transaction, true, policyForMovingExpenses);
+
+            expect(result).toBe('Tax Rate 1 (5%)');
+        });
+
+        it('should return default tax name when transaction has empty taxCode', () => {
+            const transaction = generateTransaction({
+                taxCode: '',
+                taxValue: undefined,
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
+
+            expect(result).toBe('Tax exempt (0%) • Default');
+        });
+
+        it('should return empty string when policy is undefined', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '10%',
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(undefined, transaction, false, undefined);
+
+            expect(result).toBe('');
         });
     });
 

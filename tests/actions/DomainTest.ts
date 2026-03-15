@@ -4,13 +4,16 @@ import {
     addMemberToDomain,
     clearDomainErrors,
     clearDomainMemberError,
+    clearTwoFactorAuthExemptEmailsErrors,
     clearVacationDelegateError,
     closeUserAccount,
     createDomain,
     deleteDomainVacationDelegate,
     resetCreateDomainForm,
     resetDomain,
+    resetDomainMemberTwoFactorAuth,
     setDomainVacationDelegate,
+    setTwoFactorAuthExemptEmailForDomain,
 } from '@libs/actions/Domain';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {generateAccountID} from '@libs/UserUtils';
@@ -327,7 +330,7 @@ describe('actions/Domain', () => {
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
-                {domain: domainName, targetEmail, overrideProcessingReports: false},
+                {domain: domainName, domainAccountID, targetEmail, overrideProcessingReports: false},
                 {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
@@ -379,7 +382,11 @@ describe('actions/Domain', () => {
 
             closeUserAccount(domainAccountID, domainName, targetEmail, undefined, true);
 
-            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_DOMAIN_MEMBER, {domain: domainName, targetEmail, overrideProcessingReports: true}, expect.any(Object));
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
+                {domain: domainName, targetEmail, overrideProcessingReports: true, domainAccountID},
+                expect.any(Object),
+            );
 
             apiWriteSpy.mockRestore();
         });
@@ -648,6 +655,209 @@ describe('actions/Domain', () => {
             callback: (pendingActions) => {
                 expect(pendingActions?.member?.[email]).toBeFalsy();
             },
+        });
+    });
+
+    it('clearTwoFactorAuthExemptEmailsErrors - clears twoFactorAuthExemptEmailsError for the given email', async () => {
+        const domainAccountID = 123;
+        const email = 'member@test.com';
+        const timestamp = 456;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
+            memberErrors: {
+                [email]: {twoFactorAuthExemptEmailsError: {[timestamp]: 'error'}},
+            },
+        });
+
+        clearTwoFactorAuthExemptEmailsErrors(domainAccountID, email);
+
+        await TestHelper.getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            waitForCollectionCallback: false,
+            callback: (errors) => {
+                expect(errors?.memberErrors?.[email]?.twoFactorAuthExemptEmailsError).toBeFalsy();
+            },
+        });
+    });
+
+    describe('setTwoFactorAuthExemptEmailForDomain', () => {
+        const domainAccountID = 123;
+        const accountID = 456;
+        const targetEmail = 'member@test.com';
+        const exemptEmails = ['other@test.com', targetEmail];
+
+        it('removes targetEmail from exempt emails in optimisticData when force2FA is true', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, exemptEmails, targetEmail, true);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN,
+                expect.objectContaining({enabled: false}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+                            value: {settings: {twoFactorAuthExemptEmails: ['other@test.com']}},
+                        }),
+                    ]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('adds targetEmail to exempt emails in optimisticData when force2FA is false and no twoFactorAuthCode is provided', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, exemptEmails, targetEmail, false);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN,
+                expect.objectContaining({enabled: true}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+                            value: {settings: {twoFactorAuthExemptEmails: [...exemptEmails, targetEmail]}},
+                        }),
+                    ]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('keeps exempt emails unchanged in optimisticData when force2FA is false and twoFactorAuthCode is provided', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const twoFactorAuthCode = '123456';
+
+            setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, exemptEmails, targetEmail, false, twoFactorAuthCode);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN,
+                expect.objectContaining({enabled: true}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+                            value: {settings: {twoFactorAuthExemptEmails: exemptEmails}},
+                        }),
+                    ]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('sets twoFactorAuthExemptEmailsError to null and adds VALIDATE_DOMAIN_TWO_FACTOR_CODE error in failureData when twoFactorAuthCode is provided', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const twoFactorAuthCode = '123456';
+
+            setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, exemptEmails, targetEmail, true, twoFactorAuthCode);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN,
+                expect.any(Object),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {memberErrors: {[targetEmail]: {twoFactorAuthExemptEmailsError: null}}},
+                        }),
+                        expect.objectContaining({
+                            key: ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE,
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                            value: {errors: expect.any(Object)},
+                        }),
+                    ]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('sets twoFactorAuthExemptEmailsError to an error object and omits VALIDATE_DOMAIN_TWO_FACTOR_CODE from failureData when no twoFactorAuthCode is provided', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, exemptEmails, targetEmail, true);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN,
+                expect.any(Object),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                            value: {memberErrors: {[targetEmail]: {twoFactorAuthExemptEmailsError: expect.any(Object)}}},
+                        }),
+                    ]),
+                }),
+            );
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN,
+                expect.any(Object),
+                expect.objectContaining({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    failureData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE})]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+    });
+
+    describe('resetDomainMemberTwoFactorAuth', () => {
+        it('calls RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH with correct optimistic, success, and failure data', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const targetAccountID = 456;
+            const targetEmail = 'member@test.com';
+            const twoFactorAuthCode = '123456';
+
+            resetDomainMemberTwoFactorAuth(domainAccountID, targetAccountID, targetEmail, twoFactorAuthCode);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH,
+                {domainAccountID, targetAccountID, targetEmail, twoFactorAuthCode},
+                {
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {member: {[targetAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {memberErrors: {[targetAccountID]: {errors: null}}},
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {member: {[targetAccountID]: {pendingAction: null}}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {memberErrors: {[targetAccountID]: {errors: null}}},
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {member: {[targetAccountID]: {pendingAction: null}}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                            value: {memberErrors: {[targetAccountID]: {errors: expect.any(Object)}}},
+                        }),
+                    ]),
+                },
+            );
+
+            apiWriteSpy.mockRestore();
         });
     });
 });

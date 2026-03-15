@@ -19,7 +19,7 @@ function HaveReadAndAgreeLabel() {
 
 function AgreeToTheLabel() {
     const {translate} = useLocalize();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
 
     const walletAgreementUrl =
         userWallet?.walletProgramID && userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID
@@ -36,7 +36,7 @@ function TermsStep({onNext}: SubStepProps) {
     const [error, setError] = useState(false);
     const {translate} = useLocalize();
 
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
 
     const errorMessage = error ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
