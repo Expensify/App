@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Alert, AppState, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import ImageSize from 'react-native-image-size';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
@@ -26,6 +27,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import cropOrRotateImage from '@libs/cropOrRotateImage';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getPlatform from '@libs/getPlatform';
@@ -53,6 +55,48 @@ import ReceiptPreviews from './components/ReceiptPreviews';
 import useMobileReceiptScan from './hooks/useMobileReceiptScan';
 import useReceiptScan from './hooks/useReceiptScan';
 import type IOURequestStepScanProps from './types';
+
+/**
+ * On Android, some devices save photos with landscape pixel data and EXIF metadata
+ * indicating the required rotation. Whether the image displays correctly depends on
+ * whether the viewer auto-applies EXIF rotation, which is inconsistent across devices
+ * and backends. This normalizes the pixel orientation using a two-pass approach:
+ * 1. Strip EXIF via empty manipulateAsync to detect if Glide auto-rotated
+ * 2. If not auto-rotated, explicitly rotate the pixels
+ */
+function normalizePhotoOrientation(photoUri: string): Promise<string> {
+    return ImageSize.getSize(photoUri)
+        .then((imageSize) => {
+            const {rotation} = imageSize;
+            if (rotation !== 90 && rotation !== 270) {
+                return photoUri;
+            }
+
+            // First pass: strip EXIF metadata via empty actions
+            const tempFilename = `receipt_normalized_${Date.now()}.jpeg`;
+            return cropOrRotateImage(photoUri, [], {compress: 1, name: tempFilename, type: 'image/jpeg'}).then((normalizedImage) => {
+                const normalizedUri = normalizedImage?.uri;
+                if (!normalizedUri) {
+                    return photoUri;
+                }
+
+                return ImageSize.getSize(normalizedUri).then((normalizedSize) => {
+                    const wasAutoRotated = normalizedSize.width !== imageSize.width || normalizedSize.height !== imageSize.height;
+
+                    if (wasAutoRotated) {
+                        return normalizedUri;
+                    }
+
+                    // Glide didn't auto-rotate, apply rotation explicitly
+                    const rotatedFilename = `receipt_rotated_${Date.now()}.jpeg`;
+                    return cropOrRotateImage(normalizedUri, [{rotate: rotation}], {compress: 1, name: rotatedFilename, type: 'image/jpeg'}).then(
+                        (rotatedImage) => rotatedImage?.uri ?? photoUri,
+                    );
+                });
+            });
+        })
+        .catch(() => photoUri);
+}
 
 function IOURequestStepScan({
     report,
@@ -386,34 +430,36 @@ function IOURequestStepScan({
                           })
                         : initialTransaction;
                 const transactionID = transaction?.transactionID ?? initialTransactionID;
-                const source = getPhotoSource(photo.path);
+                const originalSource = getPhotoSource(photo.path);
                 const filename = photo.path;
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
 
-                const cameraFile = {
-                    uri: source,
-                    name: filename,
-                    type: 'image/jpeg',
-                    source,
-                };
+                return normalizePhotoOrientation(originalSource).then((source) => {
+                    const cameraFile = {
+                        uri: source,
+                        name: filename,
+                        type: 'image/jpeg',
+                        source,
+                    };
 
-                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
 
-                if (isEditing) {
-                    updateScanAndNavigate(cameraFile as FileObject, source);
-                    return;
-                }
+                    if (isEditing) {
+                        updateScanAndNavigate(cameraFile as FileObject, source);
+                        return;
+                    }
 
-                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
-                setReceiptFiles(newReceiptFiles);
+                    const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
+                    setReceiptFiles(newReceiptFiles);
 
-                if (isMultiScanEnabled) {
-                    setDidCapturePhoto(false);
-                    isCapturingPhoto.current = false;
-                    return;
-                }
+                    if (isMultiScanEnabled) {
+                        setDidCapturePhoto(false);
+                        isCapturingPhoto.current = false;
+                        return;
+                    }
 
-                submitReceipts(newReceiptFiles);
+                    submitReceipts(newReceiptFiles);
+                });
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
