@@ -29,9 +29,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
             textInputRef.current?.setAttribute('name', props.name);
         }
 
-        // On mobile Chrome, restore keyboard after returning from background by blurring and
-        // refocusing with a delay. Both visibilitychange and window.focus call the same function,
-        // with isRestoringKeyboardFocus preventing duplicate execution for the same transition.
+        // On mobile Chrome, restore keyboard after returning from background via blur/refocus with a delay.
         // See: https://developer.android.com/develop/ui/views/touch-and-input/keyboard-input/visibility#ShowReliably
         let focusTimeoutId: ReturnType<typeof setTimeout>;
         let flagResetTimeoutId: ReturnType<typeof setTimeout>;
