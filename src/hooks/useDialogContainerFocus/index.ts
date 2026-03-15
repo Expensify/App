@@ -7,10 +7,9 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
         if (!isReady || !claimInitialFocus?.()) {
             return;
         }
-        // Deferred so useAutoFocusInput can focus its input before we check activeElement.
+        // Deferred so useAutoFocusInput / useSyncFocus can claim focus first.
         const frameId = requestAnimationFrame(() => {
-            const active = document.activeElement;
-            if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement) {
+            if (document.activeElement && document.activeElement !== document.body) {
                 return;
             }
             (ref.current as unknown as HTMLElement)?.focus();
