@@ -1,34 +1,15 @@
 import {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 import type SettlementButtonProps from '@components/SettlementButton/types';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
-import {formatPaymentMethods} from '@libs/PaymentUtils';
-import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
-import {
-    doesReportBelongToWorkspace,
-    getBankAccountRoute,
-    isExpenseReport as isExpenseReportUtil,
-    isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
-    isInvoiceReport as isInvoiceReportUtil,
-} from '@libs/ReportUtils';
+import {getBankAccountRoute, isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData, BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {LastPaymentMethod} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
-import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
-import usePolicy from './usePolicy';
-import useThemeStyles from './useThemeStyles';
-
-type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
+import useSettlementData from './useSettlementData';
 
 type UsePaymentOptionsProps = Pick<
     SettlementButtonProps,
@@ -61,21 +42,22 @@ function usePaymentOptions({
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle']);
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const policy = usePolicy(policyID);
-    const {accountID} = useCurrentUserPersonalDetails();
+    const data = useSettlementData({chatReportID, iouReport, policyID, currency, shouldHidePaymentOptions, shouldUseFakePolicyFallback: true});
+    const {
+        icons,
+        translate,
+        chatReport,
+        policyIDKey,
+        isExpenseReport,
+        isInvoiceReport,
+        hasActivatedWallet,
+        canUseWallet,
+        showPayViaExpensifyOptions,
+        shouldShowPayWithExpensifyOption,
+        shouldShowPayElsewhereOption,
+        getFilteredBankItems,
+    } = data;
 
-    // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
-    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
-    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID, conciergeReportID) : false;
-    const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const lastPaymentMethodSelector = useCallback(
         (paymentMethod: OnyxEntry<LastPaymentMethod>) => {
             const paymentMethodType = paymentMethod?.[policyIDKey];
@@ -98,10 +80,6 @@ function usePaymentOptions({
     );
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
-    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
-    const {isBetaEnabled} = usePermissions();
-    const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
 
     useEffect(() => {
@@ -112,12 +90,8 @@ function usePaymentOptions({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingLastPaymentMethod]);
 
-    const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
-    const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
-    const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const isExpenseReport = isExpenseReportUtil(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: hasActivatedWallet ? translate('iou.settleWallet', '') : translate('iou.settlePersonal', ''),
@@ -141,7 +115,6 @@ function usePaymentOptions({
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
-        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
 
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
@@ -164,31 +137,22 @@ function usePaymentOptions({
         }
 
         if (isInvoiceReport) {
-            const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles, translate);
-            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
             const getPaymentSubItems = (payAsBusiness: boolean) => {
-                const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
-                return formattedPaymentMethods
-                    .filter((method) => {
-                        const accountData = method?.accountData as AccountData;
-                        const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                        return accountData?.type === requiredAccountType && !isPartiallySetup;
-                    })
-                    .map((formattedPaymentMethod) => ({
-                        text: formattedPaymentMethod?.title ?? '',
-                        description: formattedPaymentMethod?.description ?? '',
-                        icon: formattedPaymentMethod?.icon,
-                        onSelected: () =>
-                            onPress({
-                                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                                payAsBusiness,
-                                methodID: formattedPaymentMethod.methodID,
-                                paymentMethod: formattedPaymentMethod.accountType,
-                            }),
-                        iconStyles: formattedPaymentMethod?.iconStyles,
-                        iconHeight: formattedPaymentMethod?.iconSize,
-                        iconWidth: formattedPaymentMethod?.iconSize,
-                    }));
+                return getFilteredBankItems(payAsBusiness, (formattedPaymentMethod) => ({
+                    text: formattedPaymentMethod?.title ?? '',
+                    description: formattedPaymentMethod?.description ?? '',
+                    icon: formattedPaymentMethod?.icon,
+                    onSelected: () =>
+                        onPress({
+                            paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                            payAsBusiness,
+                            methodID: formattedPaymentMethod.methodID,
+                            paymentMethod: formattedPaymentMethod.accountType,
+                        }),
+                    iconStyles: formattedPaymentMethod?.iconStyles,
+                    iconHeight: formattedPaymentMethod?.iconSize,
+                    iconWidth: formattedPaymentMethod?.iconSize,
+                }));
             };
 
             const addBankAccountItem = {
