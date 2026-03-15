@@ -307,7 +307,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
-    const {deleteTransactions} = useDeleteTransactions({
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: parentReport,
         reportActions: requestParentReportAction ? [requestParentReportAction] : [],
         policy,
@@ -906,7 +906,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 currentUserAccountID: currentUserPersonalDetails.accountID,
             });
         } else if (iouTransactionID) {
+            const shouldOpenSplitExpenseEditFlow = shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]);
             deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, isSingleTransactionView);
+
+            if (shouldOpenSplitExpenseEditFlow) {
+                return;
+            }
+
             removeTransaction(iouTransactionID);
         }
     }, [
@@ -933,6 +939,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         currentSearchHash,
         removeTransaction,
         conciergeReportID,
+        shouldOpenSplitExpenseEditFlowOnDelete,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
@@ -1015,7 +1022,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (action !== ModalActions.CONFIRM) {
             return;
         }
+        const shouldOpenSplitExpenseEditFlow = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
         Navigation.setNavigationActionToMicrotaskQueue(() => {
+            if (shouldOpenSplitExpenseEditFlow) {
+                deleteTransaction();
+                return;
+            }
+
             navigateToTargetUrl();
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.
@@ -1024,7 +1037,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 deleteTransaction();
             });
         });
-    }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
+    }, [showConfirmModal, translate, caseID, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 

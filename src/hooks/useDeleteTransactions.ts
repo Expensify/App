@@ -45,6 +45,35 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
+    const getSplitExpenseEditTransactionOnDelete = useCallback(
+        (transactionIDs: string[]): Transaction | undefined => {
+            if (transactionIDs.length !== 1) {
+                return undefined;
+            }
+
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`];
+
+            if (!transaction) {
+                return undefined;
+            }
+
+            const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
+            const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+
+            if (!isExpenseSplit || !isPerDiemRequest(originalTransaction ?? transaction)) {
+                return undefined;
+            }
+
+            return transaction;
+        },
+        [allTransactions],
+    );
+
+    const shouldOpenSplitExpenseEditFlowOnDelete = useCallback(
+        (transactionIDs: string[]): boolean => !!getSplitExpenseEditTransactionOnDelete(transactionIDs),
+        [getSplitExpenseEditTransactionOnDelete],
+    );
+
     /**
      * Delete transactions by IDs
      * @param transactionIDs - Array of transaction IDs to delete
@@ -67,16 +96,11 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 return [];
             }
 
-            if (transactionIDs.length === 1) {
-                const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`];
-                const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.comment?.originalTransactionID}`];
-                const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-                const shouldOpenSplitExpenseEditFlowOnDelete = isExpenseSplit && isPerDiemRequest(originalTransaction ?? transaction);
+            const splitExpenseEditTransaction = getSplitExpenseEditTransactionOnDelete(transactionIDs);
 
-                if (transaction && shouldOpenSplitExpenseEditFlowOnDelete) {
-                    initSplitExpense(transaction, policy, {navigateToEditSplitExpense: true});
-                    return [];
-                }
+            if (splitExpenseEditTransaction) {
+                initSplitExpense(splitExpenseEditTransaction, policy, {navigateToEditSplitExpense: true});
+                return [];
             }
 
             const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
@@ -232,11 +256,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             betas,
             allPolicyTags,
             personalDetails,
+            getSplitExpenseEditTransactionOnDelete,
         ],
     );
 
     return {
         deleteTransactions,
+        shouldOpenSplitExpenseEditFlowOnDelete,
     };
 }
 

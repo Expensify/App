@@ -364,7 +364,7 @@ function MoneyReportHeader({
     );
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
-    const {deleteTransactions} = useDeleteTransactions({
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: chatReport,
         reportActions,
         policy,
@@ -1898,6 +1898,13 @@ function MoneyReportHeader({
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
                         }
+                        const shouldOpenSplitExpenseEditFlow = shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
+
+                        if (shouldOpenSplitExpenseEditFlow) {
+                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
+                            return;
+                        }
+
                         const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
                             transaction.transactionID,
                             requestParentReportAction,

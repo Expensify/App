@@ -87,7 +87,7 @@ function useSelectedTransactionsActions({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -151,6 +151,11 @@ function useSelectedTransactionsActions({
     };
 
     const handleDeleteTransactionsWithNavigation = (backToRoute?: Route) => {
+        if (shouldOpenSplitExpenseEditFlowOnDelete(selectedTransactionIDs)) {
+            handleDeleteTransactions();
+            return;
+        }
+
         Navigation.goBack(backToRoute);
 
         if (!backToRoute && !navigationRef.canGoBack()) {

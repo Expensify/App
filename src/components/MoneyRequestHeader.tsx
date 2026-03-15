@@ -180,7 +180,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = useMemo(() => Object.keys(transactionDrafts ?? {}), [transactionDrafts]);
 
-    const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -608,7 +608,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             currentUserAccountID: accountID,
                         });
                     } else {
+                        const shouldOpenSplitExpenseEditFlow = shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
                         deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
+
+                        if (shouldOpenSplitExpenseEditFlow) {
+                            return;
+                        }
+
                         removeTransaction(transaction.transactionID);
                     }
                     if (isInNarrowPaneModal) {
