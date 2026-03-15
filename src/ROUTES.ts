@@ -100,7 +100,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [],
     },
     REPORT_SETTINGS_VISIBILITY: {
-        path: 'settings/visibility',
+        path: 'visibility',
         entryScreens: [SCREENS.REPORT_DETAILS.ROOT, SCREENS.RIGHT_MODAL.REPORT_SETTINGS, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.SEARCH.ROOT],
     },
     ADDRESS_COUNTRY: {

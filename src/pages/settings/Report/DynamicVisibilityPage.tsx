@@ -10,7 +10,8 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
-import {goBackToDetailsPage, isArchivedNonExpenseReport} from '@libs/ReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import {updateRoomVisibility} from '@userActions/Report';
@@ -43,7 +44,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
     );
 
     const goBack = () => {
-        goBackToDetailsPage(report, backPath);
+        Navigation.goBack(backPath);
     };
 
     const changeVisibility = (newVisibility: RoomVisibility) => {
