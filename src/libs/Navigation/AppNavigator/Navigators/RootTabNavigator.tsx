@@ -3,7 +3,7 @@
  */
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import React, {lazy, memo, Suspense} from 'react';
+import React, {lazy, Suspense} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -34,7 +34,7 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
  * floating buttons (FAB, GPS, Camera) rendered by NavigationTabBar can extend
  * above the tab bar area without being clipped.
  */
-const RootTabNavigatorTabBar = memo(({tabState}: {tabState: BottomTabBarProps['state']}) => {
+function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state']}) {
     const selectedRouteName = tabState.routes[tabState.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
     return (
@@ -42,9 +42,7 @@ const RootTabNavigatorTabBar = memo(({tabState}: {tabState: BottomTabBarProps['s
             <NavigationTabBar selectedTab={selectedTab} />
         </View>
     );
-});
-
-RootTabNavigatorTabBar.displayName = 'RootTabNavigatorTabBar';
+}
 
 // Stable reference: only passes `state` to avoid descriptors thrashing
 // eslint-disable-next-line react/jsx-props-no-spreading

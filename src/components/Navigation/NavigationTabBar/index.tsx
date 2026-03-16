@@ -20,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -56,13 +57,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     const subscriptionPlan = useSubscriptionPlan();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox']);
 
-    const lastReportRoute = useRootNavigationState((rootState) => {
+    const lastReportRouteReportID = useRootNavigationState((rootState) => {
         if (!rootState) {
             return undefined;
         }
-        return getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
+        const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
+        return (route?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
     });
-    const lastReportRouteReportID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
 
     const reportAttributes = useReportAttributes();
@@ -99,10 +100,15 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         });
 
-        if (!shouldUseNarrowLayout && doesLastReportExist && lastReportRoute) {
-            const {reportID, reportActionID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo));
-            return;
+        if (!shouldUseNarrowLayout && doesLastReportExist) {
+            // Fetch route params on-demand to avoid storing the full route object in render-time state
+            const rootState = navigationRef.getRootState();
+            const lastRoute = rootState ? getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT) : undefined;
+            if (lastRoute) {
+                const {reportID, reportActionID, referrer, backTo} = lastRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo));
+                return;
+            }
         }
 
         Navigation.navigate(ROUTES.INBOX);
