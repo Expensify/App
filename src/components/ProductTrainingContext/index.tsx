@@ -234,7 +234,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const theme = useTheme();
     const {shouldHideToolTip} = useSidePanelState();
     const {translate} = useLocalize();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID} = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb'] as const);
 
     if (!context) {
@@ -262,8 +262,8 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
             return;
         }
 
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN, userAccountID);
-    }, [shouldShowProductTrainingTooltip, tooltipName]);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN, accountID);
+    }, [shouldShowProductTrainingTooltip, tooltipName, accountID]);
 
     const hideTooltip = useCallback(
         (isDismissedUsingCloseButton = false) => {
