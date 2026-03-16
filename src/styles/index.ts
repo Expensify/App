@@ -5375,6 +5375,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 170,
         },
 
+        emptyShelvesIllustration: {
+            width: 178,
+            height: 219,
+        },
+
         offlineFeedbackDeleted: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',

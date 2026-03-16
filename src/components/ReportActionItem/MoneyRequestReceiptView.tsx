@@ -71,6 +71,7 @@ import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImage from './ReportActionItemImage';
+import resetButtonHoverState from './resetButtonHoverState';
 
 type MoneyRequestReceiptViewProps = {
     /** The report currently being looked at */
@@ -473,12 +474,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                     {hasReceipt && (
                         <View
                             ref={receiptContainerRef}
-                            style={[
-                                styles.getMoneyRequestViewImage(showBorderlessLoading),
-                                receiptStyle,
-                                showBorderlessLoading && styles.flex1,
-                                fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
-                            ]}
+                            style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
                             onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
                             onMouseLeave={() => {
                                 if (skipContainerMouseLeaveRef.current) {
@@ -520,11 +516,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                                 validateFiles(files);
                                                             },
                                                             onCanceled: () => {
-                                                                // Reset stale hover states after native file dialog dismiss
-                                                                const buttonEl = addButtonRef.current as unknown as HTMLElement;
-                                                                buttonEl?.dispatchEvent(new PointerEvent('pointerleave'));
-                                                                skipContainerMouseLeaveRef.current = true;
-                                                                buttonEl?.dispatchEvent(new MouseEvent('mouseout', {bubbles: true, relatedTarget: document.body}));
+                                                                skipContainerMouseLeaveRef.current = resetButtonHoverState(addButtonRef);
                                                             },
                                                         });
                                                     }}
