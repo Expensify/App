@@ -1,6 +1,7 @@
 import React, {useLayoutEffect, useState} from 'react';
 import {Freeze} from 'react-freeze';
 import TooltipSense from '@components/Tooltip/TooltipSense';
+import {areAllModalsHidden} from '@userActions/Modal';
 
 type ScreenFreezeWrapperProps = {
     /** Whether the screen is not currently visible to the user */
@@ -16,13 +17,22 @@ function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperPro
     // Decouple the Suspense render task so it won't be interrupted by React's concurrent mode
     // and stuck in an infinite loop
     useLayoutEffect(() => {
-        if (!TooltipSense.isActive() || !isScreenBlurred) {
+        // When no modal or tooltip is active, freeze/unfreeze immediately.
+        if (!TooltipSense.isActive() && areAllModalsHidden()) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setFrozen(isScreenBlurred);
+            return;
         }
 
-        // When a tooltip is active, defer freezing by one frame so it can dismiss first.
-        // Otherwise the frozen tree can't hide the tooltip portal rendered on <body>.
+        // When unfreezing, always apply immediately so the screen is visible right away.
+        if (!isScreenBlurred) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setFrozen(false);
+            return;
+        }
+
+        // A modal or tooltip is still open. Defer freezing by one frame so it can dismiss
+        // before the tree is suspended.
         const id = requestAnimationFrame(() => setFrozen(isScreenBlurred));
         return () => {
             cancelAnimationFrame(id);
