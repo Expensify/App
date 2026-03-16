@@ -4,16 +4,16 @@
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
-function isWebAuthnErrorName(name: string): name is keyof typeof VALUES.WEBAUTHN_ERROR_MAPPINGS {
-    return name in VALUES.WEBAUTHN_ERROR_MAPPINGS;
+function isWebAuthnReason(name: string): name is MultifactorAuthenticationReason {
+    return Object.values<string>(VALUES.REASON.WEBAUTHN).includes(name);
 }
 
 /**
  * Decodes WebAuthn DOMException errors and maps them to authentication error reasons.
  */
 function decodeWebAuthnError(error: unknown): MultifactorAuthenticationReason {
-    if (error instanceof DOMException && isWebAuthnErrorName(error.name)) {
-        return VALUES.WEBAUTHN_ERROR_MAPPINGS[error.name];
+    if (error instanceof DOMException && isWebAuthnReason(error.name)) {
+        return error.name;
     }
 
     return VALUES.REASON.WEBAUTHN.GENERIC;
