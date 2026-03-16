@@ -24,6 +24,7 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -148,6 +149,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const theme = useTheme();
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
+    const {isOffline} = useNetwork();
     const receiptContainerRef = useRef<View | null>(null);
     const addButtonRef = useRef<View | null>(null);
     const skipContainerMouseLeaveRef = useRef(false);
@@ -372,6 +374,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
 
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
+    const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
+    const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
             <ReceiptAuditMessages notes={receiptImageViolations} />
@@ -430,7 +434,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             )}
             {(hasReceipt || !isEmptyObject(errors)) && (
                 <OfflineWithFeedback
-                    pendingAction={isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
+                    shouldDisableOpacity={canShowReceiptActions}
+                    pendingAction={receiptPendingAction}
                     errors={errors}
                     errorRowStyles={[styles.mh4, !shouldShowReceiptEmptyState && styles.mt3]}
                     onClose={() => {
@@ -483,23 +488,25 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                 hoverBind.onMouseLeave();
                             }}
                         >
-                            <ReportActionItemImage
-                                shouldUseThumbnailImage={!fillSpace}
-                                shouldUseFullHeight={fillSpace}
-                                thumbnail={receiptURIs?.thumbnail}
-                                fileExtension={receiptURIs?.fileExtension}
-                                isThumbnail={receiptURIs?.isThumbnail}
-                                image={receiptURIs?.image}
-                                isLocalFile={receiptURIs?.isLocalFile}
-                                filename={receiptURIs?.filename}
-                                transaction={updatedTransaction ?? transaction}
-                                enablePreviewModal
-                                readonly={readonly || !canEditReceipt}
-                                mergeTransactionID={mergeTransactionID}
-                                report={report}
-                                onLoad={() => setIsLoading(false)}
-                                onLoadFailure={() => setIsLoading(false)}
-                            />
+                            <View style={isReceiptOfflinePending && styles.offlineFeedbackPending}>
+                                <ReportActionItemImage
+                                    shouldUseThumbnailImage={!fillSpace}
+                                    shouldUseFullHeight={fillSpace}
+                                    thumbnail={receiptURIs?.thumbnail}
+                                    fileExtension={receiptURIs?.fileExtension}
+                                    isThumbnail={receiptURIs?.isThumbnail}
+                                    image={receiptURIs?.image}
+                                    isLocalFile={receiptURIs?.isLocalFile}
+                                    filename={receiptURIs?.filename}
+                                    transaction={updatedTransaction ?? transaction}
+                                    enablePreviewModal
+                                    readonly={readonly || !canEditReceipt}
+                                    mergeTransactionID={mergeTransactionID}
+                                    report={report}
+                                    onLoad={() => setIsLoading(false)}
+                                    onLoadFailure={() => setIsLoading(false)}
+                                />
+                            </View>
                             {canShowReceiptActions && (
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && deviceHasHoverSupport && styles.opacity0]}>
                                     <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
