@@ -1355,7 +1355,7 @@ function replaceTwoFactorDevice(step: 'verify_old' | 'verify_new', twoFactorAuth
  * Used when starting the device replacement flow to ensure clean state.
  */
 function clearTwoFactorAuthSecretKey() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: undefined});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: null});
 }
 
 /**
