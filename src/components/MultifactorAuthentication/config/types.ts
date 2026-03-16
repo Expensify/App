@@ -14,6 +14,7 @@ import type {
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MultifactorAuthenticationScenarioPayload} from './index';
 
 /**
@@ -27,10 +28,10 @@ type MultifactorAuthenticationCancelConfirm = {
 };
 
 /**
- * Configuration for multifactor authentication prompt display with animation and translations.
+ * Configuration for multifactor authentication prompt display with illustration and translations.
  */
 type MultifactorAuthenticationPromptConfig = {
-    animation: DotLottieAnimation;
+    illustration: DotLottieAnimation | IconAsset;
     title: TranslationPaths;
     subtitle: TranslationPaths;
 };

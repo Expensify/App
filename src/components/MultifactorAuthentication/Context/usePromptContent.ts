@@ -8,10 +8,11 @@ import useOnyx from '@hooks/useOnyx';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {useMultifactorAuthenticationState} from './State';
 
 type PromptContent = {
-    animation: DotLottieAnimation;
+    illustration: DotLottieAnimation | IconAsset;
     title: TranslationPaths;
     subtitle: TranslationPaths | undefined;
     shouldDisplayConfirmButton: boolean;
@@ -27,7 +28,7 @@ function serverHasRegisteredCredentials(data: OnyxEntry<Account>) {
 }
 
 /**
- * Hook to get the prompt content (animation, title, subtitle) for the MFA prompt page.
+ * Hook to get the prompt content (illustration, title, subtitle) for the MFA prompt page.
  * Handles the logic for determining the correct title and subtitle based on:
  * - Whether the user is a returning user (already has biometrics registered)
  * - Whether registration has just been completed
@@ -107,7 +108,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
         !hasEverAcceptedSoftPrompt || (!state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials && !wasPreviouslyRegisteredRef.current);
 
     return {
-        animation: contentData.animation,
+        illustration: contentData.illustration,
         title,
         subtitle,
         shouldDisplayConfirmButton,

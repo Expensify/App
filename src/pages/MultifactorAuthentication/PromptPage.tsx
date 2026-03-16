@@ -28,7 +28,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {dispatch} = useMultifactorAuthenticationActions();
     const {isOffline} = useNetwork();
 
-    const {animation, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
+    const {illustration, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
 
     const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
 
@@ -81,7 +81,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
             />
             <FullPageOfflineBlockingView>
                 <MultifactorAuthenticationPromptContent
-                    animation={animation}
+                    illustration={illustration}
                     title={title}
                     subtitle={subtitle}
                 />
