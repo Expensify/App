@@ -358,6 +358,16 @@ type OptimisticAddCommentReportAction = Pick<
     | 'delegateAccountID'
 > & {isOptimisticAction: boolean};
 
+type BuildOptimisticAddCommentReportActionParams = {
+    text?: string;
+    file?: FileObject;
+    actorAccountID?: number;
+    createdOffset?: number;
+    reportID?: string;
+    reportActionID?: string;
+    attachmentID?: string;
+};
+
 type OptimisticReportAction = {
     commentText: string;
     reportAction: OptimisticAddCommentReportAction;
@@ -6322,7 +6332,7 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
     });
 }
 
-function getUploadingAttachmentHtml(file?: FileObject): string {
+function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): string {
     if (!file || typeof file.uri !== 'string') {
         return '';
     }
@@ -6331,6 +6341,7 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
         `${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="${file.uri}"`,
         `${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="${file.uri}"`,
         `${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="${file.name}"`,
+        attachmentID && `${CONST.ATTACHMENT_ID_ATTRIBUTE}="${attachmentID}"`,
         'width' in file && `${CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE}="${file.width}"`,
         'height' in file && `${CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE}="${file.height}"`,
     ]
@@ -6370,16 +6381,17 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return Parser.htmlToText(policy.description);
 }
 
-function buildOptimisticAddCommentReportAction(
-    text?: string,
-    file?: FileObject,
-    actorAccountID?: number,
+function buildOptimisticAddCommentReportAction({
+    text,
+    file,
+    actorAccountID,
     createdOffset = 0,
-    reportID?: string,
-    reportActionID: string = rand64(),
-): OptimisticReportAction {
+    reportID,
+    reportActionID = rand64(),
+    attachmentID,
+}: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = getParsedComment(text ?? '', {reportID});
-    const attachmentHtml = getUploadingAttachmentHtml(file);
+    const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
 
     const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
     const textForNewComment = Parser.htmlToText(htmlForNewComment);
@@ -6505,7 +6517,7 @@ function buildOptimisticTaskCommentReportAction(
     actorAccountID?: number,
     createdOffset = 0,
 ): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, taskReportID);
+    const reportAction = buildOptimisticAddCommentReportAction({text, reportID: taskReportID, createdOffset});
     if (Array.isArray(reportAction.reportAction.message)) {
         const message = reportAction.reportAction.message.at(0);
         if (message) {
@@ -11640,7 +11652,7 @@ function prepareOnboardingOnyxData({
 
     // Text message
     const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
-    const textComment = buildOptimisticAddCommentReportAction(message, undefined, actorAccountID, 1);
+    const textComment = buildOptimisticAddCommentReportAction({text: message, actorAccountID, createdOffset: 1});
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
     const textMessage: AddCommentOrAttachmentParams = {
         reportID: targetChatReportID,
@@ -11657,7 +11669,13 @@ function prepareOnboardingOnyxData({
     if (shouldUseFollowupsInsteadOfTasks && companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
         bespokeWelcomeMessage = getBespokeWelcomeMessage(userReportedIntegration);
         optimisticConciergeReportActionID = rand64();
-        bespokeAction = buildOptimisticAddCommentReportAction(bespokeWelcomeMessage, undefined, CONST.ACCOUNT_ID.CONCIERGE, 2, targetChatReportID, optimisticConciergeReportActionID);
+        bespokeAction = buildOptimisticAddCommentReportAction({
+            text: bespokeWelcomeMessage,
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            createdOffset: 2,
+            reportID: targetChatReportID,
+            reportActionID: optimisticConciergeReportActionID,
+        });
     }
 
     let createWorkspaceTaskReportID;
@@ -11768,7 +11786,7 @@ function prepareOnboardingOnyxData({
     const welcomeSignOffText =
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
-    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(welcomeSignOffText, undefined, actorAccountID, tasksData.length + 3);
+    const welcomeSignOffComment = buildOptimisticAddCommentReportAction({text: welcomeSignOffText, actorAccountID, createdOffset: tasksData.length + 3});
     const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
     const welcomeSignOffMessage = {
         reportID: targetChatReportID,
@@ -12397,7 +12415,7 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
     const message = Array.isArray(reportAction?.message) ? (reportAction?.message?.at(-1) ?? null) : (reportAction?.message ?? null);
     const html = message?.html ?? '';
     const {sourceURL} = getAttachmentDetails(html);
-    const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+    const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID) ?? [])[1];
     return sourceID;
 }
 
