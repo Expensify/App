@@ -2933,7 +2933,7 @@ function formatSectionsFromSearchTerm(
     filteredPersonalDetails: SearchOptionData[],
     privateIsArchivedMap: Record<string, string | undefined>,
     currentUserAccountID: number,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    personalDetails: OnyxEntry<PersonalDetailsList> = {},
     {
         reports,
         shouldGetOptionDetails = false,

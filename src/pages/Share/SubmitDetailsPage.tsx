@@ -128,19 +128,9 @@ function SubmitDetailsPage({
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-        if (participant?.accountID) {
-            return getParticipantsOption(participant, personalDetails);
-        }
-        return getReportOption(
-            participant,
-            privateIsArchived,
-            policy,
-            currentUserPersonalDetails.accountID,
-            personalDetails,
-            participantReport,
-            participantChatReport,
-            reportAttributesDerived,
-        );
+        return participant?.accountID
+            ? getParticipantsOption(participant, personalDetails)
+            : getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, participantReport, participantChatReport, reportAttributesDerived);
     });
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
