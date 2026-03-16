@@ -780,18 +780,19 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     startApprovedAnimation();
-                    approveMoneyRequest(
-                        iouReport,
-                        activePolicy,
-                        currentUserDetails.accountID,
-                        currentUserDetails.email ?? '',
+                    approveMoneyRequest({
+                        amountOwed,
+                        expenseReport: iouReport,
+                        policy: activePolicy,
+                        currentUserAccountIDParam: currentUserDetails.accountID,
+                        currentUserEmailParam: currentUserDetails.email ?? '',
                         hasViolations,
                         isASAPSubmitBetaEnabled,
-                        iouReportNextStep,
+                        expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                         betas,
                         userBillingGraceEndPeriods,
-                        isFullApproval,
-                    );
+                        full: isFullApproval,
+                    });
                 }}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
