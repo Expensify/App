@@ -12,7 +12,14 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, removeMoneyRequestOdometerImage, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU';
+import {
+    detachReceipt,
+    navigateToStartStepIfScanFileCannotBeRead,
+    removeMoneyRequestOdometerImage,
+    replaceReceipt,
+    setMoneyRequestOdometerImage,
+    setMoneyRequestReceipt,
+} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
@@ -284,7 +291,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const file = rotatedImage as File;
                 const rotatedFilename = file.name ?? receiptFilename;
 
-                if (isDraftTransaction) {
+                if (isOdometerImage) {
+                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction);
+                } else if (isDraftTransaction) {
                     setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, receiptType);
                 } else {
                     replaceReceipt({
@@ -302,7 +311,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsRotating(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt, policy]);
+    }, [transaction?.transactionID, isDraftTransaction, isOdometerImage, imageType, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt, policy]);
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
@@ -371,7 +380,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const file = croppedImage as File;
                 const croppedFilename = file.name ?? receiptFilename;
 
-                if (isDraftTransaction) {
+                if (isOdometerImage) {
+                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction);
+                } else if (isDraftTransaction) {
                     setMoneyRequestReceipt(transaction.transactionID, imageUriResult, croppedFilename, isDraftTransaction, receiptType);
                 } else {
                     replaceReceipt({
@@ -388,7 +399,20 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsCropSaving(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, cropRect, receiptFilename, policyCategories, transaction?.receipt?.type, policy, exitCropMode]);
+    }, [
+        transaction?.transactionID,
+        isDraftTransaction,
+        isOdometerImage,
+        imageType,
+        sourceUri,
+        isImage,
+        cropRect,
+        receiptFilename,
+        policyCategories,
+        transaction?.receipt?.type,
+        policy,
+        exitCropMode,
+    ]);
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
