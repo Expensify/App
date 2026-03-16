@@ -203,6 +203,8 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
                 onClose={() => setSavedSearchToModifyKey(null)}
                 onModalHide={() => setRestoreFocusType(undefined)}
                 isVisible={!!shouldShowSavedSearchPopover}
+                // This component is only displayed when isSmallScreenWidth is true, so
+                // anchorPosition is ignored anyway
                 anchorPosition={{horizontal: 0, vertical: 0}}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,

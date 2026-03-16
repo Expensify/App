@@ -23,7 +23,7 @@ type TabLabelProps = {
     textStyle?: StyleProp<TextStyle>;
 };
 
-function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1, hasIcon = false, textStyle = false}: TabLabelProps) {
+function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1, hasIcon = false, textStyle}: TabLabelProps) {
     const styles = useThemeStyles();
     return (
         <View style={{maxWidth: variables.tabSelectorMaxTabLabelWidth}}>

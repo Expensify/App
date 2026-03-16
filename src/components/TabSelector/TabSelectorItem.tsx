@@ -60,7 +60,7 @@ function TabSelectorItem({
                 styles.tabSelectorButton,
                 styles.tabBackground(isHovered, isActive, disabled, backgroundColor),
                 styles.userSelectNone,
-                isOfflinePendingAction && styles.offlineFeedbackPending,
+                isOfflinePendingAction ? styles.offlineFeedbackPending : undefined,
             ]}
             wrapperStyle={equalWidth ? styles.flex1 : styles.flexGrow1}
             onLongPress={onLongPress}
@@ -84,7 +84,7 @@ function TabSelectorItem({
             />
             {(shouldShowLabelWhenInactive || isActive) && (
                 <TabLabel
-                    textStyle={needsStrikeThrough && styles.offlineFeedbackDeleted}
+                    textStyle={needsStrikeThrough ? styles.offlineFeedbackDeleted : undefined}
                     title={title}
                     activeOpacity={styles.tabOpacity(disabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(disabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
