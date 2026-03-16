@@ -870,18 +870,10 @@ describe('API.write() persistence guarantees', () => {
             let optimisticDataApplied = false;
             let requestPersistedBeforeOptimistic = false;
 
-            // Mock Onyx.update so that when it receives our marker key we snapshot the
-            // persisted-requests queue. This avoids spy-ordering issues that caused
-            // false passes on CI.
             const updateMock = jest.spyOn(Onyx, 'update').mockImplementation((data) => {
-                // We use ONYXKEYS.IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
                 const hasMarker = data.some((entry) => entry.key === ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
                 if (hasMarker) {
                     optimisticDataApplied = true;
-                    // Note: getAll() checks the in-memory queue, not durable (disk) state.
-                    // This is intentionally a weaker assertion – if even the in-memory
-                    // ordering is wrong (request not queued before optimistic data), the
-                    // stronger disk-persistence guarantee is certainly broken too.
                     requestPersistedBeforeOptimistic = PersistedRequests.getAll().some((r) => r.command === 'MockCommand');
                 }
                 return Promise.resolve();
@@ -898,11 +890,7 @@ describe('API.write() persistence guarantees', () => {
                     ],
                 });
 
-                // Guard: ensure our mock actually intercepted the optimistic data.
-                // Without this, the test could pass for the wrong reason (e.g. mock
-                // never fires, flag stays false, and we'd incorrectly confirm the bug).
                 expect(optimisticDataApplied).toBe(true);
-
                 // BUG: The request is NOT in the persisted queue when optimistic data is
                 // applied. When fixed, this assertion should be changed to toBe(true).
                 expect(requestPersistedBeforeOptimistic).toBe(false);
@@ -952,12 +940,11 @@ describe('API.write() persistence guarantees', () => {
             // Flush one microtask to give writePromise.then() a chance to fire.
             return Promise.resolve()
                 .then(() => {
-                    // BUG: The write promise resolved despite persistence being permanently
-                    // stalled. processRequest() returns Promise.resolve() (API/index.ts:148)
-                    // which is disconnected from the persistence pipeline.
-                    // When fixed, this should be changed to toBe(false) — the write promise
-                    // should NOT resolve until persistence completes.
-                    expect(writePromiseResolved).toBe(true);
+                    // FIX: The write promise no longer resolves immediately.
+                    // processRequest() now awaits pushToSequentialQueue() which awaits
+                    // PersistedRequests.save()'s Onyx.set() promise. Since we mocked
+                    // Onyx.set to never resolve, the write promise correctly stalls.
+                    expect(writePromiseResolved).toBe(false);
                 })
                 .finally(() => {
                     setMock.mockRestore();

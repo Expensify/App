@@ -122,13 +122,13 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
 /**
  * Process a prepared request according to its type.
  */
-function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, type: ApiRequestType): Promise<void | Response<TKey>> {
+async function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, type: ApiRequestType): Promise<void | Response<TKey>> {
     Log.info('[API] Processing request', false, {command: request.command, type});
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
         Log.info('[API] Write command. Pushing to SequentialQueue', false, {command: request.command});
-        pushToSequentialQueue(request);
-        return Promise.resolve();
+        await pushToSequentialQueue(request);
+        return;
     }
 
     // Read requests are processed right away, but don't return the response to the caller
@@ -164,6 +164,7 @@ function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
 ): Promise<void | Response<TKey>> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData, conflictResolver);
+
     return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 

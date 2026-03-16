@@ -116,7 +116,7 @@ function getLength(): number {
     return persistedRequests.length + (ongoingRequest ? 1 : 0);
 }
 
-function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>) {
+function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<void> {
     Log.info('[PersistedRequests] Saving request to queue started', false, {
         command: requestToPersist.command,
         currentQueueLength: persistedRequests.length,
@@ -129,7 +129,7 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>) {
             pendingSaveOperationsLength: pendingSaveOperations.length,
         });
         pendingSaveOperations.push(requestToPersist as AnyRequest);
-        return;
+        return Promise.resolve();
     }
 
     // If the command is not in the keepLastInstance array, add the new request as usual
@@ -143,7 +143,7 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>) {
         newQueueLength: requests.length,
     });
 
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests as AnyRequest[])
+    return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests as AnyRequest[])
         .then(() => {
             Log.info('[PersistedRequests] Request successfully persisted to disk', false, {
                 command: requestToPersist.command,
