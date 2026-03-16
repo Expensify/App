@@ -1,3 +1,4 @@
+// cspell:ignore EFGH IJKL MNOP SECRETKEY ANYSECRET
 import {buildAuthenticatorUrl, splitSecretInChunks} from '@libs/TwoFactorAuthUtils';
 
 describe('TwoFactorAuthUtils', () => {

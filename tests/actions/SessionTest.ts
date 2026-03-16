@@ -1,3 +1,4 @@
+// cspell:ignore SOMESECRETKEY
 import {beforeEach, jest, test} from '@jest/globals';
 import {openAuthSessionAsync} from 'expo-web-browser';
 import Onyx from 'react-native-onyx';
