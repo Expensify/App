@@ -1229,7 +1229,7 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
 }
 
 function updateThemeInPlace(theme: ValueOf<typeof CONST.THEME>) {
-    Onyx.set(ONYXKEYS.PREFERRED_THEME, theme as ValueOf<typeof CONST.THEME>);
+    Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
 }
 
 /**

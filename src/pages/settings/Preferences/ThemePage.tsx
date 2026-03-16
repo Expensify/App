@@ -12,32 +12,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getBaseTheme, getContrastTheme, isHighContrastTheme} from '@styles/theme/utils';
 import {updateThemeInPlace, updateTheme as updateThemeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type ThemeEntry = ListItem & {
     value: ValueOf<typeof CONST.THEME>;
-};
-
-const CONTRAST_MAP: Record<string, string> = {
-    [CONST.THEME.LIGHT]: CONST.THEME.LIGHT_CONTRAST,
-    [CONST.THEME.DARK]: CONST.THEME.DARK_CONTRAST,
-    [CONST.THEME.SYSTEM]: CONST.THEME.SYSTEM_CONTRAST,
-    [CONST.THEME.LIGHT_CONTRAST]: CONST.THEME.LIGHT,
-    [CONST.THEME.DARK_CONTRAST]: CONST.THEME.DARK,
-    [CONST.THEME.SYSTEM_CONTRAST]: CONST.THEME.SYSTEM,
-};
-
-const HIGH_CONTRAST_THEMES = new Set<string>([CONST.THEME.LIGHT_CONTRAST, CONST.THEME.DARK_CONTRAST, CONST.THEME.SYSTEM_CONTRAST]);
-
-const BASE_THEME_MAP: Record<string, string> = {
-    [CONST.THEME.LIGHT]: CONST.THEME.LIGHT,
-    [CONST.THEME.DARK]: CONST.THEME.DARK,
-    [CONST.THEME.SYSTEM]: CONST.THEME.SYSTEM,
-    [CONST.THEME.LIGHT_CONTRAST]: CONST.THEME.LIGHT,
-    [CONST.THEME.DARK_CONTRAST]: CONST.THEME.DARK,
-    [CONST.THEME.SYSTEM_CONTRAST]: CONST.THEME.SYSTEM,
 };
 
 const BASE_THEMES = [CONST.THEME.LIGHT, CONST.THEME.DARK, CONST.THEME.SYSTEM] as const;
@@ -49,8 +30,8 @@ function ThemePage() {
     const isOptionSelected = useRef(false);
 
     const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
-    const isHighContrast = HIGH_CONTRAST_THEMES.has(currentTheme);
-    const currentBaseTheme = BASE_THEME_MAP[currentTheme] ?? CONST.THEME.SYSTEM;
+    const isHighContrast = isHighContrastTheme(currentTheme);
+    const currentBaseTheme = getBaseTheme(currentTheme);
 
     const localesToThemes = BASE_THEMES.map((theme) => ({
         value: theme,
@@ -64,13 +45,13 @@ function ThemePage() {
             return;
         }
         isOptionSelected.current = true;
-        const themeToStore = isHighContrast ? (CONTRAST_MAP[selectedTheme.value] ?? selectedTheme.value) : selectedTheme.value;
-        updateThemeUserAction(themeToStore as ValueOf<typeof CONST.THEME>);
+        const themeToStore = isHighContrast ? getContrastTheme(selectedTheme.value) : selectedTheme.value;
+        updateThemeUserAction(themeToStore);
     };
 
     const onToggleHighContrast = (enabled: boolean) => {
-        const newTheme = enabled ? (CONTRAST_MAP[currentBaseTheme] ?? currentTheme) : currentBaseTheme;
-        updateThemeInPlace(newTheme as ValueOf<typeof CONST.THEME>);
+        const newTheme = enabled ? getContrastTheme(currentBaseTheme) : currentBaseTheme;
+        updateThemeInPlace(newTheme);
     };
 
     return (
