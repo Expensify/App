@@ -399,9 +399,7 @@ describe('IOURequestStepHours', () => {
             fireEvent.press(nextButton);
 
             await waitFor(() => {
-                expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID),
-                );
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID));
             });
         });
 
@@ -434,9 +432,7 @@ describe('IOURequestStepHours', () => {
             fireEvent.press(nextButton);
 
             await waitFor(() => {
-                expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID),
-                );
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID));
             });
         });
     });
