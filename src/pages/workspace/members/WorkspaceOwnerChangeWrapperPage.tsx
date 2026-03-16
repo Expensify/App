@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import shouldShowChangeWorkspaceOwnerPage from '@libs/shouldShowChangeWorkspaceOwnerPage';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
@@ -74,6 +75,12 @@ function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: Works
 
     const isLoading = isLoadingPolicy || !!policy?.isLoading;
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceOwnerChangeWrapperPage',
+        isLoadingPolicy: !!isLoadingPolicy,
+        isPolicyLoading: !!policy?.isLoading,
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -94,7 +101,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: Works
                     }}
                 />
                 <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
-                    {isLoading && <FullScreenLoadingIndicator />}
+                    {isLoading && <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />}
                     {shouldShowPaymentCardForm && <WorkspaceOwnerPaymentCardForm policy={policy} />}
                     {!isLoading && !shouldShowPaymentCardForm && (
                         <WorkspaceOwnerChangeCheck
