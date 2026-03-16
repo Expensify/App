@@ -12,6 +12,7 @@ const lightContrastTheme = {
     buttonIcon: colors.productLight900,
     mentionText: colors.blue700,
     textLight: colors.productLight900,
+    iconColorfulBackground: colors.yellow800,
 } satisfies ThemeColors;
 
 export default lightContrastTheme;
