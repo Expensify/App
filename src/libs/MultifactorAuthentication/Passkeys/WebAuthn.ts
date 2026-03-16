@@ -11,7 +11,7 @@ import Base64URL from '@src/utils/Base64URL';
  */
 const PASSKEY_AUTH_TYPE = {
     NAME: 'Passkey',
-    MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
+    MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.OTHER,
 } as const;
 
 /** Encodes an ArrayBuffer as a Base64URL string. */
