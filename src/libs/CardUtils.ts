@@ -1106,44 +1106,54 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
 }
 
 /**
+ * The set of valid card program keys used to key nested settings in ExpensifyCardSettings.
+ * 'US' and 'GB' are geo-based programs, 'CURRENT' is the legacy pre-2024 US program,
+ * and 'TRAVEL_US' is the travel invoicing program. These map directly to the keys
+ * the backend nests card settings under.
+ */
+type CardProgramKey = typeof CONST.COUNTRY.US | typeof CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT | typeof CONST.COUNTRY.GB | typeof CONST.TRAVEL.PROGRAM_TRAVEL_US;
+
+/**
  * Detects which card program key exists in the card settings object.
  * Returns the first matching program key (US, CURRENT, or GB), or undefined if none found.
  * Used to determine the correct nested key for optimistic writes.
  */
-function getCardFeedCountry(cardSettings: OnyxEntry<ExpensifyCardSettings>): string | undefined {
+function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): CardProgramKey | undefined {
     if (!cardSettings) {
         return undefined;
     }
 
-    const programKeys = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB];
+    const programKeys: CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB];
     return programKeys.find((key) => {
-        const value = cardSettings[key as keyof typeof cardSettings];
-        return value && typeof value === 'object' && !Array.isArray(value);
+        const value = cardSettings[key];
+        return value !== null && typeof value === 'object' && !Array.isArray(value);
     });
 }
 
-function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCountry?: string): ExpensifyCardSettingsBase | undefined {
+function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): ExpensifyCardSettingsBase | undefined {
     if (!cardSettings) {
         return undefined;
     }
 
-    const getMergedProgramSettings = (programKey: string): ExpensifyCardSettingsBase | undefined => {
-        const programSettings = cardSettings[programKey as keyof typeof cardSettings];
+    const getMergedProgramSettings = (key: CardProgramKey): ExpensifyCardSettingsBase | undefined => {
+        const programSettings = cardSettings[key];
         if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
             // Nested program values take precedence — they are the authoritative source for
             // program-specific fields (e.g. paymentBankAccountID, monthlySettlementDate).
-            return {...cardSettings, ...(programSettings as ExpensifyCardSettingsBase)} as ExpensifyCardSettingsBase;
+            return {...cardSettings, ...programSettings} as ExpensifyCardSettingsBase;
         }
         return undefined;
     };
 
-    if (feedCountry) {
-        return getMergedProgramSettings(feedCountry);
+    if (programKey) {
+        return getMergedProgramSettings(programKey);
     }
 
     // Auto-detect: try known card programs in priority order.
-    // Newer domains have settings nested under US/GB, legacy ones under
-    // CURRENT. Fall back to the flat root for domains the backend sends as-is.
+    // Newer domains nest settings under US/GB, legacy ones under CURRENT.
+    // The flat root fallback supports domains that the backend still sends without nesting
+    // (e.g. older accounts that haven't been migrated). Writes always go to the nested key
+    // (via getCardProgramKey), so this flat path is read-only display fallback only.
     return (
         getMergedProgramSettings(CONST.COUNTRY.US) ??
         getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ??
@@ -1490,7 +1500,7 @@ export {
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     getCardSettings,
-    getCardFeedCountry,
+    getCardProgramKey,
     filterAllInactiveCards,
     filterInactiveCards,
     isCardPendingIssue,
@@ -1527,4 +1537,4 @@ export {
     isExpiredCard,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};
