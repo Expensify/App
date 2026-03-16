@@ -60,6 +60,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
+import {getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -2912,7 +2913,7 @@ function getWorkspaceCategoriesUpdatedMessage(translate: LocalizedTranslate, act
     const parsedCount = typeof count === 'number' ? count : Number(count);
 
     if (!Number.isNaN(parsedCount)) {
-        return translate('workspaceActions.updateCategories', {count: parsedCount});
+        return translate('workspaceActions.updateCategories', parsedCount);
     }
 
     return getReportActionText(action);
@@ -3046,9 +3047,7 @@ function getTagListNameUpdatedMessage(translate: LocalizedTranslate, action: Rep
 function getTagListUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {tagListName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST>) ?? {};
     if (tagListName) {
-        return translate('workspaceActions.updateTagList', {
-            tagListName,
-        });
+        return translate('workspaceActions.updateTagList', tagListName);
     }
     return getReportActionText(action);
 }
@@ -3068,9 +3067,7 @@ function getWorkspaceCustomUnitUpdatedMessage(translate: LocalizedTranslate, act
     const {oldValue, newValue, customUnitName, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT>) ?? {};
 
     if (customUnitName === 'Distance' && updatedField === 'taxEnabled' && typeof newValue === 'boolean') {
-        return translate('workspaceActions.updateCustomUnitTaxEnabled', {
-            newValue,
-        });
+        return translate('workspaceActions.updateCustomUnitTaxEnabled', newValue);
     }
 
     if (customUnitName && typeof oldValue === 'string' && typeof newValue === 'string' && updatedField === 'defaultCategory') {
@@ -3097,9 +3094,7 @@ function getWorkspaceCustomUnitRateImportedMessage(translate: LocalizedTranslate
     const {customUnitName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES>) ?? {};
 
     if (customUnitName) {
-        return translate('workspaceActions.importCustomUnitRates', {
-            customUnitName,
-        });
+        return translate('workspaceActions.importCustomUnitRates', customUnitName);
     }
 
     return getReportActionText(action);
@@ -3301,8 +3296,8 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
 }
 
 type CompanyAddressOriginalMessage = {
-    newAddress: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string};
-    oldAddress?: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
+    newAddress: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string};
+    oldAddress?: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
 };
 
 /**
@@ -3313,10 +3308,7 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
         return '';
     }
 
-    const [street1Raw, street2Raw] = (address.addressStreet ?? '').split('\n');
-    const street1 = street1Raw?.trim() ?? '';
-    const street2 = street2Raw?.trim() ?? '';
-
+    const {streetLineOne: street1, streetLineTwo: street2} = getWorkspaceAddressStreetLines(address.addressStreet, address.addressStreet2);
     const parts: string[] = [];
 
     if (street1) {
@@ -3536,7 +3528,7 @@ function getWorkspaceReimbursementUpdateMessage(translate: LocalizedTranslate, a
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED && typeof enabled === 'boolean') {
-        return translate('workspaceActions.updateReimbursementEnabled', {enabled});
+        return translate('workspaceActions.updateReimbursementEnabled', enabled);
     }
 
     return getReportActionText(action);
@@ -3913,7 +3905,7 @@ function getUpdatedTimeEnabledMessage(translate: LocalizedTranslate, reportActio
     const {enabled} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED>) ?? {};
 
     if (typeof enabled === 'boolean') {
-        return translate('workspaceActions.updatedTimeEnabled', {enabled});
+        return translate('workspaceActions.updatedTimeEnabled', enabled);
     }
 
     return getReportActionText(reportAction);
@@ -3989,7 +3981,7 @@ function getUpdatedAutoHarvestingMessage(translate: LocalizedTranslate, reportAc
     const {value} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING>) ?? {};
 
     if (typeof value === 'boolean') {
-        return translate('workspaceActions.updatedAutoHarvesting', {enabled: value});
+        return translate('workspaceActions.updatedAutoHarvesting', value);
     }
 
     return getReportActionText(reportAction);
@@ -4561,6 +4553,7 @@ export {
     getWorkspaceAttendeeTrackingUpdateMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    formatAddressToString,
     getCompanyAddressUpdateMessage,
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,
