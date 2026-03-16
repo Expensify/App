@@ -9,12 +9,12 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
 type Props = {
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 const ITEM_HEIGHT = 64;
 
-function FixCompanyCardConnectionSkeleton({reasonAttributes}: Props = {}) {
+function FixCompanyCardConnectionSkeleton({reasonAttributes}: Props) {
     const {onLayout, containerWidth: pageWidth} = useContainerWidth();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

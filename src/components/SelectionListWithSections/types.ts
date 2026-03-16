@@ -812,7 +812,7 @@ type LoadingPlaceholderComponentProps = {
     shouldStyleAsTable?: boolean;
     fixedNumItems?: number;
     speed?: number;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
