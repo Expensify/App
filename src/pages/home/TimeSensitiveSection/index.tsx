@@ -13,8 +13,8 @@ import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/acti
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
-import useTimeSensitiveOffers from './hooks/useTimeSensitiveOffers';
 import ActivateCard from './items/ActivateCard';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
@@ -57,7 +57,7 @@ function TimeSensitiveSection() {
     const {login} = useCurrentUserPersonalDetails();
 
     // Use custom hooks for offers and cards (Release 3)
-    const {shouldShowAddPaymentCard} = useTimeSensitiveOffers();
+    const {shouldShowAddPaymentCard} = useTimeSensitiveBilling();
     const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
 
     // Selector for filtering admin policies (Release 4)
