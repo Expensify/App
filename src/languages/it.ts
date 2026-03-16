@@ -8254,7 +8254,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             discountCode: 'Codice sconto',
             enterCode: 'Inserisci un codice Expensify da applicare al tuo abbonamento.',
             discountMessage: (promoDiscount: string, validBillingCycles: string) =>
-                `Riceverai uno sconto del ${promoDiscount}% sui tuoi prossimi ${validBillingCycles} addebiti di fatturazione.`,
+                `Riceverai uno sconto del ${promoDiscount}% sui tuoi prossimi ${validBillingCycles ? `${validBillingCycles} ` : ''}addebiti di fatturazione.`,
             apply: 'Applica',
             error: {
                 invalid: 'Questo codice non è valido',

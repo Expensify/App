@@ -8290,7 +8290,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             discountCode: 'Code de réduction',
             enterCode: 'Saisissez un code Expensify à appliquer à votre abonnement.',
             discountMessage: (promoDiscount: string, validBillingCycles: string) =>
-                `Vous bénéficierez de ${promoDiscount}% de réduction sur vos ${validBillingCycles} prochaines facturations.`,
+                `Vous bénéficierez de ${promoDiscount}% de réduction sur vos ${validBillingCycles ? `${validBillingCycles} ` : ''}prochaines facturations.`,
             apply: 'Appliquer',
             error: {
                 invalid: "Ce code n'est pas valide",

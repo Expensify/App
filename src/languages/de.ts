@@ -8268,7 +8268,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             title: 'Expensify-Code',
             discountCode: 'Rabattcode',
             enterCode: 'Geben Sie einen Expensify-Code ein, um ihn auf Ihr Abonnement anzuwenden.',
-            discountMessage: (promoDiscount: string, validBillingCycles: string) => `Du erhältst ${promoDiscount}% Rabatt auf deine nächsten ${validBillingCycles} Abrechnungen.`,
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Du erhältst ${promoDiscount}% Rabatt auf deine nächsten ${validBillingCycles ? `${validBillingCycles} ` : ''}Abrechnungen.`,
             apply: 'Anwenden',
             error: {
                 invalid: 'Dieser Code ist ungültig',

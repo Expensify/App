@@ -8487,7 +8487,7 @@ ${amount} para ${merchant} - ${date}`,
             discountCode: 'Código de descuento',
             enterCode: 'Introduce un código Expensify para aplicarlo a tu suscripción.',
             discountMessage: (promoDiscount: string, validBillingCycles: string) =>
-                `Obtendrás un ${promoDiscount}% de descuento en tus próximos ${validBillingCycles} cargos de facturación.`,
+                `Obtendrás un ${promoDiscount}% de descuento en tus próximos ${validBillingCycles ? `${validBillingCycles} ` : ''}cargos de facturación.`,
             apply: 'Aplicar',
             error: {
                 invalid: 'Este código no es válido',

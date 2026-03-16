@@ -8161,7 +8161,8 @@ ${reportName}
             title: 'Expensifyコード',
             discountCode: '割引コード',
             enterCode: 'サブスクリプションに適用するExpensifyコードを入力してください。',
-            discountMessage: (promoDiscount: string, validBillingCycles: string) => `次の${validBillingCycles}回の請求に対して${promoDiscount}%の割引が適用されます。`,
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `次の${validBillingCycles ? `${validBillingCycles}回の` : ''}請求に対して${promoDiscount}%の割引が適用されます。`,
             apply: '適用',
             error: {
                 invalid: 'このコードは無効です',
