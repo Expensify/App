@@ -1,11 +1,9 @@
 import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
@@ -26,6 +24,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCardFeedIcon, getCardFeedWithDomainID, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -35,10 +34,12 @@ import variables from '@styles/variables';
 import {updateSelectedFeed} from '@userActions/Card';
 import {clearAddNewCardFlow, linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
 
@@ -54,6 +55,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {isBlockedToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const [feedWithError, setFeedWithError] = useState<{feed?: string; error?: Errors} | undefined>(undefined);
 
     const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
@@ -117,7 +119,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     };
 
     const selectOtherFeed = (feed: CardFeedListItem) => {
-        if (!isUserFromPublicDomain) {
+        if (isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
             return;
         }
@@ -125,9 +127,21 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             return;
         }
         const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID) as CompanyCardFeedWithDomainID;
-        linkCardFeedToPolicy(feed.fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feed?.country, feed.feed);
-        updateSelectedFeed(feedValue, policyID);
-        goBack();
+        linkCardFeedToPolicy(feed.fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feed?.country, feed.feed)
+            .then(() => {
+                updateSelectedFeed(feedValue, policyID);
+                goBack();
+            })
+            .catch((error: TranslationPaths) => {
+                setFeedWithError({
+                    feed: feed.value,
+                    error: getMicroSecondOnyxErrorWithTranslationKey(error),
+                });
+            });
+    };
+
+    const onDismissError = () => {
+        setFeedWithError(undefined);
     };
 
     return (
@@ -163,18 +177,20 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                             {otherFeeds.length > 0 && (
                                 <>
                                     <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
-                                    {otherFeeds.map((feed) => (
-                                        <RadioListItem
-                                            key={feed.value}
-                                            keyForList={feed.value}
-                                            showTooltip={false}
-                                            item={feed}
-                                            onSelectRow={selectOtherFeed}
-                                        />
-                                    ))}
-                                    <View style={[styles.ph5, styles.mt2]}>
-                                        <RenderHTML html={translate('workspace.companyCards.otherWorkspacesDescription')} />
-                                    </View>
+                                    {otherFeeds.map((feed) => {
+                                        const isFeedWithError = feedWithError?.feed === feed.value;
+                                        const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
+                                        return (
+                                            <RadioListItem
+                                                onDismissError={onDismissError}
+                                                key={feed.value}
+                                                keyForList={feed.value}
+                                                showTooltip={false}
+                                                item={itemWithError}
+                                                onSelectRow={selectOtherFeed}
+                                            />
+                                        );
+                                    })}
                                 </>
                             )}
                         </>

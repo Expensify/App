@@ -4953,8 +4953,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             fromOtherWorkspaces: 'Uit andere workspaces',
             addWorkEmail: 'Werkmail toevoegen',
             addWorkEmailTitle: 'Voeg je werkmail toe om deze feed te gebruiken',
-            addWorkEmailDescription: 'Om feeds in meerdere workspaces te kunnen gebruiken, moet je eerst je werkmail toevoegen',
-            otherWorkspacesDescription: `<muted-text-label>Voeg je zakelijke e-mailadres toe om een bestaande feed te hergebruiken. <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">Zie instructies</a>.</muted-text-label>`,
+            addWorkEmailDescription: 'Voeg je werkmail toe om bestaande feeds van andere workspaces te gebruiken.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kaartfeeds konden niet worden geladen',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Er is een fout opgetreden bij het laden van workspacekaartfeeds. Probeer het opnieuw of neem contact op met je beheerder.',

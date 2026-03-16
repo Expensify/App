@@ -4946,8 +4946,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             fromOtherWorkspaces: 'De outros workspaces',
             addWorkEmail: 'Adicionar e-mail de trabalho',
             addWorkEmailTitle: 'Adicione seu e-mail de trabalho para usar este feed',
-            addWorkEmailDescription: 'Para usar feeds em vários workspaces, primeiro você precisa adicionar seu e-mail de trabalho',
-            otherWorkspacesDescription: `<muted-text-label>Adicione seu e-mail corporativo para reutilizar o feed existente. <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">Ver instruções</a>.</muted-text-label>`,
+            addWorkEmailDescription: 'Adicione seu e-mail de trabalho para usar os feeds existentes de outros workspaces.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Não foi possível carregar os feeds do cartão',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar os feeds de cartões do workspace. Tente novamente ou contate o seu administrador.',

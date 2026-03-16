@@ -4977,8 +4977,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             fromOtherWorkspaces: 'Aus anderen Workspaces',
             addWorkEmail: 'Arbeits-E-Mail hinzufügen',
             addWorkEmailTitle: 'Arbeits-E-Mail hinzufügen, um diesen Feed zu nutzen',
-            addWorkEmailDescription: 'Um Feeds übergreifend für Workspaces nutzen zu können, müssen Sie zuerst Ihre Arbeits-E-Mail hinzufügen',
-            otherWorkspacesDescription: `<muted-text-label>Bitte fügen Sie Ihre Unternehmens-E-Mail-Adresse hinzu, um einen vorhandenen Feed wiederzuverwenden. <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">Anleitung ansehen</a>.</muted-text-label>`,
+            addWorkEmailDescription: 'Bitte fügen Sie Ihre Arbeits-E-Mail hinzu, um vorhandene Feeds aus anderen Workspaces zu nutzen.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kartendaten konnten nicht geladen werden',
                 workspaceFeedsCouldNotBeLoadedMessage:

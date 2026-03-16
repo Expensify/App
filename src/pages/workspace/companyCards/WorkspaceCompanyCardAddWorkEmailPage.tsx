@@ -105,7 +105,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={translate('workspace.companyCards.addWorkEmail')} />
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('workspace.companyCards.addWorkEmailTitle')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('workspace.companyCards.addWorkEmail')}</Text>
                 <Text style={[styles.mt2, styles.mb4, styles.ph5, styles.textSupporting]}>{translate('workspace.companyCards.addWorkEmailDescription')}</Text>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM}

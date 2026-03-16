@@ -4986,8 +4986,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             fromOtherWorkspaces: "D'autres espaces de travail",
             addWorkEmail: 'Ajouter une adresse e-mail professionnelle',
             addWorkEmailTitle: 'Ajoutez votre e-mail professionnel pour utiliser cette source',
-            addWorkEmailDescription: "Pour utiliser les sources entre espaces de travail, vous devez d'abord ajouter votre e-mail professionnel",
-            otherWorkspacesDescription: `<muted-text-label>Veuillez ajouter votre adresse e-mail professionnelle pour réutiliser la source existante. <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">Voir les instructions</a>.</muted-text-label>`,
+            addWorkEmailDescription: "Veuillez ajouter votre e-mail professionnel pour utiliser les flux existants d'autres espaces de travail.",
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de cartes',
                 workspaceFeedsCouldNotBeLoadedMessage:

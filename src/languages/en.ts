@@ -4972,9 +4972,7 @@ const translations = {
             selectCards: 'Select cards',
             fromOtherWorkspaces: 'From other workspaces',
             addWorkEmail: 'Add work email',
-            addWorkEmailTitle: 'Add work email to use this feed',
-            addWorkEmailDescription: 'To be able to use feeds across workspaces you first need to add your work email',
-            otherWorkspacesDescription: `<muted-text-label>Please add your company email address to re-use existing feed. <a href="${CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}">See instructions</a>.</muted-text-label>`,
+            addWorkEmailDescription: 'Please add your work email in order to use existing feeds from other workspaces.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: "Couldn't load card feeds",
                 workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
