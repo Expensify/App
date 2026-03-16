@@ -7569,6 +7569,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         taxAmount,
         taxCode,
         merchant,
+        modifiedAmount,
         billable,
         reimbursable,
         validWaypoints,
@@ -7746,6 +7747,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         }
 
         parameters = {
+            amount: modifiedAmount ?? undefined,
             comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
