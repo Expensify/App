@@ -4,7 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -53,10 +53,11 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {isMovingExpenses, backTo} = route.params ?? {};
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
-    const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactions, selectedTransactionIDs} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, toLocaleDigit} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
@@ -69,6 +70,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -127,6 +129,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     reportNextStep,
                     policyCategories: undefined,
                     allTransactions,
+                    translate,
+                    toLocaleDigit,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values
@@ -177,7 +181,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return;
         }
 
-        if (shouldRestrictUserBillableActions(policy.policyID)) {
+        if (shouldRestrictUserBillableActions(policy.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
             return;
         }
@@ -263,7 +267,10 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     />
                     {CreateReportConfirmationModal}
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={{context: 'NewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
+                        />
                     ) : (
                         <>
                             <Text style={[styles.ph5, styles.mb3]}>{translate('report.newReport.chooseWorkspace')}</Text>
@@ -272,7 +279,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                                 ListItem={UserListItem}
                                 onSelectRow={selectPolicy}
                                 textInputOptions={textInputOptions}
-                                showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                                shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             />
                         </>
                     )}

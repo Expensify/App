@@ -2,6 +2,7 @@ import {getUnixTime} from 'date-fns';
 import lodashClone from 'lodash/clone';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     ChangeTransactionsReportParams,
@@ -33,7 +34,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {isManagedCardTransaction, isOnHold, recalculateUnreportedTransactionDetails, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -798,10 +799,12 @@ type ChangeTransactionsReportProps = {
     accountID: number;
     email: string;
     newReport?: OnyxEntry<Report>;
-    policy?: OnyxEntry<Policy>;
+    policy: OnyxEntry<Policy>;
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
+    translate: LocaleContextProps['translate'];
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
 };
 
 function changeTransactionsReport({
@@ -814,6 +817,8 @@ function changeTransactionsReport({
     reportNextStep,
     policyCategories,
     allTransactions,
+    translate,
+    toLocaleDigit,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -991,6 +996,10 @@ function changeTransactionsReport({
             created: oldIOUAction?.created ?? DateUtils.getDBTime(),
         };
 
+        const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = isUnreported
+            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit)
+            : {};
+
         // 1. Optimistically change the reportID on the passed transactions
         // Only set pendingAction for transactions that need convertedAmount recalculation
         optimisticData.push({
@@ -998,12 +1007,11 @@ function changeTransactionsReport({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                comment,
+                modifiedAmount,
+                modifiedCurrency,
+                modifiedMerchant,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-                ...(isUnreported && {
-                    comment: {
-                        hold: null,
-                    },
-                }),
                 ...(shouldClearAmount && {convertedAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
             },
@@ -1023,16 +1031,17 @@ function changeTransactionsReport({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID: transaction.reportID,
+                comment: transaction.comment,
+                modifiedAmount: transaction.modifiedAmount,
+                modifiedCurrency: transaction.modifiedCurrency,
+                modifiedMerchant: transaction.modifiedMerchant,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
-                comment: {
-                    hold: transaction.comment?.hold,
-                },
                 ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
             },
         });
 
         // Optimistically clear all violations for the transaction when moving to self DM report
-        if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        if (isUnreported) {
             const duplicateViolation = currentTransactionViolations?.[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
             const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
             if (duplicateTransactionIDs) {
@@ -1117,18 +1126,29 @@ function changeTransactionsReport({
 
         // 3. Keep track of the new report totals
         const targetReportID = isUnreported ? selfDMReportID : reportID;
-        const {amount: transactionAmount = 0, currency: transactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
+        const {amount: oldTransactionAmount = 0, currency: oldTransactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
+        const {amount: newTransactionAmount = 0, currency: newTransactionCurrency} =
+            getTransactionDetails(
+                {
+                    ...transaction,
+                    modifiedAmount: modifiedAmount ?? transaction.modifiedAmount,
+                    modifiedCurrency: modifiedCurrency ?? transaction.modifiedCurrency,
+                },
+                undefined,
+                undefined,
+                allowNegative,
+            ) ?? {};
         const oldReportTotal = oldReport?.total ?? 0;
-        const updatedReportTotal = transactionAmount < 0 ? oldReportTotal - transactionAmount : oldReportTotal + transactionAmount;
+        const updatedReportTotal = oldTransactionAmount < 0 ? oldReportTotal - oldTransactionAmount : oldReportTotal + oldTransactionAmount;
 
-        if (oldReport && oldReport.currency === transactionCurrency) {
+        if (oldReport && oldReport.currency === oldTransactionCurrency) {
             updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
             updatedReportNonReimbursableTotals[oldReportID] =
                 (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
-                (transaction?.reimbursable ? 0 : transactionAmount);
+                (transaction?.reimbursable ? 0 : oldTransactionAmount);
             updatedReportUnheldNonReimbursableTotals[oldReportID] =
                 (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
-                (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
+                (transaction?.reimbursable && !isOnHold(transaction) ? 0 : oldTransactionAmount);
         }
 
         if (targetReportID) {
@@ -1136,16 +1156,16 @@ function changeTransactionsReport({
             const targetReport =
                 allReports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
 
-            if (transactionCurrency === targetReport?.currency) {
+            if (newTransactionCurrency === targetReport?.currency) {
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
-                updatedReportTotals[targetReportID] = currentTotal - transactionAmount;
+                updatedReportTotals[targetReportID] = currentTotal - newTransactionAmount;
 
                 const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
-                updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : transactionAmount);
+                updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : newTransactionAmount);
 
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
-                updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
-            } else if (transaction.convertedAmount && oldReport?.currency === targetReport?.currency) {
+                updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : newTransactionAmount);
+            } else if (!shouldClearAmount && transaction.convertedAmount && oldReport?.currency === targetReport?.currency) {
                 // Use convertedAmount when transaction currency differs but workspace currency is the same
                 const {convertedAmount} = transaction;
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;

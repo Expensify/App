@@ -54,6 +54,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const reportAttributesDerived = useReportAttributes();
     const personalDetails = usePersonalDetails();
@@ -152,16 +153,13 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             validateFileName,
             (file) => {
                 if (isDraft) {
-                    openReport(
-                        report.reportID,
+                    openReport({
+                        reportID: report.reportID,
                         introSelected,
-                        '',
-                        displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
-                        report,
-                        undefined,
-                        undefined,
-                        undefined,
-                    );
+                        participantLoginList: displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
+                        newReportObject: report,
+                        betas,
+                    });
                 }
                 if (report.reportID) {
                     addAttachmentWithComment({

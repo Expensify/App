@@ -1,11 +1,12 @@
-import {createPersonalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useMappedPersonalDetails, {personalDetailMapper} from '@hooks/useMappedPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,7 +28,7 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -39,21 +40,12 @@ type ReportWelcomeTextProps = {
     policy: OnyxEntry<Policy>;
 };
 
-const personalDetailSelector = (personalDetail: OnyxInputOrEntry<PersonalDetails>): OnyxInputOrEntry<PersonalDetails> =>
-    personalDetail && {
-        accountID: personalDetail.accountID,
-        login: personalDetail.login,
-        avatar: personalDetail.avatar,
-        pronouns: personalDetail.pronouns,
-    };
-
-const personalDetailsSelector = (personalDetail: OnyxEntry<PersonalDetailsList>) => createPersonalDetailsSelector(personalDetail, personalDetailSelector);
-
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector});
+    const reportAttributes = useReportAttributes();
+    const [personalDetails] = useMappedPersonalDetails(personalDetailMapper);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -89,7 +81,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, reportAttributes);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
@@ -119,18 +111,19 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantPersonalDetailListExcludeCurrentUser = Object.values(
         getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
     );
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(
+    const welcomeMessage = SidebarUtils.getWelcomeMessage({
         report,
         policy,
         invoiceReceiverPolicy,
-        participantPersonalDetailListExcludeCurrentUser,
+        participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
         translate,
         localeCompare,
+        conciergeReportID,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
-    );
+    });
 
     return (
         <>

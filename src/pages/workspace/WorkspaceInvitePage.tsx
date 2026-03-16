@@ -13,8 +13,8 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
-import {clearErrors, openWorkspaceInvitePage as policyOpenWorkspaceInvitePage, setWorkspaceErrors} from '@libs/actions/Policy/Policy';
-import {searchInServer} from '@libs/actions/Report';
+import {clearErrors, openWorkspaceInvitePage as policyOpenWorkspaceInvitePage} from '@libs/actions/Policy/Policy';
+import {searchUserInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
@@ -31,7 +31,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -164,18 +163,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 
     const inviteUser = useCallback(() => {
-        const errors: Errors = {};
-        if (selectedOptions.length <= 0) {
-            errors.noUserSelected = 'true';
-        }
-
-        setWorkspaceErrors(route.params.policyID, errors);
-        const isValid = isEmptyObject(errors);
-
-        if (!isValid) {
-            return;
-        }
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
 
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
         for (const option of selectedOptions) {
@@ -235,7 +223,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm);
+        searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     const textInputOptions = useMemo(
@@ -278,8 +266,9 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     textInputOptions={textInputOptions}
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
+                        isDisabled: !selectedOptions.length,
                     }}
-                    showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}

@@ -63,9 +63,10 @@ import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
+import CreditCardLock from '@assets/images/credit-card-lock.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
-import DocumentCheck from '@assets/images/document-check.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
@@ -78,12 +79,14 @@ import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
+import EnvelopeOpenStar from '@assets/images/envelope-open-star.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
 import ExpenseCopy from '@assets/images/expense-copy.svg';
 import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
+import ExpensifyCardHourglass from '@assets/images/expensify-card-hourglass.svg';
 import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
@@ -103,6 +106,7 @@ import Folder from '@assets/images/folder.svg';
 import FreezeCard from '@assets/images/freeze-card.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import GalleryNotFound from '@assets/images/gallery-not-found.svg';
+import GalleryPlus from '@assets/images/gallery-plus.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
 import Globe from '@assets/images/globe.svg';
@@ -297,8 +301,10 @@ const Expensicons = {
     ConnectionComplete,
     Copy,
     CreditCard,
+    Crop,
     CreditCardHourglass,
     CreditCardExclamation,
+    CreditCardLock,
     CircleSlash,
     Document,
     DocumentMerge,
@@ -310,12 +316,14 @@ const Expensicons = {
     DragHandles,
     EReceiptIcon,
     Emoji,
+    EnvelopeOpenStar,
     EmptyStateRoutePending,
     ExpenseCopy,
     Exclamation,
     Exit,
     ExpensifyAppIcon,
     ExpensifyCard,
+    ExpensifyCardHourglass,
     ExpensifyWordmark,
     ExpensifyFooterLogo,
     ExpensifyFooterLogoVertical,
@@ -338,6 +346,7 @@ const Expensicons = {
     Coins,
     Thread,
     Gallery,
+    GalleryPlus,
     Gear,
     Globe,
     GoogleLogo,
@@ -490,7 +499,6 @@ const Expensicons = {
     XeroExport,
     ArrowCircleClockwise,
     LuggageWithLines,
-    DocumentCheck,
     TreasureChestGreenWithSparkle,
     UserShield,
 };
