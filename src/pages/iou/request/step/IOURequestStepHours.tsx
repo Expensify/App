@@ -141,6 +141,7 @@ function IOURequestStepHours({
         >
             <NumberWithSymbolForm
                 symbol={translate('iou.timeTracking.hrs')}
+                shouldUseDynamicFontSize
                 symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
                 isSymbolPressable={false}
                 decimals={CONST.HOURS_DECIMAL_PLACES}
