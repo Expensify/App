@@ -267,9 +267,11 @@ function IOURequestStartPage({
             },
             onConfirm: () => {
                 setTestReceiptAndNavigateRef?.current?.();
+                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED, accountID);
             },
             onDismiss: () => {
                 dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
+                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED, accountID);
             },
         },
     );

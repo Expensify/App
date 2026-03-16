@@ -8228,6 +8228,8 @@ const CONST = {
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
             PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN: 'product_training_scan_test_tooltip_shown',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED: 'product_training_scan_test_tooltip_dismissed',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED: 'product_training_scan_test_tooltip_confirmed',
         },
     },
 
