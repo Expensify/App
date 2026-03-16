@@ -22,7 +22,7 @@ import useServerCredentials from './shared/useServerCredentials';
 function usePasskeys(): UseBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const userId = String(accountID);
-    const {serverHasAnyCredentials, serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
+    const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
     const [localPasskeyCredentials] = useOnyx(getPasskeyOnyxKey(userId));
 
     const doesDeviceSupportAuthenticationMethod = () => isWebAuthnSupported();
@@ -179,7 +179,6 @@ function usePasskeys(): UseBiometricsReturn {
 
     return {
         deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS,
-        serverHasAnyCredentials,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,

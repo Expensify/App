@@ -40,9 +40,6 @@ type UseBiometricsReturn = {
     /** The authentication method type provided by this hook (BIOMETRICS on native, PASSKEYS on web) */
     deviceVerificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
 
-    /** Whether server has any registered credentials for this account */
-    serverHasAnyCredentials: boolean;
-
     /** List of credential IDs known to server (from Onyx) */
     serverKnownCredentialIDs: string[];
 

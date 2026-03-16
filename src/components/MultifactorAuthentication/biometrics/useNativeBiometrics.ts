@@ -23,7 +23,7 @@ async function resetKeys(accountID: number) {
 function useNativeBiometrics(): UseBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
-    const {serverHasAnyCredentials, serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
+    const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
 
     /**
      * Checks if the device supports biometric authentication methods.
@@ -185,7 +185,6 @@ function useNativeBiometrics(): UseBiometricsReturn {
 
     return {
         deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS,
-        serverHasAnyCredentials,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,

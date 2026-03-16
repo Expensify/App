@@ -4,7 +4,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 
 type UseServerCredentialsReturn = {
-    serverHasAnyCredentials: boolean;
     serverKnownCredentialIDs: string[];
     haveCredentialsEverBeenConfigured: boolean;
 };
@@ -16,11 +15,9 @@ function useServerCredentials(): UseServerCredentialsReturn {
         selector: selectMFAPublicKeyIDs,
     });
     const serverKnownCredentialIDs = multifactorAuthenticationPublicKeyIDs ?? [];
-    const serverHasAnyCredentials = serverKnownCredentialIDs.length > 0;
     const haveCredentialsEverBeenConfigured = multifactorAuthenticationPublicKeyIDs !== undefined;
 
     return {
-        serverHasAnyCredentials,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
     };
