@@ -530,7 +530,7 @@ function getIOUReportIDOfLastAction(
     if (!isReportPreviewAction(action)) {
         return;
     }
-    return getIOUReportIDFromReportActionPreview(action);
+    return getReportOrDraftReport(getIOUReportIDFromReportActionPreview(action))?.reportID;
 }
 
 function hasHiddenDisplayNames(accountIDs: number[]) {
@@ -2946,6 +2946,9 @@ function formatSectionsFromSearchTerm(
         reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     } = {},
 ): SectionForSearchTerm {
+    // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
+    // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
+    // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
     if (searchTerm === '') {
         return {
             section: {
@@ -2967,6 +2970,8 @@ function formatSectionsFromSearchTerm(
     }
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
+    // If you select a new user you don't have a contact for, they won't get returned as part of a recent report or personal details
+    // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
         const isPartOfSearchTerm = getPersonalDetailSearchTerms(participant, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm);

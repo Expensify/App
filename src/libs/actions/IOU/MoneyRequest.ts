@@ -87,7 +87,6 @@ type InitialTransactionParams = {
     taxCode: string;
     taxAmount: number;
     isFromGlobalCreate?: boolean;
-    isFromFloatingActionButton?: boolean;
     currency?: string;
     participants?: Participant[];
 };
@@ -296,10 +295,9 @@ function getMoneyRequestParticipantOptions(
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        if (participantAccountID) {
-            return getParticipantsOption(participant, personalDetails);
-        }
-        return getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, participantReport, participantChatReport, reportAttributesDerived);
+        return participantAccountID
+            ? getParticipantsOption(participant, personalDetails)
+            : getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, participantReport, participantChatReport, reportAttributesDerived);
     });
 }
 
