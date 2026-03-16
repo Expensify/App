@@ -20,7 +20,6 @@ function SidePanelReport({navigation, reportID}: SidePanelReportProps) {
                 <ReportScreen
                     route={route}
                     navigation={navigation as unknown as PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>}
-                    isInSidePanel
                 />
             </NavigationRouteContext.Provider>
         </IsInSidePanelContext.Provider>
