@@ -1015,7 +1015,7 @@ const translations = {
             title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,
             offer50Body: 'Get 50% off your first year!',
             offer25Body: 'Get 25% off your first year!',
-            addCardBody: 'Add a payment card to continue using all of your favorite Expensify features',
+            addCardBody: "Don't wait! Add your payment card now.",
             ctaClaim: 'Claim',
             ctaAdd: 'Add card',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Time remaining: ${formattedTime}`,

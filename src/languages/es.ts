@@ -887,7 +887,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: ({days}: {days: number}) => `Prueba gratuita: ${days} ${days === 1 ? 'día' : 'días'} restantes!`,
             offer50Body: '¡Obtén 50% de descuento en tu primer año!',
             offer25Body: '¡Obtén 25% de descuento en tu primer año!',
-            addCardBody: 'Añade una tarjeta de pago para seguir usando todas tus funciones favoritas de Expensify',
+            addCardBody: '¡No esperes! Añade tu tarjeta de pago ahora.',
             ctaClaim: 'Reclamar',
             ctaAdd: 'Añadir tarjeta',
             timeRemaining: ({formattedTime}: {formattedTime: string}) => `Tiempo restante: ${formattedTime}`,

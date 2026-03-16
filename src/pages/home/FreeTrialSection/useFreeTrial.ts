@@ -36,16 +36,22 @@ function useFreeTrial(): FreeTrialState {
     const showDiscount = shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies);
     const daysLeft = calculateRemainingFreeTrialDays(lastDayFreeTrial);
 
-    // Live countdown — same pattern as Offer50off
-    const [discountInfo, setDiscountInfo] = useState<DiscountInfo | null>(() => getEarlyDiscountInfo(firstDayFreeTrial));
+    const [discountInfo, setDiscountInfo] = useState<DiscountInfo | null>(() => (showDiscount ? getEarlyDiscountInfo(firstDayFreeTrial) : null));
 
     useEffect(() => {
+        if (!showDiscount) {
+            return;
+        }
+
         const intervalID = setInterval(() => {
             setDiscountInfo(getEarlyDiscountInfo(firstDayFreeTrial));
         }, CONST.MILLISECONDS_PER_SECOND);
 
-        return () => clearInterval(intervalID);
-    }, [firstDayFreeTrial]);
+        return () => {
+            clearInterval(intervalID);
+            setDiscountInfo(null);
+        };
+    }, [firstDayFreeTrial, showDiscount]);
 
     if (!onFreeTrial || hasPaymentCard) {
         return {shouldShowFreeTrialSection: false, discountType: null, daysLeft: 0, discountInfo: null};
