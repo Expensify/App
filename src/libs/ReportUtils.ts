@@ -4892,10 +4892,6 @@ function canEditFieldOfMoneyRequest(
         return false;
     }
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && isClosedReport(moneyRequestReport)) {
-        return false;
-    }
-
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isCardTransactionTransactionUtils(transaction)) {
         return false;
     }
@@ -4928,6 +4924,7 @@ function canEditFieldOfMoneyRequest(
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         return (
+            !isClosedReport(moneyRequestReport) &&
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
