@@ -590,7 +590,7 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, undefined, isAmountColumnWide)]}
                     >
-                        {!!totalPerAttendee && (
+                        {!!attendeeIcons.length && (
                             <TextWithTooltip
                                 testID="TotalPerAttendeeCell"
                                 shouldShowTooltip
