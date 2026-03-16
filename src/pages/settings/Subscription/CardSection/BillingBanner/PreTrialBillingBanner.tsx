@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
@@ -20,13 +21,14 @@ function PreTrialBillingBanner() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const navigateToChat = () => {
         const reportUsedForOnboarding = getChatUsedForOnboarding(onboarding, conciergeReportID);
 
         if (!reportUsedForOnboarding) {
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false);
             return;
         }
 

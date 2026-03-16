@@ -335,7 +335,8 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, () => true);
+                                    // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, false, () => true);
                                     return;
                                 }
 

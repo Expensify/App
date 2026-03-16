@@ -1,5 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
@@ -181,6 +182,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -795,7 +797,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
 
             Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false);
             });
             return;
         }
@@ -847,9 +849,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
         // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID);
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {
