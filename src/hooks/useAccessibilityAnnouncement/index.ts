@@ -28,6 +28,7 @@ function getWrapper(): HTMLDivElement {
     }
 
     wrapper = document.createElement('div');
+    wrapper.setAttribute('role', 'alert');
     wrapper.setAttribute('aria-live', 'assertive');
     wrapper.setAttribute('aria-atomic', 'true');
     Object.assign(wrapper.style, VISUALLY_HIDDEN_STYLE);
@@ -38,36 +39,29 @@ function getWrapper(): HTMLDivElement {
 
 function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, options?: UseAccessibilityAnnouncementOptions) {
     const shouldAnnounceOnWeb = options?.shouldAnnounceOnWeb ?? false;
-    const prevShouldAnnounceRef = useRef(false);
+    const previousAnnouncedMessageRef = useRef('');
 
     useEffect(() => {
-        if (!shouldAnnounceMessage) {
-            prevShouldAnnounceRef.current = false;
+        if (!shouldAnnounceOnWeb || !shouldAnnounceMessage || typeof message !== 'string' || !message.trim()) {
+            previousAnnouncedMessageRef.current = '';
             return;
         }
 
-        if (prevShouldAnnounceRef.current || !shouldAnnounceOnWeb || typeof message !== 'string' || !message.trim()) {
+        if (previousAnnouncedMessageRef.current === message) {
             return;
         }
 
-        prevShouldAnnounceRef.current = true;
+        previousAnnouncedMessageRef.current = message;
 
         const container = getWrapper();
-
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
+        container.textContent = '';
 
         const timer = setTimeout(() => {
-            const node = document.createElement('div');
-            node.setAttribute('role', 'alert');
-            node.textContent = message;
-            container.appendChild(node);
+            container.textContent = message;
         }, ANNOUNCEMENT_DELAY_MS);
 
         return () => {
             clearTimeout(timer);
-            prevShouldAnnounceRef.current = false;
         };
     }, [message, shouldAnnounceMessage, shouldAnnounceOnWeb]);
 }
