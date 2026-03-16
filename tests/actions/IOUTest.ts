@@ -12515,6 +12515,180 @@ describe('actions/IOU', () => {
 
             canEditFieldSpy.mockRestore();
         });
+
+        it('clears category-out-of-policy violation when the new category is valid', async () => {
+            const transactionID = 'transaction-1';
+            const transactionThreadReportID = 'thread-1';
+            const iouReportID = 'iou-1';
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), requiresCategory: true};
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                category: 'InvalidCategory',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const policyCategories = {
+                Food: {name: 'Food', enabled: true, 'GL Code': '', unencodedName: 'Food', externalID: '', areCommentsRequired: false, origin: ''},
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [{name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {category: 'Food'},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories,
+                hash: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const violationNames = updatedViolations?.map((v) => v.name) ?? [];
+            expect(violationNames).not.toContain(CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY);
+
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('uses the transaction own policy for violation checks in cross-policy bulk edits', async () => {
+            const transactionID = 'transaction-1';
+            const transactionThreadReportID = 'thread-1';
+            const bulkEditPolicyID = '1';
+            const transactionPolicyID = '2';
+
+            // bulkEditPolicy requires categories — would add missingCategory if used for the transaction
+            const bulkEditPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: bulkEditPolicyID, requiresCategory: true};
+            // transactionPolicy does NOT require categories — correct policy for this transaction
+            const transactionPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: transactionPolicyID, requiresCategory: false};
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'iou-1',
+                policyID: transactionPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}iou-1`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: 'iou-1',
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                category: undefined,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {merchant: 'New Merchant'},
+                policy: bulkEditPolicy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+                allPolicies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: transactionPolicy,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // transactionPolicy does not require categories, so no missingCategory violation should be added
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const violationNames = updatedViolations?.map((v) => v.name) ?? [];
+            expect(violationNames).not.toContain(CONST.VIOLATIONS.MISSING_CATEGORY);
+
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('skips category, tag, tax, and billable changes for plain IOU transactions', async () => {
+            const transactionID = 'transaction-iou-1';
+            const transactionThreadReportID = 'thread-iou-1';
+            const iouReportID = 'iou-report-1';
+            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            // IOU report — NOT an expense report (type is not EXPENSE)
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.IOU,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                transactionIDs: [transactionID],
+                changes: {category: 'Food', billable: true},
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                hash: undefined,
+            });
+
+            // category/billable changes must be silently dropped for IOUs —
+            // no API call should be made since there are no valid updates
+            expect(writeSpy).not.toHaveBeenCalled();
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
     });
 
     describe('bulk edit draft transaction', () => {
