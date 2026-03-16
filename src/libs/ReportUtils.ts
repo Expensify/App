@@ -4888,7 +4888,11 @@ function canEditFieldOfMoneyRequest(
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
     const transaction = linkedTransaction ?? deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
 
-    if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID)) || isClosedReport(moneyRequestReport)) {
+    if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
+        return false;
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && isClosedReport(moneyRequestReport)) {
         return false;
     }
 
