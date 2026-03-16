@@ -41,9 +41,11 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
 
-    const announceStatus = (message: string) => {
+    const announceStatus = (message: string, shouldAnnounceOnNative = false) => {
         setStatusAnnouncement((prev) => ({id: prev.id + 1, text: message}));
-        AccessibilityInfo.announceForAccessibility(message);
+        if (shouldAnnounceOnNative) {
+            AccessibilityInfo.announceForAccessibility(message);
+        }
     };
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -128,7 +130,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                                 Clipboard.setString(account?.recoveryCodes ?? '');
                                                 setError('');
                                                 setCodesAreCopied();
-                                                announceStatus(translate('common.copied'));
+                                                announceStatus(translate('common.copied'), true);
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
