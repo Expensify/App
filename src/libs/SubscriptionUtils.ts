@@ -646,4 +646,4 @@ export {
     isSubscriptionTypeOfInvoicing,
 };
 
-export type {SubscriptionPlanIllustrations};
+export type {DiscountInfo, SubscriptionPlanIllustrations};

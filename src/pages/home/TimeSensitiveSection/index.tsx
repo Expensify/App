@@ -21,8 +21,6 @@ import AddShippingAddress from './items/AddShippingAddress';
 import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixPersonalCardConnection from './items/FixPersonalCardConnection';
-import Offer25off from './items/Offer25off';
-import Offer50off from './items/Offer50off';
 import ReviewCardFraud from './items/ReviewCardFraud';
 
 type BrokenAccountingConnection = {
@@ -59,7 +57,7 @@ function TimeSensitiveSection() {
     const {login} = useCurrentUserPersonalDetails();
 
     // Use custom hooks for offers and cards (Release 3)
-    const {shouldShow50off, shouldShow25off, shouldShowAddPaymentCard, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
+    const {shouldShowAddPaymentCard} = useTimeSensitiveOffers();
     const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
 
     // Selector for filtering admin policies (Release 4)
@@ -132,14 +130,9 @@ function TimeSensitiveSection() {
     const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
     const hasBrokenPersonalCards = brokenPersonalCardConnections.length > 0;
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
-    // This guard must exactly match the conditions used to render each widget below.
-    // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
-    // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
         shouldShowReviewCardFraud ||
         shouldShowAddPaymentCard ||
-        shouldShow50off ||
-        (shouldShow25off && !!discountInfo) ||
         hasBrokenCompanyCards ||
         hasBrokenPersonalCards ||
         hasBrokenAccountingConnections ||
@@ -156,9 +149,8 @@ function TimeSensitiveSection() {
     // 3. Broken bank connections (company cards)
     // 4. Broken bank connections (personal cards)
     // 5. Broken accounting connections
-    // 6. Early adoption discount (50% or 25%)
-    // 7. Expensify card shipping
-    // 8. Expensify card activation
+    // 6. Expensify card shipping
+    // 7. Expensify card activation
     return (
         <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
@@ -218,11 +210,7 @@ function TimeSensitiveSection() {
                     />
                 ))}
 
-                {/* Priority 6: Early adoption discount offers */}
-                {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
-                {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
-
-                {/* Priority 7: Expensify card shipping */}
+                {/* Priority 6: Expensify card shipping */}
                 {shouldShowAddShippingAddress &&
                     cardsNeedingShippingAddress.map((card) => (
                         <AddShippingAddress
@@ -231,7 +219,7 @@ function TimeSensitiveSection() {
                         />
                     ))}
 
-                {/* Priority 8: Expensify card activation */}
+                {/* Priority 7: Expensify card activation */}
                 {shouldShowActivateCard &&
                     cardsNeedingActivation.map((card) => (
                         <ActivateCard
