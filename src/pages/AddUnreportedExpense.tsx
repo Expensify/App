@@ -27,7 +27,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {getReportOrDraftReport, getTransactionDetails, isIOUReport, isOpenExpenseReport} from '@libs/ReportUtils';
+import {getTransactionDetails, isIOUReport, isOpenExpenseReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -69,6 +69,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'AddUnreportedExpense.InitialSkeleton',
@@ -89,7 +90,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
             return Object.values(transactions || {}).filter((item) => {
                 const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
-                const isOnOpenExpenseReport = isOpenExpenseReport(getReportOrDraftReport(item?.reportID));
+                const itemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item?.reportID}`];
+                const isOnOpenExpenseReport = isOpenExpenseReport(itemReport);
                 if (!isUnreported && !isOnOpenExpenseReport) {
                     return false;
                 }
@@ -130,7 +132,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 return true;
             });
         },
-        [policy, report, cardList, currentUserAccountID, reportID],
+        [policy, report, cardList, currentUserAccountID, reportID, allReports],
     );
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
