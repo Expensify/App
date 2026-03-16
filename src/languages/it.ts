@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Home',
         inbox: 'Posta in arrivo',
         yourReviewIsRequired: 'È richiesta la tua revisione',
+        actionBadge: {
+            submit: 'Invia',
+            approve: 'Approva',
+            pay: 'Paga',
+            fix: 'Correggi',
+        },
         success: 'Operazione riuscita',
         group: 'Gruppo',
         profile: 'Profilo',
@@ -362,6 +368,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: 'for',
         mi: 'miglio',
         km: 'chilometro',
+        milesAbbreviated: 'mi',
+        kilometersAbbreviated: 'km',
         copied: 'Copiato!',
         someone: 'Qualcuno',
         total: 'Totale',
@@ -545,6 +553,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Delega ferie',
         expensifyLogo: 'Logo Expensify',
+        concierge: {sidePanelGreeting: 'Ciao, come posso aiutarti?', showHistory: 'Mostra cronologia'},
         duplicateReport: 'Report duplicato',
         approver: 'Approvante',
     },
@@ -747,6 +756,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `Questa azione non è supportata sul tuo dispositivo. Scarica l'app Expensify dall'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o da <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e riprova.`,
         },
         verificationFailed: 'Verifica non riuscita',
+        setPin: {didNotShipCard: 'Non abbiamo spedito la tua carta. Riprova.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -1014,6 +1024,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Correggi la connessione della carta personale ${cardName}` : 'Correggi connessione carta personale'),
                 subtitle: 'Portafoglio',
             },
+            validateAccount: {title: 'Conferma il tuo account per continuare a usare Expensify', subtitle: 'Account', cta: 'Conferma'},
         },
         assignedCards: 'Le tue Carte Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} rimanenti`,
@@ -1438,6 +1449,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
+            stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Chiudere questo errore rimuoverà completamente la ricevuta che hai caricato. Sei sicuro?',
@@ -1598,7 +1610,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'L’importo totale è troppo alto. Riduci le ore o abbassa la tariffa.',
         },
         correctRateError: "Correggi l'errore di tariffa e riprova.",
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Spiega</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Spiega<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError: 'Non puoi duplicare le spese di diaria tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse tra gli spazi di lavoro.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'ha contrassegnato la spesa come "rimborsabile"' : 'ha contrassegnato la spesa come "non rimborsabile"'),
@@ -2357,6 +2369,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} per ${merchant} - ${date}`,
         },
+        setYourPin: 'Imposta il tuo PIN.',
+        confirmYourPin: 'Conferma il tuo PIN.',
+        pinMustBeFourDigits: 'Il PIN deve essere composto da esattamente 4 cifre.',
+        invalidPin: 'Scegli un PIN più sicuro.',
+        pinMismatch: 'I PIN non corrispondono. Riprova.',
+        revealPin: 'Mostra PIN',
+        hidePin: 'Nascondi PIN',
+        pin: 'PIN',
         freezeCard: 'Blocca carta',
         unfreeze: 'Sblocca',
         unfreezeCard: 'Sblocca carta',
@@ -2766,6 +2786,7 @@ ${amount} per ${merchant} - ${date}`,
         },
         workEmailValidationError: {
             publicEmail: 'Inserisci un’email di lavoro valida con dominio privato, ad es. mitch@company.com',
+            sameAsSignupEmail: 'Inserisci un’email diversa da quella con cui ti sei registrato',
             offline: 'Non è stato possibile aggiungere la tua email di lavoro perché sembri offline',
         },
         mergeBlockScreen: {
@@ -3045,7 +3066,7 @@ ${
                 descriptionTwo: 'Classifica e tagga le spese',
                 descriptionThree: 'Crea e condividi report',
             },
-            price: 'Provalo gratis per 30 giorni, poi passa al piano a soli <strong>$5/utente/mese</strong>.',
+            price: (price?: string) => `Provalo gratis per 30 giorni, poi passa al piano a soli <strong>${price ?? '$5'}/utente/mese</strong>.`,
             createWorkspace: 'Crea spazio di lavoro',
         },
         confirmWorkspace: {
@@ -4006,6 +4027,9 @@ ${
             defaultNote: `Le ricevute inviate a ${CONST.EMAIL.RECEIPTS} verranno visualizzate in questo workspace.`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
+            outstandingBalanceWarning:
+                'Hai un saldo in sospeso che deve essere saldato prima di eliminare il tuo ultimo workspace. Vai alle impostazioni dell’abbonamento per risolvere il pagamento.',
+            settleBalance: 'Vai all’abbonamento',
             unavailable: 'Spazio di lavoro non disponibile',
             memberNotFound: 'Membro non trovato. Per invitare un nuovo membro allo spazio di lavoro, usa il pulsante di invito qui sopra.',
             notAuthorized: `Non hai accesso a questa pagina. Se stai cercando di unirti a questo workspace, chiedi al proprietario del workspace di aggiungerti come membro. Qualcos'altro? Contatta ${CONST.EMAIL.CONCIERGE}.`,
@@ -6876,6 +6900,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     return `${enabled ? 'attivato' : 'disattivato'} contabilità`;
                 case 'Expensify Cards':
                     return `${enabled ? 'attivato' : 'disattivato'} Carte Expensify`;
+                case 'travel invoicing':
+                    return `fatturazione viaggi ${enabled ? 'attivato' : 'disattivato'}`;
                 case 'company cards':
                     return `${enabled ? 'attivato' : 'disattivato'} carte aziendali`;
                 case 'invoicing':
@@ -8291,6 +8317,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         switchAccount: 'Cambia account:',
         copilotDelegatedAccess: 'Copilot: Accesso delegato',
         copilotDelegatedAccessDescription: 'Consenti agli altri membri di accedere al tuo account.',
+        learnMoreAboutDelegatedAccess: "Scopri di più sull'accesso delegato",
         addCopilot: 'Aggiungi copilota',
         membersCanAccessYourAccount: 'Questi membri possono accedere al tuo account:',
         youCanAccessTheseAccounts: 'Puoi accedere a questi account tramite il selettore di account:',
@@ -8621,6 +8648,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             title: 'Membri',
             findMember: 'Trova membro',
             addMember: 'Aggiungi membro',
+            allMembers: 'Tutti i membri',
             email: 'Indirizzo email',
             closeAccount: () => ({
                 one: 'Chiudi account',
