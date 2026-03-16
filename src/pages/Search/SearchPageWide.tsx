@@ -117,6 +117,7 @@ function SearchPageWide({
                                         isDataLoaded: shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON),
                                         isSearchLoading: !!searchResults?.search?.isLoading,
                                         hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                        hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
                                         hasPendingResponse: searchRequestResponseStatusCode === null,
                                         shouldUseLiveData,
                                     }}

@@ -257,6 +257,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                         isDataLoaded,
                                         isSearchLoading: !!searchResults?.search?.isLoading,
                                         hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                        hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
                                         hasPendingResponse: searchRequestResponseStatusCode === null,
                                         shouldUseLiveData,
                                     }}
