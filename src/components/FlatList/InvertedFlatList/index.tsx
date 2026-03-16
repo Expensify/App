@@ -45,7 +45,7 @@ function InvertedFlatList<T>({
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
 
-    const contentContainerDirectionStyle = [restProps.horizontal ? styles.flexRowReverse : styles.flexColumnReverse]
+    const contentContainerDirectionStyle = [restProps.horizontal ? styles.flexRowReverse : styles.flexColumnReverse];
 
     return (
         <FlatList<T>
