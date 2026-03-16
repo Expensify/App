@@ -9246,6 +9246,10 @@ const CONST = {
         HEADER: 'header',
         ROW: 'row',
     },
+
+    CACHE_NAME: {
+        AUTH_IMAGES: 'auth-images',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
