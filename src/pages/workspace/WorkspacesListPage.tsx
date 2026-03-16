@@ -818,6 +818,7 @@ function WorkspacesListPage() {
                     />
                 )}
             </View>
+            {outstandingBalanceModal}
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
     );

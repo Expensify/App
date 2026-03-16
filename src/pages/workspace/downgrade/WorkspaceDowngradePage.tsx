@@ -39,7 +39,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -62,6 +62,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         if (!policyID) {
             return;
         }
+        closeModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
     };
