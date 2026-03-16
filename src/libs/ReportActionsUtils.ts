@@ -60,6 +60,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
+import {getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -222,16 +223,22 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 
 /**
  * This function will add attachment ID attribute on img and video HTML tags inside the passed html content
- * of a report action. This attachment id is the reportActionID concatenated with the order index that the attachment
- * appears inside the report action message so as to identify attachments with identical source inside a report action.
+ * of a report action. For newer attachments, it will use the existing attachmentID unique id value. otherwise, it falls back to the reportActionID concatenated
+ * with the order index that the attachment appears inside the report action message, so as to identify
+ * attachments with identical source inside a report action.
  */
 function getHtmlWithAttachmentID(html: string, reportActionID: string | undefined) {
     if (!reportActionID) {
         return html;
     }
 
-    let attachmentID = 0;
-    return html.replaceAll(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
+    let index = 0;
+    return html.replaceAll(CONST.REGEX.ATTACHMENT.ATTACHMENT, (match) => {
+        const attachmentID = match.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2];
+
+        // If the attachment ID is already present, skip it
+        return attachmentID ? match : match.replaceAll(CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++index}" `));
+    });
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
@@ -2912,7 +2919,7 @@ function getWorkspaceCategoriesUpdatedMessage(translate: LocalizedTranslate, act
     const parsedCount = typeof count === 'number' ? count : Number(count);
 
     if (!Number.isNaN(parsedCount)) {
-        return translate('workspaceActions.updateCategories', {count: parsedCount});
+        return translate('workspaceActions.updateCategories', parsedCount);
     }
 
     return getReportActionText(action);
@@ -3046,9 +3053,7 @@ function getTagListNameUpdatedMessage(translate: LocalizedTranslate, action: Rep
 function getTagListUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {tagListName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST>) ?? {};
     if (tagListName) {
-        return translate('workspaceActions.updateTagList', {
-            tagListName,
-        });
+        return translate('workspaceActions.updateTagList', tagListName);
     }
     return getReportActionText(action);
 }
@@ -3068,9 +3073,7 @@ function getWorkspaceCustomUnitUpdatedMessage(translate: LocalizedTranslate, act
     const {oldValue, newValue, customUnitName, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT>) ?? {};
 
     if (customUnitName === 'Distance' && updatedField === 'taxEnabled' && typeof newValue === 'boolean') {
-        return translate('workspaceActions.updateCustomUnitTaxEnabled', {
-            newValue,
-        });
+        return translate('workspaceActions.updateCustomUnitTaxEnabled', newValue);
     }
 
     if (customUnitName && typeof oldValue === 'string' && typeof newValue === 'string' && updatedField === 'defaultCategory') {
@@ -3097,9 +3100,7 @@ function getWorkspaceCustomUnitRateImportedMessage(translate: LocalizedTranslate
     const {customUnitName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES>) ?? {};
 
     if (customUnitName) {
-        return translate('workspaceActions.importCustomUnitRates', {
-            customUnitName,
-        });
+        return translate('workspaceActions.importCustomUnitRates', customUnitName);
     }
 
     return getReportActionText(action);
@@ -3301,8 +3302,8 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
 }
 
 type CompanyAddressOriginalMessage = {
-    newAddress: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string};
-    oldAddress?: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
+    newAddress: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string};
+    oldAddress?: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
 };
 
 /**
@@ -3313,10 +3314,7 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
         return '';
     }
 
-    const [street1Raw, street2Raw] = (address.addressStreet ?? '').split('\n');
-    const street1 = street1Raw?.trim() ?? '';
-    const street2 = street2Raw?.trim() ?? '';
-
+    const {streetLineOne: street1, streetLineTwo: street2} = getWorkspaceAddressStreetLines(address.addressStreet, address.addressStreet2);
     const parts: string[] = [];
 
     if (street1) {
@@ -3536,7 +3534,7 @@ function getWorkspaceReimbursementUpdateMessage(translate: LocalizedTranslate, a
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED && typeof enabled === 'boolean') {
-        return translate('workspaceActions.updateReimbursementEnabled', {enabled});
+        return translate('workspaceActions.updateReimbursementEnabled', enabled);
     }
 
     return getReportActionText(action);
@@ -3913,7 +3911,7 @@ function getUpdatedTimeEnabledMessage(translate: LocalizedTranslate, reportActio
     const {enabled} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED>) ?? {};
 
     if (typeof enabled === 'boolean') {
-        return translate('workspaceActions.updatedTimeEnabled', {enabled});
+        return translate('workspaceActions.updatedTimeEnabled', enabled);
     }
 
     return getReportActionText(reportAction);
@@ -3989,7 +3987,7 @@ function getUpdatedAutoHarvestingMessage(translate: LocalizedTranslate, reportAc
     const {value} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING>) ?? {};
 
     if (typeof value === 'boolean') {
-        return translate('workspaceActions.updatedAutoHarvesting', {enabled: value});
+        return translate('workspaceActions.updatedAutoHarvesting', value);
     }
 
     return getReportActionText(reportAction);
@@ -4561,6 +4559,7 @@ export {
     getWorkspaceAttendeeTrackingUpdateMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    formatAddressToString,
     getCompanyAddressUpdateMessage,
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,

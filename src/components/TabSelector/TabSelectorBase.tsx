@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import ScrollView from '@components/ScrollView';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 // eslint-disable-next-line no-restricted-imports
@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
-import {TabSelectorContext} from './TabSelectorContext';
+import {useTabSelectorActions, useTabSelectorState} from './TabSelectorContext';
 import TabSelectorItem from './TabSelectorItem';
 import type {TabSelectorBaseProps} from './types';
 
@@ -36,7 +36,8 @@ function TabSelectorBase({
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: routesLength}, (_v, i) => i), [routesLength]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 
-    const {containerRef, onContainerLayout, onContainerScroll} = useContext(TabSelectorContext);
+    const {containerRef} = useTabSelectorState();
+    const {onContainerLayout, onContainerScroll} = useTabSelectorActions();
     const triggerScrollEvent = useScrollEventEmitter();
 
     const activeIndex = tabs.findIndex((tab) => tab.key === activeTabKey);
@@ -64,6 +65,7 @@ function TabSelectorBase({
             contentContainerStyle={styles.tabSelectorContentContainer}
             horizontal
             showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
         >
             {tabs.map((tab, index) => {
                 const isActive = index === activeIndex;
