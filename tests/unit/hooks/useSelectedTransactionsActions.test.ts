@@ -92,6 +92,13 @@ jest.mock('@hooks/useReportIsArchived', () => ({
     default: () => mockIsReportArchived,
 }));
 
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({
+        isBetaEnabled: () => true,
+    }),
+}));
+
 const mockDeleteTransactions = jest.fn(() => []);
 
 jest.mock('@hooks/useDeleteTransactions', () => ({
