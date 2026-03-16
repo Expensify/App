@@ -15,12 +15,14 @@ import Tooltip from '@components/Tooltip';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportName} from '@libs/ReportNameUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -80,7 +82,8 @@ function HeaderWithBackButton({
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
     // Avatar-header routes skip Header, so register the dialog label here.
-    useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
+    const reportAttributes = useReportAttributes();
+    useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? getReportName(report, reportAttributes) : '');
 
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
