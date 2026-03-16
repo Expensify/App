@@ -1,8 +1,8 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import type {NativeEventSubscription} from 'react-native';
-import {AppState, Platform} from 'react-native';
+import type {AppStateStatus, NativeEventSubscription} from 'react-native';
+import {AppState, Keyboard, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -57,6 +57,8 @@ Onyx.registerLogger(({level, message, parameters}) => {
 
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
+    const keyboardDismissListener = useRef<NativeEventSubscription | null>(null);
+    const previousAppState = useRef<AppStateStatus>(AppState.currentState);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState} = useSplashScreenState();
@@ -243,6 +245,18 @@ function Expensify() {
 
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
+        // On iOS, dismiss the keyboard when returning from background to prevent it from
+        // appearing over the splash/transition screen. iOS natively restores first responder
+        // status on previously focused TextInputs when returning from background.
+        if (Platform.OS === 'ios') {
+            keyboardDismissListener.current = AppState.addEventListener('change', (nextAppState) => {
+                if ((previousAppState.current === 'inactive' || previousAppState.current === 'background') && nextAppState === 'active') {
+                    Keyboard.dismiss();
+                }
+                previousAppState.current = nextAppState;
+            });
+        }
+
         setIsAuthenticatedAtStartup(isAuthenticated);
 
         startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK, {
@@ -257,6 +271,7 @@ function Expensify() {
 
         return () => {
             appStateChangeListener.current?.remove();
+            keyboardDismissListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);

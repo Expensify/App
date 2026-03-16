@@ -21,6 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -170,14 +171,18 @@ function BaseValidateCodeForm({
                 clearTimeout(focusTimeoutRef.current);
             }
 
-            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
-            if (!isMobileSafari()) {
-                focusTimeoutRef.current = setTimeout(() => {
+            // Wait until the window is ready to focus (blocks during iOS background-to-foreground transition)
+            // before triggering keyboard focus, preventing keyboard from appearing over the splash screen.
+            isWindowReadyToFocus().then(() => {
+                // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+                if (!isMobileSafari()) {
+                    focusTimeoutRef.current = setTimeout(() => {
+                        inputValidateCodeRef.current?.focusLastSelected();
+                    }, CONST.ANIMATED_TRANSITION);
+                } else {
                     inputValidateCodeRef.current?.focusLastSelected();
-                }, CONST.ANIMATED_TRANSITION);
-            } else {
-                inputValidateCodeRef.current?.focusLastSelected();
-            }
+                }
+            });
 
             return () => {
                 if (!focusTimeoutRef.current) {
