@@ -47,7 +47,6 @@ For detailed setup instructions for each platform, see the following guides:
 * **🕸 Web Development**: [Web Setup Instructions](contributingGuides/SETUP_WEB.md)
 * **📱 iOS Development**: [iOS Setup Instructions](contributingGuides/SETUP_IOS.md)  
 * **🤖 Android Development**: [Android Setup Instructions](contributingGuides/SETUP_ANDROID.md)
-* **🖥 Desktop Development**: [Desktop Setup Instructions](contributingGuides/SETUP_DESKTOP.md)
 
 ## General Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
@@ -74,15 +73,13 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `USE_NGROK` - Flag to turn `ngrok` testing on or off
 - `USE_WDYR` - Flag to turn [`Why Did You Render`](https://github.com/welldone-software/why-did-you-render) testing on or off
 - `USE_REDUX_DEVTOOLS` - Flag to enable [Redux DevTools](https://github.com/reduxjs/redux-devtools) for Onyx state debugging
-- `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy
+- `USE_WEB_PROXY`⚠️- Used in web development, it starts a server along the local development server to proxy
    requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
    If you don't want to start the proxy server set this explicitly to `false`
 - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
    see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
-- `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
-   This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
 > If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `npm run ios` or `npm run android`
 

@@ -94,6 +94,7 @@ export default {
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,
+    iouAmountTextSizeLarge: 48,
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
     mobileResponsiveWidthBreakpoint: 800,
@@ -104,17 +105,23 @@ export default {
     sideBarWidth: 375,
     sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
-    superWideRHPMaxWidth: 1260,
+    receiptPreviewMaxWidth: 440,
+    receiptPreviewMaxHeight: 440,
+    homePageLeftColumnMaxWidth: 680,
+    homePageRightColumnMaxWidth: 488,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
+    popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
+    sectionMenuItemHeight: 52,
+    sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
     lineHeightXSmall: getValueUsingPixelRatio(11, 17),
@@ -143,8 +150,12 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     checkboxLabelHoverOpacity: 1,
     avatarChatSpacing: 12,
+    cornerHandleSize: 12,
+    cornerTapTargetSize: 40,
+    edgeHandleTapTargetThickness: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    cropBorderWidth: 1,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
     emptySelectionListIconWidth: 120,
@@ -180,6 +191,7 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
+    tabSelectorScrollMarginInline: 20,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
@@ -219,6 +231,7 @@ export default {
     receiptPlaceholderIconWidth: 80,
     receiptPlaceholderIconHeight: 80,
     reportPreviewMaxWidth: 335,
+    previewEReceiptHeight: 186,
     reportActionImagesSingleImageHeight: 160,
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
@@ -240,6 +253,7 @@ export default {
     changePolicyEducationModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
+    transactionReceiptButtonWidth: 100,
 
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
@@ -266,6 +280,9 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
+    cardScarfOverlayWidth: 264,
+    cardScarfOverlayHeight: 172,
+    cardScarfOverlayZIndex: 2,
     cardIconWidth: 40,
     cardIconHeight: 26,
     cardBorderRadius: 4,
@@ -281,10 +298,6 @@ export default {
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
-
-    desktopAppRetiredIllustrationW: 264,
-    desktopAppRetiredIllustrationH: 230,
-    desktopAppRetiredViewContainerWidth: 310,
 
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
@@ -308,6 +321,9 @@ export default {
     expenseReportsTypeTooltipShiftHorizontal: 10,
     inviteMemberListItemTooltipShiftVertical: -8,
     inviteMemberListItemTooltipShiftHorizontal: 4,
+    hasFilterNegationTooltipShiftHorizontal: -16,
+    hasFilterNegationTooltipShiftVertical: 40,
+    hasFilterNegationTooltipMaxWidth: 260,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -326,6 +342,9 @@ export default {
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
+
+    companyCardsPageNotFoundIconWidth: 97,
+    companyCardsPageNotFoundIconHeight: 140,
 
     h20: 20,
     h28: 28,
@@ -397,7 +416,23 @@ export default {
     reportSearchHeaderMaxWidth: 700,
 
     // Split expense tabs
-    splitExpenseAmountMobileWidth: 82,
-    splitExpensePercentageWidth: 42,
-    splitExpensePercentageMobileWidth: 62,
+    splitExpensePercentageWidth: 66,
+
+    // Multifactor Authentication illustrations size
+    openPadlockWidth: 140,
+    openPadlockHeight: 140,
+    transactionHandWidth: 118,
+    transactionHandHeight: 191,
+    runOutOfTimeWidth: 218,
+    runOutOfTimeHeight: 200,
+    humptyDumptyWidth: 245,
+    humptyDumptyHeight: 165,
+    magnifyingGlassSpyMouthClosedWidth: 161,
+    magnifyingGlassSpyMouthClosedHeight: 169,
+
+    // Odometer photo information container
+    leftPositionOdometerPhotoInformationContainer: 20,
+    rightPositionOdometerPhotoInformationContainer: 20,
+    bottomPositionOdometerPhotoInformationContainer: 20,
+    paddingOdometerPhotoInformationContainer: 13.5,
 } as const;

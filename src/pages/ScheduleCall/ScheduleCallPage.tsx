@@ -52,12 +52,11 @@ function ScheduleCallPage() {
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
     const session = useSession();
 
-    const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
+    const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`);
     const reportID = route.params?.reportID;
 
     const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
         selector: adminReportNameValuePairsSelector,
-        canBeMissing: true,
     });
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
 
@@ -79,7 +78,7 @@ function ScheduleCallPage() {
         return () => {
             sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, reportID);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
@@ -167,7 +166,10 @@ function ScheduleCallPage() {
             />
             <FullPageOfflineBlockingView>
                 {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <FullScreenLoadingIndicator
+                        style={[styles.flex1, styles.pRelative]}
+                        reasonAttributes={{context: 'ScheduleCallPage', isLoading: !!adminReportNameValuePairs?.calendlySchedule?.isLoading}}
+                    />
                 ) : (
                     <ScrollView style={styles.flexGrow1}>
                         <View style={styles.ph5}>

@@ -7,15 +7,18 @@ import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
+import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONFIG from '@src/CONFIG';
@@ -24,12 +27,11 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Account, Report} from '@src/types/onyx';
+import SCREENS from '@src/SCREENS';
+import type {IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
-import {isOnboardingFlowCompleted, setOnboardingErrorMessage} from './Welcome';
-import {startOnboardingFlow} from './Welcome/OnboardingFlow';
-import type {OnboardingCompanySize, OnboardingPurpose} from './Welcome/OnboardingFlow';
+import {setOnboardingErrorMessage} from './Welcome';
 
 let isNetworkOffline = false;
 let networkStatus: NetworkStatus;
@@ -43,22 +45,13 @@ Onyx.connectWithoutView({
 });
 
 let currentUserEmail = '';
-let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
+let currentUserAccountID = -1;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
-let account: OnyxEntry<Account>;
-// Use connectWithoutView to subscribe to account data without affecting UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
     },
 });
 
@@ -192,6 +185,14 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
     const internalExpensifyPath = getInternalExpensifyPath(href);
 
+    const isNarrowLayout = getIsNarrowLayout();
+    const currentState = navigationRef.getRootState();
+    const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    let shouldCloseRHP = false;
+    if (!isNarrowLayout && isRHPOpen) {
+        shouldCloseRHP = !willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+    }
+
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
     // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
     // clicking on the link will open the chat in NewDot. However, when a user is in NewDot and clicks on the concierge link, the link needs to be handled differently.
@@ -200,6 +201,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+        if (shouldCloseRHP) {
+            Navigation.closeRHPFlow();
+        }
         Navigation.navigate(reportRoute);
         return;
     }
@@ -210,6 +214,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
             return;
+        }
+        if (shouldCloseRHP) {
+            Navigation.closeRHPFlow();
         }
         Navigation.navigate(internalNewExpensifyPath as Route);
         return;
@@ -225,22 +232,23 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-function openReportFromDeepLink(
-    url: string,
-    currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
-    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
-    onboardingInitialPath: OnyxEntry<string>,
-    reports: OnyxCollection<Report>,
-    isAuthenticated: boolean,
-) {
+function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, isAuthenticated: boolean, conciergeReportID: string | undefined, introSelected: OnyxEntry<IntroSelected>) {
     const reportID = getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
+        // Start span for public room API call
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
+        });
+
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, '', [], undefined, '0', true);
+        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true});
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
             doneCheckingPublicRoom();
         }
     } else {
@@ -307,6 +315,10 @@ function openReportFromDeepLink(
                                 return;
                             }
 
+                            if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
+                                return;
+                            }
+
                             // Navigation for signed users is handled by react-navigation.
                             if (isAuthenticated) {
                                 return;
@@ -317,13 +329,13 @@ function openReportFromDeepLink(
                                 const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
                                 if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                        Navigation.navigate(lastAccessedReportRoute);
+                                        Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, () => true);
                                     return;
                                 }
 
@@ -343,7 +355,7 @@ function openReportFromDeepLink(
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
                                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                        if (report?.errorFields?.notFound || report?.reportID) {
+                                        if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             Onyx.disconnect(reportConnection);
                                             navigateHandler(report);
                                         }
@@ -356,54 +368,12 @@ function openReportFromDeepLink(
 
                         if (isAnonymousUser()) {
                             handleDeeplinkNavigation();
-                            return;
                         }
-                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
-                        isOnboardingFlowCompleted({
-                            onNotCompleted: () =>
-                                startOnboardingFlow({
-                                    onboardingValuesParam: val,
-                                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
-                                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
-                                    currentOnboardingPurposeSelected,
-                                    currentOnboardingCompanySize,
-                                    onboardingInitialPath,
-                                    onboardingValues: val,
-                                }),
-                            onCompleted: handleDeeplinkNavigation,
-                            onCanceled: handleDeeplinkNavigation,
-                        });
                     });
                 },
             });
         });
     });
-}
-
-function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
-    const authTokenParam = shortLivedAuthToken ? `shortLivedAuthToken=${shortLivedAuthToken}` : '';
-    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
-    const exitTo = `exitTo=${encodeURIComponent(url)}`;
-    const accountID = `accountID=${currentUserAccountID}`;
-    const referrer = 'referrer=desktop';
-    const paramsArray = [accountID, emailParam, authTokenParam, exitTo, referrer];
-    const params = paramsArray.filter(Boolean).join('&');
-
-    return `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}transition?${params}`;
-}
-
-/**
- * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
- */
-function openExternalLinkWithToken(url: string, shouldSkipCustomSafariLogic = false) {
-    asyncOpenURL(
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
-            .then((response) => (response ? buildURLWithAuthToken(url, response.shortLivedAuthToken) : buildURLWithAuthToken(url)))
-            .catch(() => buildURLWithAuthToken(url)),
-        (link) => link,
-        shouldSkipCustomSafariLogic,
-    );
 }
 
 function getTravelDotLink(policyID: OnyxEntry<string>) {
@@ -432,7 +402,6 @@ export {
     getInternalExpensifyPath,
     openTravelDotLink,
     buildTravelDotURL,
-    openExternalLinkWithToken,
     getTravelDotLink,
     buildOldDotURL,
     openReportFromDeepLink,

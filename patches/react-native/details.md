@@ -196,3 +196,31 @@
 - Upstream PR/issue: There won't be any upstream changes. We need to get rid of InteractionManager
 - E/App issue: https://github.com/Expensify/App/issues/71913
 - PR introducing patch: https://github.com/Expensify/App/pull/69535
+
+### [react-native+0.81.4+026+perf-increase-initial-heap-size.patch](react-native+0.81.4+026+perf-increase-initial-heap-size.patch)
+
+- Reason: This patch increases the initial heap size of the Hermes runtime. This allows us to disable Hermes Young-Gen Garbage Collection (GC) in a separate patch, which improves initial TTI and app startup time.
+- Upstream PR/issue: This is not intended to be upstreamed, since this is a low-level fix very specific to the Expensify app's requirements.
+- E/App issue: [#76859](https://github.com/Expensify/App/issues/76859)
+- PR introducing patch: [#76154](https://github.com/Expensify/App/pull/76154)
+
+### [react-native+0.81.4+027+perf-disable-hermes-young-gc-before-tti-reached.patch](react-native+0.81.4+027+perf-disable-hermes-young-gc-before-tti-reached.patch)
+
+- Reason: This patch disables Hermes Young-Gen Garbage Collection (GC), which improves initial TTI and app startup time, by delaying GC for early allocated memory to the first Old-Gen GC run. 
+- Upstream PR/issue: This is not intended to be upstreamed, since this is a low-level fix very specific to the Expensify app's requirements.
+- E/App issue: [#76859](https://github.com/Expensify/App/issues/76859)
+- PR introducing patch: [#76154](https://github.com/Expensify/App/pull/76154)
+
+### [react-native+0.81.4+028+strip-hermes-debug-info.patch](react-native+0.81.4+028+strip-hermes-debug-info.patch)
+
+- Reason: Always pass `-output-source-map` to `hermesc` for production iOS builds, stripping ~13.4MB of debug metadata from the Hermes bytecode. Previously this flag was only passed when `SOURCEMAP_FILE` was set; if the build environment didn't propagate that variable, debug info remained in the shipped bundle.
+- Upstream PR/issue: This should ideally be the default behavior upstream, but no PR has been filed yet.
+- E/App issue: [#83000](https://github.com/Expensify/App/issues/83000)
+- PR introducing patch: [#83256](https://github.com/Expensify/App/pull/83256)
+
+### [react-native+0.81.4+029+log-soft-exception-if-viewState-not-found.patch](react-native+0.81.4+029+log-soft-exception-if-viewState-not-found.patch)
+
+- Reason: This patch prevents app crashes by soft-logging the exception when JS try to send events to native views even if they are removed from view hierarchy. The approach follows existing patterns in the same file where similar events are already handled this way and is based on suggestions from other developers in upstream discussions.
+- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
+- E/App issue: [#82611](https://github.com/Expensify/App/issues/82611)
+- PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303)

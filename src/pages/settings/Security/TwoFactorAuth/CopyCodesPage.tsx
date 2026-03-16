@@ -1,11 +1,10 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -21,6 +20,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
@@ -31,18 +31,20 @@ import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download']);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
+    const isFocused = useIsFocused();
 
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const isUserValidated = account?.validated ?? false;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
+    const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'CopyCodesPage', isLoading: !!account?.isLoading};
 
     useEffect(() => {
         if (!isUserValidated) {
@@ -53,9 +55,16 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
         if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
         }
+
+        // This screen is rendered underneath other 2FA screens. We don't want it making
+        // API calls in the background in response to state updates
+        if (!isFocused) {
+            return;
+        }
+
         toggleTwoFactorAuth(true);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
+    }, [isUserValidated, accountMetadata.status, isFocused]);
 
     return (
         <TwoFactorAuthWrapper
@@ -85,7 +94,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                         <View style={[styles.twoFactorAuthCodesBox, styles.twoFactorAuthCodesBoxPadding({isExtraSmallScreenWidth, isSmallScreenWidth})]}>
                             {account?.isLoading ? (
                                 <View style={styles.twoFactorLoadingContainer}>
-                                    <ActivityIndicator />
+                                    <ActivityIndicator reasonAttributes={accountLoadingReasonAttributes} />
                                 </View>
                             ) : (
                                 <>
@@ -107,7 +116,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                         <PressableWithDelayToggle
                                             text={translate('twoFactorAuth.copy')}
                                             textChecked={translate('common.copied')}
-                                            icon={Expensicons.Copy}
+                                            icon={icons.Copy}
                                             inline={false}
                                             onPress={() => {
                                                 Clipboard.setString(account?.recoveryCodes ?? '');
@@ -116,9 +125,10 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
-                                            accessible={false}
                                             tooltipText=""
                                             tooltipTextChecked=""
+                                            accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
                                         />
                                         <PressableWithDelayToggle
                                             text={translate('common.download')}
@@ -131,9 +141,10 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             inline={false}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
-                                            accessible={false}
                                             tooltipText=""
                                             tooltipTextChecked=""
+                                            accessibilityLabel={`${translate('common.download')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
                                         />
                                     </View>
                                 </>

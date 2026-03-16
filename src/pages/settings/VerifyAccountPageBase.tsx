@@ -10,19 +10,26 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type VerifyAccountPageBaseProps = {navigateBackTo?: Route; navigateForwardTo?: Route; handleClose?: () => void};
+type VerifyAccountPageBaseProps = {
+    navigateBackTo?: Route;
+    navigateForwardTo?: Route;
+    handleClose?: () => void;
+    /** Callback called ONLY when user successfully validates their account (not on dismiss/back) */
+    onValidationSuccess?: () => void;
+};
 
 /**
  * This is a base page as RHP for account verification. The back & forward url logic should be handled on per case basis in higher component.
  */
-function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}: VerifyAccountPageBaseProps) {
+function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, onValidationSuccess}: VerifyAccountPageBaseProps) {
     const styles = useThemeStyles();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     // sometimes primaryLogin can be empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -36,9 +43,9 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            validateSecondaryLogin(currentUserPersonalDetails, loginList, contactMethod, validateCode, formatPhoneNumber, true);
+            validateSecondaryLogin(contactMethod, validateCode, formatPhoneNumber, true);
         },
-        [currentUserPersonalDetails, loginList, contactMethod, formatPhoneNumber],
+        [contactMethod, formatPhoneNumber],
     );
 
     const handleCloseWithFallback = useCallback(() => {
@@ -54,12 +61,15 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
         if (!isUserValidated) {
             return;
         }
+
+        onValidationSuccess?.();
+
         if (navigateForwardTo) {
             Navigation.navigate(navigateForwardTo, {forceReplace: true});
         } else {
             handleCloseWithFallback();
         }
-    }, [isUserValidated, navigateForwardTo, handleCloseWithFallback, handleClose]);
+    }, [isUserValidated, navigateForwardTo, handleCloseWithFallback, handleClose, onValidationSuccess]);
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.
     if (isUserValidated) {
@@ -72,7 +82,10 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
                     title={translate('contacts.validateAccount')}
                     onBackButtonPress={handleCloseWithFallback}
                 />
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <FullScreenLoadingIndicator
+                    style={[styles.flex1, styles.pRelative]}
+                    reasonAttributes={{context: 'VerifyAccountPageBase', isUserValidated} satisfies SkeletonSpanReasonAttributes}
+                />
             </ScreenWrapper>
         );
     }
@@ -81,7 +94,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
         <ValidateCodeActionContent
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
-            descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
+            descriptionSecondary={translate('contacts.enterMagicCode', contactMethod)}
             sendValidateCode={requestValidateCodeAction}
             validateCodeActionErrorField="validateLogin"
             validatePendingAction={loginData?.pendingFields?.validateCodeSent}

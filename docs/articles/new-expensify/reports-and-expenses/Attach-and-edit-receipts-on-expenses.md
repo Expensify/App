@@ -11,7 +11,7 @@ Make sure your receipts are attached correctly to individual expenses for audit 
 # How to Attach and Verify Receipts on Expenses
 
 ## Who can attach receipts to an expense
-- **Attach or replace a receipt**: The member who created the expense, or a Workspace Admin.
+- **Attach or replace a receipt**: The member who created the expense, a Workspace Admin, or the current approver. 
 - **Edit a receipt in an Approved or Paid report**: Requires the report to be unapproved first (see below).
 
 ---

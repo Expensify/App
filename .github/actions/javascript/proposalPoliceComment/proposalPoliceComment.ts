@@ -28,6 +28,33 @@ function isCommentEditedEvent(payload: IssueCommentEvent): payload is IssueComme
     return payload.action === CONST.ACTIONS.EDITED;
 }
 
+/**
+ * Checks if a comment body matches the criteria for a Proposal.
+ */
+function getIsProposal(body: string | null | undefined): boolean {
+    if (!body) {
+        return false;
+    }
+    const lowerCaseBody = body.toLowerCase();
+    return body.includes(CONST.PROPOSAL_KEYWORD) && lowerCaseBody.includes(CONST.PROPOSAL_HEADER_A) && lowerCaseBody.includes(CONST.PROPOSAL_HEADER_B);
+}
+
+/**
+ * Determines if a comment author is a known bot or a bot-type account.
+ */
+function getIsBotAuthor(user: {login?: string; type?: string} | null | undefined): boolean {
+    if (!user) {
+        return false;
+    }
+
+    const knownBotLogins: string[] = [CONST.COMMENT.NAME_MELVIN_BOT, CONST.COMMENT.NAME_MELVIN_USER, CONST.COMMENT.NAME_CODEX, CONST.COMMENT.NAME_GITHUB_ACTIONS];
+
+    const isKnownBotLogin = knownBotLogins.includes(user.login ?? '');
+    const isBotType = user.type === CONST.COMMENT.TYPE_BOT;
+
+    return isKnownBotLogin || isBotType;
+}
+
 // Main function to process the workflow event
 async function run() {
     // Capture the timestamp immediately at the start of the run
@@ -84,6 +111,10 @@ async function run() {
         const newProposalCreatedAt = new Date(payload.comment.created_at).getTime();
         const newProposalBody = payload.comment.body;
         const newProposalAuthor = payload.comment.user.login;
+        if (getIsBotAuthor(payload.comment.user)) {
+            console.log('New comment is from a bot. Skipping duplicate check.');
+            return;
+        }
         // Fetch all comments in the issue
         console.log('Get comments for issue #', issueNumber);
         const commentsResponse = await GithubUtils.getAllCommentDetails(issueNumber);
@@ -93,22 +124,31 @@ async function run() {
 
         let didFindDuplicate = false;
         let originalProposal: TupleToUnion<typeof commentsResponse> | undefined;
+
+        const isNewCommentAProposal = getIsProposal(newProposalBody);
+        if (!isNewCommentAProposal) {
+            console.log('New comment is not a proposal. Skipping duplicate check.');
+            return;
+        }
+
         for (const previousProposal of commentsResponse) {
-            const isProposal = !!previousProposal.body?.includes(CONST.PROPOSAL_KEYWORD);
+            const body = previousProposal.body ?? '';
+            const isProposal = getIsProposal(body);
             const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
             // Early continue if not a proposal or previous comment is newer than current one
             if (!isProposal || previousProposalCreatedAt >= newProposalCreatedAt) {
                 continue;
             }
-            const isAuthorBot = previousProposal.user?.login === CONST.COMMENT.NAME_GITHUB_ACTIONS || previousProposal.user?.type === CONST.COMMENT.TYPE_BOT;
+            const isBotAuthor = getIsBotAuthor(previousProposal.user);
             // Skip prompting if comment author is the GH bot
-            if (isAuthorBot) {
+            if (isBotAuthor) {
                 continue;
             }
 
             const duplicateCheckPrompt = PROPOSAL_POLICE_TEMPLATES.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse<DuplicateProposalResponse>(duplicateCheckResponse);
             core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
@@ -149,6 +189,7 @@ async function run() {
         : PROPOSAL_POLICE_TEMPLATES.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
 
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
     const parsedAssistantResponse = openAI.parseAssistantResponse<AssistantResponse>(assistantResponse);
     core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);

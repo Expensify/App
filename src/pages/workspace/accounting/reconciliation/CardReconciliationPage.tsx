@@ -70,9 +70,9 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const domainID = fullySetUpCardSetting.key.split('_').at(-1);
     const effectiveDomainID = Number(domainID ?? workspaceAccountID);
 
-    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {canBeMissing: true});
-    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`);
+    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const paymentBankAccountID = fullySetUpCardSetting.cardSetting?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
@@ -155,10 +155,11 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                     {!autoSync && (
                         <View style={[styles.renderHTML, styles.ph5, styles.mt2]}>
                             <RenderHTML
-                                html={translate('workspace.accounting.enableContinuousReconciliation', {
+                                html={translate(
+                                    'workspace.accounting.enableContinuousReconciliation',
                                     accountingAdvancedSettingsLink,
-                                    connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
-                                })}
+                                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
+                                )}
                             />
                         </View>
                     )}

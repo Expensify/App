@@ -544,6 +544,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 icon: 'string',
                 actorAccountID: 'number',
                 eta: 'object',
+                iconFill: 'string',
             });
         case 'tripData':
             return validateObject<ObjectElement<Report, 'tripData'>>(value, {
@@ -622,6 +623,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 approved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                export: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -717,6 +719,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         case 'isAttachmentWithText':
         case 'isNewestReportAction':
         case 'isOptimisticAction':
+        case 'isOriginalReportDeleted':
             return validateBoolean(value);
         case 'created':
         case 'lastModified':
@@ -768,6 +771,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 childReportNotificationPreference: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isNewestReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isOptimisticAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isOriginalReportDeleted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 adminAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 whisperedToAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportActionTimestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -951,6 +955,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'category':
         case 'merchant':
         case 'taxCode':
+        case 'taxName':
         case 'modifiedCurrency':
         case 'modifiedMerchant':
         case 'transactionID':
@@ -976,6 +981,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'reimbursable':
         case 'participantsAutoAssigned':
         case 'isFromGlobalCreate':
+        case 'isFromFloatingActionButton':
         case 'hasEReceipt':
         case 'shouldShowOriginalAmount':
         case 'managedCard':
@@ -986,6 +992,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'cardID':
         case 'originalAmount':
         case 'convertedAmount':
+        case 'convertedTaxAmount':
         case 'groupAmount':
         case 'groupExchangeRate':
             return validateNumber(value);
@@ -1054,10 +1061,15 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerStartImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerEndImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     amount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     convertedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    convertedTaxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     billable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     category: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1083,6 +1095,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isFromFloatingActionButton: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     parentTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1110,6 +1123,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingAutoCategorizationTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1160,6 +1174,10 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 units: 'object',
                 splitsStartDate: 'string',
                 splitsEndDate: 'string',
+                odometerStart: 'number',
+                odometerEnd: 'number',
+                odometerStartImage: 'object',
+                odometerEndImage: 'object',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1266,6 +1284,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
                 isNewestReportAction: 'boolean',
                 isOptimisticAction: 'boolean',
+                isOriginalReportDeleted: 'boolean',
                 adminAccountID: 'number',
                 whisperedToAccountIDs: 'array',
                 reportActionTimestamp: 'string',
@@ -1316,6 +1335,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 field: 'string',
                 prohibitedExpenseRule: 'string',
                 comment: 'string',
+                cardID: 'number',
             });
         case 'showInReview':
             return validateBoolean(value);

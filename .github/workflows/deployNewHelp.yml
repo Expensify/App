@@ -36,7 +36,7 @@ jobs:
       IS_PR_FROM_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
 
     # Set up a clean Ubuntu build environment
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
 
     steps:
       # We start by checking out the entire repo into a clean build environment within
@@ -55,8 +55,8 @@ jobs:
 
       # Install Node for _scripts/*.js
       - name: Set up Node.js
-        # v4
-        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e
+        # v6.0.1
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
         with:
           node-version-file: '.nvmrc'
 

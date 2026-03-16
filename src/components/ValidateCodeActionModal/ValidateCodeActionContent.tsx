@@ -29,7 +29,7 @@ function ValidateCodeActionContent({
 }: ValidateCodeActionContentProps) {
     const themeStyles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const firstRenderRef = useRef(true);
 
     useEffect(() => {
@@ -40,7 +40,6 @@ function ValidateCodeActionContent({
 
         sendValidateCode();
         // We only want to send validate code on first render not on change of validateCodeSent, so we don't add it as a dependency.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sendValidateCode]);
 

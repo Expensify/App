@@ -3,9 +3,7 @@ import useOnyx from '@hooks/useOnyx';
 import useProactiveAppReview from '@hooks/useProactiveAppReview';
 import requestStoreReview from '@libs/actions/StoreReview';
 import {respondToProactiveAppReview} from '@libs/actions/User';
-import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {AppReviewResponse} from '@src/types/onyx/AppReview';
 import ProactiveAppReviewModal from './ProactiveAppReviewModal';
 
@@ -14,17 +12,12 @@ const CONCIERGE_NEGATIVE_MESSAGE = "Hi there! I'm sorry to hear you aren't fully
 
 function ProactiveAppReviewModalManager() {
     const {shouldShowModal, proactiveAppReview} = useProactiveAppReview();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const handleResponse = useCallback(
         (response: AppReviewResponse, message?: string) => {
             // Call the action which will create an optimistic comment (if the message is provided) and call the API
             respondToProactiveAppReview(response, proactiveAppReview, message, conciergeReportID);
-
-            // Navigate to Concierge DM if we have a report ID and this wasn't a skip
-            if (conciergeReportID && response !== 'skip') {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
-            }
         },
         [conciergeReportID, proactiveAppReview],
     );

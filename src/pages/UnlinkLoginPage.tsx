@@ -4,6 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {PublicScreensParamList} from '@navigation/types';
 import {unlinkLogin} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -15,13 +16,13 @@ type UnlinkLoginPageProps = PlatformStackScreenProps<PublicScreensParamList, typ
 function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
     const accountID = route.params.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const validateCode = route.params.validateCode ?? '';
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const prevIsLoading = usePrevious(!!account?.isLoading);
 
     useEffect(() => {
         unlinkLogin(Number(accountID), validateCode);
         // We only want this to run on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -33,7 +34,10 @@ function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
         Navigation.goBack();
     }, [prevIsLoading, account?.isLoading]);
 
-    return <FullScreenLoadingIndicator />;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'UnlinkLoginPage',
+    };
+    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
 }
 
 export default UnlinkLoginPage;

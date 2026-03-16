@@ -1,12 +1,14 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -19,12 +21,21 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.JOIN;
+type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {
+        reportID?: string;
+        accountID?: number;
+        login?: string;
+        currentUserAccountID: number;
+        introSelected: OnyxEntry<IntroSelected>;
+        isSelfTourViewed: boolean | undefined;
+    }) => PromotedAction;
+} & {
+    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
 };
 
 type PromotedActionsBarProps = {
@@ -44,16 +55,16 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.SHARE,
         ...getShareMenuItem(report, backTo),
     }),
-    join: (report) => ({
+    join: (report, currentUserAccountID) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: 'ChatBubbles',
         translationKey: 'common.join',
         onSelected: callFunctionIfActionIsAllowed(() => {
             Navigation.dismissModal();
-            joinRoom(report);
+            joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login}) => ({
+    message: ({reportID, accountID, login, currentUserAccountID, introSelected, isSelfTourViewed}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -65,11 +76,11 @@ const PromotedActions = {
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], false);
+                navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed, false);
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID]);
+                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected);
             }
         },
     }),

@@ -1,0 +1,17 @@
+diff --git a/node_modules/react-native/ReactCommon/react/runtime/hermes/HermesInstance.cpp b/node_modules/react-native/ReactCommon/react/runtime/hermes/HermesInstance.cpp
+index 9018067..405a36f 100644
+--- a/node_modules/react-native/ReactCommon/react/runtime/hermes/HermesInstance.cpp
++++ b/node_modules/react-native/ReactCommon/react/runtime/hermes/HermesInstance.cpp
+@@ -132,7 +132,11 @@ std::unique_ptr<JSRuntime> HermesInstance::createJSRuntime(
+                       .withMaxHeapSize(3072 << 20)
+                       .withName("RNBridgeless");
+ 
+-  if (allocInOldGenBeforeTTI) {
++  // By enabling the `allocInOldGenBeforeTTI` flag, we prevent
++  // Hermes from running Young-Gen GC before TTI,
++  // which saves around 150-200ms on initial load.
++  // Once Old-Gen GC is triggered, it will enable Young-Gen GC again.
++  if (/*allocInOldGenBeforeTTI*/ true) {
+     // For the next two arguments: avoid GC before TTI
+     // by initializing the runtime to allocate directly
+     // in the old generation, but revert to normal

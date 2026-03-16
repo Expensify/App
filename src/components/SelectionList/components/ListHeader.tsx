@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -18,6 +19,9 @@ type ListHeaderProps<TItem extends ListItem> = {
     /** Whether multiple items can be selected */
     canSelectMultiple: boolean;
 
+    /** Styles for the list header wrapper */
+    headerStyle?: StyleProp<ViewStyle>;
+
     /** Function called when the select all button is pressed */
     onSelectAll: () => void;
 
@@ -33,6 +37,7 @@ function ListHeader<TItem extends ListItem>({
     customListHeader,
     canSelectMultiple,
     onSelectAll,
+    headerStyle,
     shouldShowSelectAllButton,
     shouldPreventDefaultFocusOnSelectRow,
 }: ListHeaderProps<TItem>) {
@@ -54,12 +59,13 @@ function ListHeader<TItem extends ListItem>({
 
     return (
         <View
-            style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, styles.selectionListStickyHeader]}
-            accessibilityRole="header"
+            style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, headerStyle, styles.selectionListStickyHeader]}
+            accessibilityRole={CONST.ROLE.HEADER}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Checkbox
-                    accessibilityLabel={translate('workspace.people.selectAll')}
+                    testID="selection-list-select-all-checkbox"
+                    accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                     isChecked={dataDetails.allSelected}
                     isIndeterminate={dataDetails.someSelected}
                     onPress={onSelectAll}
@@ -70,7 +76,8 @@ function ListHeader<TItem extends ListItem>({
                     <PressableWithFeedback
                         style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                         onPress={onSelectAll}
-                        accessibilityLabel={translate('workspace.people.selectAll')}
+                        accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                        sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.LIST_HEADER_SELECT_ALL}
                         accessibilityRole="button"
                         accessibilityState={{checked: dataDetails.allSelected, disabled: allDisabled}}
                         disabled={allDisabled}

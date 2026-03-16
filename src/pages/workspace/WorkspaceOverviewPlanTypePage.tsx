@@ -17,6 +17,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
+import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
@@ -86,6 +87,10 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         }
 
         if (policyID && policy?.type === CONST.POLICY.TYPE.CORPORATE && currentPlan === CONST.POLICY.TYPE.TEAM) {
+            if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
+                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+                return;
+            }
             Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policyID));
             return;
         }
@@ -108,7 +113,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 <HeaderWithBackButton title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
                     <View style={styles.flex1}>
-                        <FullScreenLoadingIndicator />
+                        <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceOverviewPlanTypePage'}} />
                     </View>
                 ) : (
                     <>

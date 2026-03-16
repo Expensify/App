@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import shouldShowChangeWorkspaceOwnerPage from '@libs/shouldShowChangeWorkspaceOwnerPage';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
@@ -25,11 +26,11 @@ import WorkspaceOwnerPaymentCardForm from './WorkspaceOwnerPaymentCardForm';
 
 type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
 
-function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWrapperPageProps) {
+function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: WorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const policyID = route.params.policyID;
     const accountID = Number(route.params.accountID);
     const error = route.params.error;
@@ -39,12 +40,12 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
     const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
 
     useEffect(() => {
-        if (policy?.isChangeOwnerFailed || policy?.isChangeOwnerSuccessful) {
+        if (isLoadingPolicy || policy?.isChangeOwnerFailed || policy?.isChangeOwnerSuccessful) {
             return;
         }
-        requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policyID]);
+        requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyID, isLoadingPolicy]);
 
     useEffect(() => {
         if (!policy || policy?.isLoading) {
@@ -72,6 +73,14 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
         }
     }, [accountID, backTo, policy, policy?.errorFields?.changeOwner, policyID]);
 
+    const isLoading = isLoadingPolicy || !!policy?.isLoading;
+
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceOwnerChangeWrapperPage',
+        isLoadingPolicy: !!isLoadingPolicy,
+        isPolicyLoading: !!policy?.isLoading,
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -92,9 +101,9 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                     }}
                 />
                 <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
-                    {!!policy?.isLoading && <FullScreenLoadingIndicator />}
+                    {isLoading && <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />}
                     {shouldShowPaymentCardForm && <WorkspaceOwnerPaymentCardForm policy={policy} />}
-                    {!policy?.isLoading && !shouldShowPaymentCardForm && (
+                    {!isLoading && !shouldShowPaymentCardForm && (
                         <WorkspaceOwnerChangeCheck
                             policy={policy}
                             accountID={accountID}

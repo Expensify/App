@@ -1,10 +1,10 @@
 import {FlatCompat} from '@eslint/eslintrc';
 import tsParser from '@typescript-eslint/parser';
 import expensifyConfig from 'eslint-config-expensify';
+import fileProgress from 'eslint-plugin-file-progress';
 import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
-import reactCompiler from 'eslint-plugin-react-compiler';
 import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
 import testingLibrary from 'eslint-plugin-testing-library';
 import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
@@ -13,6 +13,7 @@ import globals from 'globals';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import typescriptEslint from 'typescript-eslint';
+import reactCompilerCompat from './eslint-plugin-react-compiler-compat/index.mjs';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -163,6 +164,14 @@ const config = defineConfig([
     expensifyConfig,
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
+    fileProgress.configs['recommended-ci'],
+
+    // Suppress lint rules that are unnecessary for files successfully compiled by React Compiler.
+    // The processor runs React Compiler on each file and filters out redundant lint messages.
+    {
+        files: ['**/*.tsx', '**/*.jsx'],
+        processor: reactCompilerCompat.processors['react-compiler-compat'],
+    },
 
     {
         extends: new FlatCompat({baseDirectory: dirname}).extends(
@@ -180,7 +189,6 @@ const config = defineConfig([
             'react-native-a11y': reactNativeA11Y,
             react,
             'testing-library': testingLibrary,
-            'react-compiler': reactCompiler,
             lodash,
         },
 
@@ -322,7 +330,6 @@ const config = defineConfig([
                     touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
                 },
             ],
-            'react-compiler/react-compiler': 'error',
 
             // Disallow usage of certain functions and imports
             'no-restricted-syntax': [
@@ -411,7 +418,6 @@ const config = defineConfig([
                         '@styles': './src/styles',
                         // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                         '@src': './src',
-                        '@desktop': './desktop',
                         '@github': './.github',
                     },
                 },
@@ -480,15 +486,16 @@ const config = defineConfig([
     },
 
     {
-        files: ['**/*.js', '**/*.jsx'],
+        files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         ...typescriptEslint.configs.disableTypeChecked,
     },
     {
-        files: ['**/*.js', '**/*.jsx'],
+        files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
             '@typescript-eslint/prefer-nullish-coalescing': 'off',
             '@typescript-eslint/no-unsafe-return': 'off',
             '@typescript-eslint/unbound-method': 'off',
+            'arrow-parens': 'off',
             'jsdoc/no-types': 'off',
             'react/jsx-filename-extension': 'off',
             'rulesdir/no-default-props': 'off',
@@ -593,6 +600,13 @@ const config = defineConfig([
         },
     },
 
+    {
+        files: ['modules/ExpensifyNitroUtils/src/**/*'],
+        rules: {
+            '@typescript-eslint/consistent-type-definitions': 'off',
+        },
+    },
+
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
@@ -607,6 +621,7 @@ const config = defineConfig([
         'web/gtm.js',
         '**/.expo/**/*',
         '**/.rock/**/*',
+        '**/.yalc/**/*',
         'src/libs/SearchParser/searchParser.js',
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
@@ -624,7 +639,6 @@ const config = defineConfig([
         'src/languages/pl.ts',
         'src/languages/pt-BR.ts',
         'src/languages/zh-hans.ts',
-        'desktop/**/*',
     ]),
 ]);
 

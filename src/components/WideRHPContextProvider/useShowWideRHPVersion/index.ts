@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import {useCallback, useContext, useEffect} from 'react';
-import {InteractionManager} from 'react-native';
-import useBeforeRemove from '@hooks/useBeforeRemove';
-import {WideRHPContext} from '..';
+import {useCallback, useEffect} from 'react';
+import {navigationRef} from '@libs/Navigation/Navigation';
+import NAVIGATORS from '@src/NAVIGATORS';
+import {expandedRHPProgress, useWideRHPActions} from '..';
 
 /**
  * Hook that manages wide RHP display for a screen based on condition or optimistic state.
@@ -14,24 +14,20 @@ import {WideRHPContext} from '..';
 function useShowWideRHPVersion(condition: boolean) {
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
-    const {showWideRHPVersion, removeWideRHPRouteKey, isReportIDMarkedAsExpense} = useContext(WideRHPContext);
-
-    // beforeRemove event is not called when closing nested Wide RHP using the browser back button.
-    // This hook removes the route key from the array in the following case.
-    useEffect(() => () => removeWideRHPRouteKey(route), [removeWideRHPRouteKey, route]);
+    const {showWideRHPVersion, removeWideRHPRouteKey, isReportIDMarkedAsExpense} = useWideRHPActions();
 
     const onWideRHPClose = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            removeWideRHPRouteKey(route);
-        });
+        removeWideRHPRouteKey(route);
+        // When the RHP has been closed, expandedRHPProgress should be set to 0.
+        if (navigationRef?.getRootState()?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            expandedRHPProgress.setValue(0);
+        }
     }, [removeWideRHPRouteKey, route]);
 
     /**
-     * Effect that sets up cleanup when the screen is about to be removed.
-     * Uses InteractionManager to ensure cleanup happens after closing animation.
+     * Effect that sets up cleanup when the screen is unmounted.
      */
-    useBeforeRemove(onWideRHPClose);
+    useEffect(() => () => onWideRHPClose(), [onWideRHPClose]);
 
     /**
      * Effect that determines whether to show wide RHP based on condition or optimistic state.

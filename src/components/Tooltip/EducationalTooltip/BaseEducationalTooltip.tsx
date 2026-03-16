@@ -159,7 +159,6 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         >
             {(genericTooltipState) => {
                 const {updateTargetBounds, showTooltip} = genericTooltipState;
-                // eslint-disable-next-line react-compiler/react-compiler
                 genericTooltipStateRef.current = genericTooltipState;
                 return React.cloneElement(children as React.ReactElement<{onLayout?: (e: LayoutChangeEventWithTarget) => void}>, {
                     onLayout: (e: LayoutChangeEventWithTarget) => {

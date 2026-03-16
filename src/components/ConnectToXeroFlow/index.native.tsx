@@ -20,14 +20,14 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setIsWebViewOpen] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isUserValidated = account?.validated;
     const is2FAEnabled = account?.requiresTwoFactorAuth ?? false;
 
-    const renderLoading = () => <FullScreenLoadingIndicator />;
+    const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={{context: 'ConnectToXeroFlow'}} />;
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
     useEffect(() => {
@@ -36,7 +36,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             return;
         }
         setIsWebViewOpen(true);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

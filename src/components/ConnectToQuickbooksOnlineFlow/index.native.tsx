@@ -12,13 +12,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
-const renderLoading = () => <FullScreenLoadingIndicator />;
+const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={{context: 'ConnectToQuickbooksOnlineFlow'}} />;
 
 function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlowProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setIsWebViewOpen] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const authToken = session?.authToken ?? null;
 
@@ -26,7 +26,7 @@ function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlow
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
         enablePolicyTaxes(policyID, false);
         setIsWebViewOpen(true);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

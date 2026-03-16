@@ -17,6 +17,10 @@ type SelectedTagOption = {
     pendingAction?: PendingAction;
 };
 
+type TagOption = Option & {
+    keyForList: string;
+};
+
 type TagVisibility = {
     /** Flag indicating if the tag is required */
     isTagRequired: boolean;
@@ -30,7 +34,7 @@ type TagVisibility = {
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'>>, selectedOptions?: SelectedTagOption[]): Option[] {
+function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'>>, selectedOptions?: SelectedTagOption[]): TagOption[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = getCleanedTagName(tag.name);
@@ -89,7 +93,7 @@ function getTagListSections({
         tagSections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            sectionIndex: 0,
             data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
         });
 
@@ -105,7 +109,7 @@ function getTagListSections({
         tagSections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
+            sectionIndex: 1,
             data: getTagsOptions(tagsForSearch, selectedOptions),
         });
 
@@ -116,7 +120,7 @@ function getTagListSections({
         tagSections.push({
             // "All" section when items amount less than the threshold
             title: '',
-            shouldShow: false,
+            sectionIndex: 2,
             data: getTagsOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions),
         });
 
@@ -134,7 +138,7 @@ function getTagListSections({
         tagSections.push({
             // "Selected" section
             title: '',
-            shouldShow: true,
+            sectionIndex: 3,
             data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
         });
     }
@@ -145,7 +149,7 @@ function getTagListSections({
         tagSections.push({
             // "Recent" section
             title: translate('common.recent'),
-            shouldShow: true,
+            sectionIndex: 4,
             data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
     }
@@ -153,7 +157,7 @@ function getTagListSections({
     tagSections.push({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
-        shouldShow: true,
+        sectionIndex: 5,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });
 
@@ -246,5 +250,29 @@ function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTa
     });
 }
 
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag};
-export type {SelectedTagOption, TagVisibility};
+/**
+ * Gets enabled tags filtered by parent tag at a specific index level.
+ *
+ * Filters the policy tags to return only enabled tags whose parent tag filter
+ * matches the provided parent tag value at the given index level.
+ *
+ * @param tags - The policy tags object containing all available tags
+ * @param tag - The tag string (potentially multi-level, e.g., "California:North")
+ * @param index - The index level to truncate the tag to for parent filtering
+ * @returns Array of enabled policy tags that match the parent tag filter
+ */
+function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
+    // Truncate tag to the current level (e.g., "California:North")
+    const parentTag = getTagArrayFromName(tag).slice(0, index).join(':');
+
+    return Object.values(tags).filter((policyTag) => {
+        if (!policyTag.enabled) {
+            return false;
+        }
+        const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
+        return !filterRegex || new RegExp(filterRegex).test(parentTag);
+    });
+}
+
+export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getEnabledTags};
+export type {SelectedTagOption, TagVisibility, TagOption};

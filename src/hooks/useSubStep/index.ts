@@ -12,6 +12,7 @@ function calculateLastIndex(bodyContentLength: number, skipSteps: number[] = [])
 }
 
 /**
+ * @deprecated This hook is will be removed once the refactor (https://github.com/Expensify/App/issues/79039) is complete. Use useSubPage hook instead (see NAVIGATION.md for details).
  * This hook ensures uniform handling of components across different screens, enabling seamless integration and navigation through sub steps of the VBBA flow.
  * @param bodyContent - array of components to display in particular step
  * @param onFinished - callback triggered after finish last step
@@ -84,11 +85,9 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
         setScreenIndex(lastScreenIndex);
     }, [lastScreenIndex]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     return {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         componentToRender: bodyContent.at(screenIndex) as ComponentType<SubStepProps & TProps>,
-        // eslint-disable-next-line react-compiler/react-compiler
         isEditing: isEditing.current,
         screenIndex,
         prevScreen,

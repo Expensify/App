@@ -10,8 +10,10 @@ import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
+import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -25,6 +27,7 @@ import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -67,7 +70,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     footerContentAbovePagination,
     listEmptyContent,
     showScrollIndicator = true,
-    showLoadingPlaceholder = false,
+    shouldShowLoadingPlaceholder = false,
     LoadingPlaceholderComponent = OptionsListSkeletonView,
     showConfirmButton = false,
     isConfirmButtonDisabled = false,
@@ -104,6 +107,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     includeSafeAreaPaddingBottom = true,
     shouldTextInputInterceptSwipe = false,
     listHeaderContent,
+    showSectionTitleWithListHeaderContent = false,
     onEndReached,
     onEndReachedThreshold,
     windowSize = 5,
@@ -143,6 +147,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     renderScrollComponent,
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
+    ListFooterComponentStyle,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
     shouldSkipContentHeaderHeightOffset,
@@ -291,12 +296,26 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         };
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
 
+    const wasIncrementPageCancelledRef = useRef(false);
+
     const incrementPage = useCallback(() => {
         if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
+            wasIncrementPageCancelledRef.current = true;
             return;
         }
         setCurrentPage((prev) => prev + 1);
+        wasIncrementPageCancelledRef.current = false;
     }, [flattenedSections.allOptions.length, currentPage]);
+
+    // When new items are received, check if we're at the bottom of the list and should increment the current page
+    useEffect(() => {
+        if (!wasIncrementPageCancelledRef.current) {
+            return;
+        }
+        incrementPage();
+        // We only really want to recall `incrementPage` after the data has been updated.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [flattenedSections.allOptions.length]);
 
     const slicedSections = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -365,7 +384,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             pendingScrollIndexRef.current = null;
         },
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [flattenedSections.allOptions, currentPage],
     );
 
@@ -397,7 +416,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
 
         setDisabledArrowKeyIndexes(flattenedSections.disabledArrowKeyOptionsIndexes);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [flattenedSections.disabledArrowKeyOptionsIndexes]);
 
     /** Check whether there is a need to scroll to an item and if all items are loaded */
@@ -432,7 +451,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     }, [setShouldDisableHoverStyle]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
@@ -461,7 +480,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         setFocusedIndex(selectedItemIndex);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedItemIndex]);
 
     const clearInputAfterSelect = useCallback(() => {
@@ -593,7 +612,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return <section.CustomSectionHeader section={section} />;
         }
 
-        if (!section.title || isEmptyObject(section.data) || listHeaderContent) {
+        if (!section.title || isEmptyObject(section.data) || (!showSectionTitleWithListHeaderContent && listHeaderContent)) {
             return null;
         }
 
@@ -603,7 +622,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+                <Text
+                    style={[styles.ph5, styles.textLabelSupporting]}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {section.title}
+                </Text>
             </View>
         );
     };
@@ -615,7 +639,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
                             testID="selection-list-select-all-checkbox"
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             isChecked={flattenedSections.allSelected}
                             isIndeterminate={flattenedSections.someSelected}
                             onPress={selectAllRow}
@@ -625,7 +649,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                             <PressableWithFeedback
                                 style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                                 onPress={selectAllRow}
-                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST_WITH_SECTIONS.SELECT_ALL}
                                 role="button"
                                 accessibilityState={{checked: flattenedSections.allSelected}}
                                 disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
@@ -643,16 +668,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </>
     );
 
-    const setCurrentHoverIndex = useCallback(
-        (hoverIndex: number | null) => {
-            if (shouldDisableHoverStyle) {
-                return;
-            }
-            currentHoverIndexRef.current = hoverIndex;
-        },
-        [currentHoverIndexRef, shouldDisableHoverStyle],
-    );
-
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -661,15 +676,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
-            <View
-                onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
-                onMouseMove={() => setCurrentHoverIndex(normalizedIndex)}
-                onMouseEnter={() => setCurrentHoverIndex(normalizedIndex)}
-                onMouseLeave={(e) => {
-                    e.stopPropagation();
-                    setCurrentHoverIndex(null);
-                }}
-            >
+            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
                     item={{
@@ -706,19 +713,24 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
-                    shouldStopMouseLeavePropagation={false}
                 />
             </View>
         );
     };
 
     const renderListEmptyContent = () => {
-        if (showLoadingPlaceholder) {
+        if (shouldShowLoadingPlaceholder) {
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'BaseSelectionListWithSections',
+                shouldShowLoadingPlaceholder,
+                shouldUseUserSkeletonView,
+            };
             return (
                 <LoadingPlaceholderComponent
                     fixedNumItems={fixedNumItemsForLoader}
                     shouldStyleAsTable={shouldUseUserSkeletonView}
                     speed={loaderSpeed}
+                    reasonAttributes={reasonAttributes}
                 />
             );
         }
@@ -750,7 +762,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
-                            // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
+                            // eslint-disable-next-line no-param-reassign
                             textInputRef.current = element as RNTextInput;
                         }
                     }}
@@ -852,6 +864,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
         // Reset the current page to 1 when the user types something
         setCurrentPage(1);
+        wasIncrementPageCancelledRef.current = false;
     }, [textInputValue, prevTextInputValue]);
 
     useEffect(() => {
@@ -971,7 +984,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
-        shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
+        shouldBubble: (flattenedSections.allOptions.length > 0 && !flattenedSections.allOptions.at(focusedIndex)) || focusedIndex === -1,
         shouldStopPropagation,
         shouldPreventDefault,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused && focusedIndex >= 0,
@@ -995,9 +1008,15 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
     );
 
+    const noResultsFoundText = translate('common.noResultsFound');
+    const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
+    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder));
+    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
+
+    useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
+
     const headerMessageContent = () =>
-        (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
-        !!headerMessage && (
+        shouldShowHeaderMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
             </View>
@@ -1024,7 +1043,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
             {!shouldShowHeaderMessageAfterHeader && headerMessageContent()}
             {!!headerContent && headerContent}
-            {flattenedSections.allOptions.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
+            {flattenedSections.allOptions.length === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>
@@ -1033,6 +1052,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         renderScrollComponent={renderScrollComponent}
                         removeClippedSubviews={removeClippedSubviews}
                         ref={listRef}
+                        role={getListboxRole(canSelectMultiple)}
                         sections={slicedSections}
                         stickySectionHeadersEnabled={false}
                         renderSectionHeader={(arg) => (
@@ -1078,6 +1098,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 {listFooterContent}
                             </>
                         }
+                        ListFooterComponentStyle={ListFooterComponentStyle}
                         onEndReached={handleOnEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}

@@ -9,6 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -20,8 +22,10 @@ import ROUTES from '@src/ROUTES';
 function ConciergePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     useFocusEffect(
         useCallback(() => {
@@ -32,12 +36,12 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(true, () => !isUnmounted.current);
+                    navigateToConciergeChat(conciergeReportID, introSelected, session.accountID ?? CONST.DEFAULT_NUMBER_ID, true, () => !isUnmounted.current);
                 });
             } else {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData]),
+        }, [session, isLoadingReportData, conciergeReportID, introSelected]),
     );
 
     useEffect(() => {
@@ -47,10 +51,19 @@ function ConciergePage() {
         };
     }, []);
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ConciergePage',
+        isLoadingReportData,
+        hasConciergeReportID: !!conciergeReportID,
+    };
+
     return (
         <ScreenWrapper testID="ConciergePage">
             <View style={[styles.borderBottom, styles.appContentHeader]}>
-                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+                <ReportHeaderSkeletonView
+                    onBackButtonPress={Navigation.goBack}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>

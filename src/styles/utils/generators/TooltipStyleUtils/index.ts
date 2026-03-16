@@ -6,8 +6,6 @@ import FontUtils from '@styles/utils/FontUtils';
 import type StyleUtilGenerator from '@styles/utils/generators/types';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
-// eslint-disable-next-line no-restricted-imports
-import titleBarHeight from '@styles/utils/titleBarHeight';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
@@ -145,7 +143,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             // we'll display it beneath its wrapped component rather than above it as usual.
             shouldShowBelow =
                 shouldForceRenderingBelow ||
-                yOffset - tooltipHeight - pointerHeight < GUTTER_WIDTH + titleBarHeight ||
+                yOffset - tooltipHeight - pointerHeight < GUTTER_WIDTH ||
                 !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight)) ||
                 anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP;
 

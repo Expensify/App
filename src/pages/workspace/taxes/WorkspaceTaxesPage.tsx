@@ -6,15 +6,13 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
@@ -27,6 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
@@ -41,6 +40,7 @@ import {
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -61,6 +61,7 @@ function WorkspaceTaxesPage({
         params: {policyID},
     },
 }: WorkspaceTaxesPageProps) {
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.taxes');
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -71,7 +72,7 @@ function WorkspaceTaxesPage({
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
 
@@ -82,7 +83,7 @@ function WorkspaceTaxesPage({
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
-    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Coins']);
 
     const fetchTaxes = useCallback(() => {
@@ -93,7 +94,6 @@ function WorkspaceTaxesPage({
 
     useEffect(() => {
         fetchTaxes();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -120,7 +120,7 @@ function WorkspaceTaxesPage({
 
             return newSelectedTaxesIDs;
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy?.taxRates?.taxes]);
 
     useSearchBackPress({
@@ -199,6 +199,7 @@ function WorkspaceTaxesPage({
     const [inputValue, setInputValue, filteredTaxesList] = useSearchResults(taxesList, filterTax, sortTaxes);
 
     const isLoading = !isOffline && taxesList === undefined;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceTaxesPage', isOffline, isTaxesListUndefined: taxesList === undefined};
 
     const toggleTax = (tax: ListItem) => {
         const key = tax.keyForList;
@@ -280,7 +281,7 @@ function WorkspaceTaxesPage({
         const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [];
         if (!hasAccountingConnections) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: icons.Trashcan,
                 text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setIsDeleteModalVisible(true),
@@ -290,7 +291,7 @@ function WorkspaceTaxesPage({
         // `Disable rates` when at least one enabled rate is selected.
         if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
-                icon: Expensicons.Close,
+                icon: icons.Close,
                 text: translate('workspace.taxes.actions.disableTaxRates', {count: enabledRatesCount}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => toggleTaxes(false),
@@ -300,14 +301,14 @@ function WorkspaceTaxesPage({
         // `Enable rates` when at least one disabled rate is selected.
         if (selectedTaxesIDs.some((taxID) => policy?.taxRates?.taxes[taxID]?.isDisabled)) {
             options.push({
-                icon: Expensicons.Checkmark,
+                icon: icons.Checkmark,
                 text: translate('workspace.taxes.actions.enableTaxRates', {count: disabledRatesCount}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => toggleTaxes(true),
             });
         }
         return options;
-    }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate, enabledRatesCount, disabledRatesCount]);
+    }, [hasAccountingConnections, icons.Checkmark, icons.Close, icons.Trashcan, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate, enabledRatesCount, disabledRatesCount]);
 
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedTaxesIDs.length > 0;
 
@@ -329,7 +330,8 @@ function WorkspaceTaxesPage({
                 <Button
                     success
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
-                    icon={Expensicons.Plus}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ADD_BUTTON}
+                    icon={icons.Plus}
                     text={translate('workspace.taxes.addRate')}
                     style={[shouldUseNarrowLayout && styles.flex1]}
                 />
@@ -339,6 +341,7 @@ function WorkspaceTaxesPage({
                 onPress={() => {}}
                 shouldUseOptionIcon
                 customText={translate('common.more')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.MORE_DROPDOWN}
                 options={secondaryActions}
                 isSplitButton={false}
                 wrapperStyle={hasAccountingConnections ? styles.flexGrow1 : styles.flexGrow0}
@@ -354,6 +357,7 @@ function WorkspaceTaxesPage({
             isSplitButton={false}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
             isDisabled={!selectedTaxesIDs.length}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS_DROPDOWN}
         />
     );
 
@@ -392,6 +396,7 @@ function WorkspaceTaxesPage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
                 style={[styles.defaultModalContainer]}
                 testID="WorkspaceTaxesPage"
                 shouldShowOfflineIndicatorInWideScreen
@@ -401,13 +406,14 @@ function WorkspaceTaxesPage({
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedTaxesIDs([]);
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.popToSidebar();
+                        Navigation.goBack();
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
@@ -417,27 +423,27 @@ function WorkspaceTaxesPage({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
+                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 <SelectionListWithModal
-                    canSelectMultiple={canSelectMultiple}
-                    turnOnSelectionModeOnLongPress
-                    onTurnOnSelectionMode={(item) => item && toggleTax(item)}
-                    sections={[{data: filteredTaxesList, isDisabled: false}]}
-                    shouldUseDefaultRightHandSideCheckmark={false}
-                    selectedItems={selectedTaxesIDs}
-                    onCheckboxPress={toggleTax}
-                    onSelectRow={navigateToEditTaxRate}
-                    onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
+                    data={filteredTaxesList}
                     ListItem={TableListItem}
-                    listHeaderContent={headerContent}
-                    shouldShowListEmptyContent={false}
-                    customListHeader={getCustomListHeader()}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    selectedItems={selectedTaxesIDs}
+                    onSelectRow={navigateToEditTaxRate}
+                    canSelectMultiple={canSelectMultiple}
+                    onTurnOnSelectionMode={(item) => item && toggleTax(item)}
+                    onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    shouldUseDefaultRightHandSideCheckmark={false}
+                    customListHeader={getCustomListHeader()}
+                    customListHeaderContent={headerContent}
+                    shouldShowListEmptyContent={false}
+                    onCheckboxPress={toggleTax}
                     showScrollIndicator={false}
-                    addBottomSafeAreaPadding
+                    turnOnSelectionModeOnLongPress
+                    shouldHeaderBeInsideList
                     shouldShowRightCaret
                 />
                 <ConfirmModal
@@ -446,9 +452,7 @@ function WorkspaceTaxesPage({
                     onConfirm={deleteTaxes}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     prompt={
-                        selectedTaxesIDs.length > 1
-                            ? translate('workspace.taxes.deleteMultipleTaxConfirmation', {taxAmount: selectedTaxesIDs.length})
-                            : translate('workspace.taxes.deleteTaxConfirmation')
+                        selectedTaxesIDs.length > 1 ? translate('workspace.taxes.deleteMultipleTaxConfirmation', selectedTaxesIDs.length) : translate('workspace.taxes.deleteTaxConfirmation')
                     }
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}

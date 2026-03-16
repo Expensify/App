@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getDatePassedError, getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {updateStatusDraftCustomClearAfterDate} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +25,7 @@ type DateTime = {
 function SetDatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [statusDraftCustomClearAfterDate, statusDraftCustomClearAfterDateMetaData] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, {canBeMissing: true});
+    const [statusDraftCustomClearAfterDate, statusDraftCustomClearAfterDateMetaData] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
     const customStatusClearAfterDate = statusDraftCustomClearAfterDate ?? '';
 
     const onSubmit = (value: DateTime) => {
@@ -32,19 +33,28 @@ function SetDatePage() {
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM>) => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME]);
-        const dateError = getDatePassedError(values.dateTime);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM>) => {
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME], translate);
+            const dateError = getDatePassedError(translate, values.dateTime);
 
-        if (values.dateTime && dateError) {
-            errors.dateTime = dateError;
-        }
+            if (values.dateTime && dateError) {
+                errors.dateTime = dateError;
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
-    if (isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData)) {
-        return <FullScreenLoadingIndicator />;
+    const isLoadingStatusDraft = isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData);
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SetDatePage',
+        isLoadingStatusDraft,
+    };
+
+    if (isLoadingStatusDraft) {
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

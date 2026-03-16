@@ -46,20 +46,8 @@ type TableBodyProps = ViewProps & {
 function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, originalDataLength, activeSearchString, activeFilters, filterConfig, listProps} = useTableContext<T>();
+    const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
     const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
-
-    // Check if filters are applied (not default values)
-    const hasActiveFilters = filterConfig
-        ? Object.keys(activeFilters).some((key) => {
-              const filterValue = activeFilters[key];
-              const defaultValue = filterConfig?.[key]?.default;
-              return filterValue !== defaultValue;
-          })
-        : false;
-
-    const hasSearchString = activeSearchString.trim().length > 0;
-    const isEmptyResult = filteredAndSortedData.length === 0 && originalDataLength > 0 && (hasSearchString || hasActiveFilters);
 
     // Determine the message based on what caused the empty result
     const getEmptyMessage = () => {
@@ -90,6 +78,7 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
                 data={filteredAndSortedData}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
                 contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, contentContainerStyle]}
+                keyboardShouldPersistTaps="handled"
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restListProps}
             />

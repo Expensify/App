@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useCompanyCards from '@hooks/useCompanyCards';
@@ -30,15 +31,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
-import useCompanyCardFeedErrors from './hooks/useCardFeedErrors';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 type CardFeedListItem = ListItem & {
     /** Combined feed key */
     value: CompanyCardFeedWithDomainID;
 
     /** Card feed value */
-    feed: CompanyCardFeed;
+    feed: CompanyCardFeedWithNumber;
 };
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
@@ -48,7 +48,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -56,20 +56,20 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
-    const {getCardFeedErrors} = useCompanyCardFeedErrors({policyID, feedName: selectedFeedName});
+    const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
 
     const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
         const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
         const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
         const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
 
-        const {shouldShowRBR} = getCardFeedErrors(feedName);
+        const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedName];
 
         return {
             value: feedName,
-            feed: feedSettings.feed,
+            feed: feedSettings.feed as CompanyCardFeedWithNumber,
             alternateText: domainName ?? policy?.name,
-            text: getCustomOrFormattedFeedName(feedSettings.feed, feedSettings.customFeedName),
+            text: getCustomOrFormattedFeedName(translate, feedSettings.feed, feedSettings.customFeedName),
             keyForList: feedName,
             isSelected: feedName === selectedFeedName,
             isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -137,6 +137,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                             title={translate('workspace.companyCards.addCards')}
                             icon={icons.Plus}
                             onPress={onAddCardsPress}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_SECTION_ADD_BUTTON}
                         />
                     }
                 />

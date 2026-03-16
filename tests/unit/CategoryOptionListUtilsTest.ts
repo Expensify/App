@@ -80,7 +80,7 @@ describe('CategoryOptionListUtils', () => {
         const smallResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: false,
+                sectionIndex: 2,
                 data: [
                     {
                         text: 'Employee Meals Office',
@@ -104,7 +104,7 @@ describe('CategoryOptionListUtils', () => {
                         text: '    Meat',
                         keyForList: 'Food: Meat',
                         searchText: 'Food: Meat',
-                        tooltipText: 'Meat',
+                        tooltipText: 'Food: Meat',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -119,14 +119,12 @@ describe('CategoryOptionListUtils', () => {
                         pendingAction: 'delete',
                     },
                 ],
-                indexOffset: 4,
             },
         ];
         const smallSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: true,
-                indexOffset: 2,
+                sectionIndex: 0,
                 data: [
                     {
                         text: 'Food',
@@ -138,7 +136,7 @@ describe('CategoryOptionListUtils', () => {
                         pendingAction: undefined,
                     },
                     {
-                        text: 'Food: Meat',
+                        text: '    Meat',
                         keyForList: 'Food: Meat',
                         searchText: 'Food: Meat',
                         tooltipText: 'Food: Meat',
@@ -152,9 +150,8 @@ describe('CategoryOptionListUtils', () => {
         const smallWrongSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: true,
-                indexOffset: 0,
                 data: [],
+                sectionIndex: 0,
             },
         ];
         const largeCategoriesList: PolicyCategories = {
@@ -315,8 +312,7 @@ describe('CategoryOptionListUtils', () => {
         const largeResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: false,
-                indexOffset: 1,
+                sectionIndex: 1,
                 data: [
                     {
                         text: 'Medical',
@@ -331,8 +327,7 @@ describe('CategoryOptionListUtils', () => {
             },
             {
                 title: 'Recent',
-                shouldShow: true,
-                indexOffset: 1,
+                sectionIndex: 3,
                 data: [
                     {
                         text: 'Restaurant',
@@ -347,8 +342,7 @@ describe('CategoryOptionListUtils', () => {
             },
             {
                 title: 'All',
-                shouldShow: true,
-                indexOffset: 14,
+                sectionIndex: 4,
                 data: [
                     {
                         text: 'Cars',
@@ -363,7 +357,7 @@ describe('CategoryOptionListUtils', () => {
                         text: '    Audi',
                         keyForList: 'Cars: Audi',
                         searchText: 'Cars: Audi',
-                        tooltipText: 'Audi',
+                        tooltipText: 'Cars: Audi',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -372,7 +366,7 @@ describe('CategoryOptionListUtils', () => {
                         text: '    Mercedes-Benz',
                         keyForList: 'Cars: Mercedes-Benz',
                         searchText: 'Cars: Mercedes-Benz',
-                        tooltipText: 'Mercedes-Benz',
+                        tooltipText: 'Cars: Mercedes-Benz',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -399,7 +393,7 @@ describe('CategoryOptionListUtils', () => {
                         text: '    Meat',
                         keyForList: 'Food: Meat',
                         searchText: 'Food: Meat',
-                        tooltipText: 'Meat',
+                        tooltipText: 'Food: Meat',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -408,7 +402,7 @@ describe('CategoryOptionListUtils', () => {
                         text: '    Milk',
                         keyForList: 'Food: Milk',
                         searchText: 'Food: Milk',
-                        tooltipText: 'Milk',
+                        tooltipText: 'Food: Milk',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -444,7 +438,7 @@ describe('CategoryOptionListUtils', () => {
                         text: '    Meals',
                         keyForList: 'Travel: Meals',
                         searchText: 'Travel: Meals',
-                        tooltipText: 'Meals',
+                        tooltipText: 'Travel: Meals',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -453,7 +447,7 @@ describe('CategoryOptionListUtils', () => {
                         text: '        Breakfast',
                         keyForList: 'Travel: Meals: Breakfast',
                         searchText: 'Travel: Meals: Breakfast',
-                        tooltipText: 'Breakfast',
+                        tooltipText: 'Travel: Meals: Breakfast',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -462,7 +456,7 @@ describe('CategoryOptionListUtils', () => {
                         text: '        Lunch',
                         keyForList: 'Travel: Meals: Lunch',
                         searchText: 'Travel: Meals: Lunch',
-                        tooltipText: 'Lunch',
+                        tooltipText: 'Travel: Meals: Lunch',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -482,8 +476,7 @@ describe('CategoryOptionListUtils', () => {
         const largeSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: true,
-                indexOffset: 3,
+                sectionIndex: 0,
                 data: [
                     {
                         text: 'Food',
@@ -495,7 +488,7 @@ describe('CategoryOptionListUtils', () => {
                         pendingAction: undefined,
                     },
                     {
-                        text: 'Food: Meat',
+                        text: '    Meat',
                         keyForList: 'Food: Meat',
                         searchText: 'Food: Meat',
                         tooltipText: 'Food: Meat',
@@ -504,7 +497,7 @@ describe('CategoryOptionListUtils', () => {
                         pendingAction: undefined,
                     },
                     {
-                        text: 'Food: Milk',
+                        text: '    Milk',
                         keyForList: 'Food: Milk',
                         searchText: 'Food: Milk',
                         tooltipText: 'Food: Milk',
@@ -518,8 +511,7 @@ describe('CategoryOptionListUtils', () => {
         const largeWrongSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: true,
-                indexOffset: 0,
+                sectionIndex: 0,
                 data: [],
             },
         ];
@@ -527,8 +519,7 @@ describe('CategoryOptionListUtils', () => {
         const emptySelectedResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: false,
-                indexOffset: 1,
+                sectionIndex: 0,
                 data: [
                     {
                         text: 'Medical',
@@ -546,8 +537,7 @@ describe('CategoryOptionListUtils', () => {
         const employeeSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
-                shouldShow: true,
-                indexOffset: 1,
+                sectionIndex: 0,
                 data: [
                     {
                         text: 'Employee Meals Office',
@@ -708,7 +698,7 @@ describe('CategoryOptionListUtils', () => {
                 text: '    Meat',
                 keyForList: 'Food: Meat',
                 searchText: 'Food: Meat',
-                tooltipText: 'Meat',
+                tooltipText: 'Food: Meat',
                 isDisabled: false,
                 isSelected: false,
                 pendingAction: undefined,
@@ -717,7 +707,7 @@ describe('CategoryOptionListUtils', () => {
                 text: '    Milk',
                 keyForList: 'Food: Milk',
                 searchText: 'Food: Milk',
-                tooltipText: 'Milk',
+                tooltipText: 'Food: Milk',
                 isDisabled: false,
                 isSelected: false,
                 pendingAction: undefined,
@@ -735,7 +725,7 @@ describe('CategoryOptionListUtils', () => {
                 text: '    Audi',
                 keyForList: 'Cars: Audi',
                 searchText: 'Cars: Audi',
-                tooltipText: 'Audi',
+                tooltipText: 'Cars: Audi',
                 isDisabled: false,
                 isSelected: false,
                 pendingAction: undefined,
@@ -744,7 +734,7 @@ describe('CategoryOptionListUtils', () => {
                 text: '    Mercedes-Benz',
                 keyForList: 'Cars: Mercedes-Benz',
                 searchText: 'Cars: Mercedes-Benz',
-                tooltipText: 'Mercedes-Benz',
+                tooltipText: 'Cars: Mercedes-Benz',
                 isDisabled: false,
                 isSelected: false,
                 pendingAction: undefined,
@@ -762,7 +752,7 @@ describe('CategoryOptionListUtils', () => {
                 text: '    Meals',
                 keyForList: 'Travel: Meals',
                 searchText: 'Travel: Meals',
-                tooltipText: 'Meals',
+                tooltipText: 'Travel: Meals',
                 isDisabled: false,
                 isSelected: false,
                 pendingAction: undefined,
@@ -771,7 +761,7 @@ describe('CategoryOptionListUtils', () => {
                 text: '        Breakfast',
                 keyForList: 'Travel: Meals: Breakfast',
                 searchText: 'Travel: Meals: Breakfast',
-                tooltipText: 'Breakfast',
+                tooltipText: 'Travel: Meals: Breakfast',
                 isDisabled: false,
                 isSelected: false,
                 pendingAction: undefined,
@@ -780,7 +770,7 @@ describe('CategoryOptionListUtils', () => {
                 text: '        Lunch',
                 keyForList: 'Travel: Meals: Lunch',
                 searchText: 'Travel: Meals: Lunch',
-                tooltipText: 'Lunch',
+                tooltipText: 'Travel: Meals: Lunch',
                 isDisabled: false,
                 isSelected: false,
                 pendingAction: undefined,
@@ -825,7 +815,7 @@ describe('CategoryOptionListUtils', () => {
                 text: '    B',
                 keyForList: 'A: B',
                 searchText: 'A: B',
-                tooltipText: 'B',
+                tooltipText: 'A: B',
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
@@ -834,7 +824,7 @@ describe('CategoryOptionListUtils', () => {
                 text: '        C',
                 keyForList: 'A: B: C',
                 searchText: 'A: B: C',
-                tooltipText: 'C',
+                tooltipText: 'A: B: C',
                 isDisabled: false,
                 isSelected: false,
                 pendingAction: undefined,
@@ -843,7 +833,7 @@ describe('CategoryOptionListUtils', () => {
                 text: '            D',
                 keyForList: 'A: B: C: D',
                 searchText: 'A: B: C: D',
-                tooltipText: 'D',
+                tooltipText: 'A: B: C: D',
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
@@ -852,152 +842,13 @@ describe('CategoryOptionListUtils', () => {
                 text: '                E',
                 keyForList: 'A: B: C: D: E',
                 searchText: 'A: B: C: D: E',
-                tooltipText: 'E',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-        ];
-        const resultOneLine = [
-            {
-                text: 'Meals',
-                keyForList: 'Meals',
-                searchText: 'Meals',
-                tooltipText: 'Meals',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Restaurant',
-                keyForList: 'Restaurant',
-                searchText: 'Restaurant',
-                tooltipText: 'Restaurant',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Food',
-                keyForList: 'Food',
-                searchText: 'Food',
-                tooltipText: 'Food',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Food: Meat',
-                keyForList: 'Food: Meat',
-                searchText: 'Food: Meat',
-                tooltipText: 'Food: Meat',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Food: Milk',
-                keyForList: 'Food: Milk',
-                searchText: 'Food: Milk',
-                tooltipText: 'Food: Milk',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Cars: Audi',
-                keyForList: 'Cars: Audi',
-                searchText: 'Cars: Audi',
-                tooltipText: 'Cars: Audi',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Cars: Mercedes-Benz',
-                keyForList: 'Cars: Mercedes-Benz',
-                searchText: 'Cars: Mercedes-Benz',
-                tooltipText: 'Cars: Mercedes-Benz',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Travel: Meals',
-                keyForList: 'Travel: Meals',
-                searchText: 'Travel: Meals',
-                tooltipText: 'Travel: Meals',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Travel: Meals: Breakfast',
-                keyForList: 'Travel: Meals: Breakfast',
-                searchText: 'Travel: Meals: Breakfast',
-                tooltipText: 'Travel: Meals: Breakfast',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Travel: Meals: Lunch',
-                keyForList: 'Travel: Meals: Lunch',
-                searchText: 'Travel: Meals: Lunch',
-                tooltipText: 'Travel: Meals: Lunch',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Plain',
-                keyForList: 'Plain',
-                searchText: 'Plain',
-                tooltipText: 'Plain',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Audi',
-                keyForList: 'Audi',
-                searchText: 'Audi',
-                tooltipText: 'Audi',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'Health',
-                keyForList: 'Health',
-                searchText: 'Health',
-                tooltipText: 'Health',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'A: B: C',
-                keyForList: 'A: B: C',
-                searchText: 'A: B: C',
-                tooltipText: 'A: B: C',
-                isDisabled: false,
-                isSelected: false,
-                pendingAction: undefined,
-            },
-            {
-                text: 'A: B: C: D: E',
-                keyForList: 'A: B: C: D: E',
-                searchText: 'A: B: C: D: E',
                 tooltipText: 'A: B: C: D: E',
                 isDisabled: false,
                 isSelected: false,
                 pendingAction: undefined,
             },
         ];
-
         expect(getCategoryOptionTree(categories)).toStrictEqual(result);
-        expect(getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
     });
 
     it('sortCategories', () => {

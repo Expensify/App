@@ -19,23 +19,25 @@ runs:
       shell: bash
       run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
 
-    - uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e #v4
+    - id: setup-node
+      # v6.1.0
+      uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
       with:
         node-version-file: '.nvmrc'
-        cache: npm
+        cache: 'npm'
         cache-dependency-path: normalized-package-lock.json
 
     - id: cache-node-modules
-      # v4
-      uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+      # v5.0.1
+      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
       with:
         path: node_modules
         key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**'))}}
     
     - id: cache-old-dot-node-modules
       if: inputs.IS_HYBRID_BUILD == 'true'
-      # v4
-      uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+      # v5.0.1
+      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
       with:
         path: Mobile-Expensify/node_modules
         key: ${{ runner.os }}-node-modules-${{ hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**') }}

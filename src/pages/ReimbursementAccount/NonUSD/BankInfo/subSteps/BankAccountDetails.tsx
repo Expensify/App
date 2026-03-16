@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AddressSearch from '@components/AddressSearch';
@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
@@ -30,58 +31,47 @@ function getInputComponent(field: CorpayFormField) {
 function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const bankAccountDetailsFields = useMemo(() => {
-        return corpayFields?.formFields?.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
-    }, [corpayFields]);
+    const bankAccountDetailsFields = corpayFields?.formFields?.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
 
-    const subStepKeys = bankAccountDetailsFields?.reduce(
-        (acc, field) => {
-            acc[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
-            return acc;
-        },
-        {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>,
-    );
+    const subStepKeys: Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm> = {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>;
+    for (const field of bankAccountDetailsFields ?? []) {
+        subStepKeys[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
+    }
 
-    const defaultValues = useMemo(
-        () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
-        [reimbursementAccount, reimbursementAccountDraft, subStepKeys],
-    );
+    const defaultValues = getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount);
 
     const fieldIds = bankAccountDetailsFields?.map((field) => field.id);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
-            if (corpayFields?.formFields) {
-                for (const field of corpayFields.formFields) {
-                    const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
+        if (corpayFields?.formFields) {
+            for (const field of corpayFields.formFields) {
+                const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
 
-                    if (field.isRequired && !values[fieldID]) {
-                        errors[fieldID] = translate('common.error.fieldRequired');
+                if (field.isRequired && !values[fieldID]) {
+                    errors[fieldID] = translate('common.error.fieldRequired');
+                }
+
+                for (const rule of field.validationRules) {
+                    if (!rule.regEx) {
+                        continue;
                     }
 
-                    for (const rule of field.validationRules) {
-                        if (!rule.regEx) {
-                            continue;
-                        }
-
-                        if (new RegExp(rule.regEx).test(SafeString(values[fieldID]))) {
-                            continue;
-                        }
-
-                        errors[fieldID] = rule.errorMessage;
+                    if (new RegExp(rule.regEx).test(SafeString(values[fieldID]))) {
+                        continue;
                     }
+
+                    errors[fieldID] = rule.errorMessage;
                 }
             }
+        }
 
-            return errors;
-        },
-        [corpayFields?.formFields, translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: fieldIds as Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>,
@@ -89,37 +79,37 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         shouldSaveDraft: isEditing,
     });
 
-    const inputs = useMemo(() => {
-        return bankAccountDetailsFields?.map((field) => {
-            if (field.valueSet !== undefined) {
-                return getInputForValueSet(field, SafeString(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
-            }
+    const corpayFieldsLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'BankAccountDetails', isLoading: !!corpayFields?.isLoading};
 
-            return (
-                <View
-                    style={styles.mb6}
-                    key={field.id}
-                >
-                    <InputWrapper
-                        InputComponent={getInputComponent(field)}
-                        inputID={field.id}
-                        label={field.label}
-                        aria-label={field.label}
-                        role={CONST.ROLE.PRESENTATION}
-                        shouldSaveDraft={!isEditing}
-                        defaultValue={SafeString(defaultValues[field.id as keyof typeof defaultValues])}
-                        limitSearchesToCountry={reimbursementAccountDraft?.country}
-                        renamedInputKeys={{
-                            street: 'bankAddressLine1',
-                            city: 'bankCity',
-                            country: '',
-                        }}
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    />
-                </View>
-            );
-        });
-    }, [bankAccountDetailsFields, styles, isEditing, defaultValues, reimbursementAccountDraft?.country]);
+    const inputs = bankAccountDetailsFields?.map((field) => {
+        if (field.valueSet !== undefined) {
+            return getInputForValueSet(field, SafeString(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
+        }
+
+        return (
+            <View
+                style={styles.mb6}
+                key={field.id}
+            >
+                <InputWrapper
+                    InputComponent={getInputComponent(field)}
+                    inputID={field.id}
+                    label={field.label}
+                    aria-label={field.label}
+                    role={CONST.ROLE.PRESENTATION}
+                    shouldSaveDraft={!isEditing}
+                    defaultValue={SafeString(defaultValues[field.id as keyof typeof defaultValues])}
+                    limitSearchesToCountry={reimbursementAccountDraft?.country}
+                    renamedInputKeys={{
+                        street: 'bankAddressLine1',
+                        city: 'bankCity',
+                        country: '',
+                    }}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                />
+            </View>
+        );
+    });
 
     return (
         <FormProvider
@@ -138,6 +128,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={styles.flexGrow1}
+                            reasonAttributes={corpayFieldsLoadingReasonAttributes}
                         />
                     </View>
                 ) : (

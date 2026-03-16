@@ -315,13 +315,31 @@ function AttachmentPicker({
     }, [translate]);
 
     /**
+     * Handles errors during image processing (resize, dimension check, etc.)
+     */
+    const handleImageProcessingError = useCallback(
+        (error: unknown) => {
+            const errorMessage = error instanceof Error ? error.message : undefined;
+
+            if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                showGeneralAlert(translate('attachmentPicker.imageDimensionsTooLarge'));
+            } else if (errorMessage) {
+                showGeneralAlert(errorMessage);
+            } else {
+                showImageCorruptionAlert();
+            }
+            return null;
+        },
+        [showGeneralAlert, showImageCorruptionAlert, translate],
+    );
+
+    /**
      * Opens the attachment modal
      *
      * @param onPickedHandler A callback that will be called with the selected attachment
      * @param onCanceledHandler A callback that will be called without a selected attachment
      */
     const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
-        // eslint-disable-next-line react-compiler/react-compiler
         completeAttachmentSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
         onClosed.current = onClosedHandler;
@@ -374,10 +392,7 @@ function AttachmentPicker({
                                 height,
                             })),
                         )
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                            return null;
-                        });
+                        .catch(handleImageProcessingError);
                 }
 
                 if (fileDataName && Str.isImage(fileDataName)) {
@@ -397,10 +412,7 @@ function AttachmentPicker({
                                 };
                             }),
                         )
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                            return null;
-                        });
+                        .catch(handleImageProcessingError);
                 }
 
                 return getDataForUpload(fileDataObject).catch((error: Error) => {
@@ -426,7 +438,7 @@ function AttachmentPicker({
                     }
                 });
         },
-        [shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
+        [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
 
     /**
@@ -498,7 +510,6 @@ function AttachmentPicker({
                 }}
                 isVisible={isVisible}
                 anchorRef={popoverRef}
-                // eslint-disable-next-line react-compiler/react-compiler
                 onModalHide={() => onModalHide.current?.()}
             >
                 <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
@@ -514,7 +525,6 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {renderChildren()}
         </>
     );

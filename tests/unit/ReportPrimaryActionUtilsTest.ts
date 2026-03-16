@@ -2,10 +2,18 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getValidConnectedIntegration} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, isPreferredExporter} from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isMarkAsResolvedAction, isPrimaryMarkAsResolvedAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
+import {
+    getReportPrimaryAction,
+    getTransactionThreadPrimaryAction,
+    isApproveAction,
+    isExportAction,
+    isMarkAsResolvedAction,
+    isPrimaryMarkAsResolvedAction,
+    isReviewDuplicatesAction,
+} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -38,6 +46,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
     getValidConnectedIntegration: jest.fn(),
+    isPaidGroupPolicy: jest.fn().mockReturnValue(true),
 }));
 
 describe('getPrimaryAction', () => {
@@ -65,12 +74,13 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [],
                 violations: {},
+                bankAccountList: {},
                 policy: {} as Policy,
                 isChatReportArchived: false,
             }),
@@ -95,12 +105,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -129,12 +140,47 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+    it('should return SUBMIT option for zero amount transaction', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 0,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -163,12 +209,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -198,12 +245,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -236,12 +284,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -272,16 +321,71 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
         ).toBe('');
+    });
+
+    it('should return true from isApproveAction for DEW policy report without pending approval', async () => {
+        // Given a submitted expense report on a DEW policy without any pending approval action
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        // When checking if approve action is available
+        // Then it should return true because DEW approval is not in progress
+        expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, {}, policy)).toBe(true);
+    });
+
+    it('should return false from isApproveAction for DEW policy report with pending approval', async () => {
+        // Given a submitted expense report on a DEW policy with a pending approval action
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        // When checking if approve action is available while DEW approval is pending
+        // Then it should return false because DEW is already processing an approval
+        expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE}, policy)).toBe(false);
     });
 
     it('should return PAY for submitted invoice report  if paid as personal', async () => {
@@ -313,12 +417,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy,
                 invoiceReceiverPolicy,
                 isChatReportArchived: false,
@@ -355,12 +460,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy,
                 invoiceReceiverPolicy,
                 isChatReportArchived: false,
@@ -386,12 +492,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -425,12 +532,54 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
+    });
+
+    it('should return EXPORT TO ACCOUNTING for admin who is not the preferred exporter', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: {
+                intacct: {
+                    config: {
+                        export: {
+                            exporter: 'someone.else@mail.com',
+                        },
+                    },
+                },
+            },
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        (getValidConnectedIntegration as jest.Mock).mockReturnValue('intacct');
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -462,12 +611,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -499,12 +649,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 reportNameValuePairs: {},
                 reportActions,
@@ -564,12 +715,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy,
                 isChatReportArchived: false,
             }),
@@ -622,12 +774,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -681,12 +834,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -721,12 +875,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -758,12 +913,13 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -796,12 +952,49 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe('');
+    });
+
+    it('should not return SUBMIT when smartscan failed with missing fields before violation is written', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        };
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            reportID: `${REPORT_ID}`,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            merchant: '',
+        } as unknown as Transaction;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -834,12 +1027,13 @@ describe('getPrimaryAction', () => {
         // Then the getReportPrimaryAction should return the empty string
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport: invoiceChatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                 policy: policy as Policy,
                 isChatReportArchived: isChatReportArchived.current,
@@ -1093,12 +1287,13 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,
             }),
@@ -1132,12 +1327,13 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as Transaction;
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: {} as Policy,
                 invoiceReceiverPolicy: invoiceReceiverPolicy as Policy,
                 isChatReportArchived: false,
@@ -1172,12 +1368,13 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as Transaction;
         expect(
             getReportPrimaryAction({
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {},
+                bankAccountList: {},
                 policy: {} as Policy,
                 invoiceReceiverPolicy: invoiceReceiverPolicy as Policy,
                 isChatReportArchived: false,
@@ -1424,5 +1621,61 @@ describe('getTransactionThreadPrimaryAction', () => {
             const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
+    });
+});
+
+describe('isExportAction and isPreferredExporter for todos filtering', () => {
+    it('isExportAction returns true for admin who is not the preferred exporter', () => {
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {
+                        autoSync: {enabled: false},
+                        export: {exporter: 'other.exporter@mail.com'},
+                    },
+                },
+            },
+        } as unknown as Policy;
+
+        const report = {
+            reportID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+        } as Report;
+
+        (getValidConnectedIntegration as jest.Mock).mockReturnValue(CONST.POLICY.CONNECTIONS.NAME.QBO);
+
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy)).toBe(true);
+    });
+
+    it('isPreferredExporter returns false when user is not the configured exporter', () => {
+        const policy = {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {
+                        export: {exporter: 'other.exporter@mail.com'},
+                    },
+                },
+            },
+        } as unknown as Policy;
+
+        expect(isPreferredExporter(policy, CURRENT_USER_EMAIL)).toBe(false);
+    });
+
+    it('isPreferredExporter returns true when user is the configured exporter', () => {
+        const policy = {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {
+                        export: {exporter: CURRENT_USER_EMAIL},
+                    },
+                },
+            },
+        } as unknown as Policy;
+
+        expect(isPreferredExporter(policy, CURRENT_USER_EMAIL)).toBe(true);
     });
 });

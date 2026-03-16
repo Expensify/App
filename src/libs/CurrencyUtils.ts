@@ -8,6 +8,7 @@ import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
+/* eslint-disable rulesdir/prefer-onyx-connect-in-libs -- may refactor to useOnyx/connectWithoutView later */
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
     callback: (val) => {
@@ -18,6 +19,7 @@ Onyx.connect({
         currencyList = val;
     },
 });
+/* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
 
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
@@ -135,6 +137,14 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     });
 }
 
+/** Same intended use as convertToDisplayString, but purposely omit currency symbol if not provided */
+function convertToDisplayStringWithExplicitCurrency(amountInCents: number, currency: string | undefined): string {
+    if (!currency) {
+        return convertToDisplayStringWithoutCurrency(amountInCents);
+    }
+    return convertToDisplayString(amountInCents, currency);
+}
+
 /**
  * Given the amount in the "cents", convert it to a short string (no decimals) for display in the UI.
  * The backend always handle things in "cents" (subunit equal to 1/100)
@@ -200,10 +210,6 @@ function isValidCurrencyCode(currencyCode: string): boolean {
     return !!currency;
 }
 
-function sanitizeCurrencyCode(currencyCode: string): string {
-    return isValidCurrencyCode(currencyCode) ? currencyCode : CONST.CURRENCY.USD;
-}
-
 function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
     if (!currencies || !countryCode) {
         return CONST.CURRENCY.USD;
@@ -228,7 +234,7 @@ export {
     convertToDisplayString,
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    convertToDisplayStringWithExplicitCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
-    sanitizeCurrencyCode,
 };

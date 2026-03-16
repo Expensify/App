@@ -1,12 +1,12 @@
 import {useNavigation} from '@react-navigation/native';
-import type {VideoReadyForDisplayEvent} from 'expo-av';
+import type {SourceLoadEventPayload} from 'expo-video';
 import React, {useEffect, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -52,51 +52,54 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID} = usePlaybackContext();
+    const {currentlyPlayingURL, currentRouteReportID} = usePlaybackStateContext();
+    const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
 
     /* This needs to be isSmallScreenWidth because we want to be able to play video in chat (not in attachment modal) when preview is inside an RHP */
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isThumbnail, setIsThumbnail] = useState(true);
-    const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
+    const [webMeasuredDimensions, setWebMeasuredDimensions] = useState<Dimensions | null>(null);
+    const measuredDimensions = getPlatform() === CONST.PLATFORM.WEB && videoUrl && webMeasuredDimensions ? webMeasuredDimensions : videoDimensions;
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
 
     useEffect(() => {
-        const platform = getPlatform();
-        // On web and desktop platforms, we can use the DOM video element to get accurate video dimensions
-        // by loading the video metadata. On mobile platforms, we rely on the provided videoDimensions
-        // since document.createElement is not available in React Native environments.
-        if (videoUrl && (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP)) {
-            const video = document.createElement('video');
-            video.onloadedmetadata = () => {
-                if (video.videoWidth === measuredDimensions.width && video.videoHeight === measuredDimensions.height) {
-                    return;
-                }
-                setMeasuredDimensions({
-                    width: video.videoWidth,
-                    height: video.videoHeight,
-                });
-            };
-            video.src = videoUrl;
-            video.load();
-
-            return () => {
-                video.src = '';
-            };
+        if (!videoUrl || getPlatform() !== CONST.PLATFORM.WEB) {
+            return;
         }
-        setMeasuredDimensions(videoDimensions);
-    }, [videoUrl, measuredDimensions.width, measuredDimensions.height, videoDimensions]);
+        const video = document.createElement('video');
+        video.onloadedmetadata = () => {
+            if (video.videoWidth === videoDimensions.width && video.videoHeight === videoDimensions.height) {
+                return;
+            }
+            setWebMeasuredDimensions({
+                width: video.videoWidth,
+                height: video.videoHeight,
+            });
+        };
+        video.src = videoUrl;
+        video.load();
+        return () => {
+            video.src = '';
+        };
+    }, [videoUrl, videoDimensions.width, videoDimensions.height]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
 
-    // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
+    // `onSourceLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
-    const onVideoLoaded = (event: VideoReadyForDisplayEvent & {srcElement: HTMLVideoElement}) => {
-        setMeasuredDimensions({width: event.srcElement.videoWidth, height: event.srcElement.videoHeight});
+    const onSourceLoaded = (event: SourceLoadEventPayload) => {
+        const track = event.availableVideoTracks.at(0);
+
+        if (!track) {
+            return;
+        }
+
+        setWebMeasuredDimensions({width: track.size.width, height: track.size.height});
     };
 
     const handleOnPress = () => {
@@ -110,13 +113,15 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
         return navigation.addListener('blur', () => !isOnAttachmentRoute() && setIsThumbnail(true));
     }, [navigation]);
 
-    useEffect(() => {
+    const playbackKey = `${currentlyPlayingURL}|${currentRouteReportID}|${videoUrl}|${reportID}|${isOnSearch}`;
+    const [prevPlaybackKey, setPrevPlaybackKey] = useState(playbackKey);
+    if (prevPlaybackKey !== playbackKey) {
+        setPrevPlaybackKey(playbackKey);
         const isFocused = doesUserRemainOnFirstRenderRoute();
-        if (videoUrl !== currentlyPlayingURL || reportID !== currentRouteReportID || !isFocused) {
-            return;
+        if (videoUrl === currentlyPlayingURL && reportID === currentRouteReportID && isFocused) {
+            setIsThumbnail(false);
         }
-        setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID, videoUrl, reportID, doesUserRemainOnFirstRenderRoute, isOnSearch]);
+    }
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
@@ -131,7 +136,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                 <View style={styles.flex1}>
                     <VideoPlayer
                         url={videoUrl}
-                        onVideoLoaded={onVideoLoaded as (event: VideoReadyForDisplayEvent) => void}
+                        onSourceLoaded={onSourceLoaded}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls
                         style={[styles.w100, styles.h100]}

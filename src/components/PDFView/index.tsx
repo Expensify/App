@@ -32,9 +32,9 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
     const prevWindowHeight = usePrevious(windowHeight);
     const {translate} = useLocalize();
 
-    const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA, {canBeMissing: true});
-    const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT, {canBeMissing: true});
-    const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH, {canBeMissing: true});
+    const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA);
+    const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
+    const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -72,7 +72,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
     useEffect(() => {
         retrieveCanvasLimits();
         // This rule needs to be applied so that this effect is executed only when the component is mounted
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

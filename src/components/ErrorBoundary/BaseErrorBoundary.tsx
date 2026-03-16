@@ -1,11 +1,10 @@
 import React, {useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import BootSplash from '@libs/BootSplash';
-import DesktopAppRetiredView from '@pages/ErrorPage/DesktopAppRetiredPage';
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
 import UpdateRequiredView from '@pages/ErrorPage/UpdateRequiredView';
 import CONST from '@src/CONST';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import {useSplashScreenActions} from '@src/SplashScreenStateContext';
 import type {BaseErrorBoundaryProps} from './types';
 
 /**
@@ -16,7 +15,7 @@ import type {BaseErrorBoundaryProps} from './types';
 
 function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseErrorBoundaryProps) {
     const [errorContent, setErrorContent] = useState('');
-    const {setSplashScreenState} = useSplashScreenStateContext();
+    const {setSplashScreenState} = useSplashScreenActions();
 
     const catchError = (errorObject: Error, errorInfo: React.ErrorInfo) => {
         logError(errorMessage, errorObject, JSON.stringify(errorInfo));
@@ -27,9 +26,7 @@ function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseEr
 
     let FallbackComponent = GenericErrorPage;
 
-    if (errorContent === CONST.ERROR.DESKTOP_APP_RETIRED) {
-        FallbackComponent = DesktopAppRetiredView;
-    } else if (errorContent === CONST.ERROR.UPDATE_REQUIRED) {
+    if (errorContent === CONST.ERROR.UPDATE_REQUIRED) {
         FallbackComponent = UpdateRequiredView;
     }
 

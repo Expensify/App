@@ -1,4 +1,4 @@
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type TagListItem = ListItem & {

@@ -27,7 +27,7 @@ const createDownloadLink = (href: string, fileName: string) => {
 };
 
 /**
- * The function downloads an attachment on web/desktop platforms.
+ * The function downloads an attachment on web platforms.
  */
 const fetchFileDownload: FileDownload = (
     translate,

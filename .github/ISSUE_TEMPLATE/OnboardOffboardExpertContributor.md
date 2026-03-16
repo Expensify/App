@@ -11,7 +11,6 @@ labels: Daily, Task, Access Change
 - [ ] Add / remove from the following Slack channels via Slack Connect
     - [ ] [#quality](https://expensify.enterprise.slack.com/archives/C05LX9D6E07)
     - [ ] [#convert](https://expensify.enterprise.slack.com/archives/C07HPDRELLD)
-    - [ ] [#retain](https://expensify.enterprise.slack.com/archives/C07NZ8B1VTQ)
     - [ ] [#migrate](https://expensify.enterprise.slack.com/archives/C07NMDKEFMH)
     - [ ] [#expensify-bugs](https://expensify.enterprise.slack.com/archives/C049HHMV9SM)
     - [ ] [#expensify-open-source](https://expensify.enterprise.slack.com/archives/C01GTK53T8Q)
@@ -35,4 +34,6 @@ Which action do you wish to take for this team member (select one):
 ### Ring0 Tasks
 
 - [ ] If adding, add to the appropriate GitHub child team of [external-expert-contributors](https://github.com/orgs/Expensify/teams/external-expert-contributors/teams) (each agency must have its own child team)
+- [ ] If adding, create an [IdentityDot account](https://stackoverflowteams.com/c/expensify/questions/22914) for the contributor
 - [ ] If removing, remove from our organization [here](https://github.com/orgs/Expensify/people)
+- [ ] If removing, delete the contributor's [IdentityDot account](https://stackoverflowteams.com/c/expensify/questions/22914)

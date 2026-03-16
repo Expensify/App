@@ -5,7 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 function useCancellationType(): CancellationType | undefined {
-    const [cancellationDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS, {canBeMissing: true});
+    const [cancellationDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS);
 
     const [cancellationType, setCancellationType] = useState<CancellationType | undefined>();
 
@@ -27,7 +27,6 @@ function useCancellationType(): CancellationType | undefined {
         }
 
         // There are no new items in the cancellation details NVP
-        // eslint-disable-next-line react-compiler/react-compiler
         if (previousCancellationDetails.current?.length === cancellationDetails?.length) {
             return;
         }

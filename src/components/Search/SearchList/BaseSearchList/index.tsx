@@ -52,9 +52,9 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
-        // eslint-disable-next-line react-compiler/react-compiler
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
+        captureOnInputs: false,
     });
 
     const renderItemWithKeyboardFocus = useCallback(
@@ -115,7 +115,7 @@ function BaseSearchList({
             renderItem={renderItemWithKeyboardFocus}
             keyExtractor={keyExtractor}
             onScroll={onScroll}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator
             ref={ref}
             extraData={extraData}
             onEndReached={onEndReached}
@@ -124,7 +124,7 @@ function BaseSearchList({
             onViewableItemsChanged={onViewableItemsChanged}
             onLayout={onLayout}
             removeClippedSubviews
-            drawDistance={1000}
+            drawDistance={250}
             contentContainerStyle={contentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
         />

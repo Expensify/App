@@ -1,10 +1,15 @@
 import React from 'react';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
-function ReportActionsListLoadingSkeleton() {
-    useSkeletonSpan('ReportActionsListLoadingSkeleton');
+type ReportActionsListLoadingSkeletonProps = {
+    reasonAttributes?: SkeletonSpanReasonAttributes;
+};
+
+function ReportActionsListLoadingSkeleton({reasonAttributes}: ReportActionsListLoadingSkeletonProps = {}) {
+    useSkeletonSpan('ReportActionsListLoadingSkeleton', reasonAttributes);
 
     return (
         <Animated.View

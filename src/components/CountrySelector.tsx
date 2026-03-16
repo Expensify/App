@@ -5,10 +5,11 @@ import type {View} from 'react-native';
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CountrySelectorProps = {
@@ -65,7 +66,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
         // This helps prevent issues where the component might not update correctly if the country is controlled by both the parent and the URL.
         Navigation.setParams({country: undefined});
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [countryFromUrl, isFocused, onBlur]);
 
     return (
@@ -78,9 +79,8 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
             description={translate('common.country')}
             errorText={errorText}
             onPress={() => {
-                const activeRoute = Navigation.getActiveRoute();
                 didOpenCountrySelector.current = true;
-                Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_COUNTRY.getRoute(countryCode ?? '')));
             }}
         />
     );
