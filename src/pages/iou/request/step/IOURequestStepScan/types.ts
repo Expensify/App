@@ -1,5 +1,4 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -80,26 +79,25 @@ type UseMobileReceiptScanParams = {
     setIsMultiScanEnabled: ((value: boolean) => void) | undefined;
 };
 
-type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN | typeof SCREENS.MONEY_REQUEST.CREATE> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-        transaction: OnyxEntry<Transaction>;
+type IOURequestStepScanProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN | typeof SCREENS.MONEY_REQUEST.CREATE> & {
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    transaction: OnyxEntry<Transaction>;
 
-        /**
-         * Callback function that is triggered on the `onLayout` event.
-         * Receives a function (`setTestReceiptAndNavigate`) as an argument,
-         */
-        onLayout?: (setTestReceiptAndNavigate: () => void) => void;
+    /**
+     * Callback function that is triggered on the `onLayout` event.
+     * Receives a function (`setTestReceiptAndNavigate`) as an argument,
+     */
+    onLayout?: (setTestReceiptAndNavigate: () => void) => void;
 
-        /** If the receipts preview should be shown */
-        isMultiScanEnabled?: boolean;
+    /** If the receipts preview should be shown */
+    isMultiScanEnabled?: boolean;
 
-        /** Updates isMultiScanEnabled flag */
-        setIsMultiScanEnabled?: (value: boolean) => void;
+    /** Updates isMultiScanEnabled flag */
+    setIsMultiScanEnabled?: (value: boolean) => void;
 
-        /** Indicates whether users start to create scan request */
-        isStartingScan?: boolean;
-    };
+    /** Indicates whether users start to create scan request */
+    isStartingScan?: boolean;
+};
 
 type ReceiptFile = {
     source: ReceiptSource;
