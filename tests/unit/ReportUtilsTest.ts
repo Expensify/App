@@ -96,6 +96,7 @@ import {
     getReportPreviewMessage,
     getReportStatusTranslation,
     getReportSubtitlePrefix,
+    getViolatingReportIDForRBRInLHN,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
     hasActionWithErrorsForTransaction,
@@ -124,7 +125,6 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
-    shouldDisplayViolationsRBRInLHN,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldHideSingleReportField,
@@ -11254,7 +11254,7 @@ describe('ReportUtils', () => {
         ]);
         await waitForBatchedUpdates();
 
-        const shouldShowRBR = shouldDisplayViolationsRBRInLHN(chatReport, transactionViolationsCollection);
+        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
         expect(shouldShowRBR).toBe(false);
 
         const reason = reasonForReportToBeInOptionList({
@@ -11369,7 +11369,7 @@ describe('ReportUtils', () => {
         ]);
         await waitForBatchedUpdates();
 
-        const shouldShowRBR = shouldDisplayViolationsRBRInLHN(chatReport, transactionViolationsCollection);
+        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
         expect(shouldShowRBR).toBe(false);
         await Onyx.clear();
     });

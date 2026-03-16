@@ -56,6 +56,7 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getIOUReportIDFromReportActionPreview,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -151,6 +152,7 @@ import {
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
     getUnreportedTransactionMessage,
+    getViolatingReportIDForRBRInLHN,
     getWorkspaceNameUpdatedMessage,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
@@ -182,7 +184,6 @@ import {
     isUnread,
     isUnreadWithMention,
     isWorkspaceTaskReport,
-    shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -246,7 +247,7 @@ function shouldDisplayReportInLHN(
 
     // Get report metadata and status
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
     const isHidden = isHiddenForCurrentUser(report);
     const isFocused = report.reportID === currentReportId;
     const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -627,19 +628,22 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
-    const errors = reportErrors;
-    const hasErrors = Object.keys(errors).length !== 0;
-
     if (isReportArchived) {
         return null;
     }
 
-    if (shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
+    const violatingReportID = getViolatingReportIDForRBRInLHN(report, transactionViolations);
+    if (violatingReportID) {
+        const reportPreviewAction = Object.values(reportActions ?? {}).find((action) => getIOUReportIDFromReportActionPreview(action) === violatingReportID);
         return {
             reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
+            reportAction: reportPreviewAction,
         };
     }
+
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
+    const errors = reportErrors;
+    const hasErrors = Object.keys(errors).length !== 0;
 
     if (hasErrors) {
         return {
