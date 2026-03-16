@@ -416,7 +416,6 @@ function MoneyReportHeader({
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
     const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
@@ -490,12 +489,14 @@ function MoneyReportHeader({
         hasCustomUnitOutOfPolicyViolation ||
         activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
 
-    useEffect(() => {
-        if (!isDuplicateActive || shouldDuplicateCloseModalOnSelect) {
+    const handleDuplicateReset = useCallback(() => {
+        if (shouldDuplicateCloseModalOnSelect) {
             return;
         }
         dropdownMenuRef.current?.setIsMenuVisible(false);
-    }, [isDuplicateActive, shouldDuplicateCloseModalOnSelect]);
+    }, [shouldDuplicateCloseModalOnSelect]);
+
+    const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState(handleDuplicateReset);
 
     const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
     const [rateErrorModalVisible, setRateErrorModalVisible] = useState(false);
