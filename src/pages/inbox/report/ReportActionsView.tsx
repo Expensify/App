@@ -154,6 +154,7 @@ function ReportActionsView({
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(false);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
     const reportTransactionIDs = useMemo(
@@ -268,7 +269,7 @@ function ReportActionsView({
                 }
 
                 const actionReportID = reportAction.reportID ?? reportID;
-                if (!isReportActionVisible(reportAction, actionReportID, canPerformWriteAction, visibleReportActionsData)) {
+                if (!isReportActionVisible(reportAction, actionReportID, canPerformWriteAction, visibleReportActionsData, policy)) {
                     return false;
                 }
 
@@ -278,7 +279,7 @@ function ReportActionsView({
 
                 return true;
             }),
-        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, visibleReportActionsData, reportID],
+        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, visibleReportActionsData, reportID, policy],
     );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
