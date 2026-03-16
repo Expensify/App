@@ -2852,35 +2852,6 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 }
 
 /**
- * Build the options for the Workspace Member Invite view
- * This method will be removed. See https://github.com/Expensify/App/issues/66615 for more information.
- */
-function getMemberInviteOptions(
-    personalDetails: Array<SearchOption<PersonalDetails>>,
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
-    loginList: OnyxEntry<Login>,
-    currentUserAccountID: number,
-    currentUserEmail: string,
-    personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
-    betas: Beta[] = [],
-    excludeLogins: Record<string, boolean> = {},
-    includeSelectedOptions = false,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-): Options {
-    return getValidOptions({personalDetails, reports: []}, undefined, undefined, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
-        betas,
-        includeP2P: true,
-        excludeLogins,
-        includeSelectedOptions,
-        includeRecentReports: false,
-        searchString: '',
-        maxElements: undefined,
-        personalDetails: personalDetailsCollection,
-        countryCode,
-    });
-}
-
-/**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
 function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
@@ -3423,7 +3394,6 @@ export {
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getManagerMcTestParticipant,
-    getMemberInviteOptions,
     getParticipantsOption,
     getPersonalDetailSearchTerms,
     getPersonalDetailsForAccountIDs,
