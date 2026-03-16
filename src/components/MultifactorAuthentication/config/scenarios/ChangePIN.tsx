@@ -37,21 +37,11 @@ const ChangePINSuccessScreen = createScreenWithDefaults(
 /**
  * Configuration for the CHANGE_PIN multifactor authentication scenario.
  * This scenario is used when a UK/EU cardholder changes the PIN of their physical card.
- *
- * Callback behavior:
- * - Success: Return SHOW_OUTCOME_SCREEN to show success screen
- * - Authentication failure: Return SHOW_OUTCOME_SCREEN to show failure screen
  */
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS],
     action: changePINForCard,
-
-    callback: async () => {
-        return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
-    },
-
     successScreen: <ChangePINSuccessScreen />,
-
     failureScreens: {
         [CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED]: <AuthenticationCanceledFailureScreen />,
     },

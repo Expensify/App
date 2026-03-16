@@ -770,10 +770,10 @@ const translations = {
             didNotShipCard: "We didn't ship your card. Please try again.",
         },
         revealPin: {
-            authenticationCanceled: 'We couldn’t reveal your PIN. Please try again.',
+            authenticationCanceled: "We couldn't reveal your PIN. Please try again.",
         },
         changePin: {
-            authenticationCanceled: 'We didn’t change your PIN. Please try again.',
+            authenticationCanceled: "We didn't change your PIN. Please try again.",
         },
     },
     validateCodeModal: {

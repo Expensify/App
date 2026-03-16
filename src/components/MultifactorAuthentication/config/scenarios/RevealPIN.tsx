@@ -6,63 +6,52 @@ import type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioCustomConfig,
 } from '@components/MultifactorAuthentication/config/types';
-import {clearDraftValues} from '@libs/actions/FormActions';
-import {setPersonalDetailsAndShipExpensifyCardsWithPIN} from '@libs/actions/MultifactorAuthentication';
+import {revealPINForCard} from '@libs/actions/MultifactorAuthentication';
+import {setRevealedPIN} from '@libs/CardPINStore';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 /**
- * Payload type for the SET_PIN_ORDER_CARD scenario.
- * Contains personal details and PIN required for UK/EU card ordering.
+ * Payload type for the REVEAL_PIN scenario.
+ * Contains the cardID for the card whose PIN is being revealed.
  */
 type Payload = {
-    legalFirstName: string;
-    legalLastName: string;
-    phoneNumber: string;
-    addressCity: string;
-    addressStreet: string;
-    addressStreet2: string;
-    addressZip: string;
-    addressCountry: string;
-    addressState: string;
-    dob: string;
-    pin: string;
     cardID: string;
 };
 
 /**
- * Type guard to verify the payload is a SetPinOrderCard payload.
+ * Type guard to verify the payload is a RevealPIN payload.
  */
-function isSetPinOrderCardPayload(payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined): payload is Payload {
-    return !!payload && 'cardID' in payload && 'pin' in payload;
+function isRevealPINPayload(payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined): payload is Payload {
+    return !!payload && 'cardID' in payload;
 }
 
 const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
     {
-        subtitle: 'multifactorAuthentication.setPin.didNotShipCard',
+        subtitle: 'multifactorAuthentication.revealPin.authenticationCanceled',
     },
     'AuthenticationCanceledFailureScreen',
 );
 
 /**
- * Configuration for the SET_PIN_ORDER_CARD multifactor authentication scenario.
- * This scenario is used when a UK/EU cardholder sets their PIN during the card ordering process.
+ * Configuration for the REVEAL_PIN multifactor authentication scenario.
+ * This scenario is used when a UK/EU cardholder reveals the PIN of their physical card.
  *
- * Callback behavior per design doc:
- * - Success: Navigate to ExpensifyCardPage and return SKIP_OUTCOME_SCREEN
- * - Invalid PIN/personal details error: Display error in UI and return SKIP_OUTCOME_SCREEN
+ * Callback behavior:
+ * - Success: Store the revealed PIN in CardPINStore and return SKIP_OUTCOME_SCREEN
  * - Authentication failure: Return SHOW_OUTCOME_SCREEN to show failure screen
  */
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS],
-    action: setPersonalDetailsAndShipExpensifyCardsWithPIN,
-
-    callback: async (isSuccessful, _callbackInput, payload) => {
-        if (isSuccessful && isSetPinOrderCardPayload(payload)) {
-            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+    action: revealPINForCard,
+    callback: async (isSuccessful, callbackInput, payload) => {
+        if (isSuccessful && isRevealPINPayload(payload)) {
+            const pin = callbackInput.body?.pin as string | undefined;
+            if (pin) {
+                setRevealedPIN(payload.cardID, pin);
+            }
             Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;

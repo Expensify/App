@@ -4,13 +4,13 @@ import CONST from '@src/CONST';
 import type {Payload as AuthorizeTransactionPayload} from './AuthorizeTransaction';
 import AuthorizeTransaction from './AuthorizeTransaction';
 import BiometricsTest from './BiometricsTest';
-import type {Payload as ChangePinPayload} from './ChangePin';
-import ChangePin from './ChangePin';
+import type {Payload as ChangePINPayload} from './ChangePIN';
+import ChangePIN from './ChangePIN';
 import {customConfig} from './DefaultUserInterface';
-import type {Payload as RevealPinPayload} from './RevealPin';
-import RevealPin from './RevealPin';
-import type {Payload as SetPinOrderCardPayload} from './SetPinOrderCard';
-import SetPinOrderCard from './SetPinOrderCard';
+import type {Payload as RevealPINPayload} from './RevealPIN';
+import RevealPIN from './RevealPIN';
+import type {Payload as SetPinOrderCardPayload} from './SetPINOrderCard';
+import SetPinOrderCard from './SetPINOrderCard';
 
 /**
  * Payload types for multifactor authentication scenarios.
@@ -20,8 +20,8 @@ type Payloads = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: EmptyObject;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: SetPinOrderCardPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: AuthorizeTransactionPayload;
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: RevealPinPayload;
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN]: ChangePinPayload;
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: RevealPINPayload;
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN]: ChangePINPayload;
 };
 
 /**
@@ -31,8 +31,8 @@ const Configs = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: customConfig(BiometricsTest),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: customConfig(SetPinOrderCard),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: customConfig(AuthorizeTransaction),
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: customConfig(RevealPin),
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN]: customConfig(ChangePin),
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: customConfig(RevealPIN),
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN]: customConfig(ChangePIN),
 } as const satisfies MultifactorAuthenticationScenarioConfigRecord;
 
 export default Configs;
