@@ -6,10 +6,12 @@ import {InteractionManager} from 'react-native';
 import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {isSafari} from '@libs/Browser';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
@@ -117,6 +119,7 @@ function FormProvider({
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
+    shouldHideFixErrorsAlert = false,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -140,6 +143,22 @@ function FormProvider({
     const [errorAnnouncementKey, setErrorAnnouncementKey] = useState(0);
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurActions();
+
+    const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
+    const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
+    const firstFieldErrorMessage = useMemo(() => {
+        for (const errorMsg of Object.values(errors)) {
+            if (errorMsg) {
+                return errorMsg;
+            }
+        }
+        return '';
+    }, [errors]);
+
+    useAccessibilityAnnouncement(firstFieldErrorMessage, !isGeneralAlertVisible && !!firstFieldErrorMessage && errorAnnouncementKey > 0, {
+        shouldAnnounceOnNative: true,
+        announcementKey: errorAnnouncementKey,
+    });
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
@@ -458,7 +477,8 @@ function FormProvider({
         },
         [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, setIsBlurred, formID, shouldValidateOnChange],
     );
-    const value = useMemo(() => ({registerInput, errorAnnouncementKey}), [registerInput, errorAnnouncementKey]);
+    const fallbackAnnouncementMessage = !isGeneralAlertVisible ? firstFieldErrorMessage : '';
+    const value = useMemo(() => ({registerInput, errorAnnouncementKey, fallbackAnnouncementMessage}), [registerInput, errorAnnouncementKey, fallbackAnnouncementMessage]);
 
     const submitAndAnnounce = useCallback(() => {
         if (!isEmptyObject(errors)) {
@@ -478,6 +498,7 @@ function FormProvider({
                 errors={errors}
                 isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
+                shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
                 ref={formWrapperRef}

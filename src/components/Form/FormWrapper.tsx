@@ -1,4 +1,4 @@
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useContext, useImperativeHandle, useRef} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
@@ -7,17 +7,20 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import FormContext from './FormContext';
 import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './types';
 
 type FormWrapperProps = ChildrenProps &
@@ -106,6 +109,8 @@ function FormWrapper({
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
+    const {errorAnnouncementKey, fallbackAnnouncementMessage} = useContext(FormContext);
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
 
@@ -224,6 +229,15 @@ function FormWrapper({
             }}
         >
             {children}
+            {isWeb && !!fallbackAnnouncementMessage && errorAnnouncementKey > 0 && (
+                <Text
+                    key={`fallback-announce-${errorAnnouncementKey}`}
+                    style={styles.hiddenElementOutsideOfWindow}
+                    role={CONST.ROLE.ALERT}
+                >
+                    {fallbackAnnouncementMessage}
+                </Text>
+            )}
             {!shouldSubmitButtonStickToBottom && SubmitButton}
         </FormElement>
     );
