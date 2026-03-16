@@ -243,6 +243,15 @@ function BaseDomainMembersPage({
             </View>
         ) : null;
 
+    const listFooterContent = shouldShowEmptyPreFilterState ? (
+        <GenericEmptyStateComponent
+            headerMedia={illustrations.EmptyShelves}
+            headerContentStyles={styles.emptyShelvesIllustration}
+            title={emptyStateTitle ?? ''}
+            subtitle={emptyStateSubtitle}
+            headerStyles={styles.emptyStateCardIllustrationContainer}
+        />
+    ) : undefined;
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
@@ -260,44 +269,34 @@ function BaseDomainMembersPage({
                 >
                     {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
-
                 {shouldUseNarrowLayout && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
-
-                {listHeaderContent}
-                {shouldShowEmptyPreFilterState ? (
-                    <ScrollView contentContainerStyle={styles.flex1}>
-                        <GenericEmptyStateComponent
-                            headerMedia={illustrations.EmptyShelves}
-                            headerContentStyles={styles.emptyShelvesIllustration}
-                            title={emptyStateTitle}
-                            subtitle={emptyStateSubtitle}
-                            headerStyles={styles.emptyStateCardIllustrationContainer}
-                        />
-                    </ScrollView>
-                ) : (
-                    <SelectionListWithModal
-                        data={filteredData}
-                        shouldShowRightCaret
-                        style={{
-                            containerStyle: styles.flex1,
-                            listHeaderWrapperStyle: styles.baseListHeaderWrapperStyle,
-                            listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
-                            listItemErrorRowStyles: [styles.ph4, styles.pb2],
-                        }}
-                        ListItem={TableListItem}
-                        onSelectRow={onSelectRow}
-                        onDismissError={onDismissError}
-                        shouldShowListEmptyContent={false}
-                        showScrollIndicator={false}
-                        customListHeader={getFilteredListHeader()}
-                        canSelectMultiple={canSelectMultiple}
-                        onSelectAll={toggleAllUsers}
-                        onCheckboxPress={toggleUser}
-                        selectedItems={selectedMembers}
-                        turnOnSelectionModeOnLongPress={turnOnSelectionModeOnLongPress}
-                        onTurnOnSelectionMode={(item) => item && toggleUser?.(item)}
-                    />
-                )}
+                <SelectionListWithModal
+                    data={filteredData}
+                    shouldShowRightCaret
+                    style={{
+                        containerStyle: styles.flex1,
+                        listHeaderWrapperStyle: styles.baseListHeaderWrapperStyle,
+                        listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
+                        listItemErrorRowStyles: [styles.ph4, styles.pb2],
+                        contentContainerStyle: shouldShowEmptyPreFilterState ? [styles.flex1, styles.mh100] : undefined,
+                        listFooterContentStyle: shouldShowEmptyPreFilterState ? styles.flex1 : undefined,
+                    }}
+                    ListItem={TableListItem}
+                    onSelectRow={onSelectRow}
+                    onDismissError={onDismissError}
+                    shouldShowListEmptyContent={false}
+                    showScrollIndicator={false}
+                    customListHeader={getFilteredListHeader()}
+                    shouldHeaderBeInsideList
+                    customListHeaderContent={listHeaderContent}
+                    canSelectMultiple={canSelectMultiple}
+                    onSelectAll={toggleAllUsers}
+                    onCheckboxPress={toggleUser}
+                    selectedItems={selectedMembers}
+                    turnOnSelectionModeOnLongPress={turnOnSelectionModeOnLongPress}
+                    onTurnOnSelectionMode={(item) => item && toggleUser?.(item)}
+                    listFooterContent={listFooterContent}
+                />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );
