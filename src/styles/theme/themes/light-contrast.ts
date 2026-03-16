@@ -11,6 +11,7 @@ const lightContrastTheme = {
     bordersBold: colors.productLight800,
     buttonIcon: colors.productLight900,
     mentionText: colors.blue700,
+    textLight: colors.productLight900,
 } satisfies ThemeColors;
 
 export default lightContrastTheme;
