@@ -17,6 +17,7 @@ import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -177,6 +178,7 @@ function MoneyRequestView({
     const {translate, toLocaleDigit} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
+    const {showConfirmModal} = useConfirmModal();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     const {currentSearchResults} = useSearchStateContext();
@@ -418,8 +420,9 @@ function MoneyRequestView({
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
-    const shouldShowTax =
-        isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest) || !!transaction?.taxName || hasViolations('tax');
+    const isTaxEnabled = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
+    const shouldShowTaxDisabledAlert = !isTaxEnabled && !!transaction?.taxCode;
+    const shouldShowTax = isTaxEnabled || !!transaction?.taxName || shouldShowTaxDisabledAlert;
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
@@ -580,6 +583,15 @@ function MoneyRequestView({
         }
 
         return '';
+    };
+
+    const showTaxDisabledAlert = () => {
+        showConfirmModal({
+            title: translate('iou.taxDisabledAlert.title'),
+            prompt: translate('iou.taxDisabledAlert.prompt'),
+            confirmText: translate('iou.taxDisabledAlert.confirmText'),
+            cancelText: translate('common.buttonConfirm'),
+        });
     };
 
     const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
@@ -1018,6 +1030,11 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() => {
+                                if (shouldShowTaxDisabledAlert) {
+                                    showTaxDisabledAlert();
+                                    return;
+                                }
+
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
                                         CONST.IOU.ACTION.EDIT,
@@ -1044,6 +1061,11 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() => {
+                                if (shouldShowTaxDisabledAlert) {
+                                    showTaxDisabledAlert();
+                                    return;
+                                }
+
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
                                         CONST.IOU.ACTION.EDIT,
