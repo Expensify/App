@@ -27,6 +27,7 @@ import {
     isDistanceRequest,
     isExpenseSplit,
     isFromCreditCardImport,
+    isOdometerDistanceRequest,
     isPartialTransaction,
     isPerDiemRequest,
     isScanning,
@@ -519,6 +520,8 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         merchant: transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? ''),
         modifiedAmount: undefined,
         originalTransactionID: undefined,
+        odometerStart: transaction.comment?.odometerStart ?? undefined,
+        odometerEnd: transaction.comment?.odometerEnd ?? undefined,
         receipt: undefined,
         source: undefined,
         waypoints,
@@ -528,7 +531,7 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         unit: transaction.comment?.units?.unit,
     };
 
-    if (isExpenseSplit(transaction) && isDistanceRequest(transaction)) {
+    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction))) {
         transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
     }
 
@@ -575,6 +578,7 @@ function createExpenseByType({
                         ...transaction.comment,
                         originalTransactionID: undefined,
                         source: undefined,
+                        waypoints,
                     },
                     iouRequestType: getRequestType(transaction),
                     modifiedCreated: '',
@@ -585,6 +589,7 @@ function createExpenseByType({
                     ...(params.transactionParams ?? {}),
                     comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
                     validWaypoints: waypoints,
+                    modifiedAmount: transactionDetails?.amount,
                 },
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
@@ -709,6 +714,7 @@ function duplicateExpenseTransaction({
                     ...transaction.comment,
                     originalTransactionID: undefined,
                     source: undefined,
+                    waypoints,
                 },
                 iouRequestType: getRequestType(transaction),
                 modifiedCreated: '',
