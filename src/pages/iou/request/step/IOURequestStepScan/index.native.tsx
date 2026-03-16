@@ -48,11 +48,11 @@ import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
-import NavigationAwareCamera from './NavigationAwareCamera/Camera';
-import ReceiptPreviews from './ReceiptPreviews';
+import NavigationAwareCamera from './components/NavigationAwareCamera/Camera';
+import ReceiptPreviews from './components/ReceiptPreviews';
+import useMobileReceiptScan from './hooks/useMobileReceiptScan';
+import useReceiptScan from './hooks/useReceiptScan';
 import type IOURequestStepScanProps from './types';
-import useReceiptScan from './useReceiptScan';
-import useScanShortcutSpan from './useScanShortcutSpan';
 
 function IOURequestStepScan({
     report,
@@ -96,8 +96,6 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-
-    useScanShortcutSpan(initialTransaction);
 
     // Track camera init telemetry
     const cameraInitSpanStarted = useRef(false);
@@ -277,26 +275,18 @@ function IOURequestStepScan({
 
     const getSource = useCallback((file: FileObject) => file.uri ?? '', []);
 
-    // Shared business logic from useReceiptScan hook
     const {
         isEditing,
-        canUseMultiScan,
         shouldAcceptMultipleFiles,
+        shouldSkipConfirmation,
         startLocationPermissionFlow,
         setStartLocationPermissionFlow,
         receiptFiles,
         setReceiptFiles,
-        shouldShowMultiScanEducationalPopup,
         navigateToConfirmationStep,
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        submitReceipts,
-        submitMultiScanReceipts,
-        toggleMultiScan,
-        dismissMultiScanEducationalPopup,
-        blinkStyle,
-        showBlink,
         setTestReceiptAndNavigate,
     } = useReceiptScan({
         report,
@@ -312,8 +302,20 @@ function IOURequestStepScan({
         isStartingScan,
         updateScanAndNavigate,
         getSource,
-        setIsMultiScanEnabled,
     });
+
+    const {canUseMultiScan, shouldShowMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts, toggleMultiScan, dismissMultiScanEducationalPopup, blinkStyle, showBlink} =
+        useMobileReceiptScan({
+            initialTransaction,
+            iouType,
+            isMultiScanEnabled,
+            isStartingScan,
+            receiptFiles,
+            navigateToConfirmationStep,
+            shouldSkipConfirmation,
+            setStartLocationPermissionFlow,
+            setIsMultiScanEnabled,
+        });
 
     const maybeCancelShutterSpan = useCallback(() => {
         if (isMultiScanEnabled) {
