@@ -9131,6 +9131,9 @@ const CONST = {
         PROFILE_PAGE: {
             AVATAR: 'ProfilePage-Avatar',
         },
+        MESSAGES_ROW: {
+            DISMISS_BUTTON: 'MessagesRow-DismissButton',
+        },
     },
 
     DOMAIN: {

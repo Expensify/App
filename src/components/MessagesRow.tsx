@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -33,9 +34,17 @@ type MessagesRowProps = {
 
     /** A function to dismiss error */
     dismissError?: () => void;
-};
+} & WithSentryLabel;
 
-function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
+function MessagesRow({
+    messages = {},
+    type,
+    onDismiss,
+    containerStyles,
+    dismissError = () => {},
+    errorTextStyles,
+    sentryLabel = CONST.SENTRY_LABEL.MESSAGES_ROW.DISMISS_BUTTON,
+}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -64,6 +73,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
                         onPress={onDismiss}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={dismissText}
+                        sentryLabel={sentryLabel}
                     >
                         <Icon
                             fill={theme.icon}
