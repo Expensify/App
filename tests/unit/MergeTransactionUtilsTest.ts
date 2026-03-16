@@ -14,6 +14,7 @@ import {
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
+import {isFromCreditCardImport} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
@@ -1296,6 +1297,205 @@ describe('MergeTransactionUtils', () => {
 
             // Then it should return the rate portion
             expect(result).toBe('$0.50 / mi');
+        });
+    });
+
+    describe('isFromCreditCardImport', () => {
+        it('should return false for CSV-imported card transactions (bank === upload)', () => {
+            // Given a CSV-imported card transaction with bank === 'upload'
+            const transaction = {
+                ...createRandomTransaction(0),
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+                cardName: 'My Card',
+                cardNumber: 'XXXXX1XXXXXXXXXXXXXXX',
+                cardID: 123456,
+                managedCard: false,
+            };
+
+            // When we check if it is from credit card import
+            // Then it should return false because CSV uploads are not treated as card imports
+            expect(isFromCreditCardImport(transaction)).toBe(false);
+        });
+
+        it('should return false for CSV-imported card transactions even when transactionType is card (search snapshot)', () => {
+            // Given a CSV-imported transaction that also has transactionType: 'card' from search snapshot
+            const transaction = {
+                ...createRandomTransaction(0),
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+                cardName: 'My Card',
+                cardID: 123456,
+                managedCard: false,
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
+            };
+
+            // When we check if it is from credit card import
+            // Then it should return false because bank === 'upload' takes precedence over transactionType
+            expect(isFromCreditCardImport(transaction)).toBe(false);
+        });
+
+        it('should return true for transactions with transactionType card and non-upload bank', () => {
+            // Given a transaction with only transactionType 'card' from search snapshot (no other card fields)
+            const transaction = {
+                ...createRandomTransaction(0),
+                bank: '',
+                cardName: '',
+                cardNumber: '',
+                cardID: undefined,
+                managedCard: false,
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
+            };
+
+            // When we check if it is from credit card import
+            // Then it should return true
+            expect(isFromCreditCardImport(transaction)).toBe(true);
+        });
+
+        it('should return false for cash transactions', () => {
+            // Given a cash transaction with no other card fields
+            const transaction = {
+                ...createRandomTransaction(0),
+                bank: '',
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                cardNumber: '',
+                cardID: undefined,
+                managedCard: false,
+            };
+
+            // When we check if it is from credit card import
+            // Then it should return false
+            expect(isFromCreditCardImport(transaction)).toBe(false);
+        });
+
+        it('should return true for managed card transactions', () => {
+            // Given a transaction where only managedCard is true (no other card fields)
+            const transaction = {
+                ...createRandomTransaction(0),
+                bank: '',
+                cardName: '',
+                cardNumber: '',
+                cardID: undefined,
+                managedCard: true,
+            };
+
+            // When we check if it is from credit card import
+            // Then it should return true via the managedCard branch
+            expect(isFromCreditCardImport(transaction)).toBe(true);
+        });
+
+        it('should return true for transactions with cardNumber', () => {
+            // Given a transaction where only cardNumber is set (no other card fields)
+            const transaction = {
+                ...createRandomTransaction(0),
+                bank: '',
+                cardName: '',
+                cardNumber: 'XXXX1234',
+                cardID: undefined,
+                managedCard: false,
+            };
+
+            // When we check if it is from credit card import
+            // Then it should return true via the cardNumber branch
+            expect(isFromCreditCardImport(transaction)).toBe(true);
+        });
+
+        it('should return true for transactions with a non-upload bank', () => {
+            // Given a transaction where only bank is set (no other card fields)
+            const transaction = {
+                ...createRandomTransaction(0),
+                bank: 'some_bank_feed',
+                cardName: '',
+                cardNumber: '',
+                cardID: undefined,
+                managedCard: false,
+            };
+
+            // When we check if it is from credit card import
+            // Then it should return true via the bank branch
+            expect(isFromCreditCardImport(transaction)).toBe(true);
+        });
+
+        it('should return false for transactions with no card-related fields', () => {
+            // Given a plain transaction with no card-related fields
+            const transaction = {
+                ...createRandomTransaction(0),
+                bank: '',
+                cardName: '',
+                cardNumber: '',
+                cardID: undefined,
+                managedCard: false,
+            };
+
+            // When we check if it is from credit card import
+            // Then it should return false
+            expect(isFromCreditCardImport(transaction)).toBe(false);
+        });
+
+        it('should return false for undefined transaction', () => {
+            // Given an undefined transaction
+            // When we check if it is from credit card import
+            // Then it should return false
+            expect(isFromCreditCardImport(undefined)).toBe(false);
+        });
+
+        it('should allow merging CSV-imported card expense with managed card even when search snapshot adds transactionType card', () => {
+            // Given a CSV-imported transaction with transactionType: 'card' from search snapshot and a managed card transaction
+            // This is the exact regression scenario: after visiting Reports, search snapshot adds transactionType: 'card'
+            const csvSnapshotTransaction = {
+                ...createRandomTransaction(0),
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+                cardName: 'My CSV Card',
+                cardNumber: 'XXXXX1XXXXXXXXXXXXXXX',
+                cardID: 123456,
+                managedCard: false,
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const managedCardTransaction = {
+                ...createRandomTransaction(1),
+                bank: '',
+                cardName: '',
+                cardNumber: '',
+                cardID: undefined,
+                managedCard: true,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+
+            // When we check if they are eligible for merge
+            // Then it should still return true because bank === 'upload' takes precedence over transactionType
+            expect(areTransactionsEligibleForMerge(csvSnapshotTransaction, managedCardTransaction)).toBe(true);
+            expect(areTransactionsEligibleForMerge(managedCardTransaction, csvSnapshotTransaction)).toBe(true);
+        });
+
+        it('should show amount as conflict field when CSV transaction has transactionType card from search snapshot', () => {
+            // Given a CSV-imported target transaction with transactionType: 'card' from search snapshot
+            // This is the exact regression: after visiting Reports, amount was incorrectly auto-resolved
+            const targetTransaction = {
+                ...createRandomTransaction(0),
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+                cardName: 'My CSV Card',
+                cardNumber: 'XXXXX1XXXXXXXXXXXXXXX',
+                managedCard: false,
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
+                amount: -685,
+                currency: CONST.CURRENCY.USD,
+                comment: {},
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(1),
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+                cardName: 'My CSV Card',
+                cardNumber: 'XXXXX1XXXXXXXXXXXXXXX',
+                managedCard: false,
+                amount: -1810,
+                currency: CONST.CURRENCY.USD,
+                comment: {},
+            };
+
+            // When we get mergeable data and conflict fields
+            const {conflictFields} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+
+            // Then amount should still be a conflict field (not auto-resolved by transactionType: 'card')
+            expect(conflictFields).toContain('amount');
         });
     });
 });

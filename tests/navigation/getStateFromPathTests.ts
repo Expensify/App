@@ -1,6 +1,6 @@
 import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import Log from '@libs/Log';
-import getStateForDynamicRoute from '@libs/Navigation/helpers/getStateForDynamicRoute';
+import getStateForDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {Route} from '@src/ROUTES';
 
@@ -30,7 +30,7 @@ jest.mock('@src/ROUTES', () => ({
 
 jest.mock('@libs/Navigation/helpers/getMatchingNewRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getRedirectedPath', () => jest.fn((path: string) => path));
-jest.mock('@libs/Navigation/helpers/getStateForDynamicRoute', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute', () => jest.fn());
 
 describe('getStateFromPath', () => {
     const mockFindFocusedRoute = findFocusedRoute as jest.Mock;
@@ -57,9 +57,10 @@ describe('getStateFromPath', () => {
     it('should generate dynamic state when authorized screen is focused', () => {
         const fullPath = '/settings/wallet/verify-account';
         const baseRouteState = {routes: [{name: 'Wallet'}]};
+        const focusedRouteParams = {walletID: '456'};
 
         mockRNGetStateFromPath.mockReturnValue(baseRouteState);
-        mockFindFocusedRoute.mockReturnValue({name: 'Wallet'});
+        mockFindFocusedRoute.mockReturnValue({name: 'Wallet', params: focusedRouteParams});
 
         const expectedDynamicState = {routes: [{name: 'DynamicRoot'}]};
         mockGetStateForDynamicRoute.mockReturnValue(expectedDynamicState);
@@ -67,7 +68,7 @@ describe('getStateFromPath', () => {
         const result = getStateFromPath(fullPath as unknown as Route);
 
         expect(result).toBe(expectedDynamicState);
-        expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'VERIFY_ACCOUNT');
+        expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'VERIFY_ACCOUNT', focusedRouteParams);
     });
 
     it('should fallback to standard RN parsing if focused screen is NOT authorized for dynamic route', () => {
