@@ -41,7 +41,7 @@ type FloatingActionButtonProps = WithSentryLabel & {
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
-    const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
+    const {buttonDefaultBG, buttonHoveredBG, iconStrong} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
@@ -128,7 +128,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                             >
                                 <AnimatedPath
                                     d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
-                                    fill={icon}
+                                    fill={iconStrong}
                                 />
                             </Svg>
                         </Animated.View>
