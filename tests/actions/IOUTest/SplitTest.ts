@@ -30,8 +30,10 @@ import {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails, PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
@@ -2267,7 +2269,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(isDeleted).toBe(true);
     });
 
-    it('should set navigate-back URL and navigate to parent chat when reverse-split deletes the last transaction in expense report', async () => {
+    it('should set navigate-back URL, navigate to parent chat, and remove stale SplitNavigator when reverse-split deletes the last transaction in expense report', async () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -2285,6 +2287,29 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             chatReportID: chatReport.reportID,
             parentReportID: chatReport.reportID,
         };
+
+        // Mock the navigation state to simulate the root stack after dismissModalWithReport
+        // creates a new SplitNavigator, leaving the old one with the stale expense report
+        const staleSplitKey = 'stale-split-nav-key';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        Navigation.navigationRef.getRootState.mockReturnValue({
+            routes: [
+                {
+                    name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                    key: staleSplitKey,
+                    state: {
+                        routes: [{name: SCREENS.REPORT, params: {reportID: expenseReport.reportID}}],
+                    },
+                },
+                {
+                    name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                    key: 'new-split-nav-key',
+                    state: {
+                        routes: [{name: SCREENS.REPORT, params: {reportID: chatReport.reportID}}],
+                    },
+                },
+            ],
+        });
         const originalTransaction: Transaction = {
             amount: 10000,
             currency: 'USD',
@@ -2386,6 +2411,11 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // Then navigation should go to the parent chat report instead of the deleted expense report
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: chatReport.reportID});
+
+        // Then the old SplitNavigator containing the stale expense report screen should be removed
+        // from the root navigation stack to prevent "Not here" page when navigating back
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Navigation.removeScreenByKey).toHaveBeenCalledWith(staleSplitKey);
     });
 
     it('should navigate to expense report normally when reverse-split is not the last transaction', async () => {

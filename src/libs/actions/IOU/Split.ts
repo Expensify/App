@@ -1754,11 +1754,25 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // After the modal is dismissed, remove the transaction thread report screen
     // to avoid navigating back to a report removed by the split transaction.
     requestAnimationFrame(() => {
-        if (!transactionThreadReportScreen?.key) {
-            return;
+        if (transactionThreadReportScreen?.key) {
+            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
         }
 
-        Navigation.removeScreenByKey(transactionThreadReportScreen.key);
+        // When the reverse split deleted the expense report, dismissModalWithReport on narrow
+        // layout creates a new SplitNavigator for the parent chat while the old SplitNavigator
+        // (containing the now-deleted expense report screen) remains in the back stack. Remove
+        // the old SplitNavigator to prevent showing "Not here" page when navigating back.
+        if (isLastTransactionInReport && expenseReportID) {
+            const rootState = navigationRef.getRootState();
+            const staleSplitNavigator = rootState?.routes.find(
+                (route) =>
+                    route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR &&
+                    route.state?.routes?.some((r) => r.name === SCREENS.REPORT && r.params && 'reportID' in r.params && r.params.reportID === expenseReportID),
+            );
+            if (staleSplitNavigator?.key) {
+                Navigation.removeScreenByKey(staleSplitNavigator.key);
+            }
+        }
     });
 }
 
