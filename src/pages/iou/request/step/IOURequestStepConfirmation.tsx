@@ -288,7 +288,7 @@ function IOURequestStepConfirmation({
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const isTestTransaction = transaction?.participants?.some((participant) => isSelectedManagerMcTest(participant.login));
 
-    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction;
+    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction && isScanRequest(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 

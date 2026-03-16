@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {navigateToConciergeChat} from '@libs/actions/Report';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
@@ -74,7 +75,13 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }, [policyID]);
 
     if (isAddCardFeedLoading || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'AddNewCardPage',
+            isAddCardFeedLoading,
+            isAllFeedsResultLoading,
+            isBlockedToAddNewFeeds,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (isActingAsDelegate) {

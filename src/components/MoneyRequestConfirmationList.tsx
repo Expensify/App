@@ -55,7 +55,6 @@ import {
     hasRoute as hasRouteUtil,
     hasTaxRateWithMatchingValue,
     isMerchantMissing,
-    isScanning,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
@@ -415,12 +414,7 @@ function MoneyRequestConfirmationList({
         pendingCurrencyRef.current = currency;
     }
 
-    let formattedAmount = convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
-    if (isDistanceRequestWithPendingRoute) {
-        formattedAmount = '';
-    } else if (isScanning(transaction)) {
-        formattedAmount = translate('iou.receiptStatusTitle');
-    }
+    const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
     const formattedAmountPerAttendee =
         isDistanceRequestWithPendingRoute || isScanRequest
             ? ''

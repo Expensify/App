@@ -7,6 +7,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseActions} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
@@ -82,6 +83,9 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
 
+    /** Whether to use dynamic font size for the amount input */
+    shouldUseDynamicFontSize?: boolean;
+
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
@@ -147,6 +151,7 @@ function NumberWithSymbolForm({
     style,
     containerStyle,
     symbolTextStyle,
+    shouldUseDynamicFontSize = false,
     autoGrow = true,
     disableKeyboard = true,
     prefixCharacter = '',
@@ -169,6 +174,7 @@ function NumberWithSymbolForm({
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -384,6 +390,12 @@ function NumberWithSymbolForm({
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
 
+    // Calculate dynamic font size based on the total length of the amount display
+    const dynamicAmountStyle = useMemo(() => {
+        const totalLength = formattedNumber.length + (hideSymbol ? 0 : symbol.length) + (isNegative ? 1 : 0);
+        return StyleUtils.getAmountInputFontSize(totalLength);
+    }, [StyleUtils, formattedNumber.length, hideSymbol, symbol.length, isNegative]);
+
     /**
      * Handles pressing the flip button (+/-) to toggle negative sign
      * Only available in displayAsTextInput mode for manual expense flow
@@ -503,8 +515,8 @@ function NumberWithSymbolForm({
             }}
             onKeyPress={textInputKeyPress}
             isSymbolPressable={isSymbolPressable && !shouldWrapInputInContainer}
-            symbolTextStyle={symbolTextStyle}
-            style={style}
+            symbolTextStyle={[symbolTextStyle, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
+            style={[style, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
             containerStyle={containerStyle}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}

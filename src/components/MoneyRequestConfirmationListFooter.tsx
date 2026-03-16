@@ -1251,6 +1251,7 @@ function MoneyRequestConfirmationListFooter({
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             shouldUseFullHeight={isCompactMode}
                             onLoad={handleReceiptLoad}
+                            resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
                         />
                     </PressableWithoutFocus>
                 )}
@@ -1281,6 +1282,7 @@ function MoneyRequestConfirmationListFooter({
         receiptThumbnail,
         fileExtension,
         isDistanceRequest,
+        isOdometerDistanceRequest,
         handleReceiptLoad,
         handleCompactReceiptContainerLayout,
     ]);
