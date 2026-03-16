@@ -7,6 +7,8 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import ConfirmModal from '@components/ConfirmModal';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -22,6 +24,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingBalanceGuard from '@hooks/useOutstandingBalanceGuard';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -29,6 +32,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {close} from '@libs/actions/Modal';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
@@ -58,6 +62,7 @@ import {
     isPolicyOwner,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
 } from '@libs/PolicyUtils';
+import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -92,10 +97,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.profile');
     const policyID = policy?.id;
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -117,11 +122,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
 
-    const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
-    const formattedAddress =
-        !isEmptyObject(policy) && !isEmptyObject(policy.address)
-            ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
-            : '';
+    const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
 
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
 
@@ -185,11 +186,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const ownerPolicies = ownerPoliciesSelector(policies, accountID);
+    const activeOwnerPoliciesCount = ownerPolicies.filter((p) => !isPendingDeletePolicy(p)).length;
+    const {shouldBlockDeletion, wouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(activeOwnerPoliciesCount);
 
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = usePrevious(isPendingDelete);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
+
+    const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined};
 
     const fetchPolicyData = () => {
         if (policyDraft?.id) {
@@ -245,7 +250,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
-            bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
@@ -273,7 +277,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         });
     }, [
         activePolicyID,
-        bankAccountList,
         defaultCardFeeds,
         hasCardFeedOrExpensifyCard,
         isOffline,
@@ -341,6 +344,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const onDeleteWorkspace = () => {
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+            return;
+        }
+
+        if (shouldBlockDeletion()) {
             return;
         }
 
@@ -490,7 +497,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onSelected: onDeleteWorkspace,
                 disabled: isLoadingBill,
                 shouldShowLoadingSpinnerIcon: isLoadingBill,
-                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(account?.canDowngrade, policies),
+                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(account?.canDowngrade, policies) || wouldBlockDeletion,
             });
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
@@ -640,16 +647,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION);
                                 }}
                             >
-                                <MenuItemWithTopDescription
-                                    title={policyDescription}
-                                    description={translate('workspace.editor.descriptionInputLabel')}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressDescription}
-                                    shouldRenderAsHTML
-                                />
+                                <MentionReportContext.Provider value={mentionReportContextValue}>
+                                    <MenuItemWithTopDescription
+                                        title={policyDescription}
+                                        description={translate('workspace.editor.descriptionInputLabel')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
+                                        shouldShowRightIcon={!readOnly}
+                                        interactive={!readOnly}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        onPress={onPressDescription}
+                                        shouldRenderAsHTML
+                                    />
+                                </MentionReportContext.Provider>
                             </OfflineWithFeedback>
                         )}
                         {!!account?.isApprovedAccountant && (

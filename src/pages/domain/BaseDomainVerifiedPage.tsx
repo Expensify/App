@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -41,7 +42,12 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifie
     }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
 
     if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'BaseDomainVerifiedPage',
+            isLoadingDomain: isLoadingOnyxValue(domainMetadata),
+            isLoadingAdmin: isLoadingOnyxValue(isAdminMetadata),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (!domain || !isAdmin) {
