@@ -222,10 +222,20 @@ export default createOnyxDerivedValueConfig({
             let actionBadge;
             let actionBadgeReportActionID;
             // if report has errors or violations, show red dot
-            if (SidebarUtils.shouldShowRedBrickRoad(report, chatReport, reportActionsList, hasAnyViolations, reportErrors, transactions, transactionViolations, !!isReportArchived)) {
+            const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                report,
+                chatReport,
+                reportActionsList,
+                hasAnyViolations,
+                reportErrors,
+                transactions,
+                transactionViolations,
+                !!isReportArchived,
+            );
+            if (reasonAndReportAction) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
-                actionBadgeReportActionID = greenBadgeReportActionID;
+                actionBadgeReportActionID = reasonAndReportAction.reportAction?.reportActionID;
             }
             // if report does not have error, check if it should show green dot
             if (brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttention) {

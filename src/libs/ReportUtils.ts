@@ -9139,6 +9139,80 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
 }
 
 /**
+ * Returns the reportID of the first child expense report that has violations under the same policy,
+ * or undefined if none found. Used to find the REPORT_PREVIEW action to deep-link to.
+ */
+function getViolatingReportIDForLHN(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>): string | undefined {
+    if (!report || !isPolicyExpenseChat(report)) {
+        return undefined;
+    }
+
+    if (!isCurrentUserSubmitter(report)) {
+        return undefined;
+    }
+    if (!report.policyID || !reportsByPolicyID) {
+        return undefined;
+    }
+
+    const potentialReports = Object.values(reportsByPolicyID[report.policyID] ?? {}) ?? [];
+    const violatingReport = potentialReports.find((potentialReport) => {
+        if (!potentialReport) {
+            return false;
+        }
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
+        const transactions = getReportTransactions(potentialReport.reportID);
+
+        if (!isOpenOrProcessingReport(potentialReport)) {
+            return false;
+        }
+
+        return (
+            !isInvoiceReport(potentialReport) &&
+            ViolationsUtils.hasVisibleViolationsForUser(
+                potentialReport,
+                transactionViolations,
+                currentUserEmail ?? '',
+                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                policy,
+                transactions,
+            ) &&
+            (hasViolations(
+                potentialReport.reportID,
+                transactionViolations,
+                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                currentUserEmail ?? '',
+                true,
+                transactions,
+                potentialReport,
+                policy,
+            ) ||
+                hasWarningTypeViolations(
+                    potentialReport.reportID,
+                    transactionViolations,
+                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmail ?? '',
+                    true,
+                    transactions,
+                    potentialReport,
+                    policy,
+                ) ||
+                hasNoticeTypeViolations(
+                    potentialReport.reportID,
+                    transactionViolations,
+                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmail ?? '',
+                    true,
+                    transactions,
+                    potentialReport,
+                    policy,
+                ))
+        );
+    });
+
+    return violatingReport?.reportID;
+}
+
+/**
  * Checks to see if a report contains a violation
  */
 function hasViolations(
@@ -13380,6 +13454,7 @@ export {
     shouldDisableThread,
     shouldDisplayThreadReplies,
     shouldDisplayViolationsRBRInLHN,
+    getViolatingReportIDForLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
