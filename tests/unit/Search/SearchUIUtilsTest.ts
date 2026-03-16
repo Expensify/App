@@ -25,7 +25,6 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
@@ -63,7 +62,6 @@ jest.mock('@userActions/Search', () => ({
     setOptimisticDataForTransactionThreadPreview: jest.fn(),
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
-jest.mock('@libs/interceptAnonymousUser');
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -5272,7 +5270,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -5364,7 +5361,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -5428,7 +5424,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
@@ -5478,7 +5473,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5501,7 +5495,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5531,7 +5524,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5561,7 +5553,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -5595,7 +5586,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -5629,7 +5619,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
@@ -5675,7 +5664,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
 
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
@@ -5715,7 +5703,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
             expect(reconciliationSection).toBeDefined();
@@ -5740,7 +5727,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -5816,7 +5802,6 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
-                activePolicyID: '',
             });
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -5830,46 +5815,6 @@ describe('SearchUIUtils', () => {
             expect(approveItem).toBeDefined();
             expect(payItem).toBeDefined();
             expect(exportItem).toBeDefined();
-        });
-
-        it('should pass activePolicyID to interceptAnonymousUser in submit button action', () => {
-            const mockPolicies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
-                    id: policyID,
-                    name: 'Test Policy',
-                    type: CONST.POLICY.TYPE.TEAM,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    owner: adminEmail,
-                    isPolicyExpenseChatEnabled: true,
-                    pendingAction: undefined,
-                } as OnyxTypes.Policy,
-            };
-
-            const testActivePolicyID = 'test-active-policy-456';
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
-                currentUserEmail: adminEmail,
-                currentUserAccountID: adminAccountID,
-                cardFeedsByPolicy: {},
-                defaultCardFeed: undefined,
-                policies: mockPolicies,
-                savedSearches: {},
-                isOffline: false,
-                defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
-                draftTransactionIDs: [],
-                activePolicyID: testActivePolicyID,
-            });
-
-            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
-            const submitItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
-            const buttonAction = submitItem?.emptyState?.buttons?.[0]?.buttonAction;
-
-            if (buttonAction) {
-                buttonAction();
-                expect(interceptAnonymousUser).toHaveBeenCalledWith(expect.any(Function), testActivePolicyID);
-            }
         });
     });
 

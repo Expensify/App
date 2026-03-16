@@ -21,7 +21,7 @@ jest.mock('@libs/interceptAnonymousUser');
 
 const fakePolicyID = '344559B2CCF2B6C1';
 const mockPolicy = {...createRandomPolicy(0), id: fakePolicyID};
-const mockParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false, policy: mockPolicy, activePolicyID: 'test-active-policy-id'};
+const mockParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false, policy: mockPolicy};
 
 describe('navigateToWorkspacesPage', () => {
     beforeEach(() => {
@@ -158,21 +158,6 @@ describe('navigateToWorkspacesPage', () => {
         navigateToWorkspacesPage(mockParams);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
-    });
-
-    it('passes activePolicyID to interceptAnonymousUser', () => {
-        (navigationRef.getRootState as jest.Mock).mockReturnValue({
-            routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
-        });
-
-        (lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage as jest.Mock).mockReturnValue({
-            routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
-        });
-
-        (interceptAnonymousUser as jest.Mock).mockImplementation(() => {});
-        navigateToWorkspacesPage({...mockParams, activePolicyID: 'my-policy-123'});
-
-        expect(interceptAnonymousUser).toHaveBeenCalledWith(expect.any(Function), 'my-policy-123');
     });
 
     it('navigates to WORKSPACES_LIST if policyID is missing', () => {

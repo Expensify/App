@@ -121,14 +121,6 @@ Onyx.connect({
     callback: (value) => (stashedCredentials = value ?? {}),
 });
 
-let deprecatedActivePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (newActivePolicyID) => {
-        deprecatedActivePolicyID = newActivePolicyID;
-    },
-});
-
 let isUsingImportedState: boolean | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.IS_USING_IMPORTED_STATE,
@@ -322,13 +314,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.IS_USING_IMPORTED_STATE,
 ];
 
-function signOutAndRedirectToSignIn(
-    shouldResetToHome?: boolean,
-    shouldStashSession?: boolean,
-    shouldSignOutFromOldDot = true,
-    shouldForceUseStashedSession?: boolean,
-    activePolicyID = deprecatedActivePolicyID,
-) {
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, shouldSignOutFromOldDot = true, shouldForceUseStashedSession?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
@@ -385,7 +371,7 @@ function signOutAndRedirectToSignIn(
                 newDotCurrentAccountEmail: stashedSession.email ?? '',
                 authToken: stashedSession.authToken ?? '',
                 // eslint-disable-next-line rulesdir/no-default-id-values
-                policyID: activePolicyID ?? '',
+                policyID: '',
                 accountID: session.accountID ? String(session.accountID) : '',
             });
             hasSwitchedAccountInHybridMode = true;
