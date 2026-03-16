@@ -2,6 +2,7 @@ import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -79,6 +80,45 @@ type UseSearchFiltersBarResult = {
     styles: ReturnType<typeof useThemeStyles>;
     translate: ReturnType<typeof useLocalize>['translate'];
 };
+
+type SearchDateFilterValues = {
+    on?: string;
+    after?: string;
+    before?: string;
+    range?: string;
+};
+
+function createDateDisplayValue(filterValues: SearchDateFilterValues, translate: ReturnType<typeof useLocalize>['translate']): [SearchDateValues, string[]] {
+    const value: SearchDateValues = {
+        [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
+        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
+        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
+        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: filterValues.range,
+    };
+
+    const displayText: string[] = [];
+    if (value.On) {
+        displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
+    }
+    if (value.After) {
+        displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+    }
+    if (value.Before) {
+        displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+    }
+    if (value.Range) {
+        const rangeDisplay = getDateRangeDisplayValueFromFormValue(value.Range, undefined, undefined, true);
+        if (rangeDisplay) {
+            displayText.push(rangeDisplay);
+        }
+    }
+
+    return [value, displayText];
+}
+
+function hasDateFilterValue(filterFormValues: Partial<SearchAdvancedFiltersForm>, dateFilterKey: TupleToUnion<typeof DATE_FILTER_KEYS>) {
+    return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`] ?? filterFormValues[`${dateFilterKey}Range`];
+}
 
 /**
  * Extracts only the fields needed by getTypeOptions (canSendInvoice check).
@@ -190,54 +230,35 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const isOptions = Object.values(CONST.SEARCH.IS_VALUES).map((value) => ({text: translate(`common.${value}`), value}));
     const is = isFilterValues ? isOptions.filter((option) => isFilterValues.includes(option.value)) : [];
 
-    const createDateDisplayValue = (filterValues: {on?: string; after?: string; before?: string; range?: string}): [SearchDateValues, string[]] => {
-        const value: SearchDateValues = {
-            [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
-            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: filterValues.range,
-        };
+    const [date, displayDate] = createDateDisplayValue(
+        {
+            on: searchAdvancedFiltersForm.dateOn,
+            after: searchAdvancedFiltersForm.dateAfter,
+            before: searchAdvancedFiltersForm.dateBefore,
+            range: searchAdvancedFiltersForm.dateRange,
+        },
+        translate,
+    );
 
-        const displayText: string[] = [];
-        if (value.On) {
-            displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
-        }
-        if (value.After) {
-            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
-        }
-        if (value.Before) {
-            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
-        }
-        if (value.Range) {
-            const rangeDisplay = getDateRangeDisplayValueFromFormValue(value.Range, undefined, undefined, true);
-            if (rangeDisplay) {
-                displayText.push(rangeDisplay);
-            }
-        }
+    const [posted, displayPosted] = createDateDisplayValue(
+        {
+            on: searchAdvancedFiltersForm.postedOn,
+            after: searchAdvancedFiltersForm.postedAfter,
+            before: searchAdvancedFiltersForm.postedBefore,
+            range: searchAdvancedFiltersForm.postedRange,
+        },
+        translate,
+    );
 
-        return [value, displayText];
-    };
-
-    const [date, displayDate] = createDateDisplayValue({
-        on: searchAdvancedFiltersForm.dateOn,
-        after: searchAdvancedFiltersForm.dateAfter,
-        before: searchAdvancedFiltersForm.dateBefore,
-        range: searchAdvancedFiltersForm.dateRange,
-    });
-
-    const [posted, displayPosted] = createDateDisplayValue({
-        on: searchAdvancedFiltersForm.postedOn,
-        after: searchAdvancedFiltersForm.postedAfter,
-        before: searchAdvancedFiltersForm.postedBefore,
-        range: searchAdvancedFiltersForm.postedRange,
-    });
-
-    const [withdrawn, displayWithdrawn] = createDateDisplayValue({
-        on: searchAdvancedFiltersForm.withdrawnOn,
-        after: searchAdvancedFiltersForm.withdrawnAfter,
-        before: searchAdvancedFiltersForm.withdrawnBefore,
-        range: searchAdvancedFiltersForm.withdrawnRange,
-    });
+    const [withdrawn, displayWithdrawn] = createDateDisplayValue(
+        {
+            on: searchAdvancedFiltersForm.withdrawnOn,
+            after: searchAdvancedFiltersForm.withdrawnAfter,
+            before: searchAdvancedFiltersForm.withdrawnBefore,
+            range: searchAdvancedFiltersForm.withdrawnRange,
+        },
+        translate,
+    );
 
     const withdrawalTypeOptions = getWithdrawalTypeOptions(translate);
     const withdrawalType = withdrawalTypeOptions.find((option) => option.value === searchAdvancedFiltersForm.withdrawalType) ?? null;
@@ -627,12 +648,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         return hiddenFilters.filter((key) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
             if (dateFilterKey) {
-                return (
-                    filterFormValues[`${dateFilterKey}On`] ??
-                    filterFormValues[`${dateFilterKey}After`] ??
-                    filterFormValues[`${dateFilterKey}Before`] ??
-                    filterFormValues[`${dateFilterKey}Range`]
-                );
+                return hasDateFilterValue(filterFormValues, dateFilterKey);
             }
 
             if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
@@ -677,4 +693,4 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
 export default useSearchFiltersBar;
 export type {FilterItem};
-export {typeOptionsPoliciesSelector};
+export {createDateDisplayValue, hasDateFilterValue, typeOptionsPoliciesSelector};

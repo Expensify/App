@@ -1,3 +1,4 @@
+import {isValid, parse} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
@@ -28,14 +29,23 @@ type RangeDatePickerProps = {
     forceVertical?: boolean;
 };
 
+function parseCalendarDate(dateValue?: string): Date | undefined {
+    if (!dateValue) {
+        return undefined;
+    }
+
+    const parsedDate = parse(dateValue, CONST.DATE.FNS_FORMAT_STRING, new Date());
+    return isValid(parsedDate) ? parsedDate : undefined;
+}
+
 function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shouldShowError = false, forceVertical = false}: RangeDatePickerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const shouldStack = forceVertical || isSmallScreenWidth;
-    const fromMaxDate = toValue ? new Date(toValue) : CONST.CALENDAR_PICKER.MAX_DATE;
-    const toMinDate = fromValue ? new Date(fromValue) : CONST.CALENDAR_PICKER.MIN_DATE;
+    const fromMaxDate = parseCalendarDate(toValue) ?? CONST.CALENDAR_PICKER.MAX_DATE;
+    const toMinDate = parseCalendarDate(fromValue) ?? CONST.CALENDAR_PICKER.MIN_DATE;
 
     return (
         <>
