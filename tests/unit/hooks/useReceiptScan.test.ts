@@ -9,7 +9,6 @@ import type {Report, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockHandleMoneyRequestStepScanParticipants = jest.fn();
-const mockRemoveDraftTransactions = jest.fn();
 const mockRemoveDraftTransactionsByIDs = jest.fn();
 const mockRemoveTransactionReceipt = jest.fn();
 const mockSetMoneyRequestReceipt = jest.fn();
