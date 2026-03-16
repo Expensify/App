@@ -1,12 +1,23 @@
-import {etc, hashes, keygen, sign, verify} from '@noble/ed25519';
-import type {Bytes} from '@noble/ed25519';
-import {sha256, sha512} from '@noble/hashes/sha2';
-import {utf8ToBytes} from '@noble/hashes/utils';
+import { etc, hashes, keygen, sign, verify } from '@noble/ed25519';
+import type { Bytes } from '@noble/ed25519';
+import { sha256, sha512 } from '@noble/hashes/sha2';
+import { utf8ToBytes } from '@noble/hashes/utils';
 import 'react-native-get-random-values';
-import type {ChallengeFlags, MultifactorAuthenticationChallengeObject, SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import type { ChallengeFlags, MultifactorAuthenticationChallengeObject, SignedChallenge } from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import Base64URL from '@src/utils/Base64URL';
-import type {Base64URLString} from '@src/utils/Base64URL';
+import type { Base64URLString } from '@src/utils/Base64URL';
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * ED25519 helpers used to construct and sign multifactor authentication challenges.
@@ -113,12 +124,12 @@ function createAuthenticatorData(rpId: string): Bytes {
  *
  * @param credentialRequestOptions Challenge object from server (must be AuthenticationChallenge format)
  * @param privateKey ED25519 private key in hex format
- * @param publicKey ED25519 public key in base64url format (used as rawId)
+ * @param credentialID ED25519 public key in base64url format (used as rawId)
  * @returns SignedChallenge with ED25519 signature
  */
-function signToken(credentialRequestOptions: MultifactorAuthenticationChallengeObject, privateKey: string, publicKey: Base64URLString): SignedChallenge {
+function signToken(credentialRequestOptions: MultifactorAuthenticationChallengeObject, privateKey: string, credentialID: Base64URLString): SignedChallenge {
     // rawId should be the base64url-encoded public key, serving as credential identifier
-    const rawId: Base64URLString = publicKey;
+    const rawId: Base64URLString = credentialID;
     const type = VALUES.ED25519_TYPE; // "biometric"
 
     // Extract rpId from challenge - handle both authentication and registration formats
