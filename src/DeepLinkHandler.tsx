@@ -31,6 +31,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
     useEffect(() => {
@@ -71,7 +72,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     // Use hasAuthToken() for the latest auth state at call time, since the isAuthenticated
                     // closure value may be stale on cold start (useOnyx reports 'loaded' before storage completes).
                     const isCurrentlyAuthenticated = hasAuthToken();
-                    openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected);
+                    openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, betas);
                 } else {
                     Report.doneCheckingPublicRoom();
                 }
@@ -98,7 +99,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected);
+            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, betas);
         });
 
         return () => {
@@ -106,7 +107,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected]);
+    }, [sessionMetadata?.status, conciergeReportID, introSelected, betas]);
 
     // Safety net: if getInitialURL() resolves before the session loads, hasAuthToken() may return false
     // for an authenticated user, causing openReportFromDeepLink to take the wrong path. Once isAuthenticated
