@@ -38,7 +38,7 @@ function usePasskeys(): UseBiometricsReturn {
         return (localPasskeyCredentials ?? []).some((c) => serverSet.has(c.id));
     };
 
-    const resetKeysForAccount = async () => {
+    const deleteLocalKeysForAccount = async () => {
         deleteLocalPasskeyCredentials(userId);
     };
 
@@ -188,7 +188,7 @@ function usePasskeys(): UseBiometricsReturn {
         areLocalCredentialsKnownToServer,
         register,
         authorize,
-        resetKeysForAccount,
+        deleteLocalKeysForAccount,
     };
 }
 

@@ -373,7 +373,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         // - The server no longer accepts the local public key (not in allowCredentials)
                         if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED) {
                             addMFABreadcrumb('Authorization key reset', {reason: result.reason}, 'warning');
-                            await biometrics.resetKeysForAccount();
+                            await biometrics.deleteLocalKeysForAccount();
                             dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
                             dispatch({type: 'SET_AUTHORIZATION_CHALLENGE', payload: undefined});
                         } else {

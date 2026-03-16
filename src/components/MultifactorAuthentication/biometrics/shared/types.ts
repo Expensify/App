@@ -67,8 +67,8 @@ type UseBiometricsReturn = {
     /** Authorize using chosen authentication method */
     authorize: (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
 
-    /** Reset keys for account */
-    resetKeysForAccount: () => Promise<void>;
+    /** Delete local keys for account */
+    deleteLocalKeysForAccount: () => Promise<void>;
 };
 
 export type {BaseRegisterResult, RegisterResult, AuthorizeParams, AuthorizeResultSuccess, AuthorizeResultFailure, AuthorizeResult, UseBiometricsReturn};

@@ -92,7 +92,7 @@ describe('useNativeBiometrics hook', () => {
             expect(result.current).toHaveProperty('areLocalCredentialsKnownToServer');
             expect(result.current).toHaveProperty('register');
             expect(result.current).toHaveProperty('authorize');
-            expect(result.current).toHaveProperty('resetKeysForAccount');
+            expect(result.current).toHaveProperty('deleteLocalKeysForAccount');
         });
 
         it('should initialize info with biometrics status', async () => {
@@ -430,12 +430,12 @@ describe('useNativeBiometrics hook', () => {
         });
     });
 
-    describe('resetKeysForAccount', () => {
+    describe('deleteLocalKeysForAccount', () => {
         it('should delete keys', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             await act(async () => {
-                await result.current.resetKeysForAccount();
+                await result.current.deleteLocalKeysForAccount();
             });
 
             expect(publicKeyStoreDelete).toHaveBeenCalledWith(12345);

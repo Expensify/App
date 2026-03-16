@@ -48,7 +48,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
         return !!key && serverKnownCredentialIDs.includes(key);
     }, [getLocalCredentialID, serverKnownCredentialIDs]);
 
-    const resetKeysForAccount = useCallback(async () => {
+    const deleteLocalKeysForAccount = useCallback(async () => {
         await resetKeys(accountID);
     }, [accountID]);
 
@@ -194,7 +194,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
         areLocalCredentialsKnownToServer,
         register,
         authorize,
-        resetKeysForAccount,
+        deleteLocalKeysForAccount,
     };
 }
 
