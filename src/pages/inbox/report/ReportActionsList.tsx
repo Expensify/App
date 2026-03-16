@@ -28,7 +28,6 @@ import {isSafari} from '@libs/Browser';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
-import getPlatform from '@libs/getPlatform';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
