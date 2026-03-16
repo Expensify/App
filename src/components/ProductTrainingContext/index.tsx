@@ -14,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
@@ -254,6 +255,14 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
     }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
+    useEffect(() => {
+        if (!shouldShowProductTrainingTooltip || tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER) {
+            return;
+        }
+
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, userAccountID);
+    }, [shouldShowProductTrainingTooltip, tooltipName]);
+
     const hideTooltip = useCallback(
         (isDismissedUsingCloseButton = false) => {
             if (!shouldShowProductTrainingTooltip) {
@@ -268,6 +277,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
 
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
+
         return (
             <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>
                 <View

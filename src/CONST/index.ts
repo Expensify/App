@@ -8227,6 +8227,7 @@ const CONST = {
             SIGN_UP: 'sign_up',
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN: 'product_training_scan_test_tooltip_shown',
         },
     },
 
