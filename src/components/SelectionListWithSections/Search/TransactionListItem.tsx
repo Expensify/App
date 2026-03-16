@@ -236,7 +236,7 @@ function TransactionListItem<TItem extends ListItem>({
                             taxAmountColumnSize={taxAmountColumnSize}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                            style={[styles.p3, isLargeScreenWidth && styles.noBorderRadius, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}, isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8}]}
                             violations={transactionViolations}
                             onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}
