@@ -169,6 +169,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                   currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                   shouldAddGuideWelcomeMessage: false,
                   onboardingPurposeSelected,
+                  betas,
                   isSelfTourViewed,
               })
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
@@ -189,6 +190,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         currentUserPersonalDetails.email,
         introSelected,
         activePolicyID,
+        betas,
         isSelfTourViewed,
         completeOnboarding,
     ]);
