@@ -42,6 +42,7 @@ import type {
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -141,6 +142,16 @@ function isExpensifyCard(card?: Card) {
         return false;
     }
     return card.bank === CONST.EXPENSIFY_CARD.BANK;
+}
+
+/**
+ * Checks if the card supports PIN management features.
+ * @param card - The card to check.
+ * @returns boolean
+ */
+function supportsPINManagementFeatures(card: Card | undefined): boolean {
+    //  Use of PINs is based on card program. UK/EU (feedCountry GB) are the only program currently that supports these features.
+    return isExpensifyCard(card) && card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
 }
 
 /**
@@ -1315,6 +1326,17 @@ function generateCardID(): number {
 }
 
 /**
+ * Check if the card has expired
+ */
+function isExpiredCard(card: Card): boolean {
+    if (!card.nameValuePairs?.validThru) {
+        return false;
+    }
+    const currentTime = DateUtils.getDBTime();
+    return card.nameValuePairs.validThru < currentTime;
+}
+
+/**
  * Check if there are any assigned cards that should be displayed in the wallet page.
  * This includes active Expensify cards, company cards (domain), and personal cards.
  */
@@ -1327,7 +1349,8 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
         (card) =>
             CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
             (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
-            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+            (!isExpensifyCard(card) || !isExpiredCard(card)),
     );
 }
 
@@ -1367,7 +1390,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     }
 
     const activeCards = filterAllInactiveCards(cardList);
-    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
+    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
     const seenDomains = new Set<string>();
@@ -1392,10 +1415,46 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     });
 }
 
+function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
+    // If currency is set on the card itself, use it.
+    if (card?.nameValuePairs?.currency) {
+        return card.nameValuePairs.currency;
+    }
+
+    // If not, attempt to get currency from the card settings.
+    const feedCountry = card?.nameValuePairs?.feedCountry;
+    const settings = getCardSettings(cardSettings, feedCountry);
+    if (settings?.currency) {
+        return settings.currency;
+    }
+
+    // Fall back to the program and country to try to determine the correct currency.
+    // US programs are always USD
+    if (feedCountry === CONST.COUNTRY.US || feedCountry === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) {
+        return CONST.CURRENCY.USD;
+    }
+
+    // For UK/EU cards, determine currency by country
+    const country = card?.nameValuePairs?.country;
+    if (feedCountry === CONST.COUNTRY.GB) {
+        // Only Gibraltar and UK use GBP. If country is not set at all, also assume GBP.
+        if (!country || country === CONST.COUNTRY.GB || country === CONST.COUNTRY.GI) {
+            return CONST.CURRENCY.GBP;
+        }
+
+        // All other countries on this program use EUR
+        return CONST.CURRENCY.EUR;
+    }
+
+    // Finally if all else fails, default to USD
+    return CONST.CURRENCY.USD;
+}
+
 export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
     isExpensifyCard,
+    supportsPINManagementFeatures,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
@@ -1482,6 +1541,8 @@ export {
     isCardFrozen,
     isCardWithPotentialFraud,
     getDisplayableExpensifyCards,
+    isExpiredCard,
+    getCardCurrency,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};
