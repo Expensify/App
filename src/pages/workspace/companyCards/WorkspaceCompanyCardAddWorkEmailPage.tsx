@@ -39,6 +39,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
@@ -51,7 +52,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
         const existingLoginKey = Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === submittedEmail.toLowerCase());
 
         if (existingLoginKey) {
-            setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true);
+            setContactMethodAsDefault(currentUserPersonalDetails, allPolicies, existingLoginKey, formatPhoneNumber, undefined, true);
         } else {
             AddWorkEmail(submittedEmail);
         }
