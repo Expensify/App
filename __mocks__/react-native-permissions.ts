@@ -1,8 +1,13 @@
 import {PERMISSIONS} from 'react-native-permissions/dist/commonjs/permissions';
 import type {ValueOf} from 'type-fest';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-const {RESULTS} = require('react-native-permissions/dist/commonjs/results') as {RESULTS: Record<string, string>};
+const RESULTS = {
+    UNAVAILABLE: 'unavailable',
+    BLOCKED: 'blocked',
+    DENIED: 'denied',
+    GRANTED: 'granted',
+    LIMITED: 'limited',
+} as const;
 
 type Results = ValueOf<typeof RESULTS>;
 type ResultsCollection = Record<string, Results>;
@@ -11,8 +16,8 @@ type Notification = {status: Results; settings: NotificationSettings};
 
 const openLimitedPhotoLibraryPicker: jest.Mock<void> = jest.fn(() => {});
 const openSettings: jest.Mock<void> = jest.fn(() => {});
-const check = jest.fn(() => Promise.resolve(RESULTS.GRANTED));
-const request = jest.fn(() => Promise.resolve(RESULTS.GRANTED));
+const check = jest.fn(() => Promise.resolve(RESULTS.GRANTED as string));
+const request = jest.fn(() => Promise.resolve(RESULTS.GRANTED as string));
 const checkLocationAccuracy: jest.Mock<string> = jest.fn(() => 'full');
 const requestLocationAccuracy: jest.Mock<string> = jest.fn(() => 'full');
 

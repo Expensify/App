@@ -292,7 +292,12 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                     </ScrollView>
-                    {!hasAvatar && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
+                    {!hasAvatar && isLoading && (
+                        <FullScreenLoadingIndicator
+                            style={styles.flex1}
+                            reasonAttributes={{context: 'ProfilePage', isLoading}}
+                        />
+                    )}
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>

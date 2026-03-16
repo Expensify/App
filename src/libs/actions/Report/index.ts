@@ -320,6 +320,8 @@ type OpenReportActionParams = {
     /** Whether the user has seen the self tour */
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
+    /** Beta features list. TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417) */
+    betas?: OnyxEntry<Beta[]>;
 };
 
 type PregeneratedResponseParams = {
@@ -1171,6 +1173,7 @@ type GuidedSetupDataForOpenReport = {
  */
 function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean,
 ): GuidedSetupDataForOpenReport | undefined {
@@ -1208,6 +1211,7 @@ function getGuidedSetupDataForOpenReport(
         onboardingMessage,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         isSelfTourViewed,
+        betas,
     });
 
     if (!onboardingData) {
@@ -1254,6 +1258,7 @@ function openReport(params: OpenReportActionParams) {
         currentUserLogin,
         currentUserAccountID,
         isSelfTourViewed,
+        betas,
     } = params;
     if (!reportID) {
         return;
@@ -1475,7 +1480,7 @@ function openReport(params: OpenReportActionParams) {
         });
     }
 
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas, isSelfTourViewed);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -1654,6 +1659,8 @@ function createGroupChat(
     currentUserLogin: string,
     introSelected: OnyxEntry<IntroSelected>,
     avatar?: File | CustomRNImageManipulatorResult,
+    // TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417)
+    betas?: OnyxEntry<Beta[]>,
 ) {
     const optimisticReport = {
         reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
@@ -1814,7 +1821,7 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -1991,12 +1998,14 @@ function navigateToAndCreateGroupChat(
     introSelected: OnyxEntry<IntroSelected>,
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
+    // TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417)
+    betas?: OnyxEntry<Beta[]>,
 ) {
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-    createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, avatarFile);
+    createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, avatarFile, betas);
 
     navigateToReport(newChat.reportID);
 }
