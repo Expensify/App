@@ -1215,7 +1215,7 @@ function MoneyReportHeader({
                 icons: expensifyIcons,
                 iouReportID: moneyRequestReport?.reportID,
                 policy,
-                userBillingGraceEndPeriodCollection: userBillingGraceEndPeriods,
+                userBillingGraceEndPeriods,
                 draftTransactionIDs,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
