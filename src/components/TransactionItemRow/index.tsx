@@ -27,7 +27,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
@@ -51,6 +50,7 @@ import {
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import useAccountIDsByEmails from '@src/hooks/useAccountIDsByEmails';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
@@ -272,18 +272,8 @@ function TransactionItemRow({
         return transactionItem.cardName;
     }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
 
-    const attendeeAccountIDs = useMemo(
-        () =>
-            transactionItem.comment?.attendees
-                ?.map((attendee) => {
-                    if (attendee.accountID) {
-                        return attendee.accountID;
-                    }
-                    return getPersonalDetailByEmail(attendee.email)?.accountID;
-                })
-                .filter((accountID): accountID is number => typeof accountID === 'number') ?? [],
-        [transactionItem.comment?.attendees],
-    );
+    const attendeeEmails = useMemo(() => transactionItem.comment?.attendees?.map((attendee) => attendee.email) ?? [], [transactionItem.comment?.attendees]);
+    const attendeeAccountIDs = useAccountIDsByEmails(attendeeEmails);
 
     const totalPerAttendee = useMemo(() => {
         const attendeesCount = transactionItem.comment?.attendees?.length ?? 0;
@@ -531,7 +521,7 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)]}
                     >
-                        {!!attendeeAccountIDs.length && (
+                        {!!attendeeAccountIDs?.length && (
                             <ReportActionAvatars
                                 accountIDs={attendeeAccountIDs}
                                 horizontalStacking={{
