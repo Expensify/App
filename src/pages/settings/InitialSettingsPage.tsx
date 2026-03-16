@@ -11,6 +11,7 @@ import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import FloatingTabBarButtons from '@components/Navigation/NavigationTabBar/FloatingTabBarButtons';
 import TopBar from '@components/Navigation/TopBar';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -554,6 +555,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID="InitialSettingsPage"
+            bottomContent={shouldUseNarrowLayout && <FloatingTabBarButtons />}
             shouldEnableKeyboardAvoidingView={false}
         >
             {shouldUseNarrowLayout && (

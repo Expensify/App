@@ -1,19 +1,20 @@
 /**
  * Tab Navigator containing Home, Inbox (Reports), Search, Settings, and Workspaces pages.
  */
+import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import type {ParamListBase, TabNavigationState} from '@react-navigation/native';
-import React, {lazy, Suspense} from 'react';
+import React, {lazy, memo, Suspense} from 'react';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {RootTabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import { View } from 'react-native';
 
 const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
     [SCREENS.HOME]: NAVIGATION_TABS.HOME,
@@ -24,11 +25,31 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NAVIGATION_TABS.WORKSPACES,
 };
 
-function RootTabNavigatorTabBar({state}: {state: TabNavigationState<ParamListBase>}) {
-    const selectedRouteName = state.routes[state.index]?.name;
+/**
+ * Only receives `state` (not the full BottomTabBarProps) so that React.memo
+ * can effectively prevent re-renders. The `descriptors` object in BottomTabBarProps
+ * is recreated on every render, which would defeat memoization.
+ *
+ * Floating buttons are disabled here because the tab bar is rendered inside
+ * the bottom tab navigator's layout container, which clips absolutely-positioned
+ * children on native platforms. Screens render floating buttons independently.
+ */
+const RootTabNavigatorTabBar = memo(({tabState}: {tabState: BottomTabBarProps['state']}) => {
+    const selectedRouteName = tabState.routes[tabState.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
-    return <NavigationTabBar selectedTab={selectedTab}/>;
-}
+    return (
+        <NavigationTabBar
+            selectedTab={selectedTab}
+            shouldShowFloatingButtons={false}
+        />
+    );
+});
+
+RootTabNavigatorTabBar.displayName = 'RootTabNavigatorTabBar';
+
+// Stable reference: only passes `state` to avoid descriptors thrashing
+// eslint-disable-next-line react/jsx-props-no-spreading
+const renderTabBar = ({state}: BottomTabBarProps) => <RootTabNavigatorTabBar tabState={state} />;
 
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
 const LazySearchFullscreenNavigator = lazy(() => import('./SearchFullscreenNavigator'));
@@ -37,10 +58,11 @@ const LazyWorkspaceSplitNavigator = lazy(() => import('./WorkspaceSplitNavigator
 
 function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.LazyExoticComponent<React.ComponentType<P>>) {
     function SuspenseWrapper(props: P) {
+        const styles = useThemeStyles();
         return (
             <Suspense
                 fallback={
-                    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white'}}>
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
                         <FullScreenLoadingIndicator />
                     </View>
                 }
@@ -64,8 +86,7 @@ function RootTabNavigator() {
     return (
         <Tab.Navigator
             backBehavior="fullHistory"
-            // eslint-disable-next-line react/no-unstable-nested-components
-            tabBar={({state}) => <RootTabNavigatorTabBar state={state} />}
+            tabBar={renderTabBar}
             screenOptions={{
                 headerShown: false,
                 lazy: true,

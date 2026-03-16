@@ -6,8 +6,6 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -132,8 +130,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const policyName = policy?.name ?? '';
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const shouldShowProtectedItems = isPolicyAdmin(policy, login);
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
-
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
@@ -182,8 +178,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
-    const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
-
     const fetchPolicyData = () => {
         if (policyDraft?.id) {
             return;

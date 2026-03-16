@@ -5879,16 +5879,6 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
-        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
-            // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
-            // On natives we can use absolute positioning.
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            opacity: shouldDisplayTopLevelNavigationTabBar ? 1 : 0,
-            pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
-            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
-            paddingBottom: bottomSafeAreaOffset,
-        }),
-
         getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,

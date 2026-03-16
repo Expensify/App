@@ -1,7 +1,4 @@
-import type RootNavigatorExtraContentProps from './types';
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function RootNavigatorExtraContent(_props: RootNavigatorExtraContentProps) {
+function RootNavigatorExtraContent() {
     return null;
 }
 

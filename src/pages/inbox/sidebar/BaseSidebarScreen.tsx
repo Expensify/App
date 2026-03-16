@@ -33,7 +33,6 @@ function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading;
 

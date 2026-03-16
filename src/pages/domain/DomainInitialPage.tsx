@@ -6,8 +6,6 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
@@ -55,8 +53,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
-
     const domainAccountID = route.params?.domainAccountID;
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
