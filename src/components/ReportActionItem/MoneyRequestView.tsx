@@ -7,6 +7,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -36,7 +37,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@libs/actions/IOU/index';
+import {updateMoneyRequestBillable, updateMoneyRequestReimbursable, updateMoneyRequestTaxRate} from '@libs/actions/IOU/index';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
@@ -591,6 +592,26 @@ function MoneyRequestView({
             prompt: translate('iou.taxDisabledAlert.prompt'),
             confirmText: translate('iou.taxDisabledAlert.confirmText'),
             cancelText: translate('common.buttonConfirm'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM || !canEditTaxFields) {
+                return;
+            }
+
+            updateMoneyRequestTaxRate({
+                transactionID: transaction?.transactionID,
+                transactionThreadReport: transactionThreadReport,
+                parentReport,
+                taxCode: '',
+                taxValue: '',
+                taxAmount: 0,
+                policy,
+                policyTagList,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+            });
         });
     };
 
