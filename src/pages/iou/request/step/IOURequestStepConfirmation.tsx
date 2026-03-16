@@ -85,20 +85,19 @@ import type {GpsPoint} from '@userActions/IOU';
 import {
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
-    requestMoney as requestMoneyIOUActions,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
     startMoneyRequest,
-    trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
+import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';

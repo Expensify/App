@@ -122,16 +122,6 @@ const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): O
     return result;
 };
 
-const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) =>
-    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
-
-const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
-    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
-
-const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length;
-
-const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
-
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
@@ -143,8 +133,4 @@ export {
     groupPaidPoliciesWithExpenseChatEnabledSelector,
     iouRequestPolicyCollectionSelector,
     shouldRedirectToExpensifyClassicSelector,
-    adminPoliciesConnectedToSageIntacctSelector,
-    adminPoliciesConnectedToNetSuiteSelector,
-    hasPoliciesConnectedToSageIntacctSelector,
-    hasPoliciesConnectedToNetSuiteSelector,
 };

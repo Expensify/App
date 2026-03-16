@@ -3,8 +3,8 @@
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {requestMoney} from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
+import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import initSplitExpense from '@libs/actions/SplitExpenses';
