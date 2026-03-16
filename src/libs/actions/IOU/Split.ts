@@ -80,7 +80,6 @@ import {
     getAllPersonalDetails,
     getAllReports,
     getAllTransactions,
-    getDeleteTrackExpenseInformation,
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
     getOrCreateOptimisticSplitChatReport,
@@ -92,6 +91,7 @@ import {
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
 import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams, UpdateMoneyRequestDataKeys} from './index';
+import {getDeleteTrackExpenseInformation} from './TrackExpense';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 

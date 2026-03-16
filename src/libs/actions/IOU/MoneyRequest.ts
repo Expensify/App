@@ -44,7 +44,6 @@ import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
     getPolicyTags,
-    requestMoney,
     setCustomUnitRateID,
     setMoneyRequestDistance,
     setMoneyRequestMerchant,
@@ -52,9 +51,9 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
     setMultipleMoneyRequestParticipantsFromReport,
-    trackExpense,
 } from './index';
 import {resetSplitShares, startSplitBill} from './Split';
+import {requestMoney, trackExpense} from './TrackExpense';
 
 type CreateTransactionParams = {
     transactions: Transaction[];
