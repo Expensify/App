@@ -927,14 +927,23 @@ function revertSplitTransactionOnSearch(
     optimisticOriginalTransaction?: Transaction,
     previousSnapshotOriginalTransaction?: Transaction,
 ) {
-    let optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
-    let failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
+    let optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION>
+    > = [];
+    let failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION>
+    > = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     let finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
     if (Object.keys(optimisticDeletedSplitTransactions).length > 0 && optimisticRestoredTransaction) {
         const {optimisticData: loadingOptimisticData, finallyData: loadingFinallyData} = getOnyxLoadingData(hash);
         optimisticData = [...(loadingOptimisticData ?? [])];
         finallyData = [...(loadingFinallyData ?? [])];
+        const iouReport = params.reportID ? getReportOrDraftReport(params.reportID) : undefined;
+        const previousIOUReport = cloneDeep(iouReport ?? null);
+        const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID);
+        const previousReportPreviewAction = cloneDeep(reportPreviewAction ?? null);
 
         const deletedSplitEntries = Object.fromEntries(Object.keys(optimisticDeletedSplitTransactions).map((transactionKey) => [transactionKey, null])) as PrefixedRecord<
             typeof ONYXKEYS.COLLECTION.TRANSACTION,
@@ -973,6 +982,61 @@ function revertSplitTransactionOnSearch(
             },
         );
 
+        if (params.reportID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+                value: {
+                    reportID: null,
+                    pendingFields: {
+                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+                value: null,
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+                value: previousIOUReport,
+            });
+        }
+
+        if (previousReportPreviewAction?.reportActionID && iouReport?.chatReportID) {
+            const updatedReportPreviewAction: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = cloneDeep(previousReportPreviewAction);
+            updatedReportPreviewAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.chatReportID}`,
+                value: {[previousReportPreviewAction.reportActionID]: updatedReportPreviewAction},
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.chatReportID}`,
+                value: {
+                    [previousReportPreviewAction.reportActionID]: {
+                        pendingAction: null,
+                        errors: null,
+                    },
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.chatReportID}`,
+                value: {
+                    [previousReportPreviewAction.reportActionID]: previousReportPreviewAction,
+                },
+            });
+        }
+
         const failureSnapshotData: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction | null> = {
             ...optimisticDeletedSplitTransactions,
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: previousSnapshotOriginalTransaction ?? null,
@@ -988,6 +1052,7 @@ function revertSplitTransactionOnSearch(
             },
         };
         failureData = [
+            ...failureData,
             failureSnapshotUpdate,
             ...Object.entries(optimisticDeletedSplitTransactions).map(
                 ([transactionKey, transaction]) =>
@@ -1005,7 +1070,7 @@ function revertSplitTransactionOnSearch(
         ];
     }
 
-    API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, params, {optimisticData, successData: [], failureData, finallyData});
+    API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, params, {optimisticData, successData, failureData, finallyData});
 }
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], transactions?: OnyxCollection<Transaction>) {

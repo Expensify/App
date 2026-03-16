@@ -515,7 +515,6 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
                         deleteTransactionsOnSearch,
                     });
                 }
-
                 clearSelectedTransactions();
             });
         });
