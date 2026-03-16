@@ -65,6 +65,12 @@ const translations: TranslationDeepObject<typeof en> = {
         workspaces: 'Espacios de trabajo',
         inbox: 'Recibidos',
         yourReviewIsRequired: 'Se requiere tu revisión',
+        actionBadge: {
+            submit: 'Enviar',
+            approve: 'Aprobar',
+            pay: 'Pagar',
+            fix: 'Corregir',
+        },
         home: 'Inicio',
         group: 'Grupo',
         profile: 'Perfil',
@@ -385,7 +391,6 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'El',
         before: 'Antes',
         after: 'Después',
-        range: 'Rango',
         reschedule: 'Reprogramar',
         general: 'General',
         workspacesTabTitle: 'Espacios',
@@ -620,6 +625,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} ${otherDeviceCount === 1 ? 'otro dispositivo' : 'otros dispositivos'}`;
             },
+        },
+        setPin: {
+            didNotShipCard: 'No enviamos tu tarjeta. Por favor, inténtalo de nuevo.',
         },
     },
     validateCodeModal: {
@@ -883,6 +891,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Revisa ${amount} en posible fraude en ${merchant}`,
                 subtitle: 'Tarjeta Expensify',
                 cta: 'Revisar',
+            },
+            validateAccount: {
+                title: 'Valida tu cuenta para continuar usando Expensify',
+                subtitle: 'Cuenta',
+                cta: 'Validar',
             },
         },
         assignedCards: 'Tus tarjetas Expensify',
@@ -1285,6 +1298,7 @@ const translations: TranslationDeepObject<typeof en> = {
             distanceAmountTooLargeReduceDistance: 'El importe total es demasiado alto. Reduce la distancia.',
             distanceAmountTooLargeReduceRate: 'El importe total es demasiado alto. Disminuye la tarifa.',
             odometerReadingTooLarge: (formattedMax: string) => `Las lecturas del odómetro no pueden superar ${formattedMax}.`,
+            stitchOdometerImagesFailed: 'No se pudieron combinar las imágenes del odómetro. Por favor, inténtalo de nuevo más tarde.',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar',
             invalidTaxAmount: (amount) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes debe ser igual al importe total',
@@ -2222,6 +2236,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} para ${merchant} - ${date}`,
         },
+        setYourPin: 'Establece tu PIN.',
+        confirmYourPin: 'Confirma tu PIN.',
+        pinMustBeFourDigits: 'El PIN debe tener exactamente 4 dígitos.',
+        invalidPin: 'Por favor, elige un PIN más seguro.',
+        pinMismatch: 'Los PINs no coinciden. Por favor, inténtalo de nuevo.',
+        revealPin: 'Mostrar PIN',
+        hidePin: 'Ocultar PIN',
+        pin: 'PIN',
         freezeCard: 'Congelar tarjeta',
         unfreeze: 'Descongelar',
         unfreezeCard: 'Descongelar tarjeta',
@@ -7137,8 +7159,6 @@ ${amount} para ${merchant} - ${date}`,
                 before: (date) => `Antes de ${date ?? ''}`,
                 after: (date) => `Después de ${date ?? ''}`,
                 on: (date) => `En ${date ?? ''}`,
-                customDate: 'Fecha personalizada',
-                customRange: 'Rango personalizado',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
@@ -7241,9 +7261,6 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
     },
     genericErrorPage: {
@@ -8870,6 +8887,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Miembros',
             findMember: 'Buscar miembro',
             addMember: 'Añadir miembro',
+            allMembers: 'Todos los miembros',
             email: 'Dirección de correo electrónico',
             closeAccount: () => ({
                 one: 'Cerrar cuenta',
