@@ -582,6 +582,7 @@ function MoneyRequestReportPreviewContent({
             });
         }, CONST.ANIMATED_TRANSITION);
 
+        // We only want to scroll to a new transaction when the set of new transaction IDs changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newTransactionIDs]);
 
