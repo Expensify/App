@@ -11,10 +11,10 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 // eslint-disable-next-line no-restricted-imports
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -410,7 +410,7 @@ function SearchAutocompleteList({
     const suggestionsCount = sections.reduce((total, section) => total + section.data.filter((item) => item.keyForList !== 'findItem').length, 0);
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue || undefined) : '';
-    useAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, {shouldAnnounceOnNative: true});
+    useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
 
     const firstRecentReportKey = styledRecentReports.at(0)?.keyForList;
     const firstRecentReportFlatIndex = useMemo(() => {

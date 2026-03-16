@@ -13,9 +13,9 @@ import SectionList from '@components/SectionList';
 import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -1016,15 +1016,19 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const noResultsFoundText = translate('common.noResultsFound');
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder));
-    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
 
-    useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
-    useAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, {shouldAnnounceOnNative: true});
+    useDebouncedAccessibilityAnnouncement(headerMessage, shouldShowHeaderMessage, textInputValue);
+    useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, textInputValue);
 
     const headerMessageContent = () =>
         shouldShowHeaderMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                <Text
+                    style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                    aria-hidden
+                >
+                    {headerMessage}
+                </Text>
             </View>
         );
 
