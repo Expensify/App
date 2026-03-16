@@ -513,6 +513,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                     onPress={() => {
                                                         openPicker({
                                                             onPicked: (files) => {
+                                                                skipContainerMouseLeaveRef.current = resetButtonHoverState(addButtonRef);
                                                                 validateFiles(files);
                                                             },
                                                             onCanceled: () => {
