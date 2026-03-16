@@ -1,10 +1,10 @@
 import React from 'react';
 import FlatList from '@components/FlatList/FlatList';
 import useFlatListScrollKey from '@components/FlatList/hooks/useFlatListScrollKey';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CellRendererComponent from './CellRendererComponent';
 import shouldRemoveClippedSubviews from './shouldRemoveClippedSubviews';
 import type {InvertedFlatListProps} from './types';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
 function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: number): string {

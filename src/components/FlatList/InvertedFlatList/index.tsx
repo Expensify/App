@@ -55,7 +55,11 @@ function InvertedFlatList<T>({
             onStartReached={handleStartReached}
             CellRendererComponent={CellRendererComponent}
             removeClippedSubviews={shouldRemoveClippedSubviews}
-            contentContainerStyle={[restProps.contentContainerStyle, restProps.horizontal ? styles.flexRowReverse : styles.flexColumnReverse, !shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
+            contentContainerStyle={[
+                restProps.contentContainerStyle,
+                restProps.horizontal ? styles.flexRowReverse : styles.flexColumnReverse,
+                !shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
+            ]}
         />
     );
 }
