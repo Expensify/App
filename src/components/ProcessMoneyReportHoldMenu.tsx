@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -38,6 +39,9 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Type of payment */
     paymentType?: PaymentMethodType;
 
+    /** Selected VBBA ID for payment */
+    methodID?: number;
+
     /** Number of transaction of a money request */
     transactionCount: number;
 
@@ -54,6 +58,7 @@ function ProcessMoneyReportHoldMenu({
     onClose,
     isVisible,
     paymentType,
+    methodID,
     chatReport,
     moneyRequestReport,
     transactionCount,
@@ -66,10 +71,12 @@ function ProcessMoneyReportHoldMenu({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -95,7 +102,10 @@ function ProcessMoneyReportHoldMenu({
                 activePolicy,
                 policy,
                 betas,
+                isSelfTourViewed,
                 userBillingGraceEndPeriods,
+                amountOwed,
+                methodID,
             });
         }
         onClose();

@@ -22,6 +22,7 @@ import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,6 +72,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const {
         options: listOptions,
@@ -109,6 +111,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
             personalDetails: allPersonalDetails,
+            allPolicyTags,
             countryCode,
             reportAttributesDerived,
         },
@@ -240,6 +243,8 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+
     const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
@@ -272,6 +277,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
+        privateIsArchivedMap,
         currentUserAccountID,
         allPersonalDetails,
         undefined,

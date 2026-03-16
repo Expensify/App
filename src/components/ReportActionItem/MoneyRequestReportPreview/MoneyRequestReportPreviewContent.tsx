@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useCallback, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
@@ -87,6 +88,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
@@ -155,6 +157,12 @@ function MoneyRequestReportPreviewContent({
         isTransactionsEmpty: transactions.length === 0,
         isOptimisticReport: chatReportMetadata?.isOptimisticReport,
     };
+    const carouselReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MoneyRequestReportPreviewContent.Carousel',
+        hasCurrentWidth: !!currentWidth,
+        shouldShowLoading,
+        shouldShowLoadingDeferred,
+    };
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -191,8 +199,10 @@ function MoneyRequestReportPreviewContent({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false) =>
@@ -283,6 +293,7 @@ function MoneyRequestReportPreviewContent({
                         paymentMethod,
                         activePolicy,
                         betas,
+                        isSelfTourViewed,
                     });
                 } else {
                     payMoneyRequest({
@@ -295,7 +306,9 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                         policy,
                         betas,
+                        isSelfTourViewed,
                         userBillingGraceEndPeriods,
+                        amountOwed,
                     });
                 }
             }
@@ -314,7 +327,9 @@ function MoneyRequestReportPreviewContent({
             activePolicy,
             policy,
             betas,
+            isSelfTourViewed,
             userBillingGraceEndPeriods,
+            amountOwed,
         ],
     );
 
@@ -341,18 +356,19 @@ function MoneyRequestReportPreviewContent({
             showDelegateNoAccessModal();
         } else if (!hasHeldExpensesReportUtils(iouReport?.reportID)) {
             startApprovedAnimation();
-            approveMoneyRequest(
-                iouReport,
-                activePolicy,
-                currentUserAccountID,
-                currentUserEmail,
+            approveMoneyRequest({
+                expenseReport: iouReport,
+                policy: activePolicy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                iouReportNextStep,
+                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
                 userBillingGraceEndPeriods,
-                true,
-            );
+                amountOwed,
+                full: true,
+            });
         }
     };
 
@@ -499,6 +515,21 @@ function MoneyRequestReportPreviewContent({
     // undefined makes arrow buttons react on currentIndex changes when scrolling manually
     const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
     const carouselRef = useRef<FlashListRef<Transaction> | null>(null);
+    const prevTransactionCountForScroll = useRef(carouselTransactions.length);
+    const [carouselKey, setCarouselKey] = useState(0);
+
+    // Reset carousel when transitioning from empty to non-empty data.
+    // scrollToOffset doesn't clear RecyclerListView's internal layout cache on iOS mobile web,
+    // so we force a full re-mount via key to prevent new items from rendering off-screen.
+    useEffect(() => {
+        if (carouselTransactions.length > 0 && prevTransactionCountForScroll.current === 0) {
+            setCurrentIndex(0);
+            setOptimisticIndex(undefined);
+            setCarouselKey((prev) => prev + 1);
+        }
+        prevTransactionCountForScroll.current = carouselTransactions.length;
+    }, [carouselTransactions.length]);
+
     const visibleItemsOnEndCount = useMemo(() => {
         const lastItemWidth = transactions.length > MAX_PREVIEWS_NUMBER ? footerWidth : reportPreviewStyles.transactionPreviewCarouselStyle.width;
         const lastItemWithGap = lastItemWidth + styles.gap2.gap;
@@ -676,18 +707,19 @@ function MoneyRequestReportPreviewContent({
 
     const addExpenseDropdownOptions = useMemo(
         () =>
-            getAddExpenseDropdownOptions(
+            getAddExpenseDropdownOptions({
                 translate,
-                expensifyIcons,
-                iouReport?.reportID,
+                icons: expensifyIcons,
+                iouReportID: iouReport?.reportID,
                 policy,
-                userBillingGraceEndPeriods,
+                userBillingGraceEndPeriodCollection: userBillingGraceEndPeriods,
+                draftTransactionIDs,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
-                chatReportID,
-                iouReport?.parentReportID,
+                iouRequestBackToReport: chatReportID,
+                unreportedExpenseBackToReport: iouReport?.parentReportID,
                 lastDistanceExpenseType,
-            ),
+            }),
         [
             translate,
             expensifyIcons,
@@ -699,6 +731,7 @@ function MoneyRequestReportPreviewContent({
             chatReportID,
             lastDistanceExpenseType,
             ownerBillingGraceEndPeriod,
+            draftTransactionIDs,
         ],
     );
 
@@ -716,7 +749,17 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, userBillingGraceEndPeriods);
+                    submitReport(
+                        iouReport,
+                        policy,
+                        currentUserAccountID,
+                        currentUserEmail,
+                        hasViolations,
+                        isASAPSubmitBetaEnabled,
+                        iouReportNextStep,
+                        userBillingGraceEndPeriods,
+                        amountOwed,
+                    );
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
@@ -985,11 +1028,15 @@ function MoneyRequestReportPreviewContent({
                                                 styles.mtn1,
                                             ]}
                                         >
-                                            <ActivityIndicator size={40} />
+                                            <ActivityIndicator
+                                                size={40}
+                                                reasonAttributes={carouselReasonAttributes}
+                                            />
                                         </View>
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.minHeight42]}>
                                             <FlashList
+                                                key={carouselKey}
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
                                                 snapToOffsets={snapOffsets}
