@@ -15,7 +15,8 @@ type AgentZeroStatusState = {
 };
 
 /**
- * Hook to manage AgentZero status indicator for Concierge chats.
+ * Hook to manage AgentZero status indicator for chats where Concierge responds.
+ * This includes both Concierge DM chats and policy #admins rooms (where Concierge handles onboarding).
  * Subscribes to real-time reasoning updates via Pusher and manages processing state.
  */
 function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean): AgentZeroStatusState {
