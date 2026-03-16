@@ -45,7 +45,10 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
             const isChild = array.length - 1 === index;
             const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
             const selectedParentOption = !isChild && Object.values(selectedOptions).find((op) => op.name === searchText);
-            const isParentOptionDisabled = !selectedParentOption || !selectedParentOption.enabled || selectedParentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const optionParent = !isChild && Object.values(options).find((op) => op.name === searchText);
+            const parentOption = selectedParentOption ?? optionParent;
+
+            const isParentOptionDisabled = !parentOption || !parentOption.enabled || parentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (optionCollection.has(searchText)) {
                 continue;
