@@ -159,7 +159,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         <>
             <GestureDetector gesture={combinedGesture}>
                 <Animated.View
-                    style={styles.pieChartChartContainer}
+                    style={styles.chartContent}
                     onLayout={handleLayout}
                 >
                     {processedSlices.length > 0 && (

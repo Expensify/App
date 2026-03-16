@@ -5789,6 +5789,14 @@ const staticStyles = (theme: ThemeColors) =>
         transactionReceiptButton: {
             width: variables.transactionReceiptButtonWidth,
         },
+        chartWebFallback: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            padding: 20,
+        },
         chartHeader: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -5825,10 +5833,7 @@ const staticStyles = (theme: ThemeColors) =>
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
-        barChartChartContainer: {
-            minHeight: 250,
-        },
-        lineChartChartContainer: {
+        chartContent: {
             minHeight: 250,
         },
         pieChartChartContainer: {

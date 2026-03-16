@@ -18,17 +18,7 @@ function BarChart(props: BarChartProps) {
             getComponent={getBarChartContent}
             componentProps={props}
             fallback={
-                <View
-                    style={[
-                        styles.flex1,
-                        styles.justifyContentCenter,
-                        styles.alignItemsCenter,
-                        styles.highlightBG,
-                        styles.br4,
-                        styles.p5,
-                        props.shouldKeepConstantHeight && {minHeight: CHART_CONTENT_MIN_HEIGHT},
-                    ]}
-                >
+                <View style={[styles.chartWebFallback, props.disableDynamicHeight && {minHeight: CHART_CONTENT_MIN_HEIGHT}]}>
                     <ActivityIndicator
                         size="large"
                         reasonAttributes={reasonAttributes}

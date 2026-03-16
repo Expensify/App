@@ -22,12 +22,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-const spendOverTimeSearchConfig = getSuggestedSearches()[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
-const query = spendOverTimeSearchConfig.searchQuery;
-const queryJSON = spendOverTimeSearchConfig.searchQueryJSON;
-const groupBy = queryJSON?.groupBy;
-const view = queryJSON?.view;
-const searchKey = spendOverTimeSearchConfig.key;
+const CONFIG = getSuggestedSearches()[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+const QUERY = CONFIG.searchQuery;
+const QUERY_JSON = CONFIG.searchQueryJSON;
+const GROUP_BY = QUERY_JSON?.groupBy;
+const VIEW = QUERY_JSON?.view;
+const SEARCH_KEY = CONFIG.key;
 
 function SpendOverTimeSection() {
     const styles = useThemeStyles();
@@ -39,7 +39,7 @@ function SpendOverTimeSection() {
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {accountID, login} = useCurrentUserPersonalDetails();
-    const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
+    const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${QUERY_JSON?.hash}`);
     const {isOffline} = useNetwork();
     const isVisible = Object.values(policies ?? {}).some((policy) => !!policy && isPolicyEligibleForSpendOverTime(policy, login));
 
@@ -52,31 +52,31 @@ function SpendOverTimeSection() {
     }, [searchResults?.search?.isLoading]);
 
     useEffect(() => {
-        if (!isVisible || isOffline || !queryJSON || isSearchLoadingRef.current) {
+        if (!isVisible || isOffline || !QUERY_JSON || isSearchLoadingRef.current) {
             return;
         }
         search({
-            queryJSON,
-            searchKey,
+            queryJSON: QUERY_JSON,
+            searchKey: SEARCH_KEY,
             offset: 0,
             isOffline: false,
             isLoading: false,
         });
     }, [isVisible, isOffline]);
 
-    if (!isVisible || !queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || !login) {
+    if (!isVisible || !QUERY_JSON || !VIEW || !GROUP_BY || VIEW === CONST.SEARCH.VIEW.TABLE || !login) {
         return null;
     }
 
     const sortedData = searchResults?.data
         ? (getSortedSections(
-              queryJSON.type,
-              queryJSON.status,
+              QUERY_JSON.type,
+              QUERY_JSON.status,
               getSections({
-                  type: queryJSON.type,
+                  type: QUERY_JSON.type,
                   data: searchResults.data,
-                  groupBy,
-                  queryJSON,
+                  groupBy: GROUP_BY,
+                  queryJSON: QUERY_JSON,
                   currentAccountID: accountID,
                   currentUserEmail: login,
                   translate,
@@ -86,15 +86,15 @@ function SpendOverTimeSection() {
               })[0],
               localeCompare,
               translate,
-              queryJSON.sortBy,
-              queryJSON.sortOrder,
-              groupBy,
+              QUERY_JSON.sortBy,
+              QUERY_JSON.sortOrder,
+              GROUP_BY,
           ) as GroupedItem[])
         : undefined;
 
     const shouldShowOfflineIndicator = isOffline && !sortedData;
     const shouldShowErrorIndicator = !shouldShowOfflineIndicator && Object.keys(searchResults?.errors ?? {}).length > 0;
-    const shouldShowLoadingIndicator = !shouldShowOfflineIndicator && !shouldShowErrorIndicator && !isSearchDataLoaded(searchResults, queryJSON);
+    const shouldShowLoadingIndicator = !shouldShowOfflineIndicator && !shouldShowErrorIndicator && !isSearchDataLoaded(searchResults, QUERY_JSON);
 
     if (!shouldShowErrorIndicator && sortedData?.length === 0) {
         return null;
@@ -102,13 +102,13 @@ function SpendOverTimeSection() {
 
     return (
         <WidgetContainer
-            title={translate(spendOverTimeSearchConfig.translationPath)}
+            title={translate(CONFIG.translationPath)}
             titleRightContent={
                 shouldShowOfflineIndicator || shouldShowLoadingIndicator || shouldShowErrorIndicator ? null : (
                     <Button
                         small
                         text={translate('common.view')}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: QUERY}))}
                         iconRight={icons.Expand}
                         shouldShowRightIcon
                         textStyles={styles.pb0}
@@ -144,12 +144,12 @@ function SpendOverTimeSection() {
             {!shouldShowOfflineIndicator && !shouldShowErrorIndicator && (
                 <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3]]}>
                     <SearchChartView
-                        queryJSON={queryJSON}
-                        view={view}
-                        groupBy={groupBy}
+                        queryJSON={QUERY_JSON}
+                        view={VIEW}
+                        groupBy={GROUP_BY}
                         data={sortedData ?? []}
                         isLoading={shouldShowLoadingIndicator}
-                        shouldKeepConstantHeight
+                        disableDynamicHeight
                     />
                 </View>
             )}

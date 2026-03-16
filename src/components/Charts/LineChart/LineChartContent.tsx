@@ -72,7 +72,7 @@ type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
-function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, shouldKeepConstantHeight}: LineChartProps) {
+function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, disableDynamicHeight}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
@@ -226,13 +226,13 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     };
 
     const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
-    const dynamicChartStyle = {height: shouldKeepConstantHeight ? CHART_CONTENT_MIN_HEIGHT : CHART_CONTENT_MIN_HEIGHT + labelSpace};
+    const dynamicChartStyle = {height: disableDynamicHeight ? CHART_CONTENT_MIN_HEIGHT : CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom};
 
     if (isLoading || !font) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChartContent', isLoading, isFontLoading: !font};
         return (
-            <View style={[shouldKeepConstantHeight && {minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            <View style={[disableDynamicHeight && {minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <ActivityIndicator
                     size="large"
                     reasonAttributes={reasonAttributes}
@@ -248,7 +248,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     return (
         <GestureDetector gesture={customGestures}>
             <View
-                style={[styles.lineChartChartContainer, dynamicChartStyle]}
+                style={[styles.chartContent, dynamicChartStyle]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (

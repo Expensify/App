@@ -29,7 +29,7 @@ type SearchChartViewProps = {
     isLoading?: boolean;
 
     /** When true, the overall chart container height remains fixed and the plot area shrinks to make room for x-axis labels instead of the container growing taller. */
-    shouldKeepConstantHeight?: boolean;
+    disableDynamicHeight?: boolean;
 };
 
 /**
@@ -45,7 +45,7 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldKeepConstantHeight}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, disableDynamicHeight}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
 
     const {getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
@@ -84,7 +84,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldKeepC
             isLoading={isLoading}
             unit={unit}
             unitPosition={unitPosition}
-            shouldKeepConstantHeight={shouldKeepConstantHeight}
+            disableDynamicHeight={disableDynamicHeight}
         />
     );
 }
