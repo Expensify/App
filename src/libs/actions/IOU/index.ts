@@ -1166,11 +1166,7 @@ function handleNavigateAfterExpenseCreate({
         if (getIsNarrowLayout()) {
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
         } else {
-            Navigation.dismissModal();
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
-            });
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }
     });
 }
