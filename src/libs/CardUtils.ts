@@ -1390,7 +1390,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     }
 
     const activeCards = filterAllInactiveCards(cardList);
-    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
+    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
     const seenDomains = new Set<string>();
