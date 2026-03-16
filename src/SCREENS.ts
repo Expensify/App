@@ -679,7 +679,7 @@ const SCREENS = {
         MEMBERS_IMPORTED: 'Members_Imported',
         MEMBERS_IMPORTED_CONFIRMATION: 'Members_Imported_Confirmation',
         DYNAMIC_WORKSPACE_INVITE: 'Dynamic_Workspace_Invite',
-        INVITE_MESSAGE: 'Workspace_Invite_Message',
+        DYNAMIC_WORKSPACE_INVITE_MESSAGE: 'Dynamic_Workspace_Invite_Message',
         INVITE_MESSAGE_ROLE: 'Workspace_Invite_Message_Role',
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
