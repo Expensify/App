@@ -661,19 +661,6 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     return getReceiptUploadErrorReason(report, chatReport, reportActions, transactions);
 }
 
-function shouldShowRedBrickRoad(
-    report: Report,
-    chatReport: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    hasViolations: boolean,
-    reportErrors: Errors,
-    transactions: OnyxCollection<Transaction>,
-    transactionViolations?: OnyxCollection<TransactionViolation[]>,
-    isReportArchived = false,
-) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isReportArchived);
-}
-
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
@@ -1365,7 +1352,6 @@ export default {
     combineReportCategories,
     getWelcomeMessage,
     getReasonAndReportActionThatHasRedBrickRoad,
-    shouldShowRedBrickRoad,
     getReportsToDisplayInLHN,
     updateReportsToDisplayInLHN,
     shouldDisplayReportInLHN,
