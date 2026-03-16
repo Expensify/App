@@ -91,4 +91,5 @@ function useSearchSections(): UseSearchSectionsResult {
     return {allReports, isSearchLoading: !!currentSearchResults?.search?.isLoading, lastSearchQuery};
 }
 
+export {selectPendingDeleteReportKeys};
 export default useSearchSections;
