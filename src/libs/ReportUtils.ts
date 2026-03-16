@@ -767,6 +767,7 @@ type TransactionDetails = {
     attendees: Attendee[] | string;
     taxAmount?: number;
     taxCode?: string;
+    taxValue?: string;
     currency: string;
     merchant: string;
     waypoints?: WaypointCollection | string;
@@ -4664,6 +4665,7 @@ function getTransactionDetails(
         attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
         taxCode: getTaxCode(transaction),
+        taxValue: transaction.taxValue,
         currency: getCurrency(transaction),
         comment: getDescription(transaction),
         merchant: getMerchant(transaction),
