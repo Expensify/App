@@ -648,14 +648,14 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
 
 function updateSettlementFrequency(
     workspaceAccountID: number,
-    feedCountry: CardProgramKey,
+    programKey: CardProgramKey,
     settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
     currentFrequency?: Date,
 ) {
     const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date();
 
-    const settlementValue = {[feedCountry]: {monthlySettlementDate}};
-    const failureValue = {[feedCountry]: {monthlySettlementDate: currentFrequency}};
+    const settlementValue = {[programKey]: {monthlySettlementDate}};
+    const failureValue = {[programKey]: {monthlySettlementDate: currentFrequency}};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
@@ -693,7 +693,7 @@ function updateSettlementAccount(
     domainName: string,
     workspaceAccountID: number,
     policyID: string,
-    feedCountry: CardProgramKey,
+    programKey: CardProgramKey,
     settlementBankAccountID?: number,
     currentSettlementBankAccountID?: number,
 ) {
@@ -701,12 +701,12 @@ function updateSettlementAccount(
         return;
     }
 
-    const optimisticValue = {[feedCountry]: {paymentBankAccountID: settlementBankAccountID}, isLoading: true};
+    const optimisticValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: true};
 
-    const successValue = {[feedCountry]: {paymentBankAccountID: settlementBankAccountID}, isLoading: false};
+    const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: false};
 
     const failureValue = {
-        [feedCountry]: {paymentBankAccountID: currentSettlementBankAccountID},
+        [programKey]: {paymentBankAccountID: currentSettlementBankAccountID},
         isLoading: false,
         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
     };
