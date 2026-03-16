@@ -1103,6 +1103,9 @@ type OriginalMessageApproved = {
 
     /** The login of approver who is on vacation */
     managerOnVacation?: string;
+
+    /** The Concierge reasoning for the action */
+    reasoning?: string;
 };
 
 /** Model of `forwarded` report action */
