@@ -270,7 +270,7 @@ function HeaderWithBackButton({
                 )}
                 {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                    <View style={[shouldShowThreeDotsButton || shouldShowCloseButton ? styles.pr2 : undefined, styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.mr2, styles.flexRow, styles.alignItemsCenter]}>
                         {children}
                         {shouldShowDownloadButton &&
                             (!isDownloading ? (
