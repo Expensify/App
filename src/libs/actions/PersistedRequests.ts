@@ -28,10 +28,12 @@ Onyx.connectWithoutView({
     callback: (val) => {
         Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null, isInitialized});
 
-        if (isInitialized) {
-            // After initialization, in-memory is authoritative.
-            // Ignore disk callbacks to prevent out-of-order Onyx.set() from
-            // overwriting the correct in-memory state (Bug #80759 Issue 4).
+        // After initialization, in-memory is authoritative — ignore disk
+        // callbacks to prevent out-of-order Onyx.set() from overwriting the
+        // correct in-memory state (Bug #80759 Issue 4).
+        // Exception: Onyx.clear() fires callback with null, which must be
+        // allowed through so the module resets properly.
+        if (isInitialized && val != null) {
             return;
         }
 
