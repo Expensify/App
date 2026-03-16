@@ -1,13 +1,13 @@
 import {useRoute} from '@react-navigation/native';
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import noop from 'lodash/noop';
 import React, {useEffect, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -17,7 +17,6 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import {createTransaction} from '@libs/actions/IOU/MoneyRequest';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
-import {isMobile} from '@libs/Browser';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable} from '@libs/IOUUtils';
@@ -28,9 +27,10 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import {checkIfScanFileCanBeRead, getMoneyRequestParticipantsFromReport, getPolicyTags, setMoneyRequestReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
 import {startSplitBill} from '@userActions/IOU/Split';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
@@ -42,8 +42,7 @@ import type {PolicyTagLists} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import DesktopWebUploadView from './DesktopWebUploadView';
-import MobileWebCameraView from './MobileWebCameraView';
+import Camera from './Camera';
 
 /**
  * ScanSkipConfirmation — skip-confirmation variant.
@@ -55,6 +54,7 @@ function ScanSkipConfirmation() {
     const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
     const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
 
+    const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policy = usePolicy(report?.policyID);
@@ -82,14 +82,12 @@ function ScanSkipConfirmation() {
         selector: shouldStartLocationPermissionFlowSelector,
     });
 
-    const isMobileWeb = isMobile();
-
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isArchived = isArchivedReport(reportNameValuePairs);
-    const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const shouldShowWrapper = !!backTo || isEditing;
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -107,9 +105,7 @@ function ScanSkipConfirmation() {
         Navigation.goBack(backTo);
     };
 
-    const getSource = (file: FileObject) => file.uri ?? URL.createObjectURL(file as Blob);
-
-    // The extra params satisfy the MobileWebCameraView prop contract
+    // The extra params satisfy the prop contract
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false, _isTestTransaction = false) {
         startSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE, {
@@ -317,9 +313,18 @@ function ScanSkipConfirmation() {
         navigateToConfirmationStep(newReceiptFiles, false);
     }
 
+    const getSource = (file: FileObject) => file.uri ?? URL.createObjectURL(file as Blob);
+
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files, getSource);
     });
+
+    function handleCapture(file: FileObject, source: string) {
+        // Attach the source URI so getSource can find it
+        const fileWithUri: FileObject = file;
+        fileWithUri.uri = source;
+        validateFiles([fileWithUri]);
+    }
 
     // Exposed for test infrastructure via onLayout pattern — will be wired by the router component
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -387,42 +392,18 @@ function ScanSkipConfirmation() {
     }, [initialTransaction?.amount, iouType]);
 
     return (
-        <>
-            {isMobileWeb ? (
-                <MobileWebCameraView
-                    initialTransaction={initialTransaction}
-                    initialTransactionID={initialTransactionID}
-                    iouType={iouType}
-                    currentUserPersonalDetails={currentUserPersonalDetails}
-                    reportID={reportID}
-                    isMultiScanEnabled={false}
-                    isStartingScan={false}
-                    updateScanAndNavigate={noop}
-                    setIsMultiScanEnabled={undefined}
-                    PDFValidationComponent={PDFValidationComponent}
-                    shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
-                    receiptFiles={receiptFiles}
-                    isEditing={isEditing}
-                    validateFiles={validateFiles}
-                    setReceiptFiles={setReceiptFiles}
-                    // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
-                    navigateToConfirmationStep={navigateToConfirmationStep}
-                    shouldSkipConfirmation={shouldSkipConfirmation}
-                    setStartLocationPermissionFlow={setStartLocationPermissionFlow}
-                    onBackButtonPress={navigateBack}
-                    shouldShowWrapper={!!backTo || isEditing}
-                />
-            ) : (
-                <DesktopWebUploadView
-                    PDFValidationComponent={PDFValidationComponent}
-                    shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
-                    isReplacingReceipt={isReplacingReceipt}
-                    onLayout={noop}
-                    validateFiles={validateFiles}
-                    onBackButtonPress={navigateBack}
-                    shouldShowWrapper={!!backTo || isEditing}
-                />
-            )}
+        <StepScreenWrapper
+            headerTitle={translate('common.receipt')}
+            onBackButtonPress={navigateBack}
+            shouldShowWrapper={shouldShowWrapper}
+            testID="IOURequestStepScan"
+        >
+            {PDFValidationComponent}
+            <Camera
+                // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
+                onCapture={handleCapture}
+                shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
+            />
             {ErrorModal}
             {startLocationPermissionFlow && !!receiptFiles.length && (
                 <LocationPermissionModal
@@ -435,7 +416,7 @@ function ScanSkipConfirmation() {
                     }}
                 />
             )}
-        </>
+        </StepScreenWrapper>
     );
 }
 

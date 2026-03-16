@@ -1,5 +1,4 @@
 import {useRoute} from '@react-navigation/native';
-import noop from 'lodash/noop';
 import React, {useEffect, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import TestReceipt from '@assets/images/fake-receipt.png';
@@ -7,13 +6,13 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
-import {isMobile} from '@libs/Browser';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
@@ -23,9 +22,10 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
+import {shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import {checkIfScanFileCanBeRead, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
 import {setTransactionReport} from '@userActions/Transaction';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
@@ -35,8 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import DesktopWebUploadView from './DesktopWebUploadView';
-import MobileWebCameraView from './MobileWebCameraView';
+import Camera from './Camera';
 
 /**
  * ScanGlobalCreate — global create flow.
@@ -48,6 +47,7 @@ function ScanGlobalCreate() {
     const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
     const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
 
+    const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [initialTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${initialTransactionID}`);
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
@@ -57,22 +57,18 @@ function ScanGlobalCreate() {
     const selfDMReport = useSelfDMReport();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
-    const isMobileWeb = isMobile();
-
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
+    const shouldShowWrapper = !!backTo || isEditing;
 
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
-    const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
+    const [receiptFiles] = useState<ReceiptFile[]>([]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
-    const getSource = (file: FileObject) => file.uri ?? URL.createObjectURL(file as Blob);
-
-    // The extra params satisfy the MobileWebCameraView prop contract but are not used by this variant
+    // The extra params satisfy the prop contract but are not used by this variant
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function navigateToConfirmationStep(files: ReceiptFile[], _locationPermissionGranted = false, _isTestTransaction = false) {
         startSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE, {
@@ -148,9 +144,18 @@ function ScanGlobalCreate() {
         navigateToConfirmationStep(newReceiptFiles, false);
     }
 
+    const getSource = (file: FileObject) => file.uri ?? URL.createObjectURL(file as Blob);
+
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files, getSource);
     });
+
+    function handleCapture(file: FileObject, source: string) {
+        // Attach the source URI so getSource can find it
+        const fileWithUri: FileObject = file;
+        fileWithUri.uri = source;
+        validateFiles([fileWithUri]);
+    }
 
     // Exposed for test infrastructure via onLayout pattern — will be wired by the router component
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -218,42 +223,18 @@ function ScanGlobalCreate() {
     }, [initialTransaction?.amount, iouType]);
 
     return (
-        <>
-            {isMobileWeb ? (
-                <MobileWebCameraView
-                    initialTransaction={initialTransaction}
-                    initialTransactionID={initialTransactionID}
-                    iouType={iouType}
-                    currentUserPersonalDetails={currentUserPersonalDetails}
-                    reportID={reportID}
-                    isMultiScanEnabled={false}
-                    isStartingScan={false}
-                    updateScanAndNavigate={noop}
-                    setIsMultiScanEnabled={undefined}
-                    PDFValidationComponent={PDFValidationComponent}
-                    shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
-                    receiptFiles={receiptFiles}
-                    isEditing={isEditing}
-                    validateFiles={validateFiles}
-                    setReceiptFiles={setReceiptFiles}
-                    // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
-                    navigateToConfirmationStep={navigateToConfirmationStep}
-                    shouldSkipConfirmation={false}
-                    setStartLocationPermissionFlow={setStartLocationPermissionFlow}
-                    onBackButtonPress={navigateBack}
-                    shouldShowWrapper={!!backTo || isEditing}
-                />
-            ) : (
-                <DesktopWebUploadView
-                    PDFValidationComponent={PDFValidationComponent}
-                    shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
-                    isReplacingReceipt={isReplacingReceipt}
-                    onLayout={noop}
-                    validateFiles={validateFiles}
-                    onBackButtonPress={navigateBack}
-                    shouldShowWrapper={!!backTo || isEditing}
-                />
-            )}
+        <StepScreenWrapper
+            headerTitle={translate('common.receipt')}
+            onBackButtonPress={navigateBack}
+            shouldShowWrapper={shouldShowWrapper}
+            testID="IOURequestStepScan"
+        >
+            {PDFValidationComponent}
+            <Camera
+                // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
+                onCapture={handleCapture}
+                shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
+            />
             {ErrorModal}
             {startLocationPermissionFlow && !!receiptFiles.length && (
                 <LocationPermissionModal
@@ -266,7 +247,7 @@ function ScanGlobalCreate() {
                     }}
                 />
             )}
-        </>
+        </StepScreenWrapper>
     );
 }
 
