@@ -1464,8 +1464,13 @@ function IOURequestStepConfirmation({
             }
         }
 
-        createTransaction(listOfParticipants);
-        setIsConfirming(false);
+        requestAnimationFrame(() => {
+            createTransaction(listOfParticipants);
+            // Keep the pre-submit loading state visible for one more paint so the spinner appears before navigation work starts.
+            requestAnimationFrame(() => {
+                setIsConfirming(false);
+            });
+        });
     };
 
     /**
