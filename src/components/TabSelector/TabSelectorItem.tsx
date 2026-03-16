@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import Badge from '@components/Badge';
@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
-import {TabSelectorContext} from './TabSelectorContext';
+import {useTabSelectorActions} from './TabSelectorContext';
 import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
@@ -44,7 +44,7 @@ function TabSelectorItem({
     const [isHovered, setIsHovered] = useState(false);
     const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
 
-    const {onTabLayout, scrollToTab} = useContext(TabSelectorContext);
+    const {onTabLayout, scrollToTab} = useTabSelectorActions();
 
     const accessibilityState = {selected: isActive};
 
