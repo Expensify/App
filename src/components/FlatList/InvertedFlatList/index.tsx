@@ -45,6 +45,8 @@ function InvertedFlatList<T>({
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
 
+    const contentContainerDirectionStyle = [restProps.horizontal ? styles.flexRowReverse : styles.flexColumnReverse]
+
     return (
         <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -58,7 +60,7 @@ function InvertedFlatList<T>({
             onStartReached={handleStartReached}
             CellRendererComponent={CellRendererComponent}
             removeClippedSubviews={shouldRemoveClippedSubviews}
-            contentContainerStyle={[restProps.contentContainerStyle, !isWeb ? undefined : restProps.horizontal ? styles.flexRowReverse : styles.flexColumnReverse]}
+            contentContainerStyle={[restProps.contentContainerStyle, isWeb ? contentContainerDirectionStyle : undefined]}
         />
     );
 }
