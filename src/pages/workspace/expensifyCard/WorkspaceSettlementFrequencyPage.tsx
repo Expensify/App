@@ -10,7 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
-import {getCardFeedCountry, getCardSettings} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
+import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -29,8 +30,8 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const defaultFundID = useDefaultFundID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const feedCountry = getCardFeedCountry(cardSettings);
-    const settings = getCardSettings(cardSettings, feedCountry);
+    const programKey = getCardProgramKey(cardSettings);
+    const settings = getCardSettings(cardSettings, programKey);
 
     const shouldShowMonthlyOption = settings?.isMonthlySettlementAllowed ?? false;
     const selectedFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
@@ -59,10 +60,11 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     }, [translate, shouldShowMonthlyOption, selectedFrequency]);
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
-        if (!feedCountry) {
+        if (!programKey) {
+            Log.alert('[WorkspaceSettlementFrequencyPage] updateSettlementFrequency called without a detected card program key');
             return;
         }
-        updateSettlementFrequencyUtil(defaultFundID, feedCountry, value, settings?.monthlySettlementDate);
+        updateSettlementFrequencyUtil(defaultFundID, programKey, value, settings?.monthlySettlementDate);
     };
 
     return (

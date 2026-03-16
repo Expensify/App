@@ -3592,7 +3592,8 @@ describe('CardUtils', () => {
         });
 
         it('should return undefined when feedCountry key does not exist', () => {
-            const result = getCardSettings(nestedSettings, 'CA');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const result = getCardSettings(nestedSettings, 'CA' as any);
             expect(result).toBeUndefined();
         });
 
@@ -3604,7 +3605,8 @@ describe('CardUtils', () => {
         });
 
         it('should return undefined for primitive values as feedCountry', () => {
-            const result = getCardSettings(nestedSettings, 'limit');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const result = getCardSettings(nestedSettings, 'limit' as any);
             expect(result).toBeUndefined();
         });
 
