@@ -7,6 +7,7 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,6 +27,7 @@ function HomePage() {
     const shouldDisplayLHB = !shouldUseNarrowLayout;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    useDocumentTitle(translate('common.home'));
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);

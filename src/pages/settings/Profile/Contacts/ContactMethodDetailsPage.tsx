@@ -59,6 +59,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
     const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -93,8 +94,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        setContactMethodAsDefault(currentUserPersonalDetails, contactMethod, formatPhoneNumber, backTo);
-    }, [currentUserPersonalDetails, contactMethod, formatPhoneNumber, backTo]);
+        setContactMethodAsDefault(currentUserPersonalDetails, allPolicies, contactMethod, formatPhoneNumber, backTo);
+    }, [currentUserPersonalDetails, allPolicies, contactMethod, formatPhoneNumber, backTo]);
 
     /**
      * Determines whether the user's primary login switching is restricted

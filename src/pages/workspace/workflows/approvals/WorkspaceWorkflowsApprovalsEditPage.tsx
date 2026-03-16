@@ -185,7 +185,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                             />
                         </>
                     )}
-                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator />}
+                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsEditPage'}} />}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
