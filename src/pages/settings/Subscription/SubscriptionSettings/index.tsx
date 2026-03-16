@@ -35,7 +35,7 @@ import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing} from '@libs/Subscri
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
+import {formatSubscriptionEndDate, getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -53,7 +53,9 @@ function SubscriptionSettings() {
     const {environmentURL} = useEnvironment();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
-    const [privatePromoDiscount] = useOnyx(ONYXKEYS.PRIVATE_PROMO_DISCOUNT);
+    const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
+    const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
+    const [privatePromoCodeValidBillingCycles] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE_VALID_BILLING_CYCLES);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
@@ -70,9 +72,11 @@ function SubscriptionSettings() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
-    const isExpensifyCodeApplied = !!privatePromoDiscount?.promoCode;
-    const shouldShowExpensifyCodeSection = !privatePromoDiscount?.isSecretPromoCode;
-    const shouldShowExpensifyCodeHintText = isExpensifyCodeApplied && !!privatePromoDiscount?.promoDiscount && !!privatePromoDiscount?.validBillingCycles;
+    const {isSecretPromoCode, promoDiscountValue} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
+
+    const isExpensifyCodeApplied = !!privatePromoCode;
+    const shouldShowExpensifyCodeSection = !isSecretPromoCode;
+    const shouldShowExpensifyCodeHintText = isExpensifyCodeApplied && promoDiscountValue !== undefined;
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
@@ -313,10 +317,10 @@ function SubscriptionSettings() {
                         interactive={!isExpensifyCodeApplied}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         style={styles.mt5}
-                        title={privatePromoDiscount?.promoCode}
+                        title={privatePromoCode}
                         hintText={
                             shouldShowExpensifyCodeHintText
-                                ? translate('subscription.expensifyCode.discountMessage', privatePromoDiscount.promoDiscount ?? '', privatePromoDiscount.validBillingCycles ?? '')
+                                ? translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue ?? ''}`, `${privatePromoCodeValidBillingCycles ?? ''}`)
                                 : undefined
                         }
                     />

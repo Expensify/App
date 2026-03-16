@@ -332,20 +332,13 @@ function applyExpensifyCode(promoCode: string) {
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM | typeof ONYXKEYS.PRIVATE_PROMO_DISCOUNT>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM,
             value: {
                 isLoading: false,
                 expensifyCode: '',
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PROMO_DISCOUNT,
-            value: {
-                promoCode,
             },
         },
     ];

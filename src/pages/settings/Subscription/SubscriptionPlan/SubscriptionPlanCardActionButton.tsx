@@ -13,6 +13,7 @@ import {upgradeToCorporate} from '@libs/actions/Policy/Policy';
 import {getOwnedPaidPolicies, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
+import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,8 +43,10 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
-    const [privatePromoDiscount] = useOnyx(ONYXKEYS.PRIVATE_PROMO_DISCOUNT);
+    const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
+    const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
+    const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
     const [canPerformUpgrade, policy] = useMemo(() => {
@@ -131,7 +134,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const subscriptionType = isAnnual ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const subscriptionSize = `${privateSubscription?.userCount ?? translate('subscription.subscriptionSettings.none')}`;
     const autoRenew = privateSubscription?.autoRenew ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
-    const expensifyCode = privatePromoDiscount?.isSecretPromoCode ? '' : (privatePromoDiscount?.promoCode ?? '');
+    const expensifyCode = isSecretPromoCode ? '' : (privatePromoCode ?? '');
 
     return (
         <MenuItemWithTopDescription
