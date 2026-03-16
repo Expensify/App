@@ -550,18 +550,7 @@ function resetToHome() {
  * We will implement recursive pop if more use cases will appear.
  */
 function goBackToHome() {
-    const isNarrowLayout = getIsNarrowLayout();
-
-    // This set the right split navigator.
-    goBack(ROUTES.INBOX);
-
-    // We want to keep the report screen in the split navigator on wide layout.
-    if (!isNarrowLayout) {
-        return;
-    }
-
-    // This set the right route in this split navigator.
-    goBack(ROUTES.INBOX);
+    navigate(ROUTES.HOME);
 }
 
 /**
