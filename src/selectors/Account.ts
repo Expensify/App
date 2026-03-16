@@ -15,12 +15,4 @@ const accountGuideDetailsSelector = (account: OnyxEntry<Account>) => account?.gu
 
 const mfaCredentialIDsSelector = (data: OnyxEntry<Account>) => data?.multifactorAuthenticationPublicKeyIDs;
 
-export {
-    isActingAsDelegateSelector,
-    isUserValidatedSelector,
-    primaryLoginSelector,
-    delegatesSelector,
-    requiresTwoFactorAuthSelector,
-    accountGuideDetailsSelector,
-    mfaCredentialIDsSelector,
-};
+export {isActingAsDelegateSelector, isUserValidatedSelector, primaryLoginSelector, delegatesSelector, requiresTwoFactorAuthSelector, accountGuideDetailsSelector, mfaCredentialIDsSelector};
