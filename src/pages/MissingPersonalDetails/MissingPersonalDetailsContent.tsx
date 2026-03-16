@@ -17,13 +17,14 @@ import type SetPersonalDetailsAndShipExpensifyCardsParams from '@libs/API/parame
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {findPageIndex} from '@libs/SubPageUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isExpensifyCardUkEuSupportedSelector} from '@src/selectors/Card';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
-import {usePIN} from './PINContext';
+import {usePINActions, usePINState} from './PINContext';
 import Address from './subPages/Address';
 import Confirmation from './subPages/Confirmation';
 import DateOfBirth from './subPages/DateOfBirth';
@@ -68,7 +69,8 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const isUKEUCardSelector = useCallback((cardList: OnyxEntry<CardList>) => isExpensifyCardUkEuSupportedSelector(cardList, cardID), [cardID]);
     const [isUKEUCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: isUKEUCardSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const {PIN, isConfirmStep, setIsConfirmStep} = usePIN();
+    const {PIN, isConfirmStep} = usePINState();
+    const {setIsConfirmStep} = usePINActions();
     const shouldCollectPIN = isCardOrderFlow && !!isUKEUCard;
 
     // Build form pages dynamically based on whether this is a UK/EU card
@@ -118,7 +120,8 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     });
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MissingPersonalDetailsContent', isRedirecting};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     const handleBackButtonPress = () => {
