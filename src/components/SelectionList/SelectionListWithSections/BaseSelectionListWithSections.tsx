@@ -13,6 +13,7 @@ import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSy
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
 import type {ButtonOrCheckBoxRoles} from '@components/SelectionList/types';
+import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -27,6 +28,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
 
@@ -83,11 +85,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const hasKeyBeenPressed = useRef(false);
+    const suppressNextFocusScrollRef = useRef(false);
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const triggerScrollEvent = useScrollEventEmitter();
-
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
@@ -125,6 +127,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         disabledIndexes,
         isActive: isScreenFocused && itemsCount > 0,
         onFocusedIndexChange: (index: number) => {
+            if (suppressNextFocusScrollRef.current) {
+                suppressNextFocusScrollRef.current = false;
+                return;
+            }
             if (!shouldScrollToFocusedIndex) {
                 return;
             }
@@ -183,6 +189,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     };
 
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
+        if (!shouldScroll) {
+            suppressNextFocusScrollRef.current = true;
+        }
         setFocusedIndex(index);
         if (shouldScroll) {
             scrollToIndex(index);
@@ -282,7 +291,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const renderListEmptyContent = () => {
         if (shouldShowLoadingPlaceholder) {
-            return <OptionsListSkeletonView />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'BaseSelectionListWithSections',
+                shouldShowLoadingPlaceholder,
+            };
+            return <OptionsListSkeletonView reasonAttributes={reasonAttributes} />;
         }
         if (shouldShowListEmptyContent) {
             return listEmptyContent;
@@ -353,6 +366,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 renderListEmptyContent()
             ) : (
                 <FlashList
+                    role={getListboxRole(canSelectMultiple)}
                     data={flattenedData}
                     renderItem={renderItem}
                     ref={listRef}
