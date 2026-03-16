@@ -161,8 +161,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const currency = getCurrencyKeyByCountryCode(currencyList, currentCard?.nameValuePairs?.country ?? currentCard?.nameValuePairs?.feedCountry);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
-    const canChangePin = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
-    const canRevealPin = canChangePin && !revealedPIN;
+    const canChangePIN = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
+    const canRevealPIN = canChangePIN && !revealedPIN;
     const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
 
@@ -457,9 +457,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         title={maskPin(revealedPIN)}
                                         interactive={false}
                                         titleStyle={styles.walletCardNumber}
-                                        shouldShowRightComponent={canRevealPin}
+                                        shouldShowRightComponent={canRevealPIN}
                                         rightComponent={
-                                            canRevealPin ? (
+                                            canRevealPIN ? (
                                                 <Button
                                                     icon={Expensicons.Eye}
                                                     text={translate('cardPage.revealPin')}
@@ -474,7 +474,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         }
                                     />
                                 )}
-                                {canChangePin && (
+                                {canChangePIN && (
                                     <MenuItem
                                         title={translate('cardPage.changePin')}
                                         icon={expensifyIcons.Key}
