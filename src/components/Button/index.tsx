@@ -361,7 +361,7 @@ function Button({
             primaryText
         );
 
-        const defaultFill = success || danger ? theme.textLight : theme.icon;
+        const defaultFill = success || danger ? theme.textLight : theme.iconStrong;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {

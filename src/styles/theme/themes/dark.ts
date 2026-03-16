@@ -12,6 +12,7 @@ const darkTheme = {
     borderLighter: colors.productDark400,
     borderFocus: colors.green400,
     icon: colors.productDark700,
+    iconStrong: colors.productDark800,
     iconMenu: colors.green400,
     iconHovered: colors.productDark900,
     iconMenuHovered: colors.green400,

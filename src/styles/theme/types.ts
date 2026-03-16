@@ -18,6 +18,7 @@ type ThemeColors = {
     borderLighter: Color;
     borderFocus: Color;
     icon: Color;
+    iconStrong: Color;
     iconMenu: Color;
     iconHovered: Color;
     iconMenuHovered: Color;
