@@ -1063,8 +1063,7 @@ function linkCardFeedToPolicy(domainAccountID: number, policyID: string, feedTyp
             domainAccountID,
             feedType,
             feedName,
-            // feedCountry: feedCountry && feedCountry.length > 0 ? feedCountry : CONST.COUNTRY.US,
-            feedCountry: undefined,
+            feedCountry: feedCountry && feedCountry.length > 0 ? feedCountry : CONST.COUNTRY.US,
         };
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LINK_CARD_FEED_TO_POLICY, parameters)

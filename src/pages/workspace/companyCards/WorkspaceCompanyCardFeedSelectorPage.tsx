@@ -15,6 +15,7 @@ import useCompanyCards from '@hooks/useCompanyCards';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOtherFeedsForFeedSelector from '@hooks/useOtherFeedsForFeedSelector';
 import type {CardFeedListItem} from '@hooks/useOtherFeedsForFeedSelector';
@@ -48,6 +49,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const styles = useThemeStyles();
@@ -182,6 +184,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                                         const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
                                         return (
                                             <RadioListItem
+                                                isDisabled={isOffline}
                                                 onDismissError={onDismissError}
                                                 key={feed.value}
                                                 keyForList={feed.value}
