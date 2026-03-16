@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import {useColorScheme} from 'react-native';
 import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 import CONST from '@src/CONST';
