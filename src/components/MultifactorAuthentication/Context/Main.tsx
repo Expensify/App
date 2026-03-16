@@ -74,7 +74,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const {isOffline} = useNetwork();
     const platform = getPlatform();
     const isWeb = useMemo(() => platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILE_WEB, [platform]);
-    const promptName = isWeb ? CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.PASSKEYS : CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.BIOMETRICS;
+
+    const promptType = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[biometrics.deviceVerificationType];
 
     /**
      * Handles the completion of a multifactor authentication scenario.
@@ -248,7 +249,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // Check if a soft prompt is needed
             if (!softPromptApproved) {
                 addMFABreadcrumb('Soft prompt shown', {context: 'registration'});
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptName), {forceReplace: true});
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
                 return;
             }
 
@@ -311,14 +312,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // they'll be shown the "do you want to enable FaceID again" system prompt, so we want to show them the soft prompt
         if (!deviceBiometricsState?.hasAcceptedSoftPrompt) {
             addMFABreadcrumb('Soft prompt shown', {context: 'authorization-reinstall'});
-            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptName), {forceReplace: true});
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
             return;
         }
 
         // 4. Authorize the user if that has not already been done
         if (!isAuthorizationComplete) {
-            if (!Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptName))) {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptName), {forceReplace: true});
+            if (!Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType))) {
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
             }
 
             // Request authorization challenge if not already fetched
@@ -431,7 +432,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 5. All steps completed - invoke callback to determine whether to show the outcome screen
         handleCallback(true);
-    }, [biometrics, dispatch, handleCallback, isOffline, state, isWeb, promptName]);
+    }, [biometrics, dispatch, handleCallback, isOffline, state, isWeb, promptType]);
 
     /**
      * Drives the MFA state machine forward whenever relevant state changes occur.

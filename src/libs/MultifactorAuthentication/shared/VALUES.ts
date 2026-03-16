@@ -260,6 +260,14 @@ const SHARED_VALUES = {
     PROMPT: PROMPT_NAMES,
 
     /**
+     * Maps authentication type to the corresponding prompt type.
+     */
+    PROMPT_TYPE_MAP: {
+        BIOMETRICS: PROMPT_NAMES.BIOMETRICS,
+        PASSKEYS: PROMPT_NAMES.PASSKEYS,
+    },
+
+    /**
      * Authentication type identifiers.
      */
     TYPE: {
