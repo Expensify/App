@@ -19,4 +19,4 @@
 - Files changed: Both `src/recyclerview/RecyclerView.tsx` and `dist/recyclerview/RecyclerView.js`. The `src/` file contains the full explanatory comments describing the intent of each guard. The `dist/` file contains only the bare code without comments, since it is compiled output. If the `dist/` file changes in a future version, refer to the `src/` diff to understand the intent and re-apply the equivalent guards.
 - Upstream PR/issue: TBD
 - E/App issue: https://github.com/Expensify/App/issues/83976
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/84887
