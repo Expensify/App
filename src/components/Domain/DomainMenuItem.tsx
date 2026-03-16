@@ -101,7 +101,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                     <DomainsListRow
                         title={item.title}
                         badgeText={badgeText}
-                        isDomainVerified={isValidated}
+                        isBadgeSuccess={isValidated}
                         isHovered={hovered}
                         menuItems={threeDotsMenuItems}
                         brickRoadIndicator={item.brickRoadIndicator}

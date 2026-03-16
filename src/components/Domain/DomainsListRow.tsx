@@ -21,8 +21,8 @@ type DomainsListRowProps = {
     /** The text to display inside a badge next to the title */
     badgeText?: string;
 
-    /** Whether the domain is verified */
-    isDomainVerified?: boolean;
+    /** Whether the badge should use success styling */
+    isBadgeSuccess?: boolean;
 
     /** Items for the three dots menu */
     menuItems?: PopoverMenuItem[];
@@ -31,7 +31,7 @@ type DomainsListRowProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
-function DomainsListRow({title, isHovered, badgeText, isDomainVerified, brickRoadIndicator, menuItems}: DomainsListRowProps) {
+function DomainsListRow({title, isHovered, badgeText, isBadgeSuccess, brickRoadIndicator, menuItems}: DomainsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -55,8 +55,9 @@ function DomainsListRow({title, isHovered, badgeText, isDomainVerified, brickRoa
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                         <Badge
                             text={badgeText}
+                            success={isBadgeSuccess}
                             textStyles={styles.textStrong}
-                            badgeStyles={[styles.alignSelfCenter, isDomainVerified && styles.badgeSuccess]}
+                            badgeStyles={styles.alignSelfCenter}
                         />
                     </View>
                 )}
