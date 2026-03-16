@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListStyle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
@@ -44,11 +44,25 @@ type SingleSelectPopupProps<T> = {
     /** The default value to set when reset is clicked */
     defaultValue?: string;
 
+    /** Custom styles for the SelectionList */
+    selectionListStyle?: SelectionListStyle;
+
     /** Whether the popup content is currently visible */
     isVisible?: boolean;
 };
 
-function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder, defaultValue, isVisible = false}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({
+    label,
+    value,
+    items,
+    closeOverlay,
+    onChange,
+    isSearchable,
+    searchPlaceholder,
+    defaultValue,
+    selectionListStyle,
+    isVisible = false,
+}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -139,6 +153,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
                     shouldUpdateFocusedIndex={false}
                     initiallyFocusedItemKey={isSearchable ? initialFocusedItemKey : undefined}
                     shouldScrollToFocusedIndex={false}
+                    style={selectionListStyle}
                     shouldScrollToFocusedIndexOnMount={false}
                     shouldShowLoadingPlaceholder={!noResultsFound}
                 />

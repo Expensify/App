@@ -177,7 +177,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         [orderedSearchOptions],
     );
 
-    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(dedupedSearchOptions?.userToInvite);
+    const {userToInviteExpenseReport} = useUserToInviteReports(dedupedSearchOptions?.userToInvite);
 
     const shouldShowErrorMessage = selectedOptions.length < 1;
 
@@ -240,27 +240,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         const isPolicyExpenseChat = dedupedSearchOptions.userToInvite?.isPolicyExpenseChat ?? false;
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
         return isPolicyExpenseChat
-            ? getPolicyExpenseReportOption(
-                  dedupedSearchOptions.userToInvite,
-                  privateIsArchived,
-                  currentUserAccountID,
-                  personalDetails,
-                  userToInviteExpenseReport,
-                  userToInviteChatReport,
-                  reportAttributesDerived,
-              )
+            ? getPolicyExpenseReportOption(dedupedSearchOptions.userToInvite, privateIsArchived, currentUserAccountID, personalDetails, userToInviteExpenseReport, reportAttributesDerived)
             : toSearchOptionData(getParticipantsOption(dedupedSearchOptions.userToInvite, personalDetails));
-    }, [
-        currentUserAccountID,
-        currentUserEmail,
-        loginList,
-        dedupedSearchOptions.userToInvite,
-        personalDetails,
-        reportAttributesDerived,
-        userToInviteChatReport,
-        userToInviteExpenseReport,
-        privateIsArchivedMap,
-    ]);
+    }, [currentUserAccountID, currentUserEmail, loginList, dedupedSearchOptions.userToInvite, personalDetails, reportAttributesDerived, userToInviteExpenseReport, privateIsArchivedMap]);
 
     const sections = useMemo(
         () =>
