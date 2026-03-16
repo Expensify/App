@@ -35,18 +35,18 @@ function useNativeBiometrics(): UseBiometricsReturn {
         return biometrics || credentials;
     }, []);
 
-    // Only the public key is checked here because reading the private key
+    // Only the credential ID is checked here because reading the private key
     // requires biometric authentication. If the private key is missing, it
     // will be detected during authorize() and trigger re-registration.
-    const getLocalPublicKey = useCallback(async () => {
+    const getLocalCredentialID = useCallback(async () => {
         const {value} = await PublicKeyStore.get(accountID);
         return value ?? undefined;
     }, [accountID]);
 
     const areLocalCredentialsKnownToServer = useCallback(async () => {
-        const key = await getLocalPublicKey();
+        const key = await getLocalCredentialID();
         return !!key && serverKnownCredentialIDs.includes(key);
-    }, [getLocalPublicKey, serverKnownCredentialIDs]);
+    }, [getLocalCredentialID, serverKnownCredentialIDs]);
 
     const resetKeysForAccount = useCallback(async () => {
         await resetKeys(accountID);
@@ -127,7 +127,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
         const {challenge} = params;
 
         // Extract public keys from challenge.allowCredentials
-        const authPublicKeys = challenge.allowCredentials?.map((cred: {id: string; type: string}) => cred.id) ?? [];
+        const allowedCredentialIDs = challenge.allowCredentials?.map((cred: {id: string; type: string}) => cred.id) ?? [];
 
         // Get private key from SecureStore
         const privateKeyData = await PrivateKeyStore.get(accountID, {nativePromptTitle: translate('multifactorAuthentication.letsVerifyItsYou')});
@@ -140,9 +140,9 @@ function useNativeBiometrics(): UseBiometricsReturn {
             return;
         }
 
-        const publicKey = await getLocalPublicKey();
+        const credentialID = await getLocalCredentialID();
 
-        if (!publicKey || !authPublicKeys.includes(publicKey)) {
+        if (!credentialID || !allowedCredentialIDs.includes(credentialID)) {
             await resetKeys(accountID);
             onResult({
                 success: false,
@@ -152,7 +152,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
         }
 
         // Sign the challenge
-        const signedChallenge = signTokenED25519(challenge, privateKeyData.value, publicKey);
+        const signedChallenge = signTokenED25519(challenge, privateKeyData.value, credentialID);
         const authenticationMethodCode = privateKeyData.type;
         const authTypeEntry = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === authenticationMethodCode);
 
@@ -181,14 +181,14 @@ function useNativeBiometrics(): UseBiometricsReturn {
         });
     };
 
-    const hasLocalCredentials = async () => !!(await getLocalPublicKey());
+    const hasLocalCredentials = async () => !!(await getLocalCredentialID());
 
     return {
         deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS,
         serverHasAnyCredentials,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
-        getLocalPublicKey,
+        getLocalCredentialID,
         doesDeviceSupportBiometrics,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,

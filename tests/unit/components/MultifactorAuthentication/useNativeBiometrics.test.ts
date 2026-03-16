@@ -88,7 +88,7 @@ describe('useNativeBiometrics hook', () => {
 
             expect(result.current).toHaveProperty('serverKnownCredentialIDs');
             expect(result.current).toHaveProperty('doesDeviceSupportBiometrics');
-            expect(result.current).toHaveProperty('getLocalPublicKey');
+            expect(result.current).toHaveProperty('getLocalCredentialID');
             expect(result.current).toHaveProperty('areLocalCredentialsKnownToServer');
             expect(result.current).toHaveProperty('register');
             expect(result.current).toHaveProperty('authorize');
@@ -99,7 +99,7 @@ describe('useNativeBiometrics hook', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             expect(result.current.doesDeviceSupportBiometrics()).toBe(true);
-            await expect(result.current.getLocalPublicKey()).resolves.toBeUndefined();
+            await expect(result.current.getLocalCredentialID()).resolves.toBeUndefined();
             await expect(result.current.areLocalCredentialsKnownToServer()).resolves.toBe(false);
         });
     });
@@ -123,11 +123,11 @@ describe('useNativeBiometrics hook', () => {
         });
     });
 
-    describe('getLocalPublicKey', () => {
+    describe('getLocalCredentialID', () => {
         it('should return undefined when no local key exists', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const key = await result.current.getLocalPublicKey();
+            const key = await result.current.getLocalCredentialID();
             expect(key).toBeUndefined();
         });
 
@@ -139,7 +139,7 @@ describe('useNativeBiometrics hook', () => {
 
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const key = await result.current.getLocalPublicKey();
+            const key = await result.current.getLocalCredentialID();
             expect(key).toBe('public-key-123');
         });
     });

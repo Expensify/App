@@ -27,7 +27,7 @@ function usePasskeys(): UseBiometricsReturn {
 
     const doesDeviceSupportBiometrics = () => isWebAuthnSupported();
 
-    const getLocalPublicKey = async (): Promise<string | undefined> => {
+    const getLocalCredentialID = async (): Promise<string | undefined> => {
         return (localPasskeyCredentials ?? []).at(0)?.id;
     };
 
@@ -182,7 +182,7 @@ function usePasskeys(): UseBiometricsReturn {
         serverHasAnyCredentials,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
-        getLocalPublicKey,
+        getLocalCredentialID,
         doesDeviceSupportBiometrics,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,

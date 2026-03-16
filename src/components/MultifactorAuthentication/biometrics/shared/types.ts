@@ -49,8 +49,8 @@ type UseBiometricsReturn = {
     /** Whether biometric credentials have ever been configured for this account */
     haveCredentialsEverBeenConfigured: boolean;
 
-    /** Retrieve the public key / credential ID stored locally on this device */
-    getLocalPublicKey: () => Promise<string | undefined>;
+    /** Retrieve the credential ID stored locally on this device */
+    getLocalCredentialID: () => Promise<string | undefined>;
 
     /** Check if device supports biometrics */
     doesDeviceSupportBiometrics: () => boolean;
