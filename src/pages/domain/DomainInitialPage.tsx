@@ -11,6 +11,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -60,6 +61,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const domainAccountID = route.params?.domainAccountID;
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
+    useDocumentTitle(domainName ?? '');
     const [isAdmin, adminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
@@ -138,7 +140,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn]}>
+                <ScrollView contentContainerStyle={styles.flexColumn}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
@@ -152,7 +154,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 icon={item.icon}
                                 onPress={item.action}
                                 brickRoadIndicator={item.brickRoadIndicator}
-                                wrapperStyle={styles.sectionMenuItem}
+                                wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                 highlighted={!!item?.highlighted}
                                 focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 badgeText={item.badgeText}
