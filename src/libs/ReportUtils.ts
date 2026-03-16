@@ -119,7 +119,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './Error
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import type {FormulaContext} from './Formula';
 import getBase62ReportID from './getBase62ReportID';
-import getIsNarrowLayout from './getIsNarrowLayout';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
