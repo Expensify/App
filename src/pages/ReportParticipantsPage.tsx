@@ -139,6 +139,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             return;
         }
         openRoomMembersPage(report.reportID);
+        // We only want to fetch room members once on mount, not when report changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
