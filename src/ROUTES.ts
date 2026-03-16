@@ -100,8 +100,8 @@ const DYNAMIC_ROUTES = {
         entryScreens: [],
     },
     REPORT_SETTINGS_WRITE_CAPABILITY: {
-        path: 'settings/who-can-post',
-        entryScreens: [SCREENS.REPORT_DETAILS.ROOT, SCREENS.RIGHT_MODAL.REPORT_SETTINGS, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.SEARCH.ROOT],
+        path: 'who-can-post',
+        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
     },
     ADDRESS_COUNTRY: {
         path: 'country',
