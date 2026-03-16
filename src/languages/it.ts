@@ -726,11 +726,9 @@ const translations: TranslationDeepObject<typeof en> = {
         letsAuthenticateYou: 'Autentichiamo la tua identità...',
         verifyYourself: {
             biometrics: 'Verificati con il volto o l’impronta digitale',
-            passkeys: 'Verify yourself with a passkey',
         },
         enableQuickVerification: {
             biometrics: 'Attiva una verifica rapida e sicura utilizzando il volto o l’impronta digitale. Nessuna password o codice richiesto.',
-            passkeys: 'Enable quick, secure verification using a passkey. No passwords or codes required.',
         },
         revoke: {
             title: 'Volto/impronta digitale e passkey',

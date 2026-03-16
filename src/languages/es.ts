@@ -601,11 +601,9 @@ const translations: TranslationDeepObject<typeof en> = {
         letsAuthenticateYou: 'Validando...',
         verifyYourself: {
             biometrics: 'Verifícate con tu rostro o huella dactilar',
-            passkeys: 'Verify yourself with a passkey',
         },
         enableQuickVerification: {
             biometrics: 'Activa la verificación rápida y segura usando tu rostro o huella dactilar. No se requieren contraseñas ni códigos.',
-            passkeys: 'Enable quick, secure verification using a passkey. No passwords or codes required.',
         },
         revoke: {
             revoke: 'Revocar',

@@ -718,11 +718,9 @@ const translations: TranslationDeepObject<typeof en> = {
         letsAuthenticateYou: '正在验证您的身份…',
         verifyYourself: {
             biometrics: '使用面部或指纹验证您的身份',
-            passkeys: 'Verify yourself with a passkey',
         },
         enableQuickVerification: {
             biometrics: '使用面部或指纹即可进行快速、安全的验证，无需密码或验证码。',
-            passkeys: 'Enable quick, secure verification using a passkey. No passwords or codes required.',
         },
         revoke: {
             title: '面容/指纹和通行密钥',
