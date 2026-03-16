@@ -56,7 +56,6 @@ type CreatePlatformStackNavigatorComponentOptions<RouterOptions extends Platform
     useCustomEffects?: CustomEffectsHook<ParamList>;
     ExtraContent?: ExtraContent;
     NavigationContentWrapper?: NavigationContentWrapper;
-    freezeNonTopScreens?: boolean;
 };
 
 export type {CustomCodeProps, CustomStateHookProps, CustomEffectsHookProps, CreatePlatformStackNavigatorComponentOptions, ExtraContentProps};
