@@ -65,6 +65,7 @@ import {
     splitMaskedCardNumber,
     supportsPINManagementFeatures,
 } from '@src/libs/CardUtils';
+import type {CardProgramKey} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import type {
     BankAccountList,
@@ -3592,8 +3593,7 @@ describe('CardUtils', () => {
         });
 
         it('should return undefined when feedCountry key does not exist', () => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const result = getCardSettings(nestedSettings, 'CA' as any);
+            const result = getCardSettings(nestedSettings, 'CA' as unknown as CardProgramKey);
             expect(result).toBeUndefined();
         });
 
@@ -3605,8 +3605,7 @@ describe('CardUtils', () => {
         });
 
         it('should return undefined for primitive values as feedCountry', () => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const result = getCardSettings(nestedSettings, 'limit' as any);
+            const result = getCardSettings(nestedSettings, 'limit' as unknown as CardProgramKey);
             expect(result).toBeUndefined();
         });
 
