@@ -39,12 +39,12 @@ function isSetPINOrderCardPayload(payload: MultifactorAuthenticationScenarioAddi
     return !!payload && 'cardID' in payload && 'pin' in payload;
 }
 
-const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
+const ClientFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
     {
         subtitle: 'multifactorAuthentication.setPin.didNotShipCard',
     },
-    'AuthenticationCanceledFailureScreen',
+    'ClientFailureScreen',
 );
 
 const ServerFailureScreen = createScreenWithDefaults(
@@ -79,10 +79,8 @@ export default {
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
 
-    failureScreens: {
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED]: <AuthenticationCanceledFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.SERVER_FAILURE]: <ServerFailureScreen />,
-    },
+    defaultClientFailureScreen: <ClientFailureScreen />,
+    defaultServerFailureScreen: <ServerFailureScreen />,
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;
 
 export type {Payload};

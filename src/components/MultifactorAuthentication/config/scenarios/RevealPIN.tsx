@@ -27,12 +27,12 @@ function isRevealPINPayload(payload: MultifactorAuthenticationScenarioAdditional
     return !!payload && 'cardID' in payload;
 }
 
-const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
+const ClientFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
     {
         subtitle: 'multifactorAuthentication.revealPin.authenticationCanceled',
     },
-    'AuthenticationCanceledFailureScreen',
+    'ClientFailureScreen',
 );
 
 const ServerFailureScreen = createScreenWithDefaults(
@@ -68,10 +68,8 @@ export default {
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
 
-    failureScreens: {
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED]: <AuthenticationCanceledFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.SERVER_FAILURE]: <ServerFailureScreen />,
-    },
+    defaultClientFailureScreen: <ClientFailureScreen />,
+    defaultServerFailureScreen: <ServerFailureScreen />,
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;
 
 export type {Payload};

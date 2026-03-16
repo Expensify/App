@@ -5,7 +5,7 @@ import type {ErrorState} from '@components/MultifactorAuthentication/Context/Sta
 
 /** Server failure screen generally represents "unknown error" so also show when status is unknown (e.g. network/parse error). */
 function isServerError(error: ErrorState): boolean {
-    return error.httpStatusCode === undefined || error.httpStatusCode >= 500;
+    return !!error.httpStatusCode && error.httpStatusCode >= 500;
 }
 
 function MultifactorAuthenticationOutcomePage() {
@@ -17,6 +17,14 @@ function MultifactorAuthenticationOutcomePage() {
 
     if (!error) {
         return scenario.successScreen;
+    }
+
+    if (scenario.defaultClientFailureScreen && !isServerError(error)) {
+        return scenario.defaultClientFailureScreen;
+    }
+
+    if (scenario.defaultServerFailureScreen && isServerError(error)) {
+        return scenario.defaultServerFailureScreen;
     }
 
     const reasonScreen = scenario.failureScreens?.[error.reason];

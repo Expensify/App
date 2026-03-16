@@ -83,10 +83,7 @@ function ChangePINPageContent({cardID}: {cardID: string}) {
     const title = isConfirmStep ? translate('cardPage.confirmYourChangedPin') : translate('cardPage.changeYourPin');
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={ChangePINPage.displayName}
-        >
+        <ScreenWrapper testID={ChangePINPage.displayName}>
             <HeaderWithBackButton
                 title={translate('cardPage.changePin')}
                 onBackButtonPress={() => {
