@@ -429,14 +429,10 @@ function Search({
                 return;
             }
 
-            // If data is already loaded, getSections was computed in the first render and the list
-            // is already visible. Re-deferring would blank the list then re-render it for no gain.
-            if (isDataLoaded) {
-                return;
-            }
-
+            // Re-applying the defer only on the submit-return path keeps the optimization scoped to
+            // the transition we care about instead of slowing every search refocus.
             return deferHeavySearchWork(true);
-        }, [deferHeavySearchWork, isDataLoaded]),
+        }, [deferHeavySearchWork]),
     );
 
     // Show a skeleton whenever heavy work is deferred, even for live-data (to-do) searches,
