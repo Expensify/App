@@ -9,8 +9,8 @@ import ChangePIN from './ChangePIN';
 import {customConfig} from './DefaultUserInterface';
 import type {Payload as RevealPINPayload} from './RevealPIN';
 import RevealPIN from './RevealPIN';
-import type {Payload as SetPinOrderCardPayload} from './SetPINOrderCard';
-import SetPinOrderCard from './SetPINOrderCard';
+import type {Payload as SetPINOrderCardPayload} from './SetPINOrderCard';
+import SetPINOrderCard from './SetPINOrderCard';
 
 /**
  * Payload types for multifactor authentication scenarios.
@@ -18,7 +18,7 @@ import SetPinOrderCard from './SetPINOrderCard';
  */
 type Payloads = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: EmptyObject;
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: SetPinOrderCardPayload;
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: SetPINOrderCardPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: AuthorizeTransactionPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: RevealPINPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN]: ChangePINPayload;
@@ -29,7 +29,7 @@ type Payloads = {
  */
 const Configs = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: customConfig(BiometricsTest),
-    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: customConfig(SetPinOrderCard),
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: customConfig(SetPINOrderCard),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: customConfig(AuthorizeTransaction),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: customConfig(RevealPIN),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN]: customConfig(ChangePIN),

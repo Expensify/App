@@ -48,7 +48,7 @@ export default {
     action: revealPINForCard,
     callback: async (isSuccessful, callbackInput, payload) => {
         if (isSuccessful && isRevealPINPayload(payload)) {
-            const pin = callbackInput.body?.pin as string | undefined;
+            const pin = typeof callbackInput.body?.pin === 'string' ? callbackInput.body.pin : undefined;
             if (pin) {
                 setRevealedPIN(payload.cardID, pin);
             }

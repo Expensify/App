@@ -22,6 +22,7 @@ function notifyListeners() {
     }
 }
 
+/** Intentionally replaces the entire map so only one PIN is stored in memory at a time. */
 function setRevealedPIN(cardID: string, pin: string) {
     revealedPINs = {[cardID]: pin};
     notifyListeners();
