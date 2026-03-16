@@ -2081,7 +2081,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         chatItemComposeBoxColor: {
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
         },
 
         chatItemComposeBoxFocusedColor: {
