@@ -8648,8 +8648,12 @@ const translations = {
             makeDefault: 'Make default',
             nevermind: 'Nevermind',
             error: {
-                settings: '<rbr>Couldn’t save this change. Please try again or <concierge-link>contact Concierge</concierge-link> for more support.</rbr>',
-            },
+                settings: '<rbr>Couldn’t save this change. Please try again or <concierge-link>contact Concierge</concierge-link> for more support.</rbr>', 
+           },
+           permissions: 'Group permissions',
+           RestrictDefaultLoginSelection: 'Restrict default login selection',
+           RestrictDefaultLoginSelectionDescription: 'Prevent members from changing their login email away from their company domain to avoid policy restrictions.',
+
         },
     },
 };

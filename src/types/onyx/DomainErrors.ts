@@ -45,6 +45,11 @@ type DomainSecurityGroupErrors = {
      * Errors related to the default security group ID setting
      */
     defaultSecurityGroupIDErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the restricted default login selection
+     */
+    enableRestrictedPrimaryLoginErrors?: OnyxCommon.Errors;
 };
 
 /**

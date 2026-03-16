@@ -8905,6 +8905,9 @@ ${amount} para ${merchant} - ${date}`,
             error: {
                 settings: '<rbr>No se pudo guardar este cambio. Inténtalo de nuevo o <concierge-link>contacta con Concierge</concierge-link> para obtener más ayuda.</rbr>',
             },
+            permissions: 'Permisos de grupo',
+            RestrictDefaultLoginSelection: 'Restringir el inicio de sesión predeterminado',
+            RestrictDefaultLoginSelectionDescription: 'Evita que los miembros cambien su correo de inicio de sesión fuera del dominio de la empresa para eludir restricciones de políticas.',
         },
     },
     gps: {
