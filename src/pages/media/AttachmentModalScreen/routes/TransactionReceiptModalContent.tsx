@@ -22,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
-import {getRequestType, hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
+import {getRequestType, hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isOdometerDistanceRequest, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps, ThreeDotsMenuItemFactory} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
@@ -123,22 +123,23 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     // Use odometer image if imageType is provided (it's present only when we display odometer image) otherwise use receipt
     const receiptSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
-    const source = isOdometerImage && odometerImage ? (odometerImageSource ?? receiptSource) : receiptSource;
+    const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const canDeleteReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true);
 
-    const shouldShowReplaceReceiptButton = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
+    const receiptFilename = transaction?.receipt?.filename;
+    const isImage = !!receiptFilename && Str.isImage(receiptFilename);
+    const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
+
+    const shouldShowReplaceReceiptButton = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt && !isStitchedOdometerReceipt;
     const shouldShowDeleteReceiptButton = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
 
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
     const iouType = useMemo(() => iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseActionValue, iouTypeParam]);
-
-    const receiptFilename = transaction?.receipt?.filename;
-    const isImage = !!receiptFilename && Str.isImage(receiptFilename);
 
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isRotating, setIsRotating] = useState(false);

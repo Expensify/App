@@ -7,6 +7,7 @@ import useDebouncedValue from '@hooks/useDebouncedValue';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import FormContext from './Form/FormContext';
@@ -63,6 +64,14 @@ function FormHelpMessage({
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
     const {errorAnnouncementKey} = useContext(FormContext);
 
+    // Upstream initial-announcement logic for field-level errors (no children, plain text)
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const shouldAnnounceError = isError && typeof message === 'string' && !!message && !shouldRenderMessageAsHTML && children == null;
+    const shouldUseSeparateWebLiveAnnouncement = isWeb && !!nativeID && shouldAnnounceError;
+    const visibleMessageRole = shouldUseSeparateWebLiveAnnouncement || !shouldAnnounceError ? undefined : CONST.ROLE.ALERT;
+    const visibleMessageLiveRegion = shouldUseSeparateWebLiveAnnouncement || !shouldAnnounceError ? undefined : 'assertive';
+
+    // Re-announcement logic for form summary messages (shouldReannounceOnSubmit)
     const errorAnnouncementText = useMemo(() => {
         if (!isError || typeof message !== 'string') {
             return '';
@@ -79,15 +88,16 @@ function FormHelpMessage({
     // Debounce the announcement key so the alert role briefly drops when
     // errorAnnouncementKey changes (key goes to undefined), then re-appears
     // after the delay. This gap lets screen readers detect a fresh alert.
-    // Only used for shouldReannounceOnSubmit instances (the summary message).
     const debouncedAnnouncementKey = useDebouncedValue(errorAnnouncementKey, ANNOUNCEMENT_DEBOUNCE_DELAY);
     const isReAnnouncementReady = shouldReannounceOnSubmit && hasError && errorAnnouncementKey === debouncedAnnouncementKey;
 
-    // All error messages announce on first appearance via shouldAnnounceOnNative.
-    // shouldReannounceOnSubmit instances additionally re-announce via announcementKey.
-    useAccessibilityAnnouncement(errorAnnouncementText, hasError, {
+    // Field-level initial announcement (web via Text role, iOS via AccessibilityInfo)
+    useAccessibilityAnnouncement(message, shouldAnnounceError);
+
+    // Form summary re-announcement on native via announcementKey
+    useAccessibilityAnnouncement(errorAnnouncementText, hasError && shouldReannounceOnSubmit, {
         shouldAnnounceOnNative: true,
-        ...(shouldReannounceOnSubmit && {announcementKey: errorAnnouncementKey}),
+        announcementKey: errorAnnouncementKey,
     });
 
     const HTMLMessage = useMemo(() => {
@@ -110,25 +120,19 @@ function FormHelpMessage({
         return null;
     }
 
-    // Web announcement strategy:
-    // - All errors: role="alert" on the visible View so screen readers announce on first appearance
-    // - shouldReannounceOnSubmit: debounced key creates a gap (role drops then re-appears)
-    //   so screen readers detect a fresh alert on form re-submission
+    // Web re-announcement for form summary: debounced key creates a gap (role drops
+    // then re-appears) so screen readers detect a fresh alert on form re-submission.
+    // Only applies to shouldReannounceOnSubmit instances (the summary message with children).
     let viewKey: string | undefined;
     let viewRole: Role | undefined;
 
     if (shouldReannounceOnSubmit) {
         viewKey = isReAnnouncementReady ? `error-${errorAnnouncementKey}` : undefined;
         viewRole = isReAnnouncementReady ? CONST.ROLE.ALERT : undefined;
-    } else if (hasError) {
-        viewRole = CONST.ROLE.ALERT;
     }
 
     return (
-        <View
-            style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}
-            nativeID={nativeID}
-        >
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
             {isError && shouldShowRedDotIndicator && (
                 <View
                     accessible
@@ -154,7 +158,29 @@ function FormHelpMessage({
                 role={viewRole}
                 style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}
             >
-                {children ?? (shouldRenderMessageAsHTML ? <RenderHTML html={HTMLMessage} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>)}
+                {children ??
+                    (shouldRenderMessageAsHTML ? (
+                        <RenderHTML html={HTMLMessage} />
+                    ) : (
+                        <Text
+                            style={[isError ? styles.formError : styles.formHelp, styles.mb0]}
+                            nativeID={nativeID}
+                            role={visibleMessageRole}
+                            accessibilityRole={!isWeb && shouldAnnounceError ? CONST.ROLE.ALERT : undefined}
+                            accessibilityLiveRegion={visibleMessageLiveRegion}
+                        >
+                            {message}
+                        </Text>
+                    ))}
+                {shouldUseSeparateWebLiveAnnouncement && (
+                    <Text
+                        style={styles.hiddenElementOutsideOfWindow}
+                        role={CONST.ROLE.ALERT}
+                        accessibilityLiveRegion="assertive"
+                    >
+                        {message}
+                    </Text>
+                )}
             </View>
         </View>
     );
