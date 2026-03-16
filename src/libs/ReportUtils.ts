@@ -3515,12 +3515,22 @@ function getParticipantsAccountIDsForDisplay(
     const shouldExcludeCurrentUser = isOneOnOneChat(report) || isSystemChat(report) || shouldForceExcludeCurrentUser;
 
     const participantsAccountIDs: number[] = [];
+    const nonOptimisticLogins = new Set<string>();
+    const reportParticipantAccountIDs = Object.keys(reportParticipants);
+
+    // Build a set of logins that are real logins, not created optimistically
+    for (const accountID of reportParticipantAccountIDs) {
+        const personalDetail = allPersonalDetails?.[accountID];
+        if (personalDetail?.login && !personalDetail.isOptimisticPersonalDetail) {
+            nonOptimisticLogins.add(personalDetail.login);
+        }
+    }
 
     for (const accountID of Object.keys(reportParticipants)) {
         const personalDetail = allPersonalDetails?.[accountID];
 
         // We should not show participants that have an optimistic entry with the same login in the personal details
-        if (personalDetail?.login && personalDetail.isOptimisticPersonalDetail) {
+        if (personalDetail?.login && personalDetail.isOptimisticPersonalDetail && nonOptimisticLogins.has(personalDetail.login)) {
             continue;
         }
 
