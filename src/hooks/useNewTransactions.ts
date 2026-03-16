@@ -37,7 +37,7 @@ function useNewTransactions(
                 // Clearing pending transactions immediately sometimes hinders the scroll and highlighting, hence the delay.
                 setTimeout(() => {
                     clearPendingNewTransactionIDs(reportID);
-                }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+                }, CONST.PENDING_TRANSACTION_DELETION_TIMEOUT);
                 return transactions.filter((transaction) => pendingSet.has(transaction.transactionID));
             }
             return CONST.EMPTY_ARRAY as unknown as Transaction[];

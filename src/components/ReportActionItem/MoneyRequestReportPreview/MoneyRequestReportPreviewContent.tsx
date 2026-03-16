@@ -571,7 +571,7 @@ function MoneyRequestReportPreviewContent({
                     viewOffset: -2 * styles.gap2.gap,
                     animated: true,
                 });
-            }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+            }, CONST.ANIMATED_TRANSITION);
 
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [newTransactionIDs]),
