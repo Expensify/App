@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, View} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import {defaultTabSelectorActionsContextValue, defaultTabSelectorStateContextValue} from './default';
 import scrollToTabUtil from './scrollToTab';
 import type {TabSelectorActionsContextType, TabSelectorContextProviderProps, TabSelectorStateContextType} from './types.context';
@@ -11,11 +11,23 @@ const TabSelectorActionsContext = createContext<TabSelectorActionsContextType>(d
 function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContextProviderProps) {
     const containerRef = useRef<RNScrollView>(null);
     const containerLayoutRef = useRef<{x: number; width: number}>({x: 0, width: 0});
-    const tabsRef = useRef<Record<string, {ref: HTMLDivElement | View | null; width: number; x: number}>>({});
+    const tabsRef = useRef<Record<string, {width: number; x: number}>>({});
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
         const width = event.nativeEvent.layout.width;
         containerLayoutRef.current.width = width;
+
+        const tabData = tabsRef.current[activeTabKey];
+
+        if (!tabData) {
+            return;
+        }
+
+        const {x: tabX, width: tabWidth} = tabData;
+
+        if (tabWidth) {
+            scrollToTabUtil({tabX, tabWidth, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x, animated: false});
+        }
     };
 
     const onContainerScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -23,21 +35,12 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
         containerLayoutRef.current.x = x;
     };
 
-    const registerTab = (tabKey: string, ref: HTMLDivElement | View | null) => {
-        if (ref === null) {
-            return;
-        }
-
-        tabsRef.current[tabKey] = {...tabsRef.current[tabKey], ref};
-    };
-
     const onTabLayout = (tabKey: string, event: LayoutChangeEvent) => {
         const {x, width} = event.nativeEvent.layout;
         tabsRef.current[tabKey] = {...tabsRef.current[tabKey], x, width};
 
-        if (tabKey === activeTabKey) {
-            const {ref: tabRef} = tabsRef.current[tabKey];
-            scrollToTabUtil({tabX: x, tabWidth: width, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x, animated: false});
+        if (tabKey === activeTabKey && containerLayoutRef.current.width !== 0) {
+            scrollToTabUtil({tabX: x, tabWidth: width, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x, animated: false});
         }
     };
 
@@ -48,9 +51,9 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
             return;
         }
 
-        const {x: tabX, width: tabWidth, ref: tabRef} = tabData;
+        const {x: tabX, width: tabWidth} = tabData;
 
-        scrollToTabUtil({tabX, tabWidth, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
+        scrollToTabUtil({tabX, tabWidth, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
     };
 
     // Because of the React Compiler we don't need to memoize it manually

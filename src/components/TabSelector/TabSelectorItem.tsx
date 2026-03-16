@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import type {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -37,13 +36,12 @@ function TabSelectorItem({
     const [isHovered, setIsHovered] = useState(false);
     const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
 
-    const {onTabLayout, registerTab, scrollToTab} = useTabSelectorActions();
+    const {onTabLayout, scrollToTab} = useTabSelectorActions();
 
     const accessibilityState = {selected: isActive};
 
     const children = (
         <AnimatedPressableWithFeedback
-            ref={(ref: HTMLDivElement | View | null) => registerTab(tabKey, ref)}
             accessibilityLabel={title}
             accessibilityState={accessibilityState}
             accessibilityRole={CONST.ROLE.TAB}
