@@ -2291,7 +2291,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // Mock the navigation state to simulate the root stack after dismissModalWithReport
         // creates a new SplitNavigator, leaving the old one with the stale expense report
         const staleSplitKey = 'stale-split-nav-key';
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         Navigation.navigationRef.getRootState.mockReturnValue({
             routes: [
                 {
