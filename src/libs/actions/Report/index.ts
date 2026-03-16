@@ -2880,6 +2880,7 @@ function toggleSubscribeToChildReport(
     parentReportAction: ReportAction,
     parentReport: OnyxEntry<Report>,
     introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
@@ -2924,6 +2925,7 @@ function toggleSubscribeToChildReport(
             participantLoginList: participantLogins,
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
+            isSelfTourViewed,
         });
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReport?.reportID, parentReportAction.reportActionID);
