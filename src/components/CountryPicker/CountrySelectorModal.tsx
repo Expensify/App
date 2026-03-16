@@ -5,10 +5,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -36,6 +38,8 @@ type CountrySelectorModalProps = {
 function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onClose, label, onBackdropPress}: CountrySelectorModalProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const initialSelectedValues = useInitialSelectionRef(currentCountry ? [currentCountry] : [], {resetDeps: [isVisible]});
+    const initiallyFocusedCountry = initialSelectedValues.at(0);
 
     const countries = useMemo(
         () =>
@@ -52,7 +56,9 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const orderedCountries = useMemo(() => moveInitialSelectionToTopByValue(countries, initialSelectedValues), [countries, initialSelectedValues]);
+
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries), [countries, orderedCountries, debouncedSearchValue]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const styles = useThemeStyles();
@@ -91,7 +97,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                     textInputOptions={textInputOptions}
                     onSelectRow={onCountrySelected}
                     ListItem={RadioListItem}
-                    initiallyFocusedItemKey={currentCountry}
+                    initiallyFocusedItemKey={initiallyFocusedCountry}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
                 />

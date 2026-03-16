@@ -6,10 +6,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
@@ -39,6 +41,8 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const styles = useThemeStyles();
+    const initialSelectedValues = useInitialSelectionRef(currentState ? [currentState] : [], {resetDeps: [isVisible]});
+    const initiallyFocusedState = initialSelectedValues.at(0);
 
     const countryStates = useMemo(
         () =>
@@ -57,7 +61,11 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
         [translate, currentState],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countryStates);
+    const orderedCountryStates = useMemo(() => moveInitialSelectionToTopByValue(countryStates, initialSelectedValues), [countryStates, initialSelectedValues]);
+    const searchResults = useMemo(
+        () => searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates),
+        [countryStates, orderedCountryStates, debouncedSearchValue],
+    );
 
     const textInputOptions = useMemo(
         () => ({
@@ -93,7 +101,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                     ListItem={RadioListItem}
                     onSelectRow={onStateSelected}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={currentState}
+                    initiallyFocusedItemKey={initiallyFocusedState}
                     disableMaintainingScrollPosition
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation

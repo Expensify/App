@@ -5,8 +5,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import searchOptions from '@libs/searchOptions';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
@@ -44,6 +46,8 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const initialSelectedValues = useInitialSelectionRef(selectedOption ? [selectedOption] : [], {resetDeps: [isVisible]});
+    const initiallyFocusedOption = initialSelectedValues.at(0);
 
     const options = useMemo(
         () =>
@@ -57,6 +61,8 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         [optionsList, selectedOption],
     );
 
+    const orderedOptions = useMemo(() => moveInitialSelectionToTopByValue(options, initialSelectedValues), [initialSelectedValues, options]);
+
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);
         onClose();
@@ -67,7 +73,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         setSearchValue('');
     };
 
-    const searchResults = searchOptions(debouncedSearchValue, options);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, debouncedSearchValue ? options : orderedOptions), [debouncedSearchValue, options, orderedOptions]);
 
     const textInputOptions = useMemo(
         () => ({
@@ -102,7 +108,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                     ListItem={RadioListItem}
                     onSelectRow={handleSelectRow}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={selectedOption}
+                    initiallyFocusedItemKey={initiallyFocusedOption}
                     disableMaintainingScrollPosition
                     shouldShowTooltips={false}
                     showScrollIndicator

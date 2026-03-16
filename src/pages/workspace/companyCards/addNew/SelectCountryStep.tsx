@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,12 +9,14 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
@@ -42,6 +44,8 @@ function SelectCountryStep({policyID}: CountryStepProps) {
 
     const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
     const currentCountry = selectedCountry ?? addNewCard?.data?.selectedCountry ?? getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+    const initialSelectedValues = useInitialSelectionRef(currentCountry ? [currentCountry] : [], {resetOnFocus: true});
+    const initiallyFocusedCountry = initialSelectedValues.at(0);
 
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
@@ -72,20 +76,24 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         Navigation.goBack();
     };
 
-    const countries = Object.keys(CONST.ALL_COUNTRIES)
-        .filter((countryISO) => !CONST.PLAID_EXCLUDED_COUNTRIES.includes(countryISO))
-        .map((countryISO) => {
-            const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-            return {
-                value: countryISO,
-                keyForList: countryISO,
-                text: countryName,
-                isSelected: currentCountry === countryISO,
-                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-            };
-        });
-
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const countries = useMemo(
+        () =>
+            Object.keys(CONST.ALL_COUNTRIES)
+                .filter((countryISO) => !CONST.PLAID_EXCLUDED_COUNTRIES.includes(countryISO))
+                .map((countryISO) => {
+                    const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+                    return {
+                        value: countryISO,
+                        keyForList: countryISO,
+                        text: countryName,
+                        searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+                    };
+                }),
+        [translate],
+    );
+    const orderedCountries = useMemo(() => moveInitialSelectionToTopByValue(countries, initialSelectedValues), [countries, initialSelectedValues]);
+    const filteredCountries = useMemo(() => searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries), [debouncedSearchValue, countries, orderedCountries]);
+    const searchResults = useMemo(() => filteredCountries.map((country) => ({...country, isSelected: currentCountry === country.value})), [filteredCountries, currentCountry]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const textInputOptions = {
@@ -122,10 +130,11 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 }}
                 textInputOptions={textInputOptions}
                 confirmButtonOptions={confirmButtonOptions}
-                initiallyFocusedItemKey={currentCountry}
+                initiallyFocusedItemKey={initiallyFocusedCountry}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
-                shouldUpdateFocusedIndex
+                shouldScrollToFocusedIndex={false}
+                shouldScrollToFocusedIndexOnMount={false}
                 addBottomSafeAreaPadding
                 shouldStopPropagation
             >
