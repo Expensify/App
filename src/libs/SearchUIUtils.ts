@@ -99,7 +99,7 @@ import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmost
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getCommaSeparatedTagNameWithSanitizedColons, getSubmitToAccountID, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getCommaSeparatedTagNameWithSanitizedColons, getSubmitToAccountID, isPaidGroupPolicy, isPolicyApprover, isPolicyPayer} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -953,7 +953,10 @@ function isEligibleForApproveSuggestion(approvalMode: string | undefined, isAppr
 }
 
 function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserEmail: string | undefined): boolean {
-    return isPaidGroupPolicy(policy) && (policy.role === CONST.POLICY.ROLE.ADMIN || policy.role === CONST.POLICY.ROLE.AUDITOR || policy.approver === currentUserEmail);
+    return (
+        isPaidGroupPolicy(policy) &&
+        (policy.role === CONST.POLICY.ROLE.ADMIN || policy.role === CONST.POLICY.ROLE.AUDITOR || (!!currentUserEmail && isPolicyApprover(policy, currentUserEmail)))
+    );
 }
 
 function getSuggestedSearchesVisibility(
@@ -988,19 +991,9 @@ function getSuggestedSearchesVisibility(
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isExporter = policy.exporter === currentUserEmail;
-        let isSubmittedTo = false;
-        let isUserApprover = policy.approver === currentUserEmail;
-        for (const employee of Object.values(policy.employeeList ?? {})) {
-            if (employee?.submitsTo === currentUserEmail || employee?.forwardsTo === currentUserEmail) {
-                isSubmittedTo = true;
-                isUserApprover = true;
-            } else if (employee?.overLimitForwardsTo === currentUserEmail) {
-                isUserApprover = true;
-            }
-            if (isSubmittedTo && isUserApprover) {
-                break;
-            }
-        }
+
+        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail);
+        const isUserApprover = !!currentUserEmail && isPolicyApprover(policy, currentUserEmail);
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
 
         const hasExportError = (Object.keys(policy.connections ?? {}) as ConnectionName[]).some((connection) => {

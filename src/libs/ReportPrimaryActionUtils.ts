@@ -3,7 +3,6 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
-import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getSubmitToAccountID,
@@ -12,6 +11,7 @@ import {
     hasIntegrationAutoSync,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
+    isPolicyApprover,
     isPreferredExporter,
 } from './PolicyUtils';
 import {
@@ -352,7 +352,7 @@ function isMarkAsCashAction(
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(report);
-    const isReportApprover = isApproverUtils(policy, currentUserEmail);
+    const isReportApprover = isPolicyApprover(policy, currentUserEmail);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
@@ -509,7 +509,7 @@ function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(parentReport);
-    const isReportApprover = isApproverUtils(policy, currentUserLogin);
+    const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     return isReportSubmitter || isReportApprover || isAdmin;
