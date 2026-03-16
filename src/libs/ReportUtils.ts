@@ -833,6 +833,7 @@ type OptionData = {
     allReportErrors?: Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    actionBadgeReportActionID?: string;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
@@ -12714,7 +12715,7 @@ function generateReportAttributes({
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
-    const {reason, actionBadge} = getReasonAndReportActionThatRequiresAttention(report, parentReportAction, isReportArchived) ?? {};
+    const {reason, reportAction: attentionReportAction, actionBadge} = getReasonAndReportActionThatRequiresAttention(report, parentReportAction, isReportArchived) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,
@@ -12725,6 +12726,7 @@ function generateReportAttributes({
         parentReportAction,
         requiresAttention: !!reason,
         actionBadge,
+        actionBadgeReportActionID: attentionReportAction?.reportActionID,
     };
 }
 
