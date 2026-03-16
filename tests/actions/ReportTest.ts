@@ -5636,7 +5636,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: true};
 
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined);
             expect(result).toBeUndefined();
         });
 
@@ -5646,7 +5646,23 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, undefined);
+
+            expect(result).toBeDefined();
+            expect(result?.guidedSetupData).toBeDefined();
+            expect(result?.optimisticData).toBeDefined();
+            expect(result?.successData).toBeDefined();
+            expect(result?.failureData).toBeDefined();
+        });
+
+        it('should return guided setup data when betas are explicitly passed', async () => {
+            await setupUserWithConciergeChat();
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
+            const betas: OnyxTypes.Beta[] = [CONST.BETAS.SUGGESTED_FOLLOWUPS];
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, betas);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
