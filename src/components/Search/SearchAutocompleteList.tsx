@@ -484,34 +484,32 @@ function SearchAutocompleteList({
     }
 
     return (
-        <>
-            <SelectionListWithSections<AutocompleteListItem>
-                shouldShowLoadingPlaceholder
-                sections={sections}
-                onSelectRow={onListItemPress}
-                ListItem={SearchRouterItem}
-                style={{
-                    containerStyle: [styles.mh100],
-                    listStyle: [styles.ph2, styles.overscrollBehaviorContain],
-                    contentContainerStyle: styles.pb2,
-                    listItemWrapperStyle: [styles.pr0, styles.pl0],
-                    sectionTitleStyles: styles.mhn2,
-                }}
-                shouldSingleExecuteRowSelect
-                ref={setListRef}
-                initialScrollIndex={0}
-                initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
-                shouldScrollToFocusedIndex={!isInitialRender}
-                disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
-                addBottomSafeAreaPadding
-                onLayout={() => {
-                    endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
-                    setPerformanceTimersEnd();
-                    setIsInitialRender(false);
-                    innerListRef.current?.updateExternalTextInputFocus(textInputRef?.current?.isFocused() ?? false);
-                }}
-            />
-        </>
+        <SelectionListWithSections<AutocompleteListItem>
+            shouldShowLoadingPlaceholder
+            sections={sections}
+            onSelectRow={onListItemPress}
+            ListItem={SearchRouterItem}
+            style={{
+                containerStyle: [styles.mh100],
+                listStyle: [styles.ph2, styles.overscrollBehaviorContain],
+                contentContainerStyle: styles.pb2,
+                listItemWrapperStyle: [styles.pr0, styles.pl0],
+                sectionTitleStyles: styles.mhn2,
+            }}
+            shouldSingleExecuteRowSelect
+            ref={setListRef}
+            initialScrollIndex={0}
+            initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
+            shouldScrollToFocusedIndex={!isInitialRender}
+            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+            addBottomSafeAreaPadding
+            onLayout={() => {
+                endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+                setPerformanceTimersEnd();
+                setIsInitialRender(false);
+                innerListRef.current?.updateExternalTextInputFocus(textInputRef?.current?.isFocused() ?? false);
+            }}
+        />
     );
 }
 
