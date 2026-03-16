@@ -6786,8 +6786,8 @@ const translations = {
         assignedCompanyCard: (cardLastFour: string, email: string) => `assigned a company card ending in ${cardLastFour} to ${email}`,
         unassignedCompanyCard: (cardLastFour: string, email: string) => `unassigned a company card ending in ${cardLastFour} from ${email}`,
         updatedCardFeedLiability: (feedName: string, liabilityType: string) => `changed card feed "${feedName}" transaction liability to ${liabilityType}`,
-        updatedCardFeedStatementPeriod: (feedName: string, statementPeriodEndDay?: string) =>
-            `changed card feed "${feedName}" statement period end day${statementPeriodEndDay ? ` to ${statementPeriodEndDay}` : ''}`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
