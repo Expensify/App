@@ -9,7 +9,6 @@ type TabSelectorActionsContextType = {
     onContainerLayout: (event: LayoutChangeEvent) => void;
     onContainerScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     scrollToTab: (tabKey: string) => void;
-    registerTab: (tabKey: string, ref: HTMLDivElement | View | null) => void;
     onTabLayout: (tabKey: string, event: LayoutChangeEvent) => void;
 };
 

@@ -40,6 +40,7 @@ function TravelCVVPage() {
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
+    // Get CVV from context - shared with TravelCVVVerifyAccountPage
     const {cvv} = useTravelCVVState();
     const {setCvv} = useTravelCVVActions();
 
