@@ -259,14 +259,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
     }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
-    useEffect(() => {
-        if (!shouldShowProductTrainingTooltip) {
-            return;
-        }
-
-        config.onShow?.();
-    }, [shouldShowProductTrainingTooltip, config]);
-
     const hideTooltip = useCallback(
         (isDismissedUsingCloseButton = false) => {
             if (!shouldShowProductTrainingTooltip) {
@@ -283,7 +275,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         const tooltip = TOOLTIPS[tooltipName];
 
         return (
-            <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>
+            <View
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                onLayout={config.onShow}
+            >
                 <View
                     style={[
                         styles.alignItemsCenter,
@@ -359,6 +354,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         theme.tooltipHighlightText,
         theme.icon,
         translate,
+        config.onShow,
         config.onConfirm,
         config.onDismiss,
         hideTooltip,
