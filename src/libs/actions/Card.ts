@@ -22,6 +22,7 @@ import type {
     UpdateExpensifyCardTitleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type {CardProgramKey} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -645,7 +646,12 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
     });
 }
 
-function updateSettlementFrequency(workspaceAccountID: number, feedCountry: string, settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>, currentFrequency?: Date) {
+function updateSettlementFrequency(
+    workspaceAccountID: number,
+    feedCountry: CardProgramKey,
+    settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
+    currentFrequency?: Date,
+) {
     const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date();
 
     const settlementValue = {[feedCountry]: {monthlySettlementDate}};
@@ -687,7 +693,7 @@ function updateSettlementAccount(
     domainName: string,
     workspaceAccountID: number,
     policyID: string,
-    feedCountry: string,
+    feedCountry: CardProgramKey,
     settlementBankAccountID?: number,
     currentSettlementBankAccountID?: number,
 ) {
