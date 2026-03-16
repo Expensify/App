@@ -5813,10 +5813,17 @@ type ConvertTrackedExpenseToRequestParams = {
 function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) {
     API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
 }
+/**
+ * Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
+ */
 function addPendingNewTransactionIDs(
-    reportID: string,
-    transactionID: string,
+    reportID: string | undefined,
+    transactionID: string | undefined,
 ): {optimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>; failureData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>} | undefined {
+    if (!reportID || !transactionID) {
+        return;
+    }
+
     // We only need to set pending new transactionIDs when we navigate to the chat report
     // from another route, so if the chat report is the current topmost report we omit.
     if (Navigation.getTopmostReportId() === reportID) {
@@ -5886,13 +5893,10 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     successData?.push(...(convertTrackedExpenseInformation.successData ?? []));
     failureData?.push(...(convertTrackedExpenseInformation.failureData ?? []));
 
-    // Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
-    if (chatParams.reportID && transactionID) {
-        const data = addPendingNewTransactionIDs(chatParams.reportID, transactionID);
-        if (data) {
-            optimisticData.push(data.optimisticData);
-            failureData.push(data.failureData);
-        }
+    const data = addPendingNewTransactionIDs(chatParams.reportID, transactionID);
+    if (data) {
+        optimisticData.push(data.optimisticData);
+        failureData.push(data.failureData);
     }
 
     if (transactionThreadReportID) {
@@ -6207,13 +6211,10 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
-    // Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
-    if (reportInformation.chatReportID && transactionID) {
-        const data = addPendingNewTransactionIDs(reportInformation.chatReportID, transactionID);
-        if (data) {
-            optimisticData?.push(data.optimisticData);
-            failureData?.push(data.failureData);
-        }
+    const data = addPendingNewTransactionIDs(reportInformation.chatReportID, transactionID);
+    if (data) {
+        optimisticData?.push(data.optimisticData);
+        failureData?.push(data.failureData);
     }
 
     const parameters: CategorizeTrackedExpenseApiParams = {
@@ -6333,13 +6334,10 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         onyxData.failureData?.push(...inviteAccountantToRoomFailureData);
     }
 
-    // Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
-    if (chatReportID && transactionParams.transactionID) {
-        const data = addPendingNewTransactionIDs(chatReportID, transactionParams.transactionID);
-        if (data) {
-            onyxData.optimisticData?.push(data.optimisticData);
-            onyxData.failureData?.push(data.failureData);
-        }
+    const data = addPendingNewTransactionIDs(chatReportID, transactionParams.transactionID);
+    if (data) {
+        onyxData.optimisticData?.push(data.optimisticData);
+        onyxData.failureData?.push(data.failureData);
     }
 
     const parameters: ShareTrackedExpenseParams = {
@@ -6621,7 +6619,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     : {}),
             };
 
-            if (chatReport.reportID && isFromGlobalCreate) {
+            if (isFromGlobalCreate) {
                 const data = addPendingNewTransactionIDs(chatReport.reportID, transaction.transactionID);
                 if (data) {
                     onyxData.optimisticData?.push(data.optimisticData);

@@ -979,7 +979,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         customUnitPolicyID,
     };
 
-    if (chatReport.reportID && isFromGlobalCreate) {
+    if (isFromGlobalCreate) {
         const data = addPendingNewTransactionIDs(chatReport.reportID, transaction.transactionID);
         if (data) {
             onyxData.optimisticData?.push(data.optimisticData);
