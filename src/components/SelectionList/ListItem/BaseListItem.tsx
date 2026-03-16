@@ -22,8 +22,15 @@ type CalculatedAccessibilityProps = Pick<PressableWithFeedbackProps, 'role' | 't
     accessibleAndAccessibilityLabel: Pick<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'>;
 };
 
-function getAccessibilityProps<TItem extends ListItem>({role, tabIndex, accessible, item, isFocused}: AccessibilityProps & {item: TItem; isFocused: BaseListItemProps<TItem>['isFocused']}) {
-    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
+function getAccessibilityProps<TItem extends ListItem>({
+    role,
+    tabIndex,
+    accessible,
+    item,
+    isFocused,
+    canSelectMultiple,
+}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
+    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
 
     if (accessible === false) {
         return {
@@ -36,7 +43,17 @@ function getAccessibilityProps<TItem extends ListItem>({role, tabIndex, accessib
 
     const accessibilityLabel = getAccessibilityLabel(item);
 
-    return {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel}} satisfies CalculatedAccessibilityProps;
+    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
+    // For multi-select (checkbox/radio), keep existing role and state.
+    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
+    const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
+
+    return {
+        role: effectiveRole,
+        tabIndex,
+        accessibilityState,
+        accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel},
+    } satisfies CalculatedAccessibilityProps;
 }
 
 function getAccessibilityLabel<TItem extends ListItem>(item: TItem) {
@@ -118,7 +135,15 @@ function BaseListItem<TItem extends ListItem>({
 
     const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
 
-    const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel} = getAccessibilityProps({role: accessibilityRole, accessible, tabIndex: item.tabIndex, item, isFocused});
+    const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel} = getAccessibilityProps({
+        role: accessibilityRole,
+        accessible,
+        tabIndex: item.tabIndex,
+        item,
+        isFocused,
+        canSelectMultiple,
+    });
+
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -173,11 +198,10 @@ function BaseListItem<TItem extends ListItem>({
                 accessibilityState={accessibilityState}
                 onMouseLeave={handleMouseLeave}
                 wrapperStyle={pressableWrapperStyle}
-                testID={testID}
+                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
             >
                 <View
-                    testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!isFocused}}
+                    testID={testID}
                     style={[
                         wrapperStyle,
                         isFocused &&

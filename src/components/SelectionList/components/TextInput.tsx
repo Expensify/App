@@ -6,6 +6,7 @@ import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
@@ -81,9 +82,13 @@ function TextInput({
         disableAutoCorrect,
         shouldInterceptSwipe,
     } = options ?? {};
-    const resultsFound = headerMessage !== translate('common.noResultsFound');
+    const noResultsFoundText = translate('common.noResultsFound');
+    const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || noData);
+    const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
+    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
+
+    useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);

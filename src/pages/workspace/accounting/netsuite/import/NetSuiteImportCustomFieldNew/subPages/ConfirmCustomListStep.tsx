@@ -22,7 +22,7 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
     const fieldNames = [INPUT_IDS.LIST_NAME, INPUT_IDS.TRANSACTION_FIELD_ID, INPUT_IDS.MAPPING];
 
     if (!values.mapping) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'ConfirmCustomListStep'}} />;
     }
 
     return (

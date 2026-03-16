@@ -421,7 +421,9 @@ function isPnrCancelled(pnr: Pnr): boolean {
     }
     if (data.railPnr) {
         const {outwardJourney, inwardJourney} = data.railPnr;
-        return isCancelledPnrStatus(outwardJourney.journeyStatus) && isCancelledPnrStatus(inwardJourney.journeyStatus);
+        const isOutwardCancelled = outwardJourney ? isCancelledPnrStatus(outwardJourney.journeyStatus) : true;
+        const isInwardCancelled = inwardJourney ? isCancelledPnrStatus(inwardJourney.journeyStatus) : true;
+        return isOutwardCancelled && isInwardCancelled;
     }
 
     return false;

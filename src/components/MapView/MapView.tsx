@@ -24,6 +24,7 @@ import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
+import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
 function MapView({
@@ -56,19 +57,7 @@ function MapView({
     const shouldInitializeCurrentPosition = useRef(true);
     const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
 
-    const [distanceUnit, setDistanceUnit] = useState(unit);
-    useEffect(() => {
-        if (!unit || distanceUnit) {
-            return;
-        }
-        setDistanceUnit(unit);
-    }, [unit, distanceUnit]);
-
-    const toggleDistanceUnit = useCallback(() => {
-        setDistanceUnit((currentUnit) =>
-            currentUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-        );
-    }, []);
+    const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
     const distanceLabelText = useMemo(
         () => DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters ?? 0, distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS),
