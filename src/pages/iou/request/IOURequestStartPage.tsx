@@ -117,14 +117,12 @@ function IOURequestStartPage({
     };
 
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
-        // We requestAnimationFrame since the function is called in the animate block in the web implementation
-        // which fixes a locked animation glitch when swiping between tabs, and aligns with the native implementation internal delay
-        requestAnimationFrame(() => {
-            if (index !== PER_DIEM_TAB_INDEX) {
-                return;
-            }
+        if (index !== PER_DIEM_TAB_INDEX) {
+            return;
+        }
+        setTimeout(() => {
             perDiemInputRef.current?.focus?.();
-        });
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
@@ -180,7 +178,9 @@ function IOURequestStartPage({
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
-            Keyboard.dismiss();
+            if (newIOUType !== CONST.IOU.REQUEST_TYPE.PER_DIEM) {
+                Keyboard.dismiss();
+            }
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }

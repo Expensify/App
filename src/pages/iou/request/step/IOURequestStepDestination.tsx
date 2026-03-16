@@ -85,7 +85,7 @@ function IOURequestStepDestination({
     const destinationSelectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
 
     useImperativeHandle(ref, () => ({
-        focus: () => destinationSelectionListRef.current?.focusTextInput(),
+        focus: destinationSelectionListRef.current?.focusTextInput,
     }));
 
     // eslint-disable-next-line rulesdir/no-negated-variables

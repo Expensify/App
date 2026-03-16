@@ -69,6 +69,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
         value: searchValue,
         label: translate('common.search'),
         onChangeText: setSearchValue,
+        disableAutoFocus: true,
         headerMessage: getHeaderMessageForNonUserList(destinationData.length > 0, debouncedSearchValue),
     };
 
