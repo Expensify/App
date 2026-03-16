@@ -25,6 +25,7 @@ import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
@@ -62,6 +63,7 @@ import {
     isTransactionThread,
     isWhisperAction,
 } from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canEditReportAction,
     canUserPerformWriteAction,
@@ -103,6 +105,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {reportByIDsSelector} from '@src/selectors/Attributes';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccountManagerBanner from './AccountManagerBanner';
@@ -280,6 +283,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         [reportOnyx, reportNameValuePairsOnyx?.private_isArchived],
     );
     const reportID = report?.reportID;
+
+    const reportAttributesSelector = useCallback((attributes: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => reportByIDsSelector(reportID ? [reportID] : [])(attributes), [reportID]);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
+    useDocumentTitle(getReportName(report, reportAttributes));
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const prevReport = usePrevious(report);
