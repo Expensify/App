@@ -13389,7 +13389,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, MOCK_REPORT_ACTIONS);
 
-            const result = getIOUReportActionWithBadge(fakeReport, undefined, {}, undefined);
+            const result = getIOUReportActionWithBadge(fakeReport, fakePolicy, {}, undefined);
             expect(result.reportAction).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
@@ -13447,7 +13447,7 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
@@ -13510,7 +13510,7 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
@@ -13574,7 +13574,7 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.SUBMIT);
         });
@@ -13633,7 +13633,7 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });
