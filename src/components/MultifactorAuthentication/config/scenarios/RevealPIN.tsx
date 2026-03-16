@@ -1,6 +1,6 @@
 import React from 'react';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
-import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
+import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioAdditionalParams,
@@ -35,6 +35,14 @@ const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
     'AuthenticationCanceledFailureScreen',
 );
 
+const ServerFailureScreen = createScreenWithDefaults(
+    DefaultServerFailureScreen,
+    {
+        subtitle: 'multifactorAuthentication.revealPin.authenticationCanceled',
+    },
+    'ServerFailureScreen',
+);
+
 /**
  * Configuration for the REVEAL_PIN multifactor authentication scenario.
  * This scenario is used when a UK/EU cardholder reveals the PIN of their physical card.
@@ -62,6 +70,7 @@ export default {
 
     failureScreens: {
         [CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED]: <AuthenticationCanceledFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.SERVER_FAILURE]: <ServerFailureScreen />,
     },
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;
 

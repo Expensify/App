@@ -1,7 +1,7 @@
 import React from 'react';
 import {DefaultSuccessScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
-import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
+import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
 import CONST from '@src/CONST';
@@ -21,6 +21,14 @@ const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
         subtitle: 'multifactorAuthentication.changePin.authenticationCanceled',
     },
     'AuthenticationCanceledFailureScreen',
+);
+
+const ServerFailureScreen = createScreenWithDefaults(
+    DefaultServerFailureScreen,
+    {
+        subtitle: 'multifactorAuthentication.changePin.authenticationCanceled',
+    },
+    'ServerFailureScreen',
 );
 
 const ChangePINSuccessScreen = createScreenWithDefaults(
@@ -44,6 +52,7 @@ export default {
     successScreen: <ChangePINSuccessScreen />,
     failureScreens: {
         [CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED]: <AuthenticationCanceledFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.SERVER_FAILURE]: <ServerFailureScreen />,
     },
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;
 

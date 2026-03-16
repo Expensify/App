@@ -1,6 +1,6 @@
 import React from 'react';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
-import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
+import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioAdditionalParams,
@@ -47,6 +47,14 @@ const AuthenticationCanceledFailureScreen = createScreenWithDefaults(
     'AuthenticationCanceledFailureScreen',
 );
 
+const ServerFailureScreen = createScreenWithDefaults(
+    DefaultServerFailureScreen,
+    {
+        subtitle: 'multifactorAuthentication.setPin.didNotShipCard',
+    },
+    'ServerFailureScreen',
+);
+
 /**
  * Configuration for the SET_PIN_ORDER_CARD multifactor authentication scenario.
  * This scenario is used when a UK/EU cardholder sets their PIN during the card ordering process.
@@ -73,6 +81,7 @@ export default {
 
     failureScreens: {
         [CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED]: <AuthenticationCanceledFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.SERVER_FAILURE]: <ServerFailureScreen />,
     },
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;
 

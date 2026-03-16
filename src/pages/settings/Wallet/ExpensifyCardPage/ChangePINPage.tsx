@@ -13,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isValidPIN} from '@libs/ValidationUtils';
-import {PINContextProvider, usePIN} from '@pages/MissingPersonalDetails/PINContext';
+import {PINContextProvider, usePINActions, usePINState} from '@pages/MissingPersonalDetails/PINContext';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -24,7 +24,8 @@ function ChangePINPageContent({cardID}: {cardID: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {executeScenario} = useMultifactorAuthentication();
-    const {isConfirmStep, setIsConfirmStep, isPINHidden, togglePINVisibility} = usePIN();
+    const {isConfirmStep, isPINHidden} = usePINState();
+    const {setIsConfirmStep, togglePINVisibility} = usePINActions();
 
     const [enteredPIN, setEnteredPIN] = useState('');
     const [confirmPIN, setConfirmPIN] = useState('');
