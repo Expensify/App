@@ -247,7 +247,7 @@ function getActiveRoute(): string {
 function getReportRHPActiveRoute(): string {
     // Safe handling when navigation is not yet initialized
     if (!navigationRef.isReady()) {
-        Log.warn('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
+        Log.hmmm('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
         return '';
     }
     if (isReportOpenInRHP(navigationRef.getRootState())) {

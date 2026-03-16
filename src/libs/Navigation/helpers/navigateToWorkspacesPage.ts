@@ -22,7 +22,7 @@ type Params = {
 // Gets the latest workspace navigation state, restoring from session or preserved state if needed.
 const getWorkspaceNavigationRouteState = () => {
     if (!navigationRef.isReady()) {
-        Log.warn('[src/libs/Navigation/helpers/navigateToWorkspacesPage.ts] NavigationRef is not ready. Returning empty object.');
+        Log.hmmm('[src/libs/Navigation/helpers/navigateToWorkspacesPage.ts] NavigationRef is not ready. Returning empty object.');
         return {};
     }
 

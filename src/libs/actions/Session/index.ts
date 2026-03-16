@@ -991,7 +991,7 @@ function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
         // Safe handling when navigation is not yet initialized
         if (!navigationRef.isReady()) {
-            Log.warn('[src/libs/actions/Session/index.ts] NavigationRef is not ready. Returning undefined.');
+            Log.hmmm('[src/libs/actions/Session/index.ts] NavigationRef is not ready. Returning undefined.');
             return undefined;
         }
         navigationRef.resetRoot({index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]});
