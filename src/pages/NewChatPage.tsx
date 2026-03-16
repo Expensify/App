@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
@@ -72,6 +73,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const {
         options: listOptions,
@@ -110,6 +112,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
             personalDetails: allPersonalDetails,
+            allPolicyTags,
             countryCode,
             reportAttributesDerived,
         },
@@ -240,6 +243,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -400,7 +404,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected))();
+            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed))();
         });
     };
 

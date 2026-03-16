@@ -27,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
-import {getThumbnailAndImageURIs, isStitchedOdometerReceiptFilename} from '@libs/ReceiptUtils';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -450,7 +450,6 @@ function MoneyRequestConfirmationListFooter({
     } = receiptPath && receiptFilename ? getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
-    const isStitchedOdometerReceipt = isStitchedOdometerReceiptFilename(receiptFilename);
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
@@ -1157,7 +1156,7 @@ function MoneyRequestConfirmationListFooter({
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             shouldUseFullHeight={isCompactMode}
                             onLoad={handleReceiptLoad}
-                            resizeMode={isStitchedOdometerReceipt ? 'contain' : undefined}
+                            resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
                         />
                     </PressableWithoutFocus>
                 )}
@@ -1188,7 +1187,7 @@ function MoneyRequestConfirmationListFooter({
         receiptThumbnail,
         fileExtension,
         isDistanceRequest,
-        isStitchedOdometerReceipt,
+        isOdometerDistanceRequest,
         handleReceiptLoad,
         handleCompactReceiptContainerLayout,
     ]);
