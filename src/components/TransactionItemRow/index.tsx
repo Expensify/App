@@ -18,6 +18,8 @@ import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoC
 import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -50,10 +52,11 @@ import {
     isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
+import {getDefaultAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
-import useAccountIDsByEmails from '@src/hooks/useAccountIDsByEmails';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -208,6 +211,8 @@ function TransactionItemRow({
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const defaultAvatars = useDefaultAvatars();
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -273,10 +278,18 @@ function TransactionItemRow({
         return transactionItem.cardName;
     }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
 
-    const transactionAttendees = useMemo(() => getAttendees(transactionItem, undefined), [transactionItem]);
+    const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
 
-    const attendeeEmails = useMemo(() => transactionAttendees?.map((attendee) => attendee.email) ?? [], [transactionAttendees]);
-    const attendeeAccountIDs = useAccountIDsByEmails(attendeeEmails);
+    const attendeeIcons: IconType[] = useMemo(
+        () =>
+            transactionAttendees.map((attendee) => ({
+                id: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                name: attendee.displayName ?? attendee.email,
+                source: (attendee.avatarUrl || getDefaultAvatar({accountID: attendee.accountID, defaultAvatars})) ?? '',
+                type: CONST.ICON_TYPE_AVATAR,
+            })),
+        [defaultAvatars, transactionAttendees],
+    );
 
     const totalPerAttendee = useMemo(() => {
         const attendeesCount = transactionAttendees.length ?? 0;
@@ -524,11 +537,12 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)]}
                     >
-                        {!!attendeeAccountIDs?.length && (
+                        {!!attendeeIcons.length && (
                             <ReportActionAvatars
-                                accountIDs={attendeeAccountIDs}
+                                customAvatars={attendeeIcons}
+                                customAvatarType={CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL}
                                 horizontalStacking={{
-                                    sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.ID,
+                                    sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME,
                                     useCardBG: true,
                                 }}
                                 size={CONST.AVATAR_SIZE.SUBSCRIPT}

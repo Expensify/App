@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {CardFeed} from '@src/types/onyx/CardFeeds';
+import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {HorizontalStacking} from './ReportActionAvatar';
 import ReportActionAvatar from './ReportActionAvatar';
 import useReportActionAvatars from './useReportActionAvatars';
@@ -73,6 +74,12 @@ type ReportActionAvatarsProps = {
 
     /** chatReportID needed for the avatars logic. When provided, this will be used as a fallback if the snapshot is undefined */
     chatReportID?: string;
+
+    /** Custom avatars to display instead of the avatars from the hook */
+    customAvatars?: IconType[];
+
+    /** Custom avatar type to display instead of the avatar type from the hook */
+    customAvatarType?: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
 };
 
 /**
@@ -106,6 +113,8 @@ function ReportActionAvatars({
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
     chatReportID,
+    customAvatars,
+    customAvatarType,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -126,7 +135,7 @@ function ReportActionAvatars({
 
     const {
         avatarType: notPreciseAvatarType,
-        avatars: icons,
+        avatars,
         details: {delegateAccountID},
         source,
     } = useReportActionAvatars({
@@ -143,6 +152,8 @@ function ReportActionAvatars({
         chatReportID,
     });
 
+    const icons = customAvatars ?? avatars;
+
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE && !icons.length) {
@@ -151,6 +162,10 @@ function ReportActionAvatars({
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE) {
         avatarType = shouldStackHorizontally ? CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL : CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL;
+    }
+
+    if (customAvatarType) {
+        avatarType = customAvatarType;
     }
 
     const [primaryAvatar, secondaryAvatar] = icons;
