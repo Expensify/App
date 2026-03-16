@@ -47,19 +47,6 @@ Onyx.connectWithoutView({
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
-let storedCurrentUserLogin = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        // When signed out, value is undefined
-        if (!value) {
-            return;
-        }
-        storedCurrentUserLogin = value?.email ?? '';
-    },
-});
-
 /**
  * Builds the partial message fragment for a modified field on the expense.
  */
@@ -160,7 +147,7 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     });
 }
 
-function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>) {
+function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserLogin: string): string {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
@@ -169,7 +156,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    const currentUserAccountID = getPersonalDetailByEmail(storedCurrentUserLogin)?.accountID;
+    const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
@@ -190,9 +177,14 @@ function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<t
     return type === CONST.REPORT.MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
 }
 
-function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromReport: OnyxEntry<Report> | undefined, movedToReport: OnyxEntry<Report> | undefined): string | undefined {
+function getMovedFromOrToReportMessage(
+    translate: LocalizedTranslate,
+    movedFromReport: OnyxEntry<Report> | undefined,
+    movedToReport: OnyxEntry<Report> | undefined,
+    currentUserLogin: string,
+): string | undefined {
     if (movedToReport) {
-        return getForExpenseMovedFromSelfDM(translate, movedToReport);
+        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin);
     }
 
     if (movedFromReport) {
@@ -274,27 +266,21 @@ function getForReportAction({
     movedFromReport,
     movedToReport,
     policyForMovingExpensesID,
-    currentUserLogin: currentUserLoginParam,
+    currentUserLogin,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     policyID: string | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     policyForMovingExpensesID?: string;
-    currentUserLogin?: string;
+    currentUserLogin: string;
 }): string {
-    // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
-    // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
-    let currentUserLogin = currentUserLoginParam;
-    if (!currentUserLogin) {
-        currentUserLogin = storedCurrentUserLogin;
-    }
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translateLocal, movedFromReport, movedToReport);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translateLocal, movedFromReport, movedToReport, currentUserLogin);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
@@ -556,7 +542,7 @@ function getForReportAction({
         if (policyRulesModifiedFields && rulePolicyID) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const rulePolicy = getPolicy(rulePolicyID);
-            const hasPolicyRuleAccess = !!rulePolicy?.areRulesEnabled && isPolicyAdmin(rulePolicy, storedCurrentUserLogin);
+            const hasPolicyRuleAccess = !!rulePolicy?.areRulesEnabled && isPolicyAdmin(rulePolicy, currentUserLogin);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getRulesModifiedMessage(translateLocal, policyRulesModifiedFields, false, rulePolicyID, hasPolicyRuleAccess);
         }
@@ -595,7 +581,7 @@ function getForReportActionTemp({
     movedFromReport,
     movedToReport,
     policyTags,
-    currentUserLogin: currentUserLoginParam,
+    currentUserLogin,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -605,17 +591,11 @@ function getForReportActionTemp({
     policyTags: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
 }): string {
-    // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
-    // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
-    let currentUserLogin = currentUserLoginParam;
-    if (!currentUserLogin) {
-        currentUserLogin = storedCurrentUserLogin;
-    }
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
