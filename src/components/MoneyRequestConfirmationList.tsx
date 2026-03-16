@@ -492,7 +492,7 @@ function MoneyRequestConfirmationList({
     const prevPolicy = usePrevious(policy);
 
     useEffect(() => {
-        // We want this effect to run only when the transaction is moving from Self DM to a expense chat
+        // We want this effect to run when the transaction is moving from Self DM to an expense chat, or when the policy changes
         const isPolicyChanged = prevPolicy?.id !== policy?.id;
         if (!transactionID || !isDistanceRequest || !isPolicyExpenseChat || (!isMovingTransactionFromTrackExpense && !isPolicyChanged)) {
             return;
@@ -529,6 +529,7 @@ function MoneyRequestConfirmationList({
         setFormError,
         clearFormErrors,
         transaction,
+        prevPolicy?.id,
     ]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
