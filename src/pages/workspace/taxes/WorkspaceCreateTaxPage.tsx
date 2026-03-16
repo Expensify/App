@@ -113,6 +113,7 @@ function WorkspaceCreateTaxPage({
                                     role={CONST.ROLE.PRESENTATION}
                                     required
                                     customValidate={customValidateForName}
+                                    shouldUseStrictHtmlTagValidation
                                 />
                                 <InputWrapper
                                     InputComponent={AmountPicker}
