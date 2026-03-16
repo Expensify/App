@@ -68,6 +68,10 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
                 disabledAction?.();
                 return;
             }
+            onToggle(!isOn);
+            hasUserToggled.current = true;abledAction?.();
+                return;
+            }
             hasUserToggled.current = true;
             onToggle(!isOn);
 
