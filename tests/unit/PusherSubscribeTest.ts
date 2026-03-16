@@ -121,7 +121,7 @@ describe('Pusher.subscribe', () => {
 });
 
 describe('Per-callback subscription handles', () => {
-    const CHANNEL = 'private-user-percb';
+    const CHANNEL = 'private-user-callback';
     const EVENT = 'testEvent';
 
     beforeEach(async () => {
@@ -196,11 +196,11 @@ describe('Per-callback subscription handles', () => {
         // Unsubscribe A only
         handleA.unsubscribe();
 
-        triggerEvent(CHANNEL, EVENT, {msg: 'after-unsub'});
+        triggerEvent(CHANNEL, EVENT, {msg: 'after-removal'});
 
         expect(callbackA).not.toHaveBeenCalled();
         expect(callbackB).toHaveBeenCalledTimes(1);
-        expect(callbackB).toHaveBeenCalledWith({msg: 'after-unsub'});
+        expect(callbackB).toHaveBeenCalledWith({msg: 'after-removal'});
 
         handleB.unsubscribe();
     });
