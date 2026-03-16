@@ -6413,7 +6413,7 @@ function convertBulkTrackedExpensesToIOU({
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
         const transactionWaypoints = getWaypoints(transaction);
-        const sanitizedWaypointsForBulk = transactionWaypoints ? JSON.stringify(sanitizeWaypointsForAPI(transactionWaypoints)) : undefined;
+        const sanitizedWaypointsForBulk = transactionWaypoints ? stringifyWaypointsForAPI(transactionWaypoints) : undefined;
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
             payerParams: {
@@ -6697,7 +6697,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
 
-    const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeWaypointsForAPI(waypoints)) : undefined;
+    const sanitizedWaypoints = waypoints ? stringifyWaypointsForAPI(waypoints) : undefined;
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -7496,7 +7496,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN, name: 'receipt-generic.png'} : receipt;
-    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeWaypointsForAPI(validWaypoints)) : undefined;
+    const sanitizedWaypoints = validWaypoints ? stringifyWaypointsForAPI(validWaypoints) : undefined;
 
     const retryParams: CreateTrackExpenseParams = {
         ...params,
