@@ -17,6 +17,8 @@ const requiresTwoFactorAuthSelector = (data: OnyxEntry<Account>) => data?.requir
 
 const accountGuideDetailsSelector = (account: OnyxEntry<Account>) => account?.guideDetails;
 
+const mfaCredentialIDsSelector = (data: OnyxEntry<Account>) => data?.multifactorAuthenticationPublicKeyIDs;
+
 export {
     isActingAsDelegateSelector,
     isUserValidatedSelector,
@@ -26,4 +28,5 @@ export {
     isAccountLoadingSelector,
     requiresTwoFactorAuthSelector,
     accountGuideDetailsSelector,
+    mfaCredentialIDsSelector,
 };

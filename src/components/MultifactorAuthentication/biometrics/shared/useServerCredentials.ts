@@ -1,14 +1,11 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import {mfaCredentialIDsSelector} from '@selectors/Account';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account} from '@src/types/onyx';
 
 type UseServerCredentialsReturn = {
     serverKnownCredentialIDs: string[];
     haveCredentialsEverBeenConfigured: boolean;
 };
-
-const selectMFAPublicKeyIDs = (data: OnyxEntry<Account>) => data?.multifactorAuthenticationPublicKeyIDs;
 
 /**
  * Reads the server-known MFA credential IDs from Onyx.
@@ -16,7 +13,7 @@ const selectMFAPublicKeyIDs = (data: OnyxEntry<Account>) => data?.multifactorAut
  */
 function useServerCredentials(): UseServerCredentialsReturn {
     const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: selectMFAPublicKeyIDs,
+        selector: mfaCredentialIDsSelector,
     });
     const serverKnownCredentialIDs = multifactorAuthenticationPublicKeyIDs ?? [];
     const haveCredentialsEverBeenConfigured = multifactorAuthenticationPublicKeyIDs !== undefined;
