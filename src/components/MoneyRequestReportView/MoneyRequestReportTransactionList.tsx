@@ -527,7 +527,7 @@ function MoneyRequestReportTransactionList({
 
     const transactionListContent = (
         <View
-            style={[listHorizontalPadding, !isLargeScreenWidth && styles.gap2, styles.pb4, isLargeScreenWidth && {borderRadius: 8, overflow: 'hidden' as const}]}
+            style={[listHorizontalPadding, !isLargeScreenWidth && styles.gap2, styles.pb4]}
             onLayout={onLayout}
         >
             {shouldShowGroupedTransactions
@@ -615,11 +615,12 @@ function MoneyRequestReportTransactionList({
                     styles.flexRow,
                     styles.mh5,
                     styles.pv2,
-                    styles.pl3,
+                    styles.ph3,
                     styles.mnh40,
                     styles.alignItemsCenter,
+                    styles.gap3,
                     styles.highlightBG,
-                    {borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottomWidth: 1, borderColor: theme.border, paddingRight: 44},
+                    {borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottomWidth: 1, borderColor: theme.border},
                 ]}
             >
                 <View style={[styles.dFlex, styles.flexRow]}>
