@@ -44,6 +44,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
+    isPolicyApprover: (...args: Parameters<typeof PolicyUtils.isPolicyApprover>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyApprover(...args),
+    isPolicyAuditor: (...args: Parameters<typeof PolicyUtils.isPolicyAuditor>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAuditor(...args),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
 }));
