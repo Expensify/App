@@ -25,6 +25,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {
@@ -78,6 +79,7 @@ function IOURequestStartPage({
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {accountID} = useCurrentUserPersonalDetails();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
     const personalPolicy = usePersonalPolicy();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -260,6 +262,9 @@ function IOURequestStartPage({
         // The test receipt image is served via our server on web so it requires internet connection
         !hasUserSubmittedExpenseOrScannedReceipt && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !(isOffline && isWeb),
         {
+            onShow: () => {
+                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN, accountID);
+            },
             onConfirm: () => {
                 setTestReceiptAndNavigateRef?.current?.();
             },

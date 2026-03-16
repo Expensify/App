@@ -7,7 +7,6 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,7 +14,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import GoogleTagManager from '@libs/GoogleTagManager';
 import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
@@ -43,6 +41,11 @@ type ProductTrainingContextConfig = {
      * Callback to be called when the tooltip is confirmed
      */
     onConfirm?: () => void;
+
+    /**
+     * Callback to be called when the tooltip is shown
+     */
+    onShow?: () => void;
 };
 
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
@@ -234,7 +237,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const theme = useTheme();
     const {shouldHideToolTip} = useSidePanelState();
     const {translate} = useLocalize();
-    const {accountID} = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb'] as const);
 
     if (!context) {
@@ -258,12 +260,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
     useEffect(() => {
-        if (!shouldShowProductTrainingTooltip || tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP) {
+        if (!shouldShowProductTrainingTooltip) {
             return;
         }
 
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN, accountID);
-    }, [shouldShowProductTrainingTooltip, tooltipName, accountID]);
+        config.onShow?.();
+    }, [shouldShowProductTrainingTooltip, config]);
 
     const hideTooltip = useCallback(
         (isDismissedUsingCloseButton = false) => {
