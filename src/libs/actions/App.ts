@@ -268,6 +268,8 @@ AppState.addEventListener('change', (nextAppState) => {
 
     if (nextAppState === 'active' && appState?.match(/inactive|background/)) {
         Log.info('App coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        cancelAllSpans();
     }
     appState = nextAppState;
 });
@@ -309,6 +311,16 @@ function getOnyxDataForOpenOrReconnect(
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
 ): OnyxData<OnyxDataForOpenOrReconnectKeys> {
+    let commandName: string;
+    if (isOpenApp) {
+        commandName = 'OpenApp';
+    } else if (isFullReconnect) {
+        commandName = 'ReconnectApp (full)';
+    } else {
+        commandName = 'ReconnectApp (partial)';
+    }
+    Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
+
     const result: OnyxData<
         | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
