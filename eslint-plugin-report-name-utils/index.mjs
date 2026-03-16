@@ -15,7 +15,7 @@ const noFunctionCallInGetReportName = {
     },
     create(context) {
         return {
-            'FunctionDeclaration[id.name="getReportName"] CallExpression'(node) {
+            'FunctionDeclaration[id.name="getReportName"] CallExpression': function (node) {
                 context.report({node, messageId: 'noFunctionCall'});
             },
         };
