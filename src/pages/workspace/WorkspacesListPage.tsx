@@ -12,7 +12,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
+import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -736,12 +736,12 @@ function WorkspacesListPage() {
             }
         >
             <View style={styles.flex1}>
-                <TopBar
+                <TopBarWithLoadingBar
                     breadcrumbLabel={translate('common.workspaces')}
                     shouldDisplayHelpButton
                 >
                     {!shouldUseNarrowLayout && <View style={styles.pr2}>{headerButton}</View>}
-                </TopBar>
+                </TopBarWithLoadingBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 {shouldShowLoadingIndicator ? (
                     <View style={[styles.flex1]}>

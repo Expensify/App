@@ -796,6 +796,7 @@ const CONST = {
         AU: 'AU',
         CA: 'CA',
         GB: 'GB',
+        GI: 'GI',
         IT: 'IT',
         PR: 'PR',
         GU: 'GU',
@@ -1124,6 +1125,7 @@ const CONST = {
         EMPLOYEE_TOUR_MOBILE: 'https://expensify.storylane.io/share/v8uwkznocw0g',
         EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/v9dr1rjqsd9y',
         EMPLOYEE_MIGRATED_MOBILE: 'https://app.storylane.io/share/qbbob6zvapqo',
+        IFRAME_SANDBOX: 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -6053,7 +6055,7 @@ const CONST = {
         PM: 'PM',
     },
     INDENTS: '    ',
-    PARENT_CHILD_SEPARATOR: ':',
+    PARENT_CHILD_SEPARATOR: ': ',
     DISTANCE_MERCHANT_SEPARATOR: '@',
     COLON: ':',
     MAPBOX: {

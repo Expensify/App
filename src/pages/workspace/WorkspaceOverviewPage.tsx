@@ -194,7 +194,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
 
-    const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined};
+    const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined, exactlyMatch: true};
 
     const fetchPolicyData = () => {
         if (policyDraft?.id) {

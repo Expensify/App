@@ -1360,9 +1360,12 @@ function PureReportActionItem({
 
             if (wasAutoApproved) {
                 children = (
-                    <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyApproved')}</muted-text></comment>`} />
-                    </ReportActionItemBasicMessage>
+                    <ReportActionItemMessageWithExplain
+                        message={translate('iou.automaticallyApproved')}
+                        action={action}
+                        childReport={childReport}
+                        originalReport={originalReport}
+                    />
                 );
             } else if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToApproveViaDEW')} />;

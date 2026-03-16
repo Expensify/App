@@ -2060,15 +2060,6 @@ function updateWorkspaceClientID(policyID: string, clientID: string, currentClie
     });
 }
 
-function setWorkspaceErrors(policyID: string, errors: Errors) {
-    if (!deprecatedAllPolicies?.[policyID]) {
-        return;
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors});
-}
-
 function hideWorkspaceAlertMessage(policyID: string) {
     if (!deprecatedAllPolicies?.[policyID]) {
         return;
@@ -6225,14 +6216,6 @@ function getAdminPolicies(): Policy[] {
     );
 }
 
-function getAdminPoliciesConnectedToSageIntacct(): Policy[] {
-    return Object.values(deprecatedAllPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
-}
-
-function getAdminPoliciesConnectedToNetSuite(): Policy[] {
-    return Object.values(deprecatedAllPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
-}
-
 /**
  * Call the API to set default report title pattern for the given policy
  * @param policyID - id of the policy to apply the naming pattern to
@@ -7097,7 +7080,6 @@ export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
     hasActiveChatEnabledPolicies,
-    setWorkspaceErrors,
     hideWorkspaceAlertMessage,
     deleteWorkspace,
     updateAddress,
@@ -7170,8 +7152,6 @@ export {
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
     getAdminPolicies,
-    getAdminPoliciesConnectedToNetSuite,
-    getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
     clearAllPolicies,
     enablePolicyRules,
