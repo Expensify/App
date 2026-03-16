@@ -4819,7 +4819,6 @@ ${amount} para ${merchant} - ${date}`,
             selectCards: 'Seleccionar tarjetas',
             fromOtherWorkspaces: 'De otros espacios de trabajo',
             addWorkEmail: 'Añadir correo electrónico de trabajo',
-            addWorkEmailTitle: 'Añade tu correo de trabajo para usar esta fuente',
             addWorkEmailDescription: 'Por favor, añade tu correo de trabajo para poder usar los feeds existentes de otros espacios de trabajo.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Error al cargar las fuentes de tarjetas del espacio de trabajo',

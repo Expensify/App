@@ -4921,7 +4921,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             selectCards: 'カードを選択',
             fromOtherWorkspaces: '他のワークスペースから',
             addWorkEmail: '勤務用メールアドレスを追加',
-            addWorkEmailTitle: 'このフィードを使用するには勤務用メールアドレスを追加してください',
             addWorkEmailDescription: '他のワークスペースの既存フィードを使用するには、勤務用メールアドレスを追加してください。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',

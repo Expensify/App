@@ -4959,7 +4959,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             selectCards: 'Seleziona carte',
             fromOtherWorkspaces: 'Da altri spazi di lavoro',
             addWorkEmail: 'Aggiungi email di lavoro',
-            addWorkEmailTitle: 'Aggiungi la tua email di lavoro per usare questo feed',
             addWorkEmailDescription: 'Aggiungi la tua email di lavoro per utilizzare i feed esistenti di altri spazi di lavoro.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed della carta',
