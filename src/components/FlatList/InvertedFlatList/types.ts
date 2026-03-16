@@ -4,6 +4,7 @@ import type {CustomFlatListProps} from '@components/FlatList/FlatList/types';
 
 type InvertedFlatListProps<T> = Omit<CustomFlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex'> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
+    shouldFocusToTopOnMount?: boolean;
     data: T[];
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;

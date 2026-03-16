@@ -816,12 +816,6 @@ function ReportActionsList({
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
-    const platform = getPlatform();
-    const isWeb = platform === CONST.PLATFORM.WEB;
-
-    // Web: reversed via `unshift`, `justifyContentEnd` only needed for normal chat (pushes content down), not when `shouldFocusToTopOnMount`.
-    // Native: flipped via scaleY(-1), `justifyContentEnd` always needed since "end" aligns to visual top.
-    const chatContentContainerStyle = [styles.chatContentScrollView, (isWeb ? !shouldFocusToTopOnMount : shouldFocusToTopOnMount) ? styles.justifyContentEnd : undefined];
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
@@ -925,8 +919,9 @@ function ReportActionsList({
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={chatContentContainerStyle}
+                    contentContainerStyle={styles.chatContentScrollView}
                     shouldHideContent={shouldScrollToEndAfterLayout}
+                    shouldFocusToTopOnMount={shouldFocusToTopOnMount}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
                     showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
