@@ -329,6 +329,7 @@ function BaseTextInput({
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
     const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
     const accessibilityValue = useMemo(() => ({text: value ?? ''}), [value]);
+    const helpMessageTextID = `${helpMessageId}-text`;
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
         isLoading: !!inputProps.isLoading,
@@ -498,7 +499,8 @@ function BaseTextInput({
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
                                 accessibilityValue={accessibilityValue}
                                 keyboardType={inputProps.keyboardType}
-                                aria-describedby={inputHelpText ? helpMessageId : undefined}
+                                aria-describedby={inputHelpText ? helpMessageTextID : undefined}
+                                aria-invalid={errorText ? true : undefined}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -572,7 +574,7 @@ function BaseTextInput({
                 </PressableWithoutFeedback>
                 {!!inputHelpText && (
                     <FormHelpMessage
-                        nativeID={helpMessageId}
+                        nativeID={helpMessageTextID}
                         isError={!!errorText}
                         message={inputHelpText}
                     />
