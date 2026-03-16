@@ -103,7 +103,7 @@ describe('IOURequestStepHours', () => {
     function renderComponent(
         routeName: typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT | typeof SCREENS.MONEY_REQUEST.CREATE = SCREENS.MONEY_REQUEST.STEP_HOURS,
         action: IOUAction = CONST.IOU.ACTION.CREATE,
-        iouType: IOUType = CONST.IOU.TYPE.SUBMIT,
+        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND> = CONST.IOU.TYPE.SUBMIT,
     ) {
         return render(
             <OnyxListItemProvider>
