@@ -56,12 +56,10 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const {translate} = useLocalize();
     const {isAdmin, isValidated, action} = item;
 
-    const badgeText = (() => {
-        if (!isAdmin) {
-            return undefined;
-        }
-        return isValidated ? translate('common.verified') : translate('domain.notVerified');
-    })();
+    let badgeText: string | undefined;
+    if (isAdmin) {
+        badgeText = isValidated ? translate('common.verified') : translate('domain.notVerified');
+    }
 
     const threeDotsMenuItems: PopoverMenuItem[] | undefined = useMemo(
         () =>
