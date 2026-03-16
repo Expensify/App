@@ -122,10 +122,10 @@ import {
     getWorkspaceUpdateFieldMessage,
     isActionOfType,
     isCardIssuedAction,
-    isReportPreviewAction,
     isInviteOrRemovedAction,
     isOldDotReportAction,
     isRenamedAction,
+    isReportPreviewAction,
     isTagModificationAction,
     isTaskAction,
 } from './ReportActionsUtils';
@@ -152,6 +152,7 @@ import {
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
     getUnreportedTransactionMessage,
+    getViolatingReportIDForLHN,
     getWorkspaceNameUpdatedMessage,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
@@ -184,7 +185,6 @@ import {
     isUnreadWithMention,
     isWorkspaceTaskReport,
     shouldDisplayViolationsRBRInLHN,
-    getViolatingReportIDForLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -639,9 +639,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
 
     const violatingReportID = getViolatingReportIDForLHN(report, transactionViolations);
     if (violatingReportID) {
-        const reportPreviewAction = Object.values(reportActions ?? {}).find(
-            (action) => isReportPreviewAction(action) && getOriginalMessage(action)?.linkedReportID === violatingReportID,
-        );
+        const reportPreviewAction = Object.values(reportActions ?? {}).find((action) => isReportPreviewAction(action) && getOriginalMessage(action)?.linkedReportID === violatingReportID);
         return {
             reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
             reportAction: reportPreviewAction,
