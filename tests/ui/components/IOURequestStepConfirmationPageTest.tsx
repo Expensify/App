@@ -98,6 +98,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         navigate: jest.fn(),
         goBack: jest.fn(),
         dismissModalWithReport: jest.fn(),
+        setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
         navigationRef: mockRef,
     };
 });
@@ -1263,6 +1264,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
+            await waitForBatchedUpdatesWithAct();
 
             // Unreported distance requests should skip createDistanceRequest and use requestMoney
             expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
