@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: '主页',
         inbox: '收件箱',
         yourReviewIsRequired: '需要您的审核',
+        actionBadge: {
+            submit: '提交',
+            approve: '批准',
+            pay: '支付',
+            fix: '修复',
+        },
         success: '成功',
         group: '群组',
         profile: '个人资料',
@@ -508,7 +514,6 @@ const translations: TranslationDeepObject<typeof en> = {
         on: '开打开',
         before: '之前',
         after: '之后',
-        range: '范围',
         reschedule: '重新安排',
         general: '常规',
         workspacesTabTitle: '工作区',
@@ -741,6 +746,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pleaseDownloadMobileApp: `您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。`,
         },
         verificationFailed: '验证失败',
+        setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -996,6 +1002,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
+            validateAccount: {title: '验证您的账户以继续使用 Expensify', subtitle: '账户', cta: '验证'},
         },
         assignedCards: '你的 Expensify 卡',
         assignedCardsRemaining: ({amount}: {amount: string}) => `剩余 ${amount}`,
@@ -1410,6 +1417,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: '结束日期不能与开始日期相同',
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
+            stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒：关闭此错误将彻底删除你上传的收据。确定要继续吗？',
@@ -2071,12 +2079,6 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
         twoFactorAuthCannotDisable: '无法禁用双重验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证（2FA），且无法将其禁用。',
-        replaceDevice: '更换设备',
-        replaceDeviceTitle: '更换双重验证设备',
-        verifyOldDeviceTitle: '验证旧设备',
-        verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您可以访问该应用。',
-        verifyNewDeviceTitle: '设置新设备',
-        verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码以完成设置。',
     },
     recoveryCodeForm: {
         error: {
@@ -2313,6 +2315,14 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount}，商户：${merchant} - 日期：${date}`,
         },
+        setYourPin: '设置您的 PIN.',
+        confirmYourPin: '确认您的 PIN.',
+        pinMustBeFourDigits: 'PIN 必须正好为 4 位数字。',
+        invalidPin: '请选择一个更安全的 PIN。',
+        pinMismatch: 'PIN 不匹配。请重试。',
+        revealPin: '显示 PIN',
+        hidePin: '隐藏 PIN',
+        pin: 'PIN',
         freezeCard: '冻结卡片',
         unfreeze: '解冻',
         unfreezeCard: '解冻卡片',
@@ -7101,8 +7111,6 @@ ${reportName}
                 before: (date?: string) => `在 ${date ?? ''} 之前`,
                 after: (date?: string) => `在 ${date ?? ''} 之后`,
                 on: (date?: string) => `在 ${date ?? ''} 上`,
-                customDate: '自定义日期',
-                customRange: '自定义范围',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从不',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
@@ -7207,9 +7215,6 @@ ${reportName}
         exportAll: {
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选择所有匹配的项目',
-        },
-        errors: {
-            pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
         spendOverTime: '随时间支出',
     },
@@ -8405,6 +8410,7 @@ ${reportName}
             title: '成员',
             findMember: '查找成员',
             addMember: '添加成员',
+            allMembers: '所有成员',
             email: '电子邮箱地址',
             closeAccount: () => ({
                 one: '关闭账户',
