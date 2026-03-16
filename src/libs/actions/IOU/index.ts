@@ -13205,6 +13205,9 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
         }
 
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        // Category, tag, tax, and billable only apply to expense/invoice reports and unreported (track) expenses.
+        // For plain IOU transactions these fields are not applicable and must be silently skipped.
+        const supportsExpenseFields = isUnreportedExpense || isFromExpenseReport || isInvoiceReportReportUtils(baseIouReport ?? undefined);
         const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
             // Unreported (track) expenses have no report, so there is no reportAction to validate against.
             // They are never approved or settled, so all bulk-editable fields are allowed.
@@ -13228,23 +13231,23 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
         if (changes.currency && canEditField(CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
             transactionChanges.currency = changes.currency;
         }
-        if (changes.category !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
+        if (changes.category !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
             transactionChanges.category = changes.category;
         }
-        if (changes.tag && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
+        if (changes.tag && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
             transactionChanges.tag = changes.tag;
         }
         if (changes.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
             transactionChanges.comment = getParsedComment(changes.comment);
         }
-        if (changes.taxCode && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
+        if (changes.taxCode && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
             transactionChanges.taxCode = changes.taxCode;
             const taxValue = getTaxValue(policy, transaction, changes.taxCode);
             const decimals = getCurrencyDecimals(getCurrency(transaction));
             const taxAmount = calculateTaxAmount(taxValue, Math.abs(getAmount(transaction)), decimals);
             transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
         }
-        if (changes.billable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.BILLABLE)) {
+        if (changes.billable !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.BILLABLE)) {
             transactionChanges.billable = changes.billable;
         }
         if (changes.reimbursable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
