@@ -6,7 +6,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import Search from '@components/Search';
+import DeferredSearch from '@components/Search/DeferredSearch';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -100,8 +100,7 @@ function SearchPageWide({
                                 queryJSON={queryJSON}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
-                            <Search
-                                key={queryJSON.hash}
+                            <DeferredSearch
                                 queryJSON={queryJSON}
                                 searchResults={searchResults}
                                 handleSearch={handleSearchAction}
