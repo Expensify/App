@@ -19,9 +19,11 @@ import {
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
 } from '@libs/SubscriptionUtils';
+import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, StripeCustomerID} from '@src/types/onyx';
+import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 import createRandomPolicy from '../utils/collections/policies';
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -62,6 +64,56 @@ const FUND_LIST: FundList = {
 Onyx.init({keys: ONYXKEYS});
 
 describe('SubscriptionUtils', () => {
+    describe('getPrivatePromoDiscountInfo', () => {
+        it('returns number promo discount value for numeric private promo discount', () => {
+            const result = getPrivatePromoDiscountInfo(3, false);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: 3,
+            });
+        });
+
+        it('returns empty promo discount info when private promo discount is undefined', () => {
+            const result = getPrivatePromoDiscountInfo(undefined, true);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: undefined,
+            });
+        });
+
+        it('uses yearly subscription discount for annual subscriptions', () => {
+            const privatePromoDiscount: PrivatePromoDiscount = {
+                monthlySubscriptionDiscount: 1,
+                yearlySubscriptionDiscount: 5,
+                isSecretPromoCode: true,
+            };
+
+            const result = getPrivatePromoDiscountInfo(privatePromoDiscount, true);
+
+            expect(result).toEqual({
+                isSecretPromoCode: true,
+                promoDiscountValue: 5,
+            });
+        });
+
+        it('uses monthly subscription discount for non-annual subscriptions', () => {
+            const privatePromoDiscount: PrivatePromoDiscount = {
+                monthlySubscriptionDiscount: 2,
+                yearlySubscriptionDiscount: 7,
+                isSecretPromoCode: false,
+            };
+
+            const result = getPrivatePromoDiscountInfo(privatePromoDiscount, false);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: 2,
+            });
+        });
+    });
+
     describe('calculateRemainingFreeTrialDays', () => {
         afterEach(async () => {
             await Onyx.clear();
