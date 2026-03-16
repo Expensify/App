@@ -72,7 +72,7 @@ function TextInput({
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
 
-    useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage && !isLoading, value ?? '');
+    useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage, value ?? '');
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
