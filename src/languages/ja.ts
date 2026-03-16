@@ -697,16 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectAuthentication: '認証を拒否',
             test: 'テスト',
             biometricsAuthentication: '生体認証',
-            authType: {
-                unknown: '不明',
-                none: 'なし',
-                credentials: '資格情報',
-                biometrics: '生体認証',
-                faceId: 'Face ID',
-                touchId: 'Touch ID',
-                opticId: 'Optic ID',
-                passkey: 'Passkey',
-            },
+            authType: {unknown: '不明', none: 'なし', credentials: '資格情報', biometrics: '生体認証', faceId: 'Face ID', touchId: 'Touch ID', opticId: 'Optic ID', passkey: 'Passkey'},
             statusNeverRegistered: '未登録',
             statusNotRegistered: '未登録',
             statusRegisteredThisDevice: '登録済み',
@@ -723,11 +714,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'ご本人確認を行いましょう',
         nowLetsAuthenticateYou: 'では、ご本人確認を行いましょう…',
         letsAuthenticateYou: '認証を行っています…',
-        verifyYourself: {
-            biometrics: '顔または指紋で本人確認を行ってください',
-        },
+        verifyYourself: {biometrics: '顔または指紋で本人確認を行ってください', passkeys: 'パスキーで本人確認を行います'},
         enableQuickVerification: {
             biometrics: '顔や指紋を使って、素早く安全に認証できます。パスワードやコードは不要です。',
+            passkeys: 'パスキーを使って、素早く安全に認証できるようにします。パスワードやコードは不要です。',
         },
         revoke: {
             title: '顔／指紋 & パスキー',

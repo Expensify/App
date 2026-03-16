@@ -723,11 +723,10 @@ const translations: TranslationDeepObject<typeof en> = {
         letsVerifyItsYou: 'Laten we controleren of jij het bent',
         nowLetsAuthenticateYou: 'Laten we je nu verifiëren...',
         letsAuthenticateYou: 'We gaan je authenticeren...',
-        verifyYourself: {
-            biometrics: 'Verifieer jezelf met je gezicht of vingerafdruk',
-        },
+        verifyYourself: {biometrics: 'Verifieer jezelf met je gezicht of vingerafdruk', passkeys: 'Verifieer jezelf met een toegangssleutel'},
         enableQuickVerification: {
             biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
+            passkeys: 'Schakel snelle, veilige verificatie in met een passkey. Geen wachtwoorden of codes nodig.',
         },
         revoke: {
             title: 'Gezicht/vingerafdruk & passkeys',
