@@ -116,6 +116,10 @@ const DYNAMIC_ROUTES = {
         path: 'plan',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
     },
+    WORKSPACE_INVITE: {
+        path: 'invite',
+        entryScreens: [SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACE.MEMBERS],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -1562,12 +1566,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return `${getUrlWithBackToParam(`workspaces/${policyID}`, backTo)}` as const;
         },
-    },
-    WORKSPACE_INVITE: {
-        route: 'workspaces/:policyID/invite',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`workspaces/${policyID}/invite`, backTo)}` as const,
     },
     WORKSPACE_INVITE_MESSAGE: {
         route: 'workspaces/:policyID/invite-message',
