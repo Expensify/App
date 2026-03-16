@@ -71,6 +71,41 @@ describe('getStateFromPath', () => {
         expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'VERIFY_ACCOUNT', focusedRouteParams);
     });
 
+    it('should generate dynamic state when focused screen is not authorized but an authorized parent is in route chain', () => {
+        const fullPath = '/settings/wallet/verify-account';
+        const allowedParentParams = {workspaceID: '123'};
+        const baseRouteState = {
+            routes: [
+                {
+                    name: 'Root',
+                    state: {
+                        routes: [
+                            {
+                                name: 'Settings',
+                                params: allowedParentParams,
+                                state: {
+                                    routes: [{name: 'RightModal', params: {modal: 'test'}}],
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+        };
+
+        mockRNGetStateFromPath.mockReturnValue(baseRouteState);
+        mockFindFocusedRoute.mockReturnValue({name: 'RightModal', params: {modal: 'test'}});
+
+        const expectedDynamicState = {routes: [{name: 'DynamicRoot'}]};
+        mockGetStateForDynamicRoute.mockReturnValue(expectedDynamicState);
+
+        const result = getStateFromPath(fullPath as unknown as Route);
+
+        expect(result).toBe(expectedDynamicState);
+        expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'VERIFY_ACCOUNT', allowedParentParams);
+        expect(mockLogWarn).not.toHaveBeenCalled();
+    });
+
     it('should fallback to standard RN parsing if focused screen is NOT authorized for dynamic route', () => {
         const fullPath = '/chat/verify-account';
 
