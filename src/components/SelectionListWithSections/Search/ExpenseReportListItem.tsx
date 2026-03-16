@@ -167,7 +167,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
         ],
-        [styles, item.isSelected, isLargeScreenWidth],
+        [styles, item.isSelected, isLargeScreenWidth, isLastItem],
     );
 
     const listItemWrapperStyle = useMemo(

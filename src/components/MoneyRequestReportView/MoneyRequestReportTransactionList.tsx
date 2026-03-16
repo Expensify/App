@@ -609,7 +609,19 @@ function MoneyRequestReportTransactionList({
 
     const tableHeaderContent = (
         <OfflineWithFeedback pendingAction={reportPendingAction}>
-            <View style={[styles.dFlex, styles.flexRow, styles.mh5, styles.pv2, styles.ph3, styles.mnh40, styles.alignItemsCenter, styles.highlightBG, {borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottomWidth: 1, borderColor: theme.border}]}>
+            <View
+                style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.mh5,
+                    styles.pv2,
+                    styles.ph3,
+                    styles.mnh40,
+                    styles.alignItemsCenter,
+                    styles.highlightBG,
+                    {borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottomWidth: 1, borderColor: theme.border},
+                ]}
+            >
                 <View style={[styles.dFlex, styles.flexRow, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                     <Checkbox
                         onPress={() => {

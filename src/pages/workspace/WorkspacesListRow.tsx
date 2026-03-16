@@ -265,7 +265,17 @@ function WorkspacesListRow({
     );
 
     return (
-        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, !isWide && styles.br3, isWide && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: theme.border}, isWide && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8}]}>
+        <View
+            style={[
+                styles.flexRow,
+                styles.highlightBG,
+                rowStyles,
+                style,
+                !isWide && styles.br3,
+                isWide && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: theme.border},
+                isWide && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
+            ]}
+        >
             <Animated.View
                 style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide ? styles.gap5 : styles.gap2, styles.pt3, styles.pr2, styles.pb3, styles.pl4, animatedHighlightStyle]}
             >

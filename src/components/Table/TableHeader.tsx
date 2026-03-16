@@ -130,6 +130,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
+            sentryLabel={`TableHeader-${column.key}`}
             style={[styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
             onPress={() => toggleSorting(column.key)}
         >

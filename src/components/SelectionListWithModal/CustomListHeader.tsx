@@ -63,7 +63,21 @@ function CustomListHeader({
             style={[
                 styles.flexRow,
                 isLargeScreenWidth
-                    ? [styles.mh5, styles.pv2, styles.mnh40, styles.alignItemsCenter, {paddingLeft: 12, paddingRight: 8, borderBottomWidth: 1, borderColor: theme.border, borderTopLeftRadius: 8, borderTopRightRadius: 8, backgroundColor: theme.highlightBG}]
+                    ? [
+                          styles.mh5,
+                          styles.pv2,
+                          styles.mnh40,
+                          styles.alignItemsCenter,
+                          {
+                              paddingLeft: 12,
+                              paddingRight: 8,
+                              borderBottomWidth: 1,
+                              borderColor: theme.border,
+                              borderTopLeftRadius: 8,
+                              borderTopRightRadius: 8,
+                              backgroundColor: theme.highlightBG,
+                          },
+                      ]
                     : styles.baseListHeaderWrapperStyle,
             ]}
         >

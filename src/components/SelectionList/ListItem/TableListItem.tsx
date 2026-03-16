@@ -60,7 +60,11 @@ function TableListItem<TItem extends ListItem>({
             pressableStyle={[
                 styles.selectionListPressableItemWrapper,
                 styles.mh0,
-                isLargeScreenWidth && [styles.ph3, styles.pv2, {minHeight: variables.optionRowHeightCompact, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})}],
+                isLargeScreenWidth && [
+                    styles.ph3,
+                    styles.pv2,
+                    {minHeight: variables.optionRowHeightCompact, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
+                ],
                 // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
                 item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
                 item.isSelected && styles.activeComponentBG,
