@@ -593,7 +593,7 @@ function AdvancedSearchFilters() {
         return (
             buildFilterQueryWithSortDefaults(
                 searchAdvancedFilters,
-                {groupBy: currentQueryJSON?.groupBy},
+                {groupBy: currentQueryJSON?.groupBy, view: currentQueryJSON?.view},
                 {sortBy: currentQueryJSON?.sortBy, sortOrder: currentQueryJSON?.sortOrder, limit: currentQueryJSON?.limit},
             ) ?? ''
         );

@@ -1639,6 +1639,8 @@ function shouldHighlight(referenceText: string, searchText: string) {
     return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
 }
 
+const TIME_BASED_GROUP_BYS: Set<string> = new Set([CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
+
 /**
  * Determines whether sortBy and sortOrder should be fully reset (re-derived by
  * the parser) when filters change.  Returns true only when the groupBy value
@@ -1649,16 +1651,29 @@ function shouldResetSort({newGroupBy, oldGroupBy}: {newGroupBy: string | undefin
 }
 
 /**
+ * Returns true when the view is changing to a chart view (line/bar/pie) with a
+ * time-based groupBy (month/week/year/quarter). In this case sortOrder should
+ * be reset so the parser can apply its chronological (asc) default.
+ */
+function shouldResetSortOrderForViewChange({newView, oldView, groupBy}: {newView: string | undefined; oldView: string | undefined; groupBy: string | undefined}): boolean {
+    if (newView === oldView || !groupBy) {
+        return false;
+    }
+    const isChartView = newView !== undefined && newView !== CONST.SEARCH.VIEW.TABLE;
+    return isChartView && TIME_BASED_GROUP_BYS.has(groupBy);
+}
+
+/**
  * Builds a query string from filter form values, resetting sortBy and sortOrder
  * when the groupBy has changed so the parser can re-derive the correct defaults.
- * View-only changes preserve the current sort because the view is a presentation
- * concern and should not alter the data ordering.
+ * When only the view changes to a chart view with a time-based groupBy, sortOrder
+ * is reset to allow the parser to apply chronological (asc) ordering.
  *
  * Returns undefined if the parser round-trip fails.
  */
 function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
-    previousState: {groupBy?: string},
+    previousState: {groupBy?: string; view?: string},
     currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
 ): string | undefined {
     const resetSort = shouldResetSort({
@@ -1666,13 +1681,21 @@ function buildFilterQueryWithSortDefaults(
         oldGroupBy: previousState.groupBy,
     });
 
+    const resetSortOrder =
+        !resetSort &&
+        shouldResetSortOrderForViewChange({
+            newView: filterValues.view,
+            oldView: previousState.view,
+            groupBy: filterValues.groupBy,
+        });
+
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
         sortBy: resetSort ? undefined : currentQueryOptions.sortBy,
-        sortOrder: resetSort ? undefined : currentQueryOptions.sortOrder,
+        sortOrder: resetSort || resetSortOrder ? undefined : currentQueryOptions.sortOrder,
         limit: currentQueryOptions.limit,
     });
 
-    if (!resetSort) {
+    if (!resetSort && !resetSortOrder) {
         return queryString;
     }
 
@@ -1723,6 +1746,7 @@ export {
     getUserFriendlyValue,
     getUserFriendlyKey,
     shouldResetSort,
+    shouldResetSortOrderForViewChange,
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
 };
