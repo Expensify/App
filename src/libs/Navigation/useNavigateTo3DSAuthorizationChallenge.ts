@@ -2,6 +2,7 @@ import {findFocusedRoute} from '@react-navigation/native';
 import type {SeverityLevel} from '@sentry/react-native';
 import * as Sentry from '@sentry/react-native';
 import {useEffect, useMemo} from 'react';
+import type {ValueOf} from 'type-fest';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import useOnyx from '@hooks/useOnyx';
@@ -113,7 +114,9 @@ function useNavigateTo3DSAuthorizationChallenge() {
             return;
         }
 
-        const doesDeviceSupportAnAllowedAuthenticationMethod = doesDeviceSupportAuthenticationMethod() && AuthorizeTransaction.allowedAuthenticationMethods.includes(deviceVerificationType);
+        const doesDeviceSupportAnAllowedAuthenticationMethod =
+            doesDeviceSupportAuthenticationMethod() &&
+            (AuthorizeTransaction.allowedAuthenticationMethods as Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>).includes(deviceVerificationType);
 
         // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
         if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
