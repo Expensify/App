@@ -12,6 +12,34 @@ import getStateForDynamicRoute from './dynamicRoutesUtils/getStateForDynamicRout
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getRedirectedPath from './getRedirectedPath';
 
+type RouteChainItem = {
+    name?: string;
+    params?: Record<string, unknown>;
+};
+
+function getRouteChain(state?: PartialState<NavigationState> | NavigationState): RouteChainItem[] {
+    const routeChain: RouteChainItem[] = [];
+    let currentState = state;
+
+    while (currentState?.routes?.length) {
+        const routeIndex = currentState.index ?? currentState.routes.length - 1;
+        const currentRoute = currentState.routes.at(routeIndex);
+
+        if (!currentRoute) {
+            break;
+        }
+
+        routeChain.push({
+            name: currentRoute.name,
+            params: currentRoute.params as Record<string, unknown> | undefined,
+        });
+
+        currentState = currentRoute.state as PartialState<NavigationState> | NavigationState | undefined;
+    }
+
+    return routeChain;
+}
+
 /**
  * @param path - The path to parse
  * @returns - It's possible that there is no navigation action for the given path
@@ -31,15 +59,23 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
         // Find the dynamic route key that matches the extracted suffix
         const dynamicRoute: string = dynamicRouteKeys.find((key) => DYNAMIC_ROUTES[key].path === dynamicRouteSuffix) ?? '';
 
-        // Get the currently focused route from the base path to check permissions
-        const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutDynamicSuffix) ?? {});
         const entryScreens: Screen[] = DYNAMIC_ROUTES[dynamicRoute as DynamicRouteKey]?.entryScreens ?? [];
+        // Get the currently focused route from the base path to check permissions
+        const baseState = getStateFromPath(pathWithoutDynamicSuffix);
+        const focusedRoute = findFocusedRoute(baseState ?? {});
+        const allowedParentRoute = getRouteChain(baseState)
+            .reverse()
+            .find((route) => route.name && entryScreens.includes(route.name as Screen));
 
         // Check if the focused route is allowed to access this dynamic route
-        if (focusedRoute?.name) {
-            if (entryScreens.includes(focusedRoute.name as Screen)) {
+        if (focusedRoute?.name || allowedParentRoute?.name) {
+            if (entryScreens.includes(focusedRoute?.name as Screen) || !!allowedParentRoute?.name) {
                 // Generate navigation state for the dynamic route
-                const dynamicRouteState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey, focusedRoute?.params as Record<string, unknown> | undefined);
+                const dynamicRouteState = getStateForDynamicRoute(
+                    normalizedPath,
+                    dynamicRoute as DynamicRouteKey,
+                    (allowedParentRoute?.params ?? focusedRoute?.params) as Record<string, unknown> | undefined,
+                );
                 return dynamicRouteState;
             }
 
@@ -51,7 +87,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
             }
 
             // Log an error to quickly identify and add forgotten screens to the Dynamic Routes configuration
-            Log.warn(`[getStateFromPath.ts][DynamicRoute] Focused route ${focusedRoute.name} is not allowed to access dynamic route with suffix ${dynamicRouteSuffix}`);
+            Log.warn(`[getStateFromPath.ts][DynamicRoute] Focused route ${focusedRoute?.name ?? 'unknown'} is not allowed to access dynamic route with suffix ${dynamicRouteSuffix}`);
         }
     }
 

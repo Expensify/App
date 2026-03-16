@@ -2007,10 +2007,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.DEBUG_REPORT_ACTION_CREATE.route,
                             exact: true,
                         },
-                        [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
-                            path: ROUTES.DETAILS_CONSTANT_PICKER_PAGE.route,
-                            exact: true,
-                        },
+                        [SCREENS.DEBUG.DYNAMIC_DETAILS_CONSTANT_PICKER_PAGE]: DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.path,
                         [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
                             path: ROUTES.DETAILS_DATE_TIME_PICKER_PAGE.route,
                             exact: true,
