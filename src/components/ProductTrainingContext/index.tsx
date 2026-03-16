@@ -258,7 +258,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
     useEffect(() => {
-        if (!shouldShowProductTrainingTooltip || tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER) {
+        if (!shouldShowProductTrainingTooltip || tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP) {
             return;
         }
 
