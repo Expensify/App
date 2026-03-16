@@ -1478,7 +1478,6 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 export {
     saveSearch,
     search,
-    deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
     bulkDeleteReports,
     unholdMoneyRequestOnSearch,
