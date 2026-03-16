@@ -10,7 +10,7 @@ import trackMFAFlowOutcome from '@components/MultifactorAuthentication/observabi
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import getPlatform from '@libs/getPlatform';
-import type {ChallengeType, MultifactorAuthenticationCallbackInput, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
+import type {ChallengeType, MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@navigation/Navigation';
 import {clearLocalMFAPublicKeyList, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
@@ -73,8 +73,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const biometrics = useBiometrics();
     const {isOffline} = useNetwork();
     const platform = getPlatform();
-    const isWeb = useMemo(() => platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILE_WEB, [platform]);
-
     const promptType = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[biometrics.deviceVerificationType];
 
     /**
@@ -432,7 +430,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 5. All steps completed - invoke callback to determine whether to show the outcome screen
         handleCallback(true);
-    }, [biometrics, dispatch, handleCallback, isOffline, state, isWeb, promptType]);
+    }, [biometrics, dispatch, handleCallback, isOffline, state, promptType]);
 
     /**
      * Drives the MFA state machine forward whenever relevant state changes occur.

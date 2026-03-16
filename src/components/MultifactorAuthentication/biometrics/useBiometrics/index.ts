@@ -1,3 +1,3 @@
-import usePasskeys from '../usePasskeys';
+import usePasskeys from '@components/MultifactorAuthentication/biometrics/usePasskeys';
 
 export default usePasskeys;

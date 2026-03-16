@@ -1,3 +1,3 @@
-import useNativeBiometrics from '../useNativeBiometrics';
+import useNativeBiometrics from '@components/MultifactorAuthentication/biometrics/useNativeBiometrics';
 
 export default useNativeBiometrics;
