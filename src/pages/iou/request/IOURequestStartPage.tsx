@@ -262,7 +262,7 @@ function IOURequestStartPage({
         // The test receipt image is served via our server on web so it requires internet connection
         !hasUserSubmittedExpenseOrScannedReceipt && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !(isOffline && isWeb),
         {
-            onShow: () => {
+            onShown: () => {
                 GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN, accountID);
             },
             onConfirm: () => {
