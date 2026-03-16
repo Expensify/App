@@ -317,8 +317,6 @@ function IOURequestStepDistanceOdometer({
 
     const handleStartReadingChange = (text: string) => {
         if (!isOdometerInputValid(text, startReading)) {
-            // Force re-render so React re-applies the selection prop and restores cursor position
-            setStartSelection((prev) => ({...prev}));
             return;
         }
         const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
@@ -336,8 +334,6 @@ function IOURequestStepDistanceOdometer({
 
     const handleEndReadingChange = (text: string) => {
         if (!isOdometerInputValid(text, endReading)) {
-            // Force re-render so React re-applies the selection prop and restores cursor position
-            setEndSelection((prev) => ({...prev}));
             return;
         }
         const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
