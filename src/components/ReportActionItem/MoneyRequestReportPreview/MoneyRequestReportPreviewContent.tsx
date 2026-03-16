@@ -565,7 +565,7 @@ function MoneyRequestReportPreviewContent({
             return;
         }
         const newTransaction = carouselTransactions.at(index);
-        const timeoutID = setTimeout(() => {
+        setTimeout(() => {
             if (!isFocusedRef.current) {
                 return;
             }
@@ -581,10 +581,6 @@ function MoneyRequestReportPreviewContent({
                 animated: true,
             });
         }, CONST.ANIMATED_TRANSITION);
-
-        return () => {
-            clearTimeout(timeoutID);
-        };
 
         // We only want to scroll to a new transaction when the set of new transaction IDs changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
