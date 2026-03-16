@@ -1735,6 +1735,7 @@ function getReceiptError(
     errorKey?: number,
     action?: IOUActionParams,
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt,
+    transactionID?: string,
 ): Errors | ErrorFields {
     const formattedRetryParams = typeof retryParams === 'string' ? retryParams : JSON.stringify(retryParams);
 
@@ -1747,6 +1748,7 @@ function getReceiptError(
                   filename: filename ?? '',
                   action: action ?? '',
                   retryParams: formattedRetryParams,
+                  transactionID: transactionID ?? '',
               },
               errorKey,
           );
@@ -2381,7 +2383,15 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                errors: getReceiptError(
+                    transaction.receipt,
+                    transaction.receipt?.filename,
+                    isScanRequest,
+                    errorKey,
+                    CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                    retryParams,
+                    transaction.transactionID,
+                ),
                 pendingFields: clearedPendingFields,
             },
         },
@@ -2392,7 +2402,15 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 ...(shouldCreateNewMoneyRequestReport
                     ? {
                           [iou.createdAction.reportActionID]: {
-                              errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                              errors: getReceiptError(
+                                  transaction.receipt,
+                                  transaction.receipt?.filename,
+                                  isScanRequest,
+                                  errorKey,
+                                  CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                                  retryParams,
+                                  transaction.transactionID,
+                              ),
                           },
                           [iou.action.reportActionID]: {
                               errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
@@ -2400,7 +2418,15 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                       }
                     : {
                           [iou.action.reportActionID]: {
-                              errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST, retryParams),
+                              errors: getReceiptError(
+                                  transaction.receipt,
+                                  transaction.receipt?.filename,
+                                  isScanRequest,
+                                  errorKey,
+                                  CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                                  retryParams,
+                                  transaction.transactionID,
+                              ),
                           },
                       }),
             },
@@ -2885,7 +2911,15 @@ function buildOnyxDataForTrackExpense({
                     ...(shouldCreateNewMoneyRequestReport
                         ? {
                               [iouCreatedAction.reportActionID]: {
-                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
+                                  errors: getReceiptError(
+                                      transaction.receipt,
+                                      transaction.receipt?.filename,
+                                      isScanRequest,
+                                      undefined,
+                                      CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                                      retryParams,
+                                      transaction.transactionID,
+                                  ),
                               },
                               [iouAction.reportActionID]: {
                                   errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
@@ -2893,7 +2927,15 @@ function buildOnyxDataForTrackExpense({
                           }
                         : {
                               [iouAction.reportActionID]: {
-                                  errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
+                                  errors: getReceiptError(
+                                      transaction.receipt,
+                                      transaction.receipt?.filename,
+                                      isScanRequest,
+                                      undefined,
+                                      CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                                      retryParams,
+                                      transaction.transactionID,
+                                  ),
                               },
                           }),
                 },
@@ -2905,7 +2947,15 @@ function buildOnyxDataForTrackExpense({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 [iouAction.reportActionID]: {
-                    errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
+                    errors: getReceiptError(
+                        transaction.receipt,
+                        transaction.receipt?.filename,
+                        isScanRequest,
+                        undefined,
+                        CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                        retryParams,
+                        transaction.transactionID,
+                    ),
                 },
             },
         });
@@ -2937,7 +2987,15 @@ function buildOnyxDataForTrackExpense({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, undefined, CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, retryParams),
+                errors: getReceiptError(
+                    transaction.receipt,
+                    transaction.receipt?.filename,
+                    isScanRequest,
+                    undefined,
+                    CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                    retryParams,
+                    transaction.transactionID,
+                ),
                 pendingFields: clearedPendingFields,
             },
         },
@@ -6428,6 +6486,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         betas,
         personalDetails,
     });
+
+    retryParams.existingTransactionDraft = transaction;
+
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
     if (shouldPlaySound) {
@@ -6751,6 +6812,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         betas,
         isSelfTourViewed,
     }) ?? {};
+
+    retryParams.existingTransaction = transaction;
+
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
 
@@ -11575,7 +11639,7 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
-                errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams),
+                errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams, transactionID),
                 pendingFields: {
                     receipt: null,
                 },

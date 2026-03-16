@@ -1,5 +1,6 @@
 import * as IOU from '@userActions/IOU';
 import {startSplitBill} from '@userActions/IOU/Split';
+import {clearError} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 
@@ -9,16 +10,25 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             ? (JSON.parse(message.retryParams) as IOU.ReplaceReceipt | IOU.StartSplitBilActionParams | IOU.CreateTrackExpenseParams | IOU.RequestMoneyInformation)
             : message.retryParams;
 
+    const clearReceiptError = () => {
+        if (message.transactionID) {
+            clearError(message.transactionID);
+            return;
+        }
+
+        dismissError();
+    };
+
     switch (message.action) {
         case CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT: {
-            dismissError();
+            clearReceiptError();
             const replaceReceiptParams = {...retryParams} as IOU.ReplaceReceipt;
             replaceReceiptParams.file = file;
             IOU.replaceReceipt(replaceReceiptParams);
             break;
         }
         case CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL: {
-            dismissError();
+            clearReceiptError();
             const startSplitBillParams = {...retryParams} as IOU.StartSplitBilActionParams;
             startSplitBillParams.receipt = file;
             startSplitBillParams.shouldPlaySound = false;
@@ -26,7 +36,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             break;
         }
         case CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE: {
-            dismissError();
+            clearReceiptError();
             const trackExpenseParams = {...retryParams} as IOU.CreateTrackExpenseParams;
             trackExpenseParams.transactionParams.receipt = file;
             trackExpenseParams.isRetry = true;
@@ -35,7 +45,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             break;
         }
         case CONST.IOU.ACTION_PARAMS.MONEY_REQUEST: {
-            dismissError();
+            clearReceiptError();
             const requestMoneyParams = {...retryParams} as IOU.RequestMoneyInformation;
             requestMoneyParams.transactionParams.receipt = file;
             requestMoneyParams.isRetry = true;

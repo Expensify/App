@@ -257,6 +257,9 @@ type ReceiptError = {
     /** Parameters required to retry the failed action */
     retryParams: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
 
+    /** Transaction ID associated with the receipt error */
+    transactionID?: string;
+
     /** The type of receipt error */
     error: typeof CONST.IOU.RECEIPT_ERROR;
 };
