@@ -420,9 +420,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
 
-        /** Whether the item is selected */
-        selected?: boolean;
-
         /** Additional styles for the root wrapper View */
         rootWrapperStyle?: StyleProp<ViewStyle>;
 
@@ -579,7 +576,6 @@ function MenuItem({
     forwardedFSClass,
     ref,
     isFocused,
-    selected,
     sentryLabel,
     rootWrapperStyle,
     role = CONST.ROLE.BUTTON,
@@ -801,7 +797,7 @@ function MenuItem({
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 accessible={shouldBeAccessible}
-                                accessibilityState={{selected}}
+                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
