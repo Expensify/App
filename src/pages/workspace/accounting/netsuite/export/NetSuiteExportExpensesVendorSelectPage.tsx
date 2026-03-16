@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -73,7 +72,6 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteExportExpensesVendorSelectPage"
             data={netsuiteVendorOptions}
-            listItem={SingleSelectListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             onBackButtonPress={goBack}

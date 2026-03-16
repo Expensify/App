@@ -3,7 +3,6 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -82,7 +81,6 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
             title="workspace.xero.invoiceStatus.label"
             headerContent={headerContent}
             data={data}
-            listItem={SingleSelectListItem}
             onSelectRow={(selection: SelectorType) => selectPurchaseBillStatus(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}

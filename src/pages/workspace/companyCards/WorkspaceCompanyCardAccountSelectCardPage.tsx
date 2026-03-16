@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import RenderHTML from '@components/RenderHTML';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -105,7 +104,6 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
             displayName="WorkspaceCompanyCardAccountSelectCardPage"
             data={searchedListOptions ?? []}
-            listItem={SingleSelectListItem}
             textInputOptions={{
                 label: translate('common.search'),
                 value: searchText,

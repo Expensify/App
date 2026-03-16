@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -68,7 +67,6 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctNonReimbursableCreditCardAccountPage"
             data={creditCardSelectorOptions ?? []}
-            listItem={SingleSelectListItem}
             onSelectRow={updateCreditCardAccount}
             initiallyFocusedOptionKey={creditCardSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={goBack}

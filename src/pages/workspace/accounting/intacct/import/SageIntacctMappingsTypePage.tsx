@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -81,7 +80,6 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctMappingsTypePage"
             data={selectionOptions}
-            listItem={SingleSelectListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onSelectRow={updateMapping}
             initiallyFocusedOptionKey={mappings?.[mappingName]}

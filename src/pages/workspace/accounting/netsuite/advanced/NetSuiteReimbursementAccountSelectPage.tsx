@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -75,7 +74,6 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
             displayName="NetSuiteReimbursementAccountSelectPage"
             headerContent={headerContent}
             data={netsuiteReimbursableAccountOptions}
-            listItem={SingleSelectListItem}
             onSelectRow={updateReimbursementAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}

@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -62,7 +61,6 @@ function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConn
             displayName="SageIntacctReimbursableExpensesDestinationPage"
             title="workspace.accounting.exportAs"
             data={data}
-            listItem={SingleSelectListItem}
             onSelectRow={(selection: SelectorType) => selectDestination(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}

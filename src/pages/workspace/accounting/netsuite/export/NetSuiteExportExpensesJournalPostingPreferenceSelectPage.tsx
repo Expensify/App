@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -65,7 +64,6 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
             displayName="NetSuiteExportExpensesJournalPostingPreferenceSelectPage"
             title="workspace.netsuite.journalPostingPreference.label"
             data={data}
-            listItem={SingleSelectListItem}
             onSelectRow={(selection: SelectorType) => selectPostingPreference(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}

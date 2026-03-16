@@ -1,5 +1,4 @@
 import React from 'react';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -47,7 +46,6 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctEntityPage"
             data={options}
-            listItem={SingleSelectListItem}
             onSelectRow={saveSelection}
             initiallyFocusedOptionKey={options?.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.dismissModal()}
