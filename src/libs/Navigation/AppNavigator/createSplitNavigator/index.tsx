@@ -41,7 +41,6 @@ const SplitNavigatorComponent = createPlatformStackNavigatorComponent('SplitNavi
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomState: useCustomSplitNavigatorState,
     NavigationContentWrapper: SidebarSpacerWrapper,
-    freezeNonTopScreens: true,
 });
 
 function createSplitNavigator<

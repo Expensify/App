@@ -74,6 +74,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
+    /** Whether this is a time expense request */
+    isTimeRequest?: boolean;
+
     /** Whether this is a corporate card transaction */
     isCorporateCardTransaction?: boolean;
 
@@ -99,6 +102,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    isTimeRequest = false,
     isWorkspacesOnly = false,
     isCorporateCardTransaction = false,
     ref,
@@ -182,7 +186,7 @@ function MoneyRequestParticipantsSelector({
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-            includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
+            includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isCorporateCardTransaction,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
             action,
             shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -190,6 +194,7 @@ function MoneyRequestParticipantsSelector({
             includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
             canShowManagerMcTest,
             isPerDiemRequest,
+            isTimeRequest,
             showRBR: false,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
@@ -202,6 +207,7 @@ function MoneyRequestParticipantsSelector({
             action,
             isCategorizeOrShareAction,
             isPerDiemRequest,
+            isTimeRequest,
             isCorporateCardTransaction,
             canShowManagerMcTest,
             isPaidGroupPolicy,
@@ -224,7 +230,7 @@ function MoneyRequestParticipantsSelector({
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -322,15 +328,16 @@ function MoneyRequestParticipantsSelector({
         }
 
         if (!isWorkspacesOnly) {
-            if ((isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0) {
+            const shouldFilterRecentReportsToWorkspaceOnly = isPerDiemRequest || isTimeRequest;
+            if ((shouldFilterRecentReportsToWorkspaceOnly ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0) {
                 newSections.push({
                     title: translate('common.recents'),
-                    data: isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
+                    data: shouldFilterRecentReportsToWorkspaceOnly ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
                     sectionIndex: 3,
                 });
             }
 
-            if (availableOptions.personalDetails.length > 0 && !isPerDiemRequest) {
+            if (availableOptions.personalDetails.length > 0 && !isPerDiemRequest && !isTimeRequest) {
                 newSections.push({
                     title: translate('common.contacts'),
                     data: availableOptions.personalDetails,
@@ -351,7 +358,8 @@ function MoneyRequestParticipantsSelector({
                 loginList,
                 currentUserEmail,
             ) &&
-            !isPerDiemRequest
+            !isPerDiemRequest &&
+            !isTimeRequest
         ) {
             newSections.push({
                 title: undefined,
@@ -390,6 +398,7 @@ function MoneyRequestParticipantsSelector({
         isWorkspacesOnly,
         loginList,
         isPerDiemRequest,
+        isTimeRequest,
         showImportContacts,
         inputHelperText,
         privateIsArchivedMap,

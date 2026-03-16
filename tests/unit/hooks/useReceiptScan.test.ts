@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useReceiptScan from '@pages/iou/request/step/IOURequestStepScan/useReceiptScan';
+import useReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptScan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockHandleMoneyRequestStepScanParticipants = jest.fn();
-const mockDismissProductTraining = jest.fn();
+const mockGetMoneyRequestParticipantOptions = jest.fn().mockReturnValue([]);
 const mockRemoveDraftTransactions = jest.fn();
 const mockRemoveTransactionReceipt = jest.fn();
 const mockSetMoneyRequestReceipt = jest.fn();
@@ -31,18 +31,9 @@ jest.mock('@hooks/useFilesValidation', () => ({
     }),
 }));
 
-jest.mock('@libs/TransactionUtils', () => ({
-    getDefaultTaxCode: () => '',
-    hasReceipt: (transaction: unknown) => !!(transaction && typeof transaction === 'object' && 'receipt' in transaction && transaction.receipt),
-    shouldReuseInitialTransaction: () => true,
-}));
-
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepScanParticipants: (...args: unknown[]) => mockHandleMoneyRequestStepScanParticipants(...args),
-}));
-
-jest.mock('@libs/actions/Welcome', () => ({
-    dismissProductTraining: (...args: unknown[]) => mockDismissProductTraining(...args),
+    getMoneyRequestParticipantOptions: (...args: unknown[]) => mockGetMoneyRequestParticipantOptions(...args),
 }));
 
 jest.mock('@userActions/TransactionEdit', () => ({
@@ -54,11 +45,6 @@ jest.mock('@userActions/TransactionEdit', () => ({
 jest.mock('@userActions/IOU', () => ({
     setMoneyRequestReceipt: (...args: unknown[]) => mockSetMoneyRequestReceipt(...args),
     getMoneyRequestParticipantsFromReport: () => [],
-}));
-
-jest.mock('@hooks/useOptimisticDraftTransactions', () => ({
-    __esModule: true,
-    default: () => [[], [{transactionID: '111'}, {transactionID: '222'}]],
 }));
 
 const REPORT_ID = '123';
@@ -79,7 +65,6 @@ function createDefaultParams(): Parameters<typeof useReceiptScan>[0] {
         backToReport: undefined,
         isMultiScanEnabled: false,
         isStartingScan: true,
-        setIsMultiScanEnabled: undefined,
     };
 }
 
@@ -212,21 +197,6 @@ describe('useReceiptScan', () => {
             expect(result.current.isEditing).toBe(true);
         });
 
-        it('should return canUseMultiScan true when isStartingScan and iouType is REQUEST', async () => {
-            const {result} = renderHook(() => useReceiptScan(params));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(result.current.canUseMultiScan).toBe(true);
-        });
-
-        it('should return canUseMultiScan false when iouType is SPLIT', async () => {
-            const splitParams = {...params, iouType: CONST.IOU.TYPE.SPLIT};
-            const {result} = renderHook(() => useReceiptScan(splitParams));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(result.current.canUseMultiScan).toBe(false);
-        });
-
         it('should return shouldAcceptMultipleFiles true when not editing', async () => {
             const {result} = renderHook(() => useReceiptScan(params));
             await waitForBatchedUpdatesWithAct();
@@ -240,14 +210,6 @@ describe('useReceiptScan', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.shouldAcceptMultipleFiles).toBe(false);
-        });
-
-        it('should return canUseMultiScan false when isStartingScan is false', async () => {
-            const paramsWithStartingScanDisabled = {...params, isStartingScan: false};
-            const {result} = renderHook(() => useReceiptScan(paramsWithStartingScanDisabled));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(result.current.canUseMultiScan).toBe(false);
         });
 
         it('should return shouldAcceptMultipleFiles false when backTo is set', async () => {
@@ -337,7 +299,7 @@ describe('useReceiptScan', () => {
         });
 
         it('should clear receiptFiles when isMultiScanEnabled changes from true to false', async () => {
-            const multiScanParams = {...params, isMultiScanEnabled: true, setIsMultiScanEnabled: jest.fn()};
+            const multiScanParams = {...params, isMultiScanEnabled: true};
             const {result, rerender} = renderHook((p: Parameters<typeof useReceiptScan>[0]) => useReceiptScan(p), {
                 initialProps: multiScanParams,
             });
@@ -353,72 +315,6 @@ describe('useReceiptScan', () => {
             rerender({...multiScanParams, isMultiScanEnabled: false});
             await waitForBatchedUpdatesWithAct();
             expect(result.current.receiptFiles).toEqual([]);
-        });
-    });
-
-    describe('multi-scan educational popup', () => {
-        it('should initialize shouldShowMultiScanEducationalPopup as false', async () => {
-            const {result} = renderHook(() => useReceiptScan(params));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(result.current.shouldShowMultiScanEducationalPopup).toBe(false);
-        });
-
-        it('should set shouldShowMultiScanEducationalPopup true when toggleMultiScan is called and modal was not dismissed', async () => {
-            const setIsMultiScanEnabled = jest.fn();
-            const toggleParams = {...params, setIsMultiScanEnabled, isMultiScanEnabled: false};
-            const {result} = renderHook(() => useReceiptScan(toggleParams));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.toggleMultiScan();
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(result.current.shouldShowMultiScanEducationalPopup).toBe(true);
-            expect(mockDismissProductTraining).not.toHaveBeenCalled();
-        });
-
-        it('should call setIsMultiScanEnabled and clear receipts when toggleMultiScan is called after modal dismissed', async () => {
-            Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]: {timestamp: '2024-01-01', dismissedMethod: 'click'},
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            const setIsMultiScanEnabled = jest.fn();
-            const toggleParams = {...params, setIsMultiScanEnabled, isMultiScanEnabled: false};
-            const {result} = renderHook(() => useReceiptScan(toggleParams));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.toggleMultiScan();
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(setIsMultiScanEnabled).toHaveBeenCalledWith(true);
-            expect(mockRemoveTransactionReceipt).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-            expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(true);
-        });
-
-        it('should set shouldShowMultiScanEducationalPopup false when dismissMultiScanEducationalPopup is called', async () => {
-            const setIsMultiScanEnabled = jest.fn();
-            const toggleParams = {...params, setIsMultiScanEnabled, isMultiScanEnabled: false};
-            const {result} = renderHook(() => useReceiptScan(toggleParams));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.toggleMultiScan();
-            });
-            await waitForBatchedUpdatesWithAct();
-            expect(result.current.shouldShowMultiScanEducationalPopup).toBe(true);
-
-            await act(async () => {
-                result.current.dismissMultiScanEducationalPopup();
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            expect(result.current.shouldShowMultiScanEducationalPopup).toBe(false);
-            expect(mockDismissProductTraining).toHaveBeenCalledWith(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
         });
     });
 
@@ -497,40 +393,6 @@ describe('useReceiptScan', () => {
                     locationPermissionGranted: false,
                 }),
             );
-        });
-
-        it('should call handleMoneyRequestStepScanParticipants when submitReceipts is called', async () => {
-            const {result} = renderHook(() => useReceiptScan(params));
-            await waitForBatchedUpdatesWithAct();
-
-            const files = [{file: {uri: 'image.jpg'}, source: 'file://image.jpg', transactionID: INITIAL_TRANSACTION_ID}];
-            await act(async () => {
-                result.current.submitReceipts(files);
-            });
-
-            expect(mockHandleMoneyRequestStepScanParticipants).toHaveBeenCalledWith(expect.objectContaining({files}));
-        });
-
-        it('should filter receiptFiles by optimistic transaction IDs when submitMultiScanReceipts is called', async () => {
-            const {result} = renderHook(() => useReceiptScan(params));
-            await waitForBatchedUpdatesWithAct();
-
-            const validFile = {file: {uri: 'valid-receipt.jpg'}, source: 'file://valid-receipt.jpg', transactionID: '111'};
-            const invalidFile = {file: {uri: 'invalid.jpg'}, source: 'file://invalid.jpg', transactionID: '999'};
-            await act(async () => {
-                result.current.setReceiptFiles([validFile, invalidFile]);
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.submitMultiScanReceipts();
-            });
-
-            type HandleMoneyRequestStepScanPayload = {files: Array<{transactionID: string}>};
-            const calls = mockHandleMoneyRequestStepScanParticipants.mock.calls as Array<[HandleMoneyRequestStepScanPayload]>;
-            const scanParams = calls.at(0)?.at(0);
-            expect(scanParams?.files).toHaveLength(1);
-            expect(scanParams?.files.at(0)?.transactionID).toBe('111');
         });
     });
 });

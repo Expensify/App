@@ -1,48 +1,32 @@
+import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useState} from 'react';
-import {InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {useEffect, useMemo, useState} from 'react';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantReport from '@hooks/useParticipantReport';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSelfDMReport from '@hooks/useSelfDMReport';
-import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import {dismissProductTraining} from '@libs/actions/Welcome';
-import DateUtils from '@libs/DateUtils';
-import HapticFeedback from '@libs/HapticFeedback';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
+import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setMoneyRequestReceipt} from '@userActions/IOU';
-import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
+import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import type {ReceiptFile, UseReceiptScanParams} from './types';
-
-/**
- * Selector to derive whether we should start the location permission flow from the last prompt timestamp.
- * Returns true when the user has never been prompted, or when the last prompt was more than LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS ago.
- */
-function shouldStartLocationPermissionFlowSelector(lastLocationPermissionPrompt: OnyxEntry<string>): boolean {
-    return (
-        !lastLocationPermissionPrompt ||
-        (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
-            DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS)
-    );
-}
 
 function useReceiptScan({
     report,
@@ -58,7 +42,6 @@ function useReceiptScan({
     isStartingScan = false,
     updateScanAndNavigate,
     getSource,
-    setIsMultiScanEnabled,
 }: UseReceiptScanParams) {
     const {isBetaEnabled} = usePermissions();
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
@@ -72,7 +55,6 @@ function useReceiptScan({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {participantReport, participantChatReport} = useParticipantReport(report, currentUserPersonalDetails.accountID);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`);
-    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const reportAttributesDerived = useReportAttributes();
@@ -82,13 +64,12 @@ function useReceiptScan({
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
+    const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const selfDMReport = useSelfDMReport();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
     const isArchived = isArchivedReport(reportNameValuePairs);
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
@@ -106,32 +87,34 @@ function useReceiptScan({
 
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
-    const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
 
     // Clear receipt files when multi-scan is disabled
     useEffect(() => {
         if (isMultiScanEnabled) {
             return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setReceiptFiles([]);
     }, [isMultiScanEnabled]);
 
-    const blinkOpacity = useSharedValue(0);
-    const blinkStyle = useAnimatedStyle(() => ({
-        opacity: blinkOpacity.get(),
-    }));
-
-    function showBlink() {
-        blinkOpacity.set(
-            withTiming(1, {duration: 50}, () => {
-                blinkOpacity.set(withTiming(0, {duration: 150}));
-            }),
-        );
-        HapticFeedback.press();
-    }
-
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
+    const participants = useMemo(
+        () =>
+            getMoneyRequestParticipantOptions(
+                currentUserPersonalDetails.accountID,
+                report,
+                policy,
+                personalDetails,
+                participantReport,
+                participantChatReport,
+                reportNameValuePairs?.private_isArchived,
+                reportAttributesDerived,
+            ),
+        [currentUserPersonalDetails.accountID, report, policy, personalDetails, participantReport, participantChatReport, reportNameValuePairs?.private_isArchived, reportAttributesDerived],
+    );
+
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
     function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) {
         startSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE, {
             name: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
@@ -139,12 +122,12 @@ function useReceiptScan({
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {[CONST.TELEMETRY.ATTRIBUTE_IS_MULTI_SCAN]: isMultiScanEnabled},
         });
+
         handleMoneyRequestStepScanParticipants({
             iouType,
             policy,
             report,
             reportID,
-            reportAttributesDerived,
             transactions,
             initialTransaction: {
                 transactionID: initialTransactionID,
@@ -156,8 +139,6 @@ function useReceiptScan({
                 participants: initialTransaction?.participants,
             },
             personalDetails,
-            participantReport,
-            participantChatReport,
             currentUserLogin: currentUserPersonalDetails.login,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             backTo,
@@ -173,7 +154,6 @@ function useReceiptScan({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            privateIsArchived: reportNameValuePairs?.private_isArchived,
             files,
             isTestTransaction,
             locationPermissionGranted,
@@ -183,6 +163,8 @@ function useReceiptScan({
             betas,
             recentWaypoints,
             allTransactionDrafts,
+            participants,
+            participantsPolicyTags,
             amountOwed,
         });
     }
@@ -253,67 +235,21 @@ function useReceiptScan({
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files, getSource);
     });
-
-    function submitReceipts(files: ReceiptFile[]) {
-        if (shouldSkipConfirmation) {
-            const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-            if (gpsRequired) {
-                if (shouldStartLocationPermissionFlow) {
-                    setStartLocationPermissionFlow(true);
-                    return;
-                }
-                navigateToConfirmationStep(files, true);
-                return;
-            }
-        }
-        navigateToConfirmationStep(files, false);
-    }
-
-    function submitMultiScanReceipts() {
-        const transactionIDs = new Set(optimisticTransactions?.map((transaction) => transaction?.transactionID));
-        const validReceiptFiles = receiptFiles.filter((receiptFile) => transactionIDs.has(receiptFile.transactionID));
-        submitReceipts(validReceiptFiles);
-    }
-
-    function toggleMultiScan() {
-        if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
-            setShouldShowMultiScanEducationalPopup(true);
-        }
-        removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-        removeDraftTransactions(true);
-        setIsMultiScanEnabled?.(!isMultiScanEnabled);
-    }
-
-    function dismissMultiScanEducationalPopup() {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
-            setShouldShowMultiScanEducationalPopup(false);
-        });
-    }
-
     return {
         transactions,
         isEditing,
-        canUseMultiScan,
         isReplacingReceipt,
         shouldAcceptMultipleFiles,
+        shouldSkipConfirmation,
         startLocationPermissionFlow,
         setStartLocationPermissionFlow,
         shouldStartLocationPermissionFlow,
         receiptFiles,
         setReceiptFiles,
-        shouldShowMultiScanEducationalPopup,
         navigateToConfirmationStep,
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        submitReceipts,
-        submitMultiScanReceipts,
-        toggleMultiScan,
-        dismissMultiScanEducationalPopup,
-        blinkStyle,
-        showBlink,
         setTestReceiptAndNavigate,
     };
 }
