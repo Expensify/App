@@ -34,7 +34,6 @@ const BACKEND_MESSAGE = {
     TRANSACTION_ALREADY_APPROVED: 'Transaction already approved',
     TRANSACTION_ALREADY_DENIED: 'Transaction already denied',
     TRANSACTION_ALREADY_REVIEWED: 'Transaction already reviewed',
-    SERVER_FAILURE: 'Server failure',
 } as const;
 
 const REASON = {
@@ -67,7 +66,6 @@ const REASON = {
         PIN_REVEALED: 'PIN revealed successfully',
         PIN_CHANGED: 'PIN changed successfully',
         SET_PIN: 'PIN set successfully',
-        SERVER_FAILURE: 'Server failure',
     },
     CHALLENGE: {
         CHALLENGE_MISSING: 'Challenge is missing',
@@ -189,26 +187,14 @@ const API_RESPONSE_MAP = {
 
     SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN: {
         [HTTP_STATUS.SUCCESS]: REASON.BACKEND.SET_PIN,
-        [HTTP_STATUS.CLIENT_ERROR]: {
-            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
-            [BACKEND_MESSAGE.SERVER_FAILURE]: REASON.BACKEND.SERVER_FAILURE,
-        },
     },
 
     REVEAL_CARD_PIN: {
         [HTTP_STATUS.SUCCESS]: REASON.BACKEND.PIN_REVEALED,
-        [HTTP_STATUS.CLIENT_ERROR]: {
-            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
-            [BACKEND_MESSAGE.SERVER_FAILURE]: REASON.BACKEND.SERVER_FAILURE,
-        },
     },
 
     CHANGE_CARD_PIN: {
         [HTTP_STATUS.SUCCESS]: REASON.BACKEND.PIN_CHANGED,
-        [HTTP_STATUS.CLIENT_ERROR]: {
-            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
-            [BACKEND_MESSAGE.SERVER_FAILURE]: REASON.BACKEND.SERVER_FAILURE,
-        },
     },
 } as const;
 
