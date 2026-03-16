@@ -159,7 +159,7 @@ describe('Deep linking', () => {
         // so RAM-only keys retain their values from the previous mount. We need to manually
         // remove them to simulate a real app restart.
         await Onyx.set(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM, null);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         const url = getInitialURL();
         // User signs in automatically when the app is remounted because of the deep link.
