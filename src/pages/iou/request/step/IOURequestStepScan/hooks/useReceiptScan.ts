@@ -16,7 +16,7 @@ import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyReq
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setMoneyRequestReceipt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions} from '@userActions/TransactionEdit';
@@ -76,6 +76,7 @@ function useReceiptScan({
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
+    const transactionTaxValue = initialTransaction?.taxValue ?? getTaxValue(policy, initialTransaction, transactionTaxCode) ?? '';
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -115,7 +116,7 @@ function useReceiptScan({
                 reportID: initialTransaction?.reportID,
                 taxCode: transactionTaxCode,
                 taxAmount: transactionTaxAmount,
-                taxValue: initialTransaction?.taxValue,
+                taxValue: transactionTaxValue,
                 currency: initialTransaction?.currency,
                 isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
                 participants: initialTransaction?.participants,

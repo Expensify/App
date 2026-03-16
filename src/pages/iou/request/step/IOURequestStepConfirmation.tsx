@@ -73,6 +73,7 @@ import {
     getDefaultTaxCode,
     getRateID,
     getRequestType,
+    getTaxValue,
     getValidWaypoints,
     hasReceipt,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -277,7 +278,7 @@ function IOURequestStepConfirmation({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
-    const transactionTaxValue = transaction?.taxValue;
+    const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
@@ -1351,6 +1352,7 @@ function IOURequestStepConfirmation({
             report,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             quickAction,
