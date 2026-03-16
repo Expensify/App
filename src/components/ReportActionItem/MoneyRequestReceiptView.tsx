@@ -181,9 +181,10 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
         if (!report?.reportID) {
             return;
         }
+        const notifyReportID = moneyRequestReport?.reportID ? [report.reportID, moneyRequestReport.reportID] : report.reportID;
         addAttachmentWithComment({
             report,
-            notifyReportID: report.reportID,
+            notifyReportID,
             ancestors,
             attachments: files,
             currentUserAccountID,
