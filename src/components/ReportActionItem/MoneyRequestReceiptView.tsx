@@ -185,6 +185,9 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const shouldShowReceiptEmptyState = (isDisplayedInWideRHP || !isInvoice) && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, transactionViolations, policy) : false;
 
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+    const distanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
@@ -206,7 +209,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                     connectionLink,
                     card,
                     isMarkAsCash,
-                    transaction,
+                    routeDistanceMeters,
+                    distanceUnit,
                 );
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
@@ -215,7 +219,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash, transaction]);
+    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);

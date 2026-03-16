@@ -568,7 +568,18 @@ function MoneyRequestView({
                 .map((violation) => {
                     const cardID = violation.data?.cardID;
                     const card = cardID ? cardList?.[cardID] : undefined;
-                    return ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash, transaction);
+                    return ViolationsUtils.getViolationTranslation(
+                        violation,
+                        translate,
+                        canEdit,
+                        undefined,
+                        companyCardPageURL,
+                        connectionLink,
+                        card,
+                        isMarkAsCash,
+                        transaction?.comment?.customUnit?.routeDistanceMeters,
+                        transaction?.comment?.customUnit?.distanceUnit,
+                    );
                 })
                 .join('. ')}.`;
         }
@@ -1125,7 +1136,8 @@ function MoneyRequestView({
                                     canEdit={canEdit}
                                     companyCardPageURL={companyCardPageURL}
                                     connectionLink={connectionLink}
-                                    transaction={transaction}
+                                    routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
+                                    distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
                                 />
                             )}
                         </View>

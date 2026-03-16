@@ -671,7 +671,8 @@ const ViolationsUtils = {
         connectionLink?: string,
         card?: Card,
         isMarkAsCash?: boolean,
-        transaction?: OnyxEntry<Transaction>,
+        routeDistanceMeters?: number,
+        distanceUnit?: string,
     ): string {
         const {
             brokenBankConnection = false,
@@ -730,10 +731,8 @@ const ViolationsUtils = {
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
             case 'increasedDistance': {
-                const customUnit = transaction?.comment?.customUnit;
-                const routeDistanceMeters = Number(customUnit?.routeDistanceMeters) || 0;
-                const distanceUnit = customUnit?.distanceUnit;
-                const formattedRouteDistance = routeDistanceMeters > 0 && distanceUnit ? DistanceRequestUtils.getDistanceForDisplayLabel(routeDistanceMeters, distanceUnit) : undefined;
+                const distance = Number(routeDistanceMeters) || 0;
+                const formattedRouteDistance = distance > 0 && distanceUnit ? DistanceRequestUtils.getDistanceForDisplayLabel(distance, distanceUnit) : undefined;
                 return translate('violations.increasedDistance', {formattedRouteDistance});
             }
             case 'nonExpensiworksExpense':
@@ -838,7 +837,18 @@ const ViolationsUtils = {
             ...filteredViolations.map((violation) => {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, transaction);
+                const message = ViolationsUtils.getViolationTranslation(
+                    violation,
+                    translate,
+                    true,
+                    tags,
+                    companyCardPageURL,
+                    connectionLink,
+                    card,
+                    isMarkAsCash,
+                    transaction?.comment?.customUnit?.routeDistanceMeters,
+                    transaction?.comment?.customUnit?.distanceUnit,
+                );
                 if (!message) {
                     return;
                 }
