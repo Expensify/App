@@ -114,7 +114,7 @@ const DYNAMIC_ROUTES = {
     },
     NOTIFICATION_PREFERENCES: {
         path: 'notification-preferences',
-        entryScreens: [SCREENS.SETTINGS.ROOT],
+        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.PROFILE_ROOT],
     },
 } as const satisfies DynamicRoutes;
 

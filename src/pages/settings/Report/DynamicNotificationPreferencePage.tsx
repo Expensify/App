@@ -35,7 +35,7 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
             keyForList: preference,
             isSelected: preference === currentNotificationPreference,
         }));
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADDRESS_COUNTRY.path);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backPath);
