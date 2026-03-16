@@ -1934,6 +1934,7 @@ function createTransactionThreadReport(
     openReport({
         reportID: optimisticTransactionThreadReportID,
         introSelected,
+        participants: currentUserLogin ? [{login: currentUserLogin, accountID: currentUserAccountID}] : [],
         personalDetails: allPersonalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
