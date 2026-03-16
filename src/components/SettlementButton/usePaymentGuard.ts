@@ -1,5 +1,4 @@
 import {isUserValidatedSelector} from '@selectors/Account';
-import {useCallback} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +24,7 @@ function usePaymentGuard(chatReportID: string, reportID: string | undefined, pol
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const checkForNecessaryAction = useCallback(() => {
+    const checkForNecessaryAction = () => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -47,18 +46,7 @@ function usePaymentGuard(chatReportID: string, reportID: string | undefined, pol
         }
 
         return false;
-    }, [
-        isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        isAccountLocked,
-        showLockedAccountModal,
-        isUserValidated,
-        chatReportID,
-        reportID,
-        policy,
-        userBillingGraceEndPeriods,
-        ownerBillingGraceEndPeriod,
-    ]);
+    };
 
     return {checkForNecessaryAction, userBillingGraceEndPeriods};
 }

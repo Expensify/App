@@ -8,7 +8,7 @@ import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, Report} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, Report, TransactionViolation} from '@src/types/onyx';
 
 type ApproveActionParams = {
     data: ReturnType<typeof useSettlementData>;
@@ -30,11 +30,11 @@ function useApproveAction({data, iouReport, formattedAmount, shouldDisableApprov
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionViolationsSelector = (violations: OnyxCollection<TransactionViolation[]>) => hasViolationsReportUtils(iouReport?.reportID, violations, accountID, email ?? '');
+    const [hasViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsSelector});
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, accountID, email ?? '');
 
     const approveButtonOption: DropdownOption<string> = {
         text: translate('iou.approve', {formattedAmount}),
@@ -52,7 +52,7 @@ function useApproveAction({data, iouReport, formattedAmount, shouldDisableApprov
                 policy,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
-                hasViolations,
+                hasViolations: !!hasViolations,
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,

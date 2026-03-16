@@ -20,15 +20,25 @@ function SettlementButton({
     },
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     extraSmall = false,
+    chatReportID = '',
+    currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
     iouReport,
+    formattedAmount = '',
+    onPress,
+    policyID = '-1',
     isDisabled = false,
     shouldStayNormalOnDisable = false,
     isLoading = false,
     pressOnEnter = false,
     style,
     disabledStyle,
+    shouldHidePaymentOptions = false,
+    shouldShowApproveButton = false,
+    shouldDisableApproveButton = false,
+    shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
+    confirmApproval,
     useKeyboardShortcuts = false,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
@@ -37,8 +47,6 @@ function SettlementButton({
     shouldUseShortForm = false,
     hasOnlyHeldExpenses = false,
     sentryLabel,
-    shouldShowPersonalBankAccountOption = false,
-    ...optionProps
 }: SettlementButtonProps) {
     const kycWallRef = useContext(KYCWallContext);
     const {
@@ -56,13 +64,20 @@ function SettlementButton({
         lastPaymentPolicy,
         styles,
         translate,
-        onPress,
     } = useSettlementButtonOptions({
-        ...optionProps,
+        chatReportID,
+        currency,
         iouReport,
+        formattedAmount,
+        onPress,
+        policyID,
+        shouldHidePaymentOptions,
+        shouldShowApproveButton,
+        shouldDisableApproveButton,
+        shouldShowPersonalBankAccountOption,
         onlyShowPayElsewhere,
         shouldUseShortForm,
-        shouldShowPersonalBankAccountOption,
+        confirmApproval,
     });
 
     return (
@@ -73,7 +88,7 @@ function SettlementButton({
             addDebitCardRoute={addDebitCardRoute}
             isDisabled={isOffline}
             source={CONST.KYC_WALL_SOURCE.REPORT}
-            chatReportID={optionProps.chatReportID}
+            chatReportID={chatReportID}
             addBankAccountRoute={isExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: iouReport?.policyID, backTo: Navigation.getActiveRoute()}) : undefined}
             iouReport={iouReport}
             policy={lastPaymentPolicy}
