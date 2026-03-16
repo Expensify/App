@@ -1540,7 +1540,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         if (isError) {
             return theme.badgeDangerText;
         }
-        return theme.icon;
+        return theme.iconStrong;
     },
 
     getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
