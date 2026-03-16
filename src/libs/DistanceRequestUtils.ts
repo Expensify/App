@@ -479,7 +479,10 @@ function isDistanceAmountWithinLimit(distance: number, rate: number): boolean {
  */
 function normalizeOdometerText(text: string, fromLocaleDigit: (char: string) => string): string {
     const standardized = replaceAllDigits(text, fromLocaleDigit);
-    return standardized.replaceAll(/[^0-9.]/g, '');
+    const stripped = standardized.replaceAll(/[^0-9.]/g, '');
+    // Remove redundant leading zeroes (e.g. "007" → "7", "000" → "0") but
+    // keep a single zero before a decimal point (e.g. "0.5" stays "0.5").
+    return stripped.replace(/^0+(?=\d)/, '');
 }
 
 export default {

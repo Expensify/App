@@ -37,4 +37,32 @@ describe('normalizeOdometerText', () => {
             expect(DistanceRequestUtils.normalizeOdometerText('9999999', englishFromLocaleDigit)).toBe('9999999');
         });
     });
+
+    describe('leading zeroes', () => {
+        const identity = (char: string) => char;
+
+        it("strips redundant leading zeroes: '000' → '0'", () => {
+            expect(DistanceRequestUtils.normalizeOdometerText('000', identity)).toBe('0');
+        });
+
+        it("strips leading zeroes before digits: '007' → '7'", () => {
+            expect(DistanceRequestUtils.normalizeOdometerText('007', identity)).toBe('7');
+        });
+
+        it("keeps single zero before decimal: '0.5' → '0.5'", () => {
+            expect(DistanceRequestUtils.normalizeOdometerText('0.5', identity)).toBe('0.5');
+        });
+
+        it("normalizes multiple zeroes before decimal: '00.5' → '0.5'", () => {
+            expect(DistanceRequestUtils.normalizeOdometerText('00.5', identity)).toBe('0.5');
+        });
+
+        it("keeps a single zero: '0' → '0'", () => {
+            expect(DistanceRequestUtils.normalizeOdometerText('0', identity)).toBe('0');
+        });
+
+        it("does not affect numbers without leading zeroes: '123' → '123'", () => {
+            expect(DistanceRequestUtils.normalizeOdometerText('123', identity)).toBe('123');
+        });
+    });
 });
