@@ -161,7 +161,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 shouldRenderFooterAboveSubmit
                 footerContent={selectionError ? <FormHelpMessage message={selectionError} /> : undefined}
             >
-                <View style={styles.mb6}>
+                <View style={styles.mb3}>
                     <Text>{translate('iou.rejectReport.description')}</Text>
                 </View>
                 <View style={styles.mb6}>
@@ -179,7 +179,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 </View>
                 {hasPreviousApprover && (
                     <View style={styles.mb6}>
-                        <Text style={[styles.mb2]}>{translate('iou.rejectReport.selectTarget')}</Text>
+                        <Text style={[styles.mb3]}>{translate('iou.rejectReport.selectTarget')}</Text>
                         <View style={styles.mhn5}>
                             <SelectionList
                                 data={options}
