@@ -116,6 +116,16 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
                 };
             }
 
+            // For REPLACE_FULLSCREEN_UNDER_RHP we intentionally preserve the original history
+            // array so that useLinking sees historyDelta=0 and does NOT push/pop any browser
+            // history entries for this intermediate state change. The correct browser history
+            // update happens later when DISMISS_MODAL pops the RHP in the next animation frame.
+            if ((action as {type: string}).type === CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP && state.history) {
+                // @ts-expect-error newState can be partial but getRehydratedState handles it correctly.
+                const rehydrated = getRehydratedState(newState, configOptions);
+                return {...rehydrated, history: state.history};
+            }
+
             // Handle every other action.
             // @ts-expect-error newState can be partial or not. But getRehydratedState will handle it correctly even if the stale === false.
             // And we need to update the history if routes have changed.
