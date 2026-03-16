@@ -33,6 +33,7 @@ import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
+    getAttendees,
     getCurrency,
     getDescription,
     getExchangeRate,
@@ -272,11 +273,13 @@ function TransactionItemRow({
         return transactionItem.cardName;
     }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
 
-    const attendeeEmails = useMemo(() => transactionItem.comment?.attendees?.map((attendee) => attendee.email) ?? [], [transactionItem.comment?.attendees]);
+    const transactionAttendees = useMemo(() => getAttendees(transactionItem, undefined), [transactionItem]);
+
+    const attendeeEmails = useMemo(() => transactionAttendees?.map((attendee) => attendee.email) ?? [], [transactionAttendees]);
     const attendeeAccountIDs = useAccountIDsByEmails(attendeeEmails);
 
     const totalPerAttendee = useMemo(() => {
-        const attendeesCount = transactionItem.comment?.attendees?.length ?? 0;
+        const attendeesCount = transactionAttendees.length ?? 0;
         const totalAmount = getAmount(transactionItem);
 
         if (!attendeesCount || totalAmount === undefined) {
@@ -284,7 +287,7 @@ function TransactionItemRow({
         }
 
         return totalAmount / attendeesCount;
-    }, [transactionItem]);
+    }, [transactionAttendees.length, transactionItem]);
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
