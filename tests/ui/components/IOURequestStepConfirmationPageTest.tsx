@@ -77,6 +77,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
 jest.mock('@src/hooks/useResponsiveLayout');
+jest.mock('@libs/getCurrentPosition');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
