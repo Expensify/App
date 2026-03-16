@@ -499,4 +499,3 @@ export type {default as AuthorizeTransactionParams} from './AuthorizeTransaction
 export type {default as DenyTransactionParams} from './DenyTransactionParams';
 export type {default as ExportDomainMembersCSVParams} from './ExportDomainMembersCSVParams';
 export type {default as UpdateDomainSecurityGroupParams} from './UpdateDomainSecurityGroupParams';
-export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultDomainSecurityGroupParams';
