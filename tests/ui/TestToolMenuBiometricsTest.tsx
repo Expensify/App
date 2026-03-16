@@ -8,7 +8,7 @@ import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/V
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
 let mockBiometricStatus = {
-    localPublicKey: undefined as string | undefined,
+    localCredentialID: undefined as string | undefined,
     isCurrentDeviceRegistered: false,
     otherDeviceCount: 0,
     totalDeviceCount: 0,
@@ -171,7 +171,7 @@ jest.mock('@components/TestCrash', () => {
 
 function setBiometricStatus(overrides: Partial<typeof mockBiometricStatus>) {
     mockBiometricStatus = {
-        localPublicKey: undefined,
+        localCredentialID: undefined,
         isCurrentDeviceRegistered: false,
         otherDeviceCount: 0,
         totalDeviceCount: 0,
@@ -195,7 +195,7 @@ describe('TestToolMenu biometrics', () => {
 
     it('renders biometrics title with "Registered" status when this device is registered', () => {
         setBiometricStatus({
-            localPublicKey: 'key-abc',
+            localCredentialID: 'key-abc',
             isCurrentDeviceRegistered: true,
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
@@ -234,7 +234,7 @@ describe('TestToolMenu biometrics', () => {
 
     it('shows the Revoke button when this device is registered with a local key', () => {
         setBiometricStatus({
-            localPublicKey: 'key-abc',
+            localCredentialID: 'key-abc',
             isCurrentDeviceRegistered: true,
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
@@ -246,7 +246,7 @@ describe('TestToolMenu biometrics', () => {
 
     it('calls revokeMultifactorAuthenticationCredentials with onlyKeyID when Revoke is pressed', () => {
         setBiometricStatus({
-            localPublicKey: 'key-abc',
+            localCredentialID: 'key-abc',
             isCurrentDeviceRegistered: true,
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });

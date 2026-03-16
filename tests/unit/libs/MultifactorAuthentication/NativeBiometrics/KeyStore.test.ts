@@ -24,9 +24,7 @@ jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/SecureStore', () => 
     },
 }));
 
-jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/helpers', () => ({
-    decodeExpoMessage: jest.fn(() => 'decoded-error-reason'),
-}));
+jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/helpers', () => jest.fn(() => 'decoded-error-reason'));
 
 describe('MultifactorAuthentication KeyStore', () => {
     const mockAccountID = 12345;
