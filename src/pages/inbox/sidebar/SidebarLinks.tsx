@@ -16,6 +16,7 @@ import {cancelSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
@@ -51,7 +52,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
      * Show Report page with selected report id
      */
     const showReportPage = useCallback(
-        (option: Report) => {
+        (option: OptionData) => {
             // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
             // or when clicking the active LHN row on large screens
             // or when continuously clicking different LHNs, only apply to small screen
@@ -70,7 +71,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, option.actionBadgeReportActionID));
         },
         [shouldUseNarrowLayout, isActiveReport],
     );

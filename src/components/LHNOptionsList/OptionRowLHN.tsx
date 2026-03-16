@@ -434,28 +434,18 @@ function OptionRowLHN({
                                                 />
                                             </View>
                                         )}
-                                        {!brickRoadIndicator &&
-                                            !!optionItem.isPinned &&
-                                            (isProduction ? (
-                                                <View
-                                                    style={styles.ml2}
-                                                    accessibilityLabel={translate('sidebarScreen.chatPinned')}
-                                                >
-                                                    <Icon
-                                                        testID="Pin Icon"
-                                                        fill={theme.icon}
-                                                        src={expensifyIcons.Pin}
-                                                    />
-                                                </View>
-                                            ) : (
-                                                <Badge
-                                                    icon={expensifyIcons.Pin}
-                                                    text={translate('common.pinned')}
-                                                    badgeStyles={isOptionFocused && styles.badgeDefaultActive}
-                                                    isCondensed
-                                                    isStrong
+                                        {!brickRoadIndicator && !!optionItem.isPinned && (
+                                            <View
+                                                style={styles.ml2}
+                                                accessibilityLabel={translate('sidebarScreen.chatPinned')}
+                                            >
+                                                <Icon
+                                                    testID="Pin Icon"
+                                                    fill={theme.icon}
+                                                    src={expensifyIcons.Pin}
                                                 />
-                                            ))}
+                                            </View>
+                                        )}
                                     </View>
                                 </PressableWithSecondaryInteraction>
                             );
