@@ -306,7 +306,7 @@ function getTransactionPreviewTextAndTranslationPaths({
             RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
         }
     } else if (isTransactionScanning) {
-        previewHeaderText = [{translationPath: 'common.receipt'}];
+        previewHeaderText = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction)) || 'common.receipt'}];
     } else if (isBillSplit) {
         previewHeaderText = [{translationPath: 'iou.split'}];
     }
