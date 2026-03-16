@@ -185,25 +185,20 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // 2. Check if device is compatible
+        // 2a. Check if device supports the authentication method
         if (!biometrics.doesDeviceSupportAuthenticationMethod()) {
-            const {allowedAuthenticationMethods = [] as string[]} = scenario;
+            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE;
+            addMFABreadcrumb('Device check failed', {reason, deviceVerificationType: biometrics.deviceVerificationType}, 'warning');
+            dispatch({type: 'SET_ERROR', payload: {reason}});
+            return;
+        }
 
-            let reason: MultifactorAuthenticationReason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE;
-
-            // If the user is using mobile app and the scenario allows native biometrics as a form of authentication,
-            // then they need to enable it in the system settings as well for doesDeviceSupportAuthenticationMethod to return true.
-            if (!isWeb && allowedAuthenticationMethods.includes(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS)) {
-                reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS;
-            }
-
-            addMFABreadcrumb('Device check failed', {reason}, 'warning');
-            dispatch({
-                type: 'SET_ERROR',
-                payload: {
-                    reason,
-                },
-            });
+        // 2b. Check if the scenario allows the current authentication method
+        const {allowedAuthenticationMethods = [] as string[]} = scenario;
+        if (!allowedAuthenticationMethods.includes(biometrics.deviceVerificationType)) {
+            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS;
+            addMFABreadcrumb('Authentication method not allowed', {reason, deviceVerificationType: biometrics.deviceVerificationType}, 'warning');
+            dispatch({type: 'SET_ERROR', payload: {reason}});
             return;
         }
 
