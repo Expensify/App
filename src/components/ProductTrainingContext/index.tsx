@@ -270,7 +270,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         const tooltip = TOOLTIPS[tooltipName];
         return (
             <View
-                id={tooltip.content}
+                id={tooltipName}
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 <View
