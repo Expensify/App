@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
-import shouldAnnounceSelectedLabel from './shouldAnnounceSelectedLabel';
+import getAccessibilityLabelConfig from './getAccessibilityLabelConfig';
 import type {BasePickerProps} from './types';
 
 type IconToRender = () => ReactElement;
@@ -47,7 +47,7 @@ function BasePicker<TPickerValue>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
+    const {shouldAnnounceSelectedLabel, shouldUseCustomAccessibilityLabel} = getAccessibilityLabelConfig();
     const [isHighlighted, setIsHighlighted] = useState(false);
 
     // reference to the root View
@@ -169,8 +169,8 @@ function BasePicker<TPickerValue>({
 
     const selectedItem = items.find((item) => item.value === value);
     const selectedLabel = selectedItem?.label ?? '';
+    const defaultAccessibilityLabel = accessibilityLabel ?? label ?? selectedLabel;
     const enhancedAccessibilityLabel = useMemo(() => {
-        const defaultAccessibilityLabel = accessibilityLabel ?? label;
         if (!defaultAccessibilityLabel) {
             return selectedLabel || '';
         }
@@ -178,7 +178,7 @@ function BasePicker<TPickerValue>({
             return `${defaultAccessibilityLabel}${shouldAnnounceSelectedLabel ? `, ${selectedLabel}` : ''}, ${translate(isHighlighted ? 'common.expanded' : 'common.collapsed')}`;
         }
         return defaultAccessibilityLabel;
-    }, [accessibilityLabel, label, selectedLabel, isHighlighted, translate]);
+    }, [defaultAccessibilityLabel, selectedLabel, shouldAnnounceSelectedLabel, translate, isHighlighted]);
 
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
@@ -196,6 +196,8 @@ function BasePicker<TPickerValue>({
             </View>
         );
     }
+
+    const actualAccessibilityLabel = shouldUseCustomAccessibilityLabel ? enhancedAccessibilityLabel : defaultAccessibilityLabel;
 
     return (
         <>
@@ -226,7 +228,7 @@ function BasePicker<TPickerValue>({
                     textInputProps={{
                         allowFontScaling: false,
                         accessibilityRole: CONST.ROLE.COMBOBOX,
-                        accessibilityLabel: enhancedAccessibilityLabel,
+                        accessibilityLabel: actualAccessibilityLabel,
                         importantForAccessibility: 'no-hide-descendants',
                     }}
                     touchableDoneProps={{
@@ -235,7 +237,7 @@ function BasePicker<TPickerValue>({
                     touchableWrapperProps={{
                         accessible: true,
                         accessibilityRole: CONST.ROLE.COMBOBOX,
-                        accessibilityLabel: enhancedAccessibilityLabel,
+                        accessibilityLabel: actualAccessibilityLabel,
                     }}
                     pickerProps={{
                         ref: picker,
@@ -245,7 +247,7 @@ function BasePicker<TPickerValue>({
                             disableHighlight();
                             onBlur();
                         },
-                        accessibilityLabel: enhancedAccessibilityLabel,
+                        accessibilityLabel: actualAccessibilityLabel,
                         accessibilityRole: CONST.ROLE.COMBOBOX,
                         ...additionalPickerEvents(enableHighlight, (inputValue, index) => {
                             onValueChange(inputValue, index);
