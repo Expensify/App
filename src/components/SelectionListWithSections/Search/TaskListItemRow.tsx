@@ -154,7 +154,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         </View>
                     </View>
 
-                    <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
+                    <View style={[StyleUtils.getWidthStyle(variables.w68)]}>
                         <ActionCell
                             taskItem={item}
                             showTooltip={showTooltip}

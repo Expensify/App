@@ -130,7 +130,6 @@ function CardListItemHeader<TItem extends ListItem>({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            style={isLargeScreenWidth && styles.mr1}
                         />
                     )}
                     {!isLargeScreenWidth && (

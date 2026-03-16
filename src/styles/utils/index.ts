@@ -1867,7 +1867,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
-                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w68), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
                 columnWidth = {...getWidthStyle(variables.w72), ...styles.alignItemsCenter};
