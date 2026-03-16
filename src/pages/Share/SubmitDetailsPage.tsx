@@ -131,6 +131,7 @@ function SubmitDetailsPage({
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxValue = transaction?.taxValue;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
@@ -155,6 +156,7 @@ function SubmitDetailsPage({
                     tag: transaction.tag,
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
+                    taxValue: transactionTaxValue,
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
@@ -195,6 +197,7 @@ function SubmitDetailsPage({
                     tag: transaction.tag,
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
+                    taxValue: transactionTaxValue,
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',

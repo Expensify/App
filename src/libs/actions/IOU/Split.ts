@@ -143,6 +143,7 @@ type SplitBillActionsParams = {
     splitShares?: SplitShares;
     taxCode?: string;
     taxAmount?: number;
+    taxValue?: string;
     isRetry?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -176,6 +177,7 @@ function splitBill({
     splitShares = {},
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
@@ -205,6 +207,7 @@ function splitBill({
             iouRequestType,
             taxCode,
             taxAmount,
+            taxValue,
         },
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
@@ -268,6 +271,7 @@ function splitBillAndOpenReport({
     splitShares = {},
     taxCode = '',
     taxAmount = 0,
+    taxValue,
     existingSplitChatReportID,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
@@ -299,6 +303,7 @@ function splitBillAndOpenReport({
             iouRequestType,
             taxCode,
             taxAmount,
+            taxValue,
         },
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
@@ -547,6 +552,7 @@ function startSplitBill({
         currency,
         taxCode,
         taxAmount,
+        taxValue,
         quickAction,
         policyRecentlyUsedCurrencies,
         policyRecentlyUsedTags,

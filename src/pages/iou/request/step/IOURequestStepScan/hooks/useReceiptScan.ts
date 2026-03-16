@@ -115,6 +115,7 @@ function useReceiptScan({
                 reportID: initialTransaction?.reportID,
                 taxCode: transactionTaxCode,
                 taxAmount: transactionTaxAmount,
+                taxValue: initialTransaction?.taxValue,
                 currency: initialTransaction?.currency,
                 isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
                 participants: initialTransaction?.participants,
