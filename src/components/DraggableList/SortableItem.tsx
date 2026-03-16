@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type {SortableItemProps} from './types';
 
 const PRESSABLE_SELECTOR = '[data-tag="pressable"]';
+const FOCUSABLE_ELEMENTS_SELECTOR = 'button, [tabindex]:not([tabindex="-1"])';
 
 function SortableItem({id, children, disabled = false}: SortableItemProps) {
     const {attributes, listeners, setNodeRef, transform, transition, isDragging, node} = useSortable({id, disabled});
@@ -54,7 +55,7 @@ function SortableItem({id, children, disabled = false}: SortableItemProps) {
             // nested interactive element via Tab, pull it back to the sortable wrapper
             // and remove the child from tab order so the next Tab advances correctly.
             onFocus={(e) => {
-                for (const element of e.currentTarget.querySelectorAll<HTMLElement>('button, [tabindex]:not([tabindex="-1"])')) {
+                for (const element of e.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS_SELECTOR)) {
                     element.tabIndex = -1;
                 }
                 if (e.target === e.currentTarget) {
