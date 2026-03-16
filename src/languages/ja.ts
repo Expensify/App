@@ -555,6 +555,7 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'こんにちは、どのようにお手伝いできますか？', showHistory: '履歴を表示'},
         duplicateReport: 'レポートを複製',
         approver: '承認者',
+        copyOfReportName: (reportName: string) => `${reportName} のコピー`,
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
