@@ -4,6 +4,7 @@ import type {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
@@ -33,6 +34,7 @@ function DatePickerModal({
     anchorPosition,
     onSelected,
     shouldCloseWhenBrowserNavigationChanged = false,
+    shouldHandleNavigationBack,
     shouldPositionFromTop = false,
     forwardedFSClass,
 }: DatePickerProps) {
@@ -59,6 +61,7 @@ function DatePickerModal({
         onInputChange?.(newValue);
         setSelectedDate(newValue);
     };
+    const shouldHandleNavigationBackForPicker = shouldHandleNavigationBack ?? getPlatform() === CONST.PLATFORM.WEB;
 
     return (
         <PopoverWithMeasuredContent
@@ -68,6 +71,7 @@ function DatePickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
+            shouldHandleNavigationBack={shouldHandleNavigationBackForPicker}
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
             anchorAlignment={DEFAULT_ANCHOR_ORIGIN}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
