@@ -87,7 +87,7 @@ describe('useNativeBiometrics hook', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             expect(result.current).toHaveProperty('serverKnownCredentialIDs');
-            expect(result.current).toHaveProperty('doesDeviceSupportBiometrics');
+            expect(result.current).toHaveProperty('doesDeviceSupportAuthenticationMethod');
             expect(result.current).toHaveProperty('getLocalCredentialID');
             expect(result.current).toHaveProperty('areLocalCredentialsKnownToServer');
             expect(result.current).toHaveProperty('register');
@@ -98,24 +98,24 @@ describe('useNativeBiometrics hook', () => {
         it('should initialize info with biometrics status', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.doesDeviceSupportBiometrics()).toBe(true);
+            expect(result.current.doesDeviceSupportAuthenticationMethod()).toBe(true);
             await expect(result.current.getLocalCredentialID()).resolves.toBeUndefined();
             await expect(result.current.areLocalCredentialsKnownToServer()).resolves.toBe(false);
         });
     });
 
-    describe('doesDeviceSupportBiometrics', () => {
+    describe('doesDeviceSupportAuthenticationMethod', () => {
         it('should return true when device supports biometrics', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(typeof result.current.doesDeviceSupportBiometrics()).toBe('boolean');
-            expect(result.current.doesDeviceSupportBiometrics()).toBe(true);
+            expect(typeof result.current.doesDeviceSupportAuthenticationMethod()).toBe('boolean');
+            expect(result.current.doesDeviceSupportAuthenticationMethod()).toBe(true);
         });
 
         it('should return boolean based on supportedAuthentication', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const support = result.current.doesDeviceSupportBiometrics();
+            const support = result.current.doesDeviceSupportAuthenticationMethod();
             const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
             const expectedValue = biometrics || credentials;
 

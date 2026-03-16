@@ -67,7 +67,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return isMFAFlowScreen(focusedScreen);
     });
 
-    const {deviceVerificationType, doesDeviceSupportBiometrics} = useBiometrics();
+    const {deviceVerificationType, doesDeviceSupportAuthenticationMethod} = useBiometrics();
 
     const transactionPending3DSReview = useMemo(() => {
         if (!transactionsPending3DSReview || isLoadingOnyxValue(locallyProcessedReviewsResult)) {
@@ -113,7 +113,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
             return;
         }
 
-        const doesDeviceSupportAnAllowedAuthenticationMethod = doesDeviceSupportBiometrics() && AuthorizeTransaction.allowedAuthenticationMethods.includes(deviceVerificationType);
+        const doesDeviceSupportAnAllowedAuthenticationMethod = doesDeviceSupportAuthenticationMethod() && AuthorizeTransaction.allowedAuthenticationMethods.includes(deviceVerificationType);
 
         // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
         if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
@@ -163,7 +163,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return () => {
             cancel = true;
         };
-    }, [transactionPending3DSReview?.transactionID, doesDeviceSupportBiometrics, deviceVerificationType, isCurrentlyActingOn3DSChallenge]);
+    }, [transactionPending3DSReview?.transactionID, doesDeviceSupportAuthenticationMethod, deviceVerificationType, isCurrentlyActingOn3DSChallenge]);
 }
 
 export default useNavigateTo3DSAuthorizationChallenge;

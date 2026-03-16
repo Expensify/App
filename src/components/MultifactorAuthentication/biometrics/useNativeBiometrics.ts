@@ -30,7 +30,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
      * Verifies both biometrics and credentials authentication capabilities.
      * @returns True if biometrics or credentials authentication is supported on the device.
      */
-    const doesDeviceSupportBiometrics = useCallback(() => {
+    const doesDeviceSupportAuthenticationMethod = useCallback(() => {
         const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
         return biometrics || credentials;
     }, []);
@@ -189,7 +189,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
-        doesDeviceSupportBiometrics,
+        doesDeviceSupportAuthenticationMethod,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,
