@@ -72,7 +72,7 @@ function NewChatListItem<TItem extends ListItem>({
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
-                        {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
+                        {translate('workspace.people.invitedBySecondaryLogin', item.invitedSecondaryLogin)}
                     </Text>
                 ) : undefined
             }

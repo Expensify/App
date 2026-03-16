@@ -135,6 +135,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
     return (
         <NewChatListItem
             item={item}
+            keyForList={item.keyForList}
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}

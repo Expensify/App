@@ -1,5 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {Option} from './OptionsListUtils';
+import type {OptionWithKey} from './OptionsListUtils';
 import type {OptionData} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -8,7 +8,7 @@ import tokenizedSearch from './tokenizedSearch';
  *
  * @param reportFieldOptions - an initial report field options array
  */
-function getReportFieldOptions(reportFieldOptions: string[], isSelected = false): Option[] {
+function getReportFieldOptions(reportFieldOptions: string[], isSelected = false): OptionWithKey[] {
     return reportFieldOptions.map((name) => ({
         text: name,
         keyForList: name,
