@@ -77,6 +77,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
 jest.mock('@src/hooks/useResponsiveLayout');
+jest.mock('@libs/getCurrentPosition');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
@@ -98,6 +99,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         navigate: jest.fn(),
         goBack: jest.fn(),
         dismissModalWithReport: jest.fn(),
+        setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
         navigationRef: mockRef,
     };
 });
@@ -1263,6 +1265,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
+            await waitForBatchedUpdatesWithAct();
 
             // Unreported distance requests should skip createDistanceRequest and use requestMoney
             await waitFor(() => expect(IOU.requestMoney).toHaveBeenCalled());
