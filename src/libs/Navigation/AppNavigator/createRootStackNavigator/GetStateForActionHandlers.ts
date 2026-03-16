@@ -226,8 +226,20 @@ function handleReplaceFullscreenUnderRHP(
     }
 
     // 2. Push the target fullscreen route on top of the existing one(s).
+    //    getStateFromPath returns nested state (e.g. { name: 'SearchFullscreenNavigator', state: { routes: [{ name: 'Search_Central', params: { q: '...' } }] } })
+    //    but StackActions.push expects { screen, params } format, so we convert the nested state.
+    let pushParams = targetRoute.params as Record<string, unknown> | undefined;
+    const nestedRoute = targetRoute.state?.routes?.at(-1);
+    if (nestedRoute) {
+        pushParams = {
+            ...pushParams,
+            screen: nestedRoute.name,
+            params: nestedRoute.params,
+        };
+    }
+
     const rehydratedStateAfterPop = stackRouter.getRehydratedState(stateAfterPop, configOptions);
-    const stateAfterPush = stackRouter.getStateForAction(rehydratedStateAfterPop, StackActions.push(targetRoute.name, targetRoute.params), configOptions);
+    const stateAfterPush = stackRouter.getStateForAction(rehydratedStateAfterPop, StackActions.push(targetRoute.name, pushParams), configOptions);
     if (!stateAfterPush) {
         return null;
     }
