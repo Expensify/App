@@ -254,6 +254,22 @@ function getOnyxDataForConnectingVBBAAndLastPaymentMethod(
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
 function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string) {
+    const isChaseBank = selectedPlaidBankAccount.bankName?.toLowerCase() === CONST.BANK_NAMES.CHASE;
+    if (bankAccountID === CONST.DEFAULT_NUMBER_ID && isChaseBank) {
+        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+            achData: {
+                currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+                subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+            },
+            errors: null,
+        });
+        Onyx.merge(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+            accountNumber: '',
+            routingNumber: '',
+        });
+        return;
+    }
+
     const parameters: ConnectBankAccountParams = {
         bankAccountID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
