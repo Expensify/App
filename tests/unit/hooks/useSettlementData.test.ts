@@ -1,4 +1,4 @@
-import {act, renderHook, waitFor} from '@testing-library/react-native';
+import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useSettlementData from '@hooks/useSettlementData';
 import CONST from '@src/CONST';
