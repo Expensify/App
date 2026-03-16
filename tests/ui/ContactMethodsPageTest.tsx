@@ -1,14 +1,17 @@
-import {render, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import Clipboard from '@libs/Clipboard';
 import ContactMethodsPage from '@pages/settings/Profile/Contacts/ContactMethodsPage';
 import DelegateNoAccessModalProvider from '@src/components/DelegateNoAccessModalProvider';
 import LockedAccountModalProvider from '@src/components/LockedAccountModalProvider';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock navigation used by the page
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -16,17 +19,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
 }));
-
-// Mock RenderHTML component
-jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
-
-    return ({html}: {html: string}) => {
-        const plainText = html.replaceAll(/<[^>]*>/g, '');
-        return ReactMock.createElement(Text, null, plainText);
-    };
-});
 
 // Replace MenuItem with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItem', () => {
@@ -44,12 +36,13 @@ describe('ContactMethodsPage', () => {
     });
 
     beforeEach(() => {
+        jest.clearAllMocks();
         return Onyx.clear();
     });
 
     function renderPage() {
         return render(
-            <ComposeProviders components={[LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
+            <ComposeProviders components={[LocaleContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
                 {/* @ts-expect-error - route typing is not necessary for this test */}
                 <ContactMethodsPage route={{params: {}}} />
             </ComposeProviders>,
@@ -147,5 +140,22 @@ describe('ContactMethodsPage', () => {
             // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
             expect(node).toHaveTextContent('none-brickRoadIndicator');
         });
+    });
+
+    it('renders a dedicated copy control for the receipts email and copies it to the clipboard', async () => {
+        const setStringSpy = jest.spyOn(Clipboard, 'setString').mockImplementation(() => undefined);
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('Add more ways to log in and send receipts to Expensify.')).toBeOnTheScreen();
+        expect(screen.getByText('Add an email address to forward receipts to')).toBeOnTheScreen();
+        expect(screen.getByText('or add a phone number to text receipts to 47777 (US numbers only).')).toBeOnTheScreen();
+        expect(screen.getByText(CONST.EMAIL.RECEIPTS)).toBeOnTheScreen();
+
+        const copyButton = screen.getByLabelText(`Copy email address, ${CONST.EMAIL.RECEIPTS}`);
+        fireEvent.press(copyButton);
+
+        expect(setStringSpy).toHaveBeenCalledWith(CONST.EMAIL.RECEIPTS);
     });
 });

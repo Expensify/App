@@ -8,12 +8,15 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
+import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -26,6 +29,7 @@ import type SCREENS from '@src/SCREENS';
 type ContactMethodsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHODS>;
 
 function ContactMethodsPage({route}: ContactMethodsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Copy'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -69,8 +73,24 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
-                    <RenderHTML html={translate('contacts.helpText', {email: CONST.EMAIL.RECEIPTS})} />
+                <View style={[styles.ph5, styles.mv3]}>
+                    <Text style={styles.textLabelSupporting}>{translate('contacts.helpText')}</Text>
+                    <View style={[styles.mt4, styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap1]}>
+                        <Text style={styles.textLabelSupporting}>{translate('contacts.helpTextBeforeEmail')}</Text>
+                        <PressableWithDelayToggle
+                            text={CONST.EMAIL.RECEIPTS}
+                            tooltipText=""
+                            tooltipTextChecked=""
+                            accessibilityLabel={translate('contacts.copyEmailAddress', {email: CONST.EMAIL.RECEIPTS})}
+                            icon={icons.Copy}
+                            inline={false}
+                            onPress={() => Clipboard.setString(CONST.EMAIL.RECEIPTS)}
+                            styles={styles.flexShrink1}
+                            textStyles={[styles.textLabelSupporting, styles.link, styles.flexShrink1]}
+                            sentryLabel={CONST.SENTRY_LABEL.COPY_TEXT_TO_CLIPBOARD.COPY_BUTTON}
+                        />
+                        <Text style={styles.textLabelSupporting}>{translate('contacts.helpTextAfterEmail', {phoneNumber: CONST.SMS.RECEIPTS_PHONE_NUMBER})}</Text>
+                    </View>
                 </View>
                 {options.map(
                     (option) =>

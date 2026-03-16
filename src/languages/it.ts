@@ -1850,8 +1850,10 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Metodi di contatto',
         featureRequiresValidate: 'Questa funzione richiede la verifica del tuo account.',
         validateAccount: 'Verifica il tuo account',
-        helpText: ({email}: {email: string}) =>
-            `Aggiungi più modi per accedere e inviare ricevute a Expensify.<br/><br/>Aggiungi un indirizzo email per inoltrare le ricevute a <a href="mailto:${email}">${email}</a> oppure aggiungi un numero di telefono per inviare ricevute tramite SMS al 47777 (solo numeri statunitensi).`,
+        helpText: 'Aggiungi più modi per accedere e inviare ricevute a Expensify.',
+        helpTextBeforeEmail: 'Aggiungi un indirizzo email per inoltrare le ricevute a',
+        helpTextAfterEmail: ({phoneNumber}: {phoneNumber: string}) => `oppure aggiungi un numero di telefono per inviare ricevute tramite SMS al ${phoneNumber} (solo numeri statunitensi).`,
+        copyEmailAddress: ({email}: {email: string}) => `Copia indirizzo email, ${email}`,
         pleaseVerify: 'Verifica questo metodo di contatto.',
         getInTouch: 'Useremo questo metodo per contattarti.',
         enterMagicCode: (contactMethod: string) => `Inserisci il codice magico inviato a ${contactMethod}. Dovrebbe arrivare entro uno o due minuti.`,

@@ -1728,8 +1728,10 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Métodos de contacto',
         featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
         validateAccount: 'Valida tu cuenta',
-        helpText: ({email}: {email: string}) =>
-            `Agrega más formas de iniciar sesión y enviar recibos a Expensify.<br/><br/>Agrega una dirección de correo electrónico para reenviar recibos a <a href="mailto:${email}">${email}</a> o agrega un número de teléfono para enviar recibos por mensaje de texto al 47777 (solo números de EE. UU.).`,
+        helpText: 'Agrega más formas de iniciar sesión y enviar recibos a Expensify.',
+        helpTextBeforeEmail: 'Agrega una dirección de correo electrónico para reenviar recibos a',
+        helpTextAfterEmail: ({phoneNumber}: {phoneNumber: string}) => `o agrega un número de teléfono para enviar recibos por mensaje de texto al ${phoneNumber} (solo números de EE. UU.).`,
+        copyEmailAddress: ({email}: {email: string}) => `Copiar dirección de correo electrónico, ${email}`,
         pleaseVerify: 'Por favor, verifica este método de contacto.',
         getInTouch: 'Usaremos este método para comunicarnos contigo.',
         enterMagicCode: (contactMethod) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,

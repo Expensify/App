@@ -1839,8 +1839,11 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: '連絡方法',
         featureRequiresValidate: 'この機能を利用するには、アカウントの認証が必要です。',
         validateAccount: 'アカウントを認証する',
-        helpText: ({email}: {email: string}) =>
-            `Expensify へのログイン方法とレシート送信方法をさらに追加しましょう。<br/><br/>レシートを <a href="mailto:${email}">${email}</a> に転送するメールアドレスを追加するか、レシートを 47777（米国の電話番号のみ）宛てにテキスト送信する電話番号を追加してください。`,
+        helpText: 'Expensify へのログイン方法とレシート送信方法をさらに追加しましょう。',
+        helpTextBeforeEmail: 'レシートを',
+        helpTextAfterEmail: ({phoneNumber}: {phoneNumber: string}) =>
+            `に転送するメールアドレスを追加するか、レシートを ${phoneNumber}（米国の電話番号のみ）宛てにテキスト送信する電話番号を追加してください。`,
+        copyEmailAddress: ({email}: {email: string}) => `メールアドレスをコピー、${email}`,
         pleaseVerify: 'この連絡方法を確認してください。',
         getInTouch: '今後のご連絡にはこの方法を使用します。',
         enterMagicCode: (contactMethod: string) => `${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
