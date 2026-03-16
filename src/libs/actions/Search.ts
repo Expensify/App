@@ -1,4 +1,3 @@
-import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -30,7 +29,6 @@ import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
     generateReportID,
-    getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
     isExpenseReport,
@@ -61,6 +59,7 @@ import type {
     ReportActions,
     Transaction,
     TransactionViolations,
+    ReportNameValuePairs,
 } from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -68,7 +67,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
-import {deleteMoneyRequest, getReportPreviewAction, prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
+import {deleteMoneyRequest, prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import type {RejectMoneyRequestData} from './IOU';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {deleteAppReport, setOptimisticTransactionThread} from './Report';
@@ -107,7 +106,6 @@ type HandleActionButtonPressParams = {
 type BulkDeleteReportsParams = {
     reports: OnyxCollection<Report>;
     selfDMReport: OnyxEntry<Report>;
-    hash: number;
     selectedTransactions: Record<string, SelectedTransactionInfo>;
     currentUserEmailParam: string;
     currentUserAccountIDParam: number;
@@ -118,6 +116,7 @@ type BulkDeleteReportsParams = {
     translate: LocaleContextProps['translate'];
     toLocaleDigit: LocaleContextProps['toLocaleDigit'];
     transactions?: OnyxCollection<Transaction>;
+    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 };
 
 function handleActionButtonPress({
@@ -851,7 +850,6 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 function bulkDeleteReports({
     reports,
     selfDMReport,
-    hash,
     selectedTransactions,
     currentUserEmailParam,
     currentUserAccountIDParam,
@@ -862,6 +860,7 @@ function bulkDeleteReports({
     translate,
     toLocaleDigit,
     transactions,
+    allReportNameValuePairs,
 }: BulkDeleteReportsParams) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
@@ -886,14 +885,25 @@ function bulkDeleteReports({
     }
 
     for (const transactionID of transactionIDList) {
+        const reportAction = selectedTransactions[transactionID].reportAction;
+        if (!reportAction) {
+            continue;
+        }
+        const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].report?.chatReportID}`];
+        if (!chatReport) {
+            continue;
+        }
+        const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`] ;
         deleteMoneyRequest({
             transactionID,
-            reportAction: selectedTransactions[transactionID]?.reportAction,
+            reportAction,
             transactions,
             violations: transactionsViolations,
-            iouReport: selectedTransactions[transactionID]?.report,
-            chatReport: selectedTransactions[transactionID]?.chatReport,
-            isChatIOUReportArchived: selectedTransactions[transactionID]?.isChatIOUReportArchived,
+            iouReport: selectedTransactions[transactionID].report,
+            chatReport: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].report?.chatReportID}`],
+            isChatIOUReportArchived: !!reportNameValuePair?.private_isArchived,
+            allTransactionViolationsParam: transactionsViolations,
+            currentUserAccountID: currentUserAccountIDParam,
         });
     }
 

@@ -91,6 +91,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {accountID} = currentUserPersonalDetails;
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const selfDMReport = useSelfDMReport();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -500,7 +501,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bulkDeleteReports({
                         reports: allReports,
                         selfDMReport,
-                        hash,
                         selectedTransactions,
                         currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                         currentUserAccountIDParam: accountID,
@@ -511,6 +511,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         translate,
                         toLocaleDigit,
                         transactions,
+                        allReportNameValuePairs,
                     });
                 }
                 clearSelectedTransactions();
@@ -537,6 +538,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         toLocaleDigit,
         isExpenseReportType,
         selectedReportIDs,
+        allReportNameValuePairs,
     ]);
 
     const onBulkPaySelected = useCallback(
