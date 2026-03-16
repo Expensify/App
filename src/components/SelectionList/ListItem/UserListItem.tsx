@@ -52,8 +52,8 @@ function UserListItem<TItem extends ListItem>({
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- some utils that are used to get reportID return empty string "", which would make subscription to the whole collection with nullish coalescing operator, example of this could be found in NewChatPage.tsx where some hooks return reportID as empty strings
+    const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID || undefined}`, {
         selector: reportExistsSelector,
     });
 
@@ -65,6 +65,9 @@ function UserListItem<TItem extends ListItem>({
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
+    const shouldDisableAccessibleGrouping = !!rightHandSideComponent && !canSelectMultiple;
+
+    const contactAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
     return (
         <BaseListItem
             item={item}
@@ -89,13 +92,19 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
         >
             {(hovered?: boolean) => {
                 const isHovered = !!hovered && !shouldDisableHoverStyle;
 
                 return (
-                    <>
+                    <View
+                        accessible={shouldDisableAccessibleGrouping || undefined}
+                        accessibilityLabel={shouldDisableAccessibleGrouping ? contactAccessibilityLabel : undefined}
+                        role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                    >
                         {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
                             <SelectionCheckbox
                                 item={item}
@@ -161,7 +170,7 @@ function UserListItem<TItem extends ListItem>({
                                 style={styles.ml3}
                             />
                         )}
-                    </>
+                    </View>
                 );
             }}
         </BaseListItem>

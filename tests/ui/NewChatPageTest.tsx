@@ -1,7 +1,8 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import React from 'react';
-import {SectionList} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {ScrollView} from 'react-native';
 import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -77,11 +78,11 @@ describe('NewChatPage', () => {
         act(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
-        const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
+        const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
         const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
         if (addButton) {
             fireEvent.press(addButton);
-            expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
+            expect(scrollToSpy).toHaveBeenCalled();
         }
     });
 

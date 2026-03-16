@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -7,9 +6,9 @@ import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-nati
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
+import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import {isSafari} from '@libs/Browser';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -130,14 +129,13 @@ function FormProvider({
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const isLoadingDraftValues = isLoadingOnyxValue(draftValuesMetadata);
-    const prevIsLoadingDraftValues = usePrevious(isLoadingDraftValues);
+    const previousDraftValues = useRef(draftValues);
 
-    useEffect(() => {
-        if (isLoadingDraftValues || !prevIsLoadingDraftValues) {
-            return;
-        }
-        setInputValues({...draftValues});
-    }, [isLoadingDraftValues, draftValues, prevIsLoadingDraftValues]);
+    if (!isLoadingDraftValues && draftValues !== previousDraftValues.current) {
+        previousDraftValues.current = draftValues;
+        setInputValues({...inputValues, ...draftValues});
+    }
+
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurActions();
@@ -270,16 +268,7 @@ function FormProvider({
 
     // Keep track of the focus state of the current screen.
     // This is used to prevent validating the form on blur before it has been interacted with.
-    const isFocusedRef = useRef(true);
-
-    useFocusEffect(
-        useCallback(() => {
-            isFocusedRef.current = true;
-            return () => {
-                isFocusedRef.current = false;
-            };
-        }, []),
-    );
+    const isFocusedRef = useIsFocusedRef();
 
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {

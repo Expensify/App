@@ -4,7 +4,6 @@ import CategoryPicker from '@components/CategoryPicker';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,7 +27,7 @@ function DebugDetailsConstantPickerPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onSubmit = useCallback(
-        (item: ListItem) => {
+        (item: {text?: string; keyForList?: string}) => {
             const value = item.text === fieldValue ? '' : (item.text ?? '');
             // Check the navigation state and "backTo" parameter to decide navigation behavior
             if (navigation.getState().routes.length === 1 && !backTo) {
@@ -52,6 +51,7 @@ function DebugDetailsConstantPickerPage({
                     onSelect={({currencyCode}) =>
                         onSubmit({
                             text: currencyCode,
+                            keyForList: currencyCode,
                         })
                     }
                     searchInputLabel={translate('common.search')}

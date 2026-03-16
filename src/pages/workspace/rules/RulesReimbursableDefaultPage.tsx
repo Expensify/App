@@ -58,7 +58,7 @@ function RulesReimbursableDefaultPage({
                     data={reimbursableModes}
                     ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
-                        setPolicyReimbursableMode(policyID, item.value);
+                        setPolicyReimbursableMode(policyID, item.value, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect
