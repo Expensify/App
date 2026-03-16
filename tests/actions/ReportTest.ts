@@ -5596,7 +5596,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=true
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, true);
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], undefined, TEST_USER_ACCOUNT_ID, testIntroSelected, true, false);
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -5625,7 +5625,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=undefined
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, undefined);
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], undefined, TEST_USER_ACCOUNT_ID, testIntroSelected, undefined, false);
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -5654,7 +5654,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=true and shouldDismissModal=false
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, true, false);
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], undefined, TEST_USER_ACCOUNT_ID, testIntroSelected, true, false);
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
