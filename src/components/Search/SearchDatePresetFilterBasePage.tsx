@@ -109,14 +109,17 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
                 return;
             }
 
-            const subPage =
-                dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON
-                    ? CONST.SEARCH.DATE_FILTER_SUB_PAGE.ON
-                    : dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER
-                      ? CONST.SEARCH.DATE_FILTER_SUB_PAGE.AFTER
-                      : CONST.SEARCH.DATE_FILTER_SUB_PAGE.BEFORE;
+            if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON) {
+                resetToPage(CONST.SEARCH.DATE_FILTER_SUB_PAGE.ON);
+                return;
+            }
 
-            resetToPage(subPage);
+            if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER) {
+                resetToPage(CONST.SEARCH.DATE_FILTER_SUB_PAGE.AFTER);
+                return;
+            }
+
+            resetToPage(CONST.SEARCH.DATE_FILTER_SUB_PAGE.BEFORE);
         },
         [buildSubPageRoute, resetToPage],
     );
