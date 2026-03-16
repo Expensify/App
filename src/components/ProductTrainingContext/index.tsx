@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -233,6 +234,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const theme = useTheme();
     const {shouldHideToolTip} = useSidePanelState();
     const {translate} = useLocalize();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb'] as const);
 
     if (!context) {
@@ -260,7 +262,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
             return;
         }
 
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, userAccountID);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN, userAccountID);
     }, [shouldShowProductTrainingTooltip, tooltipName]);
 
     const hideTooltip = useCallback(
