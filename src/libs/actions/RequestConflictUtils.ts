@@ -138,17 +138,8 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
     }
 
     if (addCommentFound) {
-        // The new message performs some changes in Onyx, so we need to rollback those changes.
-        const rollbackData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
-                value: {
-                    [reportActionID]: null,
-                },
-            },
-        ];
-        Onyx.update(rollbackData);
+        // The new message performs some changes in Onyx, but we do not rollback those changes here.
+        // The DELETE_COMMENT optimistic data will supersede the ADD_COMMENT data and set pendingAction: DELETE.
     }
 
     return {
