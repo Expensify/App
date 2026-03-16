@@ -2,22 +2,35 @@ diff --git a/node_modules/react-native-screens/src/components/helpers/DelayedFre
 index 443da63..72517fd 100644
 --- a/node_modules/react-native-screens/src/components/helpers/DelayedFreeze.tsx
 +++ b/node_modules/react-native-screens/src/components/helpers/DelayedFreeze.tsx
-@@ -12,12 +12,17 @@ function DelayedFreeze({ freeze, children }: FreezeWrapperProps) {
+@@ -7,17 +7,27 @@ interface FreezeWrapperProps {
+   children: React.ReactNode;
+ }
+
++// Delay freezing long enough for screen transition and modal/popover dismiss
++// animations to complete. On iOS, freezing a screen while an animation
++// is still in flight (e.g. a popover closing or a swipe-back gesture finishing)
++// blocks React rendering and can cause the app to become unresponsive.
++const FREEZE_DELAY_MS = 400;
++
+ // This component allows one more render before freezing the screen.
+ // Allows activityState to reach the native side and useIsFocused to work correctly.
+ function DelayedFreeze({ freeze, children }: FreezeWrapperProps) {
    // flag used for determining whether freeze should be enabled
    const [freezeState, setFreezeState] = React.useState(false);
- 
-+  // We use requestAnimationFrame to ensure the current frame is fully painted
-+  // before scheduling the freeze. This prevents freezing the screen while
-+  // transitional UI states (e.g. opacity from useSingleExecution) are still visible.
-   React.useEffect(() => {
-+    let rafID: number;
-     const id = setTimeout(() => {
+
+-  React.useEffect(() => {
+-    const id = setTimeout(() => {
 -      setFreezeState(freeze);
+-    }, 0);
++  React.useEffect(() => {
++    let rafID: number;
++    // Wait for FREEZE_DELAY_MS, then schedule the state update after the next
++    // frame paint so transitional UI states are fully flushed before suspending.
++    const id = setTimeout(() => {
 +      rafID = requestAnimationFrame(() => setFreezeState(freeze));
-     }, 0);
++    }, FREEZE_DELAY_MS);
      return () => {
        clearTimeout(id);
 +      cancelAnimationFrame(rafID);
      };
    }, [freeze]);
- 
