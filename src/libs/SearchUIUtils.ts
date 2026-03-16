@@ -952,6 +952,10 @@ function isEligibleForApproveSuggestion(approvalMode: string | undefined, isAppr
     return isApprovalEnabled && (isApprover || isSubmittedToTarget);
 }
 
+function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserEmail: string | undefined): boolean {
+    return isPaidGroupPolicy(policy) && (policy.role === CONST.POLICY.ROLE.ADMIN || policy.role === CONST.POLICY.ROLE.AUDITOR || policy.approver === currentUserEmail);
+}
+
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
@@ -1021,7 +1025,6 @@ function getSuggestedSearchesVisibility(
         const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
         const isEligibleForTopCategoriesSuggestion = isPaidPolicy && policy.areCategoriesEnabled === true;
         const isEligibleForTopMerchantsSuggestion = isPaidPolicy;
-        const isEligibleForSpendOverTimeSuggestion = isPaidPolicy && (isAdmin || isAuditor || isUserApprover);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -1041,7 +1044,7 @@ function getSuggestedSearchesVisibility(
             !policy.isJoinRequestPending &&
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
-        shouldShowSpendOverTimeSuggestion ||= isEligibleForSpendOverTimeSuggestion;
+        shouldShowSpendOverTimeSuggestion ||= isPolicyEligibleForSpendOverTime(policy, currentUserEmail);
 
         // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
         return (
@@ -4783,5 +4786,6 @@ export {
     adjustTimeRangeToDateFilters,
     isEligibleForApproveSuggestion,
     applySelectionToItem,
+    isPolicyEligibleForSpendOverTime,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

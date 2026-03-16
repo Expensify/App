@@ -348,12 +348,6 @@ type SearchChartProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
 
-    /** Chart title */
-    title: string;
-
-    /** Chart title icon */
-    titleIcon: IconAsset;
-
     /** Function to extract label from grouped item */
     getLabel: (item: GroupedItem) => string;
 
@@ -371,6 +365,9 @@ type SearchChartProps = {
 
     /** Position of currency symbol relative to value */
     unitPosition?: UnitPosition;
+
+    /** When true, the overall chart container height remains fixed and the plot area shrinks to make room for x-axis labels instead of the container growing taller. */
+    shouldKeepConstantHeight?: boolean;
 };
 
 export type {

@@ -5822,23 +5822,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.transparent,
             borderStyle: 'solid',
         },
-        barChartContainer: {
+        chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
         barChartChartContainer: {
             minHeight: 250,
         },
-        lineChartContainer: {
-            borderRadius: variables.componentBorderRadiusLarge,
-            paddingTop: variables.qrShareHorizontalPadding,
-            paddingHorizontal: variables.qrShareHorizontalPadding,
-        },
         lineChartChartContainer: {
             minHeight: 250,
-        },
-        pieChartContainer: {
-            borderRadius: variables.componentBorderRadiusLarge,
-            padding: variables.qrShareHorizontalPadding,
         },
         pieChartChartContainer: {
             height: 250,

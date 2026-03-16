@@ -81,6 +81,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
+import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -1391,16 +1392,28 @@ function Search({
 
         return (
             <SearchScopeProvider>
-                <SearchChartView
-                    queryJSON={queryJSON}
-                    view={view}
-                    groupBy={validGroupBy}
-                    data={sortedData}
-                    isLoading={shouldShowLoadingState}
+                <Animated.ScrollView
+                    style={styles.flex1}
+                    contentContainerStyle={styles.flexGrow1}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
-                    title={chartTitle}
-                />
+                    scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                >
+                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                        <SearchChartWrapper
+                            title={chartTitle}
+                            groupBy={validGroupBy}
+                        >
+                            <SearchChartView
+                                queryJSON={queryJSON}
+                                view={view}
+                                groupBy={validGroupBy}
+                                data={sortedData}
+                                isLoading={shouldShowLoadingState}
+                            />
+                        </SearchChartWrapper>
+                    </View>
+                </Animated.ScrollView>
             </SearchScopeProvider>
         );
     }

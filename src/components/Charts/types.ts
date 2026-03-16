@@ -1,5 +1,4 @@
 import type {ValueOf} from 'type-fest';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {LABEL_ROTATIONS} from './constants';
 
 type ChartDataPoint = {
@@ -26,12 +25,6 @@ type ChartProps = {
     /** Data points to display */
     data: ChartDataPoint[];
 
-    /** Chart title (e.g., "Top Categories", "Spend over time") */
-    title?: string;
-
-    /** Icon displayed next to the title */
-    titleIcon?: IconAsset;
-
     /** Whether data is loading */
     isLoading?: boolean;
 };
@@ -42,6 +35,9 @@ type CartesianChartProps = ChartProps & {
 
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     yAxisUnitPosition?: UnitPosition;
+
+    /** When true, the overall chart container height remains fixed and the plot area shrinks to make room for x-axis labels instead of the container growing taller. */
+    shouldKeepConstantHeight?: boolean;
 };
 
 type PieSlice = {

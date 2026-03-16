@@ -2,10 +2,12 @@ import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {LineChartProps} from './LineChartContent';
 
+const getLineChartContent = () => import('./LineChartContent');
 function LineChart(props: LineChartProps) {
     const styles = useThemeStyles();
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChart.SkiaWebLoading'};
@@ -13,10 +15,20 @@ function LineChart(props: LineChartProps) {
     return (
         <WithSkiaWeb
             opts={{locateFile: (file: string) => `/${file}`}}
-            getComponent={() => import('./LineChartContent')}
+            getComponent={getLineChartContent}
             componentProps={props}
             fallback={
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.highlightBG, styles.br4, styles.p5]}>
+                <View
+                    style={[
+                        styles.flex1,
+                        styles.justifyContentCenter,
+                        styles.alignItemsCenter,
+                        styles.highlightBG,
+                        styles.br4,
+                        styles.p5,
+                        props.shouldKeepConstantHeight && {minHeight: CHART_CONTENT_MIN_HEIGHT},
+                    ]}
+                >
                     <ActivityIndicator
                         size="large"
                         reasonAttributes={reasonAttributes}
@@ -26,7 +38,5 @@ function LineChart(props: LineChartProps) {
         />
     );
 }
-
-LineChart.displayName = 'LineChart';
 
 export default LineChart;

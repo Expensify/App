@@ -6,7 +6,6 @@ import Animated, {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import {Pie, PolarChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {PIE_CHART_START_ANGLE} from '@components/Charts/constants';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
@@ -27,7 +26,7 @@ type PieChartProps = ChartProps & {
     valueUnitPosition?: UnitPosition;
 };
 
-function PieChartContent({data, title, titleIcon, isLoading, valueUnit, valueUnitPosition, onSlicePress}: PieChartProps) {
+function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress}: PieChartProps) {
     const styles = useThemeStyles();
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
@@ -143,7 +142,7 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, valueUni
     if (isLoading) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PieChartContent', isLoading};
         return (
-            <View style={[styles.pieChartContainer, styles.highlightBG, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            <View style={[styles.pieChartChartContainer, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <ActivityIndicator
                     size="large"
                     reasonAttributes={reasonAttributes}
@@ -157,12 +156,7 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, valueUni
     }
 
     return (
-        <View style={[styles.pieChartContainer, styles.highlightBG]}>
-            <ChartHeader
-                title={title}
-                titleIcon={titleIcon}
-            />
-
+        <>
             <GestureDetector gesture={combinedGesture}>
                 <Animated.View
                     style={styles.pieChartChartContainer}
@@ -192,7 +186,7 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, valueUni
                 </Animated.View>
             </GestureDetector>
             <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>
-        </View>
+        </>
     );
 }
 
