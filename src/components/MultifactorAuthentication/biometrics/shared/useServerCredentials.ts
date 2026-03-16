@@ -28,4 +28,3 @@ function useServerCredentials(): UseServerCredentialsReturn {
 }
 
 export default useServerCredentials;
-export type {UseServerCredentialsReturn};
