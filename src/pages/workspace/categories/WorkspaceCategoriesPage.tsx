@@ -316,6 +316,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         styles.alignItemsCenter,
         styles.flexRow,
         styles.mr3,
+        showConfirmModal,
     ]);
 
     const filterCategory = useCallback((categoryOption: ListItem, searchInput: string) => {
@@ -436,14 +437,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const navigateToImportSpreadsheet = useCallback(() => {
         if (isOffline) {
-            close(() =>
+            close(() => {
                 showConfirmModal({
                     title: translate('common.youAppearToBeOffline'),
                     prompt: translate('common.thisFeatureRequiresInternet'),
                     confirmText: translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
-                }),
-            );
+                });
+            });
             return;
         }
         Navigation.navigate(
@@ -451,7 +452,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
                 : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId),
         );
-    }, [backTo, isOffline, isQuickSettingsFlow, policyId]);
+    }, [backTo, isOffline, isQuickSettingsFlow, policyId, showConfirmModal, translate]);
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
@@ -475,14 +476,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
-                        close(() =>
+                        close(() => {
                             showConfirmModal({
                                 title: translate('common.youAppearToBeOffline'),
                                 prompt: translate('common.thisFeatureRequiresInternet'),
                                 confirmText: translate('common.buttonConfirm'),
                                 shouldShowCancelButton: false,
-                            }),
-                        );
+                            });
+                        });
                         return;
                     }
                     close(() => {
@@ -511,6 +512,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         navigateToImportSpreadsheet,
         isOffline,
         policyId,
+        showConfirmModal,
     ]);
 
     const getHeaderButtons = () => {
