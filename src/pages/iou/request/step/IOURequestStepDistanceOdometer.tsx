@@ -332,9 +332,9 @@ function IOURequestStepDistanceOdometer({
             }
             // Web: HTMLInputElement.setSelectionRange; Native: TextInput.setSelection
             if ('setSelectionRange' in input && typeof input.setSelectionRange === 'function') {
-                (input as HTMLInputElement).setSelectionRange(position, position);
+                input.setSelectionRange(position, position);
             } else if ('setSelection' in input && typeof input.setSelection === 'function') {
-                (input as {setSelection: (start: number, end: number) => void}).setSelection(position, position);
+                input.setSelection(position, position);
             }
         });
     };
