@@ -1,11 +1,21 @@
-import {manipulateAsync} from 'expo-image-manipulator';
+import {ImageManipulator} from 'expo-image-manipulator';
 import getSaveFormat from './getSaveFormat';
 import type {CropOrRotateImage} from './types';
 
 const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
     new Promise((resolve, reject) => {
         const format = getSaveFormat(options.type);
-        manipulateAsync(uri, actions, {compress: options.compress, format})
+        const context = ImageManipulator.manipulate(uri);
+        for (const action of actions) {
+            if ('crop' in action) {
+                context.crop(action.crop);
+            } else if ('rotate' in action) {
+                context.rotate(action.rotate);
+            }
+        }
+        context
+            .renderAsync()
+            .then((imageRef) => imageRef.saveAsync({compress: options.compress, format}))
             .then((result) =>
                 fetch(result.uri)
                     .then((res) => res.blob())
