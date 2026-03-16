@@ -107,7 +107,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
     const isInSetupState = isAccountInSetupState(item);
-    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupState;
+    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems;
 
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
@@ -116,7 +116,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         !!(item.accountData?.additionalData?.plaidAccountID ?? item.accountData?.plaidAccountID);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress) || isInSetupState) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();

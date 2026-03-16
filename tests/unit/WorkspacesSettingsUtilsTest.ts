@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID} from '@libs/WorkspacesSettingsUtils';
+import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -173,6 +173,35 @@ describe('WorkspacesSettingsUtils', () => {
 
             // Then the result should be 'undefined' since no IOU action is linked to a transaction with a violation.
             expect(result).toBe(undefined);
+        });
+    });
+
+    describe('getWorkspaceAddressStreetLines', () => {
+        it('Should prefer explicit street line 2 over legacy newline value', () => {
+            const result = getWorkspaceAddressStreetLines('123 Main St\nLegacy Line 2', 'Suite 200');
+
+            expect(result).toEqual({
+                streetLineOne: '123 Main St',
+                streetLineTwo: 'Suite 200',
+            });
+        });
+
+        it('Should fallback to legacy newline street line 2 when explicit line 2 is missing', () => {
+            const result = getWorkspaceAddressStreetLines('123 Main St\nLegacy Line 2');
+
+            expect(result).toEqual({
+                streetLineOne: '123 Main St',
+                streetLineTwo: 'Legacy Line 2',
+            });
+        });
+
+        it('Should fallback to legacy newline street line 2 when explicit line 2 is empty', () => {
+            const result = getWorkspaceAddressStreetLines('123 Main St\nLegacy Line 2', '   ');
+
+            expect(result).toEqual({
+                streetLineOne: '123 Main St',
+                streetLineTwo: 'Legacy Line 2',
+            });
         });
     });
 });
