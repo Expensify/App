@@ -9,21 +9,17 @@ function useThemePreference(): ThemePreferenceWithoutSystem {
     const [preferredThemeFromStorage] = useOnyx(ONYXKEYS.PREFERRED_THEME);
     const systemTheme = useColorScheme();
 
-    const themePreference = useMemo(() => {
-        const theme = preferredThemeFromStorage ?? CONST.THEME.DEFAULT;
+    const theme = preferredThemeFromStorage ?? CONST.THEME.DEFAULT;
 
-        if (theme === CONST.THEME.SYSTEM) {
-            return systemTheme === 'dark' ? CONST.THEME.DARK : CONST.THEME.LIGHT;
-        }
+    if (theme === CONST.THEME.SYSTEM) {
+        return systemTheme === 'dark' ? CONST.THEME.DARK : CONST.THEME.LIGHT;
+    }
 
-        if (theme === CONST.THEME.SYSTEM_CONTRAST) {
-            return systemTheme === 'dark' ? CONST.THEME.DARK_CONTRAST : CONST.THEME.LIGHT_CONTRAST;
-        }
+    if (theme === CONST.THEME.SYSTEM_CONTRAST) {
+        return systemTheme === 'dark' ? CONST.THEME.DARK_CONTRAST : CONST.THEME.LIGHT_CONTRAST;
+    }
 
-        return theme as ThemePreferenceWithoutSystem;
-    }, [preferredThemeFromStorage, systemTheme]);
-
-    return themePreference;
+    return theme as ThemePreferenceWithoutSystem;
 }
 
 export default useThemePreference;
