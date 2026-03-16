@@ -26,6 +26,8 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [Dynamic routes configuration](#dynamic-routes-configuration)
     - [Entry screens (access control)](#entry-screens-access-control)
     - [Current limitations (work in progress)](#current-limitations-work-in-progress)
+    - [Multi-segment dynamic routes](#multi-segment-dynamic-routes)
+    - [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters)
     - [How to add a new dynamic route](#how-to-add-a-new-dynamic-route)
     - [Migrating from backTo to dynamic routes](#migrating-from-backto-to-dynamic-routes)
   - [How to remove backTo from URL (Legacy)](#how-to-remove-backto-from-url)
@@ -700,7 +702,6 @@ A dynamic route is a URL suffix (e.g. `verify-account`) that can be appended to 
 Do not use dynamic routes when:
 - Your use case falls under the [current limitations](#current-limitations-work-in-progress):
   - You need to stack multiple dynamic route suffixes (e.g. `/a/verify-account/another-flow`).
-  - Your suffix includes path or query parameters (e.g. `verify-account/:id` or `verify-account?tab=details`).
 - The screen has a single, fixed entry and a fixed back destination. In this case, use a normal static route instead.
 
 ### Dynamic routes configuration
@@ -732,21 +733,119 @@ When adding or extending a dynamic route, list every screen that should be able 
 ### Current limitations (work in progress)
 
 - **Stacking:** Multiple dynamic route suffixes on top of each other (e.g. `/a/verify-account/another-flow`) are not supported. Only one dynamic suffix per path is allowed.
-- **Suffix shape:** Suffixes must be a single path segment. Compound suffixes with extra path segments (e.g. `a/b`) are not supported.
-- **Parameters:** Suffixes must not include path params (e.g. `a/:reportID`) or query params (e.g. `a?foo=bar`). Use a single literal segment like `verify-account` only.
+- **Path parameters:** Suffixes must not include path params (e.g. `a/:reportID`). Query parameters are supported - see [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
 
 If you try to use dynamic routes for these cases now, you will either fail to navigate to the page at all or end up on a non-existent page, and the navigation will be broken.
 
+### Multi-segment dynamic routes
+
+Dynamic route suffixes are not limited to a single path segment -
+they can span multiple segments separated by `/`.
+For example, the suffix `add-bank-account/verify-account` is a valid
+multi-segment suffix that combines two segments into one dynamic route.
+
+When the URL is parsed, the matching algorithm
+iterates from the longest candidate suffix to the shortest,
+so overlapping registrations are resolved deterministically.
+For instance, if both `verify-account` and `add-bank-account/verify-account`
+are registered, a path ending with `/add-bank-account/verify-account`
+will always match the longer, more specific suffix.
+
+### Dynamic routes with query parameters
+
+Dynamic route suffixes can carry query parameters
+(e.g. `country?country=US`).
+This is useful when a dynamic screen needs initial data passed
+through the URL - for example, a country selector that
+pre-selects the current country.
+
+#### How to add query parameters to a dynamic route
+
+1. In `DYNAMIC_ROUTES` (in [`src/ROUTES.ts`](../src/ROUTES.ts)), add a `getRoute` function
+that returns the suffix with query parameters and a `queryParams`
+array listing every parameter key that the suffix may add:
+
+```ts
+ADDRESS_COUNTRY: {
+    path: 'country',
+    entryScreens: [SCREENS.SETTINGS.PROFILE.ADDRESS, /* ... */],
+    getRoute: (country = '') => `country${country ? `?country=${country}` : ''}`,
+    queryParams: ['country'],
+},
+```
+
+2. Navigate using `createDynamicRoute` with the output of `getRoute`:
+
+```ts
+Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_COUNTRY.getRoute(countryCode)));
+// Produces e.g. /settings/profile/address/country?country=US
+```
+
+3. In the page component, read query params from `route.params` as usual:
+
+```ts
+const currentCountry = route.params?.country ?? '';
+```
+
+> [!CAUTION]
+> **`queryParams` array is mandatory.**
+> When you define a `getRoute` function that adds query parameters
+> after `?` in a dynamic route, you **must** also define a `queryParams`
+> array containing **every** parameter key that `getRoute` may produce.
+> The `queryParams` array is used to strip suffix-specific parameters when navigating back.
+> Without it, query parameters will leak into the parent path
+> and break back navigation.
+
+> [!CAUTION]
+> **Query parameter names must not collide with inherited entry screen parameters.**
+> Do not use a query parameter name in a dynamic suffix that
+> already exists as a parameter of any entry screen listed
+> in `entryScreens`.
+> For example, if an entry screen has a `country` query parameter,
+> do not add `country` as a query parameter in your dynamic route.
+> When both paths carry the same parameter key,
+> `createDynamicRoute` will throw an error:
+> `Query param "X" exists in both base path and dynamic suffix.`
+> `This is not allowed.`
+> This guard prevents non-deterministic parameter handling
+> and accidental overwriting of inherited parameters.
+
+The Address Country flow is the reference implementation for
+dynamic routes with query parameters:
+see [`src/components/CountrySelector.tsx`](../src/components/CountrySelector.tsx) (navigation call)
+and [`src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx`](../src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx)
+(page component).
+
 ### How to add a new dynamic route
 
-1. Add to `DYNAMIC_ROUTES` in `src/ROUTES.ts`: define `path` and `entryScreens` (screen names that may open this route).
-2. Add a screen constant in `src/SCREENS.ts`. The name must start with the `DYNAMIC_` prefix (e.g. `SETTINGS.DYNAMIC_VERIFY_ACCOUNT`) so dynamic screens can be distinguished from static ones.
-3. Register in linking config in `src/libs/Navigation/linkingConfig/config.ts`: map the new screen to `DYNAMIC_ROUTES.<KEY>.path`.
-4. Implement the page component: Use `createDynamicRoute(DYNAMIC_ROUTES.<KEY>.path)` to navigate to the flow and `useDynamicBackPath(DYNAMIC_ROUTES.<KEY>.path)` to get the back path. Pass these into your base UI (e.g. `VerifyAccountPageBase` with `navigateBackTo` / `navigateForwardTo`).
-5. Register the screen in the appropriate modal/stack navigator (e.g. `src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx`).
-6. Types: Add the screen to the navigator param list in `src/libs/Navigation/types.ts` (no params for the new screen).
+1. Add to `DYNAMIC_ROUTES` in [`src/ROUTES.ts`](../src/ROUTES.ts): define `path` and
+`entryScreens` (screen names that may open this route).
+If the suffix needs query parameters, also define `getRoute`
+and `queryParams` - see
+[Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
+2. Add a screen constant in [`src/SCREENS.ts`](../src/SCREENS.ts).
+The name must start with the `DYNAMIC_` prefix
+(e.g. `SETTINGS.DYNAMIC_VERIFY_ACCOUNT`) so dynamic screens
+can be distinguished from static ones.
+3. Register in linking config in
+[`src/libs/Navigation/linkingConfig/config.ts`](../src/libs/Navigation/linkingConfig/config.ts):
+map the new screen to `DYNAMIC_ROUTES.<KEY>.path`.
+4. Implement the page component:
+Use `createDynamicRoute(DYNAMIC_ROUTES.<KEY>.path)` to navigate
+to the flow and `useDynamicBackPath(DYNAMIC_ROUTES.<KEY>.path)`
+to get the back path. Pass these into your base UI
+(e.g. `VerifyAccountPageBase` with `navigateBackTo` /
+`navigateForwardTo`).
+5. Register the screen in the appropriate modal/stack navigator
+(e.g. [`src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx`](../src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx)).
+6. Types: Add the screen to the navigator param list in
+[`src/libs/Navigation/types.ts`](../src/libs/Navigation/types.ts) (no params for the new screen).
 
-The Verify Account flow (Wallet → Dynamic Verify Account) is the reference implementation: see `src/pages/settings/DynamicVerifyAccountPage.tsx` and the Wallet entry point in `src/pages/settings/Wallet/WalletPage/index.tsx`.
+The Verify Account flow (Wallet → Dynamic Verify Account) is the
+reference implementation:
+see [`src/pages/settings/DynamicVerifyAccountPage.tsx`](../src/pages/settings/DynamicVerifyAccountPage.tsx) and the
+Wallet entry point in
+[`src/pages/settings/Wallet/WalletPage/index.tsx`](../src/pages/settings/Wallet/WalletPage/index.tsx).
 
 ### Migrating from backTo to dynamic routes
 

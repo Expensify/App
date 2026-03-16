@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {isAuthenticationError} from '@libs/actions/connections';
-import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {useAccountingState} from '@pages/workspace/accounting/AccountingContext';
 import {getInitialSubPageForNetsuiteTokenInput} from '@pages/workspace/accounting/netsuite/utils';
@@ -13,12 +12,13 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasPoliciesConnectedToNetSuiteSelector} from '@src/selectors/Policy';
 import type {ConnectToNetSuiteFlowProps} from './types';
 
 function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     const {translate} = useLocalize();
 
-    const hasPoliciesConnectedToNetSuite = !!getAdminPoliciesConnectedToNetSuite()?.length;
+    const [hasPoliciesConnectedToNetSuite] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasPoliciesConnectedToNetSuiteSelector});
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
