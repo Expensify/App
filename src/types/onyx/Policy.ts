@@ -110,6 +110,9 @@ type CompanyAddress = {
     /** Street address */
     addressStreet: string;
 
+    /** Street address line 2 */
+    addressStreet2?: string;
+
     /** City */
     city: string;
 
