@@ -213,7 +213,7 @@ function Search({
     onDEWModalOpen,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
-    const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(true);
+    const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON));
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
