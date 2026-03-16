@@ -60,6 +60,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
+import {getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -3301,8 +3302,8 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
 }
 
 type CompanyAddressOriginalMessage = {
-    newAddress: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string};
-    oldAddress?: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
+    newAddress: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string};
+    oldAddress?: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
 };
 
 /**
@@ -3313,10 +3314,7 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
         return '';
     }
 
-    const [street1Raw, street2Raw] = (address.addressStreet ?? '').split('\n');
-    const street1 = street1Raw?.trim() ?? '';
-    const street2 = street2Raw?.trim() ?? '';
-
+    const {streetLineOne: street1, streetLineTwo: street2} = getWorkspaceAddressStreetLines(address.addressStreet, address.addressStreet2);
     const parts: string[] = [];
 
     if (street1) {
@@ -4561,6 +4559,7 @@ export {
     getWorkspaceAttendeeTrackingUpdateMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    formatAddressToString,
     getCompanyAddressUpdateMessage,
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,

@@ -167,6 +167,7 @@ function MoneyRequestReportActionsList({
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -732,7 +733,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport({reportID: report.reportID, introSelected});
+            openReport({reportID: report.reportID, introSelected, betas});
             reportScrollManager.scrollToEnd();
             return;
         }
@@ -740,7 +741,7 @@ function MoneyRequestReportActionsList({
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
         readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, reportMetadata?.hasOnceLoadedReportActions, introSelected, betas]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
