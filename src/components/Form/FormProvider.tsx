@@ -351,6 +351,17 @@ function FormProvider({
 
             const inputRef = inputProps.ref;
 
+            // Numeric/phone pad keyboards on iOS don't have a built-in return key. Setting returnKeyType
+            // on these creates a visible toolbar button (e.g. "Go") that duplicates the form's submit button.
+            const inputPropsRecord = inputProps as Record<string, unknown>;
+            const isNumericKeyboard =
+                inputPropsRecord.inputMode === CONST.INPUT_MODE.TEL ||
+                inputPropsRecord.inputMode === CONST.INPUT_MODE.NUMERIC ||
+                inputPropsRecord.inputMode === CONST.INPUT_MODE.DECIMAL ||
+                inputPropsRecord.keyboardType === 'phone-pad' ||
+                inputPropsRecord.keyboardType === 'number-pad' ||
+                inputPropsRecord.keyboardType === 'decimal-pad';
+
             return {
                 ...inputProps,
                 ...(shouldSubmitForm && {
@@ -359,7 +370,7 @@ function FormProvider({
 
                         inputProps.onSubmitEditing?.(event);
                     },
-                    returnKeyType: 'go',
+                    ...(!isNumericKeyboard && {returnKeyType: 'go' as const}),
                 }),
                 ref:
                     typeof inputRef === 'function'
