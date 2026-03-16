@@ -7,7 +7,6 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -259,7 +258,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
     };
 
-    const policyId = policy?.id;
     const continueDeleteWorkspace = useCallback(() => {
         showConfirmModal({
             title: translate('workspace.common.delete'),
@@ -275,23 +273,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
             confirmDelete();
         });
-    }, [
-        activePolicyID,
-        defaultCardFeeds,
-        hasCardFeedOrExpensifyCard,
-        isOffline,
-        lastAccessedWorkspacePolicyID,
-        lastPaymentMethod,
-        localeCompare,
-        policy,
-        policyName,
-        reimbursementAccountError,
-        reportsToArchive,
-        showConfirmModal,
-        transactionViolations,
-        personalPolicyID,
-        translate,
-    ]);
+    }, [showConfirmModal, translate, hasCardFeedOrExpensifyCard, policy, confirmDelete]);
 
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
         usePayAndDowngrade(continueDeleteWorkspace);
@@ -458,7 +440,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
             handleLeaveWorkspace();
         });
-    }, [confirmModalPrompt, policyAchAccountReimburser, policyId, sessionEmail, showConfirmModal, translate]);
+    }, [confirmModalPrompt, handleLeaveWorkspace, policyAchAccountReimburser, sessionEmail, showConfirmModal, translate]);
 
     const handleInvitePress = () => {
         if (isAccountLocked) {
@@ -554,8 +536,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         </View>
     );
 
-    const modals = <>{outstandingBalanceModal}</>;
-
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -570,7 +550,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
             headerContent={!shouldUseNarrowLayout && headerButtons}
-            modals={modals}
+            modals={outstandingBalanceModal}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
