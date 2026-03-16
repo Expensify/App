@@ -9,10 +9,12 @@ import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {RootTabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
+import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -35,8 +37,33 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
  * above the tab bar area without being clipped.
  */
 function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state']}) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const selectedRouteName = tabState.routes[tabState.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
+
+    // Hide tab bar on narrow layout when user navigated deeper than root screen.
+    // Negative marginTop pulls the bar over the scene content so it takes 0px in
+    // the layout flow — hiding via opacity causes no layout shift. The scene
+    // content (including the push/pop animation) is visible behind the bar.
+    const activeRoute = tabState.routes[tabState.index];
+    const nestedStateIndex = activeRoute?.state?.index;
+    const isAtRoot = nestedStateIndex === undefined || nestedStateIndex === 0;
+    const shouldHide = shouldUseNarrowLayout && !isAtRoot;
+
+    if (shouldUseNarrowLayout) {
+        return (
+            <View
+                style={{overflow: 'visible', marginTop: -variables.bottomTabHeight, opacity: shouldHide ? 0 : 1}}
+                pointerEvents={shouldHide ? 'none' : 'auto'}
+            >
+                <NavigationTabBar
+                    selectedTab={selectedTab}
+                    shouldShowFloatingButtons={!shouldHide}
+                />
+            </View>
+        );
+    }
+
     return (
         <View style={{overflow: 'visible'}}>
             <NavigationTabBar selectedTab={selectedTab} />

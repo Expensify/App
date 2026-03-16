@@ -241,7 +241,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         cleanStaleScrollOffsets(state);
         cleanPreservedNavigatorStates(state);
 
-        console.log('state', state);
+        console.log('navigation state', state);
     };
 
     const onReadyWithSentry = useCallback(() => {
