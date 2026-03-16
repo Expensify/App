@@ -103,7 +103,7 @@ import type {
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
-    ViolationsModifiedDistanceParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -7932,7 +7932,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             }
         },
         modifiedDate: 'La date diffère du reçu scanné',
-        modifiedDistance: ({formattedRouteDistance}: ViolationsModifiedDistanceParams) =>
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
             formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
         nonExpensiworksExpense: 'Dépense non Expensiworks',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `La dépense dépasse la limite d’auto-approbation de ${formattedLimit}`,

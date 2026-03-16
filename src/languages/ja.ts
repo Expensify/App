@@ -103,7 +103,7 @@ import type {
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
-    ViolationsModifiedDistanceParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -7808,7 +7808,7 @@ ${reportName}
             }
         },
         modifiedDate: '日付がスキャンしたレシートと異なります',
-        modifiedDistance: ({formattedRouteDistance}: ViolationsModifiedDistanceParams) =>
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
             formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
         nonExpensiworksExpense: 'Expensiworks 以外の経費',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `経費が自動承認限度額 ${formattedLimit} を超えています`,

@@ -118,7 +118,7 @@ type ViolationsMissingTagParams = {tagName?: string} | undefined;
 
 type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
-type ViolationsModifiedDistanceParams = {formattedRouteDistance?: string};
+type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
 
 type ViolationsOverAutoApprovalLimitParams = {formattedLimit: string};
 
@@ -437,7 +437,7 @@ export type {
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
-    ViolationsModifiedDistanceParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,

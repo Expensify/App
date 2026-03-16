@@ -103,7 +103,7 @@ import type {
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
-    ViolationsModifiedDistanceParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
@@ -7896,7 +7896,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             }
         },
         modifiedDate: 'Data diversa dalla ricevuta scansionata',
-        modifiedDistance: ({formattedRouteDistance}: ViolationsModifiedDistanceParams) =>
+        increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
             formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
         nonExpensiworksExpense: 'Spesa non-Expensiworks',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `La spesa supera il limite di approvazione automatica di ${formattedLimit}`,
