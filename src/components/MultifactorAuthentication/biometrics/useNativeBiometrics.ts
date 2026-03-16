@@ -52,15 +52,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
         await resetKeys(accountID);
     }, [accountID]);
 
-    const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge?: RegistrationChallenge) => {
-        if (!registrationChallenge) {
-            onResult({
-                success: false,
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_MISSING,
-            });
-            return;
-        }
-
+    const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge: RegistrationChallenge) => {
         // Generate key pair
         const {privateKey, publicKey} = generateKeyPair();
 

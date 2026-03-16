@@ -42,15 +42,7 @@ function usePasskeys(): UseBiometricsReturn {
         deleteLocalPasskeyCredentials(userId);
     };
 
-    const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge?: RegistrationChallenge) => {
-        if (!registrationChallenge) {
-            onResult({
-                success: false,
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_MISSING,
-            });
-            return;
-        }
-
+    const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge: RegistrationChallenge) => {
         const backendCredentials = serverKnownCredentialIDs.map((id) => ({id, type: CONST.PASSKEY_CREDENTIAL_TYPE}));
         const reconciledExisting = reconcileLocalPasskeysWithBackend({
             userId,

@@ -59,7 +59,7 @@ type UseBiometricsReturn = {
     areLocalCredentialsKnownToServer: () => Promise<boolean>;
 
     /** Register current device for the chosen authentication method */
-    register: (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge?: RegistrationChallenge) => Promise<void>;
+    register: (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge: RegistrationChallenge) => Promise<void>;
 
     /** Authorize using chosen authentication method */
     authorize: (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;

@@ -234,22 +234,6 @@ describe('useNativeBiometrics hook', () => {
             });
         });
 
-        it('should return failure when registrationChallenge is missing', async () => {
-            const {result} = renderHook(() => useNativeBiometrics());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.register(onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: false,
-                    reason: VALUES.REASON.CHALLENGE.CHALLENGE_MISSING,
-                }),
-            );
-        });
-
         it('should generate key pair', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
