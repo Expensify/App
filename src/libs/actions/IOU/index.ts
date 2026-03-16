@@ -3831,6 +3831,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             currentUserEmailParam,
             introSelected,
             activePolicyID,
+            betas,
             isSelfTourViewed,
         });
         createdWorkspaceParams = workspaceData.params;
@@ -7569,6 +7570,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         taxAmount,
         taxCode,
         merchant,
+        modifiedAmount,
         billable,
         reimbursable,
         validWaypoints,
@@ -7746,6 +7748,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         }
 
         parameters = {
+            amount: modifiedAmount ?? undefined,
             comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
@@ -9329,6 +9332,7 @@ function getPayMoneyRequestParams({
             introSelected,
             activePolicyID: activePolicy?.id,
             companySize: introSelected?.companySize as OnboardingCompanySize,
+            betas,
             isSelfTourViewed,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;

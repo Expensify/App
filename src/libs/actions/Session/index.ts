@@ -121,14 +121,6 @@ Onyx.connect({
     callback: (value) => (stashedCredentials = value ?? {}),
 });
 
-let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (newActivePolicyID) => {
-        activePolicyID = newActivePolicyID;
-    },
-});
-
 let isUsingImportedState: boolean | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.IS_USING_IMPORTED_STATE,
@@ -378,8 +370,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             HybridAppModule.switchAccount({
                 newDotCurrentAccountEmail: stashedSession.email ?? '',
                 authToken: stashedSession.authToken ?? '',
-                // eslint-disable-next-line rulesdir/no-default-id-values
-                policyID: activePolicyID ?? '',
+                policyID: '',
                 accountID: session.accountID ? String(session.accountID) : '',
             });
             hasSwitchedAccountInHybridMode = true;
