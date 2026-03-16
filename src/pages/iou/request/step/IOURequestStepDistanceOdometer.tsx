@@ -77,9 +77,8 @@ function IOURequestStepDistanceOdometer({
     const [startReading, setStartReading] = useState<string>('');
     const [endReading, setEndReading] = useState<string>('');
     const [formError, setFormError] = useState<string>('');
-    // Track cursor positions via refs to avoid onSelectionChange race conditions
-    const startCursorPositionRef = useRef(0);
-    const endCursorPositionRef = useRef(0);
+    const [startSelection, setStartSelection] = useState<{start: number; end: number}>({start: 0, end: 0});
+    const [endSelection, setEndSelection] = useState<{start: number; end: number}>({start: 0, end: 0});
     // Key to force TextInput remount when resetting state after tab switch
     const [inputKey, setInputKey] = useState<number>(0);
 
@@ -303,10 +302,6 @@ function IOURequestStepDistanceOdometer({
         if (parts.length === 2 && (parts.at(1) ?? '').length > 1) {
             return false;
         }
-        // Limit integer part to 7 digits (max value is 9999999.9)
-        if ((parts.at(0) ?? '').length > 7) {
-            return false;
-        }
         const value = parseFloat(stripped);
 
         // Allow edits that reduce the value (e.g. backspacing a legacy over-max reading),
@@ -320,30 +315,17 @@ function IOURequestStepDistanceOdometer({
         return true;
     };
 
-    /**
-     * Imperatively restore cursor position on the input element after React
-     * reverts a rejected change in a controlled TextInput.
-     */
-    const restoreCursorPosition = (inputRef: React.RefObject<BaseTextInputRef | null>, position: number) => {
-        requestAnimationFrame(() => {
-            const input = inputRef.current;
-            if (!input) {
-                return;
-            }
-            // Web: HTMLInputElement.setSelectionRange; Native: TextInput.setSelection
-            if ('setSelectionRange' in input && typeof input.setSelectionRange === 'function') {
-                input.setSelectionRange(position, position);
-            } else if ('setSelection' in input && typeof input.setSelection === 'function') {
-                input.setSelection(position, position);
-            }
-        });
-    };
-
     const handleStartReadingChange = (text: string) => {
-        const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
-        if (normalized !== text || !isOdometerInputValid(normalized, startReading)) {
-            restoreCursorPosition(startReadingInputRef, startCursorPositionRef.current);
+        if (!isOdometerInputValid(text, startReading)) {
+            // Force re-render so React re-applies the selection prop and restores cursor position
+            setStartSelection((prev) => ({...prev}));
             return;
+        }
+        const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
+        if (normalized !== text) {
+            const offset = normalized.length - startReading.length;
+            const newCursorPosition = Math.max(0, startSelection.end + offset);
+            setStartSelection({start: newCursorPosition, end: newCursorPosition});
         }
         setStartReading(normalized);
         startReadingRef.current = normalized;
@@ -353,10 +335,16 @@ function IOURequestStepDistanceOdometer({
     };
 
     const handleEndReadingChange = (text: string) => {
-        const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
-        if (normalized !== text || !isOdometerInputValid(normalized, endReading)) {
-            restoreCursorPosition(endReadingInputRef, endCursorPositionRef.current);
+        if (!isOdometerInputValid(text, endReading)) {
+            // Force re-render so React re-applies the selection prop and restores cursor position
+            setEndSelection((prev) => ({...prev}));
             return;
+        }
+        const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
+        if (normalized !== text) {
+            const offset = normalized.length - endReading.length;
+            const newCursorPosition = Math.max(0, endSelection.end + offset);
+            setEndSelection({start: newCursorPosition, end: newCursorPosition});
         }
         setEndReading(normalized);
         endReadingRef.current = normalized;
@@ -561,9 +549,8 @@ function IOURequestStepDistanceOdometer({
                                 accessibilityLabel={translate('distance.odometer.startReading')}
                                 value={startReading}
                                 onChangeText={handleStartReadingChange}
-                                onSelectionChange={(event) => {
-                                    startCursorPositionRef.current = event.nativeEvent.selection.end;
-                                }}
+                                onSelectionChange={(event) => setStartSelection(event.nativeEvent.selection)}
+                                selection={startSelection}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
@@ -612,9 +599,8 @@ function IOURequestStepDistanceOdometer({
                                 accessibilityLabel={translate('distance.odometer.endReading')}
                                 value={endReading}
                                 onChangeText={handleEndReadingChange}
-                                onSelectionChange={(event) => {
-                                    endCursorPositionRef.current = event.nativeEvent.selection.end;
-                                }}
+                                onSelectionChange={(event) => setEndSelection(event.nativeEvent.selection)}
+                                selection={endSelection}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
