@@ -152,7 +152,7 @@ describe('TransactionPreviewUtils', () => {
                 merchant: 'Expense',
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.receipt'}]));
+            expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
         });
 
         it('should apply correct text when transaction is pending and not a bill split', () => {
