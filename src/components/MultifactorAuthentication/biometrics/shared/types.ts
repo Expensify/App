@@ -61,10 +61,10 @@ type UseBiometricsReturn = {
     /** Check if local credentials are known to server (local credential exists in server's list) */
     areLocalCredentialsKnownToServer: () => Promise<boolean>;
 
-    /** Register biometrics on device */
+    /** Register current device for the chosen authentication method */
     register: (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge?: RegistrationChallenge) => Promise<void>;
 
-    /** Authorize using biometrics */
+    /** Authorize using chosen authentication method */
     authorize: (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
 
     /** Reset keys for account */
