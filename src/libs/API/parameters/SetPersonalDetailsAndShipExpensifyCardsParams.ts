@@ -8,6 +8,7 @@ type SetPersonalDetailsAndShipExpensifyCardsParams = {
     addressZip: string;
     addressCountry: string;
     addressState: string;
+    addressProvince?: string;
     dob: string;
     validateCode: string;
 };

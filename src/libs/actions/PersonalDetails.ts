@@ -59,6 +59,7 @@ function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDeta
         addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
         addressCountry: values.country,
         addressState: (values.addressState ?? values.state).trim(),
+        ...(values.country !== CONST.COUNTRY.US ? {addressProvince: (values.addressState ?? values.state).trim()} : {}),
         dob: values.dob,
     };
 }
