@@ -62,7 +62,7 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const actionsValue: TabSelectorActionsContextType = {onContainerLayout, onContainerScroll, scrollToTab, registerTab, onTabLayout};
+    const actionsValue: TabSelectorActionsContextType = {onContainerLayout, onContainerScroll, scrollToTab, onTabLayout};
 
     return (
         <TabSelectorStateContext.Provider value={stateValue}>

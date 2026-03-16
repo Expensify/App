@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, View} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
 type TabSelectorStateContextType = {
     containerRef: React.RefObject<RNScrollView | null>;
