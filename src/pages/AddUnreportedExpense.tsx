@@ -204,12 +204,15 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             return filteredTransactions;
         }
 
+        const includesUnreported = selectedStatusValues.includes(CONST.SEARCH.STATUS.EXPENSE.UNREPORTED);
+        const includesDrafts = selectedStatusValues.includes(CONST.SEARCH.STATUS.EXPENSE.DRAFTS);
+
         return filteredTransactions.filter((item) => {
             const isUnreported = isUnreportedTransaction(item);
-            if (selectedStatusValues.includes(CONST.SEARCH.STATUS.EXPENSE.UNREPORTED) && isUnreported) {
+            if (includesUnreported && isUnreported) {
                 return true;
             }
-            if (selectedStatusValues.includes(CONST.SEARCH.STATUS.EXPENSE.DRAFTS) && !isUnreported) {
+            if (includesDrafts && !isUnreported) {
                 return true;
             }
             return false;
