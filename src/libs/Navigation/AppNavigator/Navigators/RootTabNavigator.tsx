@@ -30,18 +30,17 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
  * can effectively prevent re-renders. The `descriptors` object in BottomTabBarProps
  * is recreated on every render, which would defeat memoization.
  *
- * Floating buttons are disabled here because the tab bar is rendered inside
- * the bottom tab navigator's layout container, which clips absolutely-positioned
- * children on native platforms. Screens render floating buttons independently.
+ * Wrapped in a View with overflow: 'visible' so that the absolutely-positioned
+ * floating buttons (FAB, GPS, Camera) rendered by NavigationTabBar can extend
+ * above the tab bar area without being clipped.
  */
 const RootTabNavigatorTabBar = memo(({tabState}: {tabState: BottomTabBarProps['state']}) => {
     const selectedRouteName = tabState.routes[tabState.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
     return (
-        <NavigationTabBar
-            selectedTab={selectedTab}
-            shouldShowFloatingButtons={false}
-        />
+        <View style={{overflow: 'visible'}}>
+            <NavigationTabBar selectedTab={selectedTab} />
+        </View>
     );
 });
 

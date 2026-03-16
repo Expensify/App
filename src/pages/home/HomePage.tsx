@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import FloatingTabBarButtons from '@components/Navigation/NavigationTabBar/FloatingTabBarButtons';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -51,7 +50,6 @@ function HomePage() {
                 shouldShowOfflineIndicatorInWideScreen
                 testID="HomePage"
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
-                bottomContent={shouldUseNarrowLayout && <FloatingTabBarButtons />}
             >
                 <TopBar
                     breadcrumbLabel={translate('common.home')}
