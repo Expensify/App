@@ -29,6 +29,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,6 +91,7 @@ function IOURequestStepCategory({
     const shouldShowCategory =
         (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -106,6 +108,11 @@ function IOURequestStepCategory({
     const isLoading = !isOffline && policyCategories === undefined;
     const shouldShowEmptyState = policyCategories !== undefined && !shouldShowCategory;
     const shouldShowOfflineView = policyCategories === undefined && isOffline;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepCategory',
+        isLoading,
+        isOffline,
+    };
 
     useEffect(() => {
         fetchData();
@@ -176,6 +183,7 @@ function IOURequestStepCategory({
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={[styles.flex1]}
+                    reasonAttributes={reasonAttributes}
                 />
             )}
             {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}

@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
@@ -39,6 +40,7 @@ import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {close} from '@userActions/Modal';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -57,6 +59,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
     const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -91,8 +94,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Attempt to set this contact method as user's "Default contact method"
      */
     const setAsDefault = useCallback(() => {
-        setContactMethodAsDefault(currentUserPersonalDetails, contactMethod, formatPhoneNumber, backTo);
-    }, [currentUserPersonalDetails, contactMethod, formatPhoneNumber, backTo]);
+        setContactMethodAsDefault(currentUserPersonalDetails, allPolicies, contactMethod, formatPhoneNumber, backTo);
+    }, [currentUserPersonalDetails, allPolicies, contactMethod, formatPhoneNumber, backTo]);
 
     /**
      * Determines whether the user's primary login switching is restricted
@@ -139,21 +142,42 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [isDefaultContactMethod, loginData?.validatedDate, isRestrictedDefaultContactMethodSwitch]);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
+    const isFocused = useIsFocused();
+    const [shouldNavigateOnFocus, setShouldNavigateOnFocus] = useState(false);
+
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
 
-        // Navigate to methods page on successful magic code verification
-        // validatedDate property is responsible to decide the status of the magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        if (isFocused) {
+            // Navigate to methods page on successful magic code verification.
+            // The validatedDate property indicates successful magic code verification.
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        } else {
+            // Set flag to navigate when screen regains focus
+            setShouldNavigateOnFocus(true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
+
+    // Handle navigation when screen regains focus and flag is set
+    useEffect(() => {
+        if (!isFocused || !shouldNavigateOnFocus) {
+            return;
+        }
+        setShouldNavigateOnFocus(false);
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Only fire on focus transitions
+    }, [isFocused]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!loginData?.partnerUserID || loginData?.validatedDate || prevPendingDeletedLogin) {
             return;
         }
@@ -212,8 +236,14 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         return menuItems;
     }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod, icons.Trashcan]);
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ContactMethodDetailsPage',
+        isLoadingOnyxValues,
+        isLoadingReportData,
+    };
+
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (!contactMethod || !loginData) {
@@ -289,6 +319,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focus?.();
                 });
@@ -346,7 +377,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        handleSubmitForm={(validateCode) => validateSecondaryLogin(currentUserPersonalDetails, loginList, contactMethod, validateCode, formatPhoneNumber)}
+                        handleSubmitForm={(validateCode) => validateSecondaryLogin(contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => {
                             // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.

@@ -79,7 +79,7 @@ const PromotedActions = {
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID);
+                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected);
             }
         },
     }),
@@ -106,6 +106,7 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                         iconFill={theme.icon}
                         text={translate(translationKey)}
                         icon={typeof icon === 'string' ? icons[icon] : icon}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                     />
                 </View>
             ))}

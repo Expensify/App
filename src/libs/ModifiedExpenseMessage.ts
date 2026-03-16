@@ -47,19 +47,6 @@ Onyx.connectWithoutView({
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
-let storedCurrentUserLogin = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        // When signed out, value is undefined
-        if (!value) {
-            return;
-        }
-        storedCurrentUserLogin = value?.email ?? '';
-    },
-});
-
 /**
  * Builds the partial message fragment for a modified field on the expense.
  */
@@ -279,21 +266,15 @@ function getForReportAction({
     movedFromReport,
     movedToReport,
     policyForMovingExpensesID,
-    currentUserLogin: currentUserLoginParam,
+    currentUserLogin,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     policyID: string | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     policyForMovingExpensesID?: string;
-    currentUserLogin?: string;
+    currentUserLogin: string;
 }): string {
-    // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
-    // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
-    let currentUserLogin = currentUserLoginParam;
-    if (!currentUserLogin) {
-        currentUserLogin = storedCurrentUserLogin;
-    }
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
@@ -501,21 +482,46 @@ function getForReportAction({
         const oldBillable = reportActionOriginalMessage?.oldBillable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const newBillable = reportActionOriginalMessage?.billable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
-        buildMessageFragmentForValue(translateLocal, newBillable, oldBillable, translateLocal('iou.expense'), true, setFragments, removalFragments, changeFragments);
+        buildMessageFragmentForValue(
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            translateLocal,
+            newBillable,
+            oldBillable,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            translateLocal('iou.expense'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
     }
 
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
         const oldReimbursable =
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportActionOriginalMessage?.oldReimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
         const newReimbursable =
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportActionOriginalMessage?.reimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
-        buildMessageFragmentForValue(translateLocal, newReimbursable, oldReimbursable, translateLocal('iou.expense'), true, setFragments, removalFragments, changeFragments);
+        buildMessageFragmentForValue(
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            translateLocal,
+            newReimbursable,
+            oldReimbursable,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            translateLocal('iou.expense'),
+            true,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
     }
 
     const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
     if (hasModifiedAttendees) {
         const [oldAttendees, attendees] = getFormattedAttendees(reportActionOriginalMessage.newAttendees, reportActionOriginalMessage.oldAttendees);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         buildMessageFragmentForValue(translateLocal, oldAttendees, attendees, translateLocal('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
@@ -523,6 +529,7 @@ function getForReportAction({
     if (hasPersonalRulesModifiedFields) {
         const personalRulesModifiedFields = reportActionOriginalMessage.personalRulesModifiedFields;
         if (personalRulesModifiedFields) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getRulesModifiedMessage(translateLocal, personalRulesModifiedFields, true);
         }
     }
@@ -533,24 +540,31 @@ function getForReportAction({
         const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
         if (policyRulesModifiedFields && rulePolicyID) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const rulePolicy = getPolicy(rulePolicyID);
             const hasPolicyRuleAccess = !!rulePolicy?.areRulesEnabled && isPolicyAdmin(rulePolicy, currentUserLogin);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getRulesModifiedMessage(translateLocal, policyRulesModifiedFields, false, rulePolicyID, hasPolicyRuleAccess);
         }
     }
 
     const message =
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.changed')}`, changeFragments) +
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.set')}`, setFragments) +
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
         // If we don't have enough structured information to build a detailed message but we
         // know the change was AI-generated, fall back to an AI-attributed generic summary so
         // users can still understand that Concierge updated the expense automatically.
         if (reportActionOriginalMessage?.aiGenerated) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `${translateLocal('iou.changedTheExpense')} ${translateLocal('iou.basedOnAI')}`;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.changedTheExpense');
     }
     return `${message.substring(1, message.length)}`;
@@ -567,7 +581,7 @@ function getForReportActionTemp({
     movedFromReport,
     movedToReport,
     policyTags,
-    currentUserLogin: currentUserLoginParam,
+    currentUserLogin,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -577,12 +591,6 @@ function getForReportActionTemp({
     policyTags: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
 }): string {
-    // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
-    // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
-    let currentUserLogin = currentUserLoginParam;
-    if (!currentUserLogin) {
-        currentUserLogin = storedCurrentUserLogin;
-    }
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
