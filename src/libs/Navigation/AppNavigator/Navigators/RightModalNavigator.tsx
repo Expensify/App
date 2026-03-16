@@ -103,15 +103,17 @@ const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('..
 
 function RHPDialogContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // Must match createModalStackNavigator which uses isSmallScreenWidth (not shouldUseNarrowLayout).
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {containerRef} = useDialogLabelActions();
 
-    // Narrow layouts already get dialog semantics from createModalStackNavigator.
+    // Small screens already get dialog semantics from createModalStackNavigator.
     return (
         <View
             ref={containerRef}
-            role={shouldUseNarrowLayout ? undefined : CONST.ROLE.DIALOG}
-            aria-modal={shouldUseNarrowLayout ? undefined : true}
+            role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
+            aria-modal={isSmallScreenWidth ? undefined : true}
             style={styles.flex1}
         >
             {children}
