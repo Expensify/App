@@ -708,14 +708,35 @@ function WorkspacesListPage() {
                 return getWorkspaceMenuItem({item, index});
             }
             case 'domain': {
+                const isLastDomain = domains.indexOf(item) === domains.length - 1;
                 return (
                     <DomainMenuItem
                         item={item}
                         index={index}
+                        isLastItem={isLastDomain}
                     />
                 );
             }
             case 'domains-header': {
+                if (!isLessThanMediumScreen) {
+                    return (
+                        <View
+                            style={[
+                                styles.flexRow,
+                                styles.pv2,
+                                styles.ph3,
+                                styles.mh5,
+                                styles.mnh40,
+                                styles.highlightBG,
+                                styles.alignItemsCenter,
+                                styles.mt5,
+                                {borderBottomWidth: 1, borderColor: theme.border, borderTopLeftRadius: 8, borderTopRightRadius: 8},
+                            ]}
+                        >
+                            <Text style={styles.textLabelSupporting}>{translate('common.domains')}</Text>
+                        </View>
+                    );
+                }
                 return (
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5, styles.pv3, styles.mt0, styles.mb0]}>
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.domains')}</Text>

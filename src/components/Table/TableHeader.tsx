@@ -64,7 +64,7 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
                 styles.mh5,
                 styles.pv2,
                 styles.mnh40,
-                {paddingLeft: 16, paddingRight: 8, borderBottomWidth: 1, borderColor: theme.border, borderTopLeftRadius: 8, borderTopRightRadius: 8},
+                {paddingLeft: 12, paddingRight: 8, borderBottomWidth: 1, borderColor: theme.border, borderTopLeftRadius: 8, borderTopRightRadius: 8},
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
                 styles.dFlex,
                 styles.flexRow,

@@ -22,6 +22,9 @@ type DomainMenuItemProps = {
 
     /** Row index in the menu */
     index: number;
+
+    /** Whether this is the last domain in the list */
+    isLastItem?: boolean;
 };
 
 type DomainItem = {
@@ -51,7 +54,7 @@ type DomainItem = {
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     WithSentryLabel;
 
-function DomainMenuItem({item, index}: DomainMenuItemProps) {
+function DomainMenuItem({item, index, isLastItem}: DomainMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Globe']);
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -99,6 +102,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                         isHovered={hovered}
                         menuItems={threeDotsMenuItems}
                         brickRoadIndicator={item.brickRoadIndicator}
+                        isLastItem={isLastItem}
                     />
                 )}
             </PressableWithoutFeedback>

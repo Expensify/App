@@ -86,7 +86,7 @@ function SelectionListWithModal<TItem extends ListItem>({
     const desktopHeaderStyle = isLargeScreenWidth
         ? {
               marginHorizontal: 20,
-              paddingLeft: 16,
+              paddingLeft: 12,
               paddingRight: 8,
               paddingTop: 8,
               paddingBottom: 8,
