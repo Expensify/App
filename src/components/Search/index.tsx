@@ -407,7 +407,17 @@ function Search({
         };
     }, []);
 
-    useEffect(deferHeavySearchWork, [hash, deferHeavySearchWork]);
+    // Only defer heavy work (getSections) when data isn't available yet.
+    // Skipping the defer for live data (to-dos) and cached results avoids a
+    // flash of the empty state or a blank page caused by a redundant defer cycle.
+    useEffect(() => {
+        if (shouldUseLiveData || isDataLoaded) {
+            setShouldDeferHeavySearchWork(false);
+            return;
+        }
+        return deferHeavySearchWork();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hash, deferHeavySearchWork, shouldUseLiveData, isDataLoaded]);
 
     useFocusEffect(
         useCallback(() => {
@@ -425,15 +435,16 @@ function Search({
         }, [deferHeavySearchWork]),
     );
 
-    // For to-do searches, we never show loading state since the data is always available locally from Onyx
+    // Show a skeleton whenever heavy work is deferred, even for live-data (to-do) searches,
+    // so we never fall through to the empty-state check with stale zero-length data.
     const shouldShowLoadingState =
-        !shouldUseLiveData &&
-        !isOffline &&
-        (shouldDeferHeavySearchWork ||
-            !isDataLoaded ||
-            (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
-            (hasErrors && searchRequestResponseStatusCode === null) ||
-            isCardFeedsLoading);
+        (!isOffline && shouldDeferHeavySearchWork) ||
+        (!shouldUseLiveData &&
+            !isOffline &&
+            (!isDataLoaded ||
+                (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
+                (hasErrors && searchRequestResponseStatusCode === null) ||
+                isCardFeedsLoading));
 
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
@@ -1385,7 +1396,8 @@ function Search({
     }
     const isAnyVisibleActionLoading = filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`));
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyVisibleActionLoading) {
+    // Guard: don't render the empty view while heavy work is still deferred - the data is temporarily [] and not truly empty.
+    if (!shouldDeferHeavySearchWork && shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyVisibleActionLoading) {
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
