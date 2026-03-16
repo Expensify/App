@@ -66,7 +66,7 @@ import {
 } from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, isPolicyMember, sortPoliciesByName} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, sortPoliciesByName} from '@libs/PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -1845,7 +1845,7 @@ function MoneyReportHeader({
             iconFill: isDuplicateReportActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_REPORT,
-            shouldShow: !!(policy && isPolicyMember(policy, currentUserLogin)) || !!defaultExpensePolicy,
+            shouldShow: !!defaultExpensePolicy,
             shouldCloseModalOnSelect: false,
             onSelected: () => {
                 if (!isDuplicateReportActive) {
@@ -1854,18 +1854,17 @@ function MoneyReportHeader({
 
                 temporarilyDisableDuplicateReportAction();
 
-                const sourcePolicy = policy;
-                const targetPolicy = sourcePolicy && isPolicyMember(sourcePolicy, currentUserLogin) ? sourcePolicy : defaultExpensePolicy;
-                const targetPolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy?.id}`] ?? {};
+                const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     duplicateReportAction({
                         sourceReportTransactions: nonPendingDeleteTransactions,
                         sourceReportName: moneyRequestReport?.reportName ?? '',
-                        targetPolicy: targetPolicy ?? undefined,
-                        targetPolicyCategories,
-                        targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy?.id}`] ?? {},
+                        targetPolicy: defaultExpensePolicy ?? undefined,
+                        targetPolicyCategories: activePolicyCategories,
+                        targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`] ?? {},
+                        parentChatReport: activePolicyExpenseChat,
                         ownerPersonalDetails: currentUserPersonalDetails,
                         isASAPSubmitBetaEnabled,
                         betas,

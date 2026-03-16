@@ -1789,12 +1789,21 @@ describe('actions/Duplicate', () => {
             ...overrides,
         });
 
+        const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
+
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
             targetPolicy: mockPolicy,
             targetPolicyCategories: mockPolicyCategories,
             targetPolicyTags: {},
+            parentChatReport: {
+                reportID: POLICY_EXPENSE_CHAT_REPORT_ID,
+                policyID: mockPolicy.id,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            },
             ownerPersonalDetails: mockOwnerPersonalDetails,
             isASAPSubmitBetaEnabled: false,
             betas: [CONST.BETAS.ALL],
@@ -1810,8 +1819,6 @@ describe('actions/Duplicate', () => {
         });
 
         const countWriteCommandCalls = (command: string) => writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === command).length;
-
-        const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
 
         beforeEach(async () => {
             jest.clearAllMocks();

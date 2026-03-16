@@ -759,6 +759,7 @@ type DuplicateReportParams = {
     targetPolicy: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
     ownerPersonalDetails: CurrentUserPersonalDetails;
     isASAPSubmitBetaEnabled: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -778,6 +779,7 @@ function duplicateReport({
     targetPolicy,
     targetPolicyCategories,
     targetPolicyTags,
+    parentChatReport,
     ownerPersonalDetails,
     isASAPSubmitBetaEnabled,
     betas,
@@ -790,9 +792,12 @@ function duplicateReport({
     translate,
     recentWaypoints,
 }: DuplicateReportParams) {
-    if (!targetPolicy) {
+    if (!targetPolicy || !parentChatReport) {
         return;
     }
+
+    const userAccountID = getUserAccountID();
+    const currentUserEmailValue = getCurrentUserEmail();
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
     const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
@@ -820,14 +825,6 @@ function duplicateReport({
         }
         return true;
     });
-
-    const userAccountID = getUserAccountID();
-    const currentUserEmailValue = getCurrentUserEmail();
-    const parentChatReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${newReport.chatReportID}`];
-
-    if (!parentChatReport) {
-        return;
-    }
 
     const participants = getMoneyRequestParticipantsFromReport(parentChatReport, userAccountID);
 
