@@ -35,7 +35,7 @@ function TabSelectorItem({
     renderProductTrainingTooltip,
     equalWidth = false,
     badgeText,
-    disabled = false,
+    isDisabled = false,
     pendingAction,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
@@ -48,8 +48,8 @@ function TabSelectorItem({
 
     const accessibilityState = {selected: isActive};
 
-    const isOfflinePendingAction = !!isOffline && !!pendingAction;
-    const needsStrikeThrough = isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isOfflineWithPendingAction = !!isOffline && !!pendingAction;
+    const shouldTextHaveStrikeThrough = isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const children = (
         <AnimatedPressableWithFeedback
@@ -58,9 +58,9 @@ function TabSelectorItem({
             accessibilityRole={CONST.ROLE.TAB}
             style={[
                 styles.tabSelectorButton,
-                styles.tabBackground(isHovered, isActive, disabled, backgroundColor),
+                styles.tabBackground(isHovered, isActive, isDisabled, backgroundColor),
                 styles.userSelectNone,
-                isOfflinePendingAction ? styles.offlineFeedbackPending : undefined,
+                isOfflineWithPendingAction ? styles.offlineFeedbackPending : undefined,
             ]}
             wrapperStyle={equalWidth ? styles.flex1 : styles.flexGrow1}
             onLongPress={onLongPress}
@@ -75,19 +75,19 @@ function TabSelectorItem({
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
             sentryLabel={sentryLabel}
-            disabled={disabled}
+            disabled={isDisabled}
         >
             <TabIcon
                 icon={icon}
-                activeOpacity={styles.tabOpacity(disabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                inactiveOpacity={styles.tabOpacity(disabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                activeOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                inactiveOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
             />
             {(shouldShowLabelWhenInactive || isActive) && (
                 <TabLabel
-                    textStyle={needsStrikeThrough ? styles.offlineFeedbackDeleted : undefined}
+                    textStyle={shouldTextHaveStrikeThrough ? styles.offlineFeedbackDeleted : undefined}
                     title={title}
-                    activeOpacity={styles.tabOpacity(disabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                    inactiveOpacity={styles.tabOpacity(disabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                    activeOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                    inactiveOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                     hasIcon={!!icon}
                 />
             )}

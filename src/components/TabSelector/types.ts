@@ -46,7 +46,7 @@ type TabSelectorBaseItem = WithSentryLabel & {
     badgeText?: string;
 
     /** Whether this tab is disabled */
-    disabled?: boolean;
+    isDisabled?: boolean;
 
     /** Pending action for the tab. */
     pendingAction?: PendingAction;
@@ -131,7 +131,7 @@ type TabSelectorItemProps = WithSentryLabel & {
     badgeText?: string;
 
     /** Whether this tab is disabled */
-    disabled?: boolean;
+    isDisabled?: boolean;
 
     /** Pending action for the tab. */
     pendingAction?: PendingAction;

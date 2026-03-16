@@ -125,7 +125,7 @@ function TabSelectorBase({
                         equalWidth={equalWidth}
                         badgeText={tab.badgeText}
                         pendingAction={tab.pendingAction}
-                        disabled={tab.disabled}
+                        isDisabled={tab.isDisabled}
                     />
                 );
             })}

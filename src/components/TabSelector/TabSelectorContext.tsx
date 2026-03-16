@@ -59,8 +59,7 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
         scrollToTabUtil({tabX, tabWidth, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
     };
 
-    // In case tab is not changed by tapping on a different tab we still
-    // want to scroll to the selected tab to make sure it's in view
+    // Sync scroll position when the active tab changes externally (e.g. back/forward browser history buttons, not user tap)
     useEffect(() => {
         if (!lastScrolledToTab.current || activeTabKey === lastScrolledToTab.current) {
             return;
