@@ -11,6 +11,7 @@ import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
@@ -104,6 +105,9 @@ type ReceiptImageProps = (
 
     isEmptyReceipt?: boolean;
 
+    /** Reason attributes for skeleton span telemetry */
+    reasonAttributes?: SkeletonSpanReasonAttributes;
+
     /** Callback to be called on pressing the image */
     onPress?: () => void;
 
@@ -149,6 +153,7 @@ function ReceiptImage({
     fallbackIconColor,
     fallbackIconBackground,
     isEmptyReceipt = false,
+    reasonAttributes,
     onPress,
     transactionItem,
     isPerDiemRequest,
@@ -229,6 +234,7 @@ function ReceiptImage({
                 onLoad={onLoad}
                 onLoadFailure={onLoadFailure}
                 resizeMode={resizeMode}
+                reasonAttributes={reasonAttributes}
             />
         );
     }
@@ -253,6 +259,7 @@ function ReceiptImage({
             imageWidthToCalculateHeight={receiptImageWidth}
             onError={onLoadFailure}
             resizeMode={resizeMode}
+            reasonAttributes={reasonAttributes}
         />
     );
 }
