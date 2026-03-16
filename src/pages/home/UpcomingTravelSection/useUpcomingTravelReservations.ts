@@ -1,3 +1,4 @@
+import {accountIDSelector} from '@selectors/Session';
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
@@ -24,6 +25,7 @@ const allTripRoomsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollect
 
 function useUpcomingTravelReservations(): UpcomingReservation[] {
     const [tripRoomReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: allTripRoomsSelector});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     return useMemo(() => {
         const now = new Date();
@@ -34,7 +36,8 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
         const upcoming: UpcomingReservation[] = [];
 
         for (const report of reports) {
-            if (!report) {
+            // Only include reservations where the current user is the traveler
+            if (!report || report.ownerAccountID !== accountID) {
                 continue;
             }
             const reservations = getReservationsFromTripReport(report);
@@ -50,7 +53,7 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
         }
 
         return upcoming.sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
-    }, [tripRoomReports]);
+    }, [tripRoomReports, accountID]);
 }
 
 export default useUpcomingTravelReservations;
