@@ -119,3 +119,168 @@ describe('Pusher.subscribe', () => {
         await expect(subscribePromise).resolves.toBeUndefined();
     });
 });
+
+describe('Per-callback subscription handles', () => {
+    const CHANNEL = 'private-user-percb';
+    const EVENT = 'testEvent';
+
+    beforeEach(async () => {
+        jest.spyOn(Pusher, 'isSubscribed').mockReturnValue(false);
+        jest.spyOn(Pusher, 'isAlreadySubscribing').mockReturnValue(false);
+        await initPusher();
+    });
+
+    afterEach(() => {
+        Pusher.disconnect();
+        jest.restoreAllMocks();
+    });
+
+    function triggerEvent(channelName: string, eventName: string, data: Record<string, unknown> = {value: 1}) {
+        // Access the underlying mock socket to fire events through the Pusher module's
+        // onEvent dispatcher, which iterates over eventsBoundToChannels.
+        const mockSocket = window.getPusherInstance();
+        if (mockSocket && 'trigger' in mockSocket) {
+            (mockSocket as {trigger: (event: {channelName: string; eventName: string; data: Record<string, unknown>}) => void}).trigger({
+                channelName,
+                eventName,
+                data,
+            });
+        }
+    }
+
+    it('should return a PusherSubscription with an unsubscribe method', async () => {
+        const handle = Pusher.subscribe(CHANNEL, EVENT, () => {});
+        await jest.runAllTimersAsync();
+        await handle;
+
+        expect(typeof handle.unsubscribe).toBe('function');
+    });
+
+    it('should deliver events to both subscribers on the same channel+event', async () => {
+        const callbackA = jest.fn();
+        const callbackB = jest.fn();
+
+        const handleA = Pusher.subscribe(CHANNEL, EVENT, callbackA);
+        await jest.runAllTimersAsync();
+        await handleA;
+
+        // Second subscribe to same channel — goes through the "already subscribed" branch
+        jest.spyOn(Pusher, 'isSubscribed').mockReturnValue(true);
+        const handleB = Pusher.subscribe(CHANNEL, EVENT, callbackB);
+        await jest.runAllTimersAsync();
+        await handleB;
+
+        triggerEvent(CHANNEL, EVENT, {msg: 'hello'});
+
+        expect(callbackA).toHaveBeenCalledTimes(1);
+        expect(callbackB).toHaveBeenCalledTimes(1);
+        expect(callbackA).toHaveBeenCalledWith({msg: 'hello'});
+
+        handleA.unsubscribe();
+        handleB.unsubscribe();
+    });
+
+    it('should stop delivering events to an unsubscribed callback while others continue', async () => {
+        const callbackA = jest.fn();
+        const callbackB = jest.fn();
+
+        const handleA = Pusher.subscribe(CHANNEL, EVENT, callbackA);
+        await jest.runAllTimersAsync();
+        await handleA;
+
+        jest.spyOn(Pusher, 'isSubscribed').mockReturnValue(true);
+        const handleB = Pusher.subscribe(CHANNEL, EVENT, callbackB);
+        await jest.runAllTimersAsync();
+        await handleB;
+
+        // Unsubscribe A only
+        handleA.unsubscribe();
+
+        triggerEvent(CHANNEL, EVENT, {msg: 'after-unsub'});
+
+        expect(callbackA).not.toHaveBeenCalled();
+        expect(callbackB).toHaveBeenCalledTimes(1);
+        expect(callbackB).toHaveBeenCalledWith({msg: 'after-unsub'});
+
+        handleB.unsubscribe();
+    });
+
+    it('should keep the channel subscribed until the last callback unsubscribes', async () => {
+        const handleA = Pusher.subscribe(CHANNEL, EVENT, jest.fn());
+        await jest.runAllTimersAsync();
+        await handleA;
+
+        jest.spyOn(Pusher, 'isSubscribed').mockReturnValue(true);
+        const handleB = Pusher.subscribe(CHANNEL, EVENT, jest.fn());
+        await jest.runAllTimersAsync();
+        await handleB;
+
+        // After unsubscribing A, mock socket should still have the channel
+        handleA.unsubscribe();
+        const mockSocket = window.getPusherInstance();
+        if (mockSocket && 'getChannel' in mockSocket) {
+            expect((mockSocket as {getChannel: (name: string) => unknown}).getChannel(CHANNEL)).toBeTruthy();
+        }
+
+        // After unsubscribing B (last callback), channel should be cleaned up
+        handleB.unsubscribe();
+        if (mockSocket && 'getChannel' in mockSocket) {
+            expect((mockSocket as {getChannel: (name: string) => unknown}).getChannel(CHANNEL)).toBeFalsy();
+        }
+    });
+
+    it('should handle unsubscribe before subscription completes without errors', async () => {
+        const callback = jest.fn();
+
+        // Subscribe but do NOT flush timers yet — subscription is pending
+        const handle = Pusher.subscribe(CHANNEL, EVENT, callback);
+
+        // Unsubscribe immediately (sets disposed = true)
+        handle.unsubscribe();
+
+        // Now flush — the InteractionManager callback should see disposed=true and skip binding
+        await jest.runAllTimersAsync();
+        await expect(handle).resolves.toBeUndefined();
+
+        // Event should not reach the callback since it was never bound
+        triggerEvent(CHANNEL, EVENT);
+        expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should handle multiple events on the same channel with independent cleanup', async () => {
+        const callbackX = jest.fn();
+        const callbackY = jest.fn();
+
+        const handleX = Pusher.subscribe(CHANNEL, 'eventX', callbackX);
+        await jest.runAllTimersAsync();
+        await handleX;
+
+        jest.spyOn(Pusher, 'isSubscribed').mockReturnValue(true);
+        const handleY = Pusher.subscribe(CHANNEL, 'eventY', callbackY);
+        await jest.runAllTimersAsync();
+        await handleY;
+
+        // Both events should work
+        triggerEvent(CHANNEL, 'eventX', {type: 'x'});
+        triggerEvent(CHANNEL, 'eventY', {type: 'y'});
+        expect(callbackX).toHaveBeenCalledWith({type: 'x'});
+        expect(callbackY).toHaveBeenCalledWith({type: 'y'});
+
+        // Unsubscribe eventX — eventY should still work
+        handleX.unsubscribe();
+        callbackX.mockClear();
+        callbackY.mockClear();
+
+        triggerEvent(CHANNEL, 'eventX', {type: 'x2'});
+        triggerEvent(CHANNEL, 'eventY', {type: 'y2'});
+        expect(callbackX).not.toHaveBeenCalled();
+        expect(callbackY).toHaveBeenCalledWith({type: 'y2'});
+
+        // Unsubscribe eventY — channel should be fully cleaned up
+        handleY.unsubscribe();
+        const mockSocket = window.getPusherInstance();
+        if (mockSocket && 'getChannel' in mockSocket) {
+            expect((mockSocket as {getChannel: (name: string) => unknown}).getChannel(CHANNEL)).toBeFalsy();
+        }
+    });
+});
