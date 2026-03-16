@@ -779,6 +779,7 @@ const CONST = {
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         FREEZE_CARD: 'freezeCard',
+        BULK_EDIT: 'bulkEdit',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
