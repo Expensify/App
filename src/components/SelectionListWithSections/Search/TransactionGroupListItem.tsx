@@ -488,7 +488,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             isExpanded={isExpanded}
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
-                            expandButtonStyle={styles.pv3}
+                            expandButtonStyle={styles.pv2}
                             shouldShowToggleButton={isLargeScreenWidth}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >
