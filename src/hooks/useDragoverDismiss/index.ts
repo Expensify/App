@@ -5,7 +5,10 @@ function useDragoverDismiss(isActive: boolean, dismiss: () => void) {
         if (!isActive) {
             return;
         }
-        const handler = () => dismiss();
+        const handler = () => {
+            dismiss();
+            document.removeEventListener('dragover', handler);
+        };
         document.addEventListener('dragover', handler);
         return () => document.removeEventListener('dragover', handler);
     }, [isActive, dismiss]);
