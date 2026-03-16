@@ -12547,6 +12547,7 @@ describe('actions/IOU', () => {
             };
 
             const policyCategories = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 Food: {name: 'Food', enabled: true, 'GL Code': '', unencodedName: 'Food', externalID: '', areCommentsRequired: false, origin: ''},
             };
 

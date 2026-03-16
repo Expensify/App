@@ -685,7 +685,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     );
 
     const onBulkPaySelectedRef = useRef(onBulkPaySelected);
-    onBulkPaySelectedRef.current = onBulkPaySelected;
+    useEffect(() => {
+        onBulkPaySelectedRef.current = onBulkPaySelected;
+    });
     const stableOnBulkPaySelected = useCallback((paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
         onBulkPaySelectedRef.current?.(paymentMethod, additionalData);
     }, []);
@@ -1251,6 +1253,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         styles.textWrap,
         userBillingGraceEndPeriodCollection,
         currentSearchKey,
+        allTransactions,
+        isBetaEnabled,
+        shouldShowBusinessBankAccountOptions,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
