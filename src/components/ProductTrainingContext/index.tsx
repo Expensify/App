@@ -269,7 +269,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
         return (
-            <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>
+            <View
+                id={tooltip.content}
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+            >
                 <View
                     style={[
                         styles.alignItemsCenter,
@@ -311,12 +314,14 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph2, styles.pv2, styles.gap2]}>
                         <Button
                             success
+                            id="productTrainingTooltipTryItOutButton"
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
                             style={[styles.flex1]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...createPressHandler(config.onConfirm)}
                         />
                         <Button
+                            id="productTrainingTooltipNoThanksButton"
                             text={translate('common.noThanks')}
                             style={[styles.flex1]}
                             // eslint-disable-next-line react/jsx-props-no-spreading
