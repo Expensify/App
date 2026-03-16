@@ -146,7 +146,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
             const backSubPage = isUserDirector ? SUB_PAGE_NAMES.CONFIRMATION : SUB_PAGE_NAMES.IS_DIRECTOR;
             Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: backSubPage, backTo}));
         } else if (currentSubPage === SUB_PAGE_NAMES.HANG_TIGHT) {
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
         } else {
             onBackButtonPress();
         }

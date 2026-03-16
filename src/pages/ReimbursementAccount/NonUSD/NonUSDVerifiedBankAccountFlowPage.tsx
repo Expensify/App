@@ -21,18 +21,29 @@ import type NonUSDPageProps from './types';
 import requiresDocusignStep from './utils/requiresDocusignStep';
 
 const PAGE_NAME = CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME;
+const BANK_INFO_SUB_PAGES = CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES;
+const BUSINESS_INFO_SUB_PAGES = CONST.NON_USD_BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES;
+const BENEFICIAL_OWNER_INFO_SUB_PAGES = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUB_PAGE_NAMES;
+const SIGNER_INFO_SUB_PAGES = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUB_PAGE_NAMES;
 
 type PageEntry = {
     pageName: string;
     component: React.ComponentType<NonUSDPageProps>;
+    firstSubPage?: string;
+    lastSubPage?: string;
 };
 
 const allPages: PageEntry[] = [
     {pageName: PAGE_NAME.CURRENCY_AND_COUNTRY, component: Country},
-    {pageName: PAGE_NAME.BANK_INFO, component: BankInfo},
-    {pageName: PAGE_NAME.BUSINESS_INFO, component: BusinessInfo},
-    {pageName: PAGE_NAME.BENEFICIAL_OWNER_INFO, component: BeneficialOwnerInfo},
-    {pageName: PAGE_NAME.SIGNER_INFO, component: SignerInfo},
+    {pageName: PAGE_NAME.BANK_INFO, component: BankInfo, firstSubPage: BANK_INFO_SUB_PAGES.BANK_ACCOUNT_DETAILS, lastSubPage: BANK_INFO_SUB_PAGES.CONFIRMATION},
+    {pageName: PAGE_NAME.BUSINESS_INFO, component: BusinessInfo, firstSubPage: BUSINESS_INFO_SUB_PAGES.NAME, lastSubPage: BUSINESS_INFO_SUB_PAGES.CONFIRMATION},
+    {
+        pageName: PAGE_NAME.BENEFICIAL_OWNER_INFO,
+        component: BeneficialOwnerInfo,
+        firstSubPage: BENEFICIAL_OWNER_INFO_SUB_PAGES.IS_USER_BENEFICIAL_OWNER,
+        lastSubPage: BENEFICIAL_OWNER_INFO_SUB_PAGES.BENEFICIAL_OWNERS_LIST,
+    },
+    {pageName: PAGE_NAME.SIGNER_INFO, component: SignerInfo, firstSubPage: SIGNER_INFO_SUB_PAGES.IS_DIRECTOR, lastSubPage: SIGNER_INFO_SUB_PAGES.IS_DIRECTOR},
     {pageName: PAGE_NAME.AGREEMENTS, component: Agreements},
     {pageName: PAGE_NAME.DOCUSIGN, component: Docusign},
     {pageName: PAGE_NAME.FINISH, component: Finish},
@@ -72,14 +83,25 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
             Navigation.goBack();
             return;
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: pages.at(nextIndex)?.pageName, backTo}));
+        const nextPage = pages.at(nextIndex);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: nextPage?.pageName, subPage: nextPage?.firstSubPage, backTo}));
+    }, [backTo, currentPageIndex, pages, policyID]);
+
+    const onBackButtonPress = useCallback(() => {
+        const prevIndex = currentPageIndex - 1;
+        if (prevIndex < 0) {
+            Navigation.goBack();
+            return;
+        }
+        const prevPage = pages.at(prevIndex);
+        Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: prevPage?.lastSubPage, backTo}));
     }, [backTo, currentPageIndex, pages, policyID]);
 
     return (
         <View style={styles.flex1}>
             <CurrentPage
                 onSubmit={onSubmit}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={onBackButtonPress}
                 policyID={policyID}
                 currency={currency}
                 stepNames={stepNames}

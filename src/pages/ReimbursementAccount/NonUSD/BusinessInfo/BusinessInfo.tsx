@@ -132,7 +132,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
 
     const buildRoute = useCallback(
         (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BUSINESS_INFO, subPage: pageName, action, backTo}),
-        [policyID],
+        [backTo, policyID],
     );
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage({pages, startFrom, onFinished: submit, buildRoute});

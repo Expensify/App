@@ -217,10 +217,12 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (currentSubPage === SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER) {
             onBackButtonPress();
+        } else if (currentSubPage === SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
+            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER, backTo}));
         } else {
             Navigation.goBack();
         }
-    }, [currentSubPage, onBackButtonPress]);
+    }, [backTo, currentSubPage, onBackButtonPress, policyID]);
 
     if (shouldRedirect) {
         return <FullScreenLoadingIndicator />;
@@ -232,6 +234,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
                 stepNames={stepNames}
                 policyID={policyID}
                 onFinished={handleOwnerDetailsFormFinished}
+                backTo={backTo}
             />
         );
     }
