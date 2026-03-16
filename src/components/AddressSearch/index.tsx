@@ -18,6 +18,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -89,6 +90,7 @@ function AddressSearch({
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [searchValue, setSearchValue] = useState('');
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
@@ -307,6 +309,7 @@ function AddressSearch({
         </>
     );
 
+    // eslint-disable-next-line arrow-body-style
     useEffect(() => {
         return () => {
             // If the component unmounts we don't want any of the callback for geolocation to run.
@@ -329,14 +332,19 @@ function AddressSearch({
         [isTyping, styles, translate],
     );
 
-    const listLoader = useMemo(
-        () => (
+    const listLoader = useMemo(() => {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
+        return (
             <View style={[styles.pv4]}>
-                <ActivityIndicator />
+                <ActivityIndicator reasonAttributes={reasonAttributes} />
             </View>
-        ),
-        [styles.pv4],
-    );
+        );
+    }, [styles.pv4]);
+
+    const fetchingLocationReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'AddressSearch.isFetchingCurrentLocation',
+        isFetchingCurrentLocation,
+    };
 
     return (
         /*
@@ -478,7 +486,10 @@ function AddressSearch({
             </ScrollView>
             {isFetchingCurrentLocation && (
                 <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={fetchingLocationReasonAttributes}
+                    />
                 </View>
             )}
         </>

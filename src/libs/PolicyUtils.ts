@@ -23,6 +23,7 @@ import type {
 } from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
+    ApprovalRule,
     ConnectionLastSync,
     ConnectionName,
     Connections,
@@ -52,7 +53,7 @@ import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
-import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
@@ -116,13 +117,13 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled);
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled && isControlPolicy(policy));
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => {
         const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-        return policy?.arePerDiemRatesEnabled && !isEmptyObject(perDiemCustomUnit?.rates);
+        return policy?.arePerDiemRatesEnabled && isControlPolicy(policy) && !isEmptyObject(perDiemCustomUnit?.rates);
     });
 }
 
@@ -304,29 +305,46 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     return false;
 }
 
-function getCustomUnitsForDuplication(policy: Policy, isDistanceRatesOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
+function getCustomUnitsForDuplication(
+    policy: Policy,
+    isDistanceRatesOptionSelected: boolean,
+    isPerDiemOptionSelected: boolean,
+    customUnitIDs: {
+        distanceCustomUnitID: string;
+        perDiemCustomUnitID: string;
+    },
+): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
+    const {distanceCustomUnitID, perDiemCustomUnitID} = customUnitIDs ?? {};
+
     if ((!isDistanceRatesOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
         return undefined;
     }
 
     if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        return customUnits;
+        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+
+        if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
+            return undefined;
+        }
+
+        return {[distanceCustomUnitID]: distanceCustomUnit, [perDiemCustomUnitID]: perDiemUnit};
     }
 
-    if (isDistanceRatesOptionSelected) {
+    if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
         const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
-        return {[distanceCustomUnit.customUnitID]: distanceCustomUnit};
+        return {[distanceCustomUnitID]: distanceCustomUnit};
     }
 
     const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
-    if (!perDiemUnit) {
+    if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
-    return {[perDiemUnit.customUnitID]: perDiemUnit};
+    return {[perDiemCustomUnitID]: perDiemUnit};
 }
 
 /**
@@ -785,6 +803,21 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+/**
+ * Whether the policy can access a feature based on plan level.
+ * Corporate-only features are restricted to control (Corporate) policies.
+ */
+function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
+    if (!isPaidGroupPolicy(policy)) {
+        return false;
+    }
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]);
+    if (corporateOnlyFeatures.has(featureName)) {
+        return isControlPolicy(policy);
+    }
+    return true;
+}
+
 function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
@@ -908,6 +941,7 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
 function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
+    const seenKeys: Record<string, Set<string>> = {};
 
     for (const policy of Object.values(policies ?? {})) {
         if (!policy?.taxRates?.taxes) {
@@ -917,11 +951,13 @@ function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<st
         for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes ?? {})) {
             if (!allTaxRates[taxRate.name]) {
                 allTaxRates[taxRate.name] = [taxRateKey];
+                seenKeys[taxRate.name] = new Set([taxRateKey]);
                 continue;
             }
-            if (allTaxRates[taxRate.name].includes(taxRateKey)) {
+            if (seenKeys[taxRate.name].has(taxRateKey)) {
                 continue;
             }
+            seenKeys[taxRate.name].add(taxRateKey);
             allTaxRates[taxRate.name].push(taxRateKey);
         }
     }
@@ -1011,9 +1047,72 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     return [...new Set([...categoryApprovers, ...tagApprovers])];
 }
 
+function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: OnyxEntry<Report>) {
+    // Pre-build a lookup map of { category: { value → approver }, tag: { value → approver } }
+    // from the policy's approval rules so that each transaction's category/tag can be resolved in O(1).
+    const rulesMap: Record<'category' | 'tag', Record<string, string>> = {category: {}, tag: {}};
+
+    for (let i = 0; i < approvalRules.length; i++) {
+        const rule = approvalRules.at(i);
+        if (!rule) {
+            continue;
+        }
+        for (let j = 0; j < rule.applyWhen.length; j++) {
+            const applyWhen = rule.applyWhen.at(j);
+            if (!applyWhen || applyWhen.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
+                continue;
+            }
+            if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
+                rulesMap[applyWhen.field][applyWhen.value] = rule.approver;
+            }
+        }
+    }
+
+    if (isEmptyObject(rulesMap.category) && isEmptyObject(rulesMap.tag)) {
+        return '';
+    }
+
+    const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
+
+    if (!allReportTransactions.length) {
+        return '';
+    }
+
+    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const employeeLogin = getLoginByAccountID(employeeAccountID);
+
+    let firstCategoryApprover = '';
+    let firstTagApprover = '';
+
+    for (let i = 0; i < allReportTransactions.length; i++) {
+        const transaction = allReportTransactions.at(i);
+        const category = getCategory(transaction);
+        const categoryApprover = rulesMap.category[category];
+
+        // Category approvers take strict priority over tag approvers.
+        // Break immediately on the first match so we don't keep scanning transactions unnecessarily.
+        if (categoryApprover && categoryApprover !== employeeLogin) {
+            firstCategoryApprover = categoryApprover;
+            break;
+        }
+
+        // Only look for a tag approver if we haven't found one yet — no need to re-check on subsequent transactions.
+        if (!firstTagApprover) {
+            const tag = getTag(transaction);
+            const tagApprover = rulesMap.tag[tag];
+
+            if (tagApprover && tagApprover !== employeeLogin) {
+                firstTagApprover = tagApprover;
+            }
+        }
+    }
+
+    return firstCategoryApprover || firstTagApprover;
+}
+
 function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report> | {ownerAccountID: number}) {
     const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
+    const employeeLogin = getLoginByAccountID(employeeAccountID) ?? '';
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
@@ -1033,14 +1132,13 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
-    const ruleApprovers = getRuleApprovers(policy, expenseReport);
-    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
-    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin) {
-        ruleApprovers.shift();
-    }
-    if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
-        return getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
+    const approvalRules = policy?.rules?.approvalRules;
+
+    if (!isSubmitAndClose(policy) && approvalRules?.length) {
+        const ruleApprover = getFirstRuleApprover(approvalRules, expenseReport);
+        if (ruleApprover) {
+            return getAccountIDsByLogins([ruleApprover]).at(0) ?? -1;
+        }
     }
 
     return getManagerAccountID(policy, expenseReport);
@@ -1947,6 +2045,7 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
 
 export {
     canEditTaxRate,
+    canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,
     getAdminEmployees,

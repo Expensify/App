@@ -53,8 +53,10 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
 
 // Mock react-navigation/native to prevent navigation errors
 jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ...actualNav,
         useNavigationState: () => true,
         useRoute: jest.fn(),
@@ -200,6 +202,8 @@ describe('GoogleTagManagerTest', () => {
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
+            draftTransactionIDs: [],
+            isSelfTourViewed: false,
         });
 
         await waitForBatchedUpdatesWithAct();
