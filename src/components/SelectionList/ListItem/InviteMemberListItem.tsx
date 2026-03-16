@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import SelectCircle from '@components/SelectCircle';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -19,7 +20,6 @@ import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
 

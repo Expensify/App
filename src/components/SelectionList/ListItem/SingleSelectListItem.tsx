@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
-import useThemeStyles from '@hooks/useThemeStyles';
 import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import useThemeStyles from '@hooks/useThemeStyles';
 import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 

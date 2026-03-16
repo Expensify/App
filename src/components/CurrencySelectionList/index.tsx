@@ -4,9 +4,9 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getMatchScore from '@libs/getMatchScore';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
 
 function CurrencySelectionList({

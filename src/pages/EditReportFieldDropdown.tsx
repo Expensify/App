@@ -7,10 +7,10 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useTheme from '@hooks/useTheme';
 
 type EditReportFieldDropdownPageProps = {
     /** Value of the policy report field */

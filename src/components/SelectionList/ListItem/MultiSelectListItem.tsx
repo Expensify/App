@@ -1,9 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import RadioListItem from './RadioListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
