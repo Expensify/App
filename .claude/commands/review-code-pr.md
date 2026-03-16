@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh pr diff:*),Bash(gh pr view:*),Bash(npm run react-compiler-compliance-check:*)
+allowed-tools: Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)
 description: Review a code contribution pull request
 ---
 
