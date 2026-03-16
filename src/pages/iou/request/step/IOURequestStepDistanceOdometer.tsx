@@ -317,9 +317,8 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, startReading)) {
             return;
         }
-        const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
-        setStartReading(normalized);
-        startReadingRef.current = normalized;
+        setStartReading(text);
+        startReadingRef.current = text;
         if (formError) {
             setFormError('');
         }
@@ -329,9 +328,8 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, endReading)) {
             return;
         }
-        const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
-        setEndReading(normalized);
-        endReadingRef.current = normalized;
+        setEndReading(text);
+        endReadingRef.current = text;
         if (formError) {
             setFormError('');
         }
