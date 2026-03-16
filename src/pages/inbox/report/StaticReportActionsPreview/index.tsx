@@ -9,6 +9,4 @@ function StaticReportActionsPreview({children}: StaticReportActionsPreviewProps)
     return <ScrollView style={[styles.pt4, styles.maxHeight100Percentage, styles.overscrollBehaviorNone]}>{children}</ScrollView>;
 }
 
-StaticReportActionsPreview.displayName = 'StaticReportActionsPreview';
-
 export default StaticReportActionsPreview;

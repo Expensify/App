@@ -14,6 +14,4 @@ function StaticReportActionsPreview({children}: StaticReportActionsPreviewProps)
     );
 }
 
-StaticReportActionsPreview.displayName = 'StaticReportActionsPreview';
-
 export default StaticReportActionsPreview;
