@@ -2,7 +2,8 @@ import React from 'react';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import useReportIsArchived from '@hooks/useReportIsArchived';
+import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import CONST from '@src/CONST';
@@ -27,9 +28,7 @@ function IOURequestStepScan({
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const policy = usePolicy(report?.policyID);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-
-    const isArchived = isArchivedReport(reportNameValuePairs);
+    const isArchived = useReportIsArchived(report?.reportID);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isFromGlobalCreate = !!initialTransaction?.isFromGlobalCreate;
     const shouldSkipConfirmation =
