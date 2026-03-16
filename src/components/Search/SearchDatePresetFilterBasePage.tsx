@@ -24,9 +24,9 @@ function EmptySubPageComponent() {
 
 const DATE_FILTER_SUB_PAGES: Array<PageConfig<SubPageProps>> = [
     {pageName: CONST.SEARCH.DATE_FILTER_SUB_PAGE.MAIN, component: EmptySubPageComponent},
-    {pageName: CONST.SEARCH.DATE_MODIFIERS.ON, component: EmptySubPageComponent},
-    {pageName: CONST.SEARCH.DATE_MODIFIERS.AFTER, component: EmptySubPageComponent},
-    {pageName: CONST.SEARCH.DATE_MODIFIERS.BEFORE, component: EmptySubPageComponent},
+    {pageName: CONST.SEARCH.DATE_FILTER_SUB_PAGE.ON, component: EmptySubPageComponent},
+    {pageName: CONST.SEARCH.DATE_FILTER_SUB_PAGE.AFTER, component: EmptySubPageComponent},
+    {pageName: CONST.SEARCH.DATE_FILTER_SUB_PAGE.BEFORE, component: EmptySubPageComponent},
 ];
 
 type SearchDatePresetFilterBasePageProps = {
@@ -87,8 +87,16 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
     });
 
     const selectedDateModifier = useMemo<SearchDateModifier | null>(() => {
-        if (currentPageName === CONST.SEARCH.DATE_MODIFIERS.ON || currentPageName === CONST.SEARCH.DATE_MODIFIERS.AFTER || currentPageName === CONST.SEARCH.DATE_MODIFIERS.BEFORE) {
-            return currentPageName;
+        if (currentPageName === CONST.SEARCH.DATE_FILTER_SUB_PAGE.ON) {
+            return CONST.SEARCH.DATE_MODIFIERS.ON;
+        }
+
+        if (currentPageName === CONST.SEARCH.DATE_FILTER_SUB_PAGE.AFTER) {
+            return CONST.SEARCH.DATE_MODIFIERS.AFTER;
+        }
+
+        if (currentPageName === CONST.SEARCH.DATE_FILTER_SUB_PAGE.BEFORE) {
+            return CONST.SEARCH.DATE_MODIFIERS.BEFORE;
         }
 
         return null;
@@ -101,7 +109,14 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
                 return;
             }
 
-            resetToPage(dateModifier);
+            const subPage =
+                dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON
+                    ? CONST.SEARCH.DATE_FILTER_SUB_PAGE.ON
+                    : dateModifier === CONST.SEARCH.DATE_MODIFIERS.AFTER
+                      ? CONST.SEARCH.DATE_FILTER_SUB_PAGE.AFTER
+                      : CONST.SEARCH.DATE_FILTER_SUB_PAGE.BEFORE;
+
+            resetToPage(subPage);
         },
         [buildSubPageRoute, resetToPage],
     );
