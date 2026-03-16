@@ -24,6 +24,7 @@ import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -86,6 +87,7 @@ function WalletPage() {
     const {showLockedAccountModal} = useLockedAccountActions();
     const {login: currentUserLogin, email} = useCurrentUserPersonalDetails();
     const {translate, localeCompare} = useLocalize();
+    useDocumentTitle(translate('common.wallet'));
     const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
 
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, currentUserLogin).sort((a, b) => localeCompare(a.name || '', b.name || ''));
