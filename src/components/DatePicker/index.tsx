@@ -71,7 +71,7 @@ function DatePicker({
         });
     }, [windowHeight]);
 
-    const showDatePickerModal = useCallback((e: FocusEvent) => {
+    const showDatePickerModal = useCallback(() => {
         // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
         textInputRef.current?.blur();
         calculatePopoverPosition();

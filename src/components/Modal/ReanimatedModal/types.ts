@@ -144,7 +144,7 @@ type ReanimatedModalProps = ViewProps &
         shouldEnableNewFocusManagement?: boolean;
 
         /**
-         * Whether the focus of the previous element before showing the mdoal should be returned when the modal closes.
+         * Whether the focus of the previous element before showing the modal should be returned when the modal closes.
          */
         shouldReturnFocus?: boolean;
 
