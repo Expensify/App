@@ -7,6 +7,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {clearErrorField, setFeedStatementPeriodEndDay} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import WorkspaceCompanyCardStatementCloseDateSelectionList from '@pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDateSelectionList';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -70,7 +71,12 @@ function DirectStatementCloseDateStep({policyID}: DirectStatementCloseDateStepPr
     }, [feed, domainOrWorkspaceAccountID]);
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DirectStatementCloseDatePage',
+            isCardFeedsLoading: isLoadingOnyxValue(cardFeedsResult),
+            isLastSelectedFeedLoading: isLoadingOnyxValue(lastSelectedFeedResult),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

@@ -15,7 +15,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -117,7 +116,7 @@ describe('Deep linking', () => {
         Linking.setInitialURL(url);
         const {unmount} = render(<App />);
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
 
