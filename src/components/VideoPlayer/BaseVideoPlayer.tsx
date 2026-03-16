@@ -15,7 +15,6 @@ import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
 import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
@@ -165,7 +164,7 @@ function BaseVideoPlayer({
         isLocalFile: isUploading,
     });
 
-    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuActions();
+    const {updateVideoPopoverMenuPlayerRef, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuActions();
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
@@ -246,10 +245,9 @@ function BaseVideoPlayer({
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
-        if (!videoPlayerRef.current?.playbackRate) {
+        if (!videoPlayerRef.current) {
             return;
         }
-        updatePlaybackSpeed(videoPlayerRef.current.playbackRate as PlaybackSpeed);
         setIsPopoverVisible(true);
 
         updatePopoverMenuSource(url);
