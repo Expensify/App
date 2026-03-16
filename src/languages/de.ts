@@ -1501,6 +1501,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Alles erledigt!',
         noDuplicatesDescription: 'Es gibt hier keine doppelten Transaktionen zur Überprüfung.',
         confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
+        confirmApprovalAllHoldAmount: 'Alle Ausgaben sind zurückgestellt. Trotzdem genehmigen?',
         confirmPay: 'Zahlungsbetrag bestätigen',
         confirmPayAmount: 'Bezahle, was nicht zurückgestellt ist, oder bezahle den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({

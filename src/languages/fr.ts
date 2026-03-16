@@ -1505,6 +1505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Tout est en ordre !',
         noDuplicatesDescription: "Il n'y a aucune transaction en double à vérifier ici.",
         confirmApprovalWithHeldAmount: "Le rapport contient des dépenses en attente. Approuver uniquement les dépenses conformes, ou approuver l'ensemble du rapport ?",
+        confirmApprovalAllHoldAmount: 'Toutes les dépenses sont en attente. Approuver quand même ?',
         confirmPay: 'Confirmer le montant du paiement',
         confirmPayAmount: 'Payez ce qui n’est pas en attente, ou payez l’intégralité de la note de frais.',
         confirmPayAllHoldAmount: () => ({

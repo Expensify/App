@@ -1374,6 +1374,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: '¡Todo listo!',
         noDuplicatesDescription: 'No hay transacciones duplicadas para revisar aquí.',
         confirmApprovalWithHeldAmount: 'El informe contiene gastos retenidos. ¿Quieres aprobar sólo los gastos que cumplen con los requisitos o aprobar todo el informe?',
+        confirmApprovalAllHoldAmount: 'Todos los gastos están retenidos. ¿Aprobar de todos modos?',
         confirmPay: 'Confirmar importe de pago',
         confirmPayAmount: 'Paga lo que no está retenido, o paga el informe completo.',
         confirmPayAllHoldAmount: () => ({

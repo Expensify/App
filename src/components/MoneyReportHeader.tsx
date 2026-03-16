@@ -1662,6 +1662,8 @@ function MoneyReportHeader({
         </Text>
     );
 
+    const approvalText = hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount');
+
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
         DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'shouldCallOnSelectedForSubMenuItem' | 'subMenuHeaderText'>
@@ -1733,7 +1735,7 @@ function MoneyReportHeader({
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
             subMenuItems: secondaryApprovalActions,
             shouldUpdateSelectedIndex: true,
-            subMenuHeaderText: shouldShowApprovalSecondaryActions ? translate('iou.confirmApprovalWithHeldAmount') : undefined,
+            subMenuHeaderText: shouldShowApprovalSecondaryActions ? approvalText : undefined,
             onSelected: () => {
                 if (shouldShowApprovalSecondaryActions) {
                     return;

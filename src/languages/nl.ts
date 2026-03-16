@@ -1496,6 +1496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Alles in orde!',
         noDuplicatesDescription: 'Er zijn hier geen dubbele transacties om te beoordelen.',
         confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
+        confirmApprovalAllHoldAmount: 'すべての経費が保留中です。それでも承認しますか？',
         confirmPay: 'Bevestig betalingsbedrag',
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({

@@ -1535,6 +1535,7 @@ const translations = {
         noDuplicatesTitle: 'All set!',
         noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
+        confirmApprovalAllHoldAmount: 'All expenses are on hold. Approve anyway?',
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({

@@ -74,7 +74,7 @@ function getApprovalDropdownOptions({
     const APPROVE_FULL = 'approve_full';
     const options: ApprovalOption[] = [];
 
-    if (nonHeldAmount && hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
+    if (hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
         options.push({
             value: APPROVE_PARTIAL,
             text: `${translate('iou.approveOnly')} ${nonHeldAmount}`,
@@ -124,22 +124,20 @@ function ExpenseHeaderApprovalButton({
             illustrations,
         });
 
-        if (approvalOptions.length > 1) {
-            return (
-                <ButtonWithDropdownMenu
-                    success
-                    options={approvalOptions}
-                    menuHeaderText={translate('iou.confirmApprovalWithHeldAmount')}
-                    onPress={() => {}}
-                    customText={translate('iou.approve')}
-                    headerTextStyles={styles.lineHeightNormal}
-                    shouldAlwaysShowDropdownMenu
-                    isSplitButton={false}
-                    isDisabled={isDisabled}
-                    anchorAlignment={anchorAlignment}
-                />
-            );
-        }
+        return (
+            <ButtonWithDropdownMenu
+                success
+                options={approvalOptions}
+                menuHeaderText={hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount')}
+                onPress={() => {}}
+                customText={translate('iou.approve')}
+                headerTextStyles={styles.lineHeightNormal}
+                shouldAlwaysShowDropdownMenu
+                isSplitButton={false}
+                isDisabled={isDisabled}
+                anchorAlignment={anchorAlignment}
+            />
+        );
     }
 
     return (

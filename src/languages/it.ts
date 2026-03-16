@@ -1498,6 +1498,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Tutto a posto!',
         noDuplicatesDescription: 'Non ci sono transazioni duplicate da verificare qui.',
         confirmApprovalWithHeldAmount: "Il rapporto contiene spese in sospeso. Approvare solo le spese conformi o approvare l'intero rapporto?",
+        confirmApprovalAllHoldAmount: 'Tutte le spese sono in sospeso. Approvare comunque?',
         confirmPay: 'Conferma l’importo del pagamento',
         confirmPayAmount: 'Paga le voci non in sospeso oppure paga l’intero resoconto.',
         confirmPayAllHoldAmount: () => ({

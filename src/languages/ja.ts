@@ -1488,6 +1488,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: '準備完了！',
         noDuplicatesDescription: '確認が必要な重複取引はありません。',
         confirmApprovalWithHeldAmount: 'レポートには保留中の経費が含まれています。準拠している経費のみを承認しますか、それともレポート全体を承認しますか？',
+        confirmApprovalAllHoldAmount: 'すべての経費が保留中です。それでも承認しますか？',
         confirmPay: '支払金額を確認',
         confirmPayAmount: '保留されていない金額のみ支払うか、レポート全額を支払ってください。',
         confirmPayAllHoldAmount: () => ({
