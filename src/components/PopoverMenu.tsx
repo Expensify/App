@@ -335,12 +335,9 @@ function BasePopoverMenu({
     }, [shouldDeferDismissButtonAccessibility]);
 
     useEffect(() => {
-        // Reset the dismiss accessibility gating for each modal close before the next open.
+        // Reset the dismiss accessibility gating when the modal closes.
         isVisibleRef.current = isVisible;
         if (isVisible) {
-            if (shouldDeferDismissButtonAccessibility) {
-                setShouldEnableBottomDockedDismissAccessibility(false);
-            }
             return;
         }
         markFirstMenuItemUnfocused();
