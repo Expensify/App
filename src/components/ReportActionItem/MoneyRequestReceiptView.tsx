@@ -148,15 +148,21 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const theme = useTheme();
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
-    const isMouseInsideRef = useRef(false);
+    const receiptContainerRef = useRef<View | null>(null);
+    const addButtonRef = useRef<View | null>(null);
+    const skipContainerMouseLeaveRef = useRef(false);
     const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
+    // Browsers don't fire mouseenter when an element mounts under the cursor
     useEffect(() => {
-        if (isLoading || !isMouseInsideRef.current) {
+        if (isLoading) {
             return;
         }
-        hoverBind.onMouseEnter();
+        const receiptElement = receiptContainerRef.current as unknown as HTMLElement | null;
+        if (receiptElement?.matches?.(':hover')) {
+            hoverBind.onMouseEnter();
+        }
     }, [isLoading, hoverBind]);
 
     // Flags for allowing or disallowing editing an expense
@@ -365,7 +371,6 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
 
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
-
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
             <ReceiptAuditMessages notes={receiptImageViolations} />
@@ -461,20 +466,19 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                 >
                     {hasReceipt && (
                         <View
+                            ref={receiptContainerRef}
                             style={[
                                 styles.getMoneyRequestViewImage(showBorderlessLoading),
                                 receiptStyle,
                                 showBorderlessLoading && styles.flex1,
                                 fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
                             ]}
-                            onMouseEnter={() => {
-                                isMouseInsideRef.current = true;
-                                if (!isLoading) {
-                                    hoverBind.onMouseEnter();
-                                }
-                            }}
+                            onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
                             onMouseLeave={() => {
-                                isMouseInsideRef.current = false;
+                                if (skipContainerMouseLeaveRef.current) {
+                                    skipContainerMouseLeaveRef.current = false;
+                                    return;
+                                }
                                 hoverBind.onMouseLeave();
                             }}
                         >
@@ -501,10 +505,18 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                         {({openPicker}) => (
                                             <Tooltip text={translate('receipt.addAdditionalReceipt')}>
                                                 <PressableWithoutFeedback
+                                                    ref={addButtonRef}
                                                     onPress={() => {
                                                         openPicker({
                                                             onPicked: (files) => {
                                                                 validateFiles(files);
+                                                            },
+                                                            onCanceled: () => {
+                                                                // Reset stale hover states after native file dialog dismiss
+                                                                const buttonEl = addButtonRef.current as unknown as HTMLElement;
+                                                                buttonEl?.dispatchEvent(new PointerEvent('pointerleave'));
+                                                                skipContainerMouseLeaveRef.current = true;
+                                                                buttonEl?.dispatchEvent(new MouseEvent('mouseout', {bubbles: true, relatedTarget: document.body}));
                                                             },
                                                         });
                                                     }}
@@ -531,7 +543,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                     ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
                                                 )
                                             }
-                                            style={[styles.receiptActionButton, styles.noOutline]}
+                                            style={styles.receiptActionButton}
                                             hoverStyle={styles.buttonDefaultHovered}
                                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                             role={CONST.ROLE.BUTTON}
