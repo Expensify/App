@@ -4740,7 +4740,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             overflow: 'hidden',
             flexDirection: 'row',
-            paddingVertical: 6,
+            paddingVertical: 4,
         },
 
         searchQueryListItemStyle: {
