@@ -167,7 +167,9 @@ type TransactionCustomUnit = {
     /** The unit for the distance/quantity */
     distanceUnit?: Unit;
 
-    /** Original system-calculated route distance in meters */
+    /** The distance in meters from the route Mapbox or Google Maps chose through the user supplied waypoints.
+     * It is used to track when the user has manually increased the distance above the system-calculated route distance.
+     */
     routeDistanceMeters?: number | string;
 
     /** Sub Rates for the custom unit */
