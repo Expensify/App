@@ -54,6 +54,9 @@ function FormHelpMessage({
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const shouldAnnounceError = isError && typeof message === 'string' && !!message && !shouldRenderMessageAsHTML && children == null;
+    const shouldUseSeparateWebLiveAnnouncement = isWeb && !!nativeID && shouldAnnounceError;
+    const visibleMessageRole = shouldUseSeparateWebLiveAnnouncement || !shouldAnnounceError ? undefined : CONST.ROLE.ALERT;
+    const visibleMessageLiveRegion = shouldUseSeparateWebLiveAnnouncement || !shouldAnnounceError ? undefined : 'assertive';
 
     const HTMLMessage = useMemo(() => {
         if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
@@ -78,10 +81,7 @@ function FormHelpMessage({
     }
 
     return (
-        <View
-            style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}
-            nativeID={nativeID}
-        >
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
             {isError && shouldShowRedDotIndicator && (
                 <View
                     accessible
@@ -109,15 +109,27 @@ function FormHelpMessage({
                     ) : (
                         <Text
                             style={[isError ? styles.formError : styles.formHelp, styles.mb0]}
-                            role={shouldAnnounceError ? CONST.ROLE.ALERT : undefined}
+                            nativeID={nativeID}
+                            role={visibleMessageRole}
                             // TalkBack on some Android versions skips role-only alert announcements,
                             // so keep native accessibilityRole/live-region as a platform fallback.
                             accessibilityRole={!isWeb && shouldAnnounceError ? CONST.ROLE.ALERT : undefined}
-                            accessibilityLiveRegion={shouldAnnounceError ? 'assertive' : undefined}
+                            accessibilityLiveRegion={visibleMessageLiveRegion}
                         >
                             {message}
                         </Text>
                     ))}
+                {shouldUseSeparateWebLiveAnnouncement && (
+                    // Keep a separate live region for immediate web announcements without
+                    // changing the visible described text Safari relies on when refocusing inputs.
+                    <Text
+                        style={styles.hiddenElementOutsideOfWindow}
+                        role={CONST.ROLE.ALERT}
+                        accessibilityLiveRegion="assertive"
+                    >
+                        {message}
+                    </Text>
+                )}
             </View>
         </View>
     );
