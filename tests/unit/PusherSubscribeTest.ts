@@ -283,4 +283,33 @@ describe('Per-callback subscription handles', () => {
             expect((mockSocket as {getChannel: (name: string) => unknown}).getChannel(CHANNEL)).toBeFalsy();
         }
     });
+
+    it('should clear all callbacks on disconnect so they do not fire after re-init', async () => {
+        const oldCallback = jest.fn();
+
+        const handle = Pusher.subscribe(CHANNEL, EVENT, oldCallback);
+        await jest.runAllTimersAsync();
+        await handle;
+
+        // Disconnect clears all callback tracking
+        Pusher.disconnect();
+        jest.restoreAllMocks();
+
+        // Re-init and subscribe a new callback
+        jest.spyOn(Pusher, 'isSubscribed').mockReturnValue(false);
+        jest.spyOn(Pusher, 'isAlreadySubscribing').mockReturnValue(false);
+        await initPusher();
+
+        const newCallback = jest.fn();
+        const newHandle = Pusher.subscribe(CHANNEL, EVENT, newCallback);
+        await jest.runAllTimersAsync();
+        await newHandle;
+
+        // Fire event — only new callback should receive it
+        triggerEvent(CHANNEL, EVENT, {session: 'new'});
+        expect(oldCallback).not.toHaveBeenCalled();
+        expect(newCallback).toHaveBeenCalledWith({session: 'new'});
+
+        newHandle.unsubscribe();
+    });
 });

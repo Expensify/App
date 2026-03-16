@@ -433,6 +433,7 @@ function disconnect() {
     socket.disconnect();
     socket = null;
     pusherSocketID = '';
+    eventsBoundToChannels.clear();
     initPromise = new Promise((resolve) => {
         resolveInitPromise = resolve;
     });
