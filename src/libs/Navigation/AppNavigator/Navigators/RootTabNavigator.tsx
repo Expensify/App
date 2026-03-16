@@ -10,6 +10,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {RootTabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
@@ -38,13 +39,17 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
  */
 function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state']}) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const selectedRouteName = tabState.routes[tabState.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
 
-    // Hide tab bar on narrow layout when user navigated deeper than root screen.
-    // Negative marginTop pulls the bar over the scene content so it takes 0px in
-    // the layout flow — hiding via opacity causes no layout shift. The scene
-    // content (including the push/pop animation) is visible behind the bar.
+    // On narrow layout, hide the tab bar when the user has navigated deeper than the
+    // root screen. Each root screen also embeds its own NavigationTabBar via bottomContent
+    // in ScreenWrapper so it participates in push/pop card animations (visible during
+    // swipe-back). This top-level bar remains visible at root level so that loading
+    // states (Suspense fallback, skeleton screens) still show a tab bar.
+    // The bottomSafeAreaStyle ensures this bar aligns with the bottomContent tab bars
+    // which also receive safe area padding from ScreenWrapperContainer.
     const activeRoute = tabState.routes[tabState.index];
     const nestedStateIndex = activeRoute?.state?.index;
     const isAtRoot = nestedStateIndex === undefined || nestedStateIndex === 0;
@@ -53,7 +58,7 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     if (shouldUseNarrowLayout) {
         return (
             <View
-                style={{overflow: 'visible', marginTop: -variables.bottomTabHeight, opacity: shouldHide ? 0 : 1}}
+                style={{overflow: 'visible', marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom), paddingBottom: safeAreaPaddingBottom, opacity: shouldHide ? 0 : 1}}
                 pointerEvents={shouldHide ? 'none' : 'auto'}
             >
                 <NavigationTabBar
