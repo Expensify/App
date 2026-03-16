@@ -307,12 +307,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
             shouldShowReplaceReceiptButton &&
+            !isOdometerImage &&
             transaction &&
             hasReceiptSource(transaction) &&
             !isEReceipt &&
             !transaction?.receipt?.isTestDriveReceipt &&
             (receiptFilename ? Str.isImage(receiptFilename) : false),
-        [shouldShowReplaceReceiptButton, transaction, isEReceipt, receiptFilename],
+        [shouldShowReplaceReceiptButton, isOdometerImage, transaction, isEReceipt, receiptFilename],
     );
 
     const enterCropMode = useCallback(() => {
