@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AddUnreportedExpenseFooter from '@components/AddUnreportedExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -47,6 +47,10 @@ import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpensesParamList, typeof SCREENS.ADD_UNREPORTED_EXPENSES_ROOT>;
 type ExpenseStatus = typeof CONST.SEARCH.STATUS.EXPENSE.UNREPORTED | typeof CONST.SEARCH.STATUS.EXPENSE.DRAFTS;
 
+function isUnreportedTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || transaction?.reportID === '';
+}
+
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
@@ -89,7 +93,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 return [];
             }
             return Object.values(transactions || {}).filter((item) => {
-                const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
+                const isUnreported = isUnreportedTransaction(item);
                 const itemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item?.reportID}`];
                 const isOnOpenExpenseReport = isOpenExpenseReport(itemReport);
                 if (!isUnreported && !isOnOpenExpenseReport) {
@@ -201,7 +205,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         }
 
         return filteredTransactions.filter((item) => {
-            const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
+            const isUnreported = isUnreportedTransaction(item);
             if (selectedStatusValues.includes(CONST.SEARCH.STATUS.EXPENSE.UNREPORTED) && isUnreported) {
                 return true;
             }
