@@ -44,6 +44,8 @@ import {
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
     getDismissedViolationMessageText,
+    getDynamicExternalWorkflowApproveFailedActionMessage,
+    getDynamicExternalWorkflowSubmitFailedActionMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
@@ -87,6 +89,8 @@ import {
     isActionableJoinRequest,
     isActionOfType,
     isCardIssuedAction,
+    isDynamicExternalWorkflowApproveFailedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
@@ -676,6 +680,13 @@ function computeReportNameBasedOnReportAction(
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
         return Parser.htmlToText(getSettlementAccountLockedMessage(translate, parentReportAction));
+    }
+
+    if (isDynamicExternalWorkflowSubmitFailedAction(parentReportAction)) {
+        return getDynamicExternalWorkflowSubmitFailedActionMessage(translate, parentReportAction);
+    }
+    if (isDynamicExternalWorkflowApproveFailedAction(parentReportAction)) {
+        return getDynamicExternalWorkflowApproveFailedActionMessage(translate, parentReportAction);
     }
 
     return undefined;
