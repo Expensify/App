@@ -83,6 +83,9 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
 
+    /** Whether to use dynamic font size for the amount input */
+    shouldUseDynamicFontSize?: boolean;
+
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
@@ -139,6 +142,7 @@ function NumberWithSymbolForm({
     style,
     containerStyle,
     symbolTextStyle,
+    shouldUseDynamicFontSize = false,
     autoGrow = true,
     disableKeyboard = true,
     prefixCharacter = '',
@@ -451,8 +455,8 @@ function NumberWithSymbolForm({
             }}
             onKeyPress={textInputKeyPress}
             isSymbolPressable={isSymbolPressable && !shouldWrapInputInContainer}
-            symbolTextStyle={[symbolTextStyle, dynamicAmountStyle]}
-            style={[style, dynamicAmountStyle]}
+            symbolTextStyle={[symbolTextStyle, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
+            style={[style, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
             containerStyle={containerStyle}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}

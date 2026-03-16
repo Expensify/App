@@ -3,15 +3,16 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
+import useHasPoliciesConnectedToSageIntacct from '@hooks/useHasPoliciesConnectedToSageIntacct';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {getAccountingIntegrationData} from '../utils';
 import {defaultAccountingActionsContextValue, defaultAccountingStateContextValue, popoverAnchorRefsInitialValue} from './default';
 import type {AccountingActionsContextType, AccountingStateContextType, ActiveIntegration, ActiveIntegrationState} from './types';
 
@@ -28,6 +29,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
+    const hasPoliciesConnectedToSageIntacct = useHasPoliciesConnectedToSageIntacct();
 
     const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -39,6 +41,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.name,
                 policyID,
                 translate,
+                hasPoliciesConnectedToSageIntacct,
                 undefined,
                 undefined,
                 newActiveIntegration.integrationToDisconnect,
@@ -58,7 +61,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate, accountingIcons],
+        [policy, policyID, translate, hasPoliciesConnectedToSageIntacct, accountingIcons],
     );
 
     const closeConfirmationModal = () => {
@@ -94,8 +97,18 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             return null;
         }
 
-        return getAccountingIntegrationData(activeIntegration.name, policyID, translate, policy, activeIntegration.key, undefined, undefined, undefined, accountingIcons)
-            ?.setupConnectionFlow;
+        return getAccountingIntegrationData(
+            activeIntegration.name,
+            policyID,
+            translate,
+            hasPoliciesConnectedToSageIntacct,
+            policy,
+            activeIntegration.key,
+            undefined,
+            undefined,
+            undefined,
+            accountingIcons,
+        )?.setupConnectionFlow;
     };
 
     const shouldShowConfirmationModal = !!activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && !!activeIntegration?.integrationToDisconnect;

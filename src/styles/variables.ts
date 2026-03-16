@@ -120,6 +120,8 @@ export default {
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
+    sectionMenuItemHeight: 52,
+    sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
     lineHeightXSmall: getValueUsingPixelRatio(11, 17),
