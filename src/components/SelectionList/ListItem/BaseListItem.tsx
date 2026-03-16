@@ -25,7 +25,7 @@ type CalculatedAccessibilityProps = Pick<PressableWithFeedbackProps, 'role' | 't
 function getAccessibilityProps<TItem extends ListItem>({role, tabIndex, accessible, item, isFocused}: AccessibilityProps & {item: TItem; isFocused: BaseListItemProps<TItem>['isFocused']}) {
     const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
 
-    if (!accessible) {
+    if (accessible === false) {
         return {
             role: CONST.ROLE.PRESENTATION,
             tabIndex: -1,
