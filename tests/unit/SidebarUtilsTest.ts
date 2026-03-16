@@ -1101,6 +1101,79 @@ describe('SidebarUtils', () => {
             expect(result).toBe(false);
         });
 
+        it('shows RBR when copilot with full access pays a report but deposit and withdrawal accounts are the same', () => {
+            const copilotAccountID = 99999;
+            const ownerAccountID = 12345;
+
+            const MOCK_EXPENSE_REPORT: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID,
+                managerID: copilotAccountID,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            };
+
+            const MOCK_PAY_ACTION: ReportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: copilotAccountID,
+                created: '2024-08-08 18:20:44.171',
+                delegateAccountID: copilotAccountID,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        text: '',
+                    },
+                ],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUReportID: MOCK_EXPENSE_REPORT.reportID,
+                    amount: 10000,
+                    currency: CONST.CURRENCY.USD,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                } as OriginalMessageIOU,
+                errors: {
+                    [`${Date.now()}`]: CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR,
+                },
+            };
+
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': MOCK_PAY_ACTION,
+            };
+            const MOCK_TRANSACTIONS = {};
+            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
+            const reportErrors = getAllReportErrors(MOCK_EXPENSE_REPORT, MOCK_REPORT_ACTIONS);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_EXPENSE_REPORT?.reportID));
+
+            const result = SidebarUtils.shouldShowRedBrickRoad(
+                MOCK_EXPENSE_REPORT,
+                chatReportR14932,
+                MOCK_REPORT_ACTIONS,
+                false,
+                reportErrors,
+                MOCK_TRANSACTIONS,
+                MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived.current,
+            );
+            expect(result).toBe(true);
+
+            const {reason, reportAction} =
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                    MOCK_EXPENSE_REPORT,
+                    chatReportR14932,
+                    MOCK_REPORT_ACTIONS,
+                    false,
+                    reportErrors,
+                    MOCK_TRANSACTIONS,
+                    MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived.current,
+                ) ?? {};
+            expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+            expect(reportAction).toMatchObject<ReportAction>(MOCK_PAY_ACTION);
+        });
+
         it('returns false when report is archived', () => {
             const MOCK_REPORT: Report = {
                 reportID: '5',
