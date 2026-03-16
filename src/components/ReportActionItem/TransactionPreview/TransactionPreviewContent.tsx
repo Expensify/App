@@ -163,10 +163,9 @@ function TransactionPreviewContent({
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
-
-    const description = Parser.truncateHTML(requestComment ?? '', CONST.REQUEST_PREVIEW.DESCRIPTION_PREVIEW_MAX_LENGTH);
-    const isDescriptionHTML = !!description && Parser.isHTML(description);
-    const requestDescription = truncate(requestComment ?? '', {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const isDescriptionHTML = !!requestComment && Parser.isHTML(requestComment);
+    const requestDescription = truncate(requestComment ?? '', {length: CONST.REQUEST_PREVIEW.DESCRIPTION_PREVIEW_MAX_LENGTH});
+    const description = isDescriptionHTML ? Parser.truncateHTML(requestComment ?? '', CONST.REQUEST_PREVIEW.DESCRIPTION_PREVIEW_MAX_LENGTH) : requestDescription;
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;
@@ -332,13 +331,13 @@ function TransactionPreviewContent({
                                                 ]}
                                             >
                                                 {shouldShowMerchantOrDescription &&
-                                                    (shouldShowMerchant || !isDescriptionHTML ? (
+                                                    (shouldShowMerchant ? (
                                                         <Text
                                                             fontSize={variables.fontSizeNormal}
-                                                            style={[isDeleted && styles.lineThrough, styles.flexShrink1, styles.preWrap]}
+                                                            style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
                                                             numberOfLines={1}
                                                         >
-                                                            {shouldShowMerchant ? requestMerchant : requestDescription}
+                                                            {requestMerchant}
                                                         </Text>
                                                     ) : (
                                                         <View style={[styles.flexShrink1, styles.renderHTML]}>
