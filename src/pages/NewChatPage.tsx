@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import reportsSelector from '@selectors/Attributes';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
@@ -248,9 +247,10 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: reportsSelector,
-    });
+
+    const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+    const reportAttributesDerived = reportAttributesDerivedFull?.reports;
 
     const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
