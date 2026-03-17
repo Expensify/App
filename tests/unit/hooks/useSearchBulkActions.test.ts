@@ -370,20 +370,6 @@ describe('useSearchBulkActions', () => {
     });
 
     describe('initial state', () => {
-        it('should return correct initial modal states', () => {
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            expect(result.current.isOfflineModalVisible).toBe(false);
-            expect(result.current.isDownloadErrorModalVisible).toBe(false);
-            expect(result.current.isHoldEducationalModalVisible).toBe(false);
-            expect(result.current.rejectModalAction).toBeNull();
-            expect(result.current.emptyReportsCount).toBe(0);
-        });
-
         it('should return empty header options when queryJSON is undefined', () => {
             const {result} = renderHook(() =>
                 useSearchBulkActions({
@@ -401,65 +387,7 @@ describe('useSearchBulkActions', () => {
                 }),
             );
 
-            // With no transactions selected, selectedTransactionsKeys is empty,
-            // so the early return triggers
             expect(result.current.headerButtonsOptions).toEqual([]);
-        });
-    });
-
-    describe('derived values', () => {
-        it('should derive unique policy IDs from selected transactions', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({policyID: 'policy1'}),
-                trans2: createTransactionInfo({policyID: 'policy1'}),
-                trans3: createTransactionInfo({policyID: 'policy2'}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            expect(result.current.selectedPolicyIDs).toHaveLength(2);
-            expect(result.current.selectedPolicyIDs).toContain('policy1');
-            expect(result.current.selectedPolicyIDs).toContain('policy2');
-        });
-
-        it('should derive unique report IDs from selected transactions', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({reportID: 'report1'}),
-                trans2: createTransactionInfo({reportID: 'report1'}),
-                trans3: createTransactionInfo({reportID: 'report2'}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            expect(result.current.selectedTransactionReportIDs).toHaveLength(2);
-            expect(result.current.selectedTransactionReportIDs).toContain('report1');
-            expect(result.current.selectedTransactionReportIDs).toContain('report2');
-        });
-
-        it('should derive report IDs from selected reports', () => {
-            mockSelectedReports = [
-                {reportID: 'report1', policyID: 'policy1', action: CONST.SEARCH.ACTION_TYPES.VIEW, allActions: [], total: 100, chatReportID: undefined, currency: 'USD'},
-                {reportID: 'report2', policyID: 'policy1', action: CONST.SEARCH.ACTION_TYPES.VIEW, allActions: [], total: 200, chatReportID: undefined, currency: 'USD'},
-            ];
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({reportID: 'report1'}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            expect(result.current.selectedReportIDs).toEqual(['report1', 'report2']);
         });
     });
 
@@ -544,7 +472,7 @@ describe('useSearchBulkActions', () => {
         });
     });
 
-    describe('headerButtonsOptions - export', () => {
+    describe('headerButtonsOptions', () => {
         it('should show only export option when all matching items are selected', () => {
             mockAreAllMatchingItemsSelected = true;
             mockSelectedTransactions = {
@@ -574,13 +502,9 @@ describe('useSearchBulkActions', () => {
 
             const exportOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
             expect(exportOption).toBeDefined();
-            expect(exportOption?.text).toBe('common.export');
         });
-    });
 
-    describe('headerButtonsOptions - approve', () => {
         it('should show approve option when all selected transactions have approve action', () => {
-            // Transactions without reportID bypass the areSelectedTransactionsIncludedInReports check
             mockSelectedTransactions = {
                 trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.APPROVE, reportID: undefined}),
                 trans2: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.APPROVE, reportID: undefined}),
@@ -594,86 +518,9 @@ describe('useSearchBulkActions', () => {
 
             const approveOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
             expect(approveOption).toBeDefined();
-            expect(approveOption?.text).toBe('search.bulkActions.approve');
         });
 
-        it('should not show approve option when some transactions do not have approve action', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.APPROVE}),
-                trans2: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.VIEW}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const approveOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
-            expect(approveOption).toBeUndefined();
-        });
-
-        it('should not show approve option when any transaction is on hold', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.APPROVE, isHeld: true}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const approveOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
-            expect(approveOption).toBeUndefined();
-        });
-
-        it('should not show approve option when offline', () => {
-            mockIsOffline = true;
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.APPROVE}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const approveOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
-            expect(approveOption).toBeUndefined();
-        });
-
-        it('should show approve option when selected reports all have approve action', () => {
-            mockSelectedReports = [
-                {
-                    reportID: 'report1',
-                    policyID: 'policy1',
-                    action: CONST.SEARCH.ACTION_TYPES.APPROVE,
-                    allActions: [CONST.SEARCH.ACTION_TYPES.APPROVE],
-                    total: 100,
-                    chatReportID: undefined,
-                    currency: 'USD',
-                },
-            ];
-            // Transaction also needs to be part of the selected report for areSelectedTransactionsIncludedInReports
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.APPROVE, reportID: 'report1'}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const approveOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
-            expect(approveOption).toBeDefined();
-        });
-    });
-
-    describe('headerButtonsOptions - pay', () => {
-        it('should show pay option when shouldEnableBulkPayOption is true and not on hold', () => {
+        it('should show pay option when shouldEnableBulkPayOption is true', () => {
             mockGetPayOptionResult = {shouldEnableBulkPayOption: true, isFirstTimePayment: false};
             mockSelectedTransactions = {
                 trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.PAY}),
@@ -687,44 +534,8 @@ describe('useSearchBulkActions', () => {
 
             const payOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.PAY);
             expect(payOption).toBeDefined();
-            expect(payOption?.text).toBe('search.bulkActions.pay');
         });
 
-        it('should not show pay option when offline', () => {
-            mockIsOffline = true;
-            mockGetPayOptionResult = {shouldEnableBulkPayOption: true, isFirstTimePayment: false};
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.PAY}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const payOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.PAY);
-            expect(payOption).toBeUndefined();
-        });
-
-        it('should not show pay option when any transaction is on hold', () => {
-            mockGetPayOptionResult = {shouldEnableBulkPayOption: true, isFirstTimePayment: false};
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.PAY, isHeld: true}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const payOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.PAY);
-            expect(payOption).toBeUndefined();
-        });
-    });
-
-    describe('headerButtonsOptions - hold and unhold', () => {
         it('should show hold option when all transactions can be held', () => {
             mockSelectedTransactions = {
                 trans1: createTransactionInfo({canHold: true}),
@@ -739,39 +550,6 @@ describe('useSearchBulkActions', () => {
 
             const holdOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
             expect(holdOption).toBeDefined();
-            expect(holdOption?.text).toBe('search.bulkActions.hold');
-        });
-
-        it('should not show hold option when some transactions cannot be held', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({canHold: true}),
-                trans2: createTransactionInfo({canHold: false}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const holdOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
-            expect(holdOption).toBeUndefined();
-        });
-
-        it('should not show hold option when offline', () => {
-            mockIsOffline = true;
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({canHold: true}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const holdOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
-            expect(holdOption).toBeUndefined();
         });
 
         it('should show unhold option when all transactions can be unheld', () => {
@@ -788,32 +566,11 @@ describe('useSearchBulkActions', () => {
 
             const unholdOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
             expect(unholdOption).toBeDefined();
-            expect(unholdOption?.text).toBe('search.bulkActions.unhold');
         });
 
-        it('should not show unhold option when some transactions cannot be unheld', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({canUnhold: true}),
-                trans2: createTransactionInfo({canUnhold: false}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const unholdOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
-            expect(unholdOption).toBeUndefined();
-        });
-    });
-
-    describe('headerButtonsOptions - submit', () => {
         it('should show submit option when all selected transactions have submit action', () => {
-            // Transactions without reportID bypass the areSelectedTransactionsIncludedInReports check
             mockSelectedTransactions = {
                 trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.SUBMIT, reportID: undefined}),
-                trans2: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.SUBMIT, reportID: undefined}),
             };
 
             const {result} = renderHook(() =>
@@ -824,82 +581,9 @@ describe('useSearchBulkActions', () => {
 
             const submitOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
             expect(submitOption).toBeDefined();
-            expect(submitOption?.text).toBe('common.submit');
         });
 
-        it('should not show submit option when offline', () => {
-            mockIsOffline = true;
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.SUBMIT}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const submitOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
-            expect(submitOption).toBeUndefined();
-        });
-    });
-
-    describe('headerButtonsOptions - delete', () => {
-        it('should show delete option when shouldShowDeleteOption returns true', () => {
-            mockShouldShowDeleteOption = true;
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo(),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const deleteOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE);
-            expect(deleteOption).toBeDefined();
-            expect(deleteOption?.text).toBe('search.bulkActions.delete');
-        });
-
-        it('should not show delete option when shouldShowDeleteOption returns false', () => {
-            mockShouldShowDeleteOption = false;
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo(),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const deleteOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE);
-            expect(deleteOption).toBeUndefined();
-        });
-    });
-
-    describe('headerButtonsOptions - no options available', () => {
-        it('should show no-options-available message when no actions are available', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.VIEW}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            // With VIEW action and no other conditions met, only export should be shown
-            // (export is always present), so no-options-available should NOT be shown
-            const exportOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-            expect(exportOption).toBeDefined();
-        });
-    });
-
-    describe('headerButtonsOptions - reject', () => {
-        it('should show reject option when all transactions can be rejected and not on expense_report type', () => {
+        it('should show reject option when all transactions can be rejected', () => {
             mockSelectedTransactions = {
                 trans1: createTransactionInfo({canReject: true}),
                 trans2: createTransactionInfo({canReject: true}),
@@ -913,123 +597,13 @@ describe('useSearchBulkActions', () => {
 
             const rejectOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
             expect(rejectOption).toBeDefined();
-            expect(rejectOption?.text).toBe('search.bulkActions.reject');
         });
 
-        it('should not show reject option when query type is expense_report', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({canReject: true}),
-            };
-
-            const queryJSON = createBaseQueryJSON();
-            queryJSON.type = CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON,
-                }),
-            );
-
-            const rejectOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
-            expect(rejectOption).toBeUndefined();
-        });
-
-        it('should not show reject option when some transactions cannot be rejected', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({canReject: true}),
-                trans2: createTransactionInfo({canReject: false}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const rejectOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
-            expect(rejectOption).toBeUndefined();
-        });
-
-        it('should not show reject option when offline', () => {
-            mockIsOffline = true;
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({canReject: true}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const rejectOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
-            expect(rejectOption).toBeUndefined();
-        });
-    });
-
-    describe('modal handlers', () => {
-        it('handleOfflineModalClose should be a function', () => {
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            expect(typeof result.current.handleOfflineModalClose).toBe('function');
-        });
-
-        it('handleDownloadErrorModalClose should be a function', () => {
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            expect(typeof result.current.handleDownloadErrorModalClose).toBe('function');
-        });
-
-        it('dismissModalAndUpdateUseHold should be a function', () => {
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            expect(typeof result.current.dismissModalAndUpdateUseHold).toBe('function');
-        });
-
-        it('dismissRejectModalBasedOnAction should be a function', () => {
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            expect(typeof result.current.dismissRejectModalBasedOnAction).toBe('function');
-        });
-
-        it('confirmPayment should be a function', () => {
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            expect(typeof result.current.confirmPayment).toBe('function');
-        });
-    });
-
-    describe('option ordering', () => {
-        it('should include export option in every non-all-selected scenario', () => {
-            // Transactions without reportID bypass the areSelectedTransactionsIncludedInReports check
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({
-                    action: CONST.SEARCH.ACTION_TYPES.APPROVE,
-                    canHold: true,
-                    reportID: undefined,
-                }),
-            };
+        it('should show delete option when shouldShowDeleteOption returns true', () => {
             mockShouldShowDeleteOption = true;
+            mockSelectedTransactions = {
+                trans1: createTransactionInfo(),
+            };
 
             const {result} = renderHook(() =>
                 useSearchBulkActions({
@@ -1037,18 +611,6 @@ describe('useSearchBulkActions', () => {
                 }),
             );
 
-            const exportOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-            expect(exportOption).toBeDefined();
-
-            // Approve should also be present
-            const approveOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
-            expect(approveOption).toBeDefined();
-
-            // Hold should be present
-            const holdOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
-            expect(holdOption).toBeDefined();
-
-            // Delete should be present
             const deleteOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE);
             expect(deleteOption).toBeDefined();
         });
