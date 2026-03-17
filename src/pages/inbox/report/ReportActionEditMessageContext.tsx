@@ -48,12 +48,10 @@ const ReportActionEditMessageActionsContext = createContext<ReportActionEditMess
 
 type ReportActionEditMessageContextProviderProps = {
     reportID: string | undefined;
-    parentReportID: string | undefined;
-    parentReportAction: OnyxTypes.ReportAction | undefined;
     children: React.ReactNode;
 };
 
-function ReportActionEditMessageContextProvider({reportID, parentReportID, parentReportAction, children}: ReportActionEditMessageContextProviderProps) {
+function ReportActionEditMessageContextProvider({reportID, children}: ReportActionEditMessageContextProviderProps) {
     const isFocused = useIsFocused();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -64,15 +62,11 @@ function ReportActionEditMessageContextProvider({reportID, parentReportID, paren
     const ancestors = useAncestors(report);
 
     const [editingState, setEditingState] = useState<EditingState | null>(null);
+    const [prevEditingReportActionID, setPrevEditingReportActionID] = useState<string | null>(null);
     const [editingMessage, setEditingMessage] = useState<string | null>(null);
     const [currentEditMessageSelection, setCurrentEditMessageSelectionState] = useState<TextSelection | null>(null);
 
     const reportDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
-
-    let parentReportDrafts: OnyxTypes.ReportActionsDrafts | undefined;
-    if (parentReportAction && parentReportID) {
-        parentReportDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${parentReportID}`];
-    }
 
     let editingReportID: string | null = null;
     let editingReportActionID: string | null = null;
@@ -110,17 +104,7 @@ function ReportActionEditMessageContextProvider({reportID, parentReportID, paren
             if (editingState === null) {
                 setEditingState('editing');
             }
-        } else if (parentReportAction && parentReportDrafts?.[parentReportAction.reportActionID]) {
-            const parentReportActionDraft = parentReportDrafts[parentReportAction.reportActionID];
 
-            editingReportID = parentReportID ?? null;
-            editingReportActionID = parentReportAction.reportActionID;
-            editingReportAction = parentReportAction;
-            const nextMessage = parentReportActionDraft?.message ?? null;
-
-            if (editingState === null) {
-                setEditingState('editing');
-            }
             const nextMessage = ancestorReportActionDraft?.message ?? null;
             updateMessage(nextMessage);
         } else if (reportDrafts) {
