@@ -120,7 +120,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                     active={isVisible}
                     shouldReturnFocus
                 >
-                    <View style={shouldUseNarrowLayout ? styles.flexGrow1 : [styles.createMenuContainer, styles.flex1]}>
+                    <View style={shouldUseNarrowLayout ? styles.flexGrow1 : [styles.createMenuContainer, styles.pv0, styles.flex1]}>
                         <View style={styles.pv4}>{children}</View>
                     </View>
                 </FocusTrapForModal>
