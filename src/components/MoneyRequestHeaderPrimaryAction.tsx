@@ -6,11 +6,10 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionViolations from '@hooks/useTransactionViolations';
+import useTransactionThreadData from '@hooks/useTransactionThreadData';
 import {markRejectViolationAsResolved} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
@@ -40,21 +39,12 @@ function MoneyRequestHeaderPrimaryAction({reportID, isNarrow, isFromReviewDuplic
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    // Per-key Onyx subscriptions
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const parentReportActionID = report?.parentReportActionID;
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
-    const parentReportAction = parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
-    const transactionIDFromAction = isMoneyRequestAction(parentReportAction)
-        ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
-        : CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`, {});
+    const {report, parentReport, policy, parentReportAction, transaction, transactionViolations} = useTransactionThreadData(reportID);
+
+    // Additional per-key subs needed for KEEP_THIS_ONE action
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
-    const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const {duplicateTransactions} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
 
     // Determine primary action

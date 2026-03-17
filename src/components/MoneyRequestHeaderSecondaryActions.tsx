@@ -10,6 +10,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,7 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
-import useTransactionViolations from '@hooks/useTransactionViolations';
+import useTransactionThreadData from '@hooks/useTransactionThreadData';
 import {deleteTrackExpense} from '@libs/actions/IOU';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -31,7 +32,7 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
@@ -48,7 +49,6 @@ import {
 import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
-    hasMultipleSplitChildren,
     isDistanceRequest,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
@@ -102,24 +102,11 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress, isNarr
         'Trashcan',
     ] as const);
 
-    // Per-key Onyx subscriptions
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const parentReportActionID = report?.parentReportActionID;
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
-    const parentReportAction = parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
-    const transactionIDFromAction = isMoneyRequestAction(parentReportAction)
-        ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
-        : CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`, {});
+    const {report, parentReport, policy, parentReportAction, transaction, transactionViolations} = useTransactionThreadData(reportID);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     // Collection Onyx subscriptions (isolated here to prevent parent header re-renders)
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
 
     // NVP subscriptions
@@ -171,7 +158,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress, isNarr
     );
     const shouldDuplicateCloseModalOnSelect = isDistanceExpenseUnsupportedForDuplicating || hasCustomUnitOutOfPolicyViolation || isPerDiemRequestOnNonDefaultWorkspace;
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const hasMultipleSplits = hasMultipleSplitChildren(allTransactions, allReports, transaction?.comment?.originalTransactionID);
+    const hasMultipleSplits = useHasMultipleSplitChildren(transaction?.comment?.originalTransactionID);
     const isReportOpen = isOpenReport(parentReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
