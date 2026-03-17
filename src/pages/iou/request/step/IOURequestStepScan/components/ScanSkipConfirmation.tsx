@@ -48,7 +48,7 @@ import Camera from './Camera';
 import GpsPermissionGate from './GpsPermissionGate';
 
 type ScanSkipConfirmationProps = {
-    onLayout?: (setTestReceiptAndNavigate: () => void) => void;
+    onLayout?: (handler: () => void) => void;
 };
 
 /**

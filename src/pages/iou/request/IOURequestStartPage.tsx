@@ -338,8 +338,8 @@ function IOURequestStartPage({
                                             <IOURequestStepScan
                                                 route={route}
                                                 navigation={navigation}
-                                                onLayout={(setTestReceiptAndNavigate) => {
-                                                    setTestReceiptAndNavigateRef.current = setTestReceiptAndNavigate;
+                                                onLayout={(handler) => {
+                                                    setTestReceiptAndNavigateRef.current = handler;
                                                 }}
                                                 isMultiScanEnabled={isMultiScanEnabled}
                                                 setIsMultiScanEnabled={setIsMultiScanEnabled}

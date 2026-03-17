@@ -34,7 +34,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
 
 type ScanGlobalCreateProps = {
-    onLayout?: (setTestReceiptAndNavigate: () => void) => void;
+    onLayout?: (handler: () => void) => void;
 };
 
 /**

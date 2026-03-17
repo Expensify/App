@@ -27,7 +27,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
 
 type ScanFromReportProps = {
-    onLayout?: (setTestReceiptAndNavigate: () => void) => void;
+    onLayout?: (handler: () => void) => void;
 };
 
 /**

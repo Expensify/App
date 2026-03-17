@@ -85,9 +85,8 @@ type IOURequestStepScanProps = WithWritableReportOrNotFoundProps<typeof SCREENS.
 
     /**
      * Callback function that is triggered on the `onLayout` event.
-     * Receives a function (`setTestReceiptAndNavigate`) as an argument,
      */
-    onLayout?: (setTestReceiptAndNavigate: () => void) => void;
+    onLayout?: (handler: () => void) => void;
 
     /** If the receipts preview should be shown */
     isMultiScanEnabled?: boolean;
