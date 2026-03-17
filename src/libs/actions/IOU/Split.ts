@@ -1755,9 +1755,10 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
         // Remove the transaction thread report screen to avoid navigating back to a removed report
         requestAnimationFrame(() => {
-            if (transactionThreadReportScreen?.key) {
-                Navigation.removeScreenByKey(transactionThreadReportScreen.key);
+            if (!transactionThreadReportScreen?.key) {
+                return;
             }
+            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
         });
 
         return;
@@ -1773,9 +1774,10 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // After the modal is dismissed, remove the transaction thread report screen
     // to avoid navigating back to a report removed by the split transaction.
     requestAnimationFrame(() => {
-        if (transactionThreadReportScreen?.key) {
-            Navigation.removeScreenByKey(transactionThreadReportScreen.key);
+        if (!transactionThreadReportScreen?.key) {
+            return;
         }
+        Navigation.removeScreenByKey(transactionThreadReportScreen.key);
     });
 }
 
