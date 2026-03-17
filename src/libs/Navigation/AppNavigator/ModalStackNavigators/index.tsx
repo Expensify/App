@@ -119,7 +119,7 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
         animationTypeForReplace: 'push',
     },
     [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
-        animationTypeForReplace: 'push',
+        animationTypeForReplace: 'pop',
     },
 };
 
