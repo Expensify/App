@@ -1,13 +1,16 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
+import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import cardScarf from '@assets/images/card-scarf.svg';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -16,7 +19,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -28,8 +30,8 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
-import {formatCardExpiration, getDomainCards, getTranslationKeyForLimitType, isCardFrozen, maskCard, maskPin} from '@libs/CardUtils';
-import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
+import {formatCardExpiration, getCardCurrency, getDomainCards, getTranslationKeyForLimitType, isCardFrozen, maskCard, maskPin} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -39,6 +41,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
+import variables from '@styles/variables';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -47,7 +50,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
-import FrozenCardIndicator from './FrozenCardIndicator';
 
 type ExpensifyCardPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>
@@ -94,7 +96,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const cardList = useNonPersonalCardList();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const {currencyList} = useCurrencyListState();
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -108,7 +110,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const personalDetails = usePersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard']);
 
-    const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
         if (shouldDisplayCardDomain) {
             return getDomainCards(cardList)[domain]?.filter((card) => !card?.nameValuePairs?.issuedBy || !card?.nameValuePairs?.isVirtual) ?? [];
@@ -116,10 +117,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
-
-    useEffect(() => {
-        setIsNotFound(!currentCard);
-    }, [cardList, cardsToShow, currentCard]);
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !card?.nameValuePairs?.isTravelCard), [cardsToShow]);
     const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.isTravelCard), [cardsToShow]);
@@ -150,7 +147,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const currency = getCurrencyKeyByCountryCode(currencyList, currentCard?.nameValuePairs?.country ?? currentCard?.nameValuePairs?.feedCountry);
+    const currency = getCardCurrency(currentCard, cardSettings);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
     const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
@@ -162,6 +159,16 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const {isBetaEnabled} = usePermissions();
     const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isAccountLocked;
+    const scarfOverlayStyle = useMemo<ViewStyle>(
+        () => ({
+            top: 0,
+            left: (variables.cardPreviewWidth - variables.cardScarfOverlayWidth) / 2,
+            zIndex: variables.cardScarfOverlayZIndex,
+            width: variables.cardScarfOverlayWidth,
+            height: variables.cardScarfOverlayHeight,
+        }),
+        [],
+    );
 
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
@@ -194,11 +201,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         if (!currentCard) {
             return;
         }
-        unfreezeCard(Number(currentCard?.fundID ?? CONST.DEFAULT_NUMBER_ID), currentCard);
+        unfreezeCard(Number(currentCard?.fundID ?? CONST.DEFAULT_NUMBER_ID), currentCard, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
         handleDismissUnfreezeModal();
-    }, [currentCard, handleDismissUnfreezeModal]);
+    }, [currentCard, handleDismissUnfreezeModal, session?.accountID]);
 
-    if (isNotFound) {
+    if (!currentCard) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
     }
 
@@ -210,9 +217,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
             />
             <ScrollView>
                 {canManageCardFreeze && isCardFrozen(currentCard) ? (
-                    <FrozenCardIndicator
+                    <FrozenCardHeader
                         cardID={cardID}
                         onUnfreezePress={handleUnfreezePress}
+                        cardPreview={
+                            <CardPreview
+                                overlayImage={cardScarf}
+                                overlayContainerStyle={scarfOverlayStyle}
+                            />
+                        }
                     />
                 ) : (
                     <View style={[styles.flex1, styles.mb9, styles.mt9]}>
@@ -255,7 +268,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         {!!limitNameKey && !!limitTitleKey && (
                             <MenuItemWithTopDescription
                                 description={translate(limitNameKey)}
-                                title={translate(limitTitleKey, {formattedLimit: formattedAvailableSpendAmount})}
+                                title={translate(limitTitleKey, formattedAvailableSpendAmount)}
                                 interactive={false}
                                 titleStyle={styles.walletCardLimit}
                                 numberOfLinesTitle={3}
@@ -291,6 +304,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             interactive={false}
                                             titleStyle={styles.walletCardNumber}
                                             shouldShowRightComponent
+                                            shouldBeAccessible={isSignedInAsDelegate ? undefined : false}
                                             rightComponent={
                                                 !isSignedInAsDelegate ? (
                                                     <Button
@@ -385,6 +399,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 interactive={false}
                                                 titleStyle={styles.walletCardNumber}
                                                 shouldShowRightComponent
+                                                shouldBeAccessible={isSignedInAsDelegate ? undefined : false}
                                                 rightComponent={
                                                     !isSignedInAsDelegate ? (
                                                         <Button
@@ -490,7 +505,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     large
                     text={translate('cardPage.getPhysicalCard')}
                     pressOnEnter
-                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute())}
+                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(currentPhysicalCard.cardID)))}
                     style={[styles.mh5, styles.mb5]}
                 />
             )}

@@ -1,9 +1,11 @@
 import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import type {ReactNode} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import GroupByPopup from '@components/Search/FilterDropdowns/GroupByPopup';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -27,11 +29,12 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
     getFeedOptions,
     getGroupByOptions,
+    getGroupBySections,
     getGroupCurrencyOptions,
     getHasOptions,
     getStatusOptions,
@@ -46,6 +49,7 @@ import {hasMultipleOutputCurrenciesSelector} from '@src/selectors/Policy';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -78,12 +82,41 @@ type UseSearchFiltersBarResult = {
     translate: ReturnType<typeof useLocalize>['translate'];
 };
 
+/**
+ * Extracts only the fields needed by getTypeOptions (canSendInvoice check).
+ * Strips heavyweight fields like customUnits, connections, taxRates, fieldList, rules, exportLayouts.
+ */
+function typeOptionsPoliciesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Policy> {
+    if (!policies) {
+        return policies;
+    }
+    const result: OnyxCollection<Policy> = {};
+    for (const [key, policy] of Object.entries(policies)) {
+        if (!policy) {
+            continue;
+        }
+        result[key] = {
+            id: policy.id,
+            name: policy.name,
+            type: policy.type,
+            role: policy.role,
+            employeeList: policy.employeeList,
+            pendingAction: policy.pendingAction,
+            errors: policy.errors,
+            areInvoicesEnabled: policy.areInvoicesEnabled,
+            isJoinRequestPending: policy.isJoinRequestPending,
+            owner: policy.owner,
+        } as Policy;
+    }
+    return result;
+}
+
 function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEnabled: boolean): UseSearchFiltersBarResult {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -96,7 +129,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: typeOptionsPoliciesSelector});
     const [hasMultipleOutputCurrency] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasMultipleOutputCurrenciesSelector});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -134,6 +167,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const type = typeOptions.find((option) => option.value === unsafeType) ?? null;
 
     const groupByOptions = getGroupByOptions(translate);
+    const groupBySections = getGroupBySections(translate);
     const groupBy = groupByOptions.find((option) => option.value === unsafeGroupBy) ?? null;
 
     const viewOptions = getViewOptions(translate);
@@ -143,7 +177,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const groupCurrency = groupCurrencyOptions.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
 
     const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
-    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards);
+    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards);
     const feed = feedFilterValues ? feedOptions.filter((option) => feedFilterValues.includes(option.value)) : [];
 
     const statusOptions = type ? getStatusOptions(translate, type.value) : [];
@@ -217,15 +251,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             updatedFilterFormValues.columns = [];
         }
 
-        let queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
-            sortBy: queryJSON.sortBy,
-            sortOrder: queryJSON.sortOrder,
-            limit: queryJSON.limit,
-        });
-
-        if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
-            queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
-        }
+        const queryString =
+            buildFilterQueryWithSortDefaults(
+                updatedFilterFormValues,
+                {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
+                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
+            ) ?? '';
         if (!queryString) {
             return;
         }
@@ -255,9 +286,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     );
 
     const groupByComponent = ({closeOverlay}: PopoverComponentProps) => (
-        <SingleSelectPopup
+        <GroupByPopup
             label={translate('search.groupBy')}
-            items={groupByOptions}
+            sections={groupBySections}
             value={groupBy}
             closeOverlay={closeOverlay}
             onChange={(item) => {
@@ -629,3 +660,4 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
 export default useSearchFiltersBar;
 export type {FilterItem};
+export {typeOptionsPoliciesSelector};
