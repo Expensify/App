@@ -834,6 +834,7 @@ type AvatarBorderStyleParams = {
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
     isActive?: boolean;
+    customPressedBorderColor?: string;
 };
 
 function getHorizontalStackedAvatarBorderStyle({
@@ -843,6 +844,7 @@ function getHorizontalStackedAvatarBorderStyle({
     isInReportAction = false,
     shouldUseCardBackground = false,
     isActive = false,
+    customPressedBorderColor,
 }: AvatarBorderStyleParams): ViewStyle {
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
@@ -855,6 +857,9 @@ function getHorizontalStackedAvatarBorderStyle({
 
     if (isPressed) {
         borderColor = isInReportAction ? theme.hoverComponentBG : theme.buttonPressedBG;
+        if (customPressedBorderColor) {
+            borderColor = customPressedBorderColor;
+        }
     }
 
     return {borderColor};

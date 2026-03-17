@@ -544,8 +544,13 @@ function TransactionItemRow({
                                 horizontalStacking={{
                                     sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME,
                                     useCardBG: true,
+                                    isHovered: isHover,
+                                    isPressed: isSelected,
+                                    pressedBorderColor: theme.activeComponentBG,
+                                    textStyle: styles.textMicroBold,
                                 }}
                                 size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                                isInReportAction
                             />
                         )}
                     </View>

@@ -1,6 +1,6 @@
 import lodashSortBy from 'lodash/sortBy';
 import React, {useMemo} from 'react';
-import type {ColorValue, ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue, ImageStyle, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
@@ -55,6 +55,12 @@ type HorizontalStacking = Partial<{
 
     /** Prop to sort the avatars */
     sort: SortingOptions | SortingOptions[];
+
+    /** Border color for the active avatar */
+    pressedBorderColor?: string;
+
+    /** Inner text style */
+    textStyle?: TextStyle;
 }>;
 
 type AvatarStyles = {
@@ -308,6 +314,8 @@ function ReportActionAvatarMultipleHorizontal({
     useProfileNavigationWrapper,
     fallbackDisplayName,
     reportID,
+    pressedBorderColor,
+    textStyle,
 }: HorizontalStacking & {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShowTooltip: boolean;
@@ -393,6 +401,7 @@ function ReportActionAvatarMultipleHorizontal({
                                     isInReportAction,
                                     shouldUseCardBackground,
                                     isActive,
+                                    customPressedBorderColor: pressedBorderColor,
                                 }),
                                 StyleUtils.getAvatarBorderWidth(size),
                             ]}
@@ -425,6 +434,7 @@ function ReportActionAvatarMultipleHorizontal({
                                 isPressed,
                                 isInReportAction,
                                 shouldUseCardBackground,
+                                customPressedBorderColor: pressedBorderColor,
                             }),
 
                             // Set overlay background color with RGBA value so that the text will not inherit opacity
@@ -435,7 +445,7 @@ function ReportActionAvatarMultipleHorizontal({
                     >
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getHeight(oneAvatarSize.height), StyleUtils.getWidthStyle(oneAvatarSize.width)]}>
                             <Text
-                                style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(size), styles.userSelectNone]}
+                                style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(size), styles.userSelectNone, textStyle]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >{`+${avatars.length - maxAvatarsInRow}`}</Text>
                         </View>
