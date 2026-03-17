@@ -386,7 +386,22 @@ function SearchAutocompleteList({
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
     }
 
-    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports, sectionIndex: sectionIndex++});
+    if (areOptionsInitialized) {
+        sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports, sectionIndex: sectionIndex++});
+    } else if (autocompleteQueryValue.trim() === '') {
+        sections.push({
+            title: translate('search.recentChats'),
+            data: [],
+            sectionIndex: sectionIndex++,
+            customHeader: (
+                <OptionsListSkeletonView
+                    fixedNumItems={3}
+                    shouldStyleAsTable
+                    speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                />
+            ),
+        });
+    }
 
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
@@ -446,7 +461,7 @@ function SearchAutocompleteList({
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
-    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
+    const isLoading = !isRecentSearchesDataLoaded;
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchAutocompleteList',
