@@ -36,7 +36,7 @@ function TravelCVVPage() {
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
