@@ -17,6 +17,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -43,6 +44,7 @@ import {
     getPolicyExpenseChat,
     isCurrentUserSubmitter,
     isDM,
+    isExpenseReport,
     isOpenReport,
     isSelfDM,
     navigateToDetailsPage,
@@ -119,6 +121,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         'ArrowCollapse',
         'ArrowSplit',
         'Checkmark',
+        'DocumentMerge',
         'ExpenseCopy',
         'Flag',
         'Hourglass',
@@ -161,11 +164,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
+    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
+    const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
     const reportID = report?.reportID;
     const {currentSearchHash} = useSearchStateContext();
-    const {removeTransaction} = useSearchActionsContext();
+    const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -426,8 +432,19 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(currentUserLogin ?? '', accountID, parentReport, transaction, parentReportAction, originalTransaction, policy, report);
-    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction, accountID]);
+        return getSecondaryTransactionThreadActions(
+            currentUserLogin ?? '',
+            accountID,
+            parentReport,
+            transaction,
+            parentReportAction,
+            originalTransaction,
+            policy,
+            report,
+            outstandingReportsByPolicyID,
+            isChatIOUReportArchived,
+        );
+    }, [parentReport, transaction, parentReportAction, currentUserLogin, policy, report, originalTransaction, accountID, outstandingReportsByPolicyID, isChatIOUReportArchived]);
 
     const dismissModalAndUpdateUseHold = () => {
         setIsHoldEducationalModalVisible(false);
@@ -638,6 +655,31 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 } else {
                     setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
                 }
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE]: {
+            text: translate('iou.moveExpenses'),
+            icon: expensifyIcons.DocumentMerge,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE,
+            onSelected: () => {
+                if (!parentReport || !transaction?.transactionID) {
+                    return;
+                }
+                const iouType = isExpenseReport(parentReport) ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.TRACK;
+                if (shouldNavigateToUpgradePath && reportID) {
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.EDIT,
+                            iouType,
+                            transactionID: transaction.transactionID,
+                            reportID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
+                    );
+                    return;
+                }
+                setSelectedTransactions([transaction.transactionID]);
+                Navigation.navigate(ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, Navigation.getActiveRoute()));
             },
         },
     };
