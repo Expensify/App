@@ -174,6 +174,25 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(linkText)).toBeOnTheScreen();
         });
 
+        it('APPROVED action via workspace rules shows Explain when reasoning is present', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {
+                automaticAction: true,
+                reasoning: 'This report met the workspace auto-approval criteria.',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('APPROVED action via workspace rules does not show Explain when reasoning is absent', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
         it('CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS, {originalID: 'original-report-id'});
             renderItemWithAction(action);

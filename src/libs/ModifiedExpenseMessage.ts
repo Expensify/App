@@ -47,19 +47,6 @@ Onyx.connectWithoutView({
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
-let storedCurrentUserLogin = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        // When signed out, value is undefined
-        if (!value) {
-            return;
-        }
-        storedCurrentUserLogin = value?.email ?? '';
-    },
-});
-
 /**
  * Builds the partial message fragment for a modified field on the expense.
  */
@@ -279,21 +266,15 @@ function getForReportAction({
     movedFromReport,
     movedToReport,
     policyForMovingExpensesID,
-    currentUserLogin: currentUserLoginParam,
+    currentUserLogin,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     policyID: string | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     policyForMovingExpensesID?: string;
-    currentUserLogin?: string;
+    currentUserLogin: string;
 }): string {
-    // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
-    // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
-    let currentUserLogin = currentUserLoginParam;
-    if (!currentUserLogin) {
-        currentUserLogin = storedCurrentUserLogin;
-    }
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
@@ -600,7 +581,7 @@ function getForReportActionTemp({
     movedFromReport,
     movedToReport,
     policyTags,
-    currentUserLogin: currentUserLoginParam,
+    currentUserLogin,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -610,12 +591,6 @@ function getForReportActionTemp({
     policyTags: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
 }): string {
-    // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
-    // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
-    let currentUserLogin = currentUserLoginParam;
-    if (!currentUserLogin) {
-        currentUserLogin = storedCurrentUserLogin;
-    }
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
