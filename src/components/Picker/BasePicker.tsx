@@ -44,6 +44,7 @@ function BasePicker<TPickerValue>({
     ref,
 }: BasePickerProps<TPickerValue>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -233,6 +234,7 @@ function BasePicker<TPickerValue>({
                     }}
                     touchableDoneProps={{
                         accessibilityRole: CONST.ROLE.BUTTON,
+                        accessibilityLabel: translate('common.dismiss'),
                     }}
                     touchableWrapperProps={{
                         accessible: true,
