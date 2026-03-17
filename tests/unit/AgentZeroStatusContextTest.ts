@@ -2,7 +2,7 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import Pusher from '@libs/Pusher';
-import {AgentZeroStatusProvider, useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
+import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -73,7 +73,7 @@ describe('AgentZeroStatusContext', () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
 
             // When we render the hook
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
 
             // Then it should return default state with no processing indicator
             await waitForBatchedUpdates();
@@ -129,7 +129,7 @@ describe('AgentZeroStatusContext', () => {
     describe('kickoffWaitingIndicator', () => {
         it('should trigger optimistic waiting state when called in Concierge chat without server label', async () => {
             // Given a Concierge chat with no server label (user about to send a message)
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // When the user triggers the waiting indicator (e.g., sending a message)
@@ -151,7 +151,7 @@ describe('AgentZeroStatusContext', () => {
                 agentZeroProcessingRequestIndicator: serverLabel,
             });
 
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             const initialLabel = result.current.statusLabel;
@@ -171,7 +171,7 @@ describe('AgentZeroStatusContext', () => {
             // Given a regular chat (not Concierge)
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
 
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // When kickoff is called
@@ -187,7 +187,7 @@ describe('AgentZeroStatusContext', () => {
 
         it('should clear optimistic waiting state when server label arrives', async () => {
             // Given a Concierge chat with optimistic waiting state
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             act(() => {
@@ -356,7 +356,7 @@ describe('AgentZeroStatusContext', () => {
 
         it('should clear optimistic state when server completes after kickoff', async () => {
             // Given a Concierge chat where user triggered optimistic waiting
-            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
 
             // User sends message → optimistic waiting state

@@ -19,17 +19,24 @@ type AgentZeroStatusState = {
     isProcessing: boolean;
     reasoningHistory: ReasoningEntry[];
     statusLabel: string;
+};
+
+type AgentZeroStatusActions = {
     kickoffWaitingIndicator: () => void;
 };
 
-const defaultValue: AgentZeroStatusState = {
+const defaultState: AgentZeroStatusState = {
     isProcessing: false,
     reasoningHistory: [],
     statusLabel: '',
+};
+
+const defaultActions: AgentZeroStatusActions = {
     kickoffWaitingIndicator: () => {},
 };
 
-const AgentZeroStatusContext = createContext<AgentZeroStatusState>(defaultValue);
+const AgentZeroStatusStateContext = createContext<AgentZeroStatusState>(defaultState);
+const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defaultActions);
 
 /**
  * Cheap outer guard — only subscribes to the scalar CONCIERGE_REPORT_ID.
@@ -206,19 +213,31 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
     const isProcessing = !isOffline && (!!serverLabel || !!optimisticStartTime);
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values -- React Compiler handles memoization
-    const value: AgentZeroStatusState = {
+    const stateValue: AgentZeroStatusState = {
         isProcessing,
         reasoningHistory,
         statusLabel: displayedLabel,
+    };
+
+    // eslint-disable-next-line react/jsx-no-constructed-context-values -- React Compiler handles memoization
+    const actionsValue: AgentZeroStatusActions = {
         kickoffWaitingIndicator,
     };
 
-    return <AgentZeroStatusContext.Provider value={value}>{children}</AgentZeroStatusContext.Provider>;
+    return (
+        <AgentZeroStatusActionsContext.Provider value={actionsValue}>
+            <AgentZeroStatusStateContext.Provider value={stateValue}>{children}</AgentZeroStatusStateContext.Provider>
+        </AgentZeroStatusActionsContext.Provider>
+    );
 }
 
 function useAgentZeroStatus(): AgentZeroStatusState {
-    return useContext(AgentZeroStatusContext);
+    return useContext(AgentZeroStatusStateContext);
 }
 
-export {AgentZeroStatusProvider, useAgentZeroStatus};
-export type {AgentZeroStatusState, ReasoningEntry};
+function useAgentZeroStatusActions(): AgentZeroStatusActions {
+    return useContext(AgentZeroStatusActionsContext);
+}
+
+export {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions};
+export type {AgentZeroStatusState, AgentZeroStatusActions, ReasoningEntry};

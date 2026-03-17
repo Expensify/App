@@ -60,7 +60,7 @@ import {
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
+import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -144,7 +144,7 @@ function ReportActionCompose({
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const isInSidePanel = useIsInSidePanel();
-    const {kickoffWaitingIndicator} = useAgentZeroStatus();
+    const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
