@@ -56,7 +56,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     return (
         <View
             style={[
-                StyleUtils.getWidthAndHeightStyle(variables.h32, variables.w28),
+                StyleUtils.getWidthAndHeightStyle(variables.w28, variables.h32),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
                 styles.overflowHidden,
                 backgroundStyles,
