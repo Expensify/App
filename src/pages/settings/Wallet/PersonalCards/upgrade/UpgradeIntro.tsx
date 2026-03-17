@@ -87,7 +87,7 @@ function UpgradeIntro({onUpgrade, buttonDisabled}: Props) {
                 />
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
-                <RenderHTML html={translate('personalCard.note', {subscriptionLink})} />
+                <RenderHTML html={translate('personalCard.note', subscriptionLink)} />
             </View>
         </View>
     );
