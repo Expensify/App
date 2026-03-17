@@ -25,7 +25,7 @@ type SecurityGroupItem = ListItem & {
     value: SecurityGroupKey;
 };
 
-type MoveUsersBetweenGroupsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MOVE_USERS>;
+type MoveUsersBetweenGroupsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP>;
 
 function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
     const {domainAccountID} = route.params;

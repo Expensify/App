@@ -1333,8 +1333,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT]: {
                             path: ROUTES.DOMAIN_LOCK_ACCOUNT.route,
                         },
-                        [SCREENS.DOMAIN.MOVE_USERS]: {
-                            path: ROUTES.DOMAIN_MOVE_USERS.route,
+                        [SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP]: {
+                            path: ROUTES.DOMAIN_MEMBERS_MOVE_TO_GROUP.route,
                         },
                     },
                 },

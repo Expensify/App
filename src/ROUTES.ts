@@ -4007,7 +4007,7 @@ const ROUTES = {
         route: 'domain/:domainAccountID/members/:accountID/reset-two-factor-auth',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/reset-two-factor-auth` as const,
     },
-    DOMAIN_MOVE_USERS: {
+    DOMAIN_MEMBERS_MOVE_TO_GROUP: {
         route: 'domain/:domainAccountID/members/move',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/move` as const,
     },

@@ -1567,7 +1567,7 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
         accountID: number;
     };
-    [SCREENS.DOMAIN.MOVE_USERS]: {
+    [SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP]: {
         domainAccountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;

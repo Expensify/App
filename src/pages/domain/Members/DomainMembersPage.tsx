@@ -195,7 +195,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             icon: icons.Transfer,
             onSelected: () => {
                 setDomainMembersSelectedForMove(selectedMembers);
-                Navigation.navigate(ROUTES.DOMAIN_MOVE_USERS.getRoute(domainAccountID));
+                Navigation.navigate(ROUTES.DOMAIN_MEMBERS_MOVE_TO_GROUP.getRoute(domainAccountID));
             },
         },
     ];
