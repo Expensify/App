@@ -9,8 +9,8 @@ describe('normalizeOdometerText', () => {
             expect(DistanceRequestUtils.normalizeOdometerText('1,5', germanFromLocaleDigit)).toBe('1.5');
         });
 
-        it("German '1.5' (dot now treated as decimal) normalizes to '1.5'", () => {
-            expect(DistanceRequestUtils.normalizeOdometerText('1.5', germanFromLocaleDigit)).toBe('1.5');
+        it("German '1.5' (dot is group separator, fifteen) normalizes to '15'", () => {
+            expect(DistanceRequestUtils.normalizeOdometerText('1.5', germanFromLocaleDigit)).toBe('15');
         });
 
         it("German '1.234,5' (1234.5) normalizes to '1234.5'", () => {
@@ -38,12 +38,12 @@ describe('normalizeOdometerText', () => {
         });
     });
 
-    describe('comma as decimal separator', () => {
+    describe('locale-strict decimal handling', () => {
         const englishFromLocaleDigit = (char: string) => fromLocaleDigit('en', char);
         const germanFromLocaleDigit = (char: string) => fromLocaleDigit('de', char);
 
-        it("English '123,4' (comma as decimal) normalizes to '123.4'", () => {
-            expect(DistanceRequestUtils.normalizeOdometerText('123,4', englishFromLocaleDigit)).toBe('123.4');
+        it("English '123,4' (comma is group separator, not decimal) normalizes to '1234'", () => {
+            expect(DistanceRequestUtils.normalizeOdometerText('123,4', englishFromLocaleDigit)).toBe('1234');
         });
 
         it("English '1,234.5' (comma as group with dot decimal) normalizes to '1234.5'", () => {
@@ -54,9 +54,9 @@ describe('normalizeOdometerText', () => {
             expect(DistanceRequestUtils.normalizeOdometerText('1.234,5', germanFromLocaleDigit)).toBe('1234.5');
         });
 
-        it("plain comma only: ',5' normalizes to '.5'", () => {
+        it("plain comma with identity function: ',5' normalizes to '5' (comma stripped)", () => {
             const identity = (char: string) => char;
-            expect(DistanceRequestUtils.normalizeOdometerText(',5', identity)).toBe('.5');
+            expect(DistanceRequestUtils.normalizeOdometerText(',5', identity)).toBe('5');
         });
     });
 

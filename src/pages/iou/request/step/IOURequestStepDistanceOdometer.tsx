@@ -309,10 +309,13 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, startReading)) {
             return;
         }
-        // Preserve the user's formatting (commas, periods) for display.
-        // Strip only truly invalid characters (letters, symbols).
-        // normalizeOdometerText is still used internally for validation and calculations.
-        const display = text.replaceAll(/[^0-9.,]/g, '').replace(/^0+(?=\d)/, '');
+        // Only allow digits and the locale's decimal separator (e.g. '.' for English, ',' for German).
+        const localeDecimal = toLocaleDigit('.');
+        const display = text
+            .split('')
+            .filter((c) => /\d/.test(c) || c === localeDecimal)
+            .join('')
+            .replace(/^0+(?=\d)/, '');
         setStartReading(display);
         startReadingRef.current = display;
         if (formError) {
@@ -324,7 +327,12 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, endReading)) {
             return;
         }
-        const display = text.replaceAll(/[^0-9.,]/g, '').replace(/^0+(?=\d)/, '');
+        const localeDecimal = toLocaleDigit('.');
+        const display = text
+            .split('')
+            .filter((c) => /\d/.test(c) || c === localeDecimal)
+            .join('')
+            .replace(/^0+(?=\d)/, '');
         setEndReading(display);
         endReadingRef.current = display;
         if (formError) {
