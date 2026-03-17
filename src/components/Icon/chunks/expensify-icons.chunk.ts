@@ -35,6 +35,7 @@ import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
+import CameraFlip from '@assets/images/camera-flip.svg';
 import CarPlus from '@assets/images/car-plus.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
@@ -284,6 +285,7 @@ const Expensicons = {
     Buildings,
     Calendar,
     Camera,
+    CameraFlip,
     Car,
     CarPlus,
     Cash,
