@@ -635,7 +635,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1208,7 +1208,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1864,7 +1864,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts,
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1912,7 +1912,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1949,7 +1949,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1981,7 +1981,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -13389,7 +13389,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, MOCK_REPORT_ACTIONS);
 
-            const result = getIOUReportActionWithBadge(fakeReport, undefined, {}, undefined);
+            const result = getIOUReportActionWithBadge(fakeReport, fakePolicy, {}, undefined);
             expect(result.reportAction).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
@@ -13447,7 +13447,7 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
@@ -13510,7 +13510,7 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
@@ -13574,7 +13574,7 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.SUBMIT);
         });
@@ -13633,7 +13633,7 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });
@@ -15411,7 +15411,7 @@ describe('actions/IOU', () => {
             // Call should not throw when personalDetails is provided
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactionIDs: [transactionID],
+                    transactions: [transaction],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
@@ -15481,7 +15481,7 @@ describe('actions/IOU', () => {
             // Even if no transactions are provided, it should not throw
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactionIDs: [],
+                    transactions: [],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
@@ -15521,7 +15521,7 @@ describe('actions/IOU', () => {
             // Should not throw even with empty personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactionIDs: [],
+                    transactions: [],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
@@ -15561,7 +15561,7 @@ describe('actions/IOU', () => {
             // Should not throw even with undefined personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactionIDs: [],
+                    transactions: [],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
