@@ -5373,6 +5373,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 170,
         },
 
+        emptyShelvesIllustration: {
+            width: 178,
+            height: 219,
+        },
+
         offlineFeedbackDeleted: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
@@ -5787,7 +5792,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
         transactionReceiptButton: {
-            width: variables.transactionReceiptButtonWidth,
+            minWidth: variables.transactionReceiptButtonWidth,
         },
         chartHeader: {
             flexDirection: 'row',
