@@ -117,11 +117,9 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress, isNarr
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     // Collection Onyx subscriptions (isolated here to prevent parent header re-renders)
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
 
     // NVP subscriptions
@@ -139,6 +137,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress, isNarr
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [defaultPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(defaultExpensePolicy?.id)}`);
+    const [defaultPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(defaultExpensePolicy?.id)}`);
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
     const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
@@ -176,7 +176,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress, isNarr
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
-    const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
+    const targetPolicyTags = defaultPolicyTags ?? {};
 
     // Duplicate action throttle
     const handleDuplicateReset = () => {
@@ -194,7 +194,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress, isNarr
 
         const optimisticChatReportID = generateReportID();
         const optimisticIOUReportID = generateReportID();
-        const activePolicyCategoriesMap = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
+        const activePolicyCategoriesMap = defaultPolicyCategories ?? {};
 
         for (const item of transactions) {
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
