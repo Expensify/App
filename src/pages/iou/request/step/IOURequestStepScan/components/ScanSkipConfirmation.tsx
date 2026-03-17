@@ -1,10 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import TestReceipt from '@assets/images/fake-receipt.png';
-import LocationPermissionModal from '@components/LocationPermissionModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -32,7 +30,7 @@ import {getDefaultTaxCode, shouldReuseInitialTransaction} from '@libs/Transactio
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
-import {checkIfScanFileCanBeRead, getMoneyRequestParticipantsFromReport, getPolicyTags, setMoneyRequestReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {checkIfScanFileCanBeRead, getMoneyRequestParticipantsFromReport, getPolicyTags, setMoneyRequestReceipt} from '@userActions/IOU';
 import {startSplitBill} from '@userActions/IOU/Split';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -44,6 +42,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
+import GpsLocationGate, {shouldStartLocationPermissionFlowSelector} from './GpsLocationGate';
 
 /**
  * ScanSkipConfirmation — skip-confirmation variant.
@@ -99,8 +98,7 @@ function ScanSkipConfirmation() {
     const shouldSkipConfirmation =
         !!skipConfirmation && !!report?.reportID && !isArchived && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
-    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
-    const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
+    const [pendingGpsFiles, setPendingGpsFiles] = useState<ReceiptFile[]>([]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -298,18 +296,17 @@ function ScanSkipConfirmation() {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
         }
 
-        // Skip confirmation path: handle GPS location permission flow
-        if (shouldSkipConfirmation) {
-            setReceiptFiles(newReceiptFiles);
-            const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length > 0;
-            if (gpsRequired) {
-                if (shouldStartLocationPermissionFlow) {
-                    setStartLocationPermissionFlow(true);
-                    return;
-                }
-                navigateToConfirmationStep(newReceiptFiles, true);
+        // Skip confirmation path: check if GPS is needed
+        const gpsRequired = shouldSkipConfirmation && initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length > 0;
+        if (gpsRequired) {
+            if (shouldStartLocationPermissionFlow) {
+                // Show modal via GpsLocationGate
+                setPendingGpsFiles(newReceiptFiles);
                 return;
             }
+            // Permission already resolved — submit with location
+            navigateToConfirmationStep(newReceiptFiles, true);
+            return;
         }
         navigateToConfirmationStep(newReceiptFiles, false);
     }
@@ -406,17 +403,13 @@ function ScanSkipConfirmation() {
                 shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
             />
             {ErrorModal}
-            {startLocationPermissionFlow && !!receiptFiles.length && (
-                <LocationPermissionModal
-                    startPermissionFlow={startLocationPermissionFlow}
-                    resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                    onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
-                    onDeny={() => {
-                        updateLastLocationPermissionPrompt();
-                        navigateToConfirmationStep(receiptFiles, false);
-                    }}
-                />
-            )}
+            <GpsLocationGate
+                pendingFiles={pendingGpsFiles}
+                onResolved={(files, locationPermissionGranted) => {
+                    setPendingGpsFiles([]);
+                    navigateToConfirmationStep(files, locationPermissionGranted);
+                }}
+            />
         </StepScreenWrapper>
     );
 }
