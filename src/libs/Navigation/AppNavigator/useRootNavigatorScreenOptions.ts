@@ -126,9 +126,7 @@ const useRootNavigatorScreenOptions = () => {
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) =>
                     modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled: false, shouldAnimateSidePanel: true}),
-                cardStyle: shouldUseNarrowLayout
-                    ? {...StyleUtils.getNavigationModalCardStyle(), paddingLeft: 0}
-                    : {...themeStyles.h100, paddingLeft: variables.navigationTabBarSize, width: '100%'},
+                cardStyle: shouldUseNarrowLayout ? {...StyleUtils.getNavigationModalCardStyle(), paddingLeft: 0} : {...themeStyles.h100, width: '100%'},
             },
         },
     } satisfies RootNavigatorScreenOptions;

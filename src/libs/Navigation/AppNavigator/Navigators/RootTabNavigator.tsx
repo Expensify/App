@@ -3,13 +3,12 @@
  */
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import React, {lazy, Suspense} from 'react';
-import {View} from 'react-native';
+import React, {lazy, Suspense, useMemo} from 'react';
+import {Platform, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {RootTabNavigatorParamList} from '@libs/Navigation/types';
@@ -36,44 +35,53 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
  * Wrapped in a View with overflow: 'visible' so that the absolutely-positioned
  * floating buttons (FAB, GPS, Camera) rendered by NavigationTabBar can extend
  * above the tab bar area without being clipped.
+ *
+ * Performance: avoids useResponsiveLayout() which subscribes to NavigationContext
+ * and NavigationContainerRefContext — both fire on every navigation action.
+ * On native, shouldUseNarrowLayout is always true. On web, we read window.innerWidth
+ * synchronously (parent re-renders on resize propagate here).
  */
 function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state']}) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isNarrow = Platform.OS !== 'web' || window.innerWidth <= variables.mobileResponsiveWidthBreakpoint;
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const selectedRouteName = tabState.routes[tabState.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
 
-    // On narrow layout, hide the tab bar when the user has navigated deeper than the
-    // root screen. Each root screen also embeds its own NavigationTabBar via bottomContent
-    // in ScreenWrapper so it participates in push/pop card animations (visible during
-    // swipe-back). This top-level bar remains visible at root level so that loading
-    // states (Suspense fallback, skeleton screens) still show a tab bar.
-    // The bottomSafeAreaStyle ensures this bar aligns with the bottomContent tab bars
-    // which also receive safe area padding from ScreenWrapperContainer.
     const activeRoute = tabState.routes[tabState.index];
     const nestedStateIndex = activeRoute?.state?.index;
     const isAtRoot = nestedStateIndex === undefined || nestedStateIndex === 0;
-    const shouldHide = shouldUseNarrowLayout && !isAtRoot;
+    const shouldHide = isNarrow && !isAtRoot;
 
-    if (shouldUseNarrowLayout) {
+    // Memoize the NavigationTabBar element so that when tabState changes but
+    // selectedTab/shouldHide stay the same (e.g. navigation within the same tab),
+    // React skips the expensive NavigationTabBar subtree entirely.
+    const narrowTabBar = useMemo(
+        () => (
+            <NavigationTabBar
+                selectedTab={selectedTab}
+                shouldShowFloatingButtons={!shouldHide}
+            />
+        ),
+        [selectedTab, shouldHide],
+    );
+
+    const wideTabBar = useMemo(() => <NavigationTabBar selectedTab={selectedTab} />, [selectedTab]);
+
+    if (isNarrow) {
         return (
             <View
                 style={{overflow: 'visible', marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom), paddingBottom: safeAreaPaddingBottom, opacity: shouldHide ? 0 : 1}}
                 pointerEvents={shouldHide ? 'none' : 'auto'}
             >
-                <NavigationTabBar
-                    selectedTab={selectedTab}
-                    shouldShowFloatingButtons={!shouldHide}
-                />
+                {narrowTabBar}
             </View>
         );
     }
 
-    return (
-        <View style={{overflow: 'visible'}}>
-            <NavigationTabBar selectedTab={selectedTab} />
-        </View>
-    );
+    // On wide layout, the bottom tab navigator uses tabBarPosition='left' to place
+    // the tab bar on the left side. NavigationTabBar renders as a normal flow element
+    // (no position:fixed) so the navigator's flex layout handles positioning.
+    return <View style={{overflow: 'visible'}}>{wideTabBar}</View>;
 }
 
 // Stable reference: only passes `state` to avoid descriptors thrashing
@@ -111,18 +119,35 @@ const WorkspaceSplitNavigatorScreen = withSuspense(LazyWorkspaceSplitNavigator);
 
 const Tab = createBottomTabNavigator<RootTabNavigatorParamList>();
 
+// Hoisted to module level for stable references — prevents React Navigation from
+// rebuilding descriptors on every render.
+const SCENE_STYLE = {flex: 1} as const;
+
+const TAB_SCREEN_OPTIONS_NARROW = {
+    headerShown: false,
+    lazy: true,
+    animation: 'none' as const,
+    sceneStyle: SCENE_STYLE,
+    freezeOnBlur: true,
+    tabBarPosition: 'bottom' as const,
+} as const;
+
+const TAB_SCREEN_OPTIONS_WIDE = {
+    ...TAB_SCREEN_OPTIONS_NARROW,
+    tabBarPosition: 'left' as const,
+} as const;
+
 function RootTabNavigator() {
+    // No hooks — stable screenOptions reference prevents unnecessary descriptor rebuilds.
+    // On native: Platform.OS !== 'web' → always TAB_SCREEN_OPTIONS_NARROW (same ref every render).
+    // On web: reads window.innerWidth synchronously; parent re-renders on resize propagate here.
+    const isWideWeb = Platform.OS === 'web' && window.innerWidth > variables.mobileResponsiveWidthBreakpoint;
+
     return (
         <Tab.Navigator
             backBehavior="fullHistory"
             tabBar={renderTabBar}
-            screenOptions={{
-                headerShown: false,
-                lazy: true,
-                animation: 'none',
-                sceneStyle: {flex: 1},
-                freezeOnBlur: true,
-            }}
+            screenOptions={isWideWeb ? TAB_SCREEN_OPTIONS_WIDE : TAB_SCREEN_OPTIONS_NARROW}
         >
             <Tab.Screen
                 name={SCREENS.HOME}
