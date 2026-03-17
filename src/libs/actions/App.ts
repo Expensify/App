@@ -120,9 +120,9 @@ Onyx.connectWithoutView({
 
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
-    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+    ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
@@ -566,6 +566,8 @@ type CreateWorkspaceWithPolicyDraftParams = {
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
+    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
+    betas?: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 /**
@@ -590,6 +592,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         shouldCreateControlPolicy,
         type,
         isSelfTourViewed,
+        betas,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -616,6 +619,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             shouldCreateControlPolicy,
             type,
             isSelfTourViewed,
+            betas,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
     });
@@ -636,6 +640,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         currentUserEmailParam,
         shouldCreateControlPolicy,
         isSelfTourViewed,
+        betas,
     } = params;
 
     createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyID, makeMeAdmin, currency, file);
@@ -654,6 +659,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         allReportsParam: allReports,
         shouldCreateControlPolicy,
         isSelfTourViewed,
+        betas,
     });
 }
 
@@ -673,6 +679,8 @@ type SavePolicyDraftByNewWorkspaceParams = {
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
+    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
+    betas?: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 /**
@@ -694,6 +702,7 @@ function savePolicyDraftByNewWorkspace({
     shouldCreateControlPolicy,
     type,
     isSelfTourViewed,
+    betas,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -712,6 +721,7 @@ function savePolicyDraftByNewWorkspace({
         shouldCreateControlPolicy,
         type,
         isSelfTourViewed,
+        betas,
     });
 }
 

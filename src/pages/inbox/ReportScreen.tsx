@@ -27,6 +27,7 @@ import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -121,10 +122,7 @@ type ReportScreenNavigationProps =
     | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
 
-type ReportScreenProps = ReportScreenNavigationProps & {
-    /** Whether the report screen is being displayed in the side panel */
-    isInSidePanel?: boolean;
-};
+type ReportScreenProps = ReportScreenNavigationProps;
 
 const defaultReportMetadata = {
     hasOnceLoadedReportActions: false,
@@ -157,7 +155,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
     return !Object.values(report).some((value) => value !== undefined && value !== '');
 }
 
-function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenProps) {
+function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
@@ -169,6 +167,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const isInSidePanel = useIsInSidePanel();
 
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
 
@@ -437,7 +436,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 report={report}
                 parentReportAction={parentReportAction}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
-                isInSidePanel={isInSidePanel}
             />
         );
     }, [
@@ -452,7 +450,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         reportActions,
         reportIDFromRoute,
         shouldUseNarrowLayout,
-        isInSidePanel,
     ]);
 
     useEffect(() => {
@@ -1122,7 +1119,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 reportTransactions={reportTransactions}
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
-                                                isInSidePanel={isInSidePanel}
                                                 shouldHideStatusIndicators={isConciergeSidePanel && !hasUserSentMessage}
                                                 kickoffWaitingIndicator={kickoffWaitingIndicator}
                                             />

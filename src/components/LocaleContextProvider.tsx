@@ -188,6 +188,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         preferredLocale: currentLocale,
     };
 
+    // eslint-disable-next-line rulesdir/context-provider-split-values
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 

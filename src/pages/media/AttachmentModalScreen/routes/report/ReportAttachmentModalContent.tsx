@@ -22,7 +22,21 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SafeString from '@src/utils/SafeString';
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
-    const {attachmentID, type, source: sourceParam, isAuthTokenRequired, attachmentLink, originalFileName, accountID, reportID, hashKey, headerTitle, onShow, onClose} = route.params;
+    const {
+        attachmentID,
+        type,
+        source: sourceParam,
+        isAuthTokenRequired,
+        attachmentLink,
+        originalFileName,
+        accountID,
+        reportID,
+        reportActionID,
+        hashKey,
+        headerTitle,
+        onShow,
+        onClose,
+    } = route.params;
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
@@ -30,7 +44,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
     const originalReportID = useOriginalReportID(reportID, reportActionID ? (reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID] ?? {reportActionID}) : undefined);
     const reportActionReportID = originalReportID ?? reportID;
 
@@ -72,6 +85,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         (attachment: Attachment) => {
             const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({
                 reportID,
+                reportActionID: attachment.reportActionID,
                 attachmentID: attachment.attachmentID,
                 type,
                 source: SafeString(attachment.source),
@@ -83,7 +97,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             });
             Navigation.navigate(routeToNavigate);
         },
-        [reportID, type, accountID, hashKey],
+        [reportID, reportActionID, type, accountID, hashKey],
     );
 
     const onDownloadAttachment = useDownloadAttachment({

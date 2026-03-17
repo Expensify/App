@@ -39,7 +39,7 @@ import PureReportActionItem from './PureReportActionItem';
 
 type ReportActionItemProps = Omit<
     PureReportActionItemProps,
-    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts' | 'userBillingGraceEndPeriodCollection'
+    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts' | 'userBillingGraceEndPeriods'
 > & {
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
@@ -112,7 +112,7 @@ function ReportActionItem({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
@@ -186,7 +186,7 @@ function ReportActionItem({
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             bankAccountList={bankAccountList}
             reportMetadata={reportMetadata}
-            userBillingGraceEndPeriodCollection={userBillingGraceEndPeriodCollection}
+            userBillingGraceEndPeriods={userBillingGraceEndPeriods}
         />
     );
 }

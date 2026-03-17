@@ -112,7 +112,7 @@ function MVCPFlatList<T>({
 
         const contentViewLength = contentView.childNodes.length;
         for (let i = mvcpMinIndexForVisible; i < contentViewLength; i++) {
-            const subview = contentView.childNodes[restProps.inverted ? contentViewLength - i - 1 : i] as HTMLElement;
+            const subview = contentView.childNodes[i] as HTMLElement;
             const subviewOffset = horizontal ? subview.offsetLeft : subview.offsetTop;
             if (subviewOffset > scrollOffset) {
                 prevFirstVisibleOffsetRef.current = subviewOffset;
@@ -120,7 +120,7 @@ function MVCPFlatList<T>({
                 break;
             }
         }
-    }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal, restProps.inverted]);
+    }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal]);
 
     const adjustForMaintainVisibleContentPosition = useCallback(
         (animated = true) => {
