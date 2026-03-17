@@ -297,6 +297,118 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
         });
 
+        describe('Policy has Dynamic External Workflow', () => {
+            const DEW_POLICY_ID = '77';
+            const IOU_REPORT_ID = '88';
+            const IOU_TRANSACTION_ID = '99';
+            const EXPENSE_AMOUNT = 345;
+
+            const dewReportAction = {
+                ...createRandomReportAction(7),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUReportID: IOU_REPORT_ID,
+                    IOUTransactionID: IOU_TRANSACTION_ID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount: EXPENSE_AMOUNT,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const dewTransaction = {
+                ...createRandomTransaction(Number(IOU_TRANSACTION_ID)),
+                transactionID: IOU_TRANSACTION_ID,
+                reportID: IOU_REPORT_ID,
+                amount: EXPENSE_AMOUNT,
+            };
+
+            const dewPolicy: Policy = {
+                ...createRandomPolicy(Number(DEW_POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+                id: DEW_POLICY_ID,
+                role: CONST.POLICY.ROLE.USER,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return false for non-admin requestor editing receipt on a processing report', async () => {
+                const processingReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [dewPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: processingReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditReceipt = canEditFieldOfMoneyRequest(dewReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should return true for non-admin requestor editing receipt on an open report', async () => {
+                const openReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [dewPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: openReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditReceipt = canEditFieldOfMoneyRequest(dewReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+
+                expect(canEditReceipt).toBe(true);
+            });
+
+            it('should return true for admin editing receipt on a processing report', async () => {
+                const adminPolicy: Policy = {
+                    ...dewPolicy,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                };
+                const processingReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [adminPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: processingReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditReceipt = canEditFieldOfMoneyRequest(dewReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+
+                expect(canEditReceipt).toBe(true);
+            });
+        });
+
         describe('unreported per diem expense', () => {
             const PER_DIEM_IOU_TRANSACTION_ID = '99';
             const PER_DIEM_CUSTOM_UNIT_ID = 'perDiemUnit1';
