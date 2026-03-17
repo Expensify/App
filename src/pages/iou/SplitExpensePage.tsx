@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -50,6 +50,7 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -121,7 +122,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy);
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, currentPolicy) ?? {};
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+    const transactionDetailsAmount = useMemo(() => {
+        if (typeof transactionDetails?.amount !== 'number') {
+            return 0;
+        }
+        return transactionDetails.amount;
+    }, [transactionDetails.amount]);
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const invalidSplit = splitExpenses.find((split) => {
@@ -151,6 +157,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport, {isManuallyEdited: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
 
     const {isBetaEnabled} = usePermissions();
@@ -161,6 +168,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
     const hasCustomUnitOutOfPolicyViolation = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
 
+    const draftTransactionError = useMemo(() => getLatestErrorMessage(draftTransaction ?? {}), [draftTransaction]);
     let isUnitRateIDOutOfPolicy = false;
     for (const splitExpense of splitExpenses) {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpense.transactionID)}`] ?? transaction;
@@ -178,18 +186,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
     }
 
-    useEffect(() => {
-        const errorString = getLatestErrorMessage(draftTransaction ?? {});
-
-        if (errorString) {
-            setErrorMessage(errorString);
-        }
-    }, [draftTransaction, draftTransaction?.errors]);
-
-    useEffect(() => {
-        setErrorMessage('');
-    }, [sumOfSplitExpenses, splitExpenses]);
-
     const onAddSplitExpense = () => {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
@@ -203,6 +199,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, currentPolicy);
     };
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
 
     const onSaveSplitExpense = () => {
         if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
@@ -303,10 +301,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             quickAction,
             iouReportNextStep,
             betas,
+            policyTags: policyTags ?? {},
+            personalDetails,
+            transactionReport: draftTransactionReport,
+            expenseReport,
         });
     };
 
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
+        setErrorMessage('');
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
             updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy);
@@ -391,6 +394,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         </View>
     );
 
+    const displayError = errorMessage || draftTransactionError;
     let warningMessage = '';
 
     if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount) {
@@ -407,12 +411,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
-            {(!!errorMessage || !!warningMessage) && (
+            {(!!displayError || !!warningMessage) && (
                 <FormHelpMessage
                     style={[styles.ph1, styles.mb2]}
-                    isError={!!errorMessage}
-                    isInfo={!errorMessage && !!warningMessage}
-                    message={errorMessage || warningMessage}
+                    isError={!!displayError}
+                    isInfo={!displayError && !!warningMessage}
+                    message={displayError || warningMessage}
                 />
             )}
             <Button
@@ -482,7 +486,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     if (isLoadingDraftTransaction) {
-        return <FullScreenLoadingIndicator style={[styles.opacity1]} />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SplitExpensePage',
+            isLoadingDraftTransaction,
+        };
+        return (
+            <FullScreenLoadingIndicator
+                style={[styles.opacity1]}
+                reasonAttributes={reasonAttributes}
+            />
+        );
     }
 
     return (

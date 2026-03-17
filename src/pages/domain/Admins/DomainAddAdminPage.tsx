@@ -36,7 +36,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const {translate} = useLocalize();
 
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [domainEmail] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: domainEmailSelector,
     });
@@ -157,7 +157,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
                     }}
-                    showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}

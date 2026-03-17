@@ -25,6 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -73,6 +74,7 @@ type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<Wo
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -410,7 +412,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
                                     badgeIcon={isAccountInSetupState ? expensifyIcons.DotIndicator : undefined}
-                                    badgeSuccess={isAccountInSetupState ? true : undefined}
+                                    isBadgeSuccess={isAccountInSetupState ? true : undefined}
                                     shouldShowRightIcon
                                     shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}

@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 // Import mocks after they're defined
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import {doesUserHavePaymentCardAdded, getEarlyDiscountInfo, hasUserFreeTrialEnded, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
+import {getEarlyDiscountInfo, shouldShowDiscountBanner, shouldShowTrialEndedUI} from '@libs/SubscriptionUtils';
 import useTimeSensitiveOffers from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveOffers';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -23,16 +23,14 @@ jest.mock('@hooks/useSubscriptionPlan', () => ({
 jest.mock('@libs/SubscriptionUtils', () => ({
     shouldShowDiscountBanner: jest.fn(() => false),
     getEarlyDiscountInfo: jest.fn(() => null),
-    hasUserFreeTrialEnded: jest.fn(() => false),
-    doesUserHavePaymentCardAdded: jest.fn(() => true),
+    shouldShowTrialEndedUI: jest.fn(() => false),
 }));
 
 const mockedUseHasTeam2025Pricing = useHasTeam2025Pricing as jest.Mock;
 const mockedUseSubscriptionPlan = useSubscriptionPlan as jest.Mock;
 const mockedShouldShowDiscountBanner = shouldShowDiscountBanner as jest.Mock;
 const mockedGetEarlyDiscountInfo = getEarlyDiscountInfo as jest.Mock;
-const mockedHasUserFreeTrialEnded = hasUserFreeTrialEnded as jest.Mock;
-const mockedDoesUserHavePaymentCardAdded = doesUserHavePaymentCardAdded as jest.Mock;
+const mockedShouldShowTrialEndedUI = shouldShowTrialEndedUI as jest.Mock;
 
 describe('useTimeSensitiveOffers', () => {
     beforeAll(() => {
@@ -184,6 +182,7 @@ describe('useTimeSensitiveOffers', () => {
                 firstDayFreeTrial,
                 lastDayFreeTrial,
                 userBillingFundID,
+                {},
             );
         });
 
@@ -215,18 +214,18 @@ describe('useTimeSensitiveOffers', () => {
     });
 
     describe('when add payment card should not be shown', () => {
-        it('should return shouldShowAddPaymentCard as false when trial has not ended', () => {
-            mockedHasUserFreeTrialEnded.mockReturnValue(false);
-            mockedDoesUserHavePaymentCardAdded.mockReturnValue(false);
+        it('should return shouldShowAddPaymentCard as false when shouldShowTrialEndedUI returns false', () => {
+            mockedUseHasTeam2025Pricing.mockReturnValue(true);
+            mockedShouldShowTrialEndedUI.mockReturnValue(false);
 
             const {result} = renderHook(() => useTimeSensitiveOffers());
 
             expect(result.current.shouldShowAddPaymentCard).toBe(false);
         });
 
-        it('should return shouldShowAddPaymentCard as false when user already has payment card', () => {
-            mockedHasUserFreeTrialEnded.mockReturnValue(true);
-            mockedDoesUserHavePaymentCardAdded.mockReturnValue(true);
+        it('should return shouldShowAddPaymentCard as false when hasTeam2025Pricing is false', () => {
+            mockedUseHasTeam2025Pricing.mockReturnValue(false);
+            mockedShouldShowTrialEndedUI.mockReturnValue(true);
 
             const {result} = renderHook(() => useTimeSensitiveOffers());
 
@@ -235,9 +234,9 @@ describe('useTimeSensitiveOffers', () => {
     });
 
     describe('when add payment card should be shown', () => {
-        it('should return shouldShowAddPaymentCard as true when trial ended and user has no payment card', () => {
-            mockedHasUserFreeTrialEnded.mockReturnValue(true);
-            mockedDoesUserHavePaymentCardAdded.mockReturnValue(false);
+        it('should return shouldShowAddPaymentCard as true when hasTeam2025Pricing and shouldShowTrialEndedUI both return true', () => {
+            mockedUseHasTeam2025Pricing.mockReturnValue(true);
+            mockedShouldShowTrialEndedUI.mockReturnValue(true);
 
             const {result} = renderHook(() => useTimeSensitiveOffers());
 
@@ -246,30 +245,19 @@ describe('useTimeSensitiveOffers', () => {
     });
 
     describe('add payment card hook dependencies', () => {
-        it('should call hasUserFreeTrialEnded with lastDayFreeTrial from Onyx', async () => {
+        it('should call shouldShowTrialEndedUI with Onyx data', async () => {
             const lastDayFreeTrial = '2025-01-15';
-            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, lastDayFreeTrial);
-            await waitForBatchedUpdates();
-
-            mockedHasUserFreeTrialEnded.mockReturnValue(false);
-            mockedDoesUserHavePaymentCardAdded.mockReturnValue(true);
-
-            renderHook(() => useTimeSensitiveOffers());
-
-            expect(mockedHasUserFreeTrialEnded).toHaveBeenCalledWith(lastDayFreeTrial);
-        });
-
-        it('should call doesUserHavePaymentCardAdded with userBillingFundID from Onyx', async () => {
             const userBillingFundID = 12345;
+            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, lastDayFreeTrial);
             await Onyx.merge(ONYXKEYS.NVP_BILLING_FUND_ID, userBillingFundID);
             await waitForBatchedUpdates();
 
-            mockedHasUserFreeTrialEnded.mockReturnValue(true);
-            mockedDoesUserHavePaymentCardAdded.mockReturnValue(true);
+            mockedUseHasTeam2025Pricing.mockReturnValue(true);
+            mockedShouldShowTrialEndedUI.mockReturnValue(false);
 
             renderHook(() => useTimeSensitiveOffers());
 
-            expect(mockedDoesUserHavePaymentCardAdded).toHaveBeenCalledWith(userBillingFundID);
+            expect(mockedShouldShowTrialEndedUI).toHaveBeenCalledWith(lastDayFreeTrial, userBillingFundID, {}, undefined, undefined, undefined);
         });
     });
 });

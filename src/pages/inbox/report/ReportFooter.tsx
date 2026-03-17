@@ -13,6 +13,7 @@ import SwipeableView from '@components/SwipeableView';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -65,9 +66,8 @@ type ReportFooterProps = {
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
 
-    /** Whether the report screen is being displayed in the side panel */
-    isInSidePanel?: boolean;
-
+    /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
+    shouldHideStatusIndicators?: boolean;
     /** Function to trigger optimistic waiting indicator for Concierge */
     kickoffWaitingIndicator?: () => void;
 };
@@ -79,13 +79,14 @@ function ReportFooter({
     onComposerFocus,
     reportTransactions,
     transactionThreadReportID,
-    isInSidePanel,
+    shouldHideStatusIndicators,
     kickoffWaitingIndicator,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    const isInSidePanel = useIsInSidePanel();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
@@ -263,7 +264,7 @@ function ReportFooter({
                             didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
                             transactionThreadReportID={transactionThreadReportID}
-                            isInSidePanel={isInSidePanel}
+                            shouldHideStatusIndicators={shouldHideStatusIndicators}
                             kickoffWaitingIndicator={kickoffWaitingIndicator}
                         />
                     </SwipeableView>
