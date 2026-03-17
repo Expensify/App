@@ -5,15 +5,14 @@ import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import WidgetContainer from '@components/WidgetContainer';
-import {useCurrencyListState} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardDescription, getDisplayableExpensifyCards} from '@libs/CardUtils';
-import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
+import {getCardCurrency, getCardDescription, getDisplayableExpensifyCards} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -28,7 +27,7 @@ function AssignedCardsSection() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const {currencyList} = useCurrencyListState();
+    const [allCardSettings] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const displayableCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
@@ -45,7 +44,7 @@ function AssignedCardsSection() {
             {displayableCards.map((card) => {
                 const customTitle = card.nameValuePairs?.cardTitle;
                 const description = customTitle && card.lastFourPAN ? `${customTitle} ${CONST.DOT_SEPARATOR} ${card.lastFourPAN}` : (customTitle ?? getCardDescription(card, translate));
-                const currency = getCurrencyKeyByCountryCode(currencyList, card.nameValuePairs?.country ?? card.nameValuePairs?.feedCountry);
+                const currency = getCardCurrency(card, allCardSettings?.[`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${card.fundID}`]);
                 const formattedAvailableSpend = convertToDisplayString(card.availableSpend, currency);
                 const title = translate('homePage.assignedCardsRemaining', {amount: formattedAvailableSpend});
 

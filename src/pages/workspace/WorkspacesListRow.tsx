@@ -266,7 +266,7 @@ function WorkspacesListRow({
                 <PressableWithoutFeedback
                     accessible
                     accessibilityLabel={accessibilityLabel}
-                    role={isWide ? CONST.ROLE.ROW : CONST.ROLE.BUTTON}
+                    role={isWide ? CONST.ROLE.ROW : CONST.ROLE.LINK}
                     onPress={onPress}
                     disabled={disabled}
                     style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}
