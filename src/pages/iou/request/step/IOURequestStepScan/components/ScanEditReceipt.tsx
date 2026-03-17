@@ -10,7 +10,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import bridgeCameraToValidation from '@pages/iou/request/step/IOURequestStepScan/utils/bridgeCameraToValidation';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -50,7 +49,7 @@ function ScanEditReceipt() {
         navigateBack();
     };
 
-    function processReceipts(files: FileObject[]) {
+    function onFilesAccepted(files: FileObject[]) {
         if (files.length === 0) {
             return;
         }
@@ -66,11 +65,13 @@ function ScanEditReceipt() {
     }
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files);
+        onFilesAccepted(files);
     });
 
-    function handleCapture(file: FileObject, source: string) {
-        bridgeCameraToValidation(file, source, validateFiles);
+    function onCapture(file: FileObject, source: string) {
+        const fileWithUri = file;
+        fileWithUri.uri = source;
+        validateFiles([fileWithUri]);
     }
 
     // End the create expense span on mount
@@ -91,7 +92,7 @@ function ScanEditReceipt() {
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
-                    onCapture={handleCapture}
+                    onCapture={onCapture}
                     shouldAcceptMultipleFiles={false}
                 />
                 {ErrorModal}

@@ -28,7 +28,6 @@ import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import bridgeCameraToValidation from '@pages/iou/request/step/IOURequestStepScan/utils/bridgeCameraToValidation';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
@@ -270,7 +269,7 @@ function ScanSkipConfirmation() {
         });
     }
 
-    function processReceipts(files: FileObject[]) {
+    function onFilesAccepted(files: FileObject[]) {
         if (files.length === 0) {
             return;
         }
@@ -301,11 +300,13 @@ function ScanSkipConfirmation() {
     }
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files);
+        onFilesAccepted(files);
     });
 
-    function handleCapture(file: FileObject, source: string) {
-        bridgeCameraToValidation(file, source, validateFiles);
+    function onCapture(file: FileObject, source: string) {
+        const fileWithUri = file;
+        fileWithUri.uri = source;
+        validateFiles([fileWithUri]);
     }
 
     // End the create expense span on mount
@@ -347,7 +348,7 @@ function ScanSkipConfirmation() {
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
-                    onCapture={handleCapture}
+                    onCapture={onCapture}
                     shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
                 />
                 {ErrorModal}

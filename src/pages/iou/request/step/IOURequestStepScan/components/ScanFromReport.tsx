@@ -11,8 +11,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import bridgeCameraToValidation from '@pages/iou/request/step/IOURequestStepScan/utils/bridgeCameraToValidation';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
@@ -49,22 +47,7 @@ function ScanFromReport() {
         Navigation.goBack(backTo);
     };
 
-    function navigateToConfirmationStep(files: ReceiptFile[]) {
-        startScanProcessSpan();
-
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-
-        // The main flow for ScanFromReport: set participants from the report and navigate to confirmation
-        const transactionIDs = files.map((receiptFile) => receiptFile.transactionID);
-        setMultipleMoneyRequestParticipantsFromReport(transactionIDs, report, currentUserPersonalDetails.accountID).then(() =>
-            navigateToConfirmationPage(iouType, initialTransactionID, reportID, backToReport),
-        );
-    }
-
-    function processReceipts(files: FileObject[]) {
+    function onFilesAccepted(files: FileObject[]) {
         if (files.length === 0) {
             return;
         }
@@ -80,15 +63,28 @@ function ScanFromReport() {
             reportID,
         });
 
-        navigateToConfirmationStep(newReceiptFiles);
+        startScanProcessSpan();
+
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        // The main flow for ScanFromReport: set participants from the report and navigate to confirmation
+        const transactionIDs = newReceiptFiles.map((receiptFile) => receiptFile.transactionID);
+        setMultipleMoneyRequestParticipantsFromReport(transactionIDs, report, currentUserPersonalDetails.accountID).then(() =>
+            navigateToConfirmationPage(iouType, initialTransactionID, reportID, backToReport),
+        );
     }
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files);
+        onFilesAccepted(files);
     });
 
-    function handleCapture(file: FileObject, source: string) {
-        bridgeCameraToValidation(file, source, validateFiles);
+    function onCapture(file: FileObject, source: string) {
+        const fileWithUri = file;
+        fileWithUri.uri = source;
+        validateFiles([fileWithUri]);
     }
 
     // End the create expense span on mount
@@ -109,7 +105,7 @@ function ScanFromReport() {
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
-                    onCapture={handleCapture}
+                    onCapture={onCapture}
                     shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
                 />
                 {ErrorModal}

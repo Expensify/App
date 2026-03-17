@@ -16,8 +16,6 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import bridgeCameraToValidation from '@pages/iou/request/step/IOURequestStepScan/utils/bridgeCameraToValidation';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
@@ -60,7 +58,22 @@ function ScanGlobalCreate() {
         Navigation.goBack(backTo);
     };
 
-    function navigateToConfirmationStep(files: ReceiptFile[]) {
+    function onFilesAccepted(files: FileObject[]) {
+        if (files.length === 0) {
+            return;
+        }
+
+        const newReceiptFiles = buildReceiptFiles({
+            files,
+            getSource: getFileSource,
+            initialTransaction,
+            initialTransactionID,
+            shouldAcceptMultipleFiles,
+            transactions,
+            currentUserPersonalDetails,
+            reportID,
+        });
+
         startScanProcessSpan();
 
         if (backTo) {
@@ -80,7 +93,7 @@ function ScanGlobalCreate() {
             if (initialTransaction?.participants && initialTransaction?.participants?.at(0)?.reportID !== targetReport?.reportID) {
                 const isTrackExpense = initialTransaction?.participants?.at(0)?.reportID === selfDMReport?.reportID;
 
-                const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
+                const setParticipantsPromises = newReceiptFiles.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
                 Promise.all(setParticipantsPromises).then(() => {
                     if (isTrackExpense) {
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReport?.reportID));
@@ -91,7 +104,7 @@ function ScanGlobalCreate() {
                 return;
             }
 
-            const setParticipantsPromises = files.map((receiptFile) => {
+            const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {
                 setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
                 return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, targetReport, currentUserPersonalDetails.accountID);
             });
@@ -103,31 +116,14 @@ function ScanGlobalCreate() {
         }
     }
 
-    function processReceipts(files: FileObject[]) {
-        if (files.length === 0) {
-            return;
-        }
-
-        const newReceiptFiles = buildReceiptFiles({
-            files,
-            getSource: getFileSource,
-            initialTransaction,
-            initialTransactionID,
-            shouldAcceptMultipleFiles,
-            transactions,
-            currentUserPersonalDetails,
-            reportID,
-        });
-
-        navigateToConfirmationStep(newReceiptFiles);
-    }
-
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files);
+        onFilesAccepted(files);
     });
 
-    function handleCapture(file: FileObject, source: string) {
-        bridgeCameraToValidation(file, source, validateFiles);
+    function onCapture(file: FileObject, source: string) {
+        const fileWithUri = file;
+        fileWithUri.uri = source;
+        validateFiles([fileWithUri]);
     }
 
     // End the create expense span on mount
@@ -148,7 +144,7 @@ function ScanGlobalCreate() {
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
-                    onCapture={handleCapture}
+                    onCapture={onCapture}
                     shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
                 />
                 {ErrorModal}
