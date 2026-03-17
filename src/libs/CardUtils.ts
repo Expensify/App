@@ -1449,21 +1449,21 @@ function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<Expens
     }
 
     // If not, attempt to get currency from the card settings.
-    const feedCountry = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
-    const settings = getCardSettings(cardSettings, feedCountry);
+    const programKey = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
+    const settings = getCardSettings(cardSettings, programKey);
     if (settings?.currency) {
         return settings.currency;
     }
 
     // Fall back to the program and country to try to determine the correct currency.
     // US programs are always USD
-    if (feedCountry === CONST.COUNTRY.US || feedCountry === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) {
+    if (programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) {
         return CONST.CURRENCY.USD;
     }
 
     // For UK/EU cards, determine currency by country
     const country = card?.nameValuePairs?.country;
-    if (feedCountry === CONST.COUNTRY.GB) {
+    if (programKey === CONST.COUNTRY.GB) {
         // Only Gibraltar and UK use GBP. If country is not set at all, also assume GBP.
         if (!country || country === CONST.COUNTRY.GB || country === CONST.COUNTRY.GI) {
             return CONST.CURRENCY.GBP;
