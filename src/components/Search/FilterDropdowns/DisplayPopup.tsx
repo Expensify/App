@@ -45,6 +45,8 @@ type SortByPopupProps = {
 
 function SortByPopup({searchResults, queryJSON, groupBy, onSort, closeOverlay}: SortByPopupProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const {shouldUseLiveData} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -70,7 +72,8 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, closeOverlay}: 
 
     return (
         <SingleSelectPopup
-            label={translate('search.display.sortBy')}
+            style={styles.p0}
+            label={shouldUseNarrowLayout ? undefined : translate('search.display.sortBy')}
             items={sortableColumns}
             value={sortBy}
             closeOverlay={closeOverlay}
@@ -205,7 +208,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         ),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY]: (
             <GroupByPopup
-                label={translate('search.display.groupBy')}
+                style={styles.p0}
+                label={shouldUseNarrowLayout ? undefined : translate('search.display.groupBy')}
                 sections={groupBySections}
                 value={groupBy}
                 closeOverlay={() => setSelectedDisplayModifier(null)}
@@ -221,7 +225,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         ),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW]: (
             <SingleSelectPopup
-                label={translate('search.view.label')}
+                style={styles.p0}
+                label={shouldUseNarrowLayout ? undefined : translate('search.view.label')}
                 items={viewOptions}
                 value={view}
                 closeOverlay={() => setSelectedDisplayModifier(null)}
@@ -230,6 +235,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         ),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT]: (
             <TextInputPopup
+                style={styles.pv0}
                 placeholder={translate('search.filters.limit')}
                 defaultValue={limitValue}
                 closeOverlay={() => setSelectedDisplayModifier(null)}

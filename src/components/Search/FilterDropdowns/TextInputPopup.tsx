@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -8,13 +9,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SingleSelectPopupProps = {
+    style: StyleProp<ViewStyle>;
     defaultValue: string;
+    placeholder?: string;
     closeOverlay: () => void;
     onChange: (value: string) => void;
-    placeholder?: string;
 };
 
-function TextInputPopup({defaultValue, closeOverlay, onChange, placeholder}: SingleSelectPopupProps) {
+function TextInputPopup({style, defaultValue, placeholder, closeOverlay, onChange}: SingleSelectPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -32,13 +34,14 @@ function TextInputPopup({defaultValue, closeOverlay, onChange, placeholder}: Sin
     };
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.ph5, styles.gap5]}>
+        <View style={[!isSmallScreenWidth && styles.pv4, styles.ph5, styles.gap5, style]}>
             <TextInput
                 placeholder={placeholder}
                 value={value}
                 onChangeText={setValue}
                 accessibilityLabel={placeholder}
                 role={CONST.ROLE.PRESENTATION}
+                containerStyles={[styles.mt2]}
             />
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
