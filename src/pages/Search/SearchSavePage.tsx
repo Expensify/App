@@ -90,7 +90,11 @@ function SearchSavePage() {
             return;
         }
 
-        saveSearch({queryJSON, newName: name});
+        if (name) {
+            saveSearch({queryJSON, newName: name});
+        } else {
+            saveSearch({queryJSON});
+        }
         Navigation.setNavigationActionToMicrotaskQueue(applyFiltersAndNavigate);
     };
 
