@@ -73,7 +73,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
-                transactionIDs: transactionIDs,
+                transactionIDs,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
@@ -97,7 +97,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
         changeTransactionsReport({
-            transactionIDs: transactionIDs,
+            transactionIDs,
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
