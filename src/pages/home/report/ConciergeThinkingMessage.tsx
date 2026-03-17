@@ -14,10 +14,10 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -30,15 +30,36 @@ type ConciergeThinkingMessageProps = {
 
     /** The report action if available */
     action?: OnyxEntry<ReportAction>;
-
-    /** Reasoning history to display */
-    reasoningHistory?: ReasoningEntry[];
-
-    /** Status label text */
-    statusLabel?: string;
 };
 
-function ConciergeThinkingMessage({report, action, reasoningHistory, statusLabel}: ConciergeThinkingMessageProps) {
+function ConciergeThinkingMessage({report, action}: ConciergeThinkingMessageProps) {
+    const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatus();
+
+    if (!isProcessing) {
+        return null;
+    }
+
+    return (
+        <ConciergeThinkingMessageContent
+            report={report}
+            action={action}
+            reasoningHistory={reasoningHistory}
+            statusLabel={statusLabel}
+        />
+    );
+}
+
+function ConciergeThinkingMessageContent({
+    report,
+    action,
+    reasoningHistory,
+    statusLabel,
+}: {
+    report: OnyxEntry<Report>;
+    action?: OnyxEntry<ReportAction>;
+    reasoningHistory: Array<{reasoning: string; loopCount: number; timestamp: number}>;
+    statusLabel: string;
+}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();

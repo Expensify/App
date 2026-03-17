@@ -18,7 +18,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportPreviewAction} from '@libs/actions/IOU';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -84,15 +83,6 @@ type ReportActionsViewProps = {
     /** DB-time string marking when the current side panel session started */
     sessionStartTime?: string | null;
 
-    /** Whether Concierge is currently processing */
-    isConciergeProcessing?: boolean;
-
-    /** Concierge reasoning history */
-    conciergeReasoningHistory?: ReasoningEntry[];
-
-    /** Concierge status label */
-    conciergeStatusLabel?: string;
-
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
@@ -112,9 +102,6 @@ function ReportActionsView({
     isConciergeSidePanel = false,
     hasUserSentMessage = false,
     sessionStartTime = null,
-    isConciergeProcessing,
-    conciergeReasoningHistory,
-    conciergeStatusLabel,
     onLayout,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
@@ -430,9 +417,6 @@ function ReportActionsView({
                 showHiddenHistory={!showFullHistory}
                 hasPreviousMessages={hasPreviousMessages}
                 onShowPreviousMessages={handleShowPreviousMessages}
-                isConciergeProcessing={isConciergeProcessing && !showConciergeSidePanelWelcome}
-                conciergeReasoningHistory={conciergeReasoningHistory}
-                conciergeStatusLabel={conciergeStatusLabel}
             />
             <UserTypingEventListener report={report} />
         </>
