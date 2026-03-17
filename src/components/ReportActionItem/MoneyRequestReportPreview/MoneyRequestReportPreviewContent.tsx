@@ -279,8 +279,8 @@ function MoneyRequestReportPreviewContent({
             } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
                 setIsHoldMenuVisible(true);
             } else if (chatReport && iouReport) {
-                startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
+                    startAnimation();
                     payInvoice({
                         paymentMethodType: type,
                         chatReport,
@@ -311,6 +311,7 @@ function MoneyRequestReportPreviewContent({
                         isSelfTourViewed,
                         userBillingGraceEndPeriods,
                         amountOwed,
+                        onPaid: startAnimation,
                     });
                 }
             }
@@ -360,7 +361,6 @@ function MoneyRequestReportPreviewContent({
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            startApprovedAnimation();
             approveMoneyRequest({
                 expenseReport: iouReport,
                 policy: activePolicy,
@@ -373,6 +373,7 @@ function MoneyRequestReportPreviewContent({
                 userBillingGraceEndPeriods,
                 amountOwed,
                 full: true,
+                onApproved: startApprovedAnimation,
             });
         }
     };
@@ -717,7 +718,7 @@ function MoneyRequestReportPreviewContent({
                 icons: expensifyIcons,
                 iouReportID: iouReport?.reportID,
                 policy,
-                userBillingGraceEndPeriodCollection: userBillingGraceEndPeriods,
+                userBillingGraceEndPeriods,
                 draftTransactionIDs,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
@@ -753,18 +754,18 @@ function MoneyRequestReportPreviewContent({
                         showDEWModal();
                         return;
                     }
-                    startSubmittingAnimation();
-                    submitReport(
-                        iouReport,
+                    submitReport({
+                        expenseReport: iouReport,
                         policy,
-                        currentUserAccountID,
-                        currentUserEmail,
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
                         hasViolations,
                         isASAPSubmitBetaEnabled,
-                        iouReportNextStep,
+                        expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                         userBillingGraceEndPeriods,
                         amountOwed,
-                    );
+                        onSubmitted: startSubmittingAnimation,
+                    });
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}

@@ -65,6 +65,7 @@ function FullScreenLoadingIndicator({
                     size={iconSize}
                     testID={testID}
                     extraLoadingContext={extraLoadingContext}
+                    reasonAttributes={reasonAttributes}
                 />
                 {showGoBackButton && shouldUseGoBackButton && (
                     <View style={styles.loadingMessage}>
