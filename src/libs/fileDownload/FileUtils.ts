@@ -668,21 +668,19 @@ const normalizeFileObject = async (file: FileObject): Promise<FileObject> => {
     return new File([blob], name, {type});
 };
 
-type TranslationAdditionalData = {
-    maxUploadSizeInMB?: number;
-    fileLimit?: number;
+type FileValidationError = {
+    error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
+    isValidatingMultipleFiles?: boolean;
     fileType?: string;
 };
 
 type GetFileValidationErrorTextOptions = {
     isValidatingReceipt?: boolean;
-    isValidatingMultipleFiles?: boolean;
 };
 
 const getFileValidationErrorText = (
     translate: LocalizedTranslate,
-    validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
-    additionalData: TranslationAdditionalData = {},
+    validationError: FileValidationError | null,
     options: GetFileValidationErrorTextOptions = {},
 ): {
     title: string;
@@ -696,17 +694,17 @@ const getFileValidationErrorText = (
     }
     const maxSize = options.isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
 
-    if (options.isValidatingMultipleFiles) {
-        switch (validationError) {
+    if (validationError.isValidatingMultipleFiles) {
+        switch (validationError.error) {
             case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
                 return {
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
-                    reason: translate('attachmentPicker.unsupportedFileType', additionalData.fileType ?? ''),
+                    reason: translate('attachmentPicker.unsupportedFileType', validationError.fileType ?? ''),
                 };
             case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
                 return {
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
-                    reason: translate('attachmentPicker.sizeLimitExceeded', additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024),
+                    reason: translate('attachmentPicker.sizeLimitExceeded', maxSize / 1024 / 1024),
                 };
             case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
                 return {
@@ -723,7 +721,7 @@ const getFileValidationErrorText = (
         }
     }
 
-    switch (validationError) {
+    switch (validationError.error) {
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
                 title: translate('attachmentPicker.wrongFileType'),
@@ -732,9 +730,7 @@ const getFileValidationErrorText = (
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
                 title: translate('attachmentPicker.attachmentTooLarge'),
-                reason: options.isValidatingReceipt
-                    ? translate('attachmentPicker.sizeExceededWithLimit', additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024)
-                    : translate('attachmentPicker.sizeExceeded'),
+                reason: options.isValidatingReceipt ? translate('attachmentPicker.sizeExceededWithLimit', maxSize / 1024 / 1024) : translate('attachmentPicker.sizeExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
             return {
@@ -886,3 +882,4 @@ export {
     cleanFileObject,
     cleanFileObjectName,
 };
+export type {FileValidationError};
