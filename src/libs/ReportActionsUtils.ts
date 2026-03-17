@@ -4110,9 +4110,7 @@ function getChangedApproverActionMessage(translate: LocalizedTranslate, reportAc
         return '';
     }
 
-    const originalMessage = getOriginalMessage(
-        reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>,
-    );
+    const originalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>);
     const {mentionedAccountIDs} = originalMessage ?? {};
 
     // If mentionedAccountIDs exists and has values, use the first one
