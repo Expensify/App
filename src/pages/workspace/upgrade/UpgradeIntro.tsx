@@ -50,6 +50,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting;
         return `${convertToShortDisplayString(
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
         )} `;
@@ -153,7 +154,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 />
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
-                <RenderHTML html={translate('workspace.upgrade.note', {subscriptionLink})} />
+                <RenderHTML html={translate('workspace.upgrade.note', subscriptionLink)} />
             </View>
         </View>
     );

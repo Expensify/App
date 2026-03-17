@@ -37,6 +37,7 @@ function useUpdateGpsTripOnReconnect() {
     };
 
     // This is intentional to use async/await pattern for better readability
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     useNetwork({onReconnect: updateAddressesToHumanReadable});
 }
 

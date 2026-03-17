@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {payTravelInvoicingSpend} from '@libs/actions/TravelInvoicing';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTravelInvoicingSection';
+import {updateGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -23,7 +25,7 @@ const WORKSPACE_ACCOUNT_ID = 999888;
 // We use literal values that match the constants above.
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -55,8 +57,33 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {
         navigate: jest.fn(),
         getActiveRoute: jest.fn(() => ''),
+        isTopmostRouteModalScreen: jest.fn(() => false),
     },
 }));
+
+jest.mock('@libs/actions/TravelInvoicing', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@libs/actions/TravelInvoicing');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        payTravelInvoicingSpend: jest.fn().mockResolvedValue(undefined),
+    };
+});
+
+jest.mock('@userActions/Policy/Policy', () => ({
+    updateGeneralSettings: jest.fn(),
+}));
+
+const mockShowConfirmModal = jest.fn().mockResolvedValue({action: 'CONFIRM'});
+const mockCloseModal = jest.fn();
+
+jest.mock('@hooks/useConfirmModal', () => {
+    return jest.fn().mockImplementation(() => ({
+        showConfirmModal: mockShowConfirmModal,
+        closeModal: mockCloseModal,
+    }));
+});
 
 const mockPolicy: Policy = {
     ...createRandomPolicy(parseInt(POLICY_ID, 10) || 1),
@@ -113,8 +140,10 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(travelInvoicingKey, {
-                    remainingLimit: 50000,
-                    currentBalance: 10000,
+                    TRAVEL_US: {
+                        remainingLimit: 50000,
+                        currentBalance: 10000,
+                    },
                 });
                 await waitForBatchedUpdatesWithAct();
             });
@@ -133,9 +162,11 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(travelInvoicingKey, {
-                    paymentBankAccountID: 12345,
-                    remainingLimit: 50000,
-                    currentBalance: 10000,
+                    TRAVEL_US: {
+                        paymentBankAccountID: 12345,
+                        remainingLimit: 50000,
+                        currentBalance: 10000,
+                    },
                 });
                 await Onyx.merge(bankAccountKey, {
                     12345: {
@@ -158,9 +189,11 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(travelInvoicingKey, {
-                    paymentBankAccountID: 12345,
-                    remainingLimit: 50000,
-                    currentBalance: 25000,
+                    TRAVEL_US: {
+                        paymentBankAccountID: 12345,
+                        remainingLimit: 50000,
+                        currentBalance: 25000,
+                    },
                 });
                 await Onyx.merge(bankAccountKey, {
                     12345: {
@@ -183,9 +216,11 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(travelInvoicingKey, {
-                    paymentBankAccountID: 12345,
-                    remainingLimit: 100000,
-                    currentBalance: 25000,
+                    TRAVEL_US: {
+                        paymentBankAccountID: 12345,
+                        remainingLimit: 100000,
+                        currentBalance: 25000,
+                    },
                 });
                 await Onyx.merge(bankAccountKey, {
                     12345: {
@@ -208,9 +243,11 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(travelInvoicingKey, {
-                    paymentBankAccountID: 12345,
-                    remainingLimit: 50000,
-                    currentBalance: 10000,
+                    TRAVEL_US: {
+                        paymentBankAccountID: 12345,
+                        remainingLimit: 50000,
+                        currentBalance: 10000,
+                    },
                 });
                 await Onyx.merge(bankAccountKey, {
                     12345: {
@@ -233,9 +270,11 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(travelInvoicingKey, {
-                    paymentBankAccountID: 12345,
-                    remainingLimit: 50000,
-                    currentBalance: 10000,
+                    TRAVEL_US: {
+                        paymentBankAccountID: 12345,
+                        remainingLimit: 50000,
+                        currentBalance: 10000,
+                    },
                 });
                 await Onyx.merge(bankAccountKey, {
                     12345: {
@@ -258,10 +297,12 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(travelInvoicingKey, {
-                    paymentBankAccountID: 12345,
-                    remainingLimit: 50000,
-                    currentBalance: 10000,
-                    monthlySettlementDate: new Date(),
+                    TRAVEL_US: {
+                        paymentBankAccountID: 12345,
+                        remainingLimit: 50000,
+                        currentBalance: 10000,
+                        monthlySettlementDate: new Date(),
+                    },
                 });
                 await Onyx.merge(bankAccountKey, {
                     12345: {
@@ -289,7 +330,9 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(cardSettingsKey, {
-                    isEnabled: true,
+                    TRAVEL_US: {
+                        isEnabled: true,
+                    },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 });
                 await waitForBatchedUpdatesWithAct();
@@ -312,6 +355,159 @@ describe('WorkspaceTravelInvoicingSection', () => {
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
             expect(screen.queryByTestId('activity-indicator')).toBeNull();
+        });
+    });
+
+    describe('Pay Balance Button', () => {
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
+
+        it('should show Pay Balance button when user is admin, invoicing is enabled, there is a balance, and monthly settlement is enabled', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 5000,
+                        monthlySettlementDate: new Date(),
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            const payButton = screen.queryByText('Pay balance');
+            expect(payButton).toBeTruthy();
+        });
+
+        it('should not render Pay Balance button when balance is zero', async () => {
+            const travelInvoicingKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.set(travelInvoicingKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 0,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Button should not be rendered when travelSpend is 0
+            const payButton = screen.queryByText('Pay balance');
+            expect(payButton).toBeNull();
+        });
+
+        it('should show confirmation modal and call payTravelInvoicingSpend on confirm', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 5000,
+                        monthlySettlementDate: new Date(),
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Pressing Pay balance should open the confirmation modal, not call the action directly
+            const payButton = screen.getByText('Pay balance');
+            fireEvent.press(payButton);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(payTravelInvoicingSpend).not.toHaveBeenCalled();
+
+            // The confirmation modal should be visible with the pay balance title
+            // Title uses the amount: "Pay balance of $50.00?"
+            expect(screen.getByText('Pay balance of $50.00?')).toBeTruthy();
+
+            // Confirm the modal — the confirm button reuses 'Pay balance' CTA text
+            // There are now two 'Pay balance' texts (the original button behind the modal and the modal's confirm button)
+            const payBalanceButtons = screen.getAllByText('Pay balance');
+            const confirmButton = payBalanceButtons.at(-1);
+            // Press the last one which is the modal's confirm button
+            if (confirmButton) {
+                fireEvent.press(confirmButton);
+            }
+            await waitForBatchedUpdatesWithAct();
+
+            expect(payTravelInvoicingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID);
+        });
+
+        it('should hide Pay Balance button and show queued message when payment is queued', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 5000,
+                    },
+                });
+                // Set the manual billing flag to true (payment queued)
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${WORKSPACE_ACCOUNT_ID}`, true);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Pay balance button should not be visible when payment is queued
+            expect(screen.queryByText('Pay balance')).toBeNull();
+
+            // Current spend should show $0.00 (limit also shows $0.00, so use getAllByText)
+            expect(screen.getAllByText('$0.00').length).toBeGreaterThanOrEqual(1);
+
+            // Queued payment message should be visible with the original amount
+            expect(screen.getByText('Payment of $50.00 is queued and will be processed soon.')).toBeTruthy();
+        });
+    });
+
+    describe('Currency Conversion Prompt', () => {
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
+
+        it('should prompt to update currency to USD if policy currency is not USD, and call updateGeneralSettings on confirm', async () => {
+            const mockPolicyGbp = {
+                ...mockPolicy,
+                outputCurrency: 'GBP',
+                name: 'GBP Workspace',
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicyGbp);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: false,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Fire toggle change to true
+            const toggleButton = screen.getByRole('switch');
+            fireEvent.press(toggleButton);
+            await waitForBatchedUpdatesWithAct();
+
+            // The confirm modal should be triggered
+            expect(mockShowConfirmModal).toHaveBeenCalled();
+
+            // The updateGeneralSettings function should be called
+            expect(updateGeneralSettings).toHaveBeenCalledWith(expect.objectContaining({outputCurrency: 'GBP', name: 'GBP Workspace'}), 'GBP Workspace', CONST.CURRENCY.USD);
         });
     });
 });

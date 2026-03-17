@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
@@ -153,6 +154,11 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         }
     };
 
+    const transactionGroupLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TransactionGroupListExpanded',
+        isOffline: !!isOffline,
+    };
+
     if (shouldDisplayEmptyView) {
         return (
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
@@ -275,6 +281,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         color={theme.spinner}
                         size={25}
                         style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
+                        reasonAttributes={transactionGroupLoadingReasonAttributes}
                     />
                 </View>
             )}

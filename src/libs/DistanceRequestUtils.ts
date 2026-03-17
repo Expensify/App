@@ -394,14 +394,7 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
 }
 
 function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>): Unit {
-    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
-    const rateUnit = mileageRate?.unit;
-
-    if (transactionUnit && transactionUnit === rateUnit) {
-        return transactionUnit;
-    }
-
-    return rateUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
 /**
@@ -435,6 +428,7 @@ function getRate({
     const currency = isExpenseUnreported(transaction) ? transactionCurrency : policyCurrency;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(currency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
