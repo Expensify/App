@@ -84,11 +84,17 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
             });
 
         const updateMessage = (nextMessage: string | null) => {
-            const isInitialEdit = editingMessage == null && editingMessage !== nextMessage;
+            if (nextMessage == null) {
+                return;
+            }
+
+            const isInitialEdit = editingMessage == null;
             const didReportActionChange = prevEditingReportActionID !== editingReportActionID;
             if (isInitialEdit || didReportActionChange) {
                 setEditingMessage(nextMessage);
                 setPrevEditingReportActionID(editingReportActionID);
+                const defaultSelection: TextSelection = {start: nextMessage.length, end: nextMessage.length};
+                setCurrentEditMessageSelectionState(defaultSelection);
             }
         };
 

@@ -282,12 +282,6 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
-    const wasEditing = useRef(!!editingReportActionID);
-
-    const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
-    const previousEditingReportActionIDRef = useRef<string | null>(editingReportActionID ?? null);
-    const previousDraftSelectionRef = useRef<TextSelection | null>(null);
-
     const updateSelectionImperatively = useCallback((start: number, end: number) => {
         if (!isIOSNative) {
             return;
@@ -331,17 +325,16 @@ function ComposerWithSuggestions({
         [currentEditMessageSelection, updateSelectionImperatively],
     );
 
+    const wasEditing = useRef(!!editingReportActionID);
+    const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
+    const previousDraftSelectionRef = useRef<TextSelection | null>(null);
+
     useEffect(() => {
         if (editingState === 'submitted') {
             return;
         }
 
         const isEditing = editingState === 'editing';
-        const previousEditingReportActionID = previousEditingReportActionIDRef.current;
-        const currentEditingReportActionID = editingReportActionID ?? null;
-        const didChangeEditedAction = isEditing && previousEditingReportActionID && currentEditingReportActionID && previousEditingReportActionID !== currentEditingReportActionID;
-
-        previousEditingReportActionIDRef.current = currentEditingReportActionID;
 
         if (!isEditing) {
             if (wasEditing.current && wasEditingInComposerRef.current) {
@@ -373,12 +366,6 @@ function ComposerWithSuggestions({
             return;
         }
 
-        // We are already in editing mode, but the target message changed.
-        if (didChangeEditedAction && shouldUseNarrowLayout) {
-            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true});
-            return;
-        }
-
         // Editing is ongoing and layout toggled from wide to narrow.
         if (shouldUseNarrowLayout && !wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = true;
@@ -391,6 +378,10 @@ function ComposerWithSuggestions({
         if (!shouldUseNarrowLayout && wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = false;
             applyComposerValue(draftComment ?? '');
+        }
+
+        if (shouldUseNarrowLayout) {
+            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true});
         }
     }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, editingState, selection, shouldUseNarrowLayout, updateSelectionImperatively]);
 
