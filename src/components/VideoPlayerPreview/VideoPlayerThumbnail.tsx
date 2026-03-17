@@ -59,7 +59,15 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                             return;
                         }
                         onShowContextMenu(() => {
-                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived), originalReportID);
+                            showContextMenuForReport(
+                                event,
+                                anchor,
+                                report?.reportID,
+                                action,
+                                checkIfContextMenuActive,
+                                isArchivedNonExpenseReport(report, isReportArchived),
+                                originalReportID,
+                            );
                         });
                     }}
                     shouldUseHapticsOnLongPress
