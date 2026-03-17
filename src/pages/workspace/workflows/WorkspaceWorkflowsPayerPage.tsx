@@ -199,6 +199,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const isSelectedAlreadyAPayer = policy?.achAccount?.reimburser === selectedPayer;
         const isAccountAlreadyShared = bankAccountInfo?.accountData?.sharees ? bankAccountInfo?.accountData.sharees.includes(selectedPayer) : false;
         const isAccountAlreadySharedOnMainBankAccount = policy?.achAccount?.sharees ? policy?.achAccount.sharees.includes(selectedPayer) : false;
+
         // Selected payer already has access (owner, reimburser, or sharee) — proceed without sharing
         if (isAccountAlreadyShared || isSelectedPayerOwner || isSelectedAlreadyAPayer || isAccountAlreadySharedOnMainBankAccount) {
             onButtonPress();
