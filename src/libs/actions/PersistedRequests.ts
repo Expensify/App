@@ -2,6 +2,7 @@ import {deepEqual} from 'fast-equals';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type {AnyRequest} from '@src/types/onyx/Request';
@@ -46,7 +47,7 @@ Onyx.connectWithoutView({
                     newCommands: getCommands(newFromOtherTabs),
                 });
                 for (const r of newFromOtherTabs) {
-                    knownRequestIDs.add(r.requestID ?? 0);
+                    knownRequestIDs.add(r.requestID ?? CONST.DEFAULT_NUMBER_ID);
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
                 Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
