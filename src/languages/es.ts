@@ -892,11 +892,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Tarjeta Expensify',
                 cta: 'Revisar',
             },
-            validateAccount: {
-                title: 'Valida tu cuenta para continuar usando Expensify',
-                subtitle: 'Cuenta',
-                cta: 'Validar',
-            },
         },
         assignedCards: 'Tus tarjetas Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restantes`,
@@ -8884,6 +8879,10 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Miembros',
             findMember: 'Buscar miembro',
             addMember: 'Añadir miembro',
+            emptyMembers: {
+                title: 'No hay miembros en este grupo',
+                subtitle: 'Añade un miembro o intenta cambiar el filtro de arriba.',
+            },
             allMembers: 'Todos los miembros',
             email: 'Dirección de correo electrónico',
             closeAccount: () => ({

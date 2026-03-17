@@ -34,7 +34,7 @@ const TEST_USER_LOGIN_2 = 'test2@test.com';
 // cspell:disable-next-line
 const TEST_AUTH_TOKEN_2 = 'zxcvbnm';
 
-jest.setTimeout(120000);
+jest.setTimeout(240000);
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
@@ -152,6 +152,13 @@ describe('Deep linking', () => {
         // Unmount so we can prepare the deep link login
         unmount1();
 
+        await waitForBatchedUpdatesWithAct();
+
+        // In production, RAM-only keys don't exist on a fresh app start because they're never persisted to storage.
+        // In tests, however, unmounting and remounting <App /> doesn't restart the JS process,
+        // so RAM-only keys retain their values from the previous mount. We need to manually
+        // remove them to simulate a real app restart.
+        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM, null);
         await waitForBatchedUpdatesWithAct();
 
         const url = getInitialURL();

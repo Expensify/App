@@ -1020,11 +1020,6 @@ const translations = {
                 subtitle: 'Expensify Card',
                 cta: 'Review',
             },
-            validateAccount: {
-                title: 'Validate your account to continue using Expensify',
-                subtitle: 'Account',
-                cta: 'Validate',
-            },
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
@@ -8594,6 +8589,10 @@ const translations = {
             title: 'Members',
             findMember: 'Find member',
             addMember: 'Add member',
+            emptyMembers: {
+                title: 'No members in this group',
+                subtitle: 'Add a member or try changing the filter above.',
+            },
             allMembers: 'All members',
             email: 'Email address',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
