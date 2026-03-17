@@ -12,6 +12,7 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -61,6 +62,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
+    useDomainDocumentTitle(domainName, 'domain.domainMembers');
     // We need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -317,6 +319,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 useSelectionModeHeader={selectionModeHeader}
                 getCustomRightElement={getGroupRightElement}
                 searchBarAccessory={groupFilterDropdown}
+                emptyStateTitle={translate('domain.members.emptyMembers.title')}
+                emptyStateSubtitle={translate('domain.members.emptyMembers.subtitle')}
                 turnOnSelectionModeOnLongPress
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
