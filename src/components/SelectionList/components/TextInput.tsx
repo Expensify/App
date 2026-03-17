@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
@@ -72,6 +73,7 @@ function TextInput({
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
 
@@ -87,7 +89,7 @@ function TextInput({
 
     useFocusEffect(
         useCallback(() => {
-            if (!shouldShowTextInput || disableAutoFocus) {
+            if (!shouldShowTextInput || disableAutoFocus || isInLandscapeMode) {
                 return;
             }
 
@@ -100,7 +102,7 @@ function TextInput({
                 clearTimeout(focusTimeoutRef.current);
                 focusTimeoutRef.current = null;
             };
-        }, [shouldShowTextInput, disableAutoFocus, focusTextInput]),
+        }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isInLandscapeMode]),
     );
 
     const handleFocus = useCallback(() => {

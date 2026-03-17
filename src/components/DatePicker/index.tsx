@@ -4,6 +4,7 @@ import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +39,7 @@ function DatePicker({
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -107,7 +109,7 @@ function DatePicker({
     }, [calculatePopoverPosition, windowWidth]);
 
     useEffect(() => {
-        if (!autoFocus || isAutoFocused.current) {
+        if (!autoFocus || isAutoFocused.current || isInLandscapeMode) {
             return;
         }
         isAutoFocused.current = true;
@@ -115,7 +117,7 @@ function DatePicker({
         InteractionManager.runAfterInteractions(() => {
             handlePress();
         });
-    }, [handlePress, autoFocus]);
+    }, [handlePress, autoFocus, isInLandscapeMode]);
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
