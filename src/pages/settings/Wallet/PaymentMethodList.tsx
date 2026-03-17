@@ -28,6 +28,7 @@ import {
     getPlaidInstitutionIconUrl,
     isCardConnectionBroken,
     isCardFrozen,
+    isCardInactive,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isExpiredCard,
@@ -307,7 +308,7 @@ function PaymentMethodList({
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
                         isMethodActive: activePaymentMethodID === card.cardID,
-                        isSuspended: card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && !card.nameValuePairs?.frozen,
+                        isSuspended: isCardInactive(card),
                         onPress: cardOnPress,
                     });
                     continue;
@@ -376,7 +377,7 @@ function PaymentMethodList({
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
                     iconHeight: variables.cardIconHeight,
-                    isSuspended: card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && !card.nameValuePairs?.frozen,
+                    isSuspended: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
                 });
             }

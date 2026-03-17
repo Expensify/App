@@ -988,7 +988,7 @@ function MenuItem({
                                                             </View>
                                                         )}
                                                         {!!furtherDetails && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                            <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                                 {!!furtherDetailsIcon && (
                                                                     <Icon
                                                                         src={furtherDetailsIcon}
