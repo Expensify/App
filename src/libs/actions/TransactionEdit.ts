@@ -132,10 +132,10 @@ function getRemoveDraftTransactionsByIDsData(transactionIDs: string[] | undefine
 }
 
 function removeDraftTransactionsByIDs(transactionIDs: string[] | undefined) {
-    const data = getRemoveDraftTransactionsByIDsData(transactionIDs);
-    if (Object.keys(data).length) {
-        Onyx.multiSet(data);
+    if (!transactionIDs?.length) {
+        return;
     }
+    Onyx.multiSet(getRemoveDraftTransactionsByIDsData(transactionIDs));
 }
 
 function replaceDefaultDraftTransaction(transaction: OnyxEntry<Transaction>) {
