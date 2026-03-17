@@ -102,6 +102,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     <InputWrapper
                         InputComponent={TextInput}
