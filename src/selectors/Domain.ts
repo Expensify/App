@@ -142,31 +142,6 @@ function selectSecurityGroupForAccount(accountID: number) {
     };
 }
 
-/**
- * Extracts a list of security groups from the domain object.
- * Returns each group's key, name, and number of members.
- */
-function securityGroupsSelector(domain: OnyxEntry<Domain>): Array<{key: SecurityGroupKey; name: string; memberCount: number}> {
-    if (!domain) {
-        return [];
-    }
-
-    return Object.entries(domain).reduce<Array<{key: SecurityGroupKey; name: string; memberCount: number}>>((acc, entry) => {
-        if (!isSecurityGroupEntry(entry)) {
-            return acc;
-        }
-
-        const [key, group] = entry;
-        acc.push({
-            key,
-            name: group.name ?? key,
-            memberCount: group.shared ? Object.keys(group.shared).length : 0,
-        });
-
-        return acc;
-    }, []);
-}
-
 const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.member ?? {};
 /**
  * Get the vacation delegate for a specific member in a domain.
@@ -213,7 +188,6 @@ export {
     groupsSelector,
     vacationDelegateSelector,
     accountLockSelector,
-    securityGroupsSelector,
 };
 
 export {type DomainSecurityGroupWithID};

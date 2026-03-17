@@ -1,4 +1,4 @@
-import {domainNameSelector, securityGroupsSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import {domainNameSelector, groupsSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -19,10 +19,9 @@ import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SecurityGroupKey} from '@src/types/onyx/Domain';
 
 type SecurityGroupItem = ListItem & {
-    value: SecurityGroupKey;
+    value: string;
 };
 
 type MoveUsersBetweenGroupsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP>;
@@ -32,29 +31,28 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [selectedGroupKey, setSelectedGroupKey] = useState<SecurityGroupKey | undefined>();
-
+    const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
-    const [securityGroups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: securityGroupsSelector});
+    const [securityGroups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
     const [selectedMemberAccountIDs] = useOnyx(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const memberCount = selectedMemberAccountIDs?.length ?? 0;
 
-    const data: SecurityGroupItem[] = (securityGroups ?? []).map((group) => ({
-        text: group.name,
-        keyForList: group.key,
-        value: group.key,
-        isSelected: group.key === selectedGroupKey,
+    const data: SecurityGroupItem[] = (securityGroups ?? []).map(({id, details}) => ({
+        text: details.name ?? '',
+        keyForList: id,
+        value: id,
+        isSelected: id === selectedGroupId,
     }));
 
     const handleSelectRow = (item: SecurityGroupItem) => {
-        setSelectedGroupKey(item.value);
+        setSelectedGroupId(item.value);
     };
 
     const handleSave = () => {
-        if (!selectedGroupKey || !selectedMemberAccountIDs?.length || !domain || !domainName) {
+        if (!selectedGroupId || !selectedMemberAccountIDs?.length || !domain || !domainName) {
             return;
         }
 
@@ -67,7 +65,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
                 continue;
             }
 
-            changeDomainSecurityGroup(domainAccountID, domainName, memberLogin, accountID, currentGroupData.key, currentGroupData.securityGroup, selectedGroupKey);
+            changeDomainSecurityGroup(domainAccountID, domainName, memberLogin, accountID, currentGroupData.key, currentGroupData.securityGroup, selectedGroupId);
         }
 
         clearDomainMembersSelectedForMove();
@@ -90,7 +88,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
                     data={data}
                     onSelectRow={handleSelectRow}
                     ListItem={SingleSelectListItem}
-                    initiallyFocusedItemKey={selectedGroupKey}
+                    initiallyFocusedItemKey={selectedGroupId}
                 />
                 <FixedFooter>
                     <Button
@@ -98,7 +96,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
                         pressOnEnter
                         text={translate('common.save')}
                         onPress={handleSave}
-                        isDisabled={!selectedGroupKey}
+                        isDisabled={!selectedGroupId}
                     />
                 </FixedFooter>
             </ScreenWrapper>
