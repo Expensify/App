@@ -11279,6 +11279,7 @@ describe('ReportUtils', () => {
                     {
                         name: CONST.VIOLATIONS.MISSING_CATEGORY,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
                     },
                 ],
             };
@@ -11367,6 +11368,7 @@ describe('ReportUtils', () => {
                     {
                         name: CONST.VIOLATIONS.MISSING_CATEGORY,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
                     },
                 ],
             };
