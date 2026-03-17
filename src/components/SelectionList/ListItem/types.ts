@@ -37,6 +37,9 @@ type ListItem<K extends string | number = string> = {
     /** Accessibility label for screen readers */
     accessibilityLabel?: string;
 
+    /** Accessibility role for the list item row */
+    accessibilityRole?: Role;
+
     /** Key used internally by React */
     keyForList: K;
 

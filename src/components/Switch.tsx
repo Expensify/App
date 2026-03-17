@@ -96,13 +96,16 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
         return accessibilityLabel;
     }, [accessibilityLabel, disabled, translate]);
 
+    const isSwitchDisabled = !disabledAction && !!disabled;
+
     return (
         <PressableWithFeedback
-            disabled={!disabledAction && disabled}
+            disabled={isSwitchDisabled}
             onPress={handleSwitchPress}
             onLongPress={handleSwitchPress}
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
+            accessibilityState={{checked: isOn, disabled: isSwitchDisabled}}
             accessibilityLabel={enhancedAccessibilityLabel}
             // disable hover dim for switch
             hoverDimmingValue={1}

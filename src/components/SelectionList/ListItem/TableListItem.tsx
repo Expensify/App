@@ -79,6 +79,7 @@ function TableListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
+            accessibilityRole={item.accessibilityRole}
             shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
             shouldShowRightCaret={shouldShowRightCaret}
         >
@@ -109,7 +110,11 @@ function TableListItem<TItem extends ListItem>({
                             ]}
                         />
                     )}
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, titleContainerStyles]}>
+                    <View
+                        style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, titleContainerStyles]}
+                        accessible={item.accessibilityLabel ? false : undefined}
+                        aria-hidden={item.accessibilityLabel ? true : undefined}
+                    >
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.text ?? ''}

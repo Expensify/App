@@ -222,12 +222,16 @@ function PolicyDistanceRatesPage({
         () =>
             Object.values(customUnitRates).map((value) => {
                 const alternateText = `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`;
+                const switchAccessibilityLabel = value?.name ?? '';
+                const rowAccessibilityLabel = [switchAccessibilityLabel, alternateText].filter(Boolean).join(', ');
 
                 return {
                     rate: value.rate,
                     value: value.customUnitRateID,
                     text: value.name,
                     alternateText,
+                    accessibilityLabel: rowAccessibilityLabel,
+                    accessibilityRole: CONST.ROLE.LISTITEM,
                     keyForList: value.customUnitRateID,
                     isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     pendingAction:
@@ -244,7 +248,7 @@ function PolicyDistanceRatesPage({
                     rightElement: (
                         <Switch
                             isOn={!!value?.enabled}
-                            accessibilityLabel={value?.name ?? ''}
+                            accessibilityLabel={switchAccessibilityLabel}
                             onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
                             showLockIcon={!canDisableOrDeleteRate(value.customUnitRateID)}
                             disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
