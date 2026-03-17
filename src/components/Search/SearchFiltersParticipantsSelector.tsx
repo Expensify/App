@@ -97,6 +97,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
@@ -121,6 +122,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            reports,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
@@ -146,6 +148,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         personalDetails,
         currentUserAccountID,
         currentUserEmail,
+        reports,
     ]);
 
     const unselectedOptions = useMemo(() => {
@@ -208,9 +211,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
-            true,
-            undefined,
-            reportAttributesDerived,
+            {reports, shouldGetOptionDetails: true, reportAttributesDerived},
         );
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
@@ -269,6 +270,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         selectedOptions,
         chatOptions,
         personalDetails,
+        reports,
         reportAttributesDerived,
         translate,
         formatPhoneNumber,

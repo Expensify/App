@@ -92,13 +92,14 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
 
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
-    const reports = listOptions?.reports ?? [];
+    const reportOptions = listOptions?.reports ?? [];
     const personalDetails = listOptions?.personalDetails ?? [];
 
     const defaultOptions = getValidOptions(
         {
-            reports,
+            reports: reportOptions,
             personalDetails: personalDetails.concat(contacts),
         },
         allPolicies,
@@ -107,6 +108,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         loginList,
         currentUserAccountID,
         currentUserEmail,
+        reports,
         {
             betas: betas ?? [],
             includeSelfDM: true,
@@ -221,6 +223,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         setSelectedOptions,
         headerMessage,
         handleEndReached,
+        reports,
     };
 }
 
@@ -269,6 +272,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         userToInvite,
         areOptionsInitialized,
+        reports,
     } = useOptions(reportAttributesDerived);
 
     const sections: Section[] = [];
@@ -282,9 +286,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         privateIsArchivedMap,
         currentUserAccountID,
         allPersonalDetails,
-        undefined,
-        undefined,
-        reportAttributesDerived,
+        {reports, reportAttributesDerived},
     );
     // Just a temporary fix to satisfy the type checker
     // Will be fixed when migrating to use new SelectionListWithSections

@@ -69,6 +69,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportAttributesDerived = useReportAttributes();
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -212,9 +213,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
-            true,
-            undefined,
-            reportAttributesDerived,
+            {reports, shouldGetOptionDetails: true, reportAttributesDerived},
         );
 
         newSections.push({

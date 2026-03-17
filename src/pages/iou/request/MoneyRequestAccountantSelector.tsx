@@ -72,6 +72,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     useEffect(() => {
@@ -94,6 +95,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            reports,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -165,9 +167,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
-            true,
-            undefined,
-            reportAttributesDerived,
+            {reports, shouldGetOptionDetails: true, reportAttributesDerived},
         );
         newSections.push({...formatResults.section, sectionIndex: 0});
 
@@ -220,6 +220,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         chatOptions.userToInvite,
         debouncedSearchTerm,
         personalDetails,
+        reports,
         userToInviteExpenseReport,
         reportAttributesDerived,
         translate,

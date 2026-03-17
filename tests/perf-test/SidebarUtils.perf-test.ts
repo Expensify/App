@@ -72,6 +72,7 @@ describe('SidebarUtils', () => {
         await measureFunction(() =>
             SidebarUtils.getOptionData({
                 report,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs,
                 personalDetails,

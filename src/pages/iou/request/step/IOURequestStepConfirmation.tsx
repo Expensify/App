@@ -163,6 +163,7 @@ function IOURequestStepConfirmation({
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -313,11 +314,23 @@ function IOURequestStepConfirmation({
                     return participant;
                 }
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-                return participant.accountID
-                    ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived, reportDrafts);
+                if (participant.accountID) {
+                    return getParticipantsOption(participant, personalDetails);
+                }
+                const participantReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] ?? reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
+                const participantChatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participantReport?.chatReportID}`];
+                return getReportOption(
+                    participant,
+                    privateIsArchived,
+                    policy,
+                    currentUserPersonalDetails.accountID,
+                    personalDetails,
+                    participantReport,
+                    participantChatReport,
+                    reportAttributesDerived,
+                );
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, currentUserPersonalDetails.accountID],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, reports, privateIsArchivedMap, policy, currentUserPersonalDetails.accountID],
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);

@@ -73,8 +73,15 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         const report = getSelectedOptionData(createOptionFromReport({...reportData, reportID: id}, personalDetails, currentUserAccountID, privateIsArchived, reportAttributesDerived));
         const isReportArchived = !!privateIsArchived;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
+        const chatReportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportData?.chatReportID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserEmail, policy, {}, undefined, undefined, reportAttributesDerived, reportPolicyTags);
+        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserEmail, {
+            policy,
+            report: reportData,
+            chatReport: chatReportData,
+            reportAttributesDerived,
+            policyTags: reportPolicyTags,
+        });
         return {...report, alternateText};
     });
 
@@ -85,6 +92,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                   options,
                   draftComments,
                   nvpDismissedProductTraining,
+                  reports,
                   betas: undefined,
                   isUsedInChatFinder: false,
                   countryCode,
@@ -111,9 +119,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
-            false,
-            undefined,
-            reportAttributesDerived,
+            {reports, reportAttributesDerived},
         );
 
         sections.push(formattedResults.section);

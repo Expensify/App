@@ -75,6 +75,7 @@ function RoomInvitePage({
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const isReportArchived = useReportIsArchived(report.reportID);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const {options, areOptionsInitialized} = useOptionsList();
     const allPersonalDetails = usePersonalDetails();
@@ -96,18 +97,12 @@ function RoomInvitePage({
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(
-            options.personalDetails,
-            nvpDismissedProductTraining,
-            loginList,
-            currentUserAccountID,
-            currentUserEmail,
-            allPersonalDetails,
-            betas ?? [],
-            excludedUsers,
-            false,
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, allPersonalDetails, reports, {
+            betas: betas ?? [],
+            excludeLogins: excludedUsers,
+            includeSelectedOptions: false,
             countryCode,
-        );
+        });
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, MemberForList> = {};
         for (const detail of inviteOptions.personalDetails) {

@@ -341,6 +341,7 @@ describe('SidebarUtils', () => {
 
             const optionDataPinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_PINNED,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
@@ -363,6 +364,7 @@ describe('SidebarUtils', () => {
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
@@ -1768,6 +1770,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.getOptionData({
                 report,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
@@ -1834,6 +1837,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.getOptionData({
                 report,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
@@ -1875,6 +1879,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.getOptionData({
                 report,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
@@ -1915,6 +1920,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.getOptionData({
                 report,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
@@ -1955,6 +1961,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.getOptionData({
                 report,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
@@ -2023,6 +2030,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.getOptionData({
                 report,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
@@ -2076,6 +2084,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
@@ -2120,6 +2129,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: LHNTestUtils.fakePersonalDetails,
@@ -2163,6 +2173,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
@@ -2304,6 +2315,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report: policyExpenseChat,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
@@ -2352,6 +2364,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs,
                     personalDetails: {},
@@ -2428,6 +2441,7 @@ describe('SidebarUtils', () => {
                 });
                 const result = SidebarUtils.getOptionData({
                     report,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
@@ -2492,6 +2506,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getOptionData({
                     report,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
@@ -2544,6 +2559,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getOptionData({
                     report,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {
@@ -2636,6 +2652,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getOptionData({
                     report: {...iouReportR14932, lastActorAccountID: session.accountID},
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
@@ -2766,6 +2783,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getOptionData({
                     report: MOCK_REPORT,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
@@ -2856,6 +2874,7 @@ describe('SidebarUtils', () => {
                 await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
                 const result = SidebarUtils.getOptionData({
                     report,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: LHNTestUtils.fakePersonalDetails,
@@ -2957,6 +2976,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getOptionData({
                     report: dmChat,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: personalDetailList,
@@ -3059,6 +3079,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getOptionData({
                     report: dmChat,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: personalDetailList,
@@ -3093,6 +3114,7 @@ describe('SidebarUtils', () => {
                 // When getOptionData is called with matching conciergeReportID
                 const result = SidebarUtils.getOptionData({
                     report: MOCK_REPORT,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
@@ -3125,6 +3147,7 @@ describe('SidebarUtils', () => {
                 // When getOptionData is called with non-matching conciergeReportID
                 const result = SidebarUtils.getOptionData({
                     report: MOCK_REPORT,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
@@ -3156,6 +3179,7 @@ describe('SidebarUtils', () => {
                 // When getOptionData is called with empty conciergeReportID
                 const result = SidebarUtils.getOptionData({
                     report: MOCK_REPORT,
+                    chatReport: undefined,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
                     personalDetails: {},
@@ -3597,6 +3621,7 @@ describe('SidebarUtils', () => {
         function callGetOptionData(report: Report, lastAction: ReportAction, policy?: Policy) {
             return SidebarUtils.getOptionData({
                 report,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},

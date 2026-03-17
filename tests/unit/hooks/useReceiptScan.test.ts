@@ -44,6 +44,7 @@ jest.mock('@userActions/TransactionEdit', () => ({
 
 jest.mock('@userActions/IOU', () => ({
     setMoneyRequestReceipt: (...args: unknown[]) => mockSetMoneyRequestReceipt(...args),
+    getMoneyRequestParticipantsFromReport: () => [],
 }));
 
 const REPORT_ID = '123';

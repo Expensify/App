@@ -98,6 +98,7 @@ function useAutocompleteSuggestions({
     feedKeysWithCards,
     translate,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -231,6 +232,7 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reports,
             }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -267,6 +269,7 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reports,
             }).recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;

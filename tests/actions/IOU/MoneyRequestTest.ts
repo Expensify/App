@@ -448,7 +448,14 @@ describe('MoneyRequest', () => {
                 },
             });
             baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-            baseParams.participants = getMoneyRequestParticipantOptions(baseParams.currentUserAccountID, baseParams.report, baseParams.policy, baseParams.personalDetails, undefined, {});
+            baseParams.participants = getMoneyRequestParticipantOptions(
+                baseParams.currentUserAccountID,
+                baseParams.report,
+                baseParams.policy,
+                baseParams.personalDetails,
+                baseParams.report,
+                undefined,
+            );
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
                 waitForCollectionCallback: true,
@@ -567,7 +574,7 @@ describe('MoneyRequest', () => {
                 ...fakeReport,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
-            baseParams.participants = getMoneyRequestParticipantOptions(baseParams.currentUserAccountID, report, baseParams.policy, baseParams.personalDetails, undefined, {});
+            baseParams.participants = getMoneyRequestParticipantOptions(baseParams.currentUserAccountID, report, baseParams.policy, baseParams.personalDetails, report, undefined);
 
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
@@ -898,6 +905,8 @@ describe('MoneyRequest', () => {
         const baseParams = {
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
+            participantReport: fakeReport,
+            participantChatReport: undefined,
             policy: fakePolicy,
             transaction: fakeTransaction,
             reportID: '1',
