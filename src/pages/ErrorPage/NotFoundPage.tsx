@@ -7,6 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 type NotFoundPageProps = {
     onBackButtonPress?: () => void;
@@ -31,6 +32,7 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
         >
             <FullPageNotFoundView
                 shouldShow
+                onLinkPress={() => Navigation.navigate(ROUTES.HOME)}
                 onBackButtonPress={() => {
                     if (!isReportRelatedPage || !isSmallScreenWidth) {
                         onBackButtonPress();
