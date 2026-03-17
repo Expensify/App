@@ -1449,7 +1449,7 @@ function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<Expens
     }
 
     // If not, attempt to get currency from the card settings.
-    const feedCountry = card?.nameValuePairs?.feedCountry;
+    const feedCountry = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
     const settings = getCardSettings(cardSettings, feedCountry);
     if (settings?.currency) {
         return settings.currency;
