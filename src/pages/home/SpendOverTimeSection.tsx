@@ -29,20 +29,12 @@ const GROUP_BY = QUERY_JSON?.groupBy;
 const VIEW = QUERY_JSON?.view;
 const SEARCH_KEY = CONFIG.key;
 
-function SpendOverTimeSection() {
-    const styles = useThemeStyles();
+function useSpendOverTimeData() {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['Expand', 'OfflineCloud']);
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     const {accountID, login} = useCurrentUserPersonalDetails();
-    const [isAnyPolicyEligibleForSpendOverTime] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies) => Object.values(policies ?? {}).some((policy) => !!policy && isPolicyEligibleForSpendOverTime(policy, login)),
-    });
-    const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${QUERY_JSON?.hash}`);
     const {isOffline} = useNetwork();
+
+    const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${QUERY_JSON?.hash}`);
 
     // We need the snapshot's isLoading in the search effect without subscribing to it (which would cause an infinite loop).
     // useLayoutEffect syncs the ref before useEffect runs. TODO: Replace with useEffectEvent after upgrading to React 19.2.
@@ -53,7 +45,7 @@ function SpendOverTimeSection() {
     }, [searchResults?.search?.isLoading]);
 
     useEffect(() => {
-        if (!isAnyPolicyEligibleForSpendOverTime || isOffline || !QUERY_JSON || isSearchLoadingRef.current) {
+        if (isOffline || !QUERY_JSON || isSearchLoadingRef.current) {
             return;
         }
         search({
@@ -63,39 +55,58 @@ function SpendOverTimeSection() {
             isOffline: false,
             isLoading: false,
         });
-    }, [isAnyPolicyEligibleForSpendOverTime, isOffline]);
+    }, [isOffline]);
 
-    if (!isAnyPolicyEligibleForSpendOverTime || !QUERY_JSON || !VIEW || !GROUP_BY || VIEW === CONST.SEARCH.VIEW.TABLE || !login) {
-        return null;
-    }
-
-    const sortedData = searchResults?.data
-        ? (getSortedSections(
-              QUERY_JSON.type,
-              QUERY_JSON.status,
-              getSections({
-                  type: QUERY_JSON.type,
-                  data: searchResults.data,
-                  groupBy: GROUP_BY,
-                  queryJSON: QUERY_JSON,
-                  currentAccountID: accountID,
-                  currentUserEmail: login,
+    const sortedData =
+        searchResults?.data && QUERY_JSON && GROUP_BY && login
+            ? (getSortedSections(
+                  QUERY_JSON.type,
+                  QUERY_JSON.status,
+                  getSections({
+                      type: QUERY_JSON.type,
+                      data: searchResults.data,
+                      groupBy: GROUP_BY,
+                      queryJSON: QUERY_JSON,
+                      currentAccountID: accountID,
+                      currentUserEmail: login,
+                      translate,
+                      formatPhoneNumber,
+                      bankAccountList: undefined,
+                      allReportMetadata: undefined,
+                  })[0],
+                  localeCompare,
                   translate,
-                  formatPhoneNumber,
-                  bankAccountList: undefined,
-                  allReportMetadata: undefined,
-              })[0],
-              localeCompare,
-              translate,
-              QUERY_JSON.sortBy,
-              QUERY_JSON.sortOrder,
-              GROUP_BY,
-          ) as GroupedItem[])
-        : undefined;
+                  QUERY_JSON.sortBy,
+                  QUERY_JSON.sortOrder,
+                  GROUP_BY,
+              ) as GroupedItem[])
+            : undefined;
 
     const shouldShowOfflineIndicator = isOffline && !sortedData;
     const shouldShowErrorIndicator = !shouldShowOfflineIndicator && Object.keys(searchResults?.errors ?? {}).length > 0;
     const shouldShowLoadingIndicator = !shouldShowOfflineIndicator && !shouldShowErrorIndicator && !isSearchDataLoaded(searchResults, QUERY_JSON);
+
+    return {
+        sortedData,
+        shouldShowOfflineIndicator,
+        shouldShowErrorIndicator,
+        shouldShowLoadingIndicator,
+    };
+}
+
+function SpendOverTimeSectionContent() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['Expand', 'OfflineCloud']);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const {sortedData, shouldShowOfflineIndicator, shouldShowErrorIndicator, shouldShowLoadingIndicator} = useSpendOverTimeData();
+
+    if (!QUERY_JSON || !VIEW || !GROUP_BY || VIEW === CONST.SEARCH.VIEW.TABLE) {
+        return null;
+    }
 
     if (!shouldShowErrorIndicator && sortedData?.length === 0) {
         return null;
@@ -158,6 +169,19 @@ function SpendOverTimeSection() {
             )}
         </WidgetContainer>
     );
+}
+
+function SpendOverTimeSection() {
+    const {login} = useCurrentUserPersonalDetails();
+    const [isAnyPolicyEligibleForSpendOverTime] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => Object.values(policies ?? {}).some((policy) => !!policy && isPolicyEligibleForSpendOverTime(policy, login)),
+    });
+
+    if (!isAnyPolicyEligibleForSpendOverTime) {
+        return null;
+    }
+
+    return <SpendOverTimeSectionContent />;
 }
 
 export default SpendOverTimeSection;
