@@ -12,22 +12,6 @@ import CONST from '@src/CONST';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
 
-type DraggableItemFlags = {
-    isDragDisabled?: boolean;
-    isDisabled?: boolean;
-};
-
-function getDraggableItemFlags(item: unknown): Required<DraggableItemFlags> {
-    if (!item || typeof item !== 'object') {
-        return {isDragDisabled: false, isDisabled: false};
-    }
-    const flags = item as DraggableItemFlags;
-    return {
-        isDragDisabled: !!flags.isDragDisabled,
-        isDisabled: !!flags.isDisabled,
-    };
-}
-
 const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
 
 /**
@@ -44,6 +28,8 @@ function DraggableList<T>({
     keyExtractor,
     onDragEnd: onDragEndCallback,
     onSelectRow,
+    isItemDragDisabled,
+    isItemDisabled,
     ListFooterComponent,
     disableScroll,
     focusedIndex: controlledFocusedIndex,
@@ -76,7 +62,7 @@ function DraggableList<T>({
         return keyExtractor(item, index);
     });
 
-    const disabledArrowKeyIndexes = data.flatMap((item, index) => (getDraggableItemFlags(item).isDisabled ? [index] : []));
+    const disabledArrowKeyIndexes = isItemDisabled ? data.flatMap((item, index) => (isItemDisabled(item) ? [index] : [])) : [];
 
     const {focusedIndex: internalFocusedIndex, setFocusedIndex: setInternalFocusedIndex} = useListKeyboardNav({
         containerRef,
@@ -126,8 +112,9 @@ function DraggableList<T>({
 
     const sortableItems = data.map((item, index) => {
         const key = keyExtractor(item, index);
-        const {isDragDisabled, isDisabled: isItemDisabled} = getDraggableItemFlags(item);
-        const isItemFocused = index === activeFocusedIndex && !isItemDisabled;
+        const isDragDisabled = isItemDragDisabled?.(item) ?? false;
+        const isDisabled = isItemDisabled?.(item) ?? false;
+        const isItemFocused = index === activeFocusedIndex && !isDisabled;
 
         const renderedItem = renderItem({
             item,

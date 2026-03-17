@@ -258,6 +258,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                                 keyExtractor={(item) => item.value}
                                 onDragEnd={onGroupDragEnd}
                                 onSelectRow={onSelectItem}
+                                isItemDragDisabled={(item) => item.isDragDisabled}
+                                isItemDisabled={(item) => item.isDisabled}
                                 renderItem={renderItem}
                                 focusedIndex={groupFocusedIndex}
                             />
@@ -274,6 +276,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                                 keyExtractor={(item) => item.value}
                                 onDragEnd={onTypeDragEnd}
                                 onSelectRow={onSelectItem}
+                                isItemDragDisabled={(item) => item.isDragDisabled}
+                                isItemDisabled={(item) => item.isDisabled}
                                 renderItem={renderItem}
                                 focusedIndex={typeFocusedIndex}
                             />
@@ -285,6 +289,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                             keyExtractor={(item) => item.value}
                             onDragEnd={onTypeDragEnd}
                             onSelectRow={onSelectItem}
+                            isItemDragDisabled={(item) => item.isDragDisabled}
+                            isItemDisabled={(item) => item.isDisabled}
                             renderItem={renderItem}
                         />
                     )}
