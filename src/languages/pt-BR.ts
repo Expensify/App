@@ -984,7 +984,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Corrigir conexão do cartão pessoal ${cardName}` : 'Corrigir conexão do cartão pessoal'),
                 subtitle: 'Carteira',
             },
-            validateAccount: {title: 'Valide sua conta para continuar usando o Expensify', subtitle: 'Conta', cta: 'Validar'},
         },
         assignedCards: 'Seus Cartões Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
@@ -2445,6 +2444,16 @@ ${amount} para ${merchant} - ${date}`,
         admins: 'Admins',
         payer: 'Pagador',
         paymentAccount: 'Conta de pagamento',
+        shareBankAccount: {
+            shareTitle: 'Compartilhar acesso à conta bancária?',
+            shareDescription: ({admin}: {admin: string}) => `Você precisará compartilhar o acesso à conta bancária com ${admin} para torná-lo o pagador.`,
+            validationTitle: 'Conta bancária aguardando validação',
+            validationDescription: ({admin}: {admin: string}) =>
+                `Você precisa <a href="#">validar esta conta bancária</a>. Depois disso, você poderá compartilhar o acesso à conta bancária com ${admin} para torná-lo o pagador.`,
+            errorTitle: 'Não é possível alterar o pagador',
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} não tem acesso a esta conta bancária, portanto, você não pode torná-lo o pagador. <a href="#">Converse com ${owner}</a> se a conta bancária deve ser compartilhada.`,
+        },
     },
     reportFraudPage: {
         title: 'Denunciar fraude no cartão virtual',

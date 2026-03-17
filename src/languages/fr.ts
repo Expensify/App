@@ -989,7 +989,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Réparer la connexion de la carte personnelle ${cardName}` : 'Corriger la connexion de la carte personnelle'),
                 subtitle: 'Portefeuille',
             },
-            validateAccount: {title: 'Validez votre compte pour continuer à utiliser Expensify', subtitle: 'Compte', cta: 'Valider'},
         },
         assignedCards: 'Vos cartes Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restant`,
@@ -2465,6 +2464,16 @@ ${amount} pour ${merchant} - ${date}`,
         admins: 'Administrateurs',
         payer: 'Payer',
         paymentAccount: 'Compte de paiement',
+        shareBankAccount: {
+            shareTitle: "Partager l'accès au compte bancaire?",
+            shareDescription: ({admin}: {admin: string}) => `Vous devrez partager l'accès au compte bancaire avec ${admin} pour qu'il/elle soit le payeur.`,
+            validationTitle: 'Compte bancaire en attente de validation',
+            validationDescription: ({admin}: {admin: string}) =>
+                `Vous devez <a href="#">valider ce compte bancaire</a>. Une fois cette opération effectuée, vous pourrez partager l'accès au compte bancaire avec ${admin} pour en faire le payeur.`,
+            errorTitle: 'Impossible de modifier le payeur',
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} n'a pas accès à ce compte bancaire, vous ne pouvez donc pas le désigner comme payeur. <a href="#">Discutez avec ${owner}</a> si le compte bancaire doit être partagé.`,
+        },
     },
     reportFraudPage: {
         title: 'Signaler une fraude à la carte virtuelle',

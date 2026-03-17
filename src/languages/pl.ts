@@ -986,7 +986,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Napraw połączenie z prywatną kartą ${cardName}` : 'Napraw połączenie karty prywatnej'),
                 subtitle: 'Portfel',
             },
-            validateAccount: {title: 'Zweryfikuj swoje konto, aby dalej korzystać z Expensify', subtitle: 'Konto', cta: 'Zatwierdź'},
         },
         assignedCards: 'Twoje Karty Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `Pozostało ${amount}`,
@@ -2447,6 +2446,16 @@ ${amount} dla ${merchant} - ${date}`,
         admins: 'Administratorzy',
         payer: 'Płatnik',
         paymentAccount: 'Konto płatnicze',
+        shareBankAccount: {
+            shareTitle: 'Udostępnić dostęp do konta bankowego?',
+            shareDescription: ({admin}: {admin: string}) => `Musisz udostępnić dostęp do konta bankowego użytkownikowi ${admin}, aby uczynić go płatnikiem.`,
+            validationTitle: 'Konto bankowe oczekuje na walidację',
+            validationDescription: ({admin}: {admin: string}) =>
+                `Musisz <a href="#">zweryfikować to konto bankowe</a>. Po wykonaniu tej czynności możesz udostępnić dostęp do konta bankowego użytkownikowi ${admin}, aby uczynić go płatnikiem.`,
+            errorTitle: 'Nie można zmienić płatnika',
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} nie ma dostępu do tego konta bankowego, więc nie możesz uczynić go płatnikiem. <a href="#">Porozmawiaj z ${owner}</a>, jeśli konto bankowe powinno być współdzielone.`,
+        },
     },
     reportFraudPage: {
         title: 'Zgłoś oszustwo kartą wirtualną',

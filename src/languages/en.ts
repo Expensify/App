@@ -1019,11 +1019,6 @@ const translations = {
                 subtitle: 'Expensify Card',
                 cta: 'Review',
             },
-            validateAccount: {
-                title: 'Validate your account to continue using Expensify',
-                subtitle: 'Account',
-                cta: 'Validate',
-            },
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
@@ -2500,6 +2495,16 @@ const translations = {
         admins: 'Admins',
         payer: 'Payer',
         paymentAccount: 'Payment account',
+        shareBankAccount: {
+            shareTitle: 'Share bank account access?',
+            shareDescription: ({admin}: {admin: string}) => `You'll need to share bank account access with ${admin} to make them the payer.`,
+            validationTitle: 'Bank account awaiting validation',
+            validationDescription: ({admin}: {admin: string}) =>
+                `You need to <a href="#">validate this bank account</a>. Once that's done, you can share bank account access with ${admin} to make them the payer.`,
+            errorTitle: "Can't change payer",
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} doesn't have access to this bank account, so you can't make them the payer. <a href="#">Chat with ${owner}</a> if the bank account should be shared.`,
+        },
     },
     reportFraudPage: {
         title: 'Report virtual card fraud',
