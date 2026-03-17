@@ -26,8 +26,9 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const {orderedReports, currentReportID} = useSidebarOrderedReportsState('SidebarLinksData');
 
     const currentReportIDRef = useRef(currentReportID);
-    // eslint-disable-next-line react-hooks/refs
-    currentReportIDRef.current = currentReportID;
+    useEffect(() => {
+        currentReportIDRef.current = currentReportID;
+    }, [currentReportID]);
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
 
     const hasHadFirstLayout = useRef(false);
