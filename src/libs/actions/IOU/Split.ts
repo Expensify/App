@@ -1743,8 +1743,27 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         return;
     }
 
-    // If the expense report was deleted by the reverse split, navigate to the parent chat instead
-    const targetReportID = isLastTransactionInReport && fallbackReportID ? fallbackReportID : (params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+    // When the reverse split deletes the expense report, use the backward navigation pattern
+    // (dismissToSuperWideRHP + goBack) instead of dismissModalWithReport. This naturally pops
+    // stale screens from the stack, matching the pattern in navigateBackOnDeleteTransaction.
+    if (isLastTransactionInReport && fallbackReportID) {
+        const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
+        Navigation.dismissToSuperWideRHP();
+        Navigation.isNavigationReady().then(() => {
+            Navigation.goBack(backRoute);
+        });
+
+        // Remove the transaction thread report screen to avoid navigating back to a removed report
+        requestAnimationFrame(() => {
+            if (transactionThreadReportScreen?.key) {
+                Navigation.removeScreenByKey(transactionThreadReportScreen.key);
+            }
+        });
+
+        return;
+    }
+
+    const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
     if (getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
@@ -1756,22 +1775,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     requestAnimationFrame(() => {
         if (transactionThreadReportScreen?.key) {
             Navigation.removeScreenByKey(transactionThreadReportScreen.key);
-        }
-
-        // When the reverse split deleted the expense report, dismissModalWithReport on narrow
-        // layout creates a new SplitNavigator for the parent chat while the old SplitNavigator
-        // (containing the now-deleted expense report screen) remains in the back stack. Remove
-        // the old SplitNavigator to prevent showing "Not here" page when navigating back.
-        if (isLastTransactionInReport && expenseReportID) {
-            const rootState = navigationRef.getRootState();
-            const staleSplitNavigator = rootState?.routes.find(
-                (route) =>
-                    route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR &&
-                    route.state?.routes?.some((r) => r.name === SCREENS.REPORT && r.params && 'reportID' in r.params && r.params.reportID === expenseReportID),
-            );
-            if (staleSplitNavigator?.key) {
-                Navigation.removeScreenByKey(staleSplitNavigator.key);
-            }
         }
     });
 }
