@@ -12097,6 +12097,7 @@ function prepareOnboardingOnyxData({
                 addExpenseApprovals: null,
                 setupCategoriesAndTags: null,
                 setupTags: null,
+                isInviteOnboardingComplete: false,
             },
         },
     );

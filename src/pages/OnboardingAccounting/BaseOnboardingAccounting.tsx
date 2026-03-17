@@ -184,8 +184,11 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
 
         setOnboardingUserReportedIntegration(userReportedIntegration);
 
-        // Navigate to the next onboarding step interested features with the selected integration
-        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
+        // We need to have the Onyx values updated before navigating because the OnboardingGuard
+        // reads module-level variables synchronously and would see stale state, causing a redirect loop.
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
+        });
     }, [translate, userReportedIntegration, route.params?.backTo]);
 
     const handleIntegrationSelect = useCallback((integrationKey: OnboardingAccounting | null) => {

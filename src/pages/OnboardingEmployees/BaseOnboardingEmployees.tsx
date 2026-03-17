@@ -65,7 +65,11 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         return;
                     }
                     setOnboardingCompanySize(selectedCompanySize);
-                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                    // We need to have the Onyx values updated before navigating because the OnboardingGuard
+                    // reads module-level variables synchronously and would see stale state, causing a redirect loop.
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                    });
                 }}
                 pressOnEnter
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
