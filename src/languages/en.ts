@@ -609,7 +609,7 @@ const translations = {
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `Files must be under ${maxUploadSizeInMB} MB. Any larger files won't be uploaded.`,
         maxFileLimitExceeded: "You can upload up to 30 receipts at a time. Any extras won't be uploaded.",
         unsupportedFileType: (fileType: string) => `${fileType} files aren't supported. Only supported file types will be uploaded.`,
-        learnMoreAboutSupportedFiles: 'Learn more about supported formats.',
+        learnMoreAboutSupportedFiles: 'Learn more about supported file formats.',
         passwordProtected: "Password-protected PDFs aren't supported. Only supported files will be uploaded.",
     },
     dropzone: {
