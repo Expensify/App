@@ -165,6 +165,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
+            prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
+
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
             setWorkspaceCategoryEnabled({
@@ -264,12 +274,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                                 accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-                                        showConfirmModal({
-                                            title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
-                                            prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
-                                            confirmText: translate('common.buttonConfirm'),
-                                            shouldShowCancelButton: false,
-                                        });
+                                        showCannotDeleteOrDisableLastCategoryModal();
                                         return;
                                     }
                                     updateWorkspaceCategoryEnabled(newValue, value.name);
@@ -285,12 +290,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-                                showConfirmModal({
-                                    title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
-                                    prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
-                                    confirmText: translate('common.buttonConfirm'),
-                                    shouldShowCancelButton: false,
-                                });
+                                showCannotDeleteOrDisableLastCategoryModal();
                                 return;
                             }
                             updateWorkspaceCategoryEnabled(newValue, value.name);
@@ -316,7 +316,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         styles.alignItemsCenter,
         styles.flexRow,
         styles.mr3,
-        showConfirmModal,
+        showCannotDeleteOrDisableLastCategoryModal,
     ]);
 
     const filterCategory = useCallback((categoryOption: ListItem, searchInput: string) => {
@@ -528,12 +528,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: async () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
-                            showConfirmModal({
-                                title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
-                                prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
-                                confirmText: translate('common.buttonConfirm'),
-                                shouldShowCancelButton: false,
-                            });
+                            showCannotDeleteOrDisableLastCategoryModal();
                             return;
                         }
 
@@ -568,12 +563,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
-                            showConfirmModal({
-                                title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
-                                prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
-                                confirmText: translate('common.buttonConfirm'),
-                                shouldShowCancelButton: false,
-                            });
+                            showCannotDeleteOrDisableLastCategoryModal();
                             return;
                         }
                         setSelectedCategories([]);
