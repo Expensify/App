@@ -1,4 +1,5 @@
 import isNumericKeyboard from '@components/Form/isNumericKeyboard';
+import type {NumericKeyboardProps} from '@components/Form/isNumericKeyboard';
 import CONST from '@src/CONST';
 
 describe('isNumericKeyboard', () => {
@@ -43,7 +44,8 @@ describe('isNumericKeyboard', () => {
     });
 
     it('returns false when neither inputMode nor keyboardType is set', () => {
-        expect(isNumericKeyboard({placeholder: 'Enter value'})).toBe(false);
+        const props: NumericKeyboardProps = {};
+        expect(isNumericKeyboard(props)).toBe(false);
     });
 
     it('returns true when inputMode is numeric even if keyboardType is non-numeric', () => {

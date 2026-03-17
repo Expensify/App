@@ -352,7 +352,7 @@ function FormProvider({
 
             const inputRef = inputProps.ref;
 
-            const hasNumericKeyboard = isNumericKeyboard(inputProps as Record<string, unknown>);
+            const hasNumericKeyboard = isNumericKeyboard(inputProps);
 
             return {
                 ...inputProps,
