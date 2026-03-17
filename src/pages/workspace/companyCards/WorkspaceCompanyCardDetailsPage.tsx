@@ -110,10 +110,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult, true);
     };
 
-    // Show "Break connection" option only for Mock Bank cards when the backend API is non-production
+    // Show "Break connection" only when Mock Bank requests target non-production APIs.
     const isMockBank = bank?.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
-    const isNonProductionBackend = CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || shouldUseStagingServer;
-    const shouldShowBreakConnection = isMockBank && isNonProductionBackend;
+    const isUsingNonProductionAPI = shouldUseStagingServer || CONFIG.IS_USING_LOCAL_WEB;
+    const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
 
     const lastScrape = useMemo(() => {
         if (!card?.lastScrape) {
