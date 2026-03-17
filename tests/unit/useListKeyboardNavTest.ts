@@ -15,12 +15,6 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@hooks/useActiveElementRole', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: () => null,
-}));
-
 jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callback: ShortcutCallback, config?: ShortcutConfig) => {
     shortcuts[key.shortcutKey] = {callback, isActive: config?.isActive ?? true};
 });
@@ -40,24 +34,6 @@ function pressArrowUp() {
             return;
         }
         shortcuts.ArrowUp.callback();
-    });
-}
-
-function pressEnter() {
-    act(() => {
-        if (!shortcuts.Enter?.isActive) {
-            return;
-        }
-        shortcuts.Enter.callback();
-    });
-}
-
-function pressSpace() {
-    act(() => {
-        if (!shortcuts.Space?.isActive) {
-            return;
-        }
-        shortcuts.Space.callback();
     });
 }
 
@@ -94,7 +70,6 @@ describe('useListKeyboardNav', () => {
                 itemKeys: ['a', 'b', 'c'],
                 disabledIndexes: [],
                 containerRef: ref,
-                onSelect: jest.fn(),
             }),
         );
 
@@ -113,71 +88,6 @@ describe('useListKeyboardNav', () => {
         cleanup();
     });
 
-    it('should call onSelect when Enter is pressed on a focused item', () => {
-        const {ref, cleanup} = createContainerRef();
-        const onSelect = jest.fn();
-        renderHook(() =>
-            useListKeyboardNav({
-                isActive: true,
-                itemKeys: ['a', 'b', 'c'],
-                disabledIndexes: [],
-                containerRef: ref,
-                onSelect,
-            }),
-        );
-
-        // Navigate to first item and focus in
-        pressArrowDown();
-        simulateFocusIn(ref.current);
-
-        pressEnter();
-        expect(onSelect).toHaveBeenCalledWith(0);
-
-        cleanup();
-    });
-
-    it('should call onSelect when Space is pressed on a focused item', () => {
-        const {ref, cleanup} = createContainerRef();
-        const onSelect = jest.fn();
-        renderHook(() =>
-            useListKeyboardNav({
-                isActive: true,
-                itemKeys: ['a', 'b', 'c'],
-                disabledIndexes: [],
-                containerRef: ref,
-                onSelect,
-            }),
-        );
-
-        pressArrowDown();
-        simulateFocusIn(ref.current);
-
-        pressSpace();
-        expect(onSelect).toHaveBeenCalledWith(0);
-
-        cleanup();
-    });
-
-    it('should not call onSelect when focusedIndex is -1', () => {
-        const {ref, cleanup} = createContainerRef();
-        const onSelect = jest.fn();
-        renderHook(() =>
-            useListKeyboardNav({
-                isActive: true,
-                itemKeys: ['a', 'b', 'c'],
-                disabledIndexes: [],
-                containerRef: ref,
-                onSelect,
-            }),
-        );
-
-        simulateFocusIn(ref.current);
-        pressEnter();
-        expect(onSelect).not.toHaveBeenCalled();
-
-        cleanup();
-    });
-
     it('should disable arrow keys when isActive is false', () => {
         const {ref, cleanup} = createContainerRef();
         const {result} = renderHook(() =>
@@ -186,7 +96,6 @@ describe('useListKeyboardNav', () => {
                 itemKeys: ['a', 'b', 'c'],
                 disabledIndexes: [],
                 containerRef: ref,
-                onSelect: jest.fn(),
             }),
         );
 
@@ -204,7 +113,6 @@ describe('useListKeyboardNav', () => {
                 itemKeys: ['a', 'b', 'c'],
                 disabledIndexes: [],
                 containerRef: ref,
-                onSelect: jest.fn(),
             }),
         );
 
@@ -238,7 +146,6 @@ describe('useListKeyboardNav', () => {
                     itemKeys,
                     disabledIndexes: [],
                     containerRef: ref,
-                    onSelect: jest.fn(),
                 }),
             {initialProps: {itemKeys: ['a', 'b', 'c']}},
         );
@@ -264,7 +171,6 @@ describe('useListKeyboardNav', () => {
                     itemKeys,
                     disabledIndexes: [],
                     containerRef: ref,
-                    onSelect: jest.fn(),
                 }),
             {initialProps: {itemKeys: ['a', 'b', 'c']}},
         );
@@ -290,7 +196,6 @@ describe('useListKeyboardNav', () => {
                 itemKeys: ['a', 'b', 'c'],
                 disabledIndexes: [],
                 containerRef: ref,
-                onSelect: jest.fn(),
             }),
         );
 
@@ -313,7 +218,6 @@ describe('useListKeyboardNav', () => {
                 itemKeys: ['a', 'b', 'c'],
                 disabledIndexes: [1],
                 containerRef: ref,
-                onSelect: jest.fn(),
             }),
         );
 
@@ -336,7 +240,6 @@ describe('useListKeyboardNav', () => {
                     itemKeys,
                     disabledIndexes,
                     containerRef: ref,
-                    onSelect: jest.fn(),
                 }),
             {initialProps: {itemKeys: ['disabled', 'a', 'b'], disabledIndexes: [0]}},
         );
@@ -361,7 +264,6 @@ describe('useListKeyboardNav', () => {
                 itemKeys: ['a', 'b', 'c'],
                 disabledIndexes: [],
                 containerRef: ref,
-                onSelect: jest.fn(),
             }),
         );
 
@@ -391,7 +293,6 @@ describe('useListKeyboardNav', () => {
                     itemKeys,
                     disabledIndexes,
                     containerRef: ref,
-                    onSelect: jest.fn(),
                 }),
             {initialProps: {itemKeys: ['a', 'b', 'disabled'], disabledIndexes: [2]}},
         );

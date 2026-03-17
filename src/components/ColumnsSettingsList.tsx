@@ -184,12 +184,6 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         isActive: isGrouped,
         itemKeys: combinedItems.map((item) => item.value),
         disabledIndexes,
-        onSelect: (index: number) => {
-            const item = combinedItems.at(index);
-            if (item) {
-                onSelectItem(item);
-            }
-        },
     });
 
     const groupFocusedIndex = focusedIndex >= 0 && focusedIndex < groupLength ? focusedIndex : -1;

@@ -69,14 +69,6 @@ function DraggableList<T>({
         isActive: hasKeyboardNav,
         itemKeys: items,
         disabledIndexes: disabledArrowKeyIndexes,
-        onSelect: onSelectRow
-            ? (index: number) => {
-                  const focusedItem = data.at(index);
-                  if (focusedItem) {
-                      onSelectRow(focusedItem);
-                  }
-              }
-            : undefined,
     });
 
     const activeFocusedIndex = isControlled ? controlledFocusedIndex : internalFocusedIndex;

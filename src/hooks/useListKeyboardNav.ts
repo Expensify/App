@@ -2,10 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type React from 'react';
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
-import CONST from '@src/CONST';
-import useActiveElementRole from './useActiveElementRole';
 import useArrowKeyFocusManager from './useArrowKeyFocusManager';
-import useKeyboardShortcut from './useKeyboardShortcut';
 
 type FocusableContainer = {
     addEventListener: HTMLElement['addEventListener'];
@@ -18,14 +15,15 @@ type UseListKeyboardNavConfig<T extends View | HTMLElement> = {
     itemKeys: string[];
     disabledIndexes: readonly number[];
     containerRef: React.RefObject<T | null>;
-    onSelect?: (focusedIndex: number) => void;
 };
 
 /**
- * Manages keyboard navigation (arrow keys, Enter/Space selection) for a list of items
- * with DOM focus tracking via focusin/focusout on `containerRef`.
+ * Manages keyboard navigation (arrow keys + focus tracking) for a list of items.
+ * Selection (Enter/Space) is NOT handled here — dnd-kit sets role="button" on sortable
+ * items, so the browser handles Enter natively and SortableItem forwards it to the
+ * inner pressable. Space is reserved for dnd-kit drag initiation.
  */
-function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, disabledIndexes, containerRef, onSelect}: UseListKeyboardNavConfig<T>) {
+function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, disabledIndexes, containerRef}: UseListKeyboardNavConfig<T>) {
     const isFocused = useIsFocused();
     const [hasFocus, setHasFocus] = useState(false);
     const [hasBeenFocused, setHasBeenFocused] = useState(false);
@@ -114,25 +112,6 @@ function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, d
             setFocusedIndex(newIndex);
         }
     }, [itemKeys.length, focusedIndex, setFocusedIndex, isActive, disabledIndexes]);
-
-    const selectFocusedOption = () => {
-        if (!onSelect || focusedIndex < 0) {
-            return;
-        }
-        onSelect(focusedIndex);
-    };
-
-    const activeElementRole = useActiveElementRole();
-    const isNativelyHandledRole = activeElementRole === CONST.ROLE.BUTTON || activeElementRole === CONST.ROLE.CHECKBOX;
-    const isShortcutActive = isActive && hasFocus && focusedIndex >= 0 && !!onSelect && !isNativelyHandledRole;
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
-        isActive: isShortcutActive,
-    });
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, selectFocusedOption, {
-        isActive: isShortcutActive,
-    });
 
     return {focusedIndex, setFocusedIndex};
 }
