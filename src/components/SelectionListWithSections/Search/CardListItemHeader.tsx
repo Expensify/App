@@ -80,8 +80,8 @@ function CardListItemHeader<TItem extends ListItem>({
                 <View style={[styles.gapHalf, styles.flexShrink1]}>
                     <TextWithTooltip
                         text={cardItem.formattedCardName ?? ''}
-                        numberOfLines={2}
-                        style={[styles.preWrap]}
+                        numberOfLines={1}
+                        style={[styles.pre]}
                     />
                 </View>
             </View>
@@ -93,8 +93,8 @@ function CardListItemHeader<TItem extends ListItem>({
             >
                 <TextWithTooltip
                     text={cardItem.formattedFeedName ?? ''}
-                    numberOfLines={2}
-                    style={[styles.lineHeightLarge, styles.preWrap]}
+                    numberOfLines={1}
+                    style={[styles.lineHeightLarge, styles.pre]}
                 />
             </View>
         ),
@@ -147,8 +147,8 @@ function CardListItemHeader<TItem extends ListItem>({
                                 />
                                 <TextWithTooltip
                                     text={cardItem.formattedCardName ?? ''}
-                                    numberOfLines={2}
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.preWrap]}
+                                    numberOfLines={1}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 />
                             </View>
                         </View>

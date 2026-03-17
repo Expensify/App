@@ -50,8 +50,8 @@ function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
         <TextWithTooltip
             text={taskItem.reportName}
             shouldShowTooltip={showTooltip}
-            numberOfLines={2}
-            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.preWrap, styles.justifyContentCenter]}
+            numberOfLines={1}
+            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
     );
 }
@@ -63,8 +63,8 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={taskItem.description}
-            numberOfLines={2}
-            style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+            numberOfLines={1}
+            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
         />
     );
 }
