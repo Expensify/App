@@ -26,6 +26,7 @@ import {
     formatSectionsFromSearchTerm,
     getCurrentUserSearchTerms,
     getFilteredRecentAttendees,
+    getIOUReportIDOfLastAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
@@ -2384,10 +2385,14 @@ describe('OptionsListUtils', () => {
 
         it('should find archived chats', () => {
             const searchText = 'Archived';
-            // Given a set of options
+            // Given a set of options with report 10 marked as archived
+            const archivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: reportNameValuePairs.private_isArchived,
+            };
+            const OPTIONS_WITH_ARCHIVED = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, archivedMap, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED);
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
-                options: OPTIONS,
+                options: OPTIONS_WITH_ARCHIVED,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
@@ -3521,7 +3526,7 @@ describe('OptionsListUtils', () => {
             expect(canCreate).toBe(false);
         });
 
-        it('createOptionList() localization', () => {
+        it('createOptionList() localization', async () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
@@ -3530,18 +3535,15 @@ describe('OptionsListUtils', () => {
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
 
-            return (
-                waitForBatchedUpdates()
-                    // When we set the preferred locale to Spanish
-                    .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
-                    .then(() => {
-                        // When we call createOptionList again
-                        const newReports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS).reports;
-                        // Then the returned reports should change to Spanish
-                        // cspell:disable-next-line
-                        expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
-                    })
-            );
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES);
+
+            await waitForBatchedUpdates();
+
+            // When we call createOptionList again
+            const newReports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS).reports;
+            // Then the returned reports should change to Spanish
+            // cspell:disable-next-line
+            expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
         });
     });
 
@@ -3615,8 +3617,13 @@ describe('OptionsListUtils', () => {
                     '1': getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
                 },
             });
-            // When we call createOptionList
-            const reports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS).reports;
+            await waitForBatchedUpdates();
+
+            // When we call createOptionList with report 10 marked as archived
+            const archivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: reportNameValuePairs.private_isArchived,
+            };
+            const reports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, archivedMap, REPORTS).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
 
             // Then the returned report should contain default archived reason
@@ -4214,7 +4221,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
             await waitForBatchedUpdates();
 
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, 1, chatReport);
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, 1, undefined, undefined);
 
             expect(result.reportID).toBe(reportID);
             expect(typeof result.text).toBe('string');
@@ -4326,7 +4333,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
@@ -4352,7 +4359,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-                    chatReport: undefined,
+
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
@@ -4379,7 +4386,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-                    chatReport: undefined,
+
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
@@ -4406,7 +4413,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-                    chatReport: undefined,
+
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
@@ -4430,7 +4437,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-                    chatReport: undefined,
+
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
@@ -4453,7 +4460,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getCustomTaxNameUpdateMessage(translateLocal, action));
@@ -4475,7 +4482,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getCurrencyDefaultTaxUpdateMessage(translateLocal, action));
@@ -4497,7 +4504,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getForeignCurrencyDefaultTaxUpdateMessage(translateLocal, action));
@@ -4510,7 +4517,7 @@ describe('OptionsListUtils', () => {
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [takeControlAction.reportActionID]: takeControlAction,
             });
             const lastMessage = getLastMessageTextForReport({
@@ -4519,7 +4526,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
@@ -4532,7 +4539,7 @@ describe('OptionsListUtils', () => {
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [rerouteAction.reportActionID]: rerouteAction,
             });
             const lastMessage = getLastMessageTextForReport({
@@ -4541,7 +4548,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
@@ -4563,7 +4570,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
@@ -4589,7 +4596,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
 
@@ -4617,7 +4624,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(result).toBe(expectedVisibleText);
@@ -4636,7 +4643,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(translateLocal('report.noActivityYet'));
@@ -4667,7 +4674,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             const transactions = getReportTransactions(report.reportID);
@@ -4707,7 +4714,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-                chatReport: undefined,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(result).toBe('');
@@ -4759,7 +4766,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     policy,
                     reportMetadata,
-                    chatReport: undefined,
+
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
@@ -4793,7 +4800,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-                    chatReport: undefined,
+
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
@@ -4824,7 +4831,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-                    chatReport: undefined,
+
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
@@ -4862,7 +4869,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy,
                     isReportArchived: true,
-                    chatReport: undefined,
+
                     currentUserLogin: '',
                 });
 
@@ -4903,7 +4910,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     policy,
                     isReportArchived: true,
-                    chatReport: undefined,
+
                     currentUserLogin: '',
                 });
 
@@ -4956,7 +4963,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
 
             // Then it should return the display name from lastActorDetails
             expect(result).toBe('Spider-Man');
@@ -4996,7 +5003,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
 
             // Then it should return the display name from personalDetails for the actor
             expect(result).toBe('Spider-Man');
@@ -5037,7 +5044,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
 
             // Then it should return the display name from reportAction.person
             // Note: formatPhoneNumberPhoneUtils replaces spaces with non-breaking spaces
@@ -5077,7 +5084,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, undefined);
 
             // Then it should return "You" for the current user
             expect(result).toBe('You');
@@ -5116,11 +5123,32 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getLastActorDisplayNameFromLastVisibleActions
-            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails);
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, 0, personalDetails, undefined);
 
             // Then it should fall back to lastActorDetails
             // getLastActorDisplayName returns firstName if available, otherwise formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(...))
             expect(result).toBe('Spider');
+        });
+
+        it('should use privateIsArchived string to determine archived status', () => {
+            // Given a report with no last visible action and lastActorDetails
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: 'test-report-archived',
+            };
+            const lastActorDetails: Partial<PersonalDetails> = {
+                accountID: 3,
+                displayName: 'Spider-Man',
+                login: 'peterparker@expensify.com',
+            };
+            const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
+
+            // When we pass a non-empty privateIsArchived string (archived report)
+            const privateIsArchived = '2023-01-01 00:00:00';
+            const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, privateIsArchived);
+
+            // Then it should still return the display name from lastActorDetails since there's no last visible action
+            expect(result).toBe('Spider-Man');
         });
     });
 
@@ -6619,56 +6647,6 @@ describe('OptionsListUtils', () => {
         });
     });
 
-    describe('getLastMessageTextForReport with chatReport parameter', () => {
-        it('should work correctly when chatReport is passed', async () => {
-            const chatReportID = '999';
-
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                chatReportID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-
-            const chatReport: Report = {
-                ...createRandomReport(1, undefined),
-                reportID: chatReportID,
-            };
-
-            // Test that the function works without crashing when chatReport is passed
-            const result = getLastMessageTextForReport({
-                translate: jest.fn().mockReturnValue(''),
-                report,
-                lastActorDetails: null,
-                policy: undefined,
-                isReportArchived: false,
-                chatReport,
-                currentUserLogin: CURRENT_USER_EMAIL,
-            });
-
-            // The function should return a string (may be empty string)
-            expect(typeof result).toBe('string');
-        });
-
-        it('should work correctly when chatReport is undefined', async () => {
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-
-            const result = getLastMessageTextForReport({
-                translate: jest.fn().mockReturnValue(''),
-                report,
-                lastActorDetails: null,
-                policy: undefined,
-                isReportArchived: false,
-                chatReport: undefined,
-                currentUserLogin: CURRENT_USER_EMAIL,
-            });
-
-            expect(typeof result).toBe('string');
-        });
-    });
-
     describe('reports parameter functionality', () => {
         it('getValidOptions should use reports parameter to look up chat reports', () => {
             // When we call getValidOptions with the reports collection
@@ -6828,7 +6806,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call createOption with the linked chat report
-            const result = createOption([1, 2], PERSONAL_DETAILS, expenseReport, CURRENT_USER_ACCOUNT_ID, linkedChatReport);
+            const result = createOption([1, 2], PERSONAL_DETAILS, expenseReport, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
 
             // Then the option should be created successfully
             expect(result).toBeDefined();
@@ -6858,7 +6836,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // When we call getReportDisplayOption with chat report
-            const option = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, undefined, chatReport);
+            const option = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, undefined, undefined);
 
             // Then the option should be created successfully using the reports collection
             expect(option).toBeDefined();
@@ -6938,7 +6916,7 @@ describe('OptionsListUtils', () => {
             };
 
             const privateIsArchived = DateUtils.getDBTime();
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchived);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, privateIsArchived);
 
             expect(result).toBeDefined();
             expect(result.private_isArchived).toBe(privateIsArchived);
@@ -6991,7 +6969,7 @@ describe('OptionsListUtils', () => {
             };
 
             const config = {showPersonalDetails: true};
-            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined, undefined, undefined, config);
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined, undefined, config);
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
@@ -7158,6 +7136,99 @@ describe('OptionsListUtils', () => {
             // Name-only attendee should have displayName as login
             const johnSmith = result.find((r) => r.login === 'John Smith');
             expect(johnSmith).toBeDefined();
+        });
+    });
+
+    describe('getIOUReportIDOfLastAction', () => {
+        it('should return undefined when report is undefined', () => {
+            const result = getIOUReportIDOfLastAction(undefined, undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when report has no reportID', () => {
+            const report = {} as Report;
+            const result = getIOUReportIDOfLastAction(report, undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when lastAction is not a REPORT_PREVIEW action', () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: 'iou-test-1',
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+
+            const result = getIOUReportIDOfLastAction(report, undefined, undefined, lastAction);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return IOU report ID when lastAction is a REPORT_PREVIEW action with a valid IOU report', async () => {
+            const iouReportID = 'iou-report-1';
+            const reportID = 'iou-test-2';
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID,
+            };
+
+            // Create the IOU report in Onyx so getReportOrDraftReport can find it
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: iouReportID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+            await waitForBatchedUpdates();
+
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {
+                    linkedReportID: iouReportID,
+                },
+            } as ReportAction;
+
+            const result = getIOUReportIDOfLastAction(report, undefined, undefined, lastAction);
+            expect(result).toBe(iouReportID);
+        });
+
+        it('should return undefined when report is archived and canUserPerformWrite returns false', async () => {
+            const reportID = 'iou-test-archived';
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            // Set up the report in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            // When we pass a non-empty privateIsArchived string, the report is considered archived
+            const privateIsArchived = '2023-01-01 00:00:00';
+
+            // With no lastAction provided and no visible actions in Onyx, it falls through to the lastVisibleAction lookup
+            // which returns undefined, so isReportPreviewAction returns false
+            const result = getIOUReportIDOfLastAction(report, privateIsArchived);
+            expect(result).toBeUndefined();
+        });
+
+        it('should handle privateIsArchived as undefined (non-archived report)', () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID: 'iou-test-not-archived',
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+
+            // privateIsArchived is undefined means the report is not archived
+            const result = getIOUReportIDOfLastAction(report, undefined, undefined, lastAction);
+            expect(result).toBeUndefined();
         });
     });
 });

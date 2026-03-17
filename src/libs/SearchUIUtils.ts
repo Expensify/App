@@ -163,6 +163,10 @@ import ViolationsUtils from './Violations/ViolationsUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
+type GroupBySection = {
+    sectionIndex: number;
+    options: Array<SingleSelectItem<SearchGroupBy>>;
+};
 
 // List Item sorting
 type TransactionSorting = ColumnSortMapping<TransactionListItemType>;
@@ -984,7 +988,19 @@ function getSuggestedSearchesVisibility(
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isExporter = policy.exporter === currentUserEmail;
-        const isApprover = policy.approver === currentUserEmail;
+        let isSubmittedTo = false;
+        let isUserApprover = policy.approver === currentUserEmail;
+        for (const employee of Object.values(policy.employeeList ?? {})) {
+            if (employee?.submitsTo === currentUserEmail || employee?.forwardsTo === currentUserEmail) {
+                isSubmittedTo = true;
+                isUserApprover = true;
+            } else if (employee?.overLimitForwardsTo === currentUserEmail) {
+                isUserApprover = true;
+            }
+            if (isSubmittedTo && isUserApprover) {
+                break;
+            }
+        }
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
 
         const hasExportError = (Object.keys(policy.connections ?? {}) as ConnectionName[]).some((connection) => {
@@ -994,13 +1010,10 @@ function getSuggestedSearchesVisibility(
         const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
         const hasReimburser = !!policy.achAccount?.reimburser;
         const isECardEnabled = !!policy.areExpensifyCardsEnabled;
-        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-            return employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail;
-        });
 
         const isEligibleForSubmitSuggestion = isPaidPolicy;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
-        const isPolicyEligibleForApproveSuggestion = isPaidPolicy && isEligibleForApproveSuggestion(policy.approvalMode, isApprover, isSubmittedTo);
+        const isPolicyEligibleForApproveSuggestion = isPaidPolicy && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && hasCardFeed;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
@@ -1009,10 +1022,10 @@ function getSuggestedSearchesVisibility(
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && isAdmin && isPaymentEnabled && hasVBBA && hasReimburser;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
-        const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isApprover) && memberCount >= 2;
+        const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
         const isEligibleForTopCategoriesSuggestion = isPaidPolicy && policy.areCategoriesEnabled === true;
         const isEligibleForTopMerchantsSuggestion = isPaidPolicy;
-        const isEligibleForSpendOverTimeSuggestion = isPaidPolicy && (isAdmin || isAuditor || isApprover);
+        const isEligibleForSpendOverTimeSuggestion = isPaidPolicy && (isAdmin || isAuditor || isUserApprover);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -2317,10 +2330,10 @@ function getReportSections({
                 const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions, allReportTransactions);
 
                 const fromDetails =
-                    data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
+                    mergedPersonalDetails?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
                     getPersonalDetailsForAccountID(reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ??
                     emptyPersonalDetails;
-                const toDetails = !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
+                const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
                 const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
                 const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';
@@ -2395,8 +2408,8 @@ function getReportSections({
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
-            const from = reportAction?.actorAccountID ? (data.personalDetailsList?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
+            const from = reportAction?.actorAccountID ? (mergedPersonalDetails?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, mergedPersonalDetails, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(
@@ -3650,18 +3663,34 @@ function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string
     return !!matchedSearchKey && TODO_KEYS.includes(matchedSearchKey);
 }
 
-function createTypeMenuSections(
-    icons: Record<'Document' | 'Send' | 'ThumbsUp', IconAsset>,
-    currentUserEmail: string | undefined,
-    currentUserAccountID: number | undefined,
-    cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
-    defaultCardFeed: CardFeedForDisplay | undefined,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
-    isOffline: boolean,
-    defaultExpensifyCard: CardFeedForDisplay | undefined,
-    shouldRedirectToExpensifyClassic: boolean,
-): SearchTypeMenuSection[] {
+type TypeMenuSectionsParams = {
+    icons: Record<'Document' | 'Send' | 'ThumbsUp', IconAsset>;
+    currentUserEmail: string | undefined;
+    currentUserAccountID: number | undefined;
+    cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>;
+    defaultCardFeed: CardFeedForDisplay | undefined;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    savedSearches: OnyxEntry<OnyxTypes.SaveSearch>;
+    isOffline: boolean;
+    defaultExpensifyCard: CardFeedForDisplay | undefined;
+    shouldRedirectToExpensifyClassic: boolean;
+    draftTransactionIDs: string[] | undefined;
+};
+
+function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
+    const {
+        icons,
+        currentUserEmail,
+        currentUserAccountID,
+        cardFeedsByPolicy,
+        defaultCardFeed,
+        policies,
+        savedSearches,
+        isOffline,
+        defaultExpensifyCard,
+        shouldRedirectToExpensifyClassic,
+        draftTransactionIDs,
+    } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, icons);
@@ -3714,7 +3743,7 @@ function createTypeMenuSections(
                                               return;
                                           }
 
-                                          startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN);
+                                          startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
                                       });
                                   },
                               },
@@ -3964,6 +3993,30 @@ function getGroupByOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
 }
 
+function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
+    const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> => ({
+        text: translate(`search.filters.groupBy.${groupBy}`),
+        value: groupBy,
+    });
+    return [
+        {
+            options: [getOption(CONST.SEARCH.GROUP_BY.FROM), getOption(CONST.SEARCH.GROUP_BY.CARD)],
+        },
+        {
+            options: [getOption(CONST.SEARCH.GROUP_BY.CATEGORY), getOption(CONST.SEARCH.GROUP_BY.MERCHANT), getOption(CONST.SEARCH.GROUP_BY.TAG)],
+        },
+        {
+            options: [getOption(CONST.SEARCH.GROUP_BY.MONTH), getOption(CONST.SEARCH.GROUP_BY.WEEK), getOption(CONST.SEARCH.GROUP_BY.YEAR), getOption(CONST.SEARCH.GROUP_BY.QUARTER)],
+        },
+        {
+            options: [getOption(CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID)],
+        },
+    ].map((section, sectionIndex) => ({
+        ...section,
+        sectionIndex,
+    }));
+}
+
 function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
 }
@@ -4175,6 +4228,7 @@ function getColumnsToShow(
     isExpenseReportViewFromIOUReport = false,
     shouldShowBillableColumn = false,
     shouldShowReimbursableColumn = false,
+    shouldUseStrictDefaultExpenseColumns = false,
 ): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -4293,6 +4347,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
               [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
@@ -4315,9 +4370,8 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
           };
 
     // If the user has set custom columns for the search, we need to respect their preference and order
@@ -4403,7 +4457,7 @@ function getColumnsToShow(
 
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const toFieldValue = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
-            if (toFieldValue.accountID && toFieldValue.accountID !== currentAccountID && !columns[CONST.SEARCH.TABLE_COLUMNS.TO]) {
+            if (!shouldUseStrictDefaultExpenseColumns && toFieldValue.accountID && toFieldValue.accountID !== currentAccountID && !columns[CONST.SEARCH.TABLE_COLUMNS.TO]) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TO] = !!report && !isOpenReport(report);
             }
         }
@@ -4560,40 +4614,6 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
-/**
- * Determine policyID based on selected transactions:
- * - If all selected transactions belong to the same policy, use that policy
- * - Otherwise, fall back to the user's active workspace policy
- */
-function getSearchBulkEditPolicyID(
-    selectedTransactionIDs: string[],
-    activePolicyID: string | undefined,
-    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
-    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
-): string | undefined {
-    if (selectedTransactionIDs.length === 0) {
-        return activePolicyID;
-    }
-
-    const policyIDs = selectedTransactionIDs.map((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction?.reportID) {
-            return undefined;
-        }
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        return report?.policyID;
-    });
-
-    const firstPolicyID = policyIDs.at(0);
-    const allSamePolicy = policyIDs.every((policyID) => policyID === firstPolicyID);
-
-    if (allSamePolicy && firstPolicyID) {
-        return firstPolicyID;
-    }
-
-    return activePolicyID;
-}
-
 function filterValidHasValues(hasValues: string[] | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): string[] | undefined {
     if (!hasValues || !type) {
         return undefined;
@@ -4725,7 +4745,6 @@ function applySelectionToItem(
 }
 
 export {
-    getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getListItem,
     getSections,
@@ -4764,6 +4783,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getGroupBySections,
     getViewOptions,
     getGroupCurrencyOptions,
     getFeedOptions,
@@ -4794,4 +4814,4 @@ export {
     isEligibleForApproveSuggestion,
     applySelectionToItem,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection};

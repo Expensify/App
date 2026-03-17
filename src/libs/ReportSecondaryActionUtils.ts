@@ -2,7 +2,18 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, ExportTemplate, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    ExportTemplate,
+    OutstandingReportsByPolicyIDDerivedValue,
+    Policy,
+    Report,
+    ReportAction,
+    ReportMetadata,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
@@ -35,9 +46,11 @@ import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionU
 import {
     canAddTransaction,
     canDeleteMoneyRequestReport,
+    canEditFieldOfMoneyRequest,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
     hasExportError as hasExportErrorUtils,
@@ -835,6 +848,7 @@ function getSecondaryReportActions({
     reportActions,
     reportMetadata,
     policies,
+    outstandingReportsByPolicyID,
     isChatReportArchived = false,
 }: {
     currentUserLogin: string;
@@ -850,6 +864,7 @@ function getSecondaryReportActions({
     reportActions?: ReportAction[];
     reportMetadata?: OnyxEntry<ReportMetadata>;
     policies?: OnyxCollection<Policy>;
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
@@ -955,8 +970,23 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
+
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
+    }
+
+    if (reportTransactions.length === 1 && reportActions) {
+        const transaction = reportTransactions.at(0);
+        if (transaction?.transactionID) {
+            const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
+            const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);
+
+            if (canMoveExpense && canUserPerformWriteAction) {
+                options.push(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+            }
+        }
     }
 
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -1009,6 +1039,8 @@ function getSecondaryTransactionThreadActions(
     originalTransaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    isChatReportArchived?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1034,6 +1066,15 @@ function getSecondaryTransactionThreadActions(
 
     if (isDuplicateAction(parentReport, [reportTransaction])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
+    }
+
+    if (
+        reportTransaction?.transactionID &&
+        reportAction &&
+        canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
+        canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
+    ) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);

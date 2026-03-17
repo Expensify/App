@@ -52,21 +52,28 @@ describe('getSecondaryAction', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: SESSION,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL}},
+            },
         });
     });
 
     beforeEach(async () => {
         jest.clearAllMocks();
         Onyx.clear();
-        await Onyx.merge(ONYXKEYS.SESSION, SESSION);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL}});
     });
 
     it('should always return default options', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = [CONST.REPORT.SECONDARY_ACTIONS.EXPORT, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
+        const result = [
+            CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+            CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+            CONST.REPORT.SECONDARY_ACTIONS.PRINT,
+            CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
+        ];
         expect(
             getSecondaryReportActions({
                 currentUserLogin: EMPLOYEE_EMAIL,
@@ -2428,6 +2435,70 @@ describe('getSecondaryAction', () => {
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
     });
+
+    it('includes MOVE_EXPENSE option for single expense report when user can move expense', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        const transaction = {
+            transactionID: originalMessageR14932.IOUTransactionID,
+        } as unknown as Transaction;
+        const reportActions = [actionR14932];
+        const policy = {} as unknown as Policy;
+
+        jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions,
+        });
+        expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+    });
+
+    it('does not include MOVE_EXPENSE option when canEditFieldOfMoneyRequest returns false', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        } as unknown as Report;
+        const transaction = {
+            transactionID: originalMessageR14932.IOUTransactionID,
+        } as unknown as Transaction;
+        const reportActions = [actionR14932];
+        const policy = {} as unknown as Policy;
+
+        jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(false);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions,
+        });
+        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+    });
 });
 
 describe('getSecondaryExportReportActions', () => {
@@ -2977,6 +3048,66 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
+    });
+
+    it('includes MOVE_EXPENSE option for transaction thread when user can move expense', () => {
+        const parentReport = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        } as unknown as Report;
+        const transaction = {
+            transactionID: originalMessageR14932.IOUTransactionID,
+        } as unknown as Transaction;
+        const policy = {} as unknown as Policy;
+
+        jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
+
+        const result = getSecondaryTransactionThreadActions(
+            EMPLOYEE_EMAIL,
+            EMPLOYEE_ACCOUNT_ID,
+            parentReport,
+            transaction,
+            actionR14932,
+            {} as Transaction,
+            policy,
+            undefined,
+            undefined,
+            false,
+        );
+        expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
+    });
+
+    it('does not include MOVE_EXPENSE option for transaction thread when canEditFieldOfMoneyRequest returns false', () => {
+        const parentReport = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        } as unknown as Report;
+        const transaction = {
+            transactionID: originalMessageR14932.IOUTransactionID,
+        } as unknown as Transaction;
+        const policy = {} as unknown as Policy;
+
+        jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(false);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
+
+        const result = getSecondaryTransactionThreadActions(
+            EMPLOYEE_EMAIL,
+            EMPLOYEE_ACCOUNT_ID,
+            parentReport,
+            transaction,
+            actionR14932,
+            {} as Transaction,
+            policy,
+            undefined,
+            undefined,
+            false,
+        );
+        expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
 
     describe('isMergeAction', () => {

@@ -11,6 +11,7 @@ import type {Writable} from 'type-fest';
 import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
+import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -49,6 +50,11 @@ import type {
     RootNavigatorParamList,
     State,
 } from './types';
+
+type FocusedScreen = {
+    name: string;
+    params?: Record<string, unknown>;
+};
 
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([
@@ -122,7 +128,7 @@ function getShouldPopToSidebar() {
  * Unlike findFocusedRoute, this also handles the case where the nested navigator
  * hasn't been mounted yet and the target screen is in params instead of state.
  */
-function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | PartialState<NavigationState> | undefined): string | undefined {
+function getDeepestFocusedScreen(route: NavigationRoute | NavigationState | PartialState<NavigationState> | undefined): FocusedScreen | undefined {
     if (!route) {
         return undefined;
     }
@@ -134,25 +140,26 @@ function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | 
         if ('index' in route && typeof route.index === 'number') {
             focusedRoute = route.routes[route.index];
         }
-        return getDeepestFocusedScreenName(focusedRoute);
+        return getDeepestFocusedScreen(focusedRoute);
     }
 
     // Route with nested state case
     if ('state' in route && route.state) {
-        return getDeepestFocusedScreenName(route.state);
+        return getDeepestFocusedScreen(route.state);
     }
 
     // Route with params.screen case (initial navigation before sidebar navigator mounts)
     if ('params' in route && route.params && typeof route.params === 'object' && 'screen' in route.params) {
         const params = route.params as {screen?: string; params?: Record<string, unknown>};
         if (params.screen) {
-            return getDeepestFocusedScreenName({name: params.screen, params: params.params});
+            return getDeepestFocusedScreen({name: params.screen, params: params.params});
         }
     }
 
-    // Leaf route - return the name
+    // Leaf route - return the route data
     if ('name' in route) {
-        return route.name;
+        const params = 'params' in route && route.params && typeof route.params === 'object' ? (route.params as Record<string, unknown>) : undefined;
+        return {name: route.name, params};
     }
 
     return undefined;
@@ -314,7 +321,7 @@ function navigate(route: Route, options?: LinkToOptions) {
                     op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
                 });
             }
-            span.setAttributes({
+            span?.setAttributes({
                 [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
                 [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
                 [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
@@ -720,7 +727,7 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
  * see the NAVIGATION.md documentation.
  */
 const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; callback?: () => void} = {}) => {
-    clearSelectedText();
+    clearSelectedTextIfComposerBlurred();
     isNavigationReady().then(() => {
         if (callback) {
             const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
@@ -737,13 +744,19 @@ const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; cal
  * Dismisses the modal and opens the given report.
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
+ * @param options.onBeforeNavigate - Called before performing navigation with whether the report will be opened (true) or we only dismiss because already on that report (false).
  */
-const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT], ref = navigationRef) => {
+const dismissModalWithReport = (
+    {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
+    ref = navigationRef,
+    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
+) => {
     isNavigationReady().then(() => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
         let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
+            options?.onBeforeNavigate?.(false);
             dismissToSuperWideRHP();
             return;
         }
@@ -752,9 +765,11 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
         areReportsIDsDefined = !!topmostReportID && !!reportID;
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
+            options?.onBeforeNavigate?.(false);
             dismissModal();
             return;
         }
+        options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         if (getIsNarrowLayout()) {
             navigate(reportRoute, {forceReplace: true});
@@ -892,6 +907,41 @@ function dismissToSuperWideRHP() {
     navigateBackToLastSuperWideRHPScreen();
 }
 
+/**
+ * Reveals the destination fullscreen route under the currently open RHP before dismissing it.
+ * Wide-layout only. Used after expense submission so the user sees the target screen (e.g. Search)
+ * sliding in behind the closing RHP instead of a blank flash.
+ *
+ * Two-frame sequence:
+ *   Frame 1 - REPLACE_FULLSCREEN_UNDER_RHP inserts the target fullscreen route underneath
+ *             the modal: [Home, RHP] -> [Home, Search, RHP]. Browser history is NOT touched
+ *             (the custom history extension preserves the old history array).
+ *   Frame 2 - DISMISS_MODAL pops the RHP: [Home, Search, RHP] -> [Home, Search].
+ *             useLinking detects the stale Home+RHP entry and replaces it with a Search
+ *             push, yielding correct browser history [Home, Search].
+ */
+function revealRouteBeforeDismissingModal(route: Route) {
+    if (getIsNarrowLayout()) {
+        Log.warn('[Navigation] revealRouteBeforeDismissingModal should only be used on wide layouts.');
+        return;
+    }
+
+    if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {
+        Log.hmmm(`[Navigation] Unable to reveal route before dismissing modal. Can't navigate.`, {route});
+        return;
+    }
+
+    requestAnimationFrame(() => {
+        navigationRef.current?.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+            payload: {route},
+        });
+        requestAnimationFrame(() => {
+            dismissModal();
+        });
+    });
+}
+
 function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
     if (!state) {
         return undefined;
@@ -949,6 +999,7 @@ export default {
     isValidateLoginFlow,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
+    revealRouteBeforeDismissingModal,
     getTopmostSearchReportID,
     getTopmostSuperWideRHPReportParams,
     getTopmostSuperWideRHPReportID,
@@ -956,4 +1007,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};
+export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};

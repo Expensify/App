@@ -1264,6 +1264,35 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getMessageOfOldDotReportAction', () => {
+        it('should return the ACH bounce message with return reason when provided', () => {
+            const returnReason = 'R03 - No Account/Unable to Locate Account';
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+                originalMessage: {returnReason},
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceWithReason', {returnReason}));
+        });
+
+        it('should return the default ACH bounce message when return reason is missing', () => {
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+                originalMessage: {},
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceDefault'));
+        });
+    });
+
     describe('getSendMoneyFlowAction', () => {
         const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT` as const;
         const mockDMChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_DM` as const;
@@ -1634,6 +1663,72 @@ describe('ReportActionsUtils', () => {
             };
 
             // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [] as number[],
+                    automaticAction: true,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is true but mentionedAccountIDs has values', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [123],
+                    automaticAction: true,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is false', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [] as number[],
+                    automaticAction: false,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is not set', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [456],
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
@@ -3005,6 +3100,72 @@ describe('ReportActionsUtils', () => {
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
 
             // The new line should be replaced with a comma
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should handle address with separate addressStreet2 field', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St',
+                        addressStreet2: 'Suite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should prefer addressStreet2 over newline-split second line when both are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nOld Unit',
+                        addressStreet2: 'Suite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should fallback to newline-split second line when addressStreet2 is empty', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nSuite 500',
+                        addressStreet2: '   ',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
     });
