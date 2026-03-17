@@ -16,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isUsingStagingApi} from '@libs/ApiUtils';
 import {getCardFeedIcon, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -40,7 +41,7 @@ type PersonalCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {cardID} = route.params;
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [shouldUseStagingServer] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
