@@ -117,6 +117,13 @@ function shouldShowBulkDuplicateOption({
         return false;
     }
 
+    const searchReports = searchData
+        ? Object.keys(searchData)
+              .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+              .map((key) => searchData[key] as Report)
+              .filter((report): report is Report => report != null && 'reportID' in report)
+        : [];
+
     return selectedTransactionsKeys.every((id) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
         if (!transaction || isManagedCardTransaction(transaction) || isScanning(transaction)) {
@@ -129,12 +136,6 @@ function shouldShowBulkDuplicateOption({
         }
 
         const reportID = selectedTransactions[id]?.reportID;
-        const searchReports = searchData
-            ? Object.keys(searchData)
-                  .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-                  .map((key) => searchData[key] as Report)
-                  .filter((report): report is Report => report != null && 'reportID' in report)
-            : [];
         if (reportID && !isCurrentUserSubmitter(getReportOrDraftReport(reportID, searchReports))) {
             return false;
         }
