@@ -69,7 +69,7 @@ function IOURequestStepDistanceOdometer({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
-    const {translate, fromLocaleDigit, numberFormat} = useLocalize();
+    const {translate, fromLocaleDigit, toLocaleDigit, numberFormat} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -186,8 +186,8 @@ function IOURequestStepDistanceOdometer({
         }
         const currentStart = currentTransaction?.comment?.odometerStart;
         const currentEnd = currentTransaction?.comment?.odometerEnd;
-        const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
-        const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
+        const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString().replace('.', toLocaleDigit('.')) : '';
+        const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString().replace('.', toLocaleDigit('.')) : '';
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
         initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
@@ -198,6 +198,7 @@ function IOURequestStepDistanceOdometer({
         currentTransaction?.comment?.odometerEnd,
         currentTransaction?.comment?.odometerStartImage,
         currentTransaction?.comment?.odometerEndImage,
+        toLocaleDigit,
     ]);
 
     // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
@@ -218,8 +219,8 @@ function IOURequestStepDistanceOdometer({
             (hasTransactionData && !hasLocalState && hasInitializedRefs.current);
 
         if (shouldInitialize) {
-            const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
-            const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
+            const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString().replace('.', toLocaleDigit('.')) : '';
+            const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString().replace('.', toLocaleDigit('.')) : '';
 
             if (startValue || endValue) {
                 setStartReading(startValue);
@@ -228,7 +229,7 @@ function IOURequestStepDistanceOdometer({
                 endReadingRef.current = endValue;
             }
         }
-    }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing]);
+    }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing, toLocaleDigit]);
 
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
@@ -304,13 +305,18 @@ function IOURequestStepDistanceOdometer({
         return true;
     };
 
+    // Convert a standard-format number string to the user's locale format for display
+    // (e.g. "1.5" → "1,5" in German locale).
+    const toLocaleFormat = (text: string): string => text.replace('.', toLocaleDigit('.'));
+
     const handleStartReadingChange = (text: string) => {
         if (!isOdometerInputValid(text, startReading)) {
             return;
         }
         const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
-        setStartReading(normalized);
-        startReadingRef.current = normalized;
+        const display = toLocaleFormat(normalized);
+        setStartReading(display);
+        startReadingRef.current = display;
         if (formError) {
             setFormError('');
         }
@@ -321,8 +327,9 @@ function IOURequestStepDistanceOdometer({
             return;
         }
         const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
-        setEndReading(normalized);
-        endReadingRef.current = normalized;
+        const display = toLocaleFormat(normalized);
+        setEndReading(display);
+        endReadingRef.current = display;
         if (formError) {
             setFormError('');
         }
