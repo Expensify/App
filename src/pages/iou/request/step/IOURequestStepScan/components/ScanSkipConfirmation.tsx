@@ -1,4 +1,5 @@
 import {useRoute} from '@react-navigation/native';
+import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
@@ -42,7 +43,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
-import GpsLocationGate, {shouldStartLocationPermissionFlowSelector} from './GpsLocationGate';
+import GpsPermissionGate from './GpsPermissionGate';
 
 /**
  * ScanSkipConfirmation — skip-confirmation variant.
@@ -98,7 +99,8 @@ function ScanSkipConfirmation() {
     const shouldSkipConfirmation =
         !!skipConfirmation && !!report?.reportID && !isArchived && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
-    const [pendingGpsFiles, setPendingGpsFiles] = useState<ReceiptFile[]>([]);
+    const [showGpsPermission, setShowGpsPermission] = useState(false);
+    const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -299,12 +301,11 @@ function ScanSkipConfirmation() {
         // Skip confirmation path: check if GPS is needed
         const gpsRequired = shouldSkipConfirmation && initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length > 0;
         if (gpsRequired) {
+            setReceiptFiles(newReceiptFiles);
             if (shouldStartLocationPermissionFlow) {
-                // Show modal via GpsLocationGate
-                setPendingGpsFiles(newReceiptFiles);
+                setShowGpsPermission(true);
                 return;
             }
-            // Permission already resolved — submit with location
             navigateToConfirmationStep(newReceiptFiles, true);
             return;
         }
@@ -403,11 +404,11 @@ function ScanSkipConfirmation() {
                 shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
             />
             {ErrorModal}
-            <GpsLocationGate
-                pendingFiles={pendingGpsFiles}
-                onResolved={(files, locationPermissionGranted) => {
-                    setPendingGpsFiles([]);
-                    navigateToConfirmationStep(files, locationPermissionGranted);
+            <GpsPermissionGate
+                active={showGpsPermission}
+                onResolved={(locationPermissionGranted) => {
+                    setShowGpsPermission(false);
+                    navigateToConfirmationStep(receiptFiles, locationPermissionGranted);
                 }}
             />
         </StepScreenWrapper>
