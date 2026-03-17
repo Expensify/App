@@ -24,8 +24,6 @@ import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
 import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/actions/replaceOptimisticReportWithActualReport';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import {growlRef} from './libs/Growl';
@@ -35,13 +33,8 @@ import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
-import './libs/Notification/PushNotification/subscribeToPushNotifications';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/registerPaginationConfig';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
@@ -72,9 +65,9 @@ function Expensify() {
     const {preferredLocale} = useLocalize();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
+    const [updateAvailable] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE);
+    const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useDebugShortcut();
@@ -88,15 +81,16 @@ function Expensify() {
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
-        bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
-            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
-            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-        });
+        bootsplashSpan.current =
+            startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
+                name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+                op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
+            }) ?? null;
 
         startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX, {
             name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
@@ -308,7 +302,7 @@ function Expensify() {
             <FullstoryInitHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
-            {hasAttemptedToOpenPublicRoom && (
+            {hasAttemptedToOpenPublicRoom && initialUrl !== undefined && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}

@@ -1,10 +1,13 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardList} from '@src/types/onyx';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
 import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
+import fileDownload from './fileDownload';
 
 /**
  * Feature flag to enable Travel CVV testing on Dev and Staging environments.
@@ -141,20 +144,33 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 }
 
 /**
+ * Downloads a cached Travel Invoice Statement PDF.
+ * Constructs a secure URL with encrypted auth token and triggers the download.
+ */
+function downloadTravelInvoiceStatementPDF(
+    translate: LocalizedTranslate,
+    baseURL: string,
+    fileName: string,
+    startDate: string,
+    endDate: string,
+    currentUserEmail: string,
+    encryptedAuthToken: string,
+): Promise<void> {
+    const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
+    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
+}
+
+/**
  * Gets the user's Travel Invoicing card from the card list.
  * Returns the first card with feedCountry set to PROGRAM_TRAVEL_US.
  */
-function getTravelInvoicingCard(cardList: Record<string, WorkspaceCardsList | undefined> | undefined) {
+function getTravelInvoicingCard(cardList: OnyxEntry<CardList>) {
     if (!cardList) {
         return undefined;
     }
 
-    // Flatten all WorkspaceCardsList into a single array of Cards
-    // Filter out cardList entries (which are string values) to only get actual Card objects
-    const allCards = Object.values(cardList)
-        .filter((workspaceCards): workspaceCards is WorkspaceCardsList => !!workspaceCards)
-        .flatMap((workspaceCards) => Object.values(workspaceCards))
-        .filter((card): card is Card => typeof card !== 'string' && typeof card?.cardID === 'number');
+    const allCards = Object.values(cardList).filter((card): card is Card => !!card && typeof card?.cardID === 'number');
     const travelCard = allCards.find((card) => card.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US);
     // If no travel card is found and testing is enabled, return the first available card
     if (!travelCard && isTravelCVVTestingEnabled()) {
@@ -168,7 +184,7 @@ function getTravelInvoicingCard(cardList: Record<string, WorkspaceCardsList | un
  * Checks if user is eligible to see Travel CVV in Wallet.
  * Requires: TRAVEL_INVOICING beta AND having a travel card.
  */
-function isTravelCVVEligible(isTravelInvoicingBetaEnabled: boolean, cardList: Record<string, WorkspaceCardsList | undefined> | undefined): boolean {
+function isTravelCVVEligible(isTravelInvoicingBetaEnabled: boolean, cardList: OnyxEntry<CardList>): boolean {
     const hasTravelCard = !!getTravelInvoicingCard(cardList);
     return isTravelInvoicingBetaEnabled && hasTravelCard;
 }
@@ -182,6 +198,7 @@ export {
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelInvoicingCardSettingsKey,
+    downloadTravelInvoiceStatementPDF,
     getTravelInvoicingCard,
     isTravelCVVEligible,
     isTravelCVVTestingEnabled,
