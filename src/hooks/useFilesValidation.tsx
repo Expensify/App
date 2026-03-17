@@ -196,17 +196,19 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                         new Promise<void>((resolve) => {
                             convertHeicImage(file, {
                                 onSuccess: (convertedFile) => {
-                                    if (validationState.isValidatingReceipts && convertedFile.size && convertedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+                                    if (validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
                                         convertedFilesToResize.push(convertedFile);
                                         resolve();
+                                        return;
                                     }
 
-                                    if (!validationState.isValidatingReceipts && convertedFile.size && convertedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                                    if (!validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                                         collectedErrors.current.push({
                                             error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
                                             isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
                                         });
                                         resolve();
+                                        return;
                                     }
 
                                     convertedFiles.push(convertedFile);
