@@ -359,14 +359,8 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
     switch (field.toLowerCase()) {
         case 'id':
             return getBase62ReportID(Number(report.reportID));
-        case 'oldid':
-            return report.reportID?.startsWith('R') ? report.reportID : `R${report.reportID}`;
-        case 'title':
-            return report.reportName ?? '';
         case 'status':
             return formatStatus(report.statusNum);
-        case 'displaystatus':
-            return formatDisplayStatus(report.stateNum, report.statusNum);
         case 'expensescount':
             return String(getExpensesCount(report, allTransactions));
         case 'type':
@@ -393,11 +387,6 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
-        case 'approve':
-            if (additionalPath.at(0)?.toLowerCase() !== 'date') {
-                return part.definition;
-            }
-            return formatDate(report.approved, additionalPath.slice(1).join(':') || undefined);
         case 'submit': {
             return computeSubmitPart(additionalPath, context);
         }
@@ -444,32 +433,6 @@ function formatStatus(statusNum: number | undefined): string {
 /**
  * Format report status into export-style display labels.
  */
-function formatDisplayStatus(stateNum: number | undefined, statusNum: number | undefined): string {
-    if (stateNum === undefined || statusNum === undefined) {
-        return '';
-    }
-
-    if (stateNum === CONST.REPORT.STATE_NUM.OPEN && statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
-        return 'Draft';
-    }
-    if (stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-        return 'Outstanding';
-    }
-    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
-        return 'Done';
-    }
-    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
-        return 'Approved';
-    }
-    if (
-        (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) ||
-        (stateNum === CONST.REPORT.STATE_NUM.BILLING && statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) ||
-        (stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED && statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED)
-    ) {
-        return 'Paid';
-    }
-    return '';
-}
 
 /**
  * Check if a formula string contains field references ({field:X})
@@ -929,16 +892,8 @@ function computeSubmitPart(path: string[], context: FormulaContext): string {
 
     switch (direction.toLowerCase()) {
         case 'from':
-            if (subPath.length === 0) {
-                // {report:submit:from} defaults to full name (or email fallback).
-                return computePersonalDetailsField(['fullname'], context.submitterPersonalDetails, context.policy);
-            }
             return computePersonalDetailsField(subPath, context.submitterPersonalDetails, context.policy);
         case 'to':
-            if (subPath.length === 0) {
-                // {report:submit:to} defaults to full name (or email fallback).
-                return computePersonalDetailsField(['fullname'], context.managerPersonalDetails, context.policy);
-            }
             return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
         case 'date': {
             // TODO: Use report.submitted once backend adds it (issue #568267)
