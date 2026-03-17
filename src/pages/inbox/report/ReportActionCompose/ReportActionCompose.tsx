@@ -223,7 +223,7 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
-    const shouldShowConciergeIndicator = useMemo(() => isConciergeChat || isAdminRoom(report), [isConciergeChat, report]);
+    const shouldShowConciergeIndicator = isConciergeChat || isAdminRoom(report);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
