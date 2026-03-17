@@ -203,10 +203,15 @@ function IOURequestStepDistance({
     const distanceRate = mileageRate.rate ?? 0;
     const distanceInMeters = getDistanceInMeters(currentTransaction, currentTransaction?.comment?.customUnit?.distanceUnit ? currentTransaction.comment.customUnit.distanceUnit : distanceUnit);
     const currentDistance = useMemo(
-        () =>
-            typeof currentTransaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit)) : undefined,
-        [distanceInMeters, distanceUnit, currentTransaction?.comment?.customUnit?.quantity],
+        () => (distanceInMeters > 0 ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit)) : undefined),
+        [distanceInMeters, distanceUnit],
     );
+
+    // Keep the manual tab's NumberWithSymbolForm in sync when the distance changes
+    // externally (e.g. route recalculated after waypoint edits on the map tab).
+    useEffect(() => {
+        manualNumberFormRef.current?.updateNumber(currentDistance?.toString() ?? '');
+    }, [currentDistance]);
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -320,8 +325,13 @@ function IOURequestStepDistance({
     }, []);
 
     const navigateBack = useCallback(() => {
-        Navigation.goBack(backTo);
-    }, [backTo]);
+        // When editing, the OnyxTabNavigator's backBehavior="initialRoute" causes
+        // goBack() without a route to first navigate within the tab navigator
+        // (e.g. manual tab → map tab) instead of exiting the screen.
+        // Provide an explicit fallback route to bypass the tab navigator.
+        const fallbackRoute = backTo ?? (isEditing ? ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? reportID) : undefined);
+        Navigation.goBack(fallbackRoute);
+    }, [backTo, isEditing, report?.reportID, reportID]);
 
     /**
      * Takes the user to the page for editing a specific waypoint
@@ -497,6 +507,7 @@ function IOURequestStepDistance({
             const addresses = Object.fromEntries(Object.entries(waypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
             const hasRouteChanged = !deepEqual(transactionBackup?.routes, transaction?.routes);
             if (deepEqual(oldAddresses, addresses)) {
+                transactionWasSaved.current = true;
                 navigateBack();
                 return;
             }
@@ -579,6 +590,7 @@ function IOURequestStepDistance({
         const isDistanceUnitChanged = transactionDistanceUnit && transactionDistanceUnit !== distanceUnit;
 
         if (!isDistanceChanged && !isDistanceUnitChanged) {
+            transactionWasSaved.current = true;
             navigateBack();
             return;
         }

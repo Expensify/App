@@ -861,6 +861,7 @@ function getUpdatedTransaction({
         const distance = roundToTwoDecimalPlaces(transactionChanges.distance ?? 0);
 
         lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+        lodashSet(updatedTransaction, 'routes.route0.distance', null);
         shouldStopSmartscan = true;
 
         const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
