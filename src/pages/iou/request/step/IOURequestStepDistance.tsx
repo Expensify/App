@@ -189,18 +189,6 @@ function IOURequestStepDistance({
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    // Defer rendering of OnyxTabNavigator by one frame to avoid interfering with the push animation.
-    // On second mount, the Onyx selected tab value is cached, causing OnyxTabNavigator
-    // to render its nested MaterialTopTabNavigator immediately. This interferes with
-    // the parent stack's push animation, making the screen appear instantly instead of sliding in.
-    const [isReadyForTabs, setIsReadyForTabs] = useState(false);
-    useEffect(() => {
-        const id = requestAnimationFrame(() => {
-            setIsReadyForTabs(true);
-        });
-        return () => cancelAnimationFrame(id);
-    }, []);
-
     // Manual distance editing state
     const manualNumberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const manualTextInputRef = useRef<BaseTextInputRef | null>(null);
@@ -738,18 +726,14 @@ function IOURequestStepDistance({
                         title={translate('common.distance')}
                         onBackButtonPress={navigateBack}
                     />
-                    {isReadyForTabs ? (
-                        <OnyxTabNavigator
-                            id={CONST.TAB.DISTANCE_EDIT_TYPE}
-                            defaultSelectedTab={CONST.TAB_REQUEST.DISTANCE_MAP}
-                            tabBar={TabSelector}
-                        >
-                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>{() => <TabScreenWithFocusTrapWrapper>{mapTabContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
-                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualTabContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
-                        </OnyxTabNavigator>
-                    ) : (
-                        mapTabContent
-                    )}
+                    <OnyxTabNavigator
+                        id={CONST.TAB.DISTANCE_EDIT_TYPE}
+                        defaultSelectedTab={CONST.TAB_REQUEST.DISTANCE_MAP}
+                        tabBar={TabSelector}
+                    >
+                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>{() => <TabScreenWithFocusTrapWrapper>{mapTabContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
+                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualTabContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
+                    </OnyxTabNavigator>
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );
