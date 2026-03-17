@@ -7178,6 +7178,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
     search: {
         resultsAreLimited: 'I risultati di ricerca sono limitati.',
         viewResults: 'Visualizza risultati',
+        appliedFilters: 'Filtri applicati',
         resetFilters: 'Reimposta filtri',
         searchResults: {
             emptyResults: {
@@ -7234,6 +7235,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             },
         },
         columns: 'Colonne',
+        editColumns: 'Modifica colonne',
         resetColumns: 'Reimposta colonne',
         groupColumns: 'Raggruppa colonne',
         expenseColumns: 'Colonne spese',
@@ -7334,8 +7336,13 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esporta',
             },
         },
+        display: {
+            label: 'Visualizza',
+            sortBy: 'Ordina per',
+            groupBy: 'Raggruppa per',
+            limitResults: 'Limita i risultati',
+        },
         has: 'Ha',
-        groupBy: 'Raggruppa per',
         view: {
             label: 'Visualizza',
             table: 'Tabella',

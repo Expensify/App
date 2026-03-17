@@ -7146,6 +7146,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
     search: {
         resultsAreLimited: 'Wyniki wyszukiwania są ograniczone.',
         viewResults: 'Zobacz wyniki',
+        appliedFilters: 'Zastosowane filtry',
         resetFilters: 'Resetuj filtry',
         searchResults: {
             emptyResults: {
@@ -7201,6 +7202,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             },
         },
         columns: 'Kolumny',
+        editColumns: 'Edytuj kolumny',
         resetColumns: 'Resetuj kolumny',
         groupColumns: 'Grupuj kolumny',
         expenseColumns: 'Kolumny wydatków',
@@ -7301,8 +7303,13 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
         },
+        display: {
+            label: 'Wyświetl',
+            sortBy: 'Sortuj według',
+            groupBy: 'Grupuj według',
+            limitResults: 'Ogranicz wyniki',
+        },
         has: 'Ma',
-        groupBy: 'Grupuj według',
         view: {
             label: 'Pokaż',
             table: 'Tabela',
