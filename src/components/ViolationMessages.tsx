@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import Text from './Text';
 
 type ViolationMessagesProps = {
@@ -19,7 +20,7 @@ type ViolationMessagesProps = {
     companyCardPageURL?: string;
     connectionLink?: string;
     routeDistanceMeters?: number;
-    distanceUnit?: string;
+    distanceUnit?: Unit;
 };
 
 export default function ViolationMessages({

@@ -20,8 +20,8 @@ import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
 
