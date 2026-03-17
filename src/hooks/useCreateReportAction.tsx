@@ -1,12 +1,12 @@
 import type {ReactNode} from 'react';
 import {useCallback, useMemo} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONFIG from '@src/CONFIG';
@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
+import {shouldRedirectToExpensifyClassicSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 import useConfirmModal from './useConfirmModal';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
@@ -52,16 +53,12 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [shouldRedirectToExpensifyClassic] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldRedirectToExpensifyClassicSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
-
-    const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
-    }, [allPolicies]);
 
     // User has no group policies at all (neither with chat enabled nor disabled) → needs upgrade/workspace creation
     const shouldNavigateToUpgradePath = !shouldRedirectToExpensifyClassic && groupPoliciesWithChatEnabled.length === 0;
