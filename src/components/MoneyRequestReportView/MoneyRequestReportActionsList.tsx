@@ -58,7 +58,7 @@ import {
     isReportActionVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -684,8 +684,6 @@ function MoneyRequestReportActionsList({
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
                 hasNextActionMadeBySameActor(visibleReportActions, index);
 
-            const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsObject);
-
             return (
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
@@ -705,7 +703,6 @@ function MoneyRequestReportActionsList({
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
-                    originalReportID={originalReportID}
                     isReportArchived={isReportArchived}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
@@ -715,7 +712,6 @@ function MoneyRequestReportActionsList({
         },
         [
             visibleReportActions,
-            reportActionsObject,
             parentReportAction,
             report,
             transactionThreadReport,
