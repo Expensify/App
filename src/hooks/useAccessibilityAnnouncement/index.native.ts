@@ -1,11 +1,7 @@
 import type {ReactNode} from 'react';
 import {useEffect, useRef} from 'react';
 import {AccessibilityInfo} from 'react-native';
-
-type UseAccessibilityAnnouncementOptions = {
-    shouldAnnounceOnNative?: boolean;
-    announcementKey?: number;
-};
+import type UseAccessibilityAnnouncementOptions from './types';
 
 function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, options?: UseAccessibilityAnnouncementOptions) {
     const previousAnnouncedMessageRef = useRef('');

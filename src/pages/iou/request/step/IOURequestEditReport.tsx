@@ -56,7 +56,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionIDs);
 
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, selectedReport?.policyID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
@@ -122,7 +122,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
-    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
@@ -149,19 +149,16 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <IOURequestEditReportCommon
-                backTo={backTo}
-                selectedReportID={reportID}
-                transactionIDs={selectedTransactionIDs}
-                selectReport={selectReport}
-                removeFromReport={removeFromReport}
-                isEditing={action === CONST.IOU.ACTION.EDIT}
-                createReport={createReport}
-                isPerDiemRequest={hasPerDiemTransactions}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={backTo}
+            selectedReportID={reportID}
+            transactionIDs={selectedTransactionIDs}
+            selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing={action === CONST.IOU.ACTION.EDIT}
+            createReport={createReport}
+            isPerDiemRequest={hasPerDiemTransactions}
+        />
     );
 }
 
