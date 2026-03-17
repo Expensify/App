@@ -1,4 +1,4 @@
-import {Skia} from '@shopify/react-native-skia';
+import {ImageFormat, Skia} from '@shopify/react-native-skia';
 import RNFS from 'react-native-fs';
 import Log from '@libs/Log';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -41,7 +41,7 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         surface.flush();
 
         snapshot = surface.makeImageSnapshot();
-        const base64 = snapshot.encodeToBase64();
+        const base64 = snapshot.encodeToBase64(ImageFormat.JPEG);
 
         // Delete any previously stitched files before creating a new one
         try {

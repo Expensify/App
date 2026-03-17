@@ -394,7 +394,11 @@ function IOURequestStepDistanceOdometer({
                 (typeof odometerStartImage !== 'string' ? odometerStartImage?.name : odometerStartImage?.split('/').pop()) ??
                 (typeof odometerEndImage !== 'string' ? odometerEndImage?.name : odometerEndImage?.split('/').pop()) ??
                 '';
-            setMoneyRequestReceipt(transactionID, uri, name, isTransactionDraft);
+            const type =
+                stitchedImage?.type ??
+                (typeof odometerStartImage !== 'string' ? odometerStartImage?.type : undefined) ??
+                (typeof odometerEndImage !== 'string' ? odometerEndImage?.type : undefined);
+            setMoneyRequestReceipt(transactionID, uri, name, isTransactionDraft, type);
         }
 
         if (isEditing) {
