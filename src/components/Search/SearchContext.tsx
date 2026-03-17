@@ -44,6 +44,7 @@ const defaultSearchContextData: SearchContextData = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
     selectedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
@@ -67,6 +68,7 @@ const defaultSearchStateContext: SearchStateContextValue = {
 
 const defaultSearchActionsContext: SearchActionsContextValue = {
     setLastSearchType: () => {},
+    setCurrentSelectedTransactionReportID: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
@@ -211,6 +213,19 @@ function SearchContextProvider({children}: SearchContextProps) {
         }));
     };
 
+    const setCurrentSelectedTransactionReportID: SearchActionsContextValue['setCurrentSelectedTransactionReportID'] = (reportID) => {
+        setSearchContextData((prevState) => {
+            if (reportID === prevState.currentSelectedTransactionReportID) {
+                return prevState;
+            }
+
+            return {
+                ...prevState,
+                currentSelectedTransactionReportID: reportID,
+            };
+        });
+    };
+
     const clearSelectedTransactions: SearchActionsContextValue['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
             if (typeof searchHashOrClearIDsFlag === 'boolean') {
@@ -292,6 +307,7 @@ function SearchContextProvider({children}: SearchContextProps) {
     const searchActionsContextValue: SearchActionsContextValue = {
         removeTransaction,
         setSelectedTransactions,
+        setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,
         setShouldShowFiltersBarLoading,
         setLastSearchType,
