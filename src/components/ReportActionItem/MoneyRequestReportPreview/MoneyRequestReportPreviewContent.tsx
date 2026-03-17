@@ -632,21 +632,24 @@ function MoneyRequestReportPreviewContent({
         });
     };
 
-    const renderItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
-        if (itemInfo.index > MAX_PREVIEWS_NUMBER - 1) {
-            return (
-                <View
-                    style={[styles.p5, styles.justifyContentCenter]}
-                    onLayout={(e) => setFooterWidth(e.nativeEvent.layout.width)}
-                >
-                    <Text style={{color: colors.blue600}}>
-                        +{transactions.length - MAX_PREVIEWS_NUMBER} {translate('common.more').toLowerCase()}
-                    </Text>
-                </View>
-            );
-        }
-        return renderTransactionItem(itemInfo);
-    };
+    const renderItem = useCallback(
+        (itemInfo: ListRenderItemInfo<Transaction>) => {
+            if (itemInfo.index > MAX_PREVIEWS_NUMBER - 1) {
+                return (
+                    <View
+                        style={[styles.p5, styles.justifyContentCenter]}
+                        onLayout={(e) => setFooterWidth(e.nativeEvent.layout.width)}
+                    >
+                        <Text style={{color: colors.blue600}}>
+                            +{transactions.length - MAX_PREVIEWS_NUMBER} {translate('common.more').toLowerCase()}
+                        </Text>
+                    </View>
+                );
+            }
+            return renderTransactionItem(itemInfo);
+        },
+        [renderTransactionItem, styles.justifyContentCenter, styles.p5, transactions.length, translate],
+    );
 
     // The button should expand up to transaction width
     const buttonMaxWidth = useMemo(() => {
