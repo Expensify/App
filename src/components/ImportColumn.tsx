@@ -235,6 +235,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                             defaultSelectedIndex={selectedIndex}
                             options={options}
                             success={false}
+                            shouldPopoverUseScrollView={options.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                         />
                     </View>
                 )}
