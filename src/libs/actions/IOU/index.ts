@@ -13204,13 +13204,16 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
         // Category, tag, tax, and billable only apply to expense/invoice reports and unreported (track) expenses.
         // For plain IOU transactions these fields are not applicable and must be silently skipped.
         const supportsExpenseFields = isUnreportedExpense || isFromExpenseReport || isInvoiceReportReportUtils(baseIouReport ?? undefined);
+        // Use the transaction's own policy for all per-transaction checks (permissions, tax, change-diffing).
+        // Falls back to the shared bulk-edit policy when the transaction's workspace cannot be resolved.
+        const transactionPolicy = (iouReport?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`] : undefined) ?? policy;
         const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
             // Unreported (track) expenses have no report, so there is no reportAction to validate against.
             // They are never approved or settled, so all bulk-editable fields are allowed.
             if (isUnreportedExpense) {
                 return true;
             }
-            return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, policy);
+            return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, transactionPolicy);
         };
 
         let transactionChanges: TransactionChanges = {};
@@ -13238,7 +13241,7 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
         }
         if (changes.taxCode && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
             transactionChanges.taxCode = changes.taxCode;
-            const taxValue = getTaxValue(policy, transaction, changes.taxCode);
+            const taxValue = getTaxValue(transactionPolicy, transaction, changes.taxCode);
             const decimals = getCurrencyDecimals(getCurrency(transaction));
             const taxAmount = calculateTaxAmount(taxValue, Math.abs(getAmount(transaction)), decimals);
             transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
@@ -13250,7 +13253,7 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
             transactionChanges.reimbursable = changes.reimbursable;
         }
 
-        transactionChanges = removeUnchangedBulkEditFields(transactionChanges, transaction, baseIouReport, policy);
+        transactionChanges = removeUnchangedBulkEditFields(transactionChanges, transaction, baseIouReport, transactionPolicy);
 
         const updates: Record<string, string | number | boolean> = {};
         if (transactionChanges.merchant) {
@@ -13341,11 +13344,6 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
                 transactionChanges.category !== undefined && transactionChanges.category === ''
                     ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
                     : optimisticViolations;
-            // Use the transaction's own policy for violation calculation when available.
-            // This prevents cross-policy false violations (e.g. CUSTOM_UNIT_OUT_OF_POLICY)
-            // when bulk editing distance expenses that belong to a different workspace than
-            // the bulk-edit policy.
-            const transactionPolicy = (iouReport?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`] : undefined) ?? policy;
             const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
             optimisticData.push(
                 ViolationsUtils.getViolationsOnyxData(
