@@ -305,16 +305,14 @@ function IOURequestStepDistanceOdometer({
         return true;
     };
 
-    // Convert a standard-format number string to the user's locale format for display
-    // (e.g. "1.5" → "1,5" in German locale).
-    const toLocaleFormat = (text: string): string => text.replace('.', toLocaleDigit('.'));
-
     const handleStartReadingChange = (text: string) => {
         if (!isOdometerInputValid(text, startReading)) {
             return;
         }
-        const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
-        const display = toLocaleFormat(normalized);
+        // Preserve the user's formatting (commas, periods) for display.
+        // Strip only truly invalid characters (letters, symbols).
+        // normalizeOdometerText is still used internally for validation and calculations.
+        const display = text.replaceAll(/[^0-9.,]/g, '').replace(/^0+(?=\d)/, '');
         setStartReading(display);
         startReadingRef.current = display;
         if (formError) {
@@ -326,8 +324,7 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, endReading)) {
             return;
         }
-        const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
-        const display = toLocaleFormat(normalized);
+        const display = text.replaceAll(/[^0-9.,]/g, '').replace(/^0+(?=\d)/, '');
         setEndReading(display);
         endReadingRef.current = display;
         if (formError) {
