@@ -559,6 +559,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         keyExtractor={(item) => item.keyForList}
                         extraData={extraData}
                         ListFooterComponent={listFooterContent}
+                        ListFooterComponentStyle={style?.listFooterContentStyle}
                         scrollEnabled={scrollEnabled}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
@@ -566,7 +567,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         style={style?.listStyle}
-                        contentContainerStyle={styles.pb3}
+                        contentContainerStyle={[styles.pb3, style?.contentContainerStyle]}
                         initialScrollIndex={shouldScrollToFocusedIndexOnMount ? initialFocusedIndex : undefined}
                         onScrollBeginDrag={onScrollBeginDrag}
                         maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}
