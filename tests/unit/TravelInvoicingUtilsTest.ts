@@ -326,6 +326,5 @@ describe('TravelInvoicingUtils', () => {
             const result = isTravelCVVEligible(true, mockTravelCardList);
             expect(result).toBe(true);
         });
-
     });
 });
