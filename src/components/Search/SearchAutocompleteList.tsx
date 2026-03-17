@@ -415,17 +415,14 @@ function SearchAutocompleteList({
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
-    const suggestionsCount = sections.reduce((total, section) => total + section.data.filter((item) => item.keyForList !== 'findItem').length, 0);
+    const suggestionsCount = sections.reduce((total, section) => total + section.data.filter((item) => item.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM).length, 0);
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue || undefined) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
 
     const firstRecentReportKey = styledRecentReports.at(0)?.keyForList;
-    const firstRecentReportFlatIndex = useMemo(() => {
-        if (!firstRecentReportKey) {
-            return -1;
-        }
-
+    let firstRecentReportFlatIndex = -1;
+    if (firstRecentReportKey) {
         let flatIndex = 0;
         for (const section of sections) {
             const hasData = (section.data?.length ?? 0) > 0;
@@ -435,14 +432,16 @@ function SearchAutocompleteList({
             }
             for (const item of section.data ?? []) {
                 if (item.keyForList === firstRecentReportKey) {
-                    return flatIndex;
+                    firstRecentReportFlatIndex = flatIndex;
+                    break;
                 }
                 flatIndex++;
             }
+            if (firstRecentReportFlatIndex !== -1) {
+                break;
+            }
         }
-
-        return -1;
-    }, [firstRecentReportKey, sections]);
+    }
 
     // When options initialize after the list is already mounted, initiallyFocusedItemKey has no effect
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
