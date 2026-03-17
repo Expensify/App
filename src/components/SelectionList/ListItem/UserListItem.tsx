@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
+import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -77,7 +78,7 @@ function UserListItem<TItem extends ListItem>({
     const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
     const shouldDisableAccessibleGrouping = !!renderedRightComponent && !canSelectMultiple;
 
-    const contactAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
+    const contactAccessibilityLabel = getAccessibilityLabel(item);
     return (
         <BaseListItem
             item={item}

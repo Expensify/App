@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
+import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
@@ -54,16 +55,6 @@ function getAccessibilityProps<TItem extends ListItem>({
         accessibilityState,
         accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel},
     } satisfies CalculatedAccessibilityProps;
-}
-
-function getAccessibilityLabel<TItem extends ListItem>(item: TItem) {
-    if (item.accessibilityLabel) {
-        return item.accessibilityLabel;
-    }
-
-    const defaultAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
-
-    return defaultAccessibilityLabel;
 }
 
 function BaseListItem<TItem extends ListItem>({
