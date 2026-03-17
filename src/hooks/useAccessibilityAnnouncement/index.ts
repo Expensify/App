@@ -15,8 +15,10 @@ const VISUALLY_HIDDEN_STYLE: Partial<CSSStyleDeclaration> = {
 };
 
 /**
- * VoiceOver on Mac echoes the completed word shortly after typing stops.
- * This delay helps ensure the alert fires after that echo finishes.
+ * VoiceOver on Mac echoes the completed word ~500-750ms after the last keystroke
+ * and takes ~300-500ms to speak it. Combined with the debounce in
+ * useDebouncedAccessibilityAnnouncement, this delay helps the alert fire after
+ * that echo finishes.
  */
 const ANNOUNCEMENT_DELAY_MS = 300;
 
@@ -28,7 +30,6 @@ function getWrapper(): HTMLDivElement {
     }
 
     wrapper = document.createElement('div');
-    wrapper.setAttribute('role', 'alert');
     wrapper.setAttribute('aria-live', 'assertive');
     wrapper.setAttribute('aria-atomic', 'true');
     Object.assign(wrapper.style, VISUALLY_HIDDEN_STYLE);
@@ -54,10 +55,15 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
         previousAnnouncedMessageRef.current = message;
 
         const container = getWrapper();
-        container.textContent = '';
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
 
         const timer = setTimeout(() => {
-            container.textContent = message;
+            const node = document.createElement('div');
+            node.setAttribute('role', 'alert');
+            node.textContent = message;
+            container.appendChild(node);
         }, ANNOUNCEMENT_DELAY_MS);
 
         return () => {

@@ -12,7 +12,8 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -43,7 +44,8 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const settings = getCardSettings(cardSettings);
+    const programKey = getCardProgramKey(cardSettings);
+    const settings = getCardSettings(cardSettings, programKey);
     const paymentBankAccountID = settings?.paymentBankAccountID;
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
@@ -74,7 +76,11 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     }, [policyID, backTo, connection]);
 
     const selectBankAccount = (newBankAccountID?: number) => {
-        updateSettlementAccount(domainName, defaultFundID, policyID, newBankAccountID, paymentBankAccountID);
+        if (!programKey) {
+            Log.alert('[ReconciliationAccountSettingsPage] selectBankAccount called without a detected card program key');
+            return;
+        }
+        updateSettlementAccount(domainName, defaultFundID, policyID, programKey, newBankAccountID, paymentBankAccountID);
         goBack();
     };
 
