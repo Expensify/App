@@ -101,6 +101,7 @@ import {
     isDistanceTypeRequest,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
+    isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isMapDistanceRequest as isMapDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
@@ -293,9 +294,9 @@ function MoneyRequestView({
 
     const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
-    const isManagedCardTransaction = isCardTransactionTransactionUtils(transaction);
+    const isFromCardImport = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, nonPersonalAndWorkspaceCards);
-    const shouldShowCard = isManagedCardTransaction && cardProgramName;
+    const shouldShowCard = isFromCardImport && cardProgramName;
 
     const taxRates = policy?.taxRates;
     const formattedTaxAmount =
@@ -401,7 +402,7 @@ function MoneyRequestView({
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!policy)) &&
         (policy?.disabledFields?.reimbursable !== true || isCurrentTransactionReimbursableDifferentFromPolicyDefault) &&
-        !isManagedCardTransaction &&
+        !isManagedCardTransactionTransactionUtils(transaction) &&
         !isInvoice;
     const canEditReimbursable =
         isEditable &&
@@ -444,7 +445,7 @@ function MoneyRequestView({
     const shouldShowConvertedAmount =
         transactionConvertedAmount &&
         currency !== moneyRequestReport?.currency &&
-        !isManagedCardTransaction &&
+        !isFromCardImport &&
         transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID &&
         !isFromMergeTransaction &&
         !isFromReviewDuplicates &&
@@ -491,7 +492,7 @@ function MoneyRequestView({
         });
     };
 
-    if (isManagedCardTransaction) {
+    if (isFromCardImport) {
         if (transactionPostedDate) {
             dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
         }

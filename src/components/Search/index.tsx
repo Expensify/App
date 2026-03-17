@@ -43,7 +43,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
     getColumnsToShow,
@@ -1146,12 +1146,14 @@ function Search({
         ],
     );
 
+    const shouldUseStrictDefaultExpenseColumns = currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON);
+
     const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
             return [];
         }
-        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, validGroupBy);
-    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy]);
+        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, validGroupBy, false, false, false, shouldUseStrictDefaultExpenseColumns);
+    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy, shouldUseStrictDefaultExpenseColumns]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
