@@ -307,7 +307,7 @@ function MoneyRequestView({
     const taxRatesDescription = taxRates?.name;
 
     const baseTransaction = updatedTransaction ?? transaction;
-    const {taxCode, taxValue} = transaction ?? {};
+    const {taxCode, taxValue} = baseTransaction ?? {};
 
     const taxRateTitle = taxCode ? getTaxName(policy, baseTransaction, isExpenseUnreported) : '';
     const hasTaxValueChanged = taxCode ? getTaxValue(policy, baseTransaction, taxCode) !== baseTransaction?.taxValue : false;
