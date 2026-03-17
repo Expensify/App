@@ -201,7 +201,10 @@ function IOURequestStepDistance({
     });
     const distanceUnit = mileageRate.unit;
     const distanceRate = mileageRate.rate ?? 0;
-    const distanceInMeters = getDistanceInMeters(currentTransaction, currentTransaction?.comment?.customUnit?.distanceUnit ? currentTransaction.comment.customUnit.distanceUnit : distanceUnit);
+    const distanceInMeters = getDistanceInMeters(
+        currentTransaction,
+        currentTransaction?.comment?.customUnit?.distanceUnit ? currentTransaction.comment.customUnit.distanceUnit : distanceUnit,
+    );
     const currentDistance = useMemo(
         () => (distanceInMeters > 0 ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit)) : undefined),
         [distanceInMeters, distanceUnit],
