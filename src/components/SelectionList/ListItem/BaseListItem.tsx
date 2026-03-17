@@ -104,6 +104,8 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
+                lang={item.lang}
+                accessibilityLanguage={item.lang}
                 onLongPress={() => {
                     onLongPressRow?.(item);
                 }}

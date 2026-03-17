@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
@@ -240,8 +241,9 @@ function NewChatPage({ref}: NewChatPageProps) {
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -402,7 +404,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected))();
+            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed))();
         });
     };
 
