@@ -594,6 +594,29 @@ function getSubscriptionPlanInfo(
     };
 }
 
+function shouldShowTrialEndedUI(
+    lastDayFreeTrial: string | undefined,
+    userBillingFundID: number | undefined,
+    policies: OnyxCollection<Policy>,
+    isGrandfatheredFree: boolean | undefined,
+    isFromInternalDomain: boolean | undefined,
+    privateSubscriptionType: SubscriptionType | undefined,
+): boolean {
+    if (!getOwnedPaidPolicies(policies, currentUserAccountID)?.length) {
+        return false;
+    }
+    if (isGrandfatheredFree || isFromInternalDomain) {
+        return false;
+    }
+    if (isSubscriptionTypeOfInvoicing(privateSubscriptionType)) {
+        return false;
+    }
+    if (doesUserHavePaymentCardAdded(userBillingFundID)) {
+        return false;
+    }
+    return hasUserFreeTrialEnded(lastDayFreeTrial);
+}
+
 function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType | undefined) {
     return privateSubscriptionType === CONST.SUBSCRIPTION.TYPE.INVOICING;
 }
@@ -619,6 +642,7 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
+    shouldShowTrialEndedUI,
     isSubscriptionTypeOfInvoicing,
 };
 
