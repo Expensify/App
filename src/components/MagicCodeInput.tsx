@@ -1,10 +1,11 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
-import {AccessibilityInfo, Platform, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -170,6 +171,7 @@ function MagicCodeInput({
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(autoFocus ? 0 : undefined);
     const editIndex = useRef(0);
     const [wasSubmitted, setWasSubmitted] = useState(false);
+    const [announcement, setAnnouncement] = useState('');
     const shouldFocusLast = useRef(false);
     const inputWidth = useRef(0);
     const lastFocusedIndex = useRef(0);
@@ -213,24 +215,15 @@ function MagicCodeInput({
         editIndex.current = index;
     };
 
-    const [announcement, setAnnouncement] = useState('');
     useEffect(() => {
         if (focusedIndex === undefined) {
             setAnnouncement('');
             return;
         }
-        const message = translate('common.enterDigitLabel', {digitIndex: focusedIndex + 1, totalDigits: maxLength});
-        if (Platform.OS === 'web') {
-            // Toggle invisible zero-width space to force aria-live to re-announce identical content
-            setAnnouncement((prev) => (prev === message ? `${message}\u200B` : message));
-        } else {
-            // accessibilityLiveRegion covers Android; iOS needs an explicit announcement
-            if (Platform.OS === 'ios') {
-                AccessibilityInfo.announceForAccessibility(message);
-            }
-            setAnnouncement(message);
-        }
+        setAnnouncement(translate('common.enterDigitLabel', {digitIndex: focusedIndex + 1, totalDigits: maxLength}));
     }, [focusedIndex, maxLength, translate]);
+
+    useAccessibilityAnnouncement(announcement, announcement.length > 0, {shouldAnnounceOnNative: true});
 
     useImperativeHandle(ref, () => ({
         focus() {
