@@ -130,6 +130,7 @@ import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
+import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
@@ -157,6 +158,8 @@ import {
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
+    getPerDiemCustomUnit,
+    getPolicyByCustomUnitID,
     getPolicyNameByID,
     getPolicyRole,
     getRuleApprovers,
@@ -356,6 +359,16 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childOldestFourAccountIDs'
     | 'delegateAccountID'
 > & {isOptimisticAction: boolean};
+
+type BuildOptimisticAddCommentReportActionParams = {
+    text?: string;
+    file?: FileObject;
+    actorAccountID?: number;
+    createdOffset?: number;
+    reportID?: string;
+    reportActionID?: string;
+    attachmentID?: string;
+};
 
 type OptimisticReportAction = {
     commentText: string;
@@ -3002,7 +3015,7 @@ type GetAddExpenseDropdownOptionsParams = {
     icons: Record<'Location' | 'ReceiptPlus', IconAsset>;
     iouReportID: string | undefined;
     policy: OnyxEntry<Policy>;
-    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     draftTransactionIDs: string[] | undefined;
     amountOwed: OnyxEntry<number>;
     ownerBillingGraceEndPeriod: OnyxEntry<number>;
@@ -3016,7 +3029,7 @@ function getAddExpenseDropdownOptions({
     icons,
     iouReportID,
     policy,
-    userBillingGraceEndPeriodCollection,
+    userBillingGraceEndPeriods,
     draftTransactionIDs,
     amountOwed,
     ownerBillingGraceEndPeriod,
@@ -3037,7 +3050,7 @@ function getAddExpenseDropdownOptions({
                 if (
                     policy &&
                     policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                    shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, amountOwed, ownerBillingGraceEndPeriod)
+                    shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)
                 ) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
@@ -3054,7 +3067,7 @@ function getAddExpenseDropdownOptions({
                 if (!iouReportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, amountOwed, ownerBillingGraceEndPeriod)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -3067,7 +3080,7 @@ function getAddExpenseDropdownOptions({
             icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, amountOwed, ownerBillingGraceEndPeriod)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -4072,7 +4085,7 @@ function getReimbursementQueuedActionMessage({
     } else {
         messageKey = 'iou.waitingOnBankAccount';
     }
-    return translate(messageKey, {submitterDisplayName});
+    return translate(messageKey, submitterDisplayName);
 }
 
 /**
@@ -5009,6 +5022,14 @@ function canEditFieldOfMoneyRequest(
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
         if (isUnreportedExpense) {
+            if (isPerDiemRequest(transaction)) {
+                // For unreported per diem expenses, check if there's a valid policy with rates.
+                const perDiemPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
+                const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
+                if (!perDiemPolicy?.arePerDiemRatesEnabled || isEmptyObject(perDiemCustomUnit?.rates)) {
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -5518,7 +5539,7 @@ function getReportPreviewMessage(
     if (report.isWaitingOnBankAccount) {
         const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
+        return translateLocal('iou.waitingOnBankAccount', submitterDisplayName);
     }
 
     const lastActorID = iouReportAction?.actorAccountID;
@@ -6319,6 +6340,11 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, b
 }
 
 function navigateOnDeleteExpense(backToRoute: Route) {
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.dismissModal();
+        return;
+    }
+
     const rootState = navigationRef.getRootState();
     const focusedRoute = findFocusedRoute(rootState);
     if (focusedRoute?.params && 'backTo' in focusedRoute.params) {
@@ -6382,7 +6408,7 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
     });
 }
 
-function getUploadingAttachmentHtml(file?: FileObject): string {
+function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): string {
     if (!file || typeof file.uri !== 'string') {
         return '';
     }
@@ -6391,6 +6417,7 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
         `${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="${file.uri}"`,
         `${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="${file.uri}"`,
         `${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="${file.name}"`,
+        attachmentID && `${CONST.ATTACHMENT_ID_ATTRIBUTE}="${attachmentID}"`,
         'width' in file && `${CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE}="${file.width}"`,
         'height' in file && `${CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE}="${file.height}"`,
     ]
@@ -6430,16 +6457,17 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return Parser.htmlToText(policy.description);
 }
 
-function buildOptimisticAddCommentReportAction(
-    text?: string,
-    file?: FileObject,
-    actorAccountID?: number,
+function buildOptimisticAddCommentReportAction({
+    text,
+    file,
+    actorAccountID,
     createdOffset = 0,
-    reportID?: string,
-    reportActionID: string = rand64(),
-): OptimisticReportAction {
+    reportID,
+    reportActionID = rand64(),
+    attachmentID,
+}: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = getParsedComment(text ?? '', {reportID});
-    const attachmentHtml = getUploadingAttachmentHtml(file);
+    const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
 
     const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
     const textForNewComment = Parser.htmlToText(htmlForNewComment);
@@ -6565,7 +6593,7 @@ function buildOptimisticTaskCommentReportAction(
     actorAccountID?: number,
     createdOffset = 0,
 ): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, taskReportID);
+    const reportAction = buildOptimisticAddCommentReportAction({text, reportID: taskReportID, createdOffset});
     if (Array.isArray(reportAction.reportAction.message)) {
         const message = reportAction.reportAction.message.at(0);
         if (message) {
@@ -10448,14 +10476,16 @@ function getTaskAssigneeChatOnyxData(
             },
         );
 
-        // If task assignee is created optimistically, we need to clear the optimistic personal details to prevent duplication with real data sent from BE.
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [assigneeAccountID]: null,
-            },
-        });
+        // If assignee is created optimistically, we need to clear the optimistic personal details to prevent duplication with real data sent from BE.
+        if (isOptimisticPersonalDetail(assigneeAccountID)) {
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [assigneeAccountID]: null,
+                },
+            });
+        }
 
         failureData.push(
             {
@@ -11291,7 +11321,7 @@ type CreateDraftTransactionParams = {
     introSelected: OnyxEntry<IntroSelected>;
     allTransactionDrafts: OnyxCollection<Transaction>;
     activePolicy: OnyxEntry<Policy>;
-    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
@@ -11305,7 +11335,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     introSelected,
     allTransactionDrafts,
     activePolicy,
-    userBillingGraceEndPeriodCollection,
+    userBillingGraceEndPeriods,
     amountOwed,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID,
@@ -11372,7 +11402,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriodCollection, amountOwed)) {
+        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriods, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
             return;
         }
@@ -11700,7 +11730,7 @@ function prepareOnboardingOnyxData({
 
     // Text message
     const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
-    const textComment = buildOptimisticAddCommentReportAction(message, undefined, actorAccountID, 1);
+    const textComment = buildOptimisticAddCommentReportAction({text: message, actorAccountID, createdOffset: 1});
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
     const textMessage: AddCommentOrAttachmentParams = {
         reportID: targetChatReportID,
@@ -11717,7 +11747,13 @@ function prepareOnboardingOnyxData({
     if (shouldUseFollowupsInsteadOfTasks && companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
         bespokeWelcomeMessage = getBespokeWelcomeMessage(userReportedIntegration);
         optimisticConciergeReportActionID = rand64();
-        bespokeAction = buildOptimisticAddCommentReportAction(bespokeWelcomeMessage, undefined, CONST.ACCOUNT_ID.CONCIERGE, 2, targetChatReportID, optimisticConciergeReportActionID);
+        bespokeAction = buildOptimisticAddCommentReportAction({
+            text: bespokeWelcomeMessage,
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            createdOffset: 2,
+            reportID: targetChatReportID,
+            reportActionID: optimisticConciergeReportActionID,
+        });
     }
 
     let createWorkspaceTaskReportID;
@@ -11828,7 +11864,7 @@ function prepareOnboardingOnyxData({
     const welcomeSignOffText =
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
-    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(welcomeSignOffText, undefined, actorAccountID, tasksData.length + 3);
+    const welcomeSignOffComment = buildOptimisticAddCommentReportAction({text: welcomeSignOffText, actorAccountID, createdOffset: tasksData.length + 3});
     const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
     const welcomeSignOffMessage = {
         reportID: targetChatReportID,
@@ -12457,7 +12493,7 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
     const message = Array.isArray(reportAction?.message) ? (reportAction?.message?.at(-1) ?? null) : (reportAction?.message ?? null);
     const html = message?.html ?? '';
     const {sourceURL} = getAttachmentDetails(html);
-    const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+    const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID) ?? [])[1];
     return sourceID;
 }
 
