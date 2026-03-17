@@ -644,6 +644,9 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
 
 /** Notify the ReportActionsView that a new comment has arrived */
 function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
+    if (!reportID) {
+        return;
+    }
     const ids = Array.isArray(reportID) ? reportID : [reportID];
     for (const id of ids) {
         const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === id);
