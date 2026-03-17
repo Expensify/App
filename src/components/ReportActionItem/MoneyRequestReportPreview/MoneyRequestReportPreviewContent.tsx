@@ -857,7 +857,44 @@ function MoneyRequestReportPreviewContent({
             default:
                 return null;
         }
-    }, []);
+    }, [
+        addExpenseDropdownOptions,
+        amountOwed,
+        buttonMaxWidth,
+        canAllowSettlement,
+        canIOUBePaidAndApproved,
+        chatReportID,
+        confirmApproval,
+        confirmPayment,
+        connectedIntegration,
+        currentUserAccountID,
+        currentUserEmail,
+        formattedAmount,
+        hasViolations,
+        iouReport,
+        iouReportNextStep,
+        isASAPSubmitBetaEnabled,
+        isApprovedAnimationRunning,
+        isDEWBetaEnabled,
+        isOffline,
+        isPaidAnimationRunning,
+        isSubmittingAnimationRunning,
+        isWaitingForSubmissionFromCurrentUser,
+        onPaymentOptionsHide,
+        onPaymentOptionsShow,
+        openReportFromPreview,
+        policy,
+        reportActions,
+        reportPreviewAction,
+        shouldShowOnlyPayElsewhere,
+        shouldShowPayButton,
+        showDEWModal,
+        startSubmittingAnimation,
+        stopAnimation,
+        styles.flexReset,
+        translate,
+        userBillingGraceEndPeriods,
+    ]);
 
     const adjustScroll = useCallback(() => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
@@ -1056,7 +1093,7 @@ function MoneyRequestReportPreviewContent({
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
                                         <View style={[totalAmountStyle, styles.justifyContentBetween, styles.gap4, StyleUtils.getMinimumHeight(variables.h28)]}>
                                             {/* height is needed to avoid flickering on animation */}
-                                            <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>
+                                            <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{activeReportPreviewAction}</View>
                                             {transactions.length > 1 && !shouldShowAccessPlaceHolder && (
                                                 <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.justifyContentBetween : styles.gap2, styles.alignItemsCenter]}>
                                                     <Text
