@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -122,7 +122,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy);
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, currentPolicy) ?? {};
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+    const transactionDetailsAmount = useMemo(() => {
+        if (typeof transactionDetails?.amount !== 'number') {
+            return 0;
+        }
+        return transactionDetails.amount;
+    }, [transactionDetails.amount]);
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const invalidSplit = splitExpenses.find((split) => {
@@ -163,6 +168,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
     const hasCustomUnitOutOfPolicyViolation = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
 
+    const draftTransactionError = useMemo(() => getLatestErrorMessage(draftTransaction ?? {}), [draftTransaction]);
     let isUnitRateIDOutOfPolicy = false;
     for (const splitExpense of splitExpenses) {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpense.transactionID)}`] ?? transaction;
@@ -179,18 +185,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             }
         }
     }
-
-    useEffect(() => {
-        const errorString = getLatestErrorMessage(draftTransaction ?? {});
-
-        if (errorString) {
-            setErrorMessage(errorString);
-        }
-    }, [draftTransaction, draftTransaction?.errors]);
-
-    useEffect(() => {
-        setErrorMessage('');
-    }, [sumOfSplitExpenses, splitExpenses]);
 
     const onAddSplitExpense = () => {
         if (draftTransaction?.errors) {
@@ -315,6 +309,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
+        setErrorMessage('');
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
             updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy);
@@ -399,6 +394,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         </View>
     );
 
+    const displayError = errorMessage || draftTransactionError;
     let warningMessage = '';
 
     if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount) {
@@ -415,12 +411,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
-            {(!!errorMessage || !!warningMessage) && (
+            {(!!displayError || !!warningMessage) && (
                 <FormHelpMessage
                     style={[styles.ph1, styles.mb2]}
-                    isError={!!errorMessage}
-                    isInfo={!errorMessage && !!warningMessage}
-                    message={errorMessage || warningMessage}
+                    isError={!!displayError}
+                    isInfo={!displayError && !!warningMessage}
+                    message={displayError || warningMessage}
                 />
             )}
             <Button
