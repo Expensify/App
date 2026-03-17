@@ -57,7 +57,7 @@ function Composer({
         if (!value) {
             return false;
         }
-        return containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? '')));
+        return containsOnlyEmojis(Parser.htmlToText(Parser.replace(value)));
     }, [value]);
 
     const theme = useTheme();
