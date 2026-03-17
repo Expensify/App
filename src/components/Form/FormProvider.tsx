@@ -445,7 +445,21 @@ function FormProvider({
                 },
             };
         },
-        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, setIsBlurred, formID, shouldValidateOnChange],
+        [
+            draftValues,
+            inputValues,
+            formState?.errorFields,
+            errors,
+            submit,
+            setTouchedInput,
+            shouldValidateOnBlur,
+            onValidate,
+            hasServerError,
+            setIsBlurred,
+            formID,
+            shouldValidateOnChange,
+            isFocusedRef,
+        ],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
