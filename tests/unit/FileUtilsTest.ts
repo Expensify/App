@@ -465,7 +465,7 @@ describe('FileUtils', () => {
         const mockTranslate = ((path: string) => path) as LocaleContextProps['translate'];
 
         it('should return correct error text for IMAGE_DIMENSIONS_TOO_LARGE', () => {
-            const result = getFileValidationErrorText(mockTranslate, CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+            const result = getFileValidationErrorText(mockTranslate, {error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE});
 
             expect(result.title).toBe('attachmentPicker.attachmentError');
             expect(result.reason).toBe('attachmentPicker.imageDimensionsTooLarge');
