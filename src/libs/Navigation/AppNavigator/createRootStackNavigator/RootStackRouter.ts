@@ -94,9 +94,16 @@ function handleNavigationGuards(
             return null;
         }
 
+        // When the redirect adds a modal (e.g., OnboardingModalNavigator), preserve the existing
+        // fullscreen routes (e.g., a deep-linked report) instead of replacing them with Home.
+        const redirectModalRoutes = redirectState.routes.filter((route) => !isFullScreenName(route.name));
+        const existingFullScreenRoutes = state.routes.filter((route) => isFullScreenName(route.name));
+
+        const finalRoutes = existingFullScreenRoutes.length > 0 && redirectModalRoutes.length > 0 ? [...existingFullScreenRoutes, ...redirectModalRoutes] : redirectState.routes;
+
         const resetAction = CommonActions.reset({
-            index: redirectState.index ?? redirectState.routes.length - 1,
-            routes: redirectState.routes,
+            index: finalRoutes.length - 1,
+            routes: finalRoutes,
         });
 
         return stackRouter.getStateForAction(state, resetAction, configOptions);
