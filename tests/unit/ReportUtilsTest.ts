@@ -597,6 +597,18 @@ describe('ReportUtils', () => {
             });
             // Without the beta, tasks SHOULD be generated (old behavior)
             expect(result?.guidedSetupData).toHaveLength(3);
+            const taskReportIDs =
+                result?.guidedSetupData.reduce<string[]>((acc, item) => {
+                    if (item.type === 'task' && typeof item.taskReportID === 'string') {
+                        acc.push(item.taskReportID);
+                    }
+                    return acc;
+                }, []) ?? [];
+            expect(taskReportIDs.length).toBeGreaterThan(0);
+            for (const taskReportID of taskReportIDs) {
+                const taskReportUpdate = result?.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
+                expect((taskReportUpdate?.value as Report | undefined)?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+            }
         });
 
         it('should add guidedSetupData when email has a +', async () => {
