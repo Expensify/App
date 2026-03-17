@@ -12,7 +12,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
+import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -66,6 +66,7 @@ import {
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -280,21 +281,15 @@ function WorkspacesListPage() {
         }
 
         if (technicalContact === userEmail) {
-            return translate('common.leaveWorkspaceConfirmationTechContact', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationTechContact', policyOwnerDisplayName);
         }
 
         if (exporters.some((exporter) => exporter === userEmail)) {
-            return translate('common.leaveWorkspaceConfirmationExporter', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationExporter', policyOwnerDisplayName);
         }
 
         if (isApprover) {
-            return translate('common.leaveWorkspaceConfirmationApprover', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationApprover', policyOwnerDisplayName);
         }
 
         if (isPolicyAdmin(policyToLeave)) {
@@ -735,16 +730,24 @@ function WorkspacesListPage() {
             }
         >
             <View style={styles.flex1}>
-                <TopBar
+                <TopBarWithLoadingBar
                     breadcrumbLabel={translate('common.workspaces')}
                     shouldDisplayHelpButton
                 >
                     {!shouldUseNarrowLayout && <View style={styles.pr2}>{headerButton}</View>}
-                </TopBar>
+                </TopBarWithLoadingBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 {shouldShowLoadingIndicator ? (
                     <View style={[styles.flex1]}>
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={
+                                {
+                                    context: 'WorkspacesListPage',
+                                    isOffline,
+                                } satisfies SkeletonSpanReasonAttributes
+                            }
+                        />
                     </View>
                 ) : (
                     <FlatList

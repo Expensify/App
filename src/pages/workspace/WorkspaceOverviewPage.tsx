@@ -60,6 +60,7 @@ import {
     isPolicyOwner,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
 } from '@libs/PolicyUtils';
+import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -118,11 +119,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
 
-    const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
-    const formattedAddress =
-        !isEmptyObject(policy) && !isEmptyObject(policy.address)
-            ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
-            : '';
+    const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
 
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
 
@@ -197,7 +194,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
 
-    const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined};
+    const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined, exactlyMatch: true};
 
     const fetchPolicyData = () => {
         if (policyDraft?.id) {
@@ -378,21 +375,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         if (technicalContact === userEmail) {
-            return translate('common.leaveWorkspaceConfirmationTechContact', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationTechContact', policyOwnerDisplayName);
         }
 
         if (exporters.some((exporter) => exporter === userEmail)) {
-            return translate('common.leaveWorkspaceConfirmationExporter', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationExporter', policyOwnerDisplayName);
         }
 
         if (isApprover) {
-            return translate('common.leaveWorkspaceConfirmationApprover', {
-                workspaceOwner: policyOwnerDisplayName,
-            });
+            return translate('common.leaveWorkspaceConfirmationApprover', policyOwnerDisplayName);
         }
 
         if (isPolicyAdminPolicyUtils(policy)) {
