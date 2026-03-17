@@ -196,6 +196,15 @@ const ROUTES = {
         route: 'search/r/:reportID/reject',
         getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}/reject` as const,
     },
+    SEARCH_DELETED_TRANSACTION: {
+        route: 'search/deleted-transaction/:transactionID',
+        getRoute: ({transactionID, backTo}: {transactionID: string; backTo?: string}) => {
+            const baseRoute = `search/deleted-transaction/${transactionID}` as const;
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
+    },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
     TRANSACTION_HOLD_REASON_SEARCH: {
         route: 'search/hold/search/:backTo?',

@@ -295,6 +295,7 @@ const SCREENS = {
         SEARCH_REPORT: 'SearchReport',
         SEARCH_REPORT_ACTIONS: 'SearchReportActions',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
+        SEARCH_DELETED_TRANSACTION: 'SearchDeletedTransaction',
 
         SEARCH_COLUMNS: 'SearchColumns',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
