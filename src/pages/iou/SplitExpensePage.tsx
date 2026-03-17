@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -137,6 +137,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     });
     const difference = sumOfSplitExpenses - transactionDetailsAmount;
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
+
+    useEffect(() => {
+        setErrorMessage('');
+    }, [splitExpenses.length]);
 
     const isPerDiem = isPerDiemRequest(transaction);
     const isDistance = isDistanceRequest(transaction);
