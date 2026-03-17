@@ -47,7 +47,6 @@ function BasePicker<TPickerValue>({
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {shouldAnnounceSelectedLabel, shouldUseCustomAccessibilityLabel} = getAccessibilityLabelConfig();
     const [isHighlighted, setIsHighlighted] = useState(false);
 
