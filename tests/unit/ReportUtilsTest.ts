@@ -574,11 +574,11 @@ describe('ReportUtils', () => {
             // suggestedFollowups beta adds a bespoke Concierge welcome action optimistically for all company sizes
             const reportActionsEntries = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
             expect(reportActionsEntries).toHaveLength(1);
-            expect(result?.bespokeWelcomeMessage).toBeDefined();
+            expect(result?.bespokeWelcomeMessage).toContain('For a small team like yours');
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
-        it('should generate bespoke welcome message for non-MICRO company sizes with suggestedFollowups beta', async () => {
+        it('should generate bespoke welcome message for SMALL company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
@@ -596,7 +596,6 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
-            expect(result?.bespokeWelcomeMessage).toBeDefined();
             expect(result?.bespokeWelcomeMessage).toContain('growing team');
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
@@ -619,7 +618,6 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
-            expect(result?.bespokeWelcomeMessage).toBeDefined();
             expect(result?.bespokeWelcomeMessage).toContain('organization your size');
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
@@ -642,7 +640,6 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
-            expect(result?.bespokeWelcomeMessage).toBeDefined();
             expect(result?.bespokeWelcomeMessage).toContain('growing team');
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
@@ -665,7 +662,6 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
-            expect(result?.bespokeWelcomeMessage).toBeDefined();
             expect(result?.bespokeWelcomeMessage).toContain('organization your size');
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
@@ -688,7 +684,6 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 userReportedIntegration: 'quickbooksOnline',
             });
-            expect(result?.bespokeWelcomeMessage).toBeDefined();
             expect(result?.bespokeWelcomeMessage).toContain('QuickBooks Online');
             expect(result?.bespokeWelcomeMessage).toContain('expenses sync automatically');
         });
