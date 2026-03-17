@@ -45,7 +45,7 @@ function flushQueue(): Promise<void> {
             ONYXKEYS.CREDENTIALS,
             ONYXKEYS.IS_SIDEBAR_LOADED,
             ONYXKEYS.ACCOUNT,
-            ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+            ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
             ONYXKEYS.MODAL,
             ONYXKEYS.NETWORK,
             ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,

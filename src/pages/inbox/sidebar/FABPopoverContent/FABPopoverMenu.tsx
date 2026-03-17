@@ -113,6 +113,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                 animationInTiming={animationInTiming}
                 animationOutTiming={animationOutTiming}
                 disableAnimation={false}
+                shouldHandleNavigationBack
                 innerContainerStyle={styles.pv0}
             >
                 <FocusTrapForModal

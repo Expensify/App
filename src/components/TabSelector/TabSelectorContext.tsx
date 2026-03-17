@@ -1,30 +1,12 @@
-import React, {createContext, useRef} from 'react';
+import React, {createContext, useContext, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+import {defaultTabSelectorActionsContextValue, defaultTabSelectorStateContextValue} from './default';
 import scrollToTabUtil from './scrollToTab';
+import type {TabSelectorActionsContextType, TabSelectorContextProviderProps, TabSelectorStateContextType} from './types.context';
 
-type TabSelectorContextValue = {
-    containerRef: React.RefObject<RNScrollView | null>;
-    onContainerLayout: (event: LayoutChangeEvent) => void;
-    onContainerScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    scrollToTab: (tabKey: string) => void;
-    onTabLayout: (tabKey: string, event: LayoutChangeEvent) => void;
-};
-
-type TabSelectorContextProviderProps = {
-    activeTabKey: string;
-    children: React.ReactNode;
-};
-
-const defaultValue: TabSelectorContextValue = {
-    containerRef: {current: null},
-    onContainerLayout: () => {},
-    onContainerScroll: () => {},
-    scrollToTab: () => {},
-    onTabLayout: () => {},
-};
-
-const TabSelectorContext = createContext<TabSelectorContextValue>(defaultValue);
+const TabSelectorStateContext = createContext<TabSelectorStateContextType>(defaultTabSelectorStateContextValue);
+const TabSelectorActionsContext = createContext<TabSelectorActionsContextType>(defaultTabSelectorActionsContextValue);
 
 function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContextProviderProps) {
     const containerRef = useRef<RNScrollView>(null);
@@ -74,19 +56,28 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
         scrollToTabUtil({tabX, tabWidth, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
     };
 
-    // React Compiler auto-memoization
+    // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue = {
-        containerRef,
-        onTabLayout,
-        onContainerLayout,
-        onContainerScroll,
-        scrollToTab,
-    };
+    const stateValue: TabSelectorStateContextType = {containerRef};
 
-    return <TabSelectorContext.Provider value={contextValue}>{children}</TabSelectorContext.Provider>;
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const actionsValue: TabSelectorActionsContextType = {onContainerLayout, onContainerScroll, scrollToTab, onTabLayout};
+
+    return (
+        <TabSelectorStateContext.Provider value={stateValue}>
+            <TabSelectorActionsContext.Provider value={actionsValue}>{children}</TabSelectorActionsContext.Provider>
+        </TabSelectorStateContext.Provider>
+    );
 }
 
-export default TabSelectorContextProvider;
+function useTabSelectorState(): TabSelectorStateContextType {
+    return useContext(TabSelectorStateContext);
+}
 
-export {TabSelectorContext};
+function useTabSelectorActions(): TabSelectorActionsContextType {
+    return useContext(TabSelectorActionsContext);
+}
+
+export {useTabSelectorState, useTabSelectorActions};
+export default TabSelectorContextProvider;
