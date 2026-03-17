@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -84,7 +85,10 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
                     onBackButtonPress={handleCloseWithFallback}
                 />
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'VerifyAccountPageBase', isUserValidated} satisfies SkeletonSpanReasonAttributes}
+                    />
                 </View>
             </ScreenWrapper>
         );
