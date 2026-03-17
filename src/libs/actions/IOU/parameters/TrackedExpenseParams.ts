@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CreateWorkspaceParams} from '@libs/API/parameters';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';

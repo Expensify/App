@@ -1,4 +1,4 @@
-export type BaseTransactionParams = {
+type BaseTransactionParams = {
     amount: number;
     modifiedAmount?: number;
     currency: string;
@@ -14,3 +14,5 @@ export type BaseTransactionParams = {
     customUnitRateID?: string;
     isFromGlobalCreate?: boolean;
 };
+
+export type {BaseTransactionParams};

@@ -1276,7 +1276,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Unreported distance requests should skip createDistanceRequest and use requestMoney
             await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            expect(TrackExpense.createDistanceRequest).not.toHaveBeenCalled();
+            expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
         });
     });
 
