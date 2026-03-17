@@ -154,14 +154,10 @@ function WorkspacePopup({policyIDQuery, updateFilterForm, closeOverlay}: FilterB
             icons: workspace.icons,
         }));
 
-    const selectedWorkspaceOptions = (() => {
-        const policyIDs = policyID ?? policyIDQuery;
-        if (!policyIDs) {
-            return [];
-        }
-        const normalizedIDs = Array.isArray(policyIDs) ? policyIDs : [policyIDs];
-        return workspaceOptions.filter((option) => normalizedIDs.includes(option.value));
-    })();
+    const policyIDs = policyID ?? policyIDQuery;
+    const selectedWorkspaceOptions = policyIDs
+        ? workspaceOptions.filter((option) => (Array.isArray(policyIDs) ? policyIDs : [policyIDs]).includes(option.value))
+        : [];
 
     const handleWorkspaceChange = (items: Array<MultiSelectItem<string>>) => {
         updateFilterForm({policyID: items.map((item) => item.value)});
