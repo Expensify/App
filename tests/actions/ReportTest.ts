@@ -4036,6 +4036,30 @@ describe('actions/Report', () => {
             }).not.toThrow();
         });
 
+        it('should navigate via navigateToAndOpenReport with isSelfTourViewed when conciergeReportID is undefined and page is active', async () => {
+            const checkIfCurrentPageActive = jest.fn(() => true);
+
+            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, true, false, checkIfCurrentPageActive);
+
+            await waitForBatchedUpdates();
+
+            // checkIfCurrentPageActive should have been called, proving the onServerDataReady path was taken
+            expect(checkIfCurrentPageActive).toHaveBeenCalled();
+            // Navigation should have been triggered (navigateToAndOpenReport calls navigateToReport -> Navigation.navigate)
+            expect(mockNavigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should navigate via navigateToAndOpenReport with isSelfTourViewed=undefined when conciergeReportID is undefined', async () => {
+            const checkIfCurrentPageActive = jest.fn(() => true);
+
+            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, false, checkIfCurrentPageActive);
+
+            await waitForBatchedUpdates();
+
+            expect(checkIfCurrentPageActive).toHaveBeenCalled();
+            expect(mockNavigation.navigate).toHaveBeenCalled();
+        });
+
         it('should navigate correctly with isSelfTourViewed=true and existing conciergeReportID', async () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
