@@ -305,8 +305,6 @@ function getTransactionPreviewTextAndTranslationPaths({
         if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
             RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
         }
-    } else if (isTransactionScanning) {
-        previewHeaderText = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction)) || 'common.receipt'}];
     } else if (isBillSplit) {
         previewHeaderText = [{translationPath: 'iou.split'}];
     }
