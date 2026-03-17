@@ -532,7 +532,7 @@ function SearchTableHeader({
             // In GroupBy views, disable flex expansion for Total columns so Expenses column gets more space
             shouldRemoveTotalColumnFlex={!!groupBy && !isExpenseReportView}
             // Don't butt up against the 'select all' checkbox if present
-            containerStyles={canSelectMultiple && [styles.pl4]}
+            containerStyles={canSelectMultiple && [styles.pl3]}
             onSortPress={(columnName, order) => {
                 if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
                     return;
