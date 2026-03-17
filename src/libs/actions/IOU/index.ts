@@ -13363,7 +13363,7 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
         // Optimistically update violations so they disappear immediately when the edited field resolves them.
         // Skip for unreported expenses: they have no iouReport context so isSelfDM() returns false,
         // which would incorrectly trigger policy-required violations (e.g. missingCategory).
-        if (policy && !isUnreportedExpense) {
+        if (transactionPolicy && !isUnreportedExpense) {
             const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             let optimisticViolations =
                 transactionChanges.amount !== undefined || transactionChanges.created || transactionChanges.currency
