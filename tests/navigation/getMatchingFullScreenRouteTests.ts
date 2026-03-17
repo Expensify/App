@@ -68,7 +68,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         expect(result).toEqual(fullScreenRoute);
     });
 
-    it('should strip all suffixes from a layered path before resolving the matching full screen route', () => {
+    it('should strip the outermost suffix from a layered path before resolving the matching full screen route', () => {
         const route = {
             name: 'DynamicScreen',
             path: '/base/suffix-a/suffix-b',
@@ -79,16 +79,16 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             index: 1,
         };
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base' ? basePathState : undefined));
+        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base/suffix-a' ? basePathState : undefined));
 
         const result = getMatchingFullScreenRoute(route);
 
         expect(mockGetStateFromPath).toHaveBeenCalledTimes(1);
-        expect(mockGetStateFromPath).toHaveBeenCalledWith('/base');
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/base/suffix-a');
         expect(result).toEqual(fullScreenRoute);
     });
 
-    it('should strip all suffixes when the inner suffix is multi-segment', () => {
+    it('should strip the outermost suffix when the inner suffix is multi-segment', () => {
         const route = {
             name: 'DynamicScreen',
             path: '/base/deep/suffix-a/suffix-b',
@@ -99,12 +99,12 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             index: 1,
         };
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base' ? basePathState : undefined));
+        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base/deep/suffix-a' ? basePathState : undefined));
 
         const result = getMatchingFullScreenRoute(route);
 
         expect(mockGetStateFromPath).toHaveBeenCalledTimes(1);
-        expect(mockGetStateFromPath).toHaveBeenCalledWith('/base');
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/base/deep/suffix-a');
         expect(result).toEqual(fullScreenRoute);
     });
 
@@ -144,15 +144,15 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             path: '/invalid/base/suffix-a/suffix-b',
         };
         const invalidRouteState = {
-            routes: [{name: SCREENS.NOT_FOUND, path: '/invalid/base'}],
+            routes: [{name: SCREENS.NOT_FOUND, path: '/invalid/base/suffix-a'}],
             index: 0,
         };
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/invalid/base' ? invalidRouteState : undefined));
+        mockGetStateFromPath.mockImplementation((path: string) => (path === '/invalid/base/suffix-a' ? invalidRouteState : undefined));
 
         const result = getMatchingFullScreenRoute(route);
 
-        expect(mockGetStateFromPath).toHaveBeenCalledWith('/invalid/base');
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/invalid/base/suffix-a');
         expect(result).toBeUndefined();
     });
 
@@ -178,7 +178,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
 
         const result = getMatchingFullScreenRoute(route);
 
-        expect(mockGetStateFromPath).toHaveBeenCalledWith('/broken/path');
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/broken/path/suffix-a');
         expect(result).toBeUndefined();
     });
 });
