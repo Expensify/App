@@ -3,7 +3,9 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useFilterFeedValues from '@components/Search/hooks/useFilterFeedValue';
 import useFilterFromValues from '@components/Search/hooks/useFilterFromValue';
+import useFilterWorkspaceValues from '@components/Search/hooks/useFilterWorkspaceValue';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -35,11 +37,11 @@ function FilterFromValue({value}: FilterValueProps) {
 }
 
 function FilterWorkspaceValue({value}: FilterValueProps) {
-    return useFilterFromValues(value);
+    return useFilterWorkspaceValues(value);
 }
 
 function FilterFeedValue({value}: FilterValueProps) {
-    return useFilterFromValues(value);
+    return useFilterFeedValues(value);
 }
 
 function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
