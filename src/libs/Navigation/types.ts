@@ -2872,6 +2872,7 @@ type AttachmentModalScreensParamList = {
     [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
         reportID?: string;
+        reportActionID?: string;
         accountID?: number;
         attachmentID?: string;
         type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
@@ -2887,6 +2888,7 @@ type AttachmentModalScreensParamList = {
     };
     [SCREENS.REPORT_ADD_ATTACHMENT]: AttachmentModalContainerModalProps & {
         reportID?: string;
+        reportActionID?: string;
         accountID?: number;
         attachmentID?: string;
         source?: AvatarSource;
@@ -3050,10 +3052,13 @@ type RestrictedActionParamList = {
 
 type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS]: {
+        cardID: string;
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
+    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
+        cardID: string;
+    };
 };
 
 type SplitExpenseParamList = {

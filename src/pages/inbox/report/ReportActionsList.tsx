@@ -73,9 +73,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
-import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
+import StaticReportActionsPreview from './StaticReportActionsPreview';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 
 type ReportActionsListProps = {
@@ -210,14 +210,17 @@ function ReportActionsList({
     const isFocused = useIsFocused();
 
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
-    const [allDraftMessages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`);
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`);
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {
+        selector: tierNameSelector,
+    });
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: isUserValidatedSelector,
+    });
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
@@ -658,14 +661,14 @@ function ReportActionsList({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
             }
-            openReport({reportID: report.reportID, introSelected});
+            openReport({reportID: report.reportID, introSelected, betas});
             reportScrollManager.scrollToBottom();
             return;
         }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportMetadata?.hasOnceLoadedReportActions, betas]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
@@ -710,13 +713,8 @@ function ReportActionsList({
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
-    const {editingReportActionID, editingMessage} = useReportActionActiveEdit();
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            const draftMessage = !!editingReportActionID && editingReportActionID === reportAction.reportActionID ? (editingMessage ?? undefined) : undefined;
-
-            const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
-
             const showPreviousMessagesButton = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isConciergeSidePanel && !!showHiddenHistory && !!hasPreviousMessages;
 
             return (
@@ -757,10 +755,6 @@ function ReportActionsList({
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetailsList}
-                        emojiReactions={actionEmojiReactions}
-                        allDraftMessages={allDraftMessages}
-                        draftMessage={draftMessage}
-                        allEmojiReactions={emojiReactions}
                         isReportArchived={isReportArchived}
                         userBillingFundID={userBillingFundID}
                         isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
@@ -771,12 +765,23 @@ function ReportActionsList({
             );
         },
         [
-            editingReportActionID,
-            editingMessage,
-            emojiReactions,
+            report,
+            isConciergeSidePanel,
+            showHiddenHistory,
+            hasPreviousMessages,
+            styles.flexRow,
+            styles.alignItemsCenter,
+            styles.pv3,
+            styles.mh5,
+            styles.threadDividerLine,
+            styles.ml0,
+            styles.mr0,
+            styles.flexGrow1,
+            expensifyIcons.UpArrow,
+            translate,
+            onShowPreviousMessages,
             parentReportAction,
             parentReportActionForTransactionThread,
-            report,
             transactionThreadReport,
             linkedReportActionID,
             sortedVisibleReportActions,
@@ -788,19 +793,11 @@ function ReportActionsList({
             userWalletTierName,
             isUserValidated,
             personalDetailsList,
-            allDraftMessages,
             isReportArchived,
             userBillingFundID,
             isTryNewDotNVPDismissed,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
-            isConciergeSidePanel,
-            showHiddenHistory,
-            hasPreviousMessages,
-            onShowPreviousMessages,
-            styles,
-            translate,
-            expensifyIcons.UpArrow,
         ],
     );
 
@@ -870,14 +867,20 @@ function ReportActionsList({
 
     const renderTopReportActions = useCallback(() => {
         const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
+
         return (
             <>
-                {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
-                <View style={[styles.overflowScroll, styles.overflowXHidden, styles.pt4]}>
+                {!shouldShowReportRecipientLocalTime && !hideComposer && <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} />}
+                <StaticReportActionsPreview>
                     {previewItems.map((action) => (
-                        <View key={action.reportActionID}>{renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+                        <View key={action.reportActionID}>
+                            {renderItem({
+                                item: action,
+                                index: sortedVisibleReportActions.indexOf(action),
+                            } as ListRenderItemInfo<OnyxTypes.ReportAction>)}
+                        </View>
                     ))}
-                </View>
+                </StaticReportActionsPreview>
             </>
         );
     }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
@@ -912,7 +915,7 @@ function ReportActionsList({
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
-                    style={styles.overscrollBehaviorContain}
+                    style={[styles.overscrollBehaviorContain, shouldScrollToEndAfterLayout && styles.flex0]}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
