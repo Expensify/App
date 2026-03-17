@@ -488,10 +488,11 @@ function normalizeOdometerText(text: string, fromLocaleDigit: (char: string) => 
 
 /**
  * Prepare odometer input text for display by removing non-numeric characters
- * (except the decimal point and comma) and stripping redundant leading zeroes.
+ * (except the decimal point, comma, and space — which serve as group or
+ * decimal separators depending on locale) and stripping redundant leading zeroes.
  */
 function prepareTextForDisplay(text: string): string {
-    return text.replaceAll(/[^0-9.,]/g, '').replace(/^0+(?=\d)/, '');
+    return text.replaceAll(/[^0-9., ]/g, '').replace(/^0+(?=\d)/, '');
 }
 
 export default {

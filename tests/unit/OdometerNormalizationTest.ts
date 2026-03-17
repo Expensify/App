@@ -129,4 +129,12 @@ describe('prepareTextForDisplay', () => {
     it("handles valid number unchanged: '12345.6' → '12345.6'", () => {
         expect(DistanceRequestUtils.prepareTextForDisplay('12345.6')).toBe('12345.6');
     });
+
+    it("keeps spaces as group separator (French locale): '1 234,5' → '1 234,5'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('1 234,5')).toBe('1 234,5');
+    });
+
+    it("keeps periods as group separator (Italian locale): '1.234,5' → '1.234,5'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('1.234,5')).toBe('1.234,5');
+    });
 });
