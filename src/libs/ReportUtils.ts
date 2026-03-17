@@ -10386,6 +10386,15 @@ function getTaskAssigneeChatOnyxData(
         successData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${assigneeChatReportID}`,
                 value: {
                     isOptimisticReport: false,
@@ -10414,9 +10423,6 @@ function getTaskAssigneeChatOnyxData(
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
                     value: {
-                        pendingFields: {
-                            createChat: null,
-                        },
                         // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
                         participants: {[assigneeAccountID]: null},
                     },
