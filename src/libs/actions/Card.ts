@@ -378,8 +378,8 @@ function syncCard(cardID: number, lastScrapeResult?: number, breakConnection?: b
     };
 
     if (breakConnection) {
-        // Simulate "Account not found" error code for testing
-        parameters.breakConnection = 434;
+        // Simulate "Account refresh required" error code for testing
+        parameters.breakConnection = 438;
     }
 
     API.write(WRITE_COMMANDS.SYNC_CARD, parameters, {optimisticData, finallyData, failureData});
