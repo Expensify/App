@@ -60,6 +60,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -155,19 +156,20 @@ function MoneyRequestReportActionsList({
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
     const parentReportAction = useParentReportAction(report);
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {
+        selector: tierNameSelector,
+    });
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: isUserValidatedSelector,
+    });
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const personalDetails = usePersonalDetails();
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`);
-    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -246,8 +248,12 @@ function MoneyRequestReportActionsList({
     const onDeleteSelected = useCallback(
         (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
             showConfirmModal({
-                title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
-                prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
+                title: translate('iou.deleteExpense', {
+                    count: selectedTransactionIDs.length,
+                }),
+                prompt: translate('iou.deleteConfirmation', {
+                    count: selectedTransactionIDs.length,
+                }),
                 confirmText: translate('common.delete'),
                 cancelText: translate('common.cancel'),
                 danger: true,
@@ -311,7 +317,11 @@ function MoneyRequestReportActionsList({
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
             if (report?.reportID) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
+                Navigation.navigate(
+                    ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
+                        reportID: report.reportID,
+                    }),
+                );
             }
         }
         setRejectModalAction(null);
@@ -346,6 +356,11 @@ function MoneyRequestReportActionsList({
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
 
     const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MoneyRequestReportActionsList',
+        isOffline,
+        showReportActionsLoadingState: !!showReportActionsLoadingState,
+    };
     useEffect(() => {
         if (!shouldShowOpenReportLoadingSkeleton) {
             return;
@@ -399,7 +414,9 @@ function MoneyRequestReportActionsList({
 
     const visibleActionsMap = useMemo(() => {
         return visibleReportActions.reduce((actionsMap, reportAction) => {
-            Object.assign(actionsMap, {[reportAction.reportActionID]: reportAction});
+            Object.assign(actionsMap, {
+                [reportAction.reportActionID]: reportAction,
+            });
             return actionsMap;
         }, {} as OnyxTypes.ReportActions);
     }, [visibleReportActions]);
@@ -667,15 +684,10 @@ function MoneyRequestReportActionsList({
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
                 hasNextActionMadeBySameActor(visibleReportActions, index);
 
-            const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
             const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsObject);
-            const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
-            const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
-            const matchingDraftMessageString = matchingDraftMessage?.message;
 
             return (
                 <ReportActionsListItemRenderer
-                    policies={policies}
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
                     parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
@@ -693,9 +705,8 @@ function MoneyRequestReportActionsList({
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
-                    emojiReactions={actionEmojiReactions}
+                    originalReportID={originalReportID}
                     isReportArchived={isReportArchived}
-                    draftMessage={matchingDraftMessageString}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                     reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
@@ -712,13 +723,10 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            policies,
             userWalletTierName,
             isUserValidated,
             personalDetails,
             userBillingFundID,
-            emojiReactions,
-            draftMessage,
             isTryNewDotNVPDismissed,
             isReportArchived,
             reportNameValuePairs?.origin,
@@ -730,7 +738,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport({reportID: report.reportID, introSelected});
+            openReport({reportID: report.reportID, introSelected, betas});
             reportScrollManager.scrollToEnd();
             return;
         }
@@ -738,7 +746,7 @@ function MoneyRequestReportActionsList({
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
         readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, reportMetadata?.hasOnceLoadedReportActions, introSelected, betas]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
@@ -795,7 +803,9 @@ function MoneyRequestReportActionsList({
                     <ButtonWithDropdownMenu
                         onPress={() => null}
                         options={selectedTransactionsOptions}
-                        customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                        customText={translate('workspace.common.selected', {
+                            count: selectedTransactionIDs.length,
+                        })}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
                         wrapperStyle={[styles.w100, styles.ph5]}
@@ -890,7 +900,7 @@ function MoneyRequestReportActionsList({
                         onScroll={trackVerticalScrolling}
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
                         ref={reportScrollManager.ref}
-                        ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
+                        ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                         removeClippedSubviews={false}
                         initialScrollKey={linkedReportActionID}
                     />

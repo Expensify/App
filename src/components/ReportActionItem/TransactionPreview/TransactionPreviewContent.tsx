@@ -33,6 +33,7 @@ import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
@@ -247,6 +248,11 @@ function TransactionPreviewContent({
 
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TransactionPreviewContent',
+        shouldShowSkeleton,
+    };
+
     return (
         <Animated.View style={[transactionWrapperStyles, containerStyles, animatedHighlightStyle]}>
             <OfflineWithFeedback
@@ -268,7 +274,10 @@ function TransactionPreviewContent({
                         shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
                     />
                     {shouldShowSkeleton ? (
-                        <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
+                        <TransactionPreviewSkeletonView
+                            transactionPreviewWidth={transactionPreviewWidth}
+                            reasonAttributes={skeletonReasonAttributes}
+                        />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
@@ -344,7 +353,7 @@ function TransactionPreviewContent({
                                         <View style={[styles.flexRow, styles.justifyContentEnd]}>
                                             {!!splitShare && (
                                                 <Text style={[isDeleted && styles.lineThrough, styles.textLabel, styles.colorMuted, styles.amountSplitPadding]}>
-                                                    {translate('iou.yourSplit', {amount: convertToDisplayString(splitShare, requestCurrency)})}
+                                                    {translate('iou.yourSplit', convertToDisplayString(splitShare, requestCurrency))}
                                                 </Text>
                                             )}
                                         </View>

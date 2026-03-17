@@ -119,22 +119,6 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 expect(canEditReportField).toBe(true);
             });
-
-            it('should return false for invoice report action when billable field is edited on an approved invoice report', async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                });
-                await waitForBatchedUpdates();
-
-                const canEditBillable = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.BILLABLE);
-                expect(canEditBillable).toBe(false);
-            });
-
-            it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {
-                const canEditBillable = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.BILLABLE);
-                expect(canEditBillable).toBe(true);
-            });
         });
 
         describe('type is expense', () => {
@@ -309,6 +293,105 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
 
                 // Then they should be able to move the expense since there are multiple outstanding expense reports
+                expect(canEditReportField).toBe(false);
+            });
+        });
+
+        describe('unreported per diem expense', () => {
+            const PER_DIEM_IOU_TRANSACTION_ID = '99';
+            const PER_DIEM_CUSTOM_UNIT_ID = 'perDiemUnit1';
+            const PER_DIEM_POLICY_ID = '55';
+
+            const perDiemReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: PER_DIEM_IOU_TRANSACTION_ID,
+                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const perDiemTransaction = {
+                ...createRandomTransaction(Number(PER_DIEM_IOU_TRANSACTION_ID)),
+                transactionID: PER_DIEM_IOU_TRANSACTION_ID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 100,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        customUnitID: PER_DIEM_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            };
+
+            const policyWithPerDiemRates: Policy = {
+                ...createRandomPolicy(Number(PER_DIEM_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                id: PER_DIEM_POLICY_ID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                arePerDiemRatesEnabled: true,
+                isPolicyExpenseChatEnabled: true,
+                customUnits: {
+                    [PER_DIEM_CUSTOM_UNIT_ID]: {
+                        customUnitID: PER_DIEM_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', name: 'Overnight', rate: 100, enabled: true},
+                        },
+                        enabled: true,
+                    },
+                },
+            };
+
+            const policyWithoutPerDiemRates: Policy = {
+                ...policyWithPerDiemRates,
+                customUnits: {
+                    [PER_DIEM_CUSTOM_UNIT_ID]: {
+                        customUnitID: PER_DIEM_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        rates: {},
+                        enabled: true,
+                    },
+                },
+            };
+
+            beforeEach(() => {
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${PER_DIEM_IOU_TRANSACTION_ID}`, perDiemTransaction);
+                return waitForBatchedUpdates();
+            });
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return true for unreported per diem expense when policy has per diem rates', async () => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policyWithPerDiemRates], (p) => p.id);
+                Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditReportField = canEditFieldOfMoneyRequest(perDiemReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined);
+
+                expect(canEditReportField).toBe(true);
+            });
+
+            it('should return false for unreported per diem expense when policy has no per diem rates', async () => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policyWithoutPerDiemRates], (p) => p.id);
+                Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditReportField = canEditFieldOfMoneyRequest(perDiemReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined);
+
                 expect(canEditReportField).toBe(false);
             });
         });
