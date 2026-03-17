@@ -300,6 +300,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 useSelectionModeHeader={selectionModeHeader}
                 getCustomRightElement={getGroupRightElement}
                 searchBarAccessory={groupFilterDropdown}
+                emptyStateTitle={translate('domain.members.emptyMembers.title')}
+                emptyStateSubtitle={translate('domain.members.emptyMembers.subtitle')}
                 turnOnSelectionModeOnLongPress
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {

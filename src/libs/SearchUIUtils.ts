@@ -163,6 +163,10 @@ import ViolationsUtils from './Violations/ViolationsUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
+type GroupBySection = {
+    sectionIndex: number;
+    options: Array<SingleSelectItem<SearchGroupBy>>;
+};
 
 // List Item sorting
 type TransactionSorting = ColumnSortMapping<TransactionListItemType>;
@@ -3985,6 +3989,30 @@ function getGroupByOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
 }
 
+function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
+    const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> => ({
+        text: translate(`search.filters.groupBy.${groupBy}`),
+        value: groupBy,
+    });
+    return [
+        {
+            options: [getOption(CONST.SEARCH.GROUP_BY.FROM), getOption(CONST.SEARCH.GROUP_BY.CARD)],
+        },
+        {
+            options: [getOption(CONST.SEARCH.GROUP_BY.CATEGORY), getOption(CONST.SEARCH.GROUP_BY.MERCHANT), getOption(CONST.SEARCH.GROUP_BY.TAG)],
+        },
+        {
+            options: [getOption(CONST.SEARCH.GROUP_BY.MONTH), getOption(CONST.SEARCH.GROUP_BY.WEEK), getOption(CONST.SEARCH.GROUP_BY.YEAR), getOption(CONST.SEARCH.GROUP_BY.QUARTER)],
+        },
+        {
+            options: [getOption(CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID)],
+        },
+    ].map((section, sectionIndex) => ({
+        ...section,
+        sectionIndex,
+    }));
+}
+
 function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
 }
@@ -4750,6 +4778,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getGroupBySections,
     getViewOptions,
     getGroupCurrencyOptions,
     getFeedOptions,
@@ -4781,4 +4810,4 @@ export {
     applySelectionToItem,
     isPolicyEligibleForSpendOverTime,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection};
