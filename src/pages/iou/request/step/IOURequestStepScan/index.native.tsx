@@ -24,6 +24,7 @@ function IOURequestStepScan({
         params: {action, iouType, transactionID: initialTransactionID, backTo},
     },
     transaction: initialTransaction,
+    onLayout,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const policy = usePolicy(report?.policyID);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`);
@@ -34,17 +35,17 @@ function IOURequestStepScan({
         !!skipConfirmation && !!report?.reportID && !isArchived && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
 
     if (backTo || isEditing) {
-        return <ScanEditReceipt />;
+        return <ScanEditReceipt onLayout={onLayout} />;
     }
 
     if (!isFromGlobalCreate && !isArchived && iouType !== CONST.IOU.TYPE.CREATE) {
         if (shouldSkipConfirmation) {
-            return <ScanSkipConfirmation />;
+            return <ScanSkipConfirmation onLayout={onLayout} />;
         }
-        return <ScanFromReport />;
+        return <ScanFromReport onLayout={onLayout} />;
     }
 
-    return <ScanGlobalCreate />;
+    return <ScanGlobalCreate onLayout={onLayout} />;
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables

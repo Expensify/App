@@ -1,29 +1,34 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
-import TestReceipt from '@assets/images/fake-receipt.png';
+import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
-import setTestReceipt from '@libs/actions/setTestReceipt';
-import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import {navigateToConfirmationPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {shouldReuseInitialTransaction} from '@libs/TransactionUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import bridgeCameraToValidation from '@pages/iou/request/step/IOURequestStepScan/utils/bridgeCameraToValidation';
+import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
+import createTestReceiptHandler from '@pages/iou/request/step/IOURequestStepScan/utils/createTestReceiptHandler';
+import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
+import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
+import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
-import {checkIfScanFileCanBeRead, setMoneyRequestReceipt, setMultipleMoneyRequestParticipantsFromReport} from '@userActions/IOU';
-import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
+import {setMultipleMoneyRequestParticipantsFromReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
+
+type ScanFromReportProps = {
+    onLayout?: (setTestReceiptAndNavigate: () => void) => void;
+};
 
 /**
  * ScanFromReport — the most common scan flow.
@@ -31,7 +36,7 @@ import Camera from './Camera';
  *
  * Press handler: setMultipleMoneyRequestParticipantsFromReport -> navigateToConfirmationPage
  */
-function ScanFromReport() {
+function ScanFromReport({onLayout}: ScanFromReportProps) {
     const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
     const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
 
@@ -52,12 +57,7 @@ function ScanFromReport() {
     // The extra params satisfy the prop contract but are not used by this variant
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function navigateToConfirmationStep(files: ReceiptFile[], _locationPermissionGranted = false, _isTestTransaction = false) {
-        startSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE, {
-            name: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
-            op: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_IS_MULTI_SCAN]: false},
-        });
+        startScanProcessSpan();
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -71,88 +71,42 @@ function ScanFromReport() {
         );
     }
 
-    function processReceipts(files: FileObject[], getFileSource: (file: FileObject) => string) {
+    function processReceipts(files: FileObject[]) {
         if (files.length === 0) {
             return;
         }
 
-        const newReceiptFiles: ReceiptFile[] = [];
-
-        for (const [index, file] of files.entries()) {
-            const source = getFileSource(file);
-            const transaction = shouldReuseInitialTransaction(initialTransaction, shouldAcceptMultipleFiles, index, false, transactions)
-                ? (initialTransaction as Partial<Transaction>)
-                : buildOptimisticTransactionAndCreateDraft({
-                      initialTransaction: initialTransaction as Partial<Transaction>,
-                      currentUserPersonalDetails,
-                      reportID,
-                  });
-
-            const transactionID = transaction.transactionID ?? initialTransactionID;
-            newReceiptFiles.push({file, source, transactionID});
-            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
-        }
+        const newReceiptFiles = buildReceiptFiles({
+            files,
+            getSource: getFileSource,
+            initialTransaction,
+            initialTransactionID,
+            shouldAcceptMultipleFiles,
+            transactions,
+            currentUserPersonalDetails,
+            reportID,
+        });
 
         // ScanFromReport never skips confirmation, so go straight to navigateToConfirmationStep
         navigateToConfirmationStep(newReceiptFiles, false);
     }
 
-    const getSource = (file: FileObject) => file.uri ?? URL.createObjectURL(file as Blob);
-
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files, getSource);
+        processReceipts(files);
     });
 
     function handleCapture(file: FileObject, source: string) {
-        // Attach the source URI so getSource can find it
-        const fileWithUri: FileObject = file;
-        fileWithUri.uri = source;
-        validateFiles([fileWithUri]);
+        bridgeCameraToValidation(file, source, validateFiles);
     }
 
-    // Exposed for test infrastructure via onLayout pattern — will be wired by the router component
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    function setTestReceiptAndNavigate() {
-        setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
-            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
-            removeDraftTransactions(true);
-            navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
-        });
-    }
+    const testReceiptHandler = createTestReceiptHandler(initialTransactionID, isEditing, navigateToConfirmationStep);
 
     // End the create expense span on mount
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
 
-    // Check if scan file can be read on mount
-    useEffect(() => {
-        let isAllScanFilesCanBeRead = true;
-
-        Promise.all(
-            transactions.map((item) => {
-                const itemReceiptPath = item.receipt?.source;
-                const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
-
-                if (!isLocalFile) {
-                    return Promise.resolve();
-                }
-
-                const onFailure = () => {
-                    isAllScanFilesCanBeRead = false;
-                };
-
-                return checkIfScanFileCanBeRead(item.receipt?.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
-            }),
-        ).then(() => {
-            if (isAllScanFilesCanBeRead) {
-                return;
-            }
-            removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-            removeDraftTransactions(true);
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useScanFileReadabilityCheck(transactions);
 
     return (
         <StepScreenWrapper
@@ -161,13 +115,15 @@ function ScanFromReport() {
             shouldShowWrapper={shouldShowWrapper}
             testID="IOURequestStepScan"
         >
-            {PDFValidationComponent}
-            <Camera
-                // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
-                onCapture={handleCapture}
-                shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
-            />
-            {ErrorModal}
+            <View onLayout={() => onLayout?.(testReceiptHandler)}>
+                {PDFValidationComponent}
+                <Camera
+                    // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
+                    onCapture={handleCapture}
+                    shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
+                />
+                {ErrorModal}
+            </View>
         </StepScreenWrapper>
     );
 }
