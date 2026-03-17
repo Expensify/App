@@ -717,7 +717,7 @@ function MoneyRequestReportPreviewContent({
                 icons: expensifyIcons,
                 iouReportID: iouReport?.reportID,
                 policy,
-                userBillingGraceEndPeriodCollection: userBillingGraceEndPeriods,
+                userBillingGraceEndPeriods,
                 draftTransactionIDs,
                 amountOwed,
                 ownerBillingGraceEndPeriod,

@@ -12908,7 +12908,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 1,
                 });
 
@@ -12928,7 +12928,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
-                const userBillingGraceEndPeriodCollection = {
+                const userBillingGraceEndPeriods = {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
                         value: 1,
                     },
@@ -12943,7 +12943,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection,
+                    userBillingGraceEndPeriods,
                     amountOwed: 0,
                 });
 
@@ -12981,7 +12981,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -13021,7 +13021,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy: undefined,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -13048,7 +13048,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy: undefined,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -13096,7 +13096,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy: undefined,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -13140,7 +13140,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -13182,7 +13182,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -13216,7 +13216,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 50,
                 });
 
@@ -13819,7 +13819,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGraceEndPeriod: undefined,
@@ -13833,7 +13833,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
                 ownerBillingGraceEndPeriod: undefined,
@@ -13849,7 +13849,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGraceEndPeriod: undefined,
@@ -13865,7 +13865,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGraceEndPeriod: undefined,
@@ -13884,7 +13884,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGraceEndPeriod: undefined,
@@ -13904,7 +13904,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGraceEndPeriod: undefined,
@@ -13923,7 +13923,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: undefined,
                 policy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGraceEndPeriod: undefined,
@@ -13942,7 +13942,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGraceEndPeriod: undefined,
@@ -13961,7 +13961,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed,
                 ownerBillingGraceEndPeriod: undefined,
@@ -13976,7 +13976,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
                 ownerBillingGraceEndPeriod: undefined,
@@ -14141,7 +14141,7 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
                 ownerBillingGraceEndPeriod: undefined,
@@ -14160,7 +14160,7 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID: undefined,
                     policy: undefined,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGraceEndPeriod: undefined,
@@ -14191,7 +14191,7 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID,
                     policy: testPolicy,
-                    userBillingGraceEndPeriodCollection: pastDueCollection,
+                    userBillingGraceEndPeriods: pastDueCollection,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGraceEndPeriod: undefined,
@@ -14223,7 +14223,7 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID,
                     policy: testPolicy,
-                    userBillingGraceEndPeriodCollection: pastDueCollection,
+                    userBillingGraceEndPeriods: pastDueCollection,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGraceEndPeriod: undefined,
@@ -14249,7 +14249,7 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID,
                     policy: testPolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
                     ownerBillingGraceEndPeriod: gracePeriodEnd,
