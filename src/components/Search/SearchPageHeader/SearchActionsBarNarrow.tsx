@@ -52,6 +52,7 @@ function SearchActionsBarNarrow({queryJSON, isMobileSelectionModeEnabled, isSear
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!isSearchInputVisible && (
                             <Button
+                                testID="search-button-narrow"
                                 icon={expensifyIcons.MagnifyingGlass}
                                 small
                                 onPress={onSearchButtonPress}
