@@ -56,8 +56,9 @@ function Expensify() {
     const {preferredLocale} = useLocalize();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
+    const [updateAvailable] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE);
+    const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useDebugShortcut();
@@ -71,7 +72,7 @@ function Expensify() {
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
@@ -277,7 +278,7 @@ function Expensify() {
             <FullstoryInitHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
-            {hasAttemptedToOpenPublicRoom && (
+            {hasAttemptedToOpenPublicRoom && initialUrl !== undefined && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
