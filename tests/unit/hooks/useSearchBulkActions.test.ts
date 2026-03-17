@@ -327,16 +327,16 @@ function createTransactionInfo(overrides: Partial<SelectedTransactionInfo> = {})
 
 function createBaseQueryJSON() {
     return {
-        type: CONST.SEARCH.DATA_TYPES.EXPENSE as string,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL as string,
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
         hash: 12345,
         inputQuery: 'type:expense status:all',
         recentSearchHash: 12345,
         similarSearchHash: 12345,
         flatFilters: [],
-        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE as string,
-        sortOrder: CONST.SEARCH.SORT_ORDER.DESC as string,
-        view: CONST.SEARCH.VIEW.LIST as string,
+        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        view: CONST.SEARCH.VIEW.LIST,
         filters: {} as never,
     };
 }
