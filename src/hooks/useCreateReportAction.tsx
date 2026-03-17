@@ -2,15 +2,18 @@ import type {ReactNode} from 'react';
 import {useCallback, useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import useConfirmModal from './useConfirmModal';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
@@ -54,6 +57,7 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
@@ -85,10 +89,15 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
             confirmText: translate('exitSurvey.goToExpensifyClassic'),
             cancelText: translate('common.cancel'),
         });
-        if (action === ModalActions.CONFIRM) {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        if (action !== ModalActions.CONFIRM) {
+            return;
         }
-    }, [showConfirmModal, translate]);
+        if (CONFIG.IS_HYBRID_APP) {
+            closeReactNativeApp({shouldSetNVP: true, isTrackingGPS});
+            return;
+        }
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+    }, [showConfirmModal, translate, isTrackingGPS]);
 
     const createReportAction = useCallback(() => {
         interceptAnonymousUser(() => {
