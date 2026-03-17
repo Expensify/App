@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
@@ -43,7 +43,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
 
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const isAnyoneElseOwner = reimbursementAccount?.achData?.corpay?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? reimbursementAccountDraft?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? false;
-    const beneficialOwnersDraftValues = getDraftValuesForBeneficialOwners(reimbursementAccount);
+    const beneficialOwnersDraftValues = useMemo(() => getDraftValuesForBeneficialOwners(reimbursementAccount), [reimbursementAccount]);
     const ownerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? beneficialOwnersDraftValues.beneficialOwnerKeys;
 
     useEffect(() => {

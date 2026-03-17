@@ -43,7 +43,7 @@ const allPages: PageEntry[] = [
         firstSubPage: BENEFICIAL_OWNER_INFO_SUB_PAGES.IS_USER_BENEFICIAL_OWNER,
         lastSubPage: BENEFICIAL_OWNER_INFO_SUB_PAGES.BENEFICIAL_OWNERS_LIST,
     },
-    {pageName: PAGE_NAME.SIGNER_INFO, component: SignerInfo, firstSubPage: SIGNER_INFO_SUB_PAGES.IS_DIRECTOR, lastSubPage: SIGNER_INFO_SUB_PAGES.IS_DIRECTOR},
+    {pageName: PAGE_NAME.SIGNER_INFO, component: SignerInfo, firstSubPage: SIGNER_INFO_SUB_PAGES.IS_DIRECTOR, lastSubPage: SIGNER_INFO_SUB_PAGES.CONFIRMATION},
     {pageName: PAGE_NAME.AGREEMENTS, component: Agreements},
     {pageName: PAGE_NAME.DOCUSIGN, component: Docusign},
     {pageName: PAGE_NAME.FINISH, component: Finish},
@@ -67,7 +67,14 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     const isDocusignStepRequired = requiresDocusignStep(currency);
     const stepNames = isDocusignStepRequired ? CONST.NON_USD_BANK_ACCOUNT.DOCUSIGN_REQUIRED_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
 
-    const pages = useMemo(() => (isDocusignStepRequired ? allPages : allPages.filter((p) => p.pageName !== PAGE_NAME.DOCUSIGN)), [isDocusignStepRequired]);
+    const isAUD = currency === CONST.CURRENCY.AUD;
+    const pages = useMemo(() => {
+        const filtered = isDocusignStepRequired ? allPages : allPages.filter((p) => p.pageName !== PAGE_NAME.DOCUSIGN);
+        if (!isAUD) {
+            return filtered;
+        }
+        return filtered.map((p) => (p.pageName === PAGE_NAME.SIGNER_INFO ? {...p, lastSubPage: SIGNER_INFO_SUB_PAGES.HANG_TIGHT} : p));
+    }, [isDocusignStepRequired, isAUD]);
 
     const currentPageIndex = useMemo(() => {
         const index = pages.findIndex((p) => p.pageName === currentPage);
