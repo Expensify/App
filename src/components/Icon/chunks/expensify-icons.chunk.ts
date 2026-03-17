@@ -35,6 +35,7 @@ import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
+import CarPlus from '@assets/images/car-plus.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
 import CaretUpDown from '@assets/images/caret-up-down.svg';
@@ -68,6 +69,7 @@ import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
+import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -79,7 +81,6 @@ import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
-import EnvelopeOpenStar from '@assets/images/envelope-open-star.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -282,6 +283,7 @@ const Expensicons = {
     Calendar,
     Camera,
     Car,
+    CarPlus,
     Cash,
     CertiniaSquare,
     ChatBubble,
@@ -308,6 +310,7 @@ const Expensicons = {
     CircleSlash,
     Document,
     DocumentMerge,
+    DocumentPlus,
     DotIndicator,
     DotIndicatorUnfilled,
     DownArrow,
@@ -316,7 +319,6 @@ const Expensicons = {
     DragHandles,
     EReceiptIcon,
     Emoji,
-    EnvelopeOpenStar,
     EmptyStateRoutePending,
     ExpenseCopy,
     Exclamation,
