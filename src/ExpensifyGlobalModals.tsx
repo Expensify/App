@@ -39,6 +39,4 @@ function ExpensifyGlobalModals({updateRequired}: ExpensifyGlobalModalsProps) {
     );
 }
 
-ExpensifyGlobalModals.displayName = 'ExpensifyGlobalModals';
-
-export default React.memo(ExpensifyGlobalModals);
+export default ExpensifyGlobalModals;
