@@ -18,7 +18,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import {FILTER_KEYS, type SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type FilterValueProps = {
@@ -65,7 +66,7 @@ function SearchSavePage() {
     const [name, setName] = useState('');
 
     const queryString = (() => {
-        const {view, groupBy, sortBy, sortOrder, limit} = getCurrentSearchQueryJSON() || {};
+        const {view, groupBy, sortBy, sortOrder, limit} = getCurrentSearchQueryJSON() ?? {};
         return buildFilterQueryWithSortDefaults(searchAdvancedFiltersForm, {view, groupBy}, {sortBy, sortOrder, limit}) ?? '';
     })();
     const queryJSON = buildSearchQueryJSON(queryString || buildCannedSearchQuery());
@@ -104,12 +105,17 @@ function SearchSavePage() {
                     value={name}
                     onChangeText={setName}
                     placeholder={translate('common.name')}
+                    accessibilityLabel={translate('common.name')}
+                    role={CONST.ROLE.PRESENTATION}
                 />
                 <View>
                     <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('search.appliedFilters')}:</Text>
                     {appliedFilters.length > 0 ? (
                         appliedFilters.map((filter) => (
-                            <Text style={[styles.label]}>
+                            <Text
+                                key={filter.key}
+                                style={[styles.label]}
+                            >
                                 <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
                                 <Text style={[styles.labelStrong]}>{filter.label}: </Text>
                                 <FilterValue

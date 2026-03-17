@@ -4,6 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -21,8 +23,6 @@ import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import {useSearchActionsContext, useSearchStateContext} from '../SearchContext';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '../types';
 import GroupByPopup from './GroupByPopup';
 import SingleSelectPopup from './SingleSelectPopup';
 import type {SingleSelectItem} from './SingleSelectPopup';
@@ -88,7 +88,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, closeOverlay}: 
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Columns']);
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedDisplayFilter, setSelectedDisplayModifier] = useState<
@@ -117,7 +117,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
 
         const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
         return (
-            <View style={[!isSmallScreenWidth && styles.pv4]}>
+            <View style={[!shouldUseNarrowLayout && styles.pv4]}>
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
                     description={translate('search.display.sortBy')}
@@ -231,7 +231,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT]: (
             <TextInputPopup
                 placeholder={translate('search.filters.limit')}
-                value={limitValue}
+                defaultValue={limitValue}
                 closeOverlay={() => setSelectedDisplayModifier(null)}
                 onChange={(value) => updateFilterForm({limit: value})}
             />
@@ -239,7 +239,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     };
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4]}>
+        <View style={[!shouldUseNarrowLayout && styles.pv4]}>
             <HeaderWithBackButton
                 shouldDisplayHelpButton={false}
                 style={[styles.h10]}

@@ -2,7 +2,6 @@ import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
@@ -10,6 +9,7 @@ import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopu
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchStateContext} from '@components/Search/SearchContext';
+import {filterFeedSelector, filterGroupCurrencySelector, filterPolicyIDSelector} from '@components/Search/selectors/Search';
 import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
@@ -40,11 +40,9 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {HasFilterValue, IsFilterValue} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Policy} from '@src/types/onyx';
-import type {SearchResults} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import {filterFeedSelector, filterGroupCurrencySelector, filterPolicyIDSelector} from '../selectors/Search';
 import DatePickerFilterPopup from './DatePickerFilterPopup';
 import MultiSelectFilterPopup from './MultiSelectFilterPopup';
 
@@ -53,7 +51,7 @@ type FilterItem = WithSentryLabel & {
 };
 
 type UseSearchActionsBarResult = {
-    filters: (SearchFilter & FilterItem)[];
+    filters: Array<SearchFilter & FilterItem>;
     hasErrors: boolean;
     shouldShowActionsBarLoading: boolean;
     shouldShowSelectedDropdown: boolean;
@@ -255,7 +253,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     ),
                     sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY,
                 };
-            case FILTER_KEYS.HAS:
+            case FILTER_KEYS.HAS: {
                 const hasFilterValues = searchAdvancedFiltersForm[filterKey];
                 const hasOptions = getHasOptions(translate, type?.value);
                 const has = hasFilterValues ? hasOptions.filter((option) => hasFilterValues.includes(option.value)) : [];
@@ -272,7 +270,8 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     />
                 );
                 return {PopoverComponent: hasComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_HAS};
-            case FILTER_KEYS.IS:
+            }
+            case FILTER_KEYS.IS: {
                 const isFilterValues = searchAdvancedFiltersForm[filterKey];
                 const isOptions = Object.values(CONST.SEARCH.IS_VALUES).map((value) => ({text: translate(`common.${value}`), value}));
                 const is = isFilterValues ? isOptions.filter((option) => isFilterValues.includes(option.value)) : [];
@@ -289,7 +288,8 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     />
                 );
                 return {PopoverComponent: isComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_IS};
-            case FILTER_KEYS.FEED:
+            }
+            case FILTER_KEYS.FEED: {
                 return {
                     PopoverComponent: ({closeOverlay}) => (
                         <FeedPopup
@@ -299,9 +299,10 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     ),
                     sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_FEED,
                 };
+            }
             case FILTER_KEYS.POSTED_ON:
             case FILTER_KEYS.POSTED_AFTER:
-            case FILTER_KEYS.POSTED_BEFORE:
+            case FILTER_KEYS.POSTED_BEFORE: {
                 const posted = createDateValue({
                     on: searchAdvancedFiltersForm.postedOn,
                     after: searchAdvancedFiltersForm.postedAfter,
@@ -317,7 +318,8 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     />
                 );
                 return {PopoverComponent: postedPickerComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POSTED};
-            case FILTER_KEYS.WITHDRAWAL_TYPE:
+            }
+            case FILTER_KEYS.WITHDRAWAL_TYPE: {
                 const withdrawalType = searchAdvancedFiltersForm[filterKey];
                 const withdrawalTypeOptions = getWithdrawalTypeOptions(translate);
                 const withdrawalTypeValue = withdrawalTypeOptions.find((option) => option.value === withdrawalType) ?? null;
@@ -331,9 +333,10 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     />
                 );
                 return {PopoverComponent: withdrawalTypeComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_WITHDRAWAL_TYPE};
+            }
             case FILTER_KEYS.WITHDRAWN_ON:
             case FILTER_KEYS.WITHDRAWN_AFTER:
-            case FILTER_KEYS.WITHDRAWN_BEFORE:
+            case FILTER_KEYS.WITHDRAWN_BEFORE: {
                 const withdrawn = createDateValue({
                     on: searchAdvancedFiltersForm.withdrawnOn,
                     after: searchAdvancedFiltersForm.withdrawnAfter,
@@ -349,7 +352,8 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     />
                 );
                 return {PopoverComponent: withdrawnPickerComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_WITHDRAWN};
-            case FILTER_KEYS.STATUS:
+            }
+            case FILTER_KEYS.STATUS: {
                 const status = searchAdvancedFiltersForm[filterKey];
                 const statusOptions = type ? getStatusOptions(translate, type.value) : [];
                 const statusValue = statusOptions.filter((option) => status?.includes(option.value));
@@ -367,9 +371,10 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     />
                 );
                 return {PopoverComponent: statusComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_STATUS};
+            }
             case FILTER_KEYS.DATE_ON:
             case FILTER_KEYS.DATE_AFTER:
-            case FILTER_KEYS.DATE_BEFORE:
+            case FILTER_KEYS.DATE_BEFORE: {
                 const date = createDateValue({
                     on: searchAdvancedFiltersForm.dateOn,
                     after: searchAdvancedFiltersForm.dateAfter,
@@ -385,7 +390,8 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     />
                 );
                 return {PopoverComponent: datePickerComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_DATE};
-            case FILTER_KEYS.FROM:
+            }
+            case FILTER_KEYS.FROM: {
                 const from = searchAdvancedFiltersForm[filterKey];
                 const userPickerComponent = ({closeOverlay}: PopoverComponentProps) => (
                     <UserSelectPopup
@@ -395,6 +401,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     />
                 );
                 return {PopoverComponent: userPickerComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_FROM};
+            }
             case FILTER_KEYS.POLICY_ID:
                 return {
                     PopoverComponent: ({closeOverlay}) => (

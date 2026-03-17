@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import {ScrollView} from 'react-native';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,7 +11,6 @@ import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import SearchTypeMenuItem from '@pages/Search/SearchTypeMenuItem';
 import ROUTES from '@src/ROUTES';
-import {useSearchActionsContext} from '../SearchContext';
 
 type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;

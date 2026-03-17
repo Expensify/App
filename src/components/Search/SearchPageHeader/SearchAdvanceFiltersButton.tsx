@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from '@components/Button';
+import type {SearchQueryJSON} from '@components/Search/types';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -8,7 +9,6 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {SearchQueryJSON} from '../types';
 
 function SearchAdvanceFiltersButton({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const {translate} = useLocalize();

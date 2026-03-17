@@ -4856,10 +4856,11 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
-        searchPageInputTouchableWrapper:  {height: 32, width: 200},
+        searchPageInputTouchableWrapper: {height: 32, width: 200},
         searchPageInputPlaceholder: {
             // Extra 2 to account for the borders
-            height: 34, width: 202
+            height: 34,
+            width: 202,
         },
 
         walletStaticIllustration: {

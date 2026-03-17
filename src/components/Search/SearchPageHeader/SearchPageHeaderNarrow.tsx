@@ -1,8 +1,8 @@
 import React from 'react';
 import TopBar from '@components/Navigation/TopBar';
+import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
-import type {SearchQueryJSON} from '../types';
 
 type SearchPageHeaderNarrowProps = {
     queryJSON: SearchQueryJSON;

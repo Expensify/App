@@ -63,8 +63,9 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import type {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
@@ -4013,7 +4014,7 @@ function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<
 }
 
 function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate) {
-    let sortableColumns: SingleSelectItem<SearchColumnType>[] = [];
+    const sortableColumns: Array<SingleSelectItem<SearchColumnType>> = [];
     for (let i = 0; i < columns.length; i++) {
         const column = columns.at(i);
         if (column && isColumnSortable(column)) {
@@ -4241,13 +4242,13 @@ type SearchFilter = {
     value: string | string[] | null;
 };
 
-function mapFiltersFormToLabelValueList<T extends object>(
+function mapFiltersFormToLabelValueList<T extends Record<string, any>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     policyIDQuery: string[] | undefined,
     translate: LocalizedTranslate,
     mapper?: (filterKey: SearchAdvancedFiltersKey) => T,
-): (SearchFilter & T)[] {
-    const filters: (SearchFilter & T)[] = [];
+): Array<SearchFilter & T> {
+    const filters: Array<SearchFilter & T> = [];
     const hasAddedFilter = {
         posted: false,
         withdrawn: false,
@@ -4282,17 +4283,19 @@ function mapFiltersFormToLabelValueList<T extends object>(
         }
         const extra = mapper?.(key) ?? ({} as T);
         switch (key) {
-            case FILTER_KEYS.GROUP_CURRENCY:
+            case FILTER_KEYS.GROUP_CURRENCY: {
                 const groupCurrency = searchAdvancedFiltersForm[key];
                 filters.push({key, label: translate('common.groupCurrency'), value: groupCurrency ?? null, ...extra});
                 break;
-            case FILTER_KEYS.FEED:
+            }
+            case FILTER_KEYS.FEED: {
                 const feedFilterValues = searchAdvancedFiltersForm[key];
                 filters.push({key, label: translate('search.filters.feed'), value: feedFilterValues ?? null, ...extra});
                 break;
+            }
             case FILTER_KEYS.POSTED_ON:
             case FILTER_KEYS.POSTED_AFTER:
-            case FILTER_KEYS.POSTED_BEFORE:
+            case FILTER_KEYS.POSTED_BEFORE: {
                 if (hasAddedFilter.posted) {
                     continue;
                 }
@@ -4304,16 +4307,18 @@ function mapFiltersFormToLabelValueList<T extends object>(
                 filters.push({key, label: translate('search.filters.posted'), value: displayPosted, ...extra});
                 hasAddedFilter.posted = true;
                 break;
-            case FILTER_KEYS.WITHDRAWAL_TYPE:
+            }
+            case FILTER_KEYS.WITHDRAWAL_TYPE: {
                 const withdrawalType = searchAdvancedFiltersForm[key];
                 if (!withdrawalType) {
                     continue;
                 }
                 filters.push({key, label: translate('search.withdrawalType'), value: translate(`search.filters.withdrawalType.${withdrawalType}`), ...extra});
                 break;
+            }
             case FILTER_KEYS.WITHDRAWN_ON:
             case FILTER_KEYS.WITHDRAWN_AFTER:
-            case FILTER_KEYS.WITHDRAWN_BEFORE:
+            case FILTER_KEYS.WITHDRAWN_BEFORE: {
                 if (hasAddedFilter.withdrawn) {
                     continue;
                 }
@@ -4325,7 +4330,8 @@ function mapFiltersFormToLabelValueList<T extends object>(
                 filters.push({key, label: translate('search.filters.withdrawn'), value: displayWithdrawn, ...extra});
                 hasAddedFilter.withdrawn = true;
                 break;
-            case FILTER_KEYS.STATUS:
+            }
+            case FILTER_KEYS.STATUS: {
                 const status = searchAdvancedFiltersForm[key];
                 if (!status?.length) {
                     continue;
@@ -4335,23 +4341,26 @@ function mapFiltersFormToLabelValueList<T extends object>(
                 const statusValue = statusOptions.filter((option) => status?.includes(option.value));
                 filters.push({key, label: translate('common.status'), value: statusValue.map((option) => option.text).join(', '), ...extra});
                 break;
-            case FILTER_KEYS.HAS:
+            }
+            case FILTER_KEYS.HAS: {
                 const hasFilterValues = searchAdvancedFiltersForm[key];
                 if (!hasFilterValues?.length) {
                     continue;
                 }
                 filters.push({key, label: translate('search.has'), value: hasFilterValues.map((option) => translate(`common.${option}`)).join(', '), ...extra});
                 break;
-            case FILTER_KEYS.IS:
+            }
+            case FILTER_KEYS.IS: {
                 const isFilterValues = searchAdvancedFiltersForm[key];
                 if (!isFilterValues?.length) {
                     continue;
                 }
                 filters.push({key, label: translate('search.filters.is'), value: isFilterValues.map((option) => translate(`common.${option}`)).join(', '), ...extra});
                 break;
+            }
             case FILTER_KEYS.DATE_ON:
             case FILTER_KEYS.DATE_AFTER:
-            case FILTER_KEYS.DATE_BEFORE:
+            case FILTER_KEYS.DATE_BEFORE: {
                 if (hasAddedFilter.date) {
                     continue;
                 }
@@ -4363,11 +4372,13 @@ function mapFiltersFormToLabelValueList<T extends object>(
                 filters.push({key, label: translate('common.date'), value: displayDate, ...extra});
                 hasAddedFilter.date = true;
                 break;
-            case FILTER_KEYS.FROM:
+            }
+            case FILTER_KEYS.FROM: {
                 const from = searchAdvancedFiltersForm[key];
                 filters.push({key, label: translate('common.from'), value: from ?? null, ...extra});
                 break;
-            case FILTER_KEYS.POLICY_ID:
+            }
+            case FILTER_KEYS.POLICY_ID: {
                 const policyID = searchAdvancedFiltersForm[key];
                 const selectedPolicyIDs = (() => {
                     const policyIDs = policyID ?? policyIDQuery;
@@ -4378,6 +4389,7 @@ function mapFiltersFormToLabelValueList<T extends object>(
                 })();
                 filters.push({key, label: translate('workspace.common.workspace'), value: selectedPolicyIDs, ...extra});
                 break;
+            }
             default:
                 break;
         }

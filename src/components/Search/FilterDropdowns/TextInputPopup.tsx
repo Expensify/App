@@ -8,21 +8,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SingleSelectPopupProps = {
-    value: string;
+    defaultValue: string;
     closeOverlay: () => void;
     onChange: (value: string) => void;
     placeholder?: string;
 };
 
-function TextInputPopup({value, closeOverlay, onChange, placeholder}: SingleSelectPopupProps) {
+function TextInputPopup({defaultValue, closeOverlay, onChange, placeholder}: SingleSelectPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [_value, setValue] = useState(value);
+    const [value, setValue] = useState(defaultValue);
 
     const applyChanges = () => {
-        onChange(_value);
+        onChange(value);
         closeOverlay();
     };
 
@@ -37,6 +37,8 @@ function TextInputPopup({value, closeOverlay, onChange, placeholder}: SingleSele
                 placeholder={placeholder}
                 value={value}
                 onChangeText={setValue}
+                accessibilityLabel={placeholder}
+                role={CONST.ROLE.PRESENTATION}
             />
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
