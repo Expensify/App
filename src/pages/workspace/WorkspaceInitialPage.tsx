@@ -1,12 +1,29 @@
-import { findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View } from 'react-native';
-import { useOnyx } from 'react-native-onyx';
-import type { ValueOf } from 'type-fest';
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import { Building, CalendarSolid, Car, Coins, CreditCard, ExpensifyAppIcon, ExpensifyCard, Feed, Folder, Gear, InvoiceGeneric, Pencil, Sync, Tag, Users, Workflows } from '@components/Icon/Expensicons';
+import {
+    Building,
+    CalendarSolid,
+    Car,
+    Coins,
+    CreditCard,
+    ExpensifyAppIcon,
+    ExpensifyCard,
+    Feed,
+    Folder,
+    Gear,
+    InvoiceGeneric,
+    Pencil,
+    Sync,
+    Tag,
+    Users,
+    Workflows,
+} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
@@ -21,29 +38,40 @@ import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import { confirmReadyToOpenApp } from '@libs/actions/App';
-import { isConnectionInProgress } from '@libs/actions/connections';
-import { clearErrors, openPolicyInitialPage, removeWorkspace } from '@libs/actions/Policy/Policy';
-import { checkIfFeedConnectionIsBroken, flatAllCardsList } from '@libs/CardUtils';
-import { convertToDisplayString } from '@libs/CurrencyUtils';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {isConnectionInProgress} from '@libs/actions/connections';
+import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import { shouldShowPolicy as checkIfShouldShowPolicy, getWorkspaceAccountID, goBackFromInvalidPolicy, hasPolicyCategoriesError, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, isPolicyFeatureEnabled, shouldShowEmployeeListError, shouldShowSyncError, shouldShowTaxRateError } from '@libs/PolicyUtils';
-import { getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors } from '@libs/ReportUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {
+    shouldShowPolicy as checkIfShouldShowPolicy,
+    getWorkspaceAccountID,
+    goBackFromInvalidPolicy,
+    hasPolicyCategoriesError,
+    isPaidGroupPolicy,
+    isPendingDeletePolicy,
+    isPolicyAdmin,
+    isPolicyFeatureEnabled,
+    shouldShowEmployeeListError,
+    shouldShowSyncError,
+    shouldShowTaxRateError,
+} from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
-import type { WorkspaceSplitNavigatorParamList } from '@navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type { PendingAction } from '@src/types/onyx/OnyxCommon';
-import type { PolicyFeatureName } from '@src/types/onyx/Policy';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type { WithPolicyAndFullscreenLoadingProps } from './withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-
 
 type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
 
@@ -83,7 +111,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {login, accountID} = useCurrentUserPersonalDetails();
-    const isFocused = useIsFocused();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -121,12 +148,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         openPolicyInitialPage(route.params.policyID);
     }, [policyDraft?.id, route.params.policyID]);
 
-    useNetwork({onReconnect: () => {
-        if (!isFocused) {
-            return;
-        }
-        fetchPolicyData();
-    }});
+    useNetwork({
+        onReconnect: () => {
+            if (!isFocused) {
+                return;
+            }
+            fetchPolicyData();
+        },
+    });
 
     useFocusEffect(
         useCallback(() => {
