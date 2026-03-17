@@ -10,6 +10,10 @@ let persistedRequests: AnyRequest[] = [];
 let ongoingRequest: AnyRequest | null = null;
 let pendingSaveOperations: AnyRequest[] = [];
 let isInitialized = false;
+// Tracks all requestIDs this tab has ever seen (from disk init, save(), or other tabs).
+// Used to distinguish stale own-write callbacks (ignore) from new requests enqueued
+// by other browser tabs (merge into memory).
+const knownRequestIDs = new Set<number>();
 let initializationCallback: () => void;
 function triggerInitializationCallback() {
     if (typeof initializationCallback !== 'function') {
@@ -28,18 +32,37 @@ Onyx.connectWithoutView({
     callback: (val) => {
         Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null, isInitialized});
 
-        // After initialization, in-memory is authoritative — ignore disk
+        // After initialization, in-memory is authoritative — ignore stale disk
         // callbacks to prevent out-of-order Onyx.set() from overwriting the
         // correct in-memory state (Bug #80759 Issue 4).
-        // Exception: Onyx.clear() fires callback with null, which must be
-        // allowed through so the module resets properly.
+        // Exception 1: Onyx.clear() fires callback with null — allow through.
+        // Exception 2: Other browser tabs can enqueue requests. We detect these
+        // by checking for requestIDs not in knownRequestIDs, and merge them in.
         if (isInitialized && val != null) {
+            const newFromOtherTabs = val.filter((r) => r.requestID != null && !knownRequestIDs.has(r.requestID));
+            if (newFromOtherTabs.length > 0) {
+                Log.info('[PersistedRequests] Merging requests from other tabs', false, {
+                    newCount: newFromOtherTabs.length,
+                    newCommands: getCommands(newFromOtherTabs),
+                });
+                for (const r of newFromOtherTabs) {
+                    knownRequestIDs.add(r.requestID ?? 0);
+                }
+                persistedRequests = [...persistedRequests, ...newFromOtherTabs];
+                Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+            }
             return;
         }
 
         const previousInMemoryRequests = [...persistedRequests];
         const diskRequests = val ?? [];
         persistedRequests = diskRequests;
+        for (const r of diskRequests) {
+            if (r.requestID == null) {
+                continue;
+            }
+            knownRequestIDs.add(r.requestID);
+        }
 
         Log.info('[PersistedRequests] DISK vs MEMORY comparison', false, {
             diskRequestsLength: diskRequests.length,
@@ -54,6 +77,11 @@ Onyx.connectWithoutView({
             Log.info(`[PersistedRequests] Processing pending save operations, size: ${pendingSaveOperations.length}`, false, {
                 pendingCommands: getCommands(pendingSaveOperations),
             });
+            for (const r of pendingSaveOperations) {
+                if (r.requestID != null) {
+                    knownRequestIDs.add(r.requestID);
+                }
+            }
             const requests = [...persistedRequests, ...pendingSaveOperations];
             persistedRequests = requests;
             Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
@@ -107,6 +135,7 @@ function clear() {
     ongoingRequest = null;
     persistedRequests = [];
     pendingSaveOperations = [];
+    knownRequestIDs.clear();
     Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, null);
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
@@ -136,6 +165,9 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
     const requests = [...persistedRequests, requestToPersist];
     const previousLength = persistedRequests.length;
     persistedRequests = requests as AnyRequest[];
+    if (requestToPersist.requestID != null) {
+        knownRequestIDs.add(requestToPersist.requestID);
+    }
 
     Log.info('[PersistedRequests] Request added to memory, persisting to disk', false, {
         command: requestToPersist.command,
@@ -214,7 +246,7 @@ function endRequestAndRemoveFromQueue<TKey extends OnyxKey>(requestToRemove: Req
     });
 }
 
-function deleteRequestsByIndices(indices: number[]) {
+function deleteRequestsByIndices(indices: number[]): Promise<void> {
     // Create a Set from the indices array for efficient lookup
     const indicesSet = new Set(indices);
 
@@ -222,18 +254,21 @@ function deleteRequestsByIndices(indices: number[]) {
     persistedRequests = persistedRequests.filter((_, index) => !indicesSet.has(index));
 
     // Update the persisted requests in storage or state as necessary
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
+    return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
         Log.info(`Multiple (${indices.length}) requests removed from the queue. Queue length is ${persistedRequests.length}`);
     });
 }
 
-function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>) {
+function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>): Promise<void> {
     const requests = [...persistedRequests];
     const oldRequest = requests.at(oldRequestIndex);
     Log.info('[PersistedRequests] Updating a request', false, {oldRequest, newRequest, oldRequestIndex});
     requests.splice(oldRequestIndex, 1, newRequest as AnyRequest);
     persistedRequests = requests;
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
+    if (newRequest.requestID != null) {
+        knownRequestIDs.add(newRequest.requestID);
+    }
+    return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
