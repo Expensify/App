@@ -105,6 +105,9 @@ type MoneyRequestAmountInputProps = {
     /** Whether to show the big number pad */
     shouldShowBigNumberPad?: boolean;
 
+    /** Whether to use dynamic font size for the amount input */
+    shouldUseDynamicFontSize?: boolean;
+
     /** Error to display at the bottom of the form */
     errorText?: string;
 
@@ -173,6 +176,7 @@ function MoneyRequestAmountInput({
     clearNegative,
     ref,
     disabled,
+    shouldUseDynamicFontSize = false,
     ...props
 }: MoneyRequestAmountInputProps) {
     const {preferredLocale, translate} = useLocalize();
@@ -270,6 +274,7 @@ function MoneyRequestAmountInput({
             onFocus={props.onFocus}
             accessibilityLabel={`${translate('iou.amount')} (${currency})`}
             keyboardType={props.keyboardType}
+            shouldUseDynamicFontSize={shouldUseDynamicFontSize}
         />
     );
 }

@@ -8,6 +8,7 @@ import type {
     Login,
     PersonalDetails,
     PersonalDetailsList,
+    PolicyTagLists,
     Report,
     ReportActions,
     ReportAttributesDerivedValue,
@@ -174,6 +175,7 @@ type GetValidReportsConfig = {
     shouldUnreadBeBold?: boolean;
     shouldAlwaysIncludeDM?: boolean;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
+    allPolicyTags?: OnyxCollection<PolicyTagLists>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
