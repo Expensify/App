@@ -40,7 +40,7 @@ If multiple workflows are detected → split into multiple articles.
 
 ## Requirements
 
-- All headings must be:
+- All headings must be (except `# FAQ`, which is exempt from task-based rules):
   - Task-based — must describe what the user will do or learn. Start with an action verb or question word (How, What, Where, Who, Why, When)
   - Searchable
   - Explicit
@@ -243,6 +243,7 @@ Before outputting an article, confirm:
  - Exactly one # heading (the article title), plus optional # FAQ — no other # headings
  - Only ## used for all content sections (no ### or deeper)
  - Every ## heading starts with an action verb or question word (How, What, Where, Who, Why, When)
+ - `# FAQ` is exempt from task-based heading rules
  - No noun-only, topic-only, or platform-only headings
  - No generic headings (Overview, Introduction, Notes, Setup, Options, Step 1)
  - Feature names match UI

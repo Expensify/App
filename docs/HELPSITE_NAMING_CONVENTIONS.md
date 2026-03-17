@@ -10,7 +10,7 @@ This document governs UI language conventions. It does not define article struct
 
 docs/HELP_AUTHORING_GUIDELINES.md
 
-Note: All article headings (# and ##) must follow the task-based heading rules in HELP_AUTHORING_GUIDELINES.md Section 2. This includes section headings that reference UI features — they must still be task-based, not just feature labels.
+Note: All article headings (# and ##) must follow the task-based heading rules in HELP_AUTHORING_GUIDELINES.md Section 2, except for `# FAQ` which is exempt. This includes section headings that reference UI features — they must still be task-based, not just feature labels.
 
 ---
 
