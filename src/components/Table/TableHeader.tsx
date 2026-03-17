@@ -144,7 +144,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
                     width={variables.iconSizeExtraSmall}
                     height={variables.iconSizeExtraSmall}
                     src={sortIcon}
-                    fill={theme.icon}
+                    fill={theme.iconStrong}
                 />
             )}
         </PressableWithFeedback>
