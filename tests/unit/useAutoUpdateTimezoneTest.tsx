@@ -83,6 +83,34 @@ describe('useAutoUpdateTimezone', () => {
         expect(updateAutomaticTimezoneSpy).not.toHaveBeenCalled();
     });
 
+    it('does not fire a second call when OpenApp response reverts timezone after optimistic update', () => {
+        // Initial state: mismatch triggers first call
+        mockUseCurrentUserPersonalDetails.mockReturnValue({
+            accountID: 1,
+            timezone: {automatic: true, selected: 'Europe/Warsaw'},
+        } as unknown as ReturnType<typeof useCurrentUserPersonalDetails>);
+
+        const {rerender} = render(<TestComponent />);
+        expect(updateAutomaticTimezoneSpy).toHaveBeenCalledTimes(1);
+
+        // Simulate optimistic update: timezone.selected now matches device
+        mockUseCurrentUserPersonalDetails.mockReturnValue({
+            accountID: 1,
+            timezone: {automatic: true, selected: 'America/New_York'},
+        } as unknown as ReturnType<typeof useCurrentUserPersonalDetails>);
+        rerender(<TestComponent />);
+
+        // Simulate OpenApp response overwriting the optimistic value with stale server data
+        mockUseCurrentUserPersonalDetails.mockReturnValue({
+            accountID: 1,
+            timezone: {automatic: true, selected: 'Europe/Warsaw'},
+        } as unknown as ReturnType<typeof useCurrentUserPersonalDetails>);
+        rerender(<TestComponent />);
+
+        // Should still be called only once — the ref guard prevents the duplicate
+        expect(updateAutomaticTimezoneSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('does not call update when system timezone is invalid', () => {
         setSystemTimezone('');
         mockUseCurrentUserPersonalDetails.mockReturnValue({

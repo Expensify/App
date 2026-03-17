@@ -419,6 +419,39 @@ function Search({
 
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
+    const prevSearchDepsRef = useRef<Record<string, unknown>>({});
+    const searchDeps = {
+        currentSearchKey,
+        isOffline,
+        exportReportActions,
+        validGroupBy,
+        isDataLoaded,
+        searchResults,
+        type,
+        archivedReportsIdSet,
+        translate,
+        formatPhoneNumber,
+        accountID,
+        queryJSON,
+        email,
+        isActionLoadingSet,
+        cardFeeds,
+        policies,
+        bankAccountList,
+        violations,
+        customCardNames,
+        allReportMetadata,
+        cardList,
+        onyxPersonalDetailsList,
+    };
+    for (const [key, val] of Object.entries(searchDeps)) {
+        if (prevSearchDepsRef.current[key] !== val) {
+            // eslint-disable-next-line no-console
+            console.log(`[getSections Search deps] ${key} changed`);
+        }
+    }
+    prevSearchDepsRef.current = searchDeps;
+
     const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
         if (searchResults === undefined || !isDataLoaded) {
             return [[], 0, 0];
@@ -431,6 +464,8 @@ function Search({
             return [[], 0, 0];
         }
 
+        // eslint-disable-next-line no-console
+        console.count('[getSections] Search/index');
         const [filteredData1, allLength] = getSections({
             type,
             data: searchResults.data,

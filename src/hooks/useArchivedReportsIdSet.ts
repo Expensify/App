@@ -21,7 +21,7 @@ const archivedReportIdsSelector = (reportNameValuePairs: OnyxCollection<ReportNa
             ids.push(key);
         }
     }
-    return ids;
+    return ids.sort();
 };
 
 /**
