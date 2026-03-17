@@ -57,7 +57,6 @@ function SearchTypeMenuNarrow({queryJSON}: SearchTypeMenuNarrowProps) {
             horizontal
             contentContainerStyle={[styles.ph5]}
             showsHorizontalScrollIndicator={false}
-            contentOffset={{x: 100, y: 0}}
         >
             {typeMenuSections.map((section, sectionIndex) =>
                 section.translationPath === 'search.savedSearchesMenuItemTitle'
