@@ -1264,6 +1264,31 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getMessageOfOldDotReportAction', () => {
+        it('should return the ACH bounce message with return reason when provided', () => {
+            const returnReason = 'R03 - No Account/Unable to Locate Account';
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+                originalMessage: {returnReason},
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceWithReason', {returnReason}));
+        });
+
+        it('should return the default ACH bounce message when return reason is missing', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+                originalMessage: {},
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceDefault'));
+        });
+    });
+
     describe('getSendMoneyFlowAction', () => {
         const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT` as const;
         const mockDMChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_DM` as const;
