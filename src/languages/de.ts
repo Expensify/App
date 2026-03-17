@@ -7870,7 +7870,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
         modifiedDate: 'Datum weicht vom gescannten Beleg ab',
         increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
-            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
+            formattedRouteDistance ? `Die Entfernung übersteigt die berechnete Route von ${formattedRouteDistance}` : 'Entfernung übersteigt die berechnete Route',
         nonExpensiworksExpense: 'Nicht-Expensiworks-Ausgabe',
         overAutoApprovalLimit: (formattedLimit: string) => `Ausgabe überschreitet das Auto-Genehmigungslimit von ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Betrag über dem Kategorie-Limit von ${formattedLimit}/Person`,

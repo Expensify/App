@@ -7633,7 +7633,7 @@ ${reportName}
         },
         modifiedDate: '日期与已扫描收据不符',
         increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
-            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
+            formattedRouteDistance ? `距离超过计算出的路线 ${formattedRouteDistance}` : '距离超过计算的路线',
         nonExpensiworksExpense: '非 Expensiworks 报销',
         overAutoApprovalLimit: (formattedLimit: string) => `报销金额超出自动审批上限 ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `金额超出每人 ${formattedLimit} 的类别限额`,

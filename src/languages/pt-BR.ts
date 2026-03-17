@@ -7827,7 +7827,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
         modifiedDate: 'Data diferente do recibo digitalizado',
         increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
-            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
+            formattedRouteDistance ? `A distância excede a rota calculada de ${formattedRouteDistance}` : 'A distância excede a rota calculada',
         nonExpensiworksExpense: 'Despesa fora do Expensiworks',
         overAutoApprovalLimit: (formattedLimit: string) => `Despesa excede o limite de aprovação automática de ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Valor acima do limite de categoria de ${formattedLimit}/pessoa`,

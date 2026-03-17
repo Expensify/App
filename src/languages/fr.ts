@@ -7894,7 +7894,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
         modifiedDate: 'La date diffère du reçu scanné',
         increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
-            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
+            formattedRouteDistance ? `La distance dépasse l'itinéraire calculé de ${formattedRouteDistance}` : "La distance dépasse l'itinéraire calculé",
         nonExpensiworksExpense: 'Dépense non Expensiworks',
         overAutoApprovalLimit: (formattedLimit: string) => `La dépense dépasse la limite d’auto-approbation de ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Montant dépassant la limite de catégorie de ${formattedLimit}/personne`,

@@ -7823,7 +7823,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         modifiedDate: 'Data różni się od zeskanowanego paragonu',
         increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
-            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
+            formattedRouteDistance ? `Dystans przekracza obliczoną trasę ${formattedRouteDistance}` : 'Dystans przekracza obliczoną trasę',
         nonExpensiworksExpense: 'Wydatek spoza Expensiworks',
         overAutoApprovalLimit: (formattedLimit: string) => `Wydatek przekracza automatyczny limit zatwierdzania w wysokości ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Kwota przekracza limit kategorii w wysokości ${formattedLimit}/osobę`,

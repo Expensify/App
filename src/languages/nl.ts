@@ -7835,7 +7835,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
         modifiedDate: 'Datum wijkt af van gescande bon',
         increasedDistance: ({formattedRouteDistance}: ViolationsIncreasedDistanceParams) =>
-            formattedRouteDistance ? `Distance exceeds the calculated route of ${formattedRouteDistance}` : 'Distance exceeds the calculated route',
+            formattedRouteDistance ? `Afstand overschrijdt de berekende route van ${formattedRouteDistance}` : 'Afstand overschrijdt de berekende route',
         nonExpensiworksExpense: 'Niet-Expensiworks-uitgave',
         overAutoApprovalLimit: (formattedLimit: string) => `Kosten overschrijden de automatische goedkeuringslimiet van ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Bedrag boven de categorielimiet van ${formattedLimit} per persoon`,
