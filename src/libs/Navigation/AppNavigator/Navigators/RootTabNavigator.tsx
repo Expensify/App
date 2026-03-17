@@ -3,7 +3,7 @@
  */
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import React, {lazy, Suspense, useMemo} from 'react';
+import React, {lazy, Suspense} from 'react';
 import {Platform, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -52,28 +52,16 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     const isAtRoot = nestedStateIndex === undefined || nestedStateIndex === 0;
     const shouldHide = isNarrow && !isAtRoot;
 
-    // Memoize the NavigationTabBar element so that when tabState changes but
-    // selectedTab/shouldHide stay the same (e.g. navigation within the same tab),
-    // React skips the expensive NavigationTabBar subtree entirely.
-    const narrowTabBar = useMemo(
-        () => (
-            <NavigationTabBar
-                selectedTab={selectedTab}
-                shouldShowFloatingButtons={!shouldHide}
-            />
-        ),
-        [selectedTab, shouldHide],
-    );
-
-    const wideTabBar = useMemo(() => <NavigationTabBar selectedTab={selectedTab} />, [selectedTab]);
-
     if (isNarrow) {
         return (
             <View
                 style={{overflow: 'visible', marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom), paddingBottom: safeAreaPaddingBottom, opacity: shouldHide ? 0 : 1}}
                 pointerEvents={shouldHide ? 'none' : 'auto'}
             >
-                {narrowTabBar}
+                <NavigationTabBar
+                    selectedTab={selectedTab}
+                    shouldShowFloatingButtons={!shouldHide}
+                />
             </View>
         );
     }
@@ -81,7 +69,11 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     // On wide layout, the bottom tab navigator uses tabBarPosition='left' to place
     // the tab bar on the left side. NavigationTabBar renders as a normal flow element
     // (no position:fixed) so the navigator's flex layout handles positioning.
-    return <View style={{overflow: 'visible'}}>{wideTabBar}</View>;
+    return (
+        <View style={{overflow: 'visible'}}>
+            <NavigationTabBar selectedTab={selectedTab} />
+        </View>
+    );
 }
 
 // Stable reference: only passes `state` to avoid descriptors thrashing
