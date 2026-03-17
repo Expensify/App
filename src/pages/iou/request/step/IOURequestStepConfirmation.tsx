@@ -1538,7 +1538,7 @@ function IOURequestStepConfirmation({
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID="IOURequestStepConfirmation"
         >
-            <DragAndDropProvider isDisabled={!showReceiptEmptyState}>
+            <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
