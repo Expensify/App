@@ -24,8 +24,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDomainMemberError, closeUserAccount, exportMembersToCSV, setDomainMembersSelectedForMove} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {hasDomainMemberDetailsErrors, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
-import {getLatestError} from '@libs/ErrorUtils';
+import {getMemberCustomRowProps, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
@@ -34,7 +33,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {DomainMemberErrors} from '@src/types/onyx/DomainErrors';
 
 type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS>;
 
@@ -280,36 +278,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         );
     };
 
-    const getCustomRowProps = (accountID: number, email?: string) => {
-        const emailPendingAction = email ? domainPendingActions?.[email]?.pendingAction : undefined;
-        const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction ?? domainPendingActions?.[accountID]?.lockAccount;
-
-        const emailErrors = email ? domainErrors?.memberErrors?.[email] : undefined;
-        const accountIDErrors = domainErrors?.memberErrors?.[accountID];
-        const emailError = email ? getLatestError(emailErrors?.errors) : undefined;
-        const vacationDelegatesEmailError = email ? getLatestError(emailErrors?.vacationDelegateErrors) : undefined;
-        const twoFactorAuthExemptEmailsError = email ? getLatestError(emailErrors?.twoFactorAuthExemptEmailsError) : undefined;
-        const changeDomainSecurityGroupEmailsError = email ? emailErrors?.changeDomainSecurityGroupErrors : undefined;
-        const changeDomainSecurityGroupErrors = {...getLatestError(accountIDErrors?.changeDomainSecurityGroupErrors), ...changeDomainSecurityGroupEmailsError};
-
-        const mergedErrors: DomainMemberErrors = {
-            errors: {
-                ...getLatestError(accountIDErrors?.errors),
-                ...getLatestError(accountIDErrors?.lockAccountErrors),
-                ...getLatestError(changeDomainSecurityGroupEmailsError),
-                ...emailError,
-            },
-            vacationDelegateErrors: {...getLatestError(accountIDErrors?.vacationDelegateErrors), ...vacationDelegatesEmailError},
-            twoFactorAuthExemptEmailsError: {...getLatestError(accountIDErrors?.twoFactorAuthExemptEmailsError), ...twoFactorAuthExemptEmailsError},
-            changeDomainSecurityGroupErrors,
-        };
-        const brickRoadIndicator = hasDomainMemberDetailsErrors(mergedErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-        return {
-            errors: getLatestError(mergedErrors?.errors),
-            pendingAction: emailPendingAction ?? accountIDPendingAction,
-            brickRoadIndicator,
-        };
-    };
+    const getCustomRowProps = (accountID: number, email?: string) => getMemberCustomRowProps(accountID, domainPendingActions, domainErrors, email);
 
     return (
         <>

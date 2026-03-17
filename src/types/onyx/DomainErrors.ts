@@ -31,7 +31,7 @@ type DomainMemberErrors = {
     /**
      * Errors related to changing domain member group.
      */
-    changeDomainSecurityGroupErrors: OnyxCommon.Errors;
+    changeDomainSecurityGroupErrors?: OnyxCommon.Errors;
 } & GeneralDomainMemberErrors;
 
 /**
