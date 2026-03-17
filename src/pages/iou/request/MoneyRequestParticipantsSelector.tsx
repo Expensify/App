@@ -119,12 +119,12 @@ function MoneyRequestParticipantsSelector({
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails.login;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -527,11 +527,7 @@ function MoneyRequestParticipantsSelector({
 
     const onSelectRow = useCallback(
         (option: Participant) => {
-            if (
-                option.isPolicyExpenseChat &&
-                option.policyID &&
-                shouldRestrictUserBillableActions(option.policyID, userBillingGraceEndPeriodCollection, undefined, ownerBillingGraceEndPeriod)
-            ) {
+            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
             }
@@ -543,7 +539,7 @@ function MoneyRequestParticipantsSelector({
 
             addSingleParticipant(option);
         },
-        [isIOUSplit, addParticipantToSelection, addSingleParticipant, userBillingGraceEndPeriodCollection, ownerBillingGraceEndPeriod],
+        [isIOUSplit, addParticipantToSelection, addSingleParticipant, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod],
     );
 
     const importContactsButtonComponent = useMemo(() => {
