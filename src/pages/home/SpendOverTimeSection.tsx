@@ -176,8 +176,11 @@ function SpendOverTimeSection() {
     const [isAnyPolicyEligibleForSpendOverTime] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies) => Object.values(policies ?? {}).some((policy) => !!policy && isPolicyEligibleForSpendOverTime(policy, login)),
     });
+    const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => Object.keys(transactions ?? {}).length > 0,
+    });
 
-    if (!isAnyPolicyEligibleForSpendOverTime) {
+    if (!isAnyPolicyEligibleForSpendOverTime || !hasTransactions) {
         return null;
     }
 
