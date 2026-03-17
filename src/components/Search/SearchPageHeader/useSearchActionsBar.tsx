@@ -155,9 +155,7 @@ function WorkspacePopup({policyIDQuery, updateFilterForm, closeOverlay}: FilterB
         }));
 
     const policyIDs = policyID ?? policyIDQuery;
-    const selectedWorkspaceOptions = policyIDs
-        ? workspaceOptions.filter((option) => (Array.isArray(policyIDs) ? policyIDs : [policyIDs]).includes(option.value))
-        : [];
+    const selectedWorkspaceOptions = policyIDs ? workspaceOptions.filter((option) => (Array.isArray(policyIDs) ? policyIDs : [policyIDs]).includes(option.value)) : [];
 
     const handleWorkspaceChange = (items: Array<MultiSelectItem<string>>) => {
         updateFilterForm({policyID: items.map((item) => item.value)});
