@@ -902,17 +902,15 @@ function bulkDeleteReports({
             continue;
         }
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].report?.chatReportID}`];
-        if (!chatReport) {
-            continue;
-        }
-        const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`];
+        const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
+
         deleteMoneyRequest({
             transactionID,
             reportAction,
             transactions,
             violations: transactionsViolations,
             iouReport: selectedTransactions[transactionID].report,
-            chatReport: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].report?.chatReportID}`],
+            chatReport,
             isChatIOUReportArchived: !!reportNameValuePair?.private_isArchived,
             allTransactionViolationsParam: transactionsViolations,
             currentUserAccountID: currentUserAccountIDParam,
