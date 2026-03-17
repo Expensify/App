@@ -23,6 +23,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
+import isNumericKeyboard from './isNumericKeyboard';
 import FormWrapper from './FormWrapper';
 import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
@@ -351,16 +352,7 @@ function FormProvider({
 
             const inputRef = inputProps.ref;
 
-            // Numeric/phone pad keyboards on iOS don't have a built-in return key. Setting returnKeyType
-            // on these creates a visible toolbar button (e.g. "Go") that duplicates the form's submit button.
-            const inputPropsRecord = inputProps as Record<string, unknown>;
-            const isNumericKeyboard =
-                inputPropsRecord.inputMode === CONST.INPUT_MODE.TEL ||
-                inputPropsRecord.inputMode === CONST.INPUT_MODE.NUMERIC ||
-                inputPropsRecord.inputMode === CONST.INPUT_MODE.DECIMAL ||
-                inputPropsRecord.keyboardType === 'phone-pad' ||
-                inputPropsRecord.keyboardType === 'number-pad' ||
-                inputPropsRecord.keyboardType === 'decimal-pad';
+            const hasNumericKeyboard = isNumericKeyboard(inputProps as Record<string, unknown>);
 
             return {
                 ...inputProps,
@@ -370,7 +362,7 @@ function FormProvider({
 
                         inputProps.onSubmitEditing?.(event);
                     },
-                    ...(!isNumericKeyboard && {returnKeyType: 'go' as const}),
+                    ...(!hasNumericKeyboard && {returnKeyType: 'go' as const}),
                 }),
                 ref:
                     typeof inputRef === 'function'
