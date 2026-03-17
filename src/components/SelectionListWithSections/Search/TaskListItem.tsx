@@ -72,7 +72,7 @@ function TaskListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: 1, borderColor: theme.border}]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: 1, borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border}]}
             forwardedFSClass={fsClass}
         >
             <TaskListItemRow

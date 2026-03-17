@@ -1503,7 +1503,7 @@ function Search({
                             </View>
                         )
                     }
-                    contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                    contentContainerStyle={[styles.pb0, contentContainerStyle]}
                     containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}

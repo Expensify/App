@@ -478,7 +478,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     styles.mh5,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: theme.border},
+                    isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: isItemSelected ? theme.buttonHoveredBG : theme.border},
                     isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
                 ]}
             >
