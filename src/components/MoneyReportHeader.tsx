@@ -1265,7 +1265,7 @@ function MoneyReportHeader({
                     exportReportToCSV(
                         {
                             reportID: moneyRequestReport.reportID,
-                            transactionIDList: transactionIDs,
+                            transactionIDList: [],
                         },
                         () => {
                             setDownloadErrorModalVisible(true);
