@@ -6,6 +6,7 @@ import {Image, InteractionManager, View} from 'react-native';
 import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -13,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -194,7 +196,7 @@ function FeatureTrainingModal({
     shouldRenderHTMLDescription = false,
     shouldCloseOnConfirm = true,
     avoidKeyboard = false,
-    shouldUseScrollView = false,
+    shouldUseScrollView: shouldUseScrollViewProp = false,
     shouldShowConfirmationLoader = false,
     canConfirmWhileOffline = true,
     shouldGoBack = true,
@@ -206,6 +208,7 @@ function FeatureTrainingModal({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
@@ -219,6 +222,9 @@ function FeatureTrainingModal({
     const [contentHeight, setContentHeight] = useState(0);
     const insets = useSafeAreaInsets();
     const {isKeyboardActive} = useKeyboardState();
+    const isInLandscapeMode = useIsInLandscapeMode();
+
+    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -426,7 +432,7 @@ function FeatureTrainingModal({
         >
             <Wrapper
                 scrollsToTop={false}
-                style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), wrapperStyles.style]}
+                style={[onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), wrapperStyles.style, isInLandscapeMode ? {maxHeight: windowHeight * 0.75} : styles.mh100]}
                 contentContainerStyle={wrapperStyles.containerStyle}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
@@ -436,9 +442,11 @@ function FeatureTrainingModal({
                 // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
-                    {renderIllustration()}
-                </View>
+                {!isInLandscapeMode && (
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
+                        {renderIllustration()}
+                    </View>
+                )}
                 <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
                     {!!title && !!description && (
                         <View
