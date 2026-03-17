@@ -148,8 +148,8 @@ describe('actions/connections/NetSuite', () => {
             expect(shouldUseUpdateNetSuiteTokens(policy)).toBe(false);
         });
 
-        it('returns false when policy is null', () => {
-            expect(shouldUseUpdateNetSuiteTokens(null)).toBe(false);
+        it('returns false when policy is undefined', () => {
+            expect(shouldUseUpdateNetSuiteTokens(undefined)).toBe(false);
         });
 
         it('returns false for unverified connection without auth error', () => {
