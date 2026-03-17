@@ -47,7 +47,7 @@ import ReportActionAvatars from './ReportActionAvatars';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
-import getContextMenuAccessibilityLabel from './utils/getContextMenuAccessibilityLabel';
+import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -335,7 +335,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The function that should be called when this component is LongPressed or right-clicked. */
         onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
-        /** Whether the accessibility label should announce that a context menu is available on web. */
+        /** Whether the accessibility hint should announce that a context menu is available. */
         shouldShowContextMenuHint?: boolean;
 
         /** Array of objects that map display names to their corresponding tooltip */
@@ -613,12 +613,8 @@ function MenuItem({
         enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
     }
 
-    const combinedAccessibilityLabel = getContextMenuAccessibilityLabel({
-        labelParts: [enhancedAccessibilityLabel],
-        translate,
-        shouldShowReviewRequired: !!brickRoadIndicator,
-        shouldShowContextMenuHint,
-    });
+    const combinedAccessibilityLabel = [enhancedAccessibilityLabel, brickRoadIndicator ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join('. ');
+    const contextMenuHint = shouldShowContextMenuHint ? getContextMenuAccessibilityHint({translate}) : undefined;
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -807,6 +803,7 @@ function MenuItem({
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={combinedAccessibilityLabel}
+                                accessibilityHint={contextMenuHint}
                                 accessible={shouldBeAccessible}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}

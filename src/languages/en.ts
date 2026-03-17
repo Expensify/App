@@ -7565,6 +7565,8 @@ const translations = {
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
         contextMenuAvailable: 'Context menu available. Press Shift+F10 to open.',
+        contextMenuAvailableMobileWeb: 'Context menu available. Double-tap and hold to open.',
+        contextMenuAvailableNative: 'Context menu available. Double-tap and hold to open.',
         selectAllFeatures: 'Select all features',
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',

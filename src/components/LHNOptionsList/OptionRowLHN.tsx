@@ -12,7 +12,7 @@ import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
-import getContextMenuAccessibilityLabel from '@components/utils/getContextMenuAccessibilityLabel';
+import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -25,6 +25,7 @@ import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import FS from '@libs/Fullstory';
+import getPlatform from '@libs/getPlatform';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
@@ -238,16 +239,19 @@ function OptionRowLHN({
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
-    const accessibilityLabel = getContextMenuAccessibilityLabel({
-        labelParts: [
-            `${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`,
-            optionItem.isUnread ? translate('common.unread') : '',
-            optionItem.alternateText ?? '',
-            accessibilityLabelForBadge,
-        ],
-        translate,
-        shouldShowContextMenuHint: true,
-    });
+    const accessibilityLabel = [
+        `${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`,
+        optionItem.isUnread ? translate('common.unread') : '',
+        optionItem.alternateText ?? '',
+        accessibilityLabelForBadge,
+    ]
+        .filter(Boolean)
+        .join('. ');
+    const contextMenuHint = getContextMenuAccessibilityHint({translate});
+    const accessibilityHint =
+        getPlatform(true) === CONST.PLATFORM.WEB || getPlatform(true) === CONST.PLATFORM.MOBILE_WEB
+            ? contextMenuHint
+            : [`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`, contextMenuHint].filter(Boolean).join('. ');
 
     return (
         <OfflineWithFeedback
@@ -315,6 +319,7 @@ function OptionRowLHN({
                                     ]}
                                     role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={accessibilityLabel}
+                                    accessibilityHint={accessibilityHint}
                                     onLayout={onLayout}
                                     needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                                     sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
