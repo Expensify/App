@@ -131,7 +131,7 @@ function AvatarButtonWithIcon({
                             src={editIcon ?? expensifyIcons.Pencil}
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
-                            fill={theme.icon}
+                            fill={theme.iconStrong}
                         />
                     </View>
                 )}
