@@ -4242,7 +4242,7 @@ type SearchFilter = {
     value: string | string[] | null;
 };
 
-function mapFiltersFormToLabelValueList<T extends Record<string, any>>(
+function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     policyIDQuery: string[] | undefined,
     translate: LocalizedTranslate,
