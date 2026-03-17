@@ -99,6 +99,7 @@ function SecondaryOverlay() {
 
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
+const loadSearchDeletedTransactionPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchDeletedTransactionPage').default;
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -411,6 +412,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     const options = modalStackScreenOptions(props);
                                     return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
                                 }}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SEARCH_DELETED_TRANSACTION}
+                                getComponent={loadSearchDeletedTransactionPage}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.DOMAIN}
