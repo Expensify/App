@@ -488,7 +488,7 @@ function normalizeOdometerText(text: string, fromLocaleDigit: (char: string) => 
     // If multiple decimal points exist (e.g. from group separators that became
     // dots), keep only the last one as the actual decimal separator.
     const dotParts = stripped.split('.');
-    const consolidated = dotParts.length > 2 ? dotParts.slice(0, -1).join('') + '.' + (dotParts.at(-1) ?? '') : stripped;
+    const consolidated = dotParts.length > 2 ? `${dotParts.slice(0, -1).join('')}.${dotParts.at(-1) ?? ''}` : stripped;
     // Remove redundant leading zeroes (e.g. "007" → "7", "000" → "0") but
     // keep a single zero before a decimal point (e.g. "0.5" stays "0.5").
     return consolidated.replace(/^0+(?=\d)/, '');
