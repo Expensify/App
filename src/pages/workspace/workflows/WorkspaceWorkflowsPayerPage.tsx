@@ -191,6 +191,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     };
 
     const handleShareBankAccount = () => {
+        // No payer selected — nothing to share with
         if (!selectedPayer) {
             return;
         }
@@ -198,10 +199,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const isSelectedAlreadyAPayer = policy?.achAccount?.reimburser === selectedPayer;
         const isAccountAlreadyShared = bankAccountInfo?.accountData?.sharees ? bankAccountInfo?.accountData.sharees.includes(selectedPayer) : false;
         const isAccountAlreadySharedOnMainBankAccount = policy?.achAccount?.sharees ? policy?.achAccount.sharees.includes(selectedPayer) : false;
+        // Selected payer already has access (owner, reimburser, or sharee) — proceed without sharing
         if (isAccountAlreadyShared || isSelectedPayerOwner || isSelectedAlreadyAPayer || isAccountAlreadySharedOnMainBankAccount) {
             onButtonPress();
             return;
         }
+        // Bank account setup incomplete — block and show validation
         if (isBankAccountPartiallySetup(bankAccountInfo?.accountData?.state)) {
             setShowValidationModal(true);
             return;
@@ -209,6 +212,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const isAccountAlreadySharedWithCurrentUser =
             bankAccountInfo?.accountData?.sharees && currentUserPersonalDetails?.login ? bankAccountInfo?.accountData?.sharees.includes(currentUserPersonalDetails?.login) : false;
         const isOwner = policy?.owner === currentUserPersonalDetails?.login;
+        // Current user has no right to share (not owner and not a sharee) — show error
         if (!isOwner && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
             setShowErrorModal(true);
             return;
@@ -227,6 +231,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 </View>
             ),
         }).then((result) => {
+            // User dismissed or cancelled the confirm modal — do not share
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
@@ -234,10 +239,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         });
     };
 
-    const setPolicyAuthorizedPayer = (member: MemberOption) => {
-        const login = personalDetails?.[member.accountID]?.login;
-        setSelectedPayer(login);
-    };
+    const setPolicyAuthorizedPayer = (member: MemberOption) => setSelectedPayer(personalDetails?.[member.accountID]?.login);
 
     const shouldShowBlockingPage =
         (isEmptyObject(policy) && !isLoadingReportData) || isPendingDeletePolicy(policy) || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
