@@ -10,6 +10,7 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 
 const mockHandleMoneyRequestStepScanParticipants = jest.fn();
 const mockRemoveDraftTransactionsByIDs = jest.fn();
+const mockGetMoneyRequestParticipantOptions = jest.fn().mockReturnValue([]);
 const mockRemoveTransactionReceipt = jest.fn();
 const mockSetMoneyRequestReceipt = jest.fn();
 const mockBuildOptimisticTransactionAndCreateDraft = jest.fn();
@@ -32,6 +33,7 @@ jest.mock('@hooks/useFilesValidation', () => ({
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepScanParticipants: (...args: unknown[]) => mockHandleMoneyRequestStepScanParticipants(...args),
+    getMoneyRequestParticipantOptions: (...args: unknown[]) => mockGetMoneyRequestParticipantOptions(...args),
 }));
 
 jest.mock('@userActions/TransactionEdit', () => ({

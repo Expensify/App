@@ -1166,11 +1166,7 @@ function handleNavigateAfterExpenseCreate({
         if (getIsNarrowLayout()) {
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
         } else {
-            Navigation.dismissModal();
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
-            });
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }
     });
 }
@@ -1819,7 +1815,7 @@ function buildOnyxDataForTestDriveIOU(
     });
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', personalDetailsList?.[userAccountID]?.firstName ?? '');
-    const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID, undefined, undefined, testDriveIOUParams.testDriveCommentReportActionID);
+    const textComment = buildOptimisticAddCommentReportAction({text, actorAccountID: userAccountID, reportActionID: testDriveIOUParams.testDriveCommentReportActionID});
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 
     optimisticData.push(
@@ -3839,6 +3835,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             currentUserEmailParam,
             introSelected,
             activePolicyID,
+            betas,
             isSelfTourViewed,
         });
         createdWorkspaceParams = workspaceData.params;
@@ -5946,7 +5943,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
  * Move multiple tracked expenses from self-DM to an IOU report
  */
 function convertBulkTrackedExpensesToIOU({
-    transactionIDs,
+    transactions,
     iouReport,
     chatReport,
     isASAPSubmitBetaEnabled,
@@ -5958,7 +5955,7 @@ function convertBulkTrackedExpensesToIOU({
     personalDetails,
     betas,
 }: {
-    transactionIDs: string[];
+    transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isASAPSubmitBetaEnabled: boolean;
@@ -6000,8 +5997,8 @@ function convertBulkTrackedExpensesToIOU({
 
     const selfDMReportActions = getAllReportActions(selfDMReportID);
 
-    for (const transactionID of transactionIDs) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    for (const transaction of transactions) {
+        const transactionID = transaction.transactionID;
         if (!transaction) {
             Log.warn('[convertBulkTrackedExpensesToIOU] Transaction not found', {transactionID});
             continue;
@@ -7577,6 +7574,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         taxAmount,
         taxCode,
         merchant,
+        modifiedAmount,
         billable,
         reimbursable,
         validWaypoints,
@@ -7754,6 +7752,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         }
 
         parameters = {
+            amount: modifiedAmount ?? undefined,
             comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
@@ -9337,6 +9336,7 @@ function getPayMoneyRequestParams({
             introSelected,
             activePolicyID: activePolicy?.id,
             companySize: introSelected?.companySize as OnboardingCompanySize,
+            betas,
             isSelfTourViewed,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
