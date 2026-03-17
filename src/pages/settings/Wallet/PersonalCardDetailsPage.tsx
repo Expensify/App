@@ -89,7 +89,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     // Show "Break connection" option only for Mock Bank cards when the backend API is non-production
     const isMockBank = cardBank.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
-    const isNonProductionBackend = CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || !!shouldUseStagingServer;
+    const isNonProductionBackend = CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || shouldUseStagingServer;
     const shouldShowBreakConnection = isMockBank && isNonProductionBackend;
 
     const lastScrape = card?.lastScrape
