@@ -81,39 +81,39 @@ function ScanGlobalCreate() {
             return;
         }
 
-        // Global create flow: determine target based on defaultExpensePolicy
-        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
-            const isAutoReporting = !!personalPolicy?.autoReporting;
-            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
-            const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
-            const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
-            const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-
-            // If the initial transaction has different participants selected, the user changed the participant in the confirmation step
-            if (initialTransaction?.participants && initialTransaction?.participants?.at(0)?.reportID !== targetReport?.reportID) {
-                const isTrackExpense = initialTransaction?.participants?.at(0)?.reportID === selfDMReport?.reportID;
-
-                const setParticipantsPromises = newReceiptFiles.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
-                Promise.all(setParticipantsPromises).then(() => {
-                    if (isTrackExpense) {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReport?.reportID));
-                    } else {
-                        navigateToConfirmationPage(iouType, initialTransactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, initialTransaction?.reportID);
-                    }
-                });
-                return;
-            }
-
-            const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {
-                setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
-                return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, targetReport, currentUserPersonalDetails.accountID);
-            });
-            Promise.all(setParticipantsPromises).then(() =>
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, initialTransactionID, targetReport?.reportID)),
-            );
-        } else {
+        if (!shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
             navigateToParticipantPage(iouType, initialTransactionID, reportID);
+            return;
         }
+
+        const isAutoReporting = !!personalPolicy?.autoReporting;
+        const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
+        const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
+        const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
+        const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+
+        // If the user changed the participant in the confirmation step, use their selection
+        if (initialTransaction?.participants && initialTransaction?.participants?.at(0)?.reportID !== targetReport?.reportID) {
+            const isTrackExpense = initialTransaction?.participants?.at(0)?.reportID === selfDMReport?.reportID;
+
+            const setParticipantsPromises = newReceiptFiles.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
+            Promise.all(setParticipantsPromises).then(() => {
+                if (isTrackExpense) {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReport?.reportID));
+                } else {
+                    navigateToConfirmationPage(iouType, initialTransactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, initialTransaction?.reportID);
+                }
+            });
+            return;
+        }
+
+        const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {
+            setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
+            return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, targetReport, currentUserPersonalDetails.accountID);
+        });
+        Promise.all(setParticipantsPromises).then(() =>
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, initialTransactionID, targetReport?.reportID)),
+        );
     }
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
