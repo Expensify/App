@@ -1,6 +1,5 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import decodeWebAuthnError from '@libs/MultifactorAuthentication/Passkeys/helpers';
 import {
     arrayBufferToBase64URL,
     authenticateWithPasskey,
@@ -8,6 +7,7 @@ import {
     buildPublicKeyCredentialCreationOptions,
     buildPublicKeyCredentialRequestOptions,
     createPasskeyCredential,
+    decodeWebAuthnError,
     isSupportedTransport,
     isWebAuthnSupported,
     PASSKEY_AUTH_TYPE,

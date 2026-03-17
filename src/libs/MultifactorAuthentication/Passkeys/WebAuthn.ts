@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
+import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
@@ -109,6 +110,19 @@ function buildAllowedCredentialDescriptors(credentials: Array<{id: string; trans
     }));
 }
 
+function isWebAuthnReason(name: string): name is MultifactorAuthenticationReason {
+    return Object.values<string>(VALUES.REASON.WEBAUTHN).includes(name);
+}
+
+/** Decodes WebAuthn DOMException errors and maps them to authentication error reasons. */
+function decodeWebAuthnError(error: unknown): MultifactorAuthenticationReason {
+    if (error instanceof DOMException && isWebAuthnReason(error.name)) {
+        return error.name;
+    }
+
+    return VALUES.REASON.WEBAUTHN.GENERIC;
+}
+
 export {
     PASSKEY_AUTH_TYPE,
     arrayBufferToBase64URL,
@@ -120,4 +134,5 @@ export {
     authenticateWithPasskey,
     buildAllowedCredentialDescriptors,
     isSupportedTransport,
+    decodeWebAuthnError,
 };
