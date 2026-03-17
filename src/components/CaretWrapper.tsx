@@ -25,7 +25,7 @@ function CaretWrapper({children, style, caretWidth, caretHeight, isActive = fals
             {children}
             <Icon
                 src={expensifyIcons.DownArrow}
-                fill={theme.iconStrong}
+                fill={theme.icon}
                 width={caretWidth ?? variables.iconSizeExtraSmall}
                 height={caretHeight ?? variables.iconSizeExtraSmall}
                 additionalStyles={isActive ? styles.flipUpsideDown : []}
