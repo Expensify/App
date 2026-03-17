@@ -5826,7 +5826,6 @@ describe('actions/Report', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
-
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
             await waitForBatchedUpdates();
 
