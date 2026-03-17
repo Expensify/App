@@ -55,7 +55,7 @@ function usePasskeys(): UseBiometricsReturn {
         try {
             credential = await createPasskeyCredential(publicKeyOptions);
         } catch (error) {
-            onResult({
+            await onResult({
                 success: false,
                 reason: decodeWebAuthnError(error),
             });
@@ -63,7 +63,7 @@ function usePasskeys(): UseBiometricsReturn {
         }
 
         if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
-            onResult({
+            await onResult({
                 success: false,
                 reason: VALUES.REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
             });
@@ -115,7 +115,7 @@ function usePasskeys(): UseBiometricsReturn {
         });
 
         if (reconciled.length === 0) {
-            onResult({
+            await onResult({
                 success: false,
                 reason: VALUES.REASON.WEBAUTHN.REGISTRATION_REQUIRED,
             });
@@ -129,7 +129,7 @@ function usePasskeys(): UseBiometricsReturn {
         try {
             assertion = await authenticateWithPasskey(publicKeyOptions);
         } catch (error) {
-            onResult({
+            await onResult({
                 success: false,
                 reason: decodeWebAuthnError(error),
             });
@@ -137,7 +137,7 @@ function usePasskeys(): UseBiometricsReturn {
         }
 
         if (!(assertion.response instanceof AuthenticatorAssertionResponse)) {
-            onResult({
+            await onResult({
                 success: false,
                 reason: VALUES.REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
             });
