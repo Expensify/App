@@ -21,7 +21,7 @@ type ExpensifyGlobalModalsProps = {
  * EmojiPicker, UpdateAppModal, etc.) that are mounted once at the top level.
  */
 function ExpensifyGlobalModals({updateRequired}: ExpensifyGlobalModalsProps) {
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
+    const [updateAvailable] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE);
 
     return (
         <>
