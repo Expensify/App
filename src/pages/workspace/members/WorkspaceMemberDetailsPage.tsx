@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useContext, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -7,7 +7,7 @@ import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -30,16 +30,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
-import {
-    getAllCardsForWorkspace,
-    getCardFeedIcon,
-    getCardFeedWithDomainID,
-    getCompanyFeeds,
-    getPlaidInstitutionIconUrl,
-    isExpensifyCardFullySetUp,
-    lastFourNumbersFromCardName,
-    maskCardNumber,
-} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -87,9 +78,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
     const [cardFeeds] = useCardFeeds(policyID);
-    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const {showConfirmModal} = useConfirmModal();
 
@@ -106,13 +97,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
-    const hasMultipleFeeds = Object.keys(getCompanyFeeds(cardFeeds, false, true)).length > 0;
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const isReimburser = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.achAccount?.reimburser === memberLogin;
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
         policy,
@@ -156,10 +147,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     } else if (!isApprover) {
         confirmModalPrompt = translate('workspace.people.removeMemberPrompt', displayName);
     } else if (isApprover) {
-        confirmModalPrompt = translate('workspace.people.removeMemberPromptApprover', {
-            approver: displayName,
-            workspaceOwner: policyOwnerDisplayName,
-        });
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptApprover', displayName, policyOwnerDisplayName);
     }
 
     useEffect(() => {
@@ -276,8 +264,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
-    const shouldShowCardsSection = Object.values(expensifyCardSettings ?? {}).some((cardSettings) => isExpensifyCardFullySetUp(policy, cardSettings)) || hasMultipleFeeds;
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -377,15 +363,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 onPress={navigateToProfile}
                                 shouldShowRightIcon
                             />
-                            {shouldShowCardsSection && (
+                            {memberCards.length > 0 && (
                                 <>
-                                    {memberCards.length > 0 && (
-                                        <View style={[styles.ph5, styles.pv3]}>
-                                            <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
-                                                {translate('walletPage.assignedCards')}
-                                            </Text>
-                                        </View>
-                                    )}
+                                    <View style={[styles.ph5, styles.pv3]}>
+                                        <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
+                                            {translate('walletPage.assignedCards')}
+                                        </Text>
+                                    </View>
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                         const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);

@@ -220,6 +220,10 @@ function isFirstLetterEmoji(message: string): boolean {
  * Validates that this message contains only emojis
  */
 function containsOnlyEmojis(message: string): boolean {
+    if (!message) {
+        return false;
+    }
+
     const trimmedMessage = Str.replaceAll(message.replaceAll(' ', ''), '\n', '');
     const match = trimmedMessage.match(CONST.REGEX.ALL_EMOJIS);
 
@@ -690,7 +694,7 @@ function splitTextWithEmojis(text = ''): TextWithEmoji[] {
     do {
         regexResult = emojisRegex.exec(text);
 
-        if (regexResult?.indices) {
+        if (regexResult?.indices?.[0]) {
             const matchIndexStart = regexResult.indices[0][0];
             const matchIndexEnd = regexResult.indices[0][1];
 

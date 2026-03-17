@@ -2,7 +2,6 @@ import React, {useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -11,17 +10,29 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
+import {deleteWorkspaceCompanyCardFeed, setAssignCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
+import {
+    getCompanyCardFeed,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
+    getPlaidCountry,
+    getPlaidInstitutionId,
+    getSelectedFeed,
+    isDirectFeed,
+} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,12 +53,13 @@ function WorkspaceCompanyCardsSettingsPage({
     const [deleteCompanyCardConfirmModalVisible, setDeleteCompanyCardConfirmModalVisible] = useState(false);
 
     const [cardFeeds] = useCardFeeds(policyID);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
 
     const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
 
     const [cardsList] = useCardsList(selectedFeed);
+    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan'] as const);
     const feedName = selectedFeed ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
@@ -55,6 +67,9 @@ function WorkspaceCompanyCardsSettingsPage({
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const isPending = !!selectedFeedData?.pending;
+    const {currencyList} = useCurrencyListState();
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const isDirectCardFeed = isDirectFeed(feed);
     const statementCloseDate = useMemo(() => {
         if (!selectedFeedData?.statementPeriodEndDay) {
             return undefined;
@@ -89,6 +104,30 @@ function WorkspaceCompanyCardsSettingsPage({
                 deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, feed, cardIDs, feedToOpen);
             });
         }
+    };
+
+    const openBankConnectionFlow = () => {
+        if (!selectedFeed) {
+            return;
+        }
+
+        const institutionId = getPlaidInstitutionId(selectedFeed);
+        const initialStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
+
+        if (institutionId) {
+            const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+            setAddNewCompanyCardStepAndData({
+                data: {
+                    selectedCountry: country,
+                },
+            });
+        }
+
+        setAssignCardStepAndData({currentStep: initialStep});
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(policyID, selectedFeed));
+        });
     };
 
     const onToggleLiability = (isOn: boolean) => {
@@ -148,8 +187,16 @@ function WorkspaceCompanyCardsSettingsPage({
                             />
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
+                        {isDirectCardFeed && (
+                            <MenuItem
+                                icon={icons.Sync}
+                                title={translate('workspace.moreFeatures.companyCards.assignNewCards')}
+                                description={translate('workspace.moreFeatures.companyCards.assignNewCardsDescription')}
+                                onPress={openBankConnectionFlow}
+                            />
+                        )}
                         <MenuItem
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
                             onPress={() => setDeleteCompanyCardConfirmModalVisible(true)}
                         />

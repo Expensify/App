@@ -20,6 +20,7 @@ import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -137,11 +138,10 @@ function WorkspacePageWithSections({
     const policyID = route.params?.policyID;
     const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {
         selector: emailSelector,
-        canBeMissing: true,
     });
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -225,11 +225,21 @@ function WorkspacePageWithSections({
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldUseHeadlineHeader={shouldUseHeadlineHeader}
+                    shouldDisplayHelpButton
                 >
                     {headerContent}
                 </HeaderWithBackButton>
                 {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <FullScreenLoadingIndicator
+                        style={[styles.flex1, styles.pRelative]}
+                        reasonAttributes={
+                            {
+                                context: 'WorkspacePageWithSections',
+                                isLoading,
+                                isFirstRender: firstRender.current,
+                            } satisfies SkeletonSpanReasonAttributes
+                        }
+                    />
                 ) : (
                     <>
                         {shouldUseScrollView ? (

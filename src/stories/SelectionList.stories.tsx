@@ -243,7 +243,7 @@ function MultipleSelection(props: SelectionListProps<ListItem>) {
                         <Badge
                             text="Admin"
                             textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.badgeBordered}
+                            badgeStyles={defaultStyles.alignSelfCenter}
                         />
                     ),
                 };
@@ -313,7 +313,7 @@ function WithSectionHeader(props: SelectionListProps<ListItem>) {
                         <Badge
                             text="Admin"
                             textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.badgeBordered}
+                            badgeStyles={defaultStyles.alignSelfCenter}
                         />
                     ),
                 };
@@ -381,7 +381,7 @@ function WithConfirmButton(props: SelectionListProps<ListItem>) {
                         <Badge
                             text="Admin"
                             textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.badgeBordered}
+                            badgeStyles={defaultStyles.alignSelfCenter}
                         />
                     ),
                 };

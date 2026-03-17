@@ -22,26 +22,37 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SafeString from '@src/utils/SafeString';
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
-    const {attachmentID, type, source: sourceParam, isAuthTokenRequired, attachmentLink, originalFileName, accountID, reportID, hashKey, headerTitle, onShow, onClose} = route.params;
+    const {
+        attachmentID,
+        type,
+        source: sourceParam,
+        isAuthTokenRequired,
+        attachmentLink,
+        originalFileName,
+        accountID,
+        reportID,
+        reportActionID,
+        hashKey,
+        headerTitle,
+        onShow,
+        onClose,
+    } = route.params;
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
-        canBeMissing: true,
     });
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
     const originalReportID = useOriginalReportID(reportID, reportActionID ? (reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID] ?? {reportActionID}) : undefined);
     const reportActionReportID = originalReportID ?? reportID;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionReportID}`, {canBeMissing: false});
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportActionReportID}`, {
-        canBeMissing: false,
-    });
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionReportID}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportActionReportID}`);
 
     useNavigateToReportOnRefresh({source: sourceParam, reportID});
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
 
     const submitRef = useRef<View | HTMLElement>(null);
@@ -59,8 +70,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     }, [isOffline, reportActionReportID, isLoadingApp, report, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport]);
 
     const fetchReport = useCallback(() => {
-        openReport(reportActionReportID, introSelected, reportActionID);
-    }, [reportActionReportID, introSelected, reportActionID]);
+        openReport({reportID: reportActionReportID, introSelected, reportActionID, betas});
+    }, [reportActionReportID, introSelected, reportActionID, betas]);
 
     useEffect(() => {
         if (!reportActionReportID || !shouldFetchReport) {
@@ -74,6 +85,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         (attachment: Attachment) => {
             const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({
                 reportID,
+                reportActionID: attachment.reportActionID,
                 attachmentID: attachment.attachmentID,
                 type,
                 source: SafeString(attachment.source),
@@ -85,7 +97,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             });
             Navigation.navigate(routeToNavigate);
         },
-        [reportID, type, accountID, hashKey],
+        [reportID, reportActionID, type, accountID, hashKey],
     );
 
     const onDownloadAttachment = useDownloadAttachment({

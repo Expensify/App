@@ -10,6 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
+import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
+import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -27,10 +29,12 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const programKey = getCardProgramKey(cardSettings);
+    const settings = getCardSettings(cardSettings, programKey);
 
-    const shouldShowMonthlyOption = cardSettings?.isMonthlySettlementAllowed ?? false;
-    const selectedFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+    const shouldShowMonthlyOption = settings?.isMonthlySettlementAllowed ?? false;
+    const selectedFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !shouldShowMonthlyOption && selectedFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
 
     const data = useMemo(() => {
@@ -56,7 +60,11 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     }, [translate, shouldShowMonthlyOption, selectedFrequency]);
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
-        updateSettlementFrequencyUtil(defaultFundID, value, cardSettings?.monthlySettlementDate);
+        if (!programKey) {
+            Log.alert('[WorkspaceSettlementFrequencyPage] updateSettlementFrequency called without a detected card program key');
+            return;
+        }
+        updateSettlementFrequencyUtil(defaultFundID, programKey, value, settings?.monthlySettlementDate);
     };
 
     return (

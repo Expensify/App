@@ -39,8 +39,8 @@ type PersonalCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 
 function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {cardID} = route.params;
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [shouldUseStagingServer] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [shouldUseStagingServer] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
@@ -50,8 +50,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const {isOffline} = useNetwork();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';

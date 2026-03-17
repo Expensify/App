@@ -20,7 +20,7 @@ import PersonalInfoPage from './settings/Wallet/InternationalDepositAccount/Pers
 function AddPersonalBankAccountPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
     const kycWallRef = useContext(KYCWallContext);

@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {toZonedTime} from 'date-fns-tz';
+import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -53,7 +53,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const {isBetaEnabled} = usePermissions();
     const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
     const card = cardsList?.[cardID];
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -86,10 +86,10 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const validFromDefaultValue = useMemo(() => {
         const validFrom = card?.nameValuePairs?.validFrom;
         if (!validFrom) {
-            return undefined;
+            return format(minDate, CONST.DATE.FNS_FORMAT_STRING);
         }
         return DateUtils.formatUTCDateTimeToDateInTimezone(validFrom, assigneeTimeZone);
-    }, [card?.nameValuePairs?.validFrom, assigneeTimeZone]);
+    }, [card?.nameValuePairs?.validFrom, assigneeTimeZone, minDate]);
 
     const validThruDefaultValue = useMemo(() => {
         const validThru = card?.nameValuePairs?.validThru;

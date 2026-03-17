@@ -2,9 +2,10 @@
 // These functions use makeRequestWithSideEffects because challenge data must be returned immediately
 // for security and timing requirements (see detailed explanation below)
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 import {makeRequestWithSideEffects} from '@libs/API';
+import type {DenyTransactionParams, RevokeMultifactorAuthenticationCredentialsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
@@ -12,8 +13,49 @@ import {parseHttpRequest} from '@libs/MultifactorAuthentication/Biometrics/helpe
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {LocallyProcessed3DSChallengeReviews} from '@src/types/onyx';
 
 /**
+ * These subscriptions keep ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS tidy as values within it are no longer needed
+ */
+
+let locallyProcessed3DSTransactionReviews: OnyxEntry<LocallyProcessed3DSChallengeReviews> = {};
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS,
+    callback: (storedLocallyProcessed3DSTransactionReviews) => {
+        locallyProcessed3DSTransactionReviews = storedLocallyProcessed3DSTransactionReviews;
+    },
+});
+
+// Clean up list of locally-reviewed transactions when they are removed from queue by the server
+Onyx.connectWithoutView({
+    key: ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW,
+    callback: (queue) => {
+        if (!locallyProcessed3DSTransactionReviews || !queue) {
+            return;
+        }
+        const queuedTransactionIDs = Object.keys(queue);
+        const locallyProcessedTransactionIDsToCleanup = Object.keys(locallyProcessed3DSTransactionReviews).filter(
+            (locallyProcessedTransactionID) => !queuedTransactionIDs.includes(locallyProcessedTransactionID),
+        );
+        if (locallyProcessedTransactionIDsToCleanup.length > 0) {
+            cleanUpLocallyProcessed3DSTransactionReviews(locallyProcessedTransactionIDsToCleanup);
+        }
+    },
+});
+
+function cleanUpLocallyProcessed3DSTransactionReviews(entriesToDelete: string[]) {
+    const value: Record<string, null> = {};
+    for (const entry of entriesToDelete) {
+        value[entry] = null;
+    }
+    Onyx.merge(ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS, value);
+}
+
+/**
+ * The rest of this file is concerned with MFA-related API calls
+ *
  * To keep the code clean and readable, these functions return parsed data in order to:
  *
  * - Check whether multifactorial authentication scenario was successful as we need to know it as fast as possible
@@ -44,6 +86,7 @@ async function registerAuthenticationKey({keyInfo, authenticationMethod}: Multif
 type RegistrationChallengeResponse = {
     httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
+    message: string | undefined;
     challenge: RegistrationChallenge | undefined;
     publicKeys: string[] | undefined;
 };
@@ -51,6 +94,7 @@ type RegistrationChallengeResponse = {
 type AuthenticationChallengeResponse = {
     httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
+    message: string | undefined;
     challenge: AuthenticationChallenge | undefined;
     publicKeys: string[] | undefined;
 };
@@ -147,37 +191,9 @@ async function troubleshootMultifactorAuthentication({signedChallenge, authentic
     }
 }
 
-async function revokeMultifactorAuthenticationCredentials() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
+async function revokeMultifactorAuthenticationCredentials(params: RevokeMultifactorAuthenticationCredentialsParams) {
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {}, {optimisticData, successData, failureData});
-
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, params ?? {}, {});
         const {jsonCode, message} = response ?? {};
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
@@ -185,6 +201,108 @@ async function revokeMultifactorAuthenticationCredentials() {
         Log.hmmm('[MultifactorAuthentication] Failed to revoke multifactor authentication credentials', {error});
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, undefined);
     }
+}
+
+async function setPersonalDetailsAndShipExpensifyCardsWithPIN(params: MultifactorAuthenticationScenarioParameters['SET-PIN-ORDER-CARD']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN,
+            {
+                ...params,
+                signedChallenge: JSON.stringify(params.signedChallenge),
+            },
+            {
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: true,
+                        },
+                    },
+                ],
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: false,
+                        },
+                    },
+                ],
+            },
+        );
+
+        const {jsonCode, message} = response ?? {};
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to set personal details and ship card with PIN', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, undefined);
+    }
+}
+/** Check whether a given transaction is still pending review and update the transactionsPending3DSReview key in Onyx */
+async function isTransactionStillPending3DSReview(transactionID: string) {
+    const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW, null, {});
+    return !!response?.transactionsPending3DSReview?.[transactionID];
+}
+
+async function authorizeTransaction({transactionID, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['AUTHORIZE-TRANSACTION']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION,
+            {transactionID, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
+            {
+                optimisticData: [
+                    {
+                        key: ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS,
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        value: {
+                            [transactionID]: CONST.MULTIFACTOR_AUTHENTICATION.LOCALLY_PROCESSED_TRANSACTION_ACTION.APPROVE,
+                        },
+                    },
+                ],
+            },
+        );
+
+        const {jsonCode, message} = response ?? {};
+
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.APPROVE_TRANSACTION, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to authorize transaction', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.APPROVE_TRANSACTION, undefined);
+    }
+}
+
+async function denyTransaction({transactionID}: DenyTransactionParams) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION,
+            {transactionID},
+            {
+                optimisticData: [
+                    {
+                        key: ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS,
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        value: {
+                            [transactionID]: CONST.MULTIFACTOR_AUTHENTICATION.LOCALLY_PROCESSED_TRANSACTION_ACTION.DENY,
+                        },
+                    },
+                ],
+            },
+        );
+
+        const {jsonCode, message} = response ?? {};
+
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.DENY_TRANSACTION, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to deny transaction', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.DENY_TRANSACTION, undefined);
+    }
+}
+
+/** Attempt to deny the transaction without handling errors or waiting for a response. We use this to clean up after something unexpected happened trying to authorize or deny a challenge */
+async function fireAndForgetDenyTransaction({transactionID}: DenyTransactionParams) {
+    makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION, {transactionID}, {});
 }
 
 function markHasAcceptedSoftPrompt() {
@@ -207,4 +325,9 @@ export {
     revokeMultifactorAuthenticationCredentials,
     markHasAcceptedSoftPrompt,
     clearLocalMFAPublicKeyList,
+    setPersonalDetailsAndShipExpensifyCardsWithPIN,
+    isTransactionStillPending3DSReview,
+    denyTransaction,
+    authorizeTransaction,
+    fireAndForgetDenyTransaction,
 };

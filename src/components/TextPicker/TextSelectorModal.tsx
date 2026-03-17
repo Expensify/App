@@ -33,6 +33,7 @@ function TextSelectorModal({
     customValidate,
     enabledWhenOffline = true,
     allowHTML,
+    shouldUseStrictHtmlTagValidation = false,
     autoGrowHeight,
     ...rest
 }: TextSelectorModalProps) {
@@ -164,6 +165,7 @@ function TextSelectorModal({
                     addBottomSafeAreaPadding
                     enterKeyEventListenerPriority={0}
                     allowHTML={allowHTML}
+                    shouldUseStrictHtmlTagValidation={shouldUseStrictHtmlTagValidation}
                     shouldValidateOnBlur={!isClosing}
                 >
                     {!!subtitle && (
