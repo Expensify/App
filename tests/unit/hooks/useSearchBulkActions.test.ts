@@ -336,7 +336,7 @@ function createBaseQueryJSON() {
         flatFilters: [],
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
         sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-        view: CONST.SEARCH.VIEW.LIST,
+        view: CONST.SEARCH.VIEW.TABLE,
         filters: {} as never,
     };
 }
