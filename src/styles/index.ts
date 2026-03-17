@@ -2824,14 +2824,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        sectionMenuItem: {
-            borderRadius: 8,
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            height: 52,
-            alignItems: 'center',
-        },
-
         sectionSelectCircle: {
             backgroundColor: theme.cardBG,
         },
@@ -5381,6 +5373,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 170,
         },
 
+        emptyShelvesIllustration: {
+            width: 178,
+            height: 219,
+        },
+
         offlineFeedbackDeleted: {
             textDecorationLine: 'line-through',
             textDecorationStyle: 'solid',
@@ -5688,10 +5685,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 16,
             marginTop: 32,
         },
-        twoFactorAuthSecretBox: {
-            backgroundColor: theme.highlightBG,
-            borderRadius: 16,
-        },
         anonymousRoomFooter: {
             padding: 20,
             backgroundColor: theme.cardBG,
@@ -5799,7 +5792,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
         transactionReceiptButton: {
-            width: variables.transactionReceiptButtonWidth,
+            minWidth: variables.transactionReceiptButtonWidth,
         },
         chartHeader: {
             flexDirection: 'row',
@@ -6256,6 +6249,14 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
 
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+
+        sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
+            borderRadius: 8,
+            paddingHorizontal: 16,
+            paddingVertical: shouldUseNarrowLayout ? 8 : 4,
+            height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
+            alignItems: 'center',
+        }),
     }) satisfies DynamicStyles;
 
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects

@@ -1425,6 +1425,11 @@ function isScanning(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
+    // SmartScan can continue in the background, but a manual amount edit should stop the scanning UI state.
+    if (hasValidModifiedAmount(transaction)) {
+        return false;
+    }
+
     return isPartialTransaction(transaction) && hasReceipt(transaction);
 }
 
