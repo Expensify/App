@@ -34,7 +34,6 @@ import type {
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
-    ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
     InvalidValueParams,
@@ -61,9 +60,7 @@ import type {
     UnshareParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyAutoHarvestingParams,
     UpdatedPolicyBudgetNotificationParams,
-    UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCustomTaxNameParams,
@@ -74,64 +71,33 @@ import type {
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementChoiceParams,
-    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
-    UpdatedPolicyTagListParams,
     UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
     UpdatedPolicyTaxParams,
-    UpdatedPolicyTimeEnabledParams,
     UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
-    UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
-    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
-    UserSplitParams,
-    VacationDelegateParams,
-    ViolationsCashExpenseWithNoReceiptParams,
-    ViolationsConversionSurchargeParams,
-    ViolationsCustomRulesParams,
-    ViolationsInvoiceMarkupParams,
-    ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
-    ViolationsOverCategoryLimitParams,
-    ViolationsOverLimitParams,
-    ViolationsPerDayLimitParams,
     ViolationsProhibitedExpenseParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
-    WaitingOnBankAccountParams,
-    WalletAgreementParams,
-    WalletProgramParams,
-    WelcomeEnterMagicCodeParams,
-    WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
-    WorkEmailMergingBlockedParams,
-    WorkEmailResendCodeParams,
-    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
-    WorkspaceMembersCountParams,
-    WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
-    WorkspaceRouteParams,
-    WorkspaceShareNoteParams,
-    WorkspacesListRouteParams,
-    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
-    YourPlanPriceValueParams,
-    ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -357,7 +323,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verify: 'Zweryfikuj',
         yesContinue: 'Tak, kontynuuj',
         websiteExample: 'np. https://www.expensify.com',
-        zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `np. ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: (zipSampleFormat: string) => (zipSampleFormat ? `np. ${zipSampleFormat}` : ''),
         description: 'Opis',
         title: 'Tytuł',
         assignee: 'Osoba przypisana',
@@ -492,11 +458,11 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmation: 'Jeśli opuścisz ten obszar roboczy, nie będziesz mógł przesyłać do niego wydatków.',
         leaveWorkspaceConfirmationAuditor: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mieć dostępu do jej raportów ani ustawień.',
         leaveWorkspaceConfirmationAdmin: 'Jeśli opuścisz tę przestrzeń roboczą, nie będziesz mógł zarządzać jej ustawieniami.',
-        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationApprover: (workspaceOwner: string) =>
             `Jeśli opuścisz tę przestrzeń roboczą, w ścieżce zatwierdzania zastąpi Cię ${workspaceOwner}, właściciel przestrzeni roboczej.`,
-        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationExporter: (workspaceOwner: string) =>
             `Jeśli opuścisz tę przestrzeń roboczą, zostaniesz zastąpiony jako preferowany eksporter przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
-        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `Jeśli opuścisz tę przestrzeń roboczą, zostaniesz zastąpiony jako kontakt techniczny przez ${workspaceOwner}, właściciela przestrzeni roboczej.`,
         leaveWorkspaceReimburser:
             'Nie możesz opuścić tej przestrzeni roboczej jako osoba rozliczająca wydatki. Ustaw nową osobę rozliczającą w Przestrzenie robocze > Dokonuj lub śledź płatności, a następnie spróbuj ponownie.',
@@ -569,11 +535,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
-        descriptionWithCommand: ({
-            command,
-        }: {
-            command?: string;
-        } = {}) =>
+        descriptionWithCommand: (command?: string) =>
             `Nie masz uprawnień do wykonania tej akcji, gdy wsparcie jest zalogowane (polecenie: ${command ?? ''}). Jeśli uważasz, że Success powinien móc wykonać tę akcję, rozpocznij proszę rozmowę na Slacku.`,
     },
     lockedAccount: {
@@ -609,7 +571,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseDocument: 'Wybierz plik',
         attachmentTooLarge: 'Załącznik jest zbyt duży',
         sizeExceeded: 'Rozmiar załącznika przekracza limit 24 MB',
-        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `Rozmiar załącznika przekracza limit ${maxUploadSizeInMB} MB`,
+        sizeExceededWithLimit: (maxUploadSizeInMB: number) => `Rozmiar załącznika przekracza limit ${maxUploadSizeInMB} MB`,
         attachmentTooSmall: 'Załącznik jest za mały',
         sizeNotMet: 'Rozmiar załącznika musi być większy niż 240 bajtów',
         wrongFileType: 'Nieprawidłowy typ pliku',
@@ -620,9 +582,9 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'Ten obraz jest zbyt duży, aby wyświetlić podgląd przed przesłaniem.',
         imageDimensionsTooLarge: 'Wymiary obrazu są zbyt duże do przetworzenia. Użyj mniejszego obrazu.',
         tooManyFiles: (fileLimit: number) => `Możesz jednorazowo przesłać maksymalnie ${fileLimit} plików.`,
-        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Plik przekracza ${maxUploadSizeInMB} MB. Spróbuj ponownie.`,
+        sizeExceededWithValue: (maxUploadSizeInMB: number) => `Plik przekracza ${maxUploadSizeInMB} MB. Spróbuj ponownie.`,
         someFilesCantBeUploaded: 'Niektórych plików nie można przesłać',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Pliki muszą mieć mniej niż ${maxUploadSizeInMB} MB. Większe pliki nie zostaną przesłane.`,
+        sizeLimitExceeded: (maxUploadSizeInMB: number) => `Pliki muszą mieć mniej niż ${maxUploadSizeInMB} MB. Większe pliki nie zostaną przesłane.`,
         maxFileLimitExceeded: 'Możesz jednocześnie przesłać maksymalnie 30 paragonów. Dodatkowe paragony nie zostaną przesłane.',
         unsupportedFileType: (fileType: string) => `Pliki typu ${fileType} nie są obsługiwane. Zostaną przesłane tylko obsługiwane typy plików.`,
         learnMoreAboutSupportedFiles: 'Dowiedz się więcej o obsługiwanych formatach.',
@@ -822,7 +784,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Twoje płatności docierają do Ciebie tak szybko, jak szybko potrafisz przekazać swoją myśl.',
         enterPassword: 'Wprowadź swoje hasło',
         welcomeNewFace: (login: string) => `${login}, zawsze miło zobaczyć tu nową twarz!`,
-        welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Wprowadź magiczny kod wysłany na ${login}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
+        welcomeEnterMagicCode: (login: string) => `Wprowadź magiczny kod wysłany na ${login}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
     },
     login: {
         hero: {
@@ -913,8 +875,8 @@ const translations: TranslationDeepObject<typeof en> = {
         askMeAnything: 'Zapytaj mnie o cokolwiek!',
         sayHello: 'Przywitaj się!',
         yourSpace: 'Twoja przestrzeń',
-        welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witaj w ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Użyj przycisku +, aby ${additionalText} wydatek.`,
+        welcomeToRoom: (roomName: string) => `Witaj w ${roomName}!`,
+        usePlusButton: (additionalText: string) => `Użyj przycisku +, aby ${additionalText} wydatek.`,
         askConcierge: 'To Twój czat z Concierge, Twoim osobistym agentem AI. Mogę zrobić prawie wszystko, wypróbuj mnie!',
         conciergeSupport: 'Twój osobisty agent AI',
         create: 'utwórz',
@@ -1361,7 +1323,7 @@ const translations: TranslationDeepObject<typeof en> = {
         trackedAmount: (formattedAmount: string, comment?: string) => `śledzenie ${formattedAmount}${comment ? `za ${comment}` : ''}`,
         splitAmount: (amount: string) => `podziel ${amount}`,
         didSplitAmount: (formattedAmount: string, comment?: string) => `podziel ${formattedAmount}${comment ? `za ${comment}` : ''}`,
-        yourSplit: ({amount}: UserSplitParams) => `Twój podział ${amount}`,
+        yourSplit: (amount: string) => `Twój podział ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} jest winien ${amount}${comment ? `za ${comment}` : ''}`,
         payerOwes: (payer: string) => `${payer} jest winien:`,
         payerPaidAmount: (amount: number | string, payer?: string) => `${payer ? `${payer} ` : ''}zapłacił(a) ${amount}`,
@@ -1379,7 +1341,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `zatwierdzone przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reguły przestrzeni roboczej</a>`,
         forwarded: `zatwierdzono`,
         rejectedThisReport: 'odrzucono',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `rozpoczęto płatność, ale oczekuje na to, aż ${submitterDisplayName} doda konto bankowe.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `rozpoczęto płatność, ale oczekuje na to, aż ${submitterDisplayName} doda konto bankowe.`,
         adminCanceledRequest: 'anulowano płatność',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `anulowano płatność ${amount}, ponieważ ${submitterDisplayName} nie aktywował(-a) swojego portfela Expensify w ciągu 30 dni`,
@@ -1450,8 +1412,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         dismissReceiptError: 'Odrzuć błąd',
         dismissReceiptErrorConfirmation: 'Uwaga! Zamknięcie tego błędu spowoduje całkowite usunięcie przesłanego paragonu. Czy na pewno chcesz kontynuować?',
-        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `rozpoczął rozliczanie. Płatność jest wstrzymana, dopóki ${submitterDisplayName} nie włączy swojego portfela.`,
+        waitingOnEnabledWallet: (submitterDisplayName: string) => `rozpoczął rozliczanie. Płatność jest wstrzymana, dopóki ${submitterDisplayName} nie włączy swojego portfela.`,
         enableWallet: 'Włącz portfel',
         hold: 'Wstrzymaj',
         unhold: 'Usuń blokadę',
@@ -1585,7 +1546,7 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
         changeApprover: {
             title: 'Zmień osobę zatwierdzającą',
-            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+            header: (workflowSettingLink: string) =>
                 `Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport. (Zaktualizuj swoje <a href="${workflowSettingLink}">ustawienia przestrzeni roboczej</a>, aby zmienić to na stałe dla wszystkich raportów).`,
             changedApproverMessage: (managerID: number) => `zmienił(a) akceptującego na <mention-user accountID="${managerID}"/>`,
             actions: {
@@ -2231,7 +2192,7 @@ const translations: TranslationDeepObject<typeof en> = {
         upgradeDescription: 'Potrzebujesz dodać więcej kart? Utwórz obszar roboczy, aby dodać kolejne karty osobiste lub przypisać karty firmowe całemu zespołowi.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
             `<muted-text>Dostępne w planie Collect — <strong>${formattedPrice}</strong> za członka miesięcznie.</muted-text>`,
-        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+        note: (subscriptionLink: string) =>
             `<muted-text>Utwórz obszar roboczy, aby uzyskać dostęp do tej funkcji, lub <a href="${subscriptionLink}">dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
         workspaceCreated: 'Obszar roboczy utworzony',
         newWorkspace: 'Utworzyłeś obszar roboczy!',
@@ -2304,16 +2265,15 @@ const translations: TranslationDeepObject<typeof en> = {
         availableSpend: 'Pozostały limit',
         smartLimit: {
             name: 'Inteligentny limit',
-            title: ({formattedLimit}: ViolationsOverLimitParams) => `Możesz wydać do ${formattedLimit} tą kartą, a limit będzie się odnawiał w miarę zatwierdzania zgłoszonych wydatków.`,
+            title: (formattedLimit: string) => `Możesz wydać do ${formattedLimit} tą kartą, a limit będzie się odnawiał w miarę zatwierdzania zgłoszonych wydatków.`,
         },
         fixedLimit: {
             name: 'Stały limit',
-            title: ({formattedLimit}: ViolationsOverLimitParams) => `Możesz wydać do ${formattedLimit} na tej karcie, a następnie zostanie ona dezaktywowana.`,
+            title: (formattedLimit: string) => `Możesz wydać do ${formattedLimit} na tej karcie, a następnie zostanie ona dezaktywowana.`,
         },
         monthlyLimit: {
             name: 'Limit miesięczny',
-            title: ({formattedLimit}: ViolationsOverLimitParams) =>
-                `Możesz wydawać do ${formattedLimit} miesięcznie na tej karcie. Limit zostanie zresetowany pierwszego dnia każdego miesiąca kalendarzowego.`,
+            title: (formattedLimit: string) => `Możesz wydawać do ${formattedLimit} miesięcznie na tej karcie. Limit zostanie zresetowany pierwszego dnia każdego miesiąca kalendarzowego.`,
         },
         virtualCardNumber: 'Numer karty wirtualnej',
         travelCardCvv: 'Kod CVV karty podróżnej',
@@ -2648,7 +2608,7 @@ ${amount} dla ${merchant} - ${date}`,
     groupChat: {
         lastMemberTitle: 'Uwaga!',
         lastMemberWarning: 'Ponieważ jesteś ostatnią osobą w tym czacie, wyjście spowoduje, że stanie się on niedostępny dla wszystkich członków. Czy na pewno chcesz opuścić czat?',
-        defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Czat grupowy ${displayName}`,
+        defaultReportName: (displayName: string) => `Czat grupowy ${displayName}`,
     },
     languagePage: {
         language: 'Język',
@@ -2775,7 +2735,7 @@ ${amount} dla ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Zweryfikuj służbowy adres e-mail',
-            magicCodeSent: ({workEmail}: WorkEmailResendCodeParams) => `Wprowadź magiczny kod wysłany na adres ${workEmail}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
+            magicCodeSent: (workEmail: string | undefined) => `Wprowadź magiczny kod wysłany na adres ${workEmail}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
         },
         workEmailValidationError: {
             publicEmail: 'Wpisz poprawny służbowy adres e‑mail z prywatnej domeny, np. mitch@company.com',
@@ -2784,8 +2744,7 @@ ${amount} dla ${merchant} - ${date}`,
         },
         mergeBlockScreen: {
             title: 'Nie udało się dodać służbowego adresu e-mail',
-            subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
-                `Nie udało się dodać ${workEmail}. Spróbuj ponownie później w Ustawieniach lub porozmawiaj z Concierge, aby uzyskać pomoc.`,
+            subtitle: (workEmail: string | undefined) => `Nie udało się dodać ${workEmail}. Spróbuj ponownie później w Ustawieniach lub porozmawiaj z Concierge, aby uzyskać pomoc.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -3220,9 +3179,9 @@ ${
         setVacationDelegate: `Ustaw zastępcę na czas urlopu, aby zatwierdzał raporty w Twoim imieniu, gdy jesteś poza biurem.`,
         cannotSetVacationDelegate: `Nie możesz ustawić delegata urlopowego, ponieważ obecnie jesteś delegatem dla następujących członków:`,
         vacationDelegateError: 'Wystąpił błąd podczas aktualizowania Twojego zastępcy urlopowego.',
-        asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `jako osoba zastępująca ${nameOrEmail} podczas urlopu`,
+        asVacationDelegate: (nameOrEmail: string) => `jako osoba zastępująca ${nameOrEmail} podczas urlopu`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `do ${submittedToName} jako zastępca urlopowy dla ${vacationDelegateName}`,
-        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+        vacationDelegateWarning: (nameOrEmail: string) =>
             `Przydzielasz ${nameOrEmail} jako osobę zastępującą Cię podczas urlopu. Nie jest ona jeszcze we wszystkich Twoich przestrzeniach roboczych. Jeśli zdecydujesz się kontynuować, do wszystkich administratorów Twoich przestrzeni roboczych zostanie wysłany e-mail z prośbą o dodanie jej.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
@@ -3262,7 +3221,7 @@ ${
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Aby połączyć konto bankowe, <a href="${contactMethodRoute}">dodaj adres e‑mail jako swój główny login</a> i spróbuj ponownie. Numer telefonu możesz dodać jako login dodatkowy.`,
         hasBeenThrottledError: 'Wystąpił błąd podczas dodawania Twojego konta bankowego. Poczekaj kilka minut i spróbuj ponownie.',
-        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+        hasCurrencyError: (workspaceRoute: string) =>
             `Ups! Wygląda na to, że waluta Twojego przestrzeni roboczej jest inna niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawień swojej przestrzeni roboczej</a>, ustaw ją na USD i spróbuj ponownie.`,
         bbaAdded: 'Dodano firmowe konto bankowe!',
         bbaAddedDescription: 'Jest gotowe do używania do płatności.',
@@ -3388,7 +3347,7 @@ ${
         haveReadAndAgreePlain: 'Przeczytałem(-am) i zgadzam się na otrzymywanie ujawnień w formie elektronicznej.',
         haveReadAndAgree: `Przeczytałem(-am) i wyrażam zgodę na otrzymywanie <a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">elektronicznych powiadomień</a>.`,
         agreeToThePlain: 'Zgadzam się na Politykę prywatności i warunki portfela.',
-        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) =>
+        agreeToThe: (walletAgreementUrl: string) =>
             `Zgadzam się z <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">polityką prywatności</a> oraz <a href="${walletAgreementUrl}">warunkami korzystania z portfela</a>.`,
         enablePayments: 'Włącz płatności',
         monthlyFee: 'Miesięczna opłata',
@@ -3400,7 +3359,7 @@ ${
         checkTheBoxes: 'Zaznacz pola poniżej.',
         agreeToTerms: 'Zaakceptuj warunki i wszystko będzie gotowe!',
         shortTermsForm: {
-            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `Portfel Expensify jest wydawany przez ${walletProgram}.`,
+            expensifyPaymentsAccount: (walletProgram: string) => `Portfel Expensify jest wydawany przez ${walletProgram}.`,
             perPurchase: 'Za zakup',
             atmWithdrawal: 'Wypłata z bankomatu',
             cashReload: 'Doładowanie gotówką',
@@ -4056,7 +4015,7 @@ ${
             appliedOnExport: 'Nie zaimportowano do Expensify, zastosowane przy eksporcie',
             shareNote: {
                 header: 'Udostępnij swoją przestrzeń roboczą innym członkom',
-                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                content: (adminsRoomLink: string) =>
                     `Udostępnij ten kod QR lub skopiuj poniższy link, aby członkowie mogli łatwo poprosić o dostęp do Twojego obszaru roboczego. Wszystkie prośby o dołączenie do obszaru roboczego pojawią się w pokoju <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> do Twojej weryfikacji.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Połącz z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -5741,11 +5700,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             addedWithPrimary: 'Niektóre osoby zostały dodane za pomocą swoich głównych loginów.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Dodane przez dodatkowy login ${secondaryLogin}.`,
-            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Łączna liczba członków przestrzeni roboczej: ${count}`,
+            workspaceMembersCount: (count: number) => `Łączna liczba członków przestrzeni roboczej: ${count}`,
             importMembers: 'Zaimportuj członków',
-            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+            removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `Jeśli usuniesz ${approver} z tego obszaru roboczego, zastąpimy tę osobę w procesie zatwierdzania przez ${workspaceOwner}, właściciela obszaru roboczego.`,
-            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+            removeMemberPromptPendingApproval: (memberName: string) =>
                 `${memberName} ma zaległe raporty wydatków do zatwierdzenia. Poproś tę osobę o ich zatwierdzenie lub przejmij kontrolę nad jej raportami, zanim usuniesz ją z przestrzeni roboczej.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `Nie możesz usunąć ${memberName} z tego przestrzeni roboczej. Ustaw nową osobę zwracającą wydatki w Workflows > Make or track payments, a następnie spróbuj ponownie.`,
@@ -6368,7 +6327,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 perActiveMember: 'na aktywnego członka miesięcznie.',
                 perMember: 'za użytkownika miesięcznie.',
             },
-            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            note: (subscriptionLink: string) =>
                 `<muted-text>Uaktualnij, aby uzyskać dostęp do tej funkcji, lub <a href="${subscriptionLink}">dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
             upgradeToUnlock: 'Odblokuj tę funkcję',
             completed: {
@@ -6436,7 +6395,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         restrictedAction: {
             restricted: 'Ograniczone',
             actionsAreCurrentlyRestricted: (workspaceName: string) => `Działania w przestrzeni roboczej ${workspaceName} są obecnie ograniczone`,
-            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}: WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams) =>
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: (workspaceOwnerName: string) =>
                 `Właściciel przestrzeni roboczej, ${workspaceOwnerName}, musi dodać lub zaktualizować zapisaną kartę płatniczą, aby odblokować nową aktywność w przestrzeni roboczej.`,
             youWillNeedToAddOrUpdatePaymentCard: 'Aby odblokować nowe działania w przestrzeni roboczej, musisz dodać lub zaktualizować zapisaną kartę płatniczą.',
             addPaymentCardToUnlock: 'Dodaj kartę płatniczą, aby odblokować!',
@@ -6784,7 +6743,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `zmienił(a) ${updatedField} jednostki ${customUnitName} na „${newValue}” (wcześniej „${oldValue}”)`,
-        updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'włączone' : 'wyłączone'} śledzenie podatku dla stawek za dystans`,
+        updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? 'włączone' : 'wyłączone'} śledzenie podatku dla stawek za dystans`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `dodano nową stawkę ${customUnitName} „${rateName}”`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `zmienił(a) stawkę ${customUnitName} ${updatedField} „${customUnitRateName}” na „${newValue}” (wcześniej „${oldValue}”)`,
@@ -6959,7 +6918,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             previousReimburser
                 ? `zmienił(a) upoważnioną osobę zwracającą wydatki na „${newReimburser}” (wcześniej „${previousReimburser}”)`
                 : `zmienił(a) upoważnionego płatnika na „${newReimburser}”`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'włączone' : 'wyłączone'} zwrotów kosztów`,
+        updateReimbursementEnabled: (enabled: boolean) => `${enabled ? 'włączone' : 'wyłączone'} zwrotów kosztów`,
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `zmieniono niestandardową nazwę podatku na „${newName}" (poprzednio „${oldName}")`,
         updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
             `zmienił domyślną stawkę podatku waluty w przestrzeni roboczej na „${newName}" (wcześniej „${oldName}")`,
@@ -6998,14 +6957,14 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         setMaxExpenseAge: (newValue: string) => `ustaw maksymalny wiek wydatku na „${newValue}” dni`,
         changedMaxExpenseAge: (oldValue: string, newValue: string) => `zmieniono maksymalny wiek wydatku na „${newValue}” dni (wcześniej „${oldValue}”)`,
         removedMaxExpenseAge: (oldValue: string) => `usunięto maksymalny wiek wydatku (wcześniej „${oldValue}” dni)`,
-        updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `zaktualizowano ${count} kategorie`,
-        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `zaktualizowano tagi na liście „${tagListName}”`,
+        updateCategories: (count: number) => `zaktualizowano ${count} kategorie`,
+        updateTagList: (tagListName: string) => `zaktualizowano tagi na liście „${tagListName}”`,
         updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `zmieniono listę tagów „${tagListsName}” na ${isRequired ? 'wymagane' : 'niewymagane'}`,
         importTags: 'zaimportowano tagi z arkusza kalkulacyjnego',
         deletedAllTags: 'usunął(-ę) wszystkie tagi',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `zmienił(a) domyślną kategorię jednostki ${customUnitName} na „${newValue}” ${oldValue ? `(uprzednio „${oldValue}”)` : ''}`,
-        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `zaimportowano stawki dla niestandardowej jednostki „${customUnitName}”`,
+        importCustomUnitRates: (customUnitName: string) => `zaimportowano stawki dla niestandardowej jednostki „${customUnitName}”`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
             `zmieniono stawkę „${customUnitName}” stawka „${customUnitRateName}” stawka podrzędna „${customUnitSubRateName}” ${updatedField} na „${newValue}” (wcześniej „${oldValue}”)`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
@@ -7079,7 +7038,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             return `usunięto budżet z ${entityType} „${entityName}”`;
         },
-        updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
+        updatedTimeEnabled: (enabled?: boolean) => {
             return `${enabled ? 'włączone' : 'wyłączone'} śledzenie czasu`;
         },
         updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
@@ -7093,7 +7052,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
             `zmieniono formułę nazwy niestandardowego raportu na „${newDefaultTitle}” (wcześniej „${oldDefaultTitle}”)`,
         updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) => `przejął(a) własność ${policyName} od ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `Zaplanowane przesłanie ${enabled ? 'włączone' : 'wyłączone'}`,
+        updatedAutoHarvesting: (enabled: boolean) => `Zaplanowane przesłanie ${enabled ? 'włączone' : 'wyłączone'}`,
         updatedIndividualBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -7837,15 +7796,15 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         allTagLevelsRequired: 'Wszystkie tagi są wymagane',
         autoReportedRejectedExpense: 'Ten wydatek został odrzucony.',
         billableExpense: 'Rozliczalne już nieważne',
-        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Wymagany paragon${formattedLimit ? `powyżej ${formattedLimit}` : ''}`,
+        cashExpenseWithNoReceipt: (formattedLimit?: string) => `Wymagany paragon${formattedLimit ? `powyżej ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Kategoria nie jest już prawidłowa',
-        conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `Zastosowano prowizję za przewalutowanie w wysokości ${surcharge}%`,
+        conversionSurcharge: (surcharge: number) => `Zastosowano prowizję za przewalutowanie w wysokości ${surcharge}%`,
         customUnitOutOfPolicy: 'Stawka nie jest ważna dla tego workspace’u',
         duplicatedTransaction: 'Potencjalny duplikat',
         fieldRequired: 'Pola raportu są wymagane',
         futureDate: 'Przyszła data jest niedozwolona',
-        invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `Podwyższono o ${invoiceMarkup}%`,
-        maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data starsza niż ${maxAge} dni`,
+        invoiceMarkup: (invoiceMarkup: number) => `Podwyższono o ${invoiceMarkup}%`,
+        maxAge: (maxAge: number) => `Data starsza niż ${maxAge} dni`,
         missingCategory: 'Brak kategorii',
         missingComment: 'Wymagany opis dla wybranej kategorii',
         missingAttendees: 'Wymaganych jest wielu uczestników dla tej kategorii',
@@ -7865,12 +7824,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         modifiedDate: 'Data różni się od zeskanowanego paragonu',
         nonExpensiworksExpense: 'Wydatek spoza Expensiworks',
-        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Wydatek przekracza automatyczny limit zatwierdzania w wysokości ${formattedLimit}`,
-        overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Kwota przekracza limit kategorii w wysokości ${formattedLimit}/osobę`,
-        overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota powyżej limitu ${formattedLimit}/osobę`,
-        overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota powyżej limitu ${formattedLimit}/podróż`,
-        overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota powyżej limitu ${formattedLimit}/osobę`,
-        perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Kwota przekraczająca dzienny limit kategorii ${formattedLimit}/osobę`,
+        overAutoApprovalLimit: (formattedLimit: string) => `Wydatek przekracza automatyczny limit zatwierdzania w wysokości ${formattedLimit}`,
+        overCategoryLimit: (formattedLimit: string) => `Kwota przekracza limit kategorii w wysokości ${formattedLimit}/osobę`,
+        overLimit: (formattedLimit: string) => `Kwota powyżej limitu ${formattedLimit}/osobę`,
+        overTripLimit: (formattedLimit: string) => `Kwota powyżej limitu ${formattedLimit}/podróż`,
+        overLimitAttendee: (formattedLimit: string) => `Kwota powyżej limitu ${formattedLimit}/osobę`,
+        perDayLimit: (formattedLimit: string) => `Kwota przekraczająca dzienny limit kategorii ${formattedLimit}/osobę`,
         receiptNotSmartScanned: 'Ręcznie dodano paragon i szczegóły wydatku.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             if (formattedLimit && category) {
@@ -7884,7 +7843,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             return 'Wymagany paragon';
         },
-        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Wymagany paragon z wyszczególnieniem pozycji${formattedLimit ? `powyżej ${formattedLimit}` : ''}`,
+        itemizedReceiptRequired: (formattedLimit?: string) => `Wymagany paragon z wyszczególnieniem pozycji${formattedLimit ? `powyżej ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Zabroniony wydatek:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7914,7 +7873,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
-        customRules: ({message}: ViolationsCustomRulesParams) => message,
+        customRules: (message: string) => message,
         reviewRequired: 'Wymagana weryfikacja',
         rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
@@ -8135,9 +8094,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             title: 'Twój plan',
             exploreAllPlans: 'Poznaj wszystkie plany',
             customPricing: 'Niestandardowe ceny',
-            asLowAs: ({price}: YourPlanPriceValueParams) => `już od ${price} za aktywnego członka/miesiąc`,
-            pricePerMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} za członka/miesiąc`,
-            pricePerMemberPerMonth: ({price}: YourPlanPriceValueParams) => `${price} za członka miesięcznie`,
+            asLowAs: (price: string) => `już od ${price} za aktywnego członka/miesiąc`,
+            pricePerMemberMonth: (price: string) => `${price} za członka/miesiąc`,
+            pricePerMemberPerMonth: (price: string) => `${price} za członka miesięcznie`,
             perMemberMonth: 'za użytkownika/miesiąc',
             collect: {
                 title: 'Zbierz',
@@ -8254,7 +8213,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Subskrypcja anulowana',
                 subtitle: 'Twoja subskrypcja roczna została anulowana.',
                 info: 'Jeśli chcesz nadal korzystać ze swojego(-ich) workspace’u(-ów) w modelu płatności za użycie, wszystko jest gotowe.',
-                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                preventFutureActivity: (workspacesListRoute: string) =>
                     `Jeśli chcesz zapobiec przyszłej aktywności i obciążeniom, musisz <a href="${workspacesListRoute}">usunąć swoje przestrzenie robocze</a>. Pamiętaj, że po usunięciu przestrzeni roboczych zostaniesz obciążony za wszelką nierozliczoną aktywność z bieżącego miesiąca kalendarzowego.`,
             },
             requestSubmitted: {
@@ -8638,6 +8597,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Czy na pewno? To zablokuje konto użytkownika <strong>${email}</strong>. <br /><br /> Nasz zespół następnie przejrzy konto i usunie wszelki nieautoryzowany dostęp. Aby odzyskać dostęp, będą musieli współpracować z Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'Przejrzymy konto, aby potwierdzić, że bezpiecznie je odblokować, i skontaktujemy się przez Concierge w razie pytań.',
+            emptyMembers: {title: 'Brak członków w tej grupie', subtitle: 'Dodaj członka lub spróbuj zmienić filtr powyżej.'},
         },
         common: {
             settings: 'Ustawienia',
