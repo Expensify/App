@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -84,6 +84,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
 jest.mock('@src/hooks/useResponsiveLayout');
+jest.mock('@libs/getCurrentPosition');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
@@ -346,7 +347,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             </OnyxListItemProvider>,
         );
         fireEvent.press(await screen.findByText(translateLocal('iou.splitExpense')));
-        expect(startSplitBill).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(startSplitBill).toHaveBeenCalledTimes(1));
     });
 
     it('should create a split expense for each scanned receipt', async () => {
@@ -395,7 +396,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             </OnyxListItemProvider>,
         );
         fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', 2)));
-        expect(startSplitBill).toHaveBeenCalledTimes(2);
+        await waitFor(() => expect(startSplitBill).toHaveBeenCalledTimes(2));
     });
 
     describe('Tax Calculation Tests', () => {
@@ -1000,7 +1001,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
-            expect(TrackExpense.requestMoney).toHaveBeenCalled();
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
             const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report).toBeUndefined();
@@ -1066,7 +1067,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
-            expect(TrackExpense.requestMoney).toHaveBeenCalled();
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
             const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report?.reportID).toBe(routeReportID);
@@ -1141,7 +1142,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await waitForBatchedUpdatesWithAct();
                 fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
-                expect(TrackExpense.requestMoney).toHaveBeenCalled();
+                await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
                 const requestMoneyMock = TrackExpense.requestMoney as jest.MockedFunction<typeof TrackExpense.requestMoney>;
                 const params = requestMoneyMock.mock.calls.at(0)?.at(0);
                 expect(params?.report?.reportID).toBe(transactionReportID);
@@ -1200,7 +1201,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
-            expect(TrackExpense.requestMoney).toHaveBeenCalled();
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
@@ -1274,8 +1275,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Unreported distance requests should skip createDistanceRequest and use requestMoney
-            expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
-            expect(TrackExpense.requestMoney).toHaveBeenCalled();
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            expect(TrackExpense.createDistanceRequest).not.toHaveBeenCalled();
         });
     });
 
@@ -1358,7 +1359,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
-            expect(IOU.createDistanceRequest).toHaveBeenCalled();
+            await waitFor(() => expect(IOU.createDistanceRequest).toHaveBeenCalled());
             const createDistanceRequestMock = IOU.createDistanceRequest as jest.MockedFunction<typeof IOU.createDistanceRequest>;
             const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
             expect(params?.personalDetails).toBeDefined();

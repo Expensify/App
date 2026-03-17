@@ -60,7 +60,6 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     arePaymentsEnabled,
     getDistanceRateCustomUnit,
-    getPolicy,
     getSubmitToAccountID,
     hasDependentTags,
     hasDynamicExternalWorkflow,
@@ -924,11 +923,7 @@ function handleNavigateAfterExpenseCreate({
         if (getIsNarrowLayout()) {
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
         } else {
-            Navigation.dismissModal();
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
-            });
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }
     });
 }
@@ -1536,7 +1531,7 @@ function buildOnyxDataForTestDriveIOU(
     });
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', personalDetailsList?.[userAccountID]?.firstName ?? '');
-    const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID, undefined, undefined, testDriveIOUParams.testDriveCommentReportActionID);
+    const textComment = buildOptimisticAddCommentReportAction({text, actorAccountID: userAccountID, reportActionID: testDriveIOUParams.testDriveCommentReportActionID});
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 
     optimisticData.push(
@@ -4895,6 +4890,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         taxAmount,
         taxCode,
         merchant,
+        modifiedAmount,
         billable,
         reimbursable,
         validWaypoints,
@@ -5072,6 +5068,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         }
 
         parameters = {
+            amount: modifiedAmount ?? undefined,
             comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
@@ -6550,6 +6547,7 @@ function getPayMoneyRequestParams({
             introSelected,
             activePolicyID: activePolicy?.id,
             companySize: introSelected?.companySize as OnboardingCompanySize,
+            betas,
             isSelfTourViewed,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
@@ -6995,7 +6993,7 @@ function canSubmitReport(
 
 function getIOUReportActionWithBadge(
     chatReport: OnyxEntry<OnyxTypes.Report>,
-    updatedIouReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
 ): {reportAction: OnyxEntry<ReportAction>; actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>} {
@@ -7006,10 +7004,7 @@ function getIOUReportActionWithBadge(
         if (!action || action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
             return false;
         }
-        const iouReport = updatedIouReport?.reportID === action.childReportID ? updatedIouReport : getReportOrDraftReport(action.childReportID);
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policy = getPolicy(iouReport?.policyID);
+        const iouReport = getReportOrDraftReport(action.childReportID);
         // Only show to the actual payer, exclude admins with bank account access
         if (canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy)) {
             actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
