@@ -12,8 +12,6 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEarliestErrorField} from '@libs/ErrorUtils';
 import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
@@ -31,8 +29,6 @@ function PhoneNumberPage() {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
@@ -92,9 +88,7 @@ function PhoneNumberPage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 {isLoadingApp ? (
-                    <View
-                        style={[styles.flex1, styles.pRelative, styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(theme.componentBG), {opacity: 0.8}]}
-                    >
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             reasonAttributes={{context: 'PhoneNumberPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
