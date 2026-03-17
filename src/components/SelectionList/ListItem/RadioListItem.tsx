@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -19,6 +20,7 @@ function RadioListItem<TItem extends ListItem>({
     isMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
+    titleNumberOfLines = 2,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
@@ -26,12 +28,31 @@ function RadioListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
     accessibilityRole,
+    shouldUseDefaultRightHandSideComponent,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const alternateTextMaxWidth = variables.sideBarWidth - styles.ph5.paddingHorizontal * 2 - styles.ml3.marginLeft - variables.iconSizeNormal;
+    const CIRCULAR_BORDER_RADIUS = 999;
+
+    const handleCheckboxPress = useCallback(() => {
+        onSelectRow(item);
+    }, [item, onSelectRow]);
+
+    const defaultRightHandSideComponent = useMemo(
+        () => (
+            <Checkbox
+                shouldSelectOnPressEnter
+                containerBorderRadius={CIRCULAR_BORDER_RADIUS}
+                accessibilityLabel={item.text ?? ''}
+                isChecked={!!item.isSelected}
+                onPress={handleCheckboxPress}
+            />
+        ),
+        [item.text, item.isSelected, handleCheckboxPress],
+    );
 
     return (
         <BaseListItem
@@ -43,7 +64,7 @@ function RadioListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
+            rightHandSideComponent={shouldUseDefaultRightHandSideComponent ? defaultRightHandSideComponent : rightHandSideComponent}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
@@ -54,7 +75,7 @@ function RadioListItem<TItem extends ListItem>({
         >
             <>
                 {!!item.leftElement && item.leftElement}
-                <View style={[styles.flex1, styles.alignItemsStart]}>
+                <View style={[styles.flex1, styles.alignItemsStart, styles.pr3]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={fullTitle ?? ''}
@@ -68,7 +89,7 @@ function RadioListItem<TItem extends ListItem>({
                             isMultilineSupported ? {paddingLeft} : null,
                             titleStyles,
                         ]}
-                        numberOfLines={isMultilineSupported ? 2 : 1}
+                        numberOfLines={isMultilineSupported ? titleNumberOfLines : 1}
                     />
 
                     {!!item.alternateText && (

@@ -22,6 +22,8 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 const EMPTY_SET = new Set<string>();
+// Shared immutable map used in hot paths that only read from the instance.
+const EMPTY_MAP = new Map<string, string>();
 const EMPTY_TODOS_REPORT_COUNTS = Object.freeze({
     submit: 0,
     approve: 0,
@@ -773,7 +775,6 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         NEW_DOT_DEW: 'newDotDEW',
-        GPS_MILEAGE: 'gpsMileage',
         ODOMETER_EXPENSES: 'odometerExpenses',
         SINGLE_USE_AND_EXPIRE_BY_CARDS: 'singleUseAndExpireByCards',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
@@ -797,6 +798,7 @@ const CONST = {
         AU: 'AU',
         CA: 'CA',
         GB: 'GB',
+        GI: 'GI',
         IT: 'IT',
         PR: 'PR',
         GU: 'GU',
@@ -1018,6 +1020,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     EMPTY_SET,
+    EMPTY_MAP,
     EMPTY_TODOS_REPORT_COUNTS,
     DEFAULT_NUMBER_ID,
     DEFAULT_MISSING_ID,
@@ -1125,6 +1128,7 @@ const CONST = {
         EMPLOYEE_TOUR_MOBILE: 'https://expensify.storylane.io/share/v8uwkznocw0g',
         EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/v9dr1rjqsd9y',
         EMPLOYEE_MIGRATED_MOBILE: 'https://app.storylane.io/share/qbbob6zvapqo',
+        IFRAME_SANDBOX: 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1135,6 +1139,7 @@ const CONST = {
         BANCORP_WALLET_AGREEMENT_URL: `${EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
         EXPENSIFY_APPROVED_PROGRAM_URL: `${USE_EXPENSIFY_URL}/accountants-program`,
         TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
+        FEES_URL: `${EXPENSIFY_URL}/fees`,
     },
     OLDDOT_URLS: {
         ADMIN_POLICIES_URL: 'admin_policies',
@@ -1224,6 +1229,7 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
+            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1260,11 +1266,18 @@ const CONST = {
             REJECT_BULK: 'rejectBulk',
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
+            MOVE_EXPENSE: 'moveExpense',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
             ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
             TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense',
+        },
+        ACTION_BADGE: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            FIX: 'fix',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -1742,6 +1755,7 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
     TELEMETRY: {
@@ -2192,7 +2206,6 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
-    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
@@ -2244,6 +2257,20 @@ const CONST = {
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
         HEIC: 'image/heic',
+    },
+
+    IMAGE_CACHE_FILE_TYPES: {
+        'image/webp': 'webp',
+        'image/png': 'png',
+        'image/apng': 'png',
+        'image/avif': 'avif',
+        'image/jpeg': 'jpg',
+        'image/jpg': 'jpg',
+        'image/gif': 'gif',
+        'image/svg+xml': 'svg',
+        'image/x-icon': 'ico',
+        'image/vnd.microsoft.icon': 'ico',
+        'image/heic': 'heic',
     },
 
     SHARE_FILE_MIMETYPE: {
@@ -4192,15 +4219,25 @@ const CONST = {
         NON_NUMERIC: /\D/g,
         ANY_SPACE: /\s/g,
 
-        // Extract attachment's source from the data's html string
-        ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
-
         EMOJI_NAME: /(?<=^|[\s\S]):[\p{L}0-9_+-]+:/gu,
         EMOJI_SUGGESTIONS: /(?<=^|[\s\S]):[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
-        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+
+        ATTACHMENT: {
+            // Match any attachment tag inside the markdown text i.e only: <img or <video
+            ATTACHMENT_REGEX: /<video |<img /g,
+            // Extract all attachments including all atributes and values from markdown text
+            ATTACHMENT: /<(img|video)[^>]*>/gi,
+            // Retrieve the attachment id value from data-attachment-id attribute
+            ATTACHMENT_ID: /data-attachment-id=(["'])(.*?)\1/,
+            // Retrive attachment source id from attachment source url link
+            ATTACHMENT_SOURCE_ID: /chat-attachments\/(\d+)/,
+            // Retrieve attachment source either local or remote
+            ATTACHMENT_SOURCE: /(src|data-expensify-source|data-optimistic-src)="([^"]+)"/i,
+        },
+
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
         EMPTY_COMMENT: /^(\s)*$/,
@@ -5859,6 +5896,8 @@ const CONST = {
         LINK: 'link',
         /** Use to identify a list of items. */
         LIST: 'list',
+        /** Use for a list of selectable options (single or multi-select). */
+        LISTBOX: 'listbox',
         /** Use for individual items within a list. */
         LISTITEM: 'listitem',
         /** Use for a list of choices or options. */
@@ -5867,6 +5906,8 @@ const CONST = {
         MENUBAR: 'menubar',
         /** Use for items within a menu. */
         MENUITEM: 'menuitem',
+        /** Use for selectable options within a listbox. */
+        OPTION: 'option',
         /** Use when no specific role is needed. */
         NONE: 'none',
         /** Use for elements that don't require a specific role. */
@@ -6028,6 +6069,7 @@ const CONST = {
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
+            REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
@@ -7108,6 +7150,10 @@ const CONST = {
         BOOK_MEETING_LINK: 'https://calendly.com/d/cqsm-2gm-fxr/expensify-product-team',
     },
 
+    CACHE_API_KEYS: {
+        ATTACHMENTS: 'attachments',
+    },
+
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
@@ -7273,6 +7319,7 @@ const CONST = {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
                     DATE: this.TABLE_COLUMNS.DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     POSTED: this.TABLE_COLUMNS.POSTED,
@@ -7293,7 +7340,6 @@ const CONST = {
                     BILLABLE: this.TABLE_COLUMNS.BILLABLE,
                     TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
                     TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
-                    STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
@@ -7404,13 +7450,12 @@ const CONST = {
                 EXPENSE: [
                     this.TABLE_COLUMNS.RECEIPT,
                     this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.STATUS,
                     this.TABLE_COLUMNS.MERCHANT,
                     this.TABLE_COLUMNS.FROM,
-                    this.TABLE_COLUMNS.TO,
                     this.TABLE_COLUMNS.CATEGORY,
                     this.TABLE_COLUMNS.TAG,
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
-                    this.TABLE_COLUMNS.ACTION,
                 ],
                 EXPENSE_REPORT: [
                     this.TABLE_COLUMNS.DATE,
@@ -8665,6 +8710,7 @@ const CONST = {
             ADD_EXPENSE_UNREPORTED: 'MoreMenu-AddExpenseUnreported',
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
+            MOVE_EXPENSE: 'MoreMenu-MoveExpense',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
@@ -9232,6 +9278,10 @@ const CONST = {
     SECTION_LIST_ITEM_TYPE: {
         HEADER: 'header',
         ROW: 'row',
+    },
+
+    CACHE_NAME: {
+        AUTH_IMAGES: 'auth-images',
     },
 } as const;
 

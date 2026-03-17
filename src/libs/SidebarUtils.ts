@@ -791,6 +791,7 @@ function getOptionData({
     result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
+    result.actionBadge = reportAttributes?.actionBadge;
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
@@ -1294,7 +1295,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
 
     // Append additional text for plus button or Concierge
     if (shouldShowUsePlusButtonText) {
-        messageHtml += translate('reportActionsView.usePlusButton', {additionalText});
+        messageHtml += translate('reportActionsView.usePlusButton', additionalText);
     }
     if (isConciergeChatReport(report, conciergeReportID)) {
         messageHtml = translate('reportActionsView.askConcierge');

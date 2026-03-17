@@ -175,8 +175,6 @@ function PaymentMethodList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines'] as const);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
@@ -316,10 +314,15 @@ function PaymentMethodList({
                 }
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
-                const isTravelCard = !!card?.nameValuePairs?.isVirtual && !!card?.nameValuePairs?.isTravelCard;
+                const isTravelCard = card?.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US;
+
+                // Travel cards are handled by the dedicated travelCardGrouped section below
+                if (isTravelCard) {
+                    continue;
+                }
 
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
-                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard && !isTravelCard) {
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
                     const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
@@ -345,8 +348,8 @@ function PaymentMethodList({
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
-                    description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
+                    title: card?.nameValuePairs?.cardTitle || card.bank,
+                    description: cardDescription,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                         pressHandler({
@@ -361,7 +364,7 @@ function PaymentMethodList({
                             cardID: card.cardID,
                         }),
                     cardID: card.cardID,
-                    isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
+                    isGroupedCardDomain: !isAdminIssuedVirtualCard,
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
@@ -379,8 +382,8 @@ function PaymentMethodList({
             }
 
             const travelCardGrouped: PaymentMethodItem[] = [];
-            const travelCard = getTravelInvoicingCard(workspaceCardList);
-            if (isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), workspaceCardList) && travelCard) {
+            const travelCard = getTravelInvoicingCard(cardList);
+            if (isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), cardList) && travelCard) {
                 travelCardGrouped.push({
                     title: translate('walletPage.travelCVV.title'),
                     description: translate('walletPage.travelCVV.subtitle'),
@@ -398,7 +401,7 @@ function PaymentMethodList({
             if (companyCardsGrouped.length > 0 && personalCardsGrouped.length > 0) {
                 return [...companyCards, ...personalCards];
             }
-            return [...companyCardsGrouped, ...personalCardsGrouped];
+            return [...companyCardsGrouped, ...travelCardGrouped, ...personalCardsGrouped];
         }
 
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
@@ -475,7 +478,6 @@ function PaymentMethodList({
         filterCurrency,
         isLoadingCardList,
         cardList,
-        workspaceCardList,
         isBetaEnabled,
         onPress,
         policiesForAssignedCards,
