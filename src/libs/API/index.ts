@@ -53,7 +53,10 @@ addMiddleware(SaveResponseInOnyx);
 // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
 addMiddleware(FraudMonitoring);
 
-let requestIndex = 0;
+// Use timestamp-based IDs to avoid collisions between browser tabs.
+// Each tab has its own JS context with its own counter, so a simple
+// incrementing number would collide across tabs.
+let requestIndex = Date.now();
 
 /**
  * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
