@@ -343,6 +343,18 @@ function navigateToConfirmationPage(
         case CONST.IOU.TYPE.REQUEST:
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
             break;
+        case CONST.IOU.TYPE.CREATE:
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    reportIDParam || reportID,
+                    backToReport,
+                ),
+            );
+            break;
         case CONST.IOU.TYPE.SEND:
             if (fromManualDistanceRequest) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
