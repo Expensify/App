@@ -17,7 +17,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,9 +54,7 @@ type UseSearchActionsBarResult = {
     hasErrors: boolean;
     shouldShowActionsBarLoading: boolean;
     shouldShowSelectedDropdown: boolean;
-    shouldUseNarrowLayout: boolean;
     queryJSON: SearchQueryJSON;
-    theme: ReturnType<typeof useTheme>;
     styles: ReturnType<typeof useThemeStyles>;
     translate: ReturnType<typeof useLocalize>['translate'];
 };
@@ -204,7 +201,6 @@ function makeDateFilterItem(
 function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEnabled: boolean): UseSearchActionsBarResult {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const {type: unsafeType} = queryJSON;
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -417,9 +413,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         hasErrors,
         shouldShowActionsBarLoading,
         shouldShowSelectedDropdown,
-        shouldUseNarrowLayout,
         queryJSON,
-        theme,
         styles,
         translate,
     };
