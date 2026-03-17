@@ -341,7 +341,7 @@ function BasePopoverMenu({
             return;
         }
         markFirstMenuItemUnfocused();
-    }, [isVisible, markFirstMenuItemUnfocused, shouldDeferDismissButtonAccessibility]);
+    }, [isVisible]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -567,7 +567,7 @@ function BasePopoverMenu({
                 return;
             }
 
-            if (focusFirstMenuItemOnWeb()) {
+            if (focusFirstMenuItem()) {
                 return;
             }
 
@@ -579,7 +579,7 @@ function BasePopoverMenu({
         };
 
         requestAnimationFrame(() => focusFirstMenuItemWithRetries());
-    }, [focusFirstMenuItemOnWeb]);
+    }, [focusFirstMenuItem]);
 
     const scheduleFocusFirstMenuItemOnNative = useCallback(() => {
         const focusTarget = () => {
