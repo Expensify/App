@@ -400,11 +400,9 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         const employee = policy?.employeeList?.[employeeEmail];
         optimisticMembersState[employeeEmail] = optimisticMembersState[employeeEmail] ?? {};
         failureMembersState[employeeEmail] = failureMembersState[employeeEmail] ?? {};
-
-        if (selectedMemberEmailsWithDuplicates.includes(employeeEmail)) {
+        if (employee?.email && selectedMemberEmails.includes(employee.email)) {
             continue;
         }
-
         if (employee?.submitsTo && selectedMemberEmails.includes(employee?.submitsTo)) {
             optimisticMembersState[employeeEmail] = {
                 ...optimisticMembersState[employeeEmail],
