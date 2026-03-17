@@ -10,6 +10,7 @@ import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
@@ -86,7 +87,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport({reportID: props.route.params.reportID, introSelected});
+                openReport({reportID: props.route.params.reportID, introSelected, betas});
                 // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 
@@ -101,7 +102,12 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 if (shouldShowFullScreenLoadingIndicator) {
-                    return <FullscreenLoadingIndicator />;
+                    const reasonAttributes: SkeletonSpanReasonAttributes = {
+                        context: 'withReportOrNotFound',
+                        isLoadingReportData: isLoadingReportData !== false,
+                        shouldFetchReport,
+                    };
+                    return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
                 }
 
                 if (shouldShowNotFoundPage) {
