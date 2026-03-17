@@ -112,6 +112,8 @@ function SpendOverTimeSection() {
                         iconRight={icons.Expand}
                         shouldShowRightIcon
                         textStyles={styles.pb0}
+                        style={styles.widgetItemButton}
+                        isContentCentered
                     />
                 )
             }
