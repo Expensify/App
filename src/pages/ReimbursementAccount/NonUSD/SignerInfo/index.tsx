@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
+import getDraftValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForSignerInfo';
 import getInitialSubStepForSignerInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForSignerInfoStep';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
 import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
@@ -52,6 +53,16 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
     const signerEmail = !isProduction ? Str.replaceAll(primaryLogin, '+', '') : primaryLogin;
 
     const isSubmittingRef = useRef(false);
+
+    const signerDraftValues = useMemo(() => getDraftValuesForSignerInfo(reimbursementAccount), [reimbursementAccount]);
+    const signerFullNameDraft = reimbursementAccountDraft?.[SIGNER_FULL_NAME];
+
+    useEffect(() => {
+        if (signerFullNameDraft || !signerDraftValues.isUserDirector) {
+            return;
+        }
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, signerDraftValues);
+    }, [signerFullNameDraft, signerDraftValues]);
 
     const initialSubStep = getInitialSubStepForSignerInfoStep(savedSignerEmail, savedSignerFullName, savedSecondSignerEmail, currency);
     const initialTargetSubPage = initialSubStep === SUBSTEP.HANG_TIGHT ? SUB_PAGE_NAMES.HANG_TIGHT : SUB_PAGE_NAMES.IS_DIRECTOR;
