@@ -21,6 +21,7 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -112,9 +113,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 
-    /** Whether the report screen is being displayed in the side panel */
-    isInSidePanel?: boolean;
-
     /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
     shouldHideStatusIndicators?: boolean;
     /** Function to trigger optimistic waiting indicator for Concierge */
@@ -142,7 +140,6 @@ function ReportActionCompose({
     didHideComposerInput,
     reportTransactions,
     transactionThreadReportID,
-    isInSidePanel = false,
     shouldHideStatusIndicators = false,
     kickoffWaitingIndicator,
 }: ReportActionComposeProps) {
@@ -152,6 +149,7 @@ function ReportActionCompose({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+    const isInSidePanel = useIsInSidePanel();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
