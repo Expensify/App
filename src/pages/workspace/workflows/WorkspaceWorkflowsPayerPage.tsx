@@ -205,6 +205,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             onButtonPress();
             return;
         }
+
         // Bank account setup incomplete — block and show validation
         if (isBankAccountPartiallySetup(bankAccountInfo?.accountData?.state)) {
             setShowValidationModal(true);
