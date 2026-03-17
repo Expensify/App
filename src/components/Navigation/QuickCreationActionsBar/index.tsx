@@ -76,19 +76,21 @@ function QuickCreationActionsBar() {
 
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {}), [allPolicies]);
 
-    const shouldShowBookTravel = useMemo(() => Object.values(allPolicies ?? {}).some((policy) => !!policy?.isTravelEnabled), [allPolicies]);
+    const travelEnabledPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => !!policy?.isTravelEnabled), [allPolicies]);
+
+    const shouldShowBookTravel = !!travelEnabledPolicy;
 
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const isTravelReady = useMemo(() => {
-        if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
+        if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(travelEnabledPolicy)) {
             return false;
         }
 
-        const isPolicyProvisioned = activePolicy?.travelSettings?.spotnanaCompanyID ?? activePolicy?.travelSettings?.associatedTravelDomainAccountID;
+        const isPolicyProvisioned = travelEnabledPolicy?.travelSettings?.spotnanaCompanyID ?? travelEnabledPolicy?.travelSettings?.associatedTravelDomainAccountID;
 
-        return activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
-    }, [activePolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
+        return travelEnabledPolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
+    }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
 
     const showRedirectToExpensifyClassicModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -219,18 +221,18 @@ function QuickCreationActionsBar() {
         () =>
             interceptAnonymousUser(() => {
                 if (isTravelReady) {
-                    openTravelDotLink(activePolicy?.id);
+                    openTravelDotLink(travelEnabledPolicy?.id);
                     return;
                 }
-                Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
+                Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(travelEnabledPolicy?.id));
             }),
-        [activePolicy?.id, isTravelReady],
+        [travelEnabledPolicy?.id, isTravelReady],
     );
 
     return (
         <>
             {CreateReportConfirmationModal}
-            <View style={[styles.flexRow, styles.gap2, styles.pb5]}>
+            <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
                 <Button
                     small
                     icon={icons.ReceiptPlus}
@@ -269,7 +271,5 @@ function QuickCreationActionsBar() {
         </>
     );
 }
-
-QuickCreationActionsBar.displayName = 'QuickCreationActionsBar';
 
 export default QuickCreationActionsBar;
