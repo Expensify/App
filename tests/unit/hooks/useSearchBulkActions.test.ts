@@ -774,7 +774,7 @@ describe('useSearchBulkActions', () => {
             expect(holdOption).toBeUndefined();
         });
 
-        it('should show unhold option when all transactions can be unholded', () => {
+        it('should show unhold option when all transactions can be unheld', () => {
             mockSelectedTransactions = {
                 trans1: createTransactionInfo({canUnhold: true}),
                 trans2: createTransactionInfo({canUnhold: true}),
@@ -791,7 +791,7 @@ describe('useSearchBulkActions', () => {
             expect(unholdOption?.text).toBe('search.bulkActions.unhold');
         });
 
-        it('should not show unhold option when some transactions cannot be unholded', () => {
+        it('should not show unhold option when some transactions cannot be unheld', () => {
             mockSelectedTransactions = {
                 trans1: createTransactionInfo({canUnhold: true}),
                 trans2: createTransactionInfo({canUnhold: false}),
