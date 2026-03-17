@@ -88,3 +88,45 @@ describe('normalizeOdometerText', () => {
         });
     });
 });
+
+describe('prepareTextForDisplay', () => {
+    it("strips non-numeric characters except decimal and comma: 'abc123.4def' → '123.4'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('abc123.4def')).toBe('123.4');
+    });
+
+    it("keeps commas for locale display: '1,234.5' → '1,234.5'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('1,234.5')).toBe('1,234.5');
+    });
+
+    it("strips leading zeroes: '007' → '7'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('007')).toBe('7');
+    });
+
+    it("strips redundant leading zeroes: '000' → '0'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('000')).toBe('0');
+    });
+
+    it("keeps single zero before decimal: '0.5' → '0.5'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('0.5')).toBe('0.5');
+    });
+
+    it("normalizes multiple leading zeroes before decimal: '00.5' → '0.5'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('00.5')).toBe('0.5');
+    });
+
+    it("keeps single zero: '0' → '0'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('0')).toBe('0');
+    });
+
+    it("strips letters and symbols: '@#$%123' → '123'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('@#$%123')).toBe('123');
+    });
+
+    it("handles empty string: '' → ''", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('')).toBe('');
+    });
+
+    it("handles valid number unchanged: '12345.6' → '12345.6'", () => {
+        expect(DistanceRequestUtils.prepareTextForDisplay('12345.6')).toBe('12345.6');
+    });
+});

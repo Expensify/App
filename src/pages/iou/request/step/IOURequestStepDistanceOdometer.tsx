@@ -69,7 +69,7 @@ function IOURequestStepDistanceOdometer({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
-    const {translate, fromLocaleDigit, toLocaleDigit, numberFormat} = useLocalize();
+    const {translate, fromLocaleDigit, numberFormat} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -186,8 +186,8 @@ function IOURequestStepDistanceOdometer({
         }
         const currentStart = currentTransaction?.comment?.odometerStart;
         const currentEnd = currentTransaction?.comment?.odometerEnd;
-        const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString().replace('.', toLocaleDigit('.')) : '';
-        const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString().replace('.', toLocaleDigit('.')) : '';
+        const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
+        const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
         initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
@@ -198,7 +198,6 @@ function IOURequestStepDistanceOdometer({
         currentTransaction?.comment?.odometerEnd,
         currentTransaction?.comment?.odometerStartImage,
         currentTransaction?.comment?.odometerEndImage,
-        toLocaleDigit,
     ]);
 
     // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
@@ -219,8 +218,8 @@ function IOURequestStepDistanceOdometer({
             (hasTransactionData && !hasLocalState && hasInitializedRefs.current);
 
         if (shouldInitialize) {
-            const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString().replace('.', toLocaleDigit('.')) : '';
-            const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString().replace('.', toLocaleDigit('.')) : '';
+            const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
+            const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
 
             if (startValue || endValue) {
                 setStartReading(startValue);
@@ -229,7 +228,7 @@ function IOURequestStepDistanceOdometer({
                 endReadingRef.current = endValue;
             }
         }
-    }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing, toLocaleDigit]);
+    }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing]);
 
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
@@ -309,15 +308,9 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, startReading)) {
             return;
         }
-        // Only allow digits and the locale's decimal separator (e.g. '.' for English, ',' for German).
-        const localeDecimal = toLocaleDigit('.');
-        const display = text
-            .split('')
-            .filter((c) => /\d/.test(c) || c === localeDecimal)
-            .join('')
-            .replace(/^0+(?=\d)/, '');
-        setStartReading(display);
-        startReadingRef.current = display;
+        const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
+        setStartReading(textForDisplay);
+        startReadingRef.current = textForDisplay;
         if (formError) {
             setFormError('');
         }
@@ -327,14 +320,9 @@ function IOURequestStepDistanceOdometer({
         if (!isOdometerInputValid(text, endReading)) {
             return;
         }
-        const localeDecimal = toLocaleDigit('.');
-        const display = text
-            .split('')
-            .filter((c) => /\d/.test(c) || c === localeDecimal)
-            .join('')
-            .replace(/^0+(?=\d)/, '');
-        setEndReading(display);
-        endReadingRef.current = display;
+        const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
+        setEndReading(textForDisplay);
+        endReadingRef.current = textForDisplay;
         if (formError) {
             setFormError('');
         }
