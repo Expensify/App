@@ -69,7 +69,6 @@ function FloatingActionButtonAndPopover() {
                 animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
                 animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
             >
-                <QuickActionMenuItem reportID={reportID} />
                 <ExpenseMenuItem reportID={reportID} />
                 <TrackDistanceMenuItem reportID={reportID} />
                 <CreateReportMenuItem />
@@ -78,6 +77,7 @@ function FloatingActionButtonAndPopover() {
                 <TravelMenuItem />
                 <TestDriveMenuItem />
                 <NewWorkspaceMenuItem />
+                <QuickActionMenuItem reportID={reportID} />
             </FABPopoverMenu>
             <FABButtons
                 isActive={isCreateMenuActive}
