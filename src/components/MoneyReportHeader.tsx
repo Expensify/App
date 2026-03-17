@@ -424,6 +424,15 @@ function MoneyReportHeader({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isDuplicateReportActive, temporarilyDisableDuplicateReportAction] = useThrottledButtonState();
     const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
+    const wasDuplicateReportTriggered = useRef(false);
+
+    useEffect(() => {
+        if (!isDuplicateReportActive || !wasDuplicateReportTriggered.current) {
+            return;
+        }
+        wasDuplicateReportTriggered.current = false;
+        dropdownMenuRef.current?.setIsMenuVisible(false);
+    }, [isDuplicateReportActive]);
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
@@ -1914,6 +1923,7 @@ function MoneyReportHeader({
                 }
 
                 temporarilyDisableDuplicateReportAction();
+                wasDuplicateReportTriggered.current = true;
 
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
