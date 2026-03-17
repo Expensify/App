@@ -54,6 +54,7 @@ function useAttachmentUploadValidation({
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const personalPolicy = usePersonalPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
@@ -182,7 +183,7 @@ function useAttachmentUploadValidation({
 
     const onReceiptDropped = useCallback(
         (e: DragEvent) => {
-            if (policy && shouldRestrictUserBillableActions(policy.id, undefined, undefined, ownerBillingGraceEndPeriod)) {
+            if (policy && shouldRestrictUserBillableActions(policy.id, undefined, amountOwed, ownerBillingGraceEndPeriod)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }

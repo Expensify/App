@@ -60,6 +60,7 @@ function SearchFiltersBarCreateButton() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     const {showConfirmModal} = useConfirmModal();
@@ -185,7 +186,7 @@ function SearchFiltersBarCreateButton() {
                         // No default or restricted with multiple workspaces → workspace selector
                         if (
                             !workspaceIDForReportCreation ||
-                            (shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod) &&
+                            (shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod) &&
                                 groupPoliciesWithChatEnabled.length > 1)
                         ) {
                             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
@@ -193,7 +194,7 @@ function SearchFiltersBarCreateButton() {
                         }
 
                         // Default workspace is not restricted → create report directly
-                        if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
+                        if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
                             // Check if empty report confirmation should be shown
                             if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                                 openCreateReportConfirmation();
