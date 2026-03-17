@@ -16,9 +16,9 @@ const VISUALLY_HIDDEN_STYLE: Partial<CSSStyleDeclaration> = {
 
 /**
  * VoiceOver on Mac echoes the completed word ~500-750ms after the last keystroke
- * and takes ~300-500ms to speak it. Combined with the debounce in
- * useDebouncedAccessibilityAnnouncement, this delay helps the alert fire after
- * that echo finishes.
+ * and takes ~300-500ms to speak it. Combined with the 1000ms debounce in
+ * useDebouncedAccessibilityAnnouncement, this delay ensures the announcement
+ * fires after VoiceOver finishes the word echo (~1300ms total from last keystroke).
  */
 const ANNOUNCEMENT_DELAY_MS = 300;
 
@@ -40,21 +40,22 @@ function getWrapper(): HTMLDivElement {
 
 function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, options?: UseAccessibilityAnnouncementOptions) {
     const shouldAnnounceOnWeb = options?.shouldAnnounceOnWeb ?? false;
-    const previousAnnouncedMessageRef = useRef('');
+    const prevShouldAnnounceRef = useRef(false);
 
     useEffect(() => {
-        if (!shouldAnnounceOnWeb || !shouldAnnounceMessage || typeof message !== 'string' || !message.trim()) {
-            previousAnnouncedMessageRef.current = '';
+        if (!shouldAnnounceMessage) {
+            prevShouldAnnounceRef.current = false;
             return;
         }
 
-        if (previousAnnouncedMessageRef.current === message) {
+        if (prevShouldAnnounceRef.current || !shouldAnnounceOnWeb || typeof message !== 'string' || !message.trim()) {
             return;
         }
 
-        previousAnnouncedMessageRef.current = message;
+        prevShouldAnnounceRef.current = true;
 
         const container = getWrapper();
+
         while (container.firstChild) {
             container.removeChild(container.firstChild);
         }
@@ -68,6 +69,7 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
 
         return () => {
             clearTimeout(timer);
+            prevShouldAnnounceRef.current = false;
         };
     }, [message, shouldAnnounceMessage, shouldAnnounceOnWeb]);
 }
