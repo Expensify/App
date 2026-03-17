@@ -314,15 +314,13 @@ function ComposerWithSuggestions({
      */
     const setTextInputRef = useCallback(
         (el: TextInput) => {
-            if (isFocused) {
-                ReportActionComposeFocusManager.composerRef.current = el;
-            }
+            ReportActionComposeFocusManager.composerRef.current = el;
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
                 animatedRef(el);
             }
         },
-        [animatedRef, isFocused],
+        [animatedRef],
     );
 
     const resetKeyboardInput = useCallback(() => {
