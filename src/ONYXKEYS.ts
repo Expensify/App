@@ -289,6 +289,9 @@ const ONYXKEYS = {
     /** If the approver dismissed the reject or hold explanation */
     NVP_DISMISSED_REJECT_USE_EXPLANATION: 'nvp_dismissedRejectUseExplanation',
 
+    /** Whether the user is grandfathered into the free plan */
+    NVP_PRIVATE_GRANDFATHERED_FREE: 'nvp_private_grandfatheredFree',
+
     /** Details on whether an account is locked or not */
     NVP_PRIVATE_LOCK_ACCOUNT_DETAILS: 'nvp_private_lockAccountDetails',
 
@@ -1403,6 +1406,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
     [ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING]: string;
+    [ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE]: boolean;
     [ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS]: OnyxTypes.LockAccountDetails;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
