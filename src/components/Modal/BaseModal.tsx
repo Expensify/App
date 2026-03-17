@@ -91,7 +91,6 @@ function BaseModal({
     const keyboardStateContextValue = useKeyboardState();
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
-    const isNativeIOS = getPlatform() === CONST.PLATFORM.IOS;
 
     const [modalOverlapsWithTopSafeArea, setModalOverlapsWithTopSafeArea] = useState(false);
     const [modalHeight, setModalHeight] = useState(0);
@@ -270,9 +269,8 @@ function BaseModal({
     );
 
     const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
-    // The explicit accessibility-tree hiding is only needed on native iOS. Other platforms keep
-    // the expected swipe order with the existing first-item focus handoff.
-    const shouldHideBottomDockedDismissFromAccessibility = isNativeIOS && shouldShowBottomDockedDismissButton && shouldEnableBottomDockedDismissAccessibility === false;
+    // PopoverMenu only passes this internal accessibility handshake on the native iOS path.
+    const shouldHideBottomDockedDismissFromAccessibility = shouldShowBottomDockedDismissButton && shouldEnableBottomDockedDismissAccessibility === false;
 
     const modalPaddingStyles = useMemo(() => {
         const paddings = StyleUtils.getModalPaddingStyles({
