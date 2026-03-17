@@ -125,6 +125,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
     return (
         <PressableWithFeedback
             accessible
+            sentryLabel={`TableHeader-${column.key}`}
             accessibilityLabel={column.label}
             accessibilityRole="button"
             style={[styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
