@@ -1078,14 +1078,36 @@ const supportedActionTypes = new Set<ReportActionName>([...Object.values(otherAc
  * Checks whether an action is actionable track expense and resolved.
  *
  */
-function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>): boolean {
+function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>, allActionsForReport?: OnyxEntry<ReportActions>): boolean {
     const originalMessage = getOriginalMessage(reportAction);
     if (!originalMessage || typeof originalMessage !== 'object') {
         return false;
     }
     const resolution = 'resolution' in originalMessage ? originalMessage?.resolution : null;
+    if (resolution) {
+        return true;
+    }
+
     const deleted = 'deleted' in originalMessage ? originalMessage?.deleted : null;
-    return !!resolution || !!deleted;
+    if (!deleted) {
+        return false;
+    }
+
+    // For mention whispers, only treat as deleted if the parent comment is also deleted.
+    // This distinguishes cascade deletion (parent deleted -> whisper should hide) from
+    // the backend's one-per-user cleanup (parent still exists -> whisper should stay visible).
+    if (allActionsForReport && reportAction?.reportActionID) {
+        if (isActionableMentionWhisper(reportAction) || isActionableReportMentionWhisper(reportAction)) {
+            const parentOffset = isActionableReportMentionWhisper(reportAction) ? 2n : 1n;
+            const parentActionID = String(BigInt(reportAction.reportActionID) - parentOffset);
+            const parentAction = allActionsForReport[parentActionID];
+            if (parentAction && !isDeletedAction(parentAction)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -1110,7 +1132,13 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, reportsParam?: OnyxCollection<Report>): boolean {
+function shouldReportActionBeVisible(
+    reportAction: OnyxEntry<ReportAction>,
+    key: string | number,
+    canUserPerformWriteAction?: boolean,
+    reportsParam?: OnyxCollection<Report>,
+    allActionsForReport?: OnyxEntry<ReportActions>,
+): boolean {
     if (!reportAction) {
         return false;
     }
@@ -1187,7 +1215,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction)) {
+    if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction, allActionsForReport)) {
         return false;
     }
 
