@@ -16,7 +16,7 @@ function useFilterFeedValues(value: SearchFilter['value']) {
     }
 
     const feedsForDisplay = getCardFeedsForDisplay(allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards);
-    const feedValue = value.map((feed) => feedsForDisplay[feed].name);
+    const feedValue = value.map((feed) => feedsForDisplay[feed]?.name).filter(Boolean);
     return feedValue;
 }
 
