@@ -18,13 +18,16 @@ type RenderHTMLProps = {
 
     /** Whether the rendered text should be selectable */
     isSelectable?: boolean;
+
+    /** Maximum number of lines to display, truncating with ellipsis if exceeded */
+    numberOfLines?: number;
 };
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
-function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProps) {
+function RenderHTML({html: htmlParam, onLinkPress, isSelectable, numberOfLines}: RenderHTMLProps) {
     const hasTextAncestor = useHasTextAncestor();
     if (__DEV__ && hasTextAncestor) {
         throw new Error('RenderHTML must not be rendered inside a <Text> component, as it will break the layout on iOS. Render it as a sibling instead.');
@@ -64,17 +67,19 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
         />
     );
 
-    return onLinkPress ? (
-        <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
-            renderersProps={renderersProps}
-            renderers={renderers}
-        >
-            {htmlSource}
-        </RenderHTMLConfigProvider>
-    ) : (
-        htmlSource
-    );
+    if (onLinkPress !== undefined || numberOfLines !== undefined) {
+        return (
+            <RenderHTMLConfigProvider
+                defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false, numberOfLines}}
+                renderersProps={renderersProps}
+                renderers={renderers}
+            >
+                {htmlSource}
+            </RenderHTMLConfigProvider>
+        );
+    }
+
+    return htmlSource;
 }
 
 export default RenderHTML;

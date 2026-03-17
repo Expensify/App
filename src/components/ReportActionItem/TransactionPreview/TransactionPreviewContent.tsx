@@ -164,8 +164,8 @@ function TransactionPreviewContent({
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
     const isDescriptionHTML = !!requestComment && Parser.isHTML(requestComment);
-    const requestDescription = truncate(requestComment ?? '', {length: CONST.REQUEST_PREVIEW.DESCRIPTION_PREVIEW_MAX_LENGTH});
-    const description = isDescriptionHTML ? Parser.truncateHTML(requestComment ?? '', CONST.REQUEST_PREVIEW.DESCRIPTION_PREVIEW_MAX_LENGTH) : requestDescription;
+    const requestDescription = truncate(requestComment ?? '', {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = isDescriptionHTML ? Parser.truncateHTML(requestComment ?? '', CONST.REQUEST_PREVIEW.MAX_LENGTH) : requestDescription;
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;
@@ -341,7 +341,10 @@ function TransactionPreviewContent({
                                                         </Text>
                                                     ) : (
                                                         <View style={[styles.flexShrink1, styles.renderHTML]}>
-                                                            <RenderHTML html={isDeleted ? `<del>${description}</del>` : description} />
+                                                            <RenderHTML
+                                                                html={isDeleted ? `<del>${description}</del>` : description}
+                                                                numberOfLines={1}
+                                                            />
                                                         </View>
                                                     ))}
                                                 {!shouldWrapDisplayAmount && (

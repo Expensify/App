@@ -405,7 +405,6 @@ const CONST = {
 
     REQUEST_PREVIEW: {
         MAX_LENGTH: 83,
-        DESCRIPTION_PREVIEW_MAX_LENGTH: 30,
     },
 
     EXPORT_LABELS: {
