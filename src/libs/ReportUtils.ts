@@ -9192,6 +9192,16 @@ function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: Onyx
         return false;
     }
 
+    // We only show the RBR to the submitter for expense reports
+    if (isPaidGroupPolicyReport && !isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    // Allow both open and processing reports to show RBR for field violations (expense reports only)
+    if (isPaidGroupPolicyReport && !isOpenOrProcessingReport(report)) {
+        return false;
+    }
+
     const {fieldsByName} = getReportFieldMaps(report, policy.fieldList);
 
     return Object.values(fieldsByName).some((field) => {
