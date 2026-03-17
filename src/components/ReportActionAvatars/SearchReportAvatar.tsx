@@ -24,7 +24,7 @@ function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldS
             <ReportActionAvatar.Subscript
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
-                size={CONST.AVATAR_SIZE.DEFAULT}
+                size={CONST.AVATAR_SIZE.SMALL}
                 shouldShowTooltip={shouldShowTooltip}
                 noRightMarginOnContainer={false}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
@@ -37,7 +37,7 @@ function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldS
         return (
             <ReportActionAvatar.Multiple.Diagonal
                 icons={[primaryAvatar, secondaryAvatar]}
-                size={CONST.AVATAR_SIZE.DEFAULT}
+                size={CONST.AVATAR_SIZE.SMALL}
                 shouldShowTooltip={shouldShowTooltip}
                 isInReportAction={false}
                 useMidSubscriptSize={false}
@@ -49,7 +49,7 @@ function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldS
     return (
         <ReportActionAvatar.Single
             avatar={primaryAvatar}
-            size={CONST.AVATAR_SIZE.DEFAULT}
+            size={CONST.AVATAR_SIZE.SMALL}
             shouldShowTooltip={shouldShowTooltip}
             accountID={Number(primaryAvatar?.id ?? CONST.DEFAULT_NUMBER_ID)}
             fallbackIcon={primaryAvatar?.fallbackIcon}
