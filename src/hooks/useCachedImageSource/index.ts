@@ -1,7 +1,11 @@
 import type {ImageSource} from 'expo-image';
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
+import {AttachmentIDContext} from '@components/Attachments/AttachmentIDContext';
+import {getCachedAttachment} from '@libs/actions/Attachment';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const clearAuthImagesCache = async () => {
     if (!('caches' in window)) {
@@ -20,62 +24,41 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
     const hasHeaders = typeof source === 'object' && !!source.headers;
     const [cachedUri, setCachedUri] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
+    const {attachmentID} = useContext(AttachmentIDContext);
+    const [attachment] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`);
 
     useEffect(() => {
         setCachedUri(null);
         setHasError(false);
 
-        if (!hasHeaders || !uri) {
+        if ((!hasHeaders && !attachmentID) || !uri) {
             return;
         }
 
         let revoked = false;
         let objectURL: string | undefined;
 
-        (async () => {
-            try {
-                const cache = await caches.open(CONST.CACHE_NAME.AUTH_IMAGES);
-                const cachedResponse = await cache.match(uri);
-
-                if (cachedResponse) {
-                    const blob = await cachedResponse.blob();
-                    objectURL = URL.createObjectURL(blob);
-                    if (!revoked) {
-                        setCachedUri(objectURL);
-                    } else {
-                        URL.revokeObjectURL(objectURL);
-                    }
-                    return;
-                }
-
-                const response = await fetch(uri, {headers: source.headers});
-
-                if (!response.ok) {
+        getCachedAttachment({attachmentID, attachment, source})
+            .then((cachedSource) => {
+                if (!cachedSource) {
                     if (!revoked) {
                         setHasError(true);
                     }
                     return;
                 }
-
-                // Store in cache before consuming
-                await cache.put(uri, response.clone());
-
-                const blob = await response.blob();
-                objectURL = URL.createObjectURL(blob);
                 if (!revoked) {
-                    setCachedUri(objectURL);
+                    setCachedUri(cachedSource);
                 } else {
-                    URL.revokeObjectURL(objectURL);
+                    URL.revokeObjectURL(cachedSource);
                 }
-            } catch (error) {
-                if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-                    await clearAuthImagesCache();
-                }
+            })
+            .catch((error) => {
                 if (!revoked) {
                     setHasError(true);
                 }
-            }
-        })();
+                const errorMessage = error.message ?? error?.toString();
+                Log.hmmm(errorMessage);
+            });
 
         return () => {
             revoked = true;
@@ -87,7 +70,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
 
     // Images without headers are cached natively by the browser,
     // so pass them through as-is — no Cache API needed
-    if (!hasHeaders) {
+    if (!hasHeaders && !attachmentID) {
         return source;
     }
 

@@ -731,7 +731,9 @@ function addActions({
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
         const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID});
         attachmentAction = attachment.reportAction;
-        cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
+        cacheAttachment({attachmentID, source: {uri: file.uri ?? ''}, mimeType: file.type}).catch((error) => {
+            Log.hmmm("[AttachmentCache] Failed to cache attachment", {error})
+        })
     }
 
     if (text && file) {
@@ -764,7 +766,9 @@ function addActions({
     });
 
     for (const attachment of attachments) {
-        cacheAttachment({attachmentID: attachment.attachmentID, uri: attachment.uri ?? ''});
+        cacheAttachment({attachmentID: attachment.attachmentID, source: {uri: attachment.uri ?? ''}}).catch((error) => {
+            Log.hmmm("[AttachmentCache] Failed to cache markdown attachment", {error})
+        })
     }
 
     // Always prefer the file as the last action over text

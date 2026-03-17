@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
-type CacheNameType = ValueOf<typeof CONST.CACHE_API_KEYS>;
+type CacheNameType = ValueOf<typeof CONST.CACHE_NAME>;
 
 function init() {
     // Exit early if the Cache API is not supported in the current browser.
@@ -10,7 +10,7 @@ function init() {
         Log.warn('Cache API is not supported');
         return;
     }
-    const keys = Object.values(CONST.CACHE_API_KEYS);
+    const keys = Object.values(CONST.CACHE_NAME);
     for (const key of keys) {
         caches.has(key).then((isExist) => {
             if (isExist) {
@@ -39,7 +39,7 @@ function clear(cacheName?: CacheNameType) {
         return caches.delete(cacheName);
     }
 
-    const keys = Object.values(CONST.CACHE_API_KEYS);
+    const keys = Object.values(CONST.CACHE_NAME);
     const deletePromises = keys.map((key) => caches.delete(key));
 
     return Promise.all(deletePromises);

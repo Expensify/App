@@ -5,82 +5,111 @@ import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
 
-async function cacheAttachment({attachmentID, uri}: CacheAttachmentProps): Promise<void> {
+async function cacheAttachment({attachmentID, source}: CacheAttachmentProps): Promise<string | undefined> {
+    const uri = source.uri;
+    if (!uri) {
+        return;
+    }
+
+    const isAuthRemoteAttachment = !isEmptyObject(source.headers);
+
+    // attachmentID is required for non-auth remote attachments
+    if (!isAuthRemoteAttachment && !attachmentID) {
+        return;
+    }
+
     try {
-        const response = await fetch(uri);
+        const response = await fetch(uri, isAuthRemoteAttachment ? {headers: source.headers} : {});
         if (!response.ok) {
-            Log.warn('[AttachmentCache] Failed to fetch attachment');
-            return;
+            throw new Error('[AttachmentCache] Failed to fetch attachment');
         }
 
         const contentType = response.headers.get('content-type') ?? '';
         if (contentType === 'image/heic') {
-            Log.warn('[AttachmentCache] HEIC is not supported, skipping cache', {attachmentID, contentType});
-            return;
+            throw new Error('[AttachmentCache] HEIC is not supported, skipping cache');
         }
 
         const fileExtension = getImageCacheFileExtension(contentType);
-
-        // If the image file type doesn't exist in our list, then we need to exit
         if (!fileExtension) {
-            Log.warn('[AttachmentCache] Unsupported file type, skipping cache', {attachmentID, contentType});
-            return;
+            throw new Error('[AttachmentCache] Unsupported file type, skipping cache');
         }
 
-        try {
-            await CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response);
+        if (isAuthRemoteAttachment) {
+            await CacheAPI.put(CONST.CACHE_NAME.AUTH_IMAGES, uri, response);
+        } else if (attachmentID) {
+            await CacheAPI.put(CONST.CACHE_NAME.ATTACHMENTS, attachmentID, response);
             await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                 attachmentID,
                 remoteSource: isLocalFile(uri) ? '' : uri,
             });
-        } catch (error) {
-            Log.warn('[AttachmentCache] Failed to cache attachment', {error});
         }
+
+        const cachedSource = await response.blob();
+        return URL.createObjectURL(cachedSource);
     } catch (error) {
-        Log.warn('[AttachmentCache] Failed to fetch attachment', {error});
+        throw new Error('[AttachmentCache] Failed to fetch attachment');
     }
 }
 
-async function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps): Promise<string> {
-    const isStale = attachment ? attachment?.remoteSource && attachment.remoteSource !== currentSource : false;
-    if (isStale) {
-        // Only re-cache the [markdown-attachment] if it is outdated (updated)
-        cacheAttachment({attachmentID, uri: currentSource});
-        return currentSource;
+async function getCachedAttachment({attachmentID, attachment, source}: GetCachedAttachmentProps): Promise<string | undefined> {
+    if (isEmptyObject(source) || !source.uri) {
+        return;
+    }
+    const isAuthRemoteAttachment = !isEmptyObject(source.headers);
+    const imageSource = source.uri;
+
+    // For non-auth remote attachments, check if the cached source is stale and re-cache if needed
+    if (!isAuthRemoteAttachment && attachmentID) {
+        const isStale = attachment?.remoteSource && attachment.remoteSource !== imageSource;
+        if (isStale) {
+            const cachedUri = await cacheAttachment({attachmentID, source: {uri: imageSource}}).catch((error) => {
+                Log.hmmm('[AttachmentCache] Failed to re-cache markdown attachment', {error});
+                return imageSource;
+            });
+            return cachedUri;
+        }
     }
 
-    const cachedAttachment = await CacheAPI.get(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID);
+    const cacheKey = isAuthRemoteAttachment ? imageSource : attachmentID;
+    if (!cacheKey) {
+        return imageSource;
+    }
+    const cachedAttachment = await CacheAPI.get(isAuthRemoteAttachment ? CONST.CACHE_NAME.AUTH_IMAGES : CONST.CACHE_NAME.ATTACHMENTS, cacheKey);
     const isUncached = !cachedAttachment;
     if (isUncached) {
-        return currentSource;
+        const cachedUri = await cacheAttachment({attachmentID, source}).catch((error) => {
+            Log.hmmm('[AttachmentCache] Failed to cache attachment', {error});
+            return imageSource;
+        });
+        return cachedUri;
     }
 
     try {
         const attachmentFile = await cachedAttachment.blob();
         return URL.createObjectURL(attachmentFile);
     } catch (error) {
-        Log.warn('[AttachmentCache] Failed to get attachment', {error});
-        return currentSource;
+        throw new Error('[AttachmentCache] Failed to get cached attachment', {cause: error});
     }
 }
 
 async function removeCachedAttachment({attachmentID}: RemoveCachedAttachmentProps) {
     try {
-        await CacheAPI.remove(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID);
+        await CacheAPI.remove(CONST.CACHE_NAME.ATTACHMENTS, attachmentID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
     } catch (error) {
-        Log.warn('[AttachmentCache] Failed to remove cached attachment', {error});
+        throw new Error('[AttachmentCache] Failed to remove cached attachment', {cause: error});
     }
 }
 
 async function clearCachedAttachments() {
     try {
-        await CacheAPI.clear(CONST.CACHE_API_KEYS.ATTACHMENTS);
+        await CacheAPI.clear();
         await Onyx.setCollection(ONYXKEYS.COLLECTION.ATTACHMENT, {});
     } catch (error) {
-        Log.warn('[AttachmentCache] Failed to clear cached attachments', {error});
+        throw new Error('[AttachmentCache] Failed to clear cached attachments', {cause: error});
     }
 }
 
