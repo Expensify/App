@@ -1162,7 +1162,7 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
             };
-            const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
+            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
             const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
         });
