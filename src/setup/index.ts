@@ -2,7 +2,6 @@ import toSortedPolyfill from 'array.prototype.tosorted';
 import {I18nManager} from 'react-native';
 import Config from 'react-native-config';
 import Onyx from 'react-native-onyx';
-import {enableFreeze} from 'react-native-screens';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -15,10 +14,6 @@ import telemetry from './telemetry';
 const enableDevTools = Config?.USE_REDUX_DEVTOOLS ? Config.USE_REDUX_DEVTOOLS === 'true' : true;
 
 export default function () {
-    // Enable screen freezing on mobile to prevent unnecessary re-renders on screens that are not visible to the user.
-    // This is a no-op on web — for web, we use ScreenFreezeWrapper in SplitNavigator instead.
-    enableFreeze(true);
-
     telemetry();
 
     toSortedPolyfill.shim();
@@ -65,6 +60,13 @@ export default function () {
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
+        ramOnlyKeys: [
+            ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
+            ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
+            ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
+            ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
+            ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
+        ],
     });
 
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
