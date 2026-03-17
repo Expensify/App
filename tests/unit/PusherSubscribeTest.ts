@@ -2,6 +2,8 @@ import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import CONFIG from '@src/CONFIG';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
+// eslint-disable-next-line import/no-relative-packages -- Import mock class directly for proper typing
+import {Pusher as MockedPusher} from '../../__mocks__/@pusher/pusher-websocket-react-native/index';
 
 /**
  * Tests for Pusher.subscribe() graceful handling when socket is disconnected
@@ -136,16 +138,9 @@ describe('Per-callback subscription handles', () => {
     });
 
     function triggerEvent(channelName: string, eventName: string, data: Record<string, unknown> = {value: 1}) {
-        // Access the underlying mock socket to fire events through the Pusher module's
-        // onEvent dispatcher, which iterates over eventsBoundToChannels.
-        const mockSocket = window.getPusherInstance();
-        if (mockSocket && 'trigger' in mockSocket) {
-            (mockSocket as {trigger: (event: {channelName: string; eventName: string; data: Record<string, unknown>}) => void}).trigger({
-                channelName,
-                eventName,
-                data,
-            });
-        }
+        // Fire events through the mock socket's trigger, which invokes the Pusher module's
+        // onEvent dispatcher that iterates over eventsBoundToChannels.
+        MockedPusher.getInstance().trigger({channelName, eventName, data});
     }
 
     it('should return a PusherSubscription with an unsubscribe method', async () => {
@@ -217,16 +212,11 @@ describe('Per-callback subscription handles', () => {
 
         // After unsubscribing A, mock socket should still have the channel
         handleA.unsubscribe();
-        const mockSocket = window.getPusherInstance();
-        if (mockSocket && 'getChannel' in mockSocket) {
-            expect((mockSocket as {getChannel: (name: string) => unknown}).getChannel(CHANNEL)).toBeTruthy();
-        }
+        expect(MockedPusher.getInstance().getChannel(CHANNEL)).toBeTruthy();
 
         // After unsubscribing B (last callback), channel should be cleaned up
         handleB.unsubscribe();
-        if (mockSocket && 'getChannel' in mockSocket) {
-            expect((mockSocket as {getChannel: (name: string) => unknown}).getChannel(CHANNEL)).toBeFalsy();
-        }
+        expect(MockedPusher.getInstance().getChannel(CHANNEL)).toBeFalsy();
     });
 
     it('should handle unsubscribe before subscription completes without errors', async () => {
@@ -278,10 +268,7 @@ describe('Per-callback subscription handles', () => {
 
         // Unsubscribe eventY — channel should be fully cleaned up
         handleY.unsubscribe();
-        const mockSocket = window.getPusherInstance();
-        if (mockSocket && 'getChannel' in mockSocket) {
-            expect((mockSocket as {getChannel: (name: string) => unknown}).getChannel(CHANNEL)).toBeFalsy();
-        }
+        expect(MockedPusher.getInstance().getChannel(CHANNEL)).toBeFalsy();
     });
 
     it('should clear all callbacks on disconnect so they do not fire after re-init', async () => {
@@ -315,16 +302,15 @@ describe('Per-callback subscription handles', () => {
 
     it('should clean up channel when disposed mid-handshake before onSubscriptionSucceeded', async () => {
         // Capture the onSubscriptionSucceeded callback so we can fire it manually
+        const mockSocket = MockedPusher.getInstance();
         let capturedOnSuccess: (() => void) | undefined;
-        const mockSocket = window.getPusherInstance();
-        jest.spyOn(mockSocket as {subscribe: (props: {channelName: string; onEvent: unknown; onSubscriptionSucceeded: () => void}) => Promise<void>}, 'subscribe').mockImplementation(
-            ({channelName: cn, onEvent, onSubscriptionSucceeded}) => {
-                // Store the channel like the real mock, but DON'T call onSubscriptionSucceeded yet
-                (mockSocket as {channels: Map<string, unknown>}).channels.set(cn, {onEvent, onSubscriptionSucceeded});
-                capturedOnSuccess = onSubscriptionSucceeded;
-                return Promise.resolve();
-            },
-        );
+
+        jest.spyOn(mockSocket, 'subscribe').mockImplementation(({channelName: cn, onEvent, onSubscriptionSucceeded}) => {
+            // Store the channel like the real mock, but DON'T call onSubscriptionSucceeded yet
+            mockSocket.channels.set(cn, {onEvent, onSubscriptionSucceeded});
+            capturedOnSuccess = onSubscriptionSucceeded;
+            return Promise.resolve();
+        });
 
         const callback = jest.fn();
         const handle = Pusher.subscribe(CHANNEL, EVENT, callback);
@@ -342,7 +328,7 @@ describe('Per-callback subscription handles', () => {
         await handle;
 
         // Channel should be cleaned up since no callbacks are bound
-        expect((mockSocket as {channels: Map<string, unknown>}).channels.has(CHANNEL)).toBe(false);
+        expect(mockSocket.channels.has(CHANNEL)).toBe(false);
 
         // Event should not reach the callback
         triggerEvent(CHANNEL, EVENT);
