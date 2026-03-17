@@ -16,15 +16,15 @@ describe('isNumericKeyboard', () => {
     });
 
     it('returns true for keyboardType phone-pad', () => {
-        expect(isNumericKeyboard({keyboardType: 'phone-pad'})).toBe(true);
+        expect(isNumericKeyboard({keyboardType: CONST.KEYBOARD_TYPE.PHONE_PAD})).toBe(true);
     });
 
     it('returns true for keyboardType number-pad', () => {
-        expect(isNumericKeyboard({keyboardType: 'number-pad'})).toBe(true);
+        expect(isNumericKeyboard({keyboardType: CONST.KEYBOARD_TYPE.NUMBER_PAD})).toBe(true);
     });
 
     it('returns true for keyboardType decimal-pad', () => {
-        expect(isNumericKeyboard({keyboardType: 'decimal-pad'})).toBe(true);
+        expect(isNumericKeyboard({keyboardType: CONST.KEYBOARD_TYPE.DECIMAL_PAD})).toBe(true);
     });
 
     it('returns false for inputMode text', () => {
@@ -36,7 +36,7 @@ describe('isNumericKeyboard', () => {
     });
 
     it('returns false for keyboardType ascii-capable', () => {
-        expect(isNumericKeyboard({keyboardType: 'ascii-capable'})).toBe(false);
+        expect(isNumericKeyboard({keyboardType: CONST.KEYBOARD_TYPE.ASCII_CAPABLE})).toBe(false);
     });
 
     it('returns false for empty props', () => {
@@ -53,6 +53,6 @@ describe('isNumericKeyboard', () => {
     });
 
     it('returns true when keyboardType is phone-pad even if inputMode is text', () => {
-        expect(isNumericKeyboard({inputMode: CONST.INPUT_MODE.TEXT, keyboardType: 'phone-pad'})).toBe(true);
+        expect(isNumericKeyboard({inputMode: CONST.INPUT_MODE.TEXT, keyboardType: CONST.KEYBOARD_TYPE.PHONE_PAD})).toBe(true);
     });
 });

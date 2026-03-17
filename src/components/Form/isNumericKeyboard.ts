@@ -13,9 +13,9 @@ function isNumericKeyboard(inputProps: NumericKeyboardProps): boolean {
         inputProps.inputMode === CONST.INPUT_MODE.TEL ||
         inputProps.inputMode === CONST.INPUT_MODE.NUMERIC ||
         inputProps.inputMode === CONST.INPUT_MODE.DECIMAL ||
-        inputProps.keyboardType === 'phone-pad' ||
-        inputProps.keyboardType === 'number-pad' ||
-        inputProps.keyboardType === 'decimal-pad'
+        inputProps.keyboardType === CONST.KEYBOARD_TYPE.PHONE_PAD ||
+        inputProps.keyboardType === CONST.KEYBOARD_TYPE.NUMBER_PAD ||
+        inputProps.keyboardType === CONST.KEYBOARD_TYPE.DECIMAL_PAD
     );
 }
 
