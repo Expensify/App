@@ -271,6 +271,15 @@ function subscribe<EventName extends PusherEventName>(
                                 channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
                                 if (!disposed) {
                                     wrappedCb = bindEventToChannel(channelName, eventName, eventCallback);
+                                } else {
+                                    // Handle was disposed mid-handshake — clean up the channel
+                                    // if no other subscribers have bound callbacks to it
+                                    const eventMap = eventsBoundToChannels.get(channelName);
+                                    if (!eventMap || eventMap.size === 0) {
+                                        eventsBoundToChannels.delete(channelName);
+                                        delete channels[channelName];
+                                        socket?.unsubscribe({channelName});
+                                    }
                                 }
                                 resolve();
                                 // When subscribing for the first time we register a success callback that can be
@@ -321,6 +330,8 @@ function subscribe<EventName extends PusherEventName>(
                 delete channels[channelName];
                 socket?.unsubscribe({channelName});
             }
+
+            wrappedCb = undefined;
         },
     });
 }

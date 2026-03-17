@@ -264,6 +264,14 @@ function subscribe<EventName extends PusherEventName>(
                                 if (!disposed) {
                                     wrappedCb = bindEventToChannel(channel, eventName, eventCallback);
                                     resolvedChannel = channel ?? undefined;
+                                } else {
+                                    // Handle was disposed mid-handshake — clean up the channel
+                                    // if no other subscribers have bound callbacks to it
+                                    const eventMap = eventsBoundToChannels.get(channel);
+                                    if (!eventMap || eventMap.size === 0) {
+                                        eventsBoundToChannels.delete(channel);
+                                        socket?.unsubscribe(channelName);
+                                    }
                                 }
                                 resolve();
                                 isBound = true;
@@ -323,6 +331,9 @@ function subscribe<EventName extends PusherEventName>(
                 eventsBoundToChannels.delete(resolvedChannel);
                 socket?.unsubscribe(channelName);
             }
+
+            wrappedCb = undefined;
+            resolvedChannel = undefined;
         },
     });
 }

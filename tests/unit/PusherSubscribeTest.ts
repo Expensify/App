@@ -312,4 +312,40 @@ describe('Per-callback subscription handles', () => {
 
         newHandle.unsubscribe();
     });
+
+    it('should clean up channel when disposed mid-handshake before onSubscriptionSucceeded', async () => {
+        // Capture the onSubscriptionSucceeded callback so we can fire it manually
+        let capturedOnSuccess: (() => void) | undefined;
+        const mockSocket = window.getPusherInstance();
+        jest.spyOn(mockSocket as {subscribe: (props: {channelName: string; onEvent: unknown; onSubscriptionSucceeded: () => void}) => Promise<void>}, 'subscribe').mockImplementation(
+            ({channelName: cn, onEvent, onSubscriptionSucceeded}) => {
+                // Store the channel like the real mock, but DON'T call onSubscriptionSucceeded yet
+                (mockSocket as {channels: Map<string, unknown>}).channels.set(cn, {onEvent, onSubscriptionSucceeded});
+                capturedOnSuccess = onSubscriptionSucceeded;
+                return Promise.resolve();
+            },
+        );
+
+        const callback = jest.fn();
+        const handle = Pusher.subscribe(CHANNEL, EVENT, callback);
+
+        // Flush InteractionManager — socket.subscribe() fires, but onSubscriptionSucceeded is deferred
+        await jest.runAllTimersAsync();
+        expect(capturedOnSuccess).toBeDefined();
+
+        // Dispose the handle mid-handshake (wrappedCb is still undefined)
+        handle.unsubscribe();
+
+        // Now fire onSubscriptionSucceeded — the disposed handle should trigger channel cleanup
+        capturedOnSuccess?.();
+        await jest.runAllTimersAsync();
+        await handle;
+
+        // Channel should be cleaned up since no callbacks are bound
+        expect((mockSocket as {channels: Map<string, unknown>}).channels.has(CHANNEL)).toBe(false);
+
+        // Event should not reach the callback
+        triggerEvent(CHANNEL, EVENT);
+        expect(callback).not.toHaveBeenCalled();
+    });
 });
