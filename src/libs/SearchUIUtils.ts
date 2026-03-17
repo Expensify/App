@@ -1491,18 +1491,10 @@ function shouldShowYear(
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
             }
-        } else if (!checkOnlyReports && isReportActionEntry(key)) {
-            const item = data[key];
-            for (const action of Object.values(item)) {
-                const date = action.created;
-                if (DateUtils.doesDateBelongToAPastYear(date)) {
-                    result.shouldShowYearCreated = true;
-                }
-            }
         } else if (isReportEntry(key)) {
             const item = data[key];
 
-            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+            if (checkOnlyReports && item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
                 result.shouldShowYearCreated = true;
             }
             if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
