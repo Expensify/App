@@ -70,8 +70,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
 import ReportActionItemImage from './ReportActionItemImage';
-import resetButtonHoverState from './resetButtonHoverState';
 
 type MoneyRequestReceiptViewProps = {
     /** The report currently being looked at */
@@ -153,7 +153,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const {isOffline} = useNetwork();
     const receiptContainerRef = useRef<View | null>(null);
     const addButtonRef = useRef<View | null>(null);
-    const skipContainerMouseLeaveRef = useRef(false);
+    const [isPickerOpen, setIsPickerOpen] = useState(false);
     const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
@@ -162,8 +162,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
         if (isLoading) {
             return;
         }
-        const receiptElement = receiptContainerRef.current as unknown as HTMLElement | null;
-        if (receiptElement?.matches?.(':hover')) {
+        if (isElementHovered(receiptContainerRef)) {
             hoverBind.onMouseEnter();
         }
     }, [isLoading, hoverBind]);
@@ -476,13 +475,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                             ref={receiptContainerRef}
                             style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
                             onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
-                            onMouseLeave={() => {
-                                if (skipContainerMouseLeaveRef.current) {
-                                    skipContainerMouseLeaveRef.current = false;
-                                    return;
-                                }
-                                hoverBind.onMouseLeave();
-                            }}
+                            onMouseLeave={hoverBind.onMouseLeave}
                         >
                             <View style={isReceiptOfflinePending && styles.offlineFeedbackPending}>
                                 <ReportActionItemImage
@@ -504,21 +497,27 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                 />
                             </View>
                             {canShowReceiptActions && (
-                                <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && deviceHasHoverSupport && styles.opacity0]}>
+                                <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isPickerOpen && deviceHasHoverSupport && styles.opacity0]}>
                                     <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                                         {({openPicker}) => (
                                             <Tooltip text={translate('receipt.addAdditionalReceipt')}>
                                                 <PressableWithoutFeedback
                                                     ref={addButtonRef}
                                                     onPress={() => {
+                                                        setIsPickerOpen(true);
+                                                        resetButtonHoverState(addButtonRef);
+                                                        const onPickerClosed = () => {
+                                                            setIsPickerOpen(false);
+                                                            if (isElementHovered(receiptContainerRef)) {
+                                                                hoverBind.onMouseEnter();
+                                                            }
+                                                        };
                                                         openPicker({
                                                             onPicked: (files) => {
-                                                                skipContainerMouseLeaveRef.current = resetButtonHoverState(addButtonRef);
+                                                                onPickerClosed();
                                                                 validateFiles(files);
                                                             },
-                                                            onCanceled: () => {
-                                                                skipContainerMouseLeaveRef.current = resetButtonHoverState(addButtonRef);
-                                                            },
+                                                            onCanceled: onPickerClosed,
                                                         });
                                                     }}
                                                     style={styles.receiptActionButton}
