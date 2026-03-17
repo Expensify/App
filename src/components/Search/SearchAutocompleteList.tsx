@@ -30,7 +30,8 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -159,27 +160,16 @@ function SearchAutocompleteList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = getAllTaxRates(policies);
 
     const {options, areOptionsInitialized} = useOptionsList();
 
-    const computeSpanStarted = useRef(false);
-    const spanHandoffDone = useRef(false);
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
-    // eslint-disable-next-line react-hooks/refs -- intentional: telemetry span must start during render to measure computation time
-    if (!computeSpanStarted.current && areOptionsInitialized && isRecentSearchesDataLoaded && getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER)) {
-        startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS, {
-            name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS,
-            op: 'function',
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
-        });
-        computeSpanStarted.current = true;
-    }
 
     useEffect(() => {
         return () => {
-            cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS);
             cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
         };
     }, []);
@@ -252,9 +242,15 @@ function SearchAutocompleteList({
         prevQueryRef.current = autocompleteQueryValue;
 
         if (queryChanged) {
-            // When query changes, focus on the search query item (index 0) and scroll to top
-            // onHighlightFirstItem will switch focus to the first result when there's a good match
-            innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+            if (autocompleteQueryValue === '') {
+                // When query is cleared, reset the initial focus guard so the initial focus
+                // effect can re-fire and correctly focus the first focusable item (skipping section headers).
+                hasSetInitialFocusRef.current = false;
+            } else {
+                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top
+                // onHighlightFirstItem will switch focus to the first result when there's a good match
+                innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+            }
         }
     }, [autocompleteQueryValue, isInitialRender]);
 
@@ -315,6 +311,7 @@ function SearchAutocompleteList({
                       autoCompleteWithSpace: false,
                       translate,
                       feedKeysWithCards,
+                      conciergeReportID,
                   })
                 : query,
             singleIcon: expensifyIcons.History,
@@ -449,25 +446,21 @@ function SearchAutocompleteList({
 
     const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SearchAutocompleteList',
+        isRecentSearchesDataLoaded,
+        areOptionsInitialized,
+    };
+
     if (isLoading) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                reasonAttributes={reasonAttributes}
             />
         );
-    }
-
-    // eslint-disable-next-line react-hooks/refs -- intentional: telemetry handoff must run during render to accurately mark compute→render transition
-    if (isInitialRender && computeSpanStarted.current && !spanHandoffDone.current) {
-        spanHandoffDone.current = true;
-        endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS);
-        startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER, {
-            name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER,
-            op: 'ui.render',
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
-        });
     }
 
     return (

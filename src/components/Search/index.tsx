@@ -21,7 +21,6 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
-import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -51,7 +50,6 @@ import {
     getListItem,
     getSections,
     getSortedSections,
-    getSuggestedSearches,
     getWideAmountIndicators,
     isGroupedItemArray,
     isReportActionListItemType,
@@ -66,6 +64,7 @@ import {
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
+import {cancelSubmitFollowUpActionSpan, endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
@@ -213,7 +212,8 @@ function Search({
     searchRequestResponseStatusCode,
     onDEWModalOpen,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, recentSearchHash, similarSearchHash, groupBy, view} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
+    const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON));
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -228,18 +228,21 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useWideRHPActions();
-    const {currentSearchHash, selectedTransactions, shouldTurnOffSelectionMode, lastSearchType, areAllMatchingItemsSelected, shouldResetSearchQuery, shouldUseLiveData} =
-        useSearchStateContext();
+
     const {
-        setCurrentSearchHashAndKey,
-        setCurrentSearchQueryJSON,
-        setSelectedTransactions,
-        clearSelectedTransactions,
-        setShouldShowFiltersBarLoading,
-        setShouldShowSelectAllMatchingItems,
-        selectAllMatchingItems,
-        setShouldResetSearchQuery,
-    } = useSearchActionsContext();
+        currentSearchHash,
+        currentSearchKey,
+        selectedTransactions,
+        shouldTurnOffSelectionMode,
+        lastSearchType,
+        areAllMatchingItemsSelected,
+        shouldResetSearchQuery,
+        shouldUseLiveData,
+        suggestedSearches,
+    } = useSearchStateContext();
+
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
+        useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -263,18 +266,15 @@ function Search({
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
-
         selector: selectFilteredReportActions,
     });
 
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    const {defaultCardFeed} = useCardFeedsForDisplay();
-    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
-    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key, [suggestedSearches, recentSearchHash]);
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, hash, offset === 0);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -304,21 +304,6 @@ function Search({
             });
         }
     }, [onDEWModalOpen, showConfirmModal, translate]);
-
-    const clearTransactionsAndSetHashAndKey = useCallback(() => {
-        clearSelectedTransactions(hash);
-        setCurrentSearchHashAndKey(hash, recentSearchHash, searchKey);
-        setCurrentSearchQueryJSON(queryJSON);
-    }, [hash, recentSearchHash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
-
-    useFocusEffect(clearTransactionsAndSetHashAndKey);
-
-    useEffect(() => {
-        clearTransactionsAndSetHashAndKey();
-
-        // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
     const prevValidGroupBy = usePrevious(validGroupBy);
@@ -384,7 +369,7 @@ function Search({
         transactions,
         previousTransactions,
         queryJSON,
-        searchKey,
+        searchKey: currentSearchKey,
         offset,
         shouldCalculateTotals,
         reportActions,
@@ -398,14 +383,69 @@ function Search({
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
-    // For to-do searches, we never show loading state since the data is always available locally from Onyx
+    const deferHeavySearchWork = useCallback((useDoubleFrame = false) => {
+        setShouldDeferHeavySearchWork(true);
+
+        // Search can do a lot of synchronous grouping/sorting work. Deferring by one frame keeps
+        // normal query transitions responsive, while two frames gives the submit-to-search route a
+        // chance to paint the first post-navigation frame before we start the heavier transforms.
+        let secondFrameID: number | undefined;
+        const frameID = requestAnimationFrame(() => {
+            if (!useDoubleFrame) {
+                setShouldDeferHeavySearchWork(false);
+                return;
+            }
+
+            secondFrameID = requestAnimationFrame(() => setShouldDeferHeavySearchWork(false));
+        });
+
+        return () => {
+            cancelAnimationFrame(frameID);
+            if (secondFrameID) {
+                cancelAnimationFrame(secondFrameID);
+            }
+        };
+    }, []);
+
+    // Only defer heavy work (getSections) when data isn't available yet.
+    // Skipping the defer for live data (to-dos) and cached results avoids a
+    // flash of the empty state or a blank page caused by a redundant defer cycle.
+    useEffect(() => {
+        if (shouldUseLiveData || isDataLoaded) {
+            setShouldDeferHeavySearchWork(false);
+            return;
+        }
+        return deferHeavySearchWork();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hash, deferHeavySearchWork, shouldUseLiveData, isDataLoaded]);
+
+    useFocusEffect(
+        useCallback(() => {
+            const pendingSubmitFollowUpAction = getPendingSubmitFollowUpAction();
+            const doesSpanExist = !!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+            const isPendingSearchNavigation = pendingSubmitFollowUpAction?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
+
+            if (!doesSpanExist && !isPendingSearchNavigation) {
+                return;
+            }
+
+            // Re-applying the defer only on the submit-return path keeps the optimization scoped to
+            // the transition we care about instead of slowing every search refocus.
+            return deferHeavySearchWork(true);
+        }, [deferHeavySearchWork]),
+    );
+
+    // Show a skeleton whenever heavy work is deferred, even for live-data (to-do) searches,
+    // so we never fall through to the empty-state check with stale zero-length data.
     const shouldShowLoadingState =
-        !shouldUseLiveData &&
-        !isOffline &&
-        (!isDataLoaded ||
-            (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
-            (hasErrors && searchRequestResponseStatusCode === null) ||
-            isCardFeedsLoading);
+        (!isOffline && shouldDeferHeavySearchWork) ||
+        (!shouldUseLiveData &&
+            !isOffline &&
+            (!isDataLoaded ||
+                (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
+                (hasErrors && searchRequestResponseStatusCode === null) ||
+                isCardFeedsLoading));
+
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
     const loadingSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
@@ -435,7 +475,7 @@ function Search({
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
-        if (searchResults === undefined || !isDataLoaded) {
+        if (shouldDeferHeavySearchWork || searchResults === undefined || !isDataLoaded) {
             return [[], 0, 0];
         }
 
@@ -457,7 +497,7 @@ function Search({
             bankAccountList,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
-            currentSearch: searchKey,
+            currentSearch: currentSearchKey,
             archivedReportsIDList: archivedReportsIdSet,
             queryJSON,
             isActionLoadingSet,
@@ -467,14 +507,16 @@ function Search({
             customCardNames,
             allReportMetadata,
             cardList,
+            onyxPersonalDetailsList,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
-        searchKey,
+        currentSearchKey,
         isOffline,
         exportReportActions,
         validGroupBy,
         isDataLoaded,
+        shouldDeferHeavySearchWork,
         searchResults,
         type,
         archivedReportsIdSet,
@@ -491,6 +533,7 @@ function Search({
         customCardNames,
         allReportMetadata,
         cardList,
+        onyxPersonalDetailsList,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
@@ -507,7 +550,7 @@ function Search({
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
 
     const filteredData = useMemo(() => {
-        if (!validGroupBy || isExpenseReportType) {
+        if (shouldDeferHeavySearchWork || !validGroupBy || isExpenseReportType) {
             return baseFilteredData;
         }
 
@@ -540,6 +583,7 @@ function Search({
     }, [
         validGroupBy,
         isExpenseReportType,
+        shouldDeferHeavySearchWork,
         baseFilteredData,
         groupByTransactionSnapshots,
         accountID,
@@ -599,7 +643,7 @@ function Search({
 
         handleSearch({
             queryJSON,
-            searchKey,
+            searchKey: currentSearchKey,
             offset,
             shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
@@ -608,7 +652,7 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals, validGroupBy]);
+    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -625,13 +669,13 @@ function Search({
         shouldRetrySearchWithTotalsOrGroupedRef.current = false;
         handleSearch({
             queryJSON,
-            searchKey,
+            searchKey: currentSearchKey,
             offset,
             shouldCalculateTotals: true,
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
-    }, [filteredDataLength, handleSearch, offset, queryJSON, searchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
+    }, [filteredDataLength, handleSearch, offset, queryJSON, currentSearchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -808,10 +852,22 @@ function Search({
 
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
+    const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));
 
     useEffect(
         () => () => {
             isUnmounted.current = true;
+
+            if (hasHadFirstLayout.current) {
+                return;
+            }
+
+            const activeNavigateToReportsSpan = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+            if (activeNavigateToReportsSpan !== navigateToReportsSpanOnMount.current) {
+                return;
+            }
+
+            cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         },
         [],
     );
@@ -993,7 +1049,7 @@ function Search({
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 handleSearch({
                     queryJSON: item.transactionsQueryJSON,
-                    searchKey,
+                    searchKey: currentSearchKey,
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
@@ -1080,7 +1136,7 @@ function Search({
             markReportIDAsExpense,
             toggleTransaction,
             handleSearch,
-            searchKey,
+            currentSearchKey,
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
@@ -1239,6 +1295,10 @@ function Search({
         hasHadFirstLayout.current = true;
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
         markNavigateAfterExpenseCreateEnd();
+        const pending = getPendingSubmitFollowUpAction();
+        if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
+            endSubmitFollowUpActionSpan(pending.followUpAction);
+        }
         // Reset the ref after the span is ended so future render-time cancelSpan calls are no longer guarded.
         spanExistedOnMount.current = false;
         handleSelectionListScroll(sortedData, searchListRef.current);
@@ -1258,6 +1318,10 @@ function Search({
     const cancelNavigationSpans = useCallback(() => {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        // Only cancel submit follow-up action span when Search is the pending action (e.g. we're bailing to error/empty). Otherwise we'd cancel a span intended for dismiss_modal_only or another action.
+        if (getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
+            cancelSubmitFollowUpActionSpan();
+        }
         spanExistedOnMount.current = false;
     }, []);
 
@@ -1277,6 +1341,10 @@ function Search({
         useCallback(() => {
             if (!hasHadFirstLayout.current) {
                 return;
+            }
+            const pending = getPendingSubmitFollowUpAction();
+            if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
+                endSubmitFollowUpActionSpan(pending.followUpAction);
             }
             endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
                 [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
@@ -1326,9 +1394,10 @@ function Search({
             </View>
         );
     }
-
+    const isAnyVisibleActionLoading = filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`));
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
+    // Guard: don't render the empty view while heavy work is still deferred - the data is temporarily [] and not truly empty.
+    if (!shouldDeferHeavySearchWork && shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyVisibleActionLoading) {
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
@@ -1366,13 +1435,16 @@ function Search({
 
     if (shouldShowChartView && isGroupedItemArray(sortedData)) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        if (getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
+            cancelSubmitFollowUpActionSpan();
+        }
         let chartTitle = translate(`search.chartTitles.${validGroupBy}`);
         if (savedSearch) {
             if (savedSearch.name !== savedSearch.query) {
                 chartTitle = savedSearch.name;
             }
-        } else if (searchKey && suggestedSearches[searchKey]) {
-            chartTitle = translate(suggestedSearches[searchKey].translationPath);
+        } else if (currentSearchKey && suggestedSearches[currentSearchKey]) {
+            chartTitle = translate(suggestedSearches[currentSearchKey].translationPath);
         }
 
         return (

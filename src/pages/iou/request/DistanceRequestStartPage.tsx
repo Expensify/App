@@ -4,7 +4,7 @@ import {Keyboard, View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollableTabSelector from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelector';
+import TabSelector from '@components/TabSelector/TabSelector';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -62,7 +62,6 @@ function DistanceRequestStartPage({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const {isBetaEnabled} = usePermissions();
-    const showGPSTab = isBetaEnabled(CONST.BETAS.GPS_MILEAGE);
     const showOdometerTab = isBetaEnabled(CONST.BETAS.ODOMETER_EXPENSES);
 
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
@@ -189,7 +188,7 @@ function DistanceRequestStartPage({
                         id={CONST.TAB.DISTANCE_REQUEST_TYPE}
                         defaultSelectedTab={defaultSelectedTab}
                         onTabSelected={resetIOUTypeIfChanged}
-                        tabBar={ScrollableTabSelector}
+                        tabBar={TabSelector}
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                         onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                         lazyLoadEnabled
@@ -214,18 +213,16 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        {showGPSTab && (
-                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_GPS}>
-                                {() => (
-                                    <TabScreenWithFocusTrapWrapper>
-                                        <IOURequestStepDistanceGPS
-                                            route={route}
-                                            navigation={navigation}
-                                        />
-                                    </TabScreenWithFocusTrapWrapper>
-                                )}
-                            </TopTab.Screen>
-                        )}
+                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_GPS}>
+                            {() => (
+                                <TabScreenWithFocusTrapWrapper>
+                                    <IOURequestStepDistanceGPS
+                                        route={route}
+                                        navigation={navigation}
+                                    />
+                                </TabScreenWithFocusTrapWrapper>
+                            )}
+                        </TopTab.Screen>
                         {showOdometerTab && (
                             <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
                                 {() => (
