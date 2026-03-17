@@ -68,6 +68,9 @@ type MoneyRequestActionProps = {
 
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
+
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID?: string;
 };
 
 function MoneyRequestAction({
@@ -82,6 +85,7 @@ function MoneyRequestAction({
     style,
     isWhisper = false,
     shouldDisplayContextMenu = true,
+    originalReportID,
 }: MoneyRequestActionProps) {
     const {shouldOpenReportInRHP} = useReportActionItemState();
     const {onPreviewPressed} = useReportActionItemActions();
@@ -186,6 +190,7 @@ function MoneyRequestAction({
             isHovered={isHovered}
             isWhisper={isWhisper}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
+            originalReportID={originalReportID}
         />
     );
 }
