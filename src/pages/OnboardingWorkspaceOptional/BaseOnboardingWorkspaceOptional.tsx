@@ -109,7 +109,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                 lastName: currentUserPersonalDetails.lastName,
                 adminsChatReportID: resolvedAdminsChatReportID,
                 onboardingPolicyID: resolvedPolicyID,
-                shouldSkipTestDriveModal: (!!resolvedPolicyID && !resolvedAdminsChatReportID) || engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                 introSelected,
                 betas,
                 isSelfTourViewed,
@@ -170,6 +169,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                   currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                   shouldAddGuideWelcomeMessage: false,
                   onboardingPurposeSelected,
+                  betas,
                   isSelfTourViewed,
               })
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
@@ -190,6 +190,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         currentUserPersonalDetails.email,
         introSelected,
         activePolicyID,
+        betas,
         isSelfTourViewed,
         completeOnboarding,
     ]);
