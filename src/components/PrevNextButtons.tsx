@@ -4,6 +4,7 @@ import type {GestureResponderEvent} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -57,9 +58,9 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isNextButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon
                         src={icons.ArrowRight}
-                        small
                         fill={theme.icon}
-                        isButtonIcon
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
                     />
                 </View>
             </PressableWithFeedback>

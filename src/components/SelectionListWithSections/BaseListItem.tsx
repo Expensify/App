@@ -183,8 +183,8 @@ function BaseListItem<TItem extends ListItem>({
                                 src={icons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                isButtonIcon
-                                medium
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </View>
                     )}

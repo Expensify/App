@@ -986,9 +986,9 @@ function MoneyRequestReportPreviewContent({
                                                     >
                                                         <Icon
                                                             src={expensifyIcons.ArrowRight}
-                                                            small
                                                             fill={theme.icon}
-                                                            isButtonIcon
+                                                            width={variables.iconSizeNormal}
+                                                            height={variables.iconSizeNormal}
                                                         />
                                                     </PressableWithFeedback>
                                                 </View>

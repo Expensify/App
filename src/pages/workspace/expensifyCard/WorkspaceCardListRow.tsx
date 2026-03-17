@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
@@ -138,8 +139,8 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     src={icons.ArrowRight}
                     fill={theme.icon}
                     additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
-                    medium
-                    isButtonIcon
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
                 />
             </View>
         </View>
