@@ -707,10 +707,19 @@ describe('navigateToConfirmationPage', () => {
         );
     });
 
-    it('should navigate to confirmation step with SUBMIT iouType when shouldNavigateToSubmit = true in default case', () => {
-        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.CREATE, transactionID, reportID, undefined, true);
+    it('should navigate to confirmation step with SUBMIT iouType when iouType is CREATE', () => {
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.CREATE, transactionID, reportID, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined));
+    });
+
+    it('should use reportIDParam when iouType is CREATE and reportIDParam is provided', () => {
+        const reportIDParam = '555';
+        IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.CREATE, transactionID, reportID, undefined, false, reportIDParam);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportIDParam, undefined),
+        );
     });
 
     it('should navigate to confirmation step with provided iouType directly when shouldNavigateToSubmit = false in default case', () => {
