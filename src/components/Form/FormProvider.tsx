@@ -23,8 +23,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
-import isNumericKeyboard from './isNumericKeyboard';
 import FormWrapper from './FormWrapper';
+import isNumericKeyboard from './isNumericKeyboard';
 import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
