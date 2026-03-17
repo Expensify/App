@@ -183,5 +183,5 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     );
 }
 
-export type {PopoverComponentProps};
+export type {PopoverComponentProps, DropdownButtonProps};
 export default withViewportOffsetTop(DropdownButton);

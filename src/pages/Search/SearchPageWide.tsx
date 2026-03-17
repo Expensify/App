@@ -8,8 +8,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
-import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
+import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPageHeaderWide';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -91,14 +91,12 @@ function SearchPageWide({
                 >
                     {!!queryJSON && (
                         <>
-                            <SearchPageHeader
+                            <SearchPageHeaderWide queryJSON={queryJSON} />
+                            <SearchActionsBarWide
                                 queryJSON={queryJSON}
+                                searchResults={searchResults}
+                                onSort={onSortPressedCallback}
                                 handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            />
-                            <SearchFiltersBar
-                                queryJSON={queryJSON}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
                             <Search
                                 key={queryJSON.hash}
@@ -106,6 +104,7 @@ function SearchPageWide({
                                 searchResults={searchResults}
                                 handleSearch={handleSearchAction}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                isSearchInputVisible={false}
                                 onSearchListScroll={scrollHandler}
                                 onSortPressedCallback={onSortPressedCallback}
                                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}

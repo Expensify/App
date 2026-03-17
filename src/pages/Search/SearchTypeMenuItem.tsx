@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -27,15 +28,17 @@ type SearchTypeMenuItemProps = {
 
     /** Press handler */
     onPress: () => void;
+    onLayout?: (e: LayoutChangeEvent) => void;
 };
 
 /**
  * Menu item row for Search type menu
  */
-function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: SearchTypeMenuItemProps) {
+function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, onLayout}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const iconSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
 
     return (
         <PressableWithoutFeedback
@@ -49,6 +52,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
                 hovered && !focused && !pressed && styles.hoveredComponentBG,
             ]}
+            onLayout={onLayout}
         >
             {({hovered, pressed}) => (
                 <>
@@ -56,8 +60,8 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                         <View style={[styles.popoverMenuIcon, styles.wAuto]}>
                             <Icon
                                 src={icon}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
+                                width={iconSize}
+                                height={iconSize}
                                 fill={StyleUtils.getIconFillColor(getButtonState(focused || hovered, pressed, false, false, true), true, true)}
                             />
                         </View>

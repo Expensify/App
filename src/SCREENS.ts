@@ -298,6 +298,7 @@ const SCREENS = {
 
         SEARCH_COLUMNS: 'SearchColumns',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
+        SEARCH_SAVE: 'SearchSave',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
         SETTINGS_TAGS: 'SettingsTags',

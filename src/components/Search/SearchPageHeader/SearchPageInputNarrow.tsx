@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
@@ -15,18 +14,14 @@ import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubsti
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
-import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {setSearchContext} from '@libs/actions/Search';
@@ -41,25 +36,18 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import KeyboardUtils from '@src/utils/keyboard';
-import SearchTypeMenuPopover from './SearchTypeMenuPopover';
 
-// When counting absolute positioning, we need to account for borders
-const BORDER_WIDTH = 1;
-
-type SearchPageHeaderInputProps = {
+type SearchPageInputNarrowProps = {
     queryJSON: SearchQueryJSON;
-    searchRouterListVisible?: boolean;
-    hideSearchRouterList?: () => void;
-    onSearchRouterFocus?: () => void;
+    searchRouterListVisible: boolean;
+    hideSearchRouterList: () => void;
+    onSearchRouterFocus: () => void;
     handleSearch: (value: string) => void;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch}: SearchPageHeaderInputProps) {
-    const [showPopupButton, setShowPopupButton] = useState(true);
+function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch}: SearchPageInputNarrowProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -97,12 +85,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
-    const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
     const hasMountedRef = useRef(false);
-    const isFocused = useIsFocused();
-    const {registerSearchPageInput} = useSearchRouterActions();
 
     useEffect(() => {
         hasMountedRef.current = true;
@@ -110,20 +95,12 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
 
     // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
     useEffect(() => {
-        if (!displayNarrowHeader || !!searchRouterListVisible || !textInputRef.current || !textInputRef.current.isFocused()) {
+        if (!!searchRouterListVisible || !textInputRef.current || !textInputRef.current.isFocused()) {
             return;
         }
         textInputRef.current.blur();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
-
-    useEffect(() => {
-        if (displayNarrowHeader || !isFocused || !textInputRef.current) {
-            return;
-        }
-
-        registerSearchPageInput(textInputRef.current);
-    }, [isFocused, registerSearchPageInput, displayNarrowHeader]);
 
     useEffect(() => {
         const newValue = shouldShowQuery ? queryText : '';
@@ -147,20 +124,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         );
         setAutocompleteSubstitutions(substitutionsMap);
     }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate, conciergeReportID]);
-
-    useEffect(() => {
-        if (searchRouterListVisible) {
-            return;
-        }
-        setShowPopupButton(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchRouterListVisible]);
-
-    const onFocus = useCallback(() => {
-        onSearchRouterFocus?.();
-        setShowPopupButton(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const handleKeyPress = useCallback((e: TextInputKeyPressEvent) => {
         const keyEvent = e as unknown as KeyboardEvent;
@@ -212,8 +175,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     rawQuery: queryWithSubstitutions,
                 }),
             );
-            hideSearchRouterList?.();
-            setIsAutocompleteListVisible(false);
+            hideSearchRouterList();
             if (updatedQuery !== originalInputQuery) {
                 setTextInputValue('');
                 setAutocompleteQueryValue('');
@@ -268,131 +230,47 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         [textInputValue, expensifyIcons.MagnifyingGlass, styles.activeComponentBG],
     );
 
-    if (displayNarrowHeader) {
-        return (
-            <View
-                dataSet={{dragArea: false}}
-                style={[styles.flex1]}
-            >
-                <View style={[styles.appBG, styles.flex1]}>
-                    <View style={[styles.flexRow, styles.mh5, styles.mb3, styles.alignItemsCenter, styles.justifyContentCenter, {height: variables.searchTopBarHeight}]}>
-                        <Animated.View style={[styles.flex1, styles.zIndex10]}>
-                            <SearchInputSelectionWrapper
-                                value={textInputValue}
-                                substitutionMap={autocompleteSubstitutions}
-                                selection={selection}
-                                onSearchQueryChange={onSearchQueryChange}
-                                isFullWidth
-                                onSubmit={() => {
-                                    KeyboardUtils.dismiss().then(() => submitSearch(textInputValue));
-                                }}
-                                autoFocus={false}
-                                onFocus={onFocus}
-                                wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
-                                wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
-                                ref={textInputRef}
-                                onKeyPress={handleKeyPress}
-                            />
-                        </Animated.View>
-                        {showPopupButton && (
-                            <View style={[styles.pl3]}>
-                                <SearchTypeMenuPopover queryJSON={queryJSON} />
-                            </View>
-                        )}
-                    </View>
-                    {!!searchRouterListVisible && (
-                        <View style={[styles.flex1]}>
-                            <SearchAutocompleteList
-                                autocompleteQueryValue={autocompleteQueryValue}
-                                handleSearch={handleSearchAction}
-                                searchQueryItem={searchQueryItem}
-                                onListItemPress={onListItemPress}
-                                ref={listRef}
-                                personalDetails={personalDetails}
-                                reports={reports}
-                                allCards={personalAndWorkspaceCards}
-                                allFeeds={allFeeds}
-                                textInputRef={textInputRef}
-                            />
-                        </View>
-                    )}
-                </View>
-            </View>
-        );
-    }
-
-    const hideAutocompleteList = () => setIsAutocompleteListVisible(false);
-    const showAutocompleteList = () => {
-        setIsAutocompleteListVisible(true);
-    };
-    // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
-    const leftPopoverHorizontalPosition = 12 - BORDER_WIDTH;
-    const rightPopoverHorizontalPosition = 4 - BORDER_WIDTH;
-    const autocompleteInputStyle = isAutocompleteListVisible
-        ? [
-              styles.border,
-              styles.borderRadiusComponentLarge,
-              styles.pAbsolute,
-              styles.pt2,
-              {top: 8 - BORDER_WIDTH, left: leftPopoverHorizontalPosition, right: rightPopoverHorizontalPosition},
-              {boxShadow: theme.shadow},
-          ]
-        : [styles.pt4];
-    const inputWrapperActiveStyle = isAutocompleteListVisible ? styles.ph2 : null;
-
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.zIndex10, styles.mr3]}>
-            <View
-                dataSet={{dragArea: false}}
-                style={[styles.searchResultsHeaderBar, styles.flex1, isAutocompleteListVisible && styles.pr1, isAutocompleteListVisible && styles.pl3]}
-            >
-                <View style={[styles.appBG, ...autocompleteInputStyle]}>
-                    <View style={[styles.flex1]}>
-                        <SearchInputSelectionWrapper
-                            value={textInputValue}
-                            onSearchQueryChange={onSearchQueryChange}
-                            isFullWidth
-                            onSubmit={() => {
-                                const focusedOption = listRef.current?.getFocusedOption();
-                                if (focusedOption) {
-                                    return;
-                                }
-                                submitSearch(textInputValue);
-                            }}
-                            autoFocus={false}
-                            onFocus={showAutocompleteList}
-                            onBlur={hideAutocompleteList}
-                            wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
-                            wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
-                            outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
-                            ref={textInputRef}
-                            selection={selection}
-                            substitutionMap={autocompleteSubstitutions}
-                            onKeyPress={handleKeyPress}
-                        />
-                    </View>
-                    {isAutocompleteListVisible && (
-                        <View style={[styles.mh65vh]}>
-                            <SearchAutocompleteList
-                                autocompleteQueryValue={autocompleteQueryValue}
-                                handleSearch={handleSearchAction}
-                                searchQueryItem={searchQueryItem}
-                                onListItemPress={onListItemPress}
-                                ref={listRef}
-                                shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
-                                personalDetails={personalDetails}
-                                reports={reports}
-                                allCards={personalAndWorkspaceCards}
-                                allFeeds={allFeeds}
-                                textInputRef={textInputRef}
-                            />
-                        </View>
-                    )}
-                </View>
+        <View
+            dataSet={{dragArea: false}}
+            style={[styles.flex1, styles.appBG, searchRouterListVisible && styles.pt2]}
+        >
+            <View style={[styles.flexRow, styles.mh5, searchRouterListVisible ? styles.mb3 : styles.mb4, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <Animated.View style={[styles.flex1, styles.zIndex10]}>
+                    <SearchInputSelectionWrapper
+                        value={textInputValue}
+                        substitutionMap={autocompleteSubstitutions}
+                        selection={selection}
+                        onSearchQueryChange={onSearchQueryChange}
+                        isFullWidth
+                        onSubmit={() => {
+                            KeyboardUtils.dismiss().then(() => submitSearch(textInputValue));
+                        }}
+                        autoFocus={false}
+                        onFocus={onSearchRouterFocus}
+                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
+                        wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
+                        ref={textInputRef}
+                        onKeyPress={handleKeyPress}
+                    />
+                </Animated.View>
             </View>
-            <SidePanelButton style={styles.mt1Half} />
+            {!!searchRouterListVisible && (
+                <SearchAutocompleteList
+                    autocompleteQueryValue={autocompleteQueryValue}
+                    handleSearch={handleSearchAction}
+                    searchQueryItem={searchQueryItem}
+                    onListItemPress={onListItemPress}
+                    ref={listRef}
+                    personalDetails={personalDetails}
+                    reports={reports}
+                    allCards={personalAndWorkspaceCards}
+                    allFeeds={allFeeds}
+                    textInputRef={textInputRef}
+                />
+            )}
         </View>
     );
 }
 
-export default SearchPageHeaderInput;
+export default SearchPageInputNarrow;

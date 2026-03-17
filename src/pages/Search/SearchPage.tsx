@@ -137,6 +137,7 @@ function SearchPage({route}: SearchPageProps) {
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     footerData={footerData}
                     shouldShowFooter={shouldShowFooter}
+                    onSortPressedCallback={onSortPressedCallback}
                 />
             ) : (
                 <SearchPageWide

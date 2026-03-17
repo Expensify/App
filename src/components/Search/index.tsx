@@ -94,6 +94,7 @@ type SearchProps = {
     handleSearch: (value: SearchParams) => void;
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
+    isSearchInputVisible: boolean;
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
@@ -208,6 +209,7 @@ function Search({
     contentContainerStyle,
     handleSearch,
     isMobileSelectionModeEnabled,
+    isSearchInputVisible,
     onSortPressedCallback,
     searchRequestResponseStatusCode,
     onDEWModalOpen,
@@ -241,7 +243,7 @@ function Search({
         suggestedSearches,
     } = useSearchStateContext();
 
-    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowActionsBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
         useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
@@ -620,8 +622,8 @@ function Search({
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
-    }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
+        setShouldShowActionsBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowActionsBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
@@ -1364,7 +1366,7 @@ function Search({
             >
                 <SearchRowSkeleton
                     shouldAnimate
-                    containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                    containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(isSearchInputVisible) : styles.mt3}
                     reasonAttributes={loadingSkeletonReasonAttributes}
                 />
             </Animated.View>
@@ -1381,7 +1383,7 @@ function Search({
         const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         cancelNavigationSpans();
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(isSearchInputVisible) : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
@@ -1400,7 +1402,7 @@ function Search({
     if (!shouldDeferHeavySearchWork && shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyVisibleActionLoading) {
         cancelNavigationSpans();
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(isSearchInputVisible) : styles.mt3, styles.flex1]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
@@ -1455,6 +1457,7 @@ function Search({
                     groupBy={validGroupBy}
                     data={sortedData}
                     isLoading={shouldShowLoadingState}
+                    isSearchInputVisible={isSearchInputVisible}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
                     title={chartTitle}
@@ -1502,7 +1505,7 @@ function Search({
                         )
                     }
                     contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt1]}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}
                     onEndReachedThreshold={0.75}

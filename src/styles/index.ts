@@ -2534,11 +2534,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchResultsHeaderBar: {
             display: 'flex',
-            height: variables.contentHeaderDesktopHeight,
-            zIndex: variables.popoverZIndex,
             position: 'relative',
-            paddingLeft: 20,
-            paddingRight: 12,
         },
 
         headerBarHeight: {
@@ -3457,7 +3453,6 @@ const staticStyles = (theme: ThemeColors) =>
         searchAutocompleteInputResults: {
             borderWidth: 1,
             borderColor: theme.border,
-            height: 54,
         },
 
         searchAutocompleteInputResultsFocused: {
@@ -3475,10 +3470,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         height4: {
             height: 16,
-        },
-
-        searchListContentContainerStyles: {
-            paddingTop: variables.searchListContentMarginTop,
         },
 
         searchListHeaderContainerStyle: {
@@ -4745,7 +4736,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         listTableHeader: {
-            paddingVertical: 12,
+            paddingTop: 4,
+            paddingBottom: 4,
             paddingHorizontal: 32,
         },
 
@@ -4845,15 +4837,29 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
-        searchFiltersBarContainer: {
-            marginTop: 8,
+        filtersBar: {
             flexDirection: 'row',
-            alignItems: 'center',
+            gap: 8,
+            marginTop: 3,
         },
 
-        searchFiltersBarCreateButton: {
-            marginLeft: 'auto',
+        searchActionsBarContainer: {
+            marginTop: 12,
+            marginBottom: 16,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            zIndex: 10,
+        },
+
+        searchActionsBarCreateButton: {
             alignSelf: 'flex-start',
+        },
+
+        searchPageInputTouchableWrapper:  {height: 32, width: 200},
+        searchPageInputPlaceholder: {
+            // Extra 2 to account for the borders
+            height: 34, width: 202
         },
 
         walletStaticIllustration: {
@@ -6166,6 +6172,10 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
+        searchListContentContainerStyles: (isSearchInputVisible) => ({
+            paddingTop: isSearchInputVisible ? variables.searchListContentWithInputMarginTop : variables.searchListContentMarginTop,
+        }),
+
         getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
@@ -6251,10 +6261,10 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
-            borderRadius: 8,
-            paddingHorizontal: 16,
-            paddingVertical: shouldUseNarrowLayout ? 8 : 4,
-            height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
+            borderRadius: shouldUseNarrowLayout ? variables.buttonBorderRadius : 8,
+            paddingHorizontal: shouldUseNarrowLayout ? 12 : 16,
+            paddingVertical: 10,
+            height: shouldUseNarrowLayout ? variables.sectionMenuItemHeightSmall : variables.sectionMenuItemHeight,
             alignItems: 'center',
         }),
     }) satisfies DynamicStyles;

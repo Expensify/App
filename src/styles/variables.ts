@@ -120,8 +120,8 @@ export default {
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
-    sectionMenuItemHeight: 52,
-    sectionMenuItemHeightCompact: 44,
+    sectionMenuItemHeightSmall: 40,
+    sectionMenuItemHeight: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
     lineHeightXSmall: getValueUsingPixelRatio(11, 17),
@@ -328,12 +328,12 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -124,
+    minimalTopBarOffset: -96,
+    minimalTopBarWithInputOffset: -166,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 124,
+    searchListContentMarginTop: 96,
+    searchListContentWithInputMarginTop: 166,
     searchTopBarZIndex: 9,
-    searchTopBarHeight: 52,
-    searchRouterInputMargin: 52,
 
     scrollToNewTransactionOffset: 300,
 
