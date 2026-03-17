@@ -32,6 +32,14 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW,
     callback: (queue) => {
+        // A backend JSON decode bug can cause this key to be set to an empty array `[]` instead of
+        // an object `{}`. An empty array breaks Onyx merge operations, so clear it immediately.
+        if (Array.isArray(queue)) {
+            Log.hmmm('[MultifactorAuthentication] transactionsPending3DSReview was set to an array, clearing it');
+            Onyx.set(ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW, null);
+            return;
+        }
+
         if (!locallyProcessed3DSTransactionReviews || !queue) {
             return;
         }
