@@ -49,10 +49,11 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
 import captureReceipt from './captureReceipt';
-import NavigationAwareCamera from './NavigationAwareCamera/Camera';
-import ReceiptPreviews from './ReceiptPreviews';
+import NavigationAwareCamera from './components/NavigationAwareCamera/Camera';
+import ReceiptPreviews from './components/ReceiptPreviews';
+import useMobileReceiptScan from './hooks/useMobileReceiptScan';
+import useReceiptScan from './hooks/useReceiptScan';
 import type IOURequestStepScanProps from './types';
-import useReceiptScan from './useReceiptScan';
 
 function IOURequestStepScan({
     report,
@@ -79,9 +80,9 @@ function IOURequestStepScan({
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
 
-    const navigateBack = () => {
-        Navigation.goBack();
-    };
+    const navigateBack = useCallback(() => {
+        Navigation.goBack(backTo);
+    }, [backTo]);
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
@@ -93,7 +94,6 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
-    const [isCameraReady, setIsCameraReady] = useState(false);
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
@@ -147,7 +147,6 @@ function IOURequestStepScan({
             return;
         }
         cameraInitialized.current = true;
-        setIsCameraReady(true);
         // Only end camera init span if it was actually started
         if (cameraInitSpanStarted.current) {
             endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
@@ -272,31 +271,23 @@ function IOURequestStepScan({
             }
             replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
         },
-        [initialTransactionID, policy, policyCategories, backTo],
+        [initialTransactionID, policy, policyCategories, backTo, navigateBack],
     );
 
     const getSource = useCallback((file: FileObject) => file.uri ?? '', []);
 
-    // Shared business logic from useReceiptScan hook
     const {
         isEditing,
-        canUseMultiScan,
         shouldAcceptMultipleFiles,
+        shouldSkipConfirmation,
         startLocationPermissionFlow,
         setStartLocationPermissionFlow,
         receiptFiles,
         setReceiptFiles,
-        shouldShowMultiScanEducationalPopup,
         navigateToConfirmationStep,
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        submitReceipts,
-        submitMultiScanReceipts,
-        toggleMultiScan,
-        dismissMultiScanEducationalPopup,
-        blinkStyle,
-        showBlink,
         setTestReceiptAndNavigate,
     } = useReceiptScan({
         report,
@@ -312,9 +303,20 @@ function IOURequestStepScan({
         isStartingScan,
         updateScanAndNavigate,
         getSource,
-        setIsMultiScanEnabled,
-        isCameraReady,
     });
+
+    const {canUseMultiScan, shouldShowMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts, toggleMultiScan, dismissMultiScanEducationalPopup, blinkStyle, showBlink} =
+        useMobileReceiptScan({
+            initialTransaction,
+            iouType,
+            isMultiScanEnabled,
+            isStartingScan,
+            receiptFiles,
+            navigateToConfirmationStep,
+            shouldSkipConfirmation,
+            setStartLocationPermissionFlow,
+            setIsMultiScanEnabled,
+        });
 
     const maybeCancelShutterSpan = useCallback(() => {
         if (isMultiScanEnabled) {

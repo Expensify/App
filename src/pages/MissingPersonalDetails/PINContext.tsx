@@ -1,40 +1,10 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
 import type {ReactNode} from 'react';
+import {defaultPINActionsContextValue, defaultPINStateContextValue} from './default';
+import type {PINActionsContextType, PINStateContextType} from './types.context';
 
-type PINContextType = {
-    /** The current PIN value */
-    PIN: string;
-
-    /** Set the PIN value */
-    setPIN: (PIN: string) => void;
-
-    /** Clear the PIN and reset verification status */
-    clearPIN: () => void;
-
-    /** Whether the user is on the PIN confirmation step */
-    isConfirmStep: boolean;
-
-    /** Set whether the user is on the PIN confirmation step */
-    setIsConfirmStep: (isConfirmStep: boolean) => void;
-
-    /** Whether the PIN input is hidden */
-    isPINHidden: boolean;
-
-    /** Toggle PIN visibility */
-    togglePINVisibility: () => void;
-};
-
-const defaultPINContext: PINContextType = {
-    PIN: '',
-    setPIN: () => {},
-    clearPIN: () => {},
-    isConfirmStep: false,
-    setIsConfirmStep: () => {},
-    isPINHidden: true,
-    togglePINVisibility: () => {},
-};
-
-const PINContext = createContext<PINContextType>(defaultPINContext);
+const PINStateContext = createContext<PINStateContextType>(defaultPINStateContextValue);
+const PINActionsContext = createContext<PINActionsContextType>(defaultPINActionsContextValue);
 
 type PINContextProviderProps = {
     children: ReactNode;
@@ -64,38 +34,44 @@ function PINContextProvider({children}: PINContextProviderProps) {
         setIsPINHidden((prev) => !prev);
     }, []);
 
-    // Clear PIN when the context provider unmounts (user leaves the flow)
     useEffect(() => {
         return () => {
             clearPIN();
         };
     }, [clearPIN]);
 
-    const value = useMemo(
-        () => ({
-            PIN,
-            setPIN,
-            clearPIN,
-            isConfirmStep,
-            setIsConfirmStep,
-            isPINHidden,
-            togglePINVisibility,
-        }),
-        [PIN, clearPIN, isConfirmStep, setIsConfirmStep, isPINHidden, togglePINVisibility],
-    );
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const stateValue: PINStateContextType = {
+        PIN,
+        isConfirmStep,
+        isPINHidden,
+    };
 
-    return <PINContext.Provider value={value}>{children}</PINContext.Provider>;
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const actionsValue: PINActionsContextType = {
+        setPIN,
+        clearPIN,
+        setIsConfirmStep,
+        togglePINVisibility,
+    };
+
+    return (
+        <PINStateContext.Provider value={stateValue}>
+            <PINActionsContext.Provider value={actionsValue}>{children}</PINActionsContext.Provider>
+        </PINStateContext.Provider>
+    );
 }
 
-/**
- * Hook to access the PIN context.
- * Must be used within a PINContextProvider.
- */
-function usePIN(): PINContextType {
-    return useContext(PINContext);
+function usePINState(): PINStateContextType {
+    return useContext(PINStateContext);
+}
+
+function usePINActions(): PINActionsContextType {
+    return useContext(PINActionsContext);
 }
 
 PINContextProvider.displayName = 'PINContextProvider';
 
-export {PINContextProvider, usePIN};
-export type {PINContextType};
+export {PINContextProvider, usePINState, usePINActions};
