@@ -75,7 +75,10 @@ function OptionRowLHNData({
         return getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReport?.reportID);
     }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReport?.reportID]);
 
-    const iouReportIDOfLastAction = useMemo(() => getIOUReportIDOfLastAction(fullReport, visibleReportActionsData, lastAction), [fullReport, visibleReportActionsData, lastAction]);
+    const iouReportIDOfLastAction = useMemo(
+        () => getIOUReportIDOfLastAction(fullReport, (reportNameValuePairsEntry ?? reportNameValuePairs)?.private_isArchived, visibleReportActionsData, lastAction),
+        [fullReport, reportNameValuePairsEntry, reportNameValuePairs, visibleReportActionsData, lastAction],
+    );
     const [iouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`);
 
     const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
