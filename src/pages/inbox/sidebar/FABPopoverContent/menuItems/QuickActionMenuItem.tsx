@@ -59,6 +59,8 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`);
     const reportAttributesSelector = (attributes: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => attributes?.reports;
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
 
@@ -105,7 +107,11 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     const quickActionReportPolicyID = quickActionReport?.policyID;
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
-        if (shouldRestrictAction && quickActionReportPolicyID && shouldRestrictUserBillableActions(quickActionReportPolicyID)) {
+        if (
+            shouldRestrictAction &&
+            quickActionReportPolicyID &&
+            shouldRestrictUserBillableActions(quickActionReportPolicyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)
+        ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
             return;
         }
@@ -180,7 +186,10 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             rightIconReportID={policyChatForActivePolicy?.reportID}
             onPress={() =>
                 interceptAnonymousUser(() => {
-                    if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+                    if (
+                        policyChatForActivePolicy?.policyID &&
+                        shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)
+                    ) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                         return;
                     }

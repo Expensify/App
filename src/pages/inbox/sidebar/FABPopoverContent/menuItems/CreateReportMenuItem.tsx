@@ -67,6 +67,8 @@ function CreateReportMenuItem() {
     const chatEnabledPaidGroupPolicies = (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, session?.email);
 
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: chatEnabledPaidGroupPolicies}, [session?.email]);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const isVisible = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 
@@ -129,12 +131,16 @@ function CreateReportMenuItem() {
                     const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
                     // If we couldn't guess the workspace to create the report, or a guessed workspace is past its grace period and we have other workspaces to choose from
-                    if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                    if (
+                        !workspaceIDForReportCreation ||
+                        (shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod) &&
+                            groupPoliciesWithChatEnabled.length > 1)
+                    ) {
                         Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                         return;
                     }
 
-                    if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                    if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
                         // Check if empty report confirmation should be shown
                         if (shouldShowEmptyReportConfirmation) {
                             openCreateReportConfirmation();
