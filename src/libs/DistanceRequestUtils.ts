@@ -474,15 +474,24 @@ function isDistanceAmountWithinLimit(distance: number, rate: number): boolean {
  * Normalize odometer text by standardizing locale digits and stripping all
  * non-numeric characters except the decimal point. fromLocaleDigit converts
  * each locale character to its standard equivalent (e.g. German ',' → '.'
- * for decimal, German '.' → ',' for group separator), then we keep only
- * digits and the standard decimal point.
+ * for decimal, German '.' → ',' for group separator). Commas are then
+ * treated as decimal separators so both "." and "," work as decimal input
+ * in any locale. If this produces multiple decimal points (from group
+ * separators that became dots), only the last dot is kept as the decimal.
+ * Finally we keep only digits and the standard decimal point.
  */
 function normalizeOdometerText(text: string, fromLocaleDigit: (char: string) => string): string {
     const standardized = replaceAllDigits(text, fromLocaleDigit);
-    const stripped = standardized.replaceAll(/[^0-9.]/g, '');
+    // Treat commas as decimal separators so both "." and "," work as decimal input
+    const withCommasAsDecimals = standardized.replaceAll(',', '.');
+    const stripped = withCommasAsDecimals.replaceAll(/[^0-9.]/g, '');
+    // If multiple decimal points exist (e.g. from group separators that became
+    // dots), keep only the last one as the actual decimal separator.
+    const dotParts = stripped.split('.');
+    const consolidated = dotParts.length > 2 ? dotParts.slice(0, -1).join('') + '.' + (dotParts.at(-1) ?? '') : stripped;
     // Remove redundant leading zeroes (e.g. "007" → "7", "000" → "0") but
     // keep a single zero before a decimal point (e.g. "0.5" stays "0.5").
-    return stripped.replace(/^0+(?=\d)/, '');
+    return consolidated.replace(/^0+(?=\d)/, '');
 }
 
 export default {
