@@ -111,7 +111,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     // Show "Break connection" option only for Mock Bank cards when the backend API is non-production
     const isMockBank = bank?.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
-    const isNonProductionBackend = CONFIG.EXPENSIFY.EXPENSIFY_URL.includes('.dev') || CONFIG.EXPENSIFY.EXPENSIFY_URL.includes('staging') || !!shouldUseStagingServer;
+    const isNonProductionBackend = CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || !!shouldUseStagingServer;
     const shouldShowBreakConnection = isMockBank && isNonProductionBackend;
 
     const lastScrape = useMemo(() => {
