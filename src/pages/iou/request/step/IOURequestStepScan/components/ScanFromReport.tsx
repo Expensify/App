@@ -1,27 +1,22 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import {RESULTS} from 'react-native-permissions';
+import React, {useEffect} from 'react';
 import TestReceipt from '@assets/images/fake-receipt.png';
-import LocationPermissionModal from '@components/LocationPermissionModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
-import getCurrentPosition from '@libs/getCurrentPosition';
 import {navigateToConfirmationPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {shouldReuseInitialTransaction} from '@libs/TransactionUtils';
-import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
-import {checkIfScanFileCanBeRead, setMoneyRequestReceipt, setMultipleMoneyRequestParticipantsFromReport, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {checkIfScanFileCanBeRead, setMoneyRequestReceipt, setMultipleMoneyRequestParticipantsFromReport} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,9 +44,6 @@ function ScanFromReport() {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
     const shouldShowWrapper = !!backTo || isEditing;
-
-    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
-    const [receiptFiles] = useState<ReceiptFile[]>([]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -162,27 +154,6 @@ function ScanFromReport() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Pre-fetch location on web if permission already granted
-    useEffect(() => {
-        const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-        if (!gpsRequired) {
-            return;
-        }
-
-        getLocationPermission().then((status) => {
-            if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
-                return;
-            }
-            clearUserLocation();
-            getCurrentPosition(
-                (successData) => {
-                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
-                },
-                () => {},
-            );
-        });
-    }, [initialTransaction?.amount, iouType]);
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.receipt')}
@@ -197,17 +168,6 @@ function ScanFromReport() {
                 shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
             />
             {ErrorModal}
-            {startLocationPermissionFlow && !!receiptFiles.length && (
-                <LocationPermissionModal
-                    startPermissionFlow={startLocationPermissionFlow}
-                    resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                    onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
-                    onDeny={() => {
-                        updateLastLocationPermissionPrompt();
-                        navigateToConfirmationStep(receiptFiles, false);
-                    }}
-                />
-            )}
         </StepScreenWrapper>
     );
 }

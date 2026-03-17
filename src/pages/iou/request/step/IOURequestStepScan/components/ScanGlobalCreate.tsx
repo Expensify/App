@@ -1,8 +1,6 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import {RESULTS} from 'react-native-permissions';
+import React, {useEffect} from 'react';
 import TestReceipt from '@assets/images/fake-receipt.png';
-import LocationPermissionModal from '@components/LocationPermissionModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -12,9 +10,7 @@ import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransaction
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
-import getCurrentPosition from '@libs/getCurrentPosition';
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -23,10 +19,9 @@ import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {shouldReuseInitialTransaction} from '@libs/TransactionUtils';
-import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
-import {checkIfScanFileCanBeRead, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {checkIfScanFileCanBeRead, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {setTransactionReport} from '@userActions/Transaction';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -60,9 +55,6 @@ function ScanGlobalCreate() {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
     const shouldShowWrapper = !!backTo || isEditing;
-
-    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
-    const [receiptFiles] = useState<ReceiptFile[]>([]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -201,27 +193,6 @@ function ScanGlobalCreate() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Pre-fetch location on web if permission already granted
-    useEffect(() => {
-        const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-        if (!gpsRequired) {
-            return;
-        }
-
-        getLocationPermission().then((status) => {
-            if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
-                return;
-            }
-            clearUserLocation();
-            getCurrentPosition(
-                (successData) => {
-                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
-                },
-                () => {},
-            );
-        });
-    }, [initialTransaction?.amount, iouType]);
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.receipt')}
@@ -236,17 +207,6 @@ function ScanGlobalCreate() {
                 shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
             />
             {ErrorModal}
-            {startLocationPermissionFlow && !!receiptFiles.length && (
-                <LocationPermissionModal
-                    startPermissionFlow={startLocationPermissionFlow}
-                    resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                    onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
-                    onDeny={() => {
-                        updateLastLocationPermissionPrompt();
-                        navigateToConfirmationStep(receiptFiles, false);
-                    }}
-                />
-            )}
         </StepScreenWrapper>
     );
 }
