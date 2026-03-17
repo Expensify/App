@@ -1295,7 +1295,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
 
     // Append additional text for plus button or Concierge
     if (shouldShowUsePlusButtonText) {
-        messageHtml += translate('reportActionsView.usePlusButton', {additionalText});
+        messageHtml += translate('reportActionsView.usePlusButton', additionalText);
     }
     if (isConciergeChatReport(report, conciergeReportID)) {
         messageHtml = translate('reportActionsView.askConcierge');
