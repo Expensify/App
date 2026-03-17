@@ -28,7 +28,7 @@ type SearchChartViewProps = {
     /** Whether data is loading */
     isLoading?: boolean;
 
-    /** When true, the overall chart container height remains fixed and the plot area shrinks to make room for x-axis labels instead of the container growing taller. */
+    /** When true, the overall chart container height remains fixed and the plot area shrinks to make room for x-axis labels instead of the container growing taller. (line and bar charts only) */
     disableDynamicHeight?: boolean;
 };
 
