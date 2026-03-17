@@ -140,6 +140,36 @@ jest.mock('@libs/actions/Welcome', () => ({
     onServerDataReady: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('react-native-fs', () => ({
+    DocumentDirectoryPath: '/mock/documents',
+    copyFile: jest.fn(() => Promise.resolve()),
+    exists: jest.fn(() => Promise.resolve(true)),
+    unlink: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('react-native-blob-util', () => ({
+    config: jest.fn((data: {path?: string} | undefined) => {
+        const filePath: string = data?.path ?? '/mock/documents/file';
+        return {
+            fetch: jest.fn(() =>
+                Promise.resolve({
+                    path: jest.fn((): string => filePath),
+                }),
+            ),
+        };
+    }),
+    fs: {
+        dirs: {
+            DocumentDir: '/mock/documents',
+        },
+    },
+    fetch: jest.fn(() =>
+        Promise.resolve({
+            path: jest.fn((): string => '/mock/documents/file'),
+        }),
+    ),
+}));
+
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
 
@@ -1592,7 +1622,12 @@ describe('actions/Report', () => {
     });
 
     it('should send not DeleteComment request and remove AddAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+        });
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -1662,7 +1697,12 @@ describe('actions/Report', () => {
     });
 
     it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+        });
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -1732,7 +1772,12 @@ describe('actions/Report', () => {
     });
 
     it('should post text + attachment as first action then attachment only for remaining attachments when adding multiple attachments with a comment', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+        });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
@@ -1776,7 +1821,12 @@ describe('actions/Report', () => {
     });
 
     it('should create attachment only actions when adding multiple attachments without a comment', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+        });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
@@ -1819,7 +1869,12 @@ describe('actions/Report', () => {
     });
 
     it('should create attachment only action & not play sound when adding attachment without a comment & shouldPlaySound not passed', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+        });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
@@ -5465,7 +5520,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with a participant that doesn't have an existing chat
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected);
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, false);
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -5511,7 +5566,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with the participant that has an existing chat
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected);
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, false);
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was NOT called since the chat already exists
@@ -5541,7 +5596,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
 
             // When navigateToAndOpenReport is called with introSelected
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected);
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, false);
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called (new chat created)
@@ -5571,8 +5626,95 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with shouldDismissModal=false
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, false);
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, false, false);
             await waitForBatchedUpdates();
+
+            // Then verify navigation was called
+            expect(Navigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should pass isSelfTourViewed=true through to openReport when creating new chat', async () => {
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            const PARTICIPANT_LOGIN = 'participant@test.com';
+            const PARTICIPANT_ACCOUNT_ID = 2;
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [PARTICIPANT_ACCOUNT_ID]: {
+                    accountID: PARTICIPANT_ACCOUNT_ID,
+                    login: PARTICIPANT_LOGIN,
+                    displayName: 'Participant',
+                },
+            });
+
+            const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
+
+            // When navigateToAndOpenReport is called with isSelfTourViewed=true
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, true);
+            await waitForBatchedUpdates();
+
+            // Then verify OpenReport API was called
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+
+            // Then verify navigation was called
+            expect(Navigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should pass isSelfTourViewed=undefined through to openReport when creating new chat', async () => {
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            const PARTICIPANT_LOGIN = 'participant@test.com';
+            const PARTICIPANT_ACCOUNT_ID = 2;
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [PARTICIPANT_ACCOUNT_ID]: {
+                    accountID: PARTICIPANT_ACCOUNT_ID,
+                    login: PARTICIPANT_LOGIN,
+                    displayName: 'Participant',
+                },
+            });
+
+            const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
+
+            // When navigateToAndOpenReport is called with isSelfTourViewed=undefined
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, undefined);
+            await waitForBatchedUpdates();
+
+            // Then verify OpenReport API was called
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+
+            // Then verify navigation was called
+            expect(Navigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should pass isSelfTourViewed along with shouldDismissModal', async () => {
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            const PARTICIPANT_LOGIN = 'participant@test.com';
+            const PARTICIPANT_ACCOUNT_ID = 2;
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [PARTICIPANT_ACCOUNT_ID]: {
+                    accountID: PARTICIPANT_ACCOUNT_ID,
+                    login: PARTICIPANT_LOGIN,
+                    displayName: 'Participant',
+                },
+            });
+
+            const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
+
+            // When navigateToAndOpenReport is called with isSelfTourViewed=true and shouldDismissModal=false
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, true, false);
+            await waitForBatchedUpdates();
+
+            // Then verify OpenReport API was called
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
 
             // Then verify navigation was called
             expect(Navigation.navigate).toHaveBeenCalled();
