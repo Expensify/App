@@ -500,14 +500,9 @@ function handleMoneyRequestStepScanParticipants({
             return;
         }
         const transactionIDs = files.map((receiptFile) => receiptFile.transactionID);
-        if (initialTransaction.participants?.length) {
-            navigateToConfirmationPage(iouType, initialTransaction.transactionID, reportID, backToReport);
-            setMultipleMoneyRequestParticipantsFromReport(transactionIDs, report, currentUserAccountID);
-        } else {
-            setMultipleMoneyRequestParticipantsFromReport(transactionIDs, report, currentUserAccountID).then(() => {
-                navigateToConfirmationPage(iouType, initialTransaction.transactionID, reportID, backToReport);
-            });
-        }
+        setMultipleMoneyRequestParticipantsFromReport(transactionIDs, report, currentUserAccountID).then(() =>
+            navigateToConfirmationPage(iouType, initialTransaction.transactionID, reportID, backToReport),
+        );
         return;
     }
 
@@ -523,36 +518,26 @@ function handleMoneyRequestStepScanParticipants({
         if (initialTransaction?.participants && initialTransaction?.participants?.at(0)?.reportID !== targetReport?.reportID) {
             const isTrackExpense = initialTransaction?.participants?.at(0)?.reportID === selfDMReport?.reportID;
 
-            if (isTrackExpense) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, initialTransaction.transactionID, selfDMReport?.reportID));
-            } else {
-                navigateToConfirmationPage(iouType, initialTransaction.transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, initialTransaction?.reportID);
-            }
-            for (const receiptFile of files) {
-                setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants);
-            }
+            const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
+            Promise.all(setParticipantsPromises).then(() => {
+                if (isTrackExpense) {
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, initialTransaction.transactionID, selfDMReport?.reportID),
+                    );
+                } else {
+                    navigateToConfirmationPage(iouType, initialTransaction.transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, initialTransaction?.reportID);
+                }
+            });
             return;
         }
 
-        if (initialTransaction.participants?.length) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, initialTransaction.transactionID, targetReport?.reportID));
-            for (const receiptFile of files) {
-                if (receiptFile.transactionID !== initialTransaction.transactionID) {
-                    setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
-                    setMoneyRequestParticipantsFromReport(receiptFile.transactionID, targetReport, currentUserAccountID);
-                }
-            }
-        } else {
-            const setParticipantsPromises = files.map((receiptFile) => {
-                setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
-                return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, targetReport, currentUserAccountID);
-            });
-            Promise.all(setParticipantsPromises).then(() => {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, initialTransaction.transactionID, targetReport?.reportID));
-            });
-        }
-    } else if (initialTransaction.participants?.length) {
-        navigateToConfirmationPage(iouType, initialTransaction.transactionID, reportID, backToReport, true, initialTransaction?.reportID);
+        const setParticipantsPromises = files.map((receiptFile) => {
+            setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
+            return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, targetReport, currentUserAccountID);
+        });
+        Promise.all(setParticipantsPromises).then(() =>
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, initialTransaction.transactionID, targetReport?.reportID)),
+        );
     } else {
         navigateToParticipantPage(iouType, initialTransaction.transactionID, reportID);
     }
