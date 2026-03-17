@@ -195,17 +195,17 @@ function IOURequestStepDistance({
     const [manualFormError, setManualFormError] = useState<string>('');
 
     const mileageRate = DistanceRequestUtils.getRate({
-        transaction,
+        transaction: currentTransaction,
         policy,
         useTransactionDistanceUnit: false,
     });
     const distanceUnit = mileageRate.unit;
     const distanceRate = mileageRate.rate ?? 0;
-    const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : distanceUnit);
+    const distanceInMeters = getDistanceInMeters(currentTransaction, currentTransaction?.comment?.customUnit?.distanceUnit ? currentTransaction.comment.customUnit.distanceUnit : distanceUnit);
     const currentDistance = useMemo(
         () =>
-            typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit)) : undefined,
-        [distanceInMeters, distanceUnit, transaction?.comment?.customUnit?.quantity],
+            typeof currentTransaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit)) : undefined,
+        [distanceInMeters, distanceUnit, currentTransaction?.comment?.customUnit?.quantity],
     );
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
@@ -566,35 +566,39 @@ function IOURequestStepDistance({
         }
 
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(value));
-        setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action), distanceUnit);
 
         if (isEditingSplit && transaction) {
+            setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action), distanceUnit);
             setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
             navigateBack();
             return;
         }
 
-        const transactionDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+        const transactionDistanceUnit = currentTransaction?.comment?.customUnit?.distanceUnit;
         const isDistanceChanged = currentDistance !== distanceAsFloat;
         const isDistanceUnitChanged = transactionDistanceUnit && transactionDistanceUnit !== distanceUnit;
 
-        if (isDistanceChanged || isDistanceUnitChanged) {
-            updateMoneyRequestDistance({
-                transactionID: transaction?.transactionID,
-                transactionThreadReport: report,
-                parentReport,
-                distance: distanceAsFloat,
-                transactionBackup: undefined,
-                policy,
-                policyTagList: policyTags,
-                policyCategories,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
-                isASAPSubmitBetaEnabled,
-                parentReportNextStep,
-                recentWaypoints,
-            });
+        if (!isDistanceChanged && !isDistanceUnitChanged) {
+            navigateBack();
+            return;
         }
+
+        setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action), distanceUnit);
+        updateMoneyRequestDistance({
+            transactionID: transaction?.transactionID,
+            transactionThreadReport: report,
+            parentReport,
+            distance: distanceAsFloat,
+            transactionBackup,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            parentReportNextStep,
+            recentWaypoints,
+        });
         transactionWasSaved.current = true;
         navigateBack();
     }, [
@@ -605,10 +609,12 @@ function IOURequestStepDistance({
         distanceUnit,
         isEditingSplit,
         transaction,
+        currentTransaction?.comment?.customUnit?.distanceUnit,
         splitDraftTransaction,
         policy,
         navigateBack,
         currentDistance,
+        transactionBackup,
         report,
         parentReport,
         policyTags,
