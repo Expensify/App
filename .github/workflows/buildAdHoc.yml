@@ -209,8 +209,6 @@ jobs:
             const androidLink = '${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}' || '';
             const iosLink = '${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}' || '';
             const mobileExpensifySHA = '${{ steps.getMobileExpensifySHA.outputs.SHA }}' || '';
-            const androidSentryLink = '${{ needs.buildAndroid.outputs.SENTRY_URL }}' || '';
-            const iosSentryLink = '${{ needs.buildIOS.outputs.SENTRY_URL }}' || '';
 
             const webFailed = '${{ needs.buildWeb.result }}' === 'failure' || '${{ needs.deployWebAdHoc.result }}' === 'failure';
             const webStatus = webLink ? '✅ Success' : webFailed ? '❌ Failed' : '⏭️ Skipped';
@@ -237,14 +235,6 @@ jobs:
                 ],
               ]);
 
-            if (androidSentryLink || iosSentryLink) {
-              summary.addHeading('Bundle Size Analysis', 3);
-              summary.addTable([
-                [{data: 'Platform', header: true}, {data: 'Sentry Size Analysis', header: true}],
-                ['Android', androidSentryLink ? `<a href="${androidSentryLink}">${androidSentryLink}</a>` : '-'],
-                ['iOS', iosSentryLink ? `<a href="${iosSentryLink}">${iosSentryLink}</a>` : '-'],
-              ]);
-            }
 
             if (mobileExpensifySHA) {
               const mobileExpensifyUrl = `https://github.com/Expensify/Mobile-Expensify/commit/${mobileExpensifySHA}`;

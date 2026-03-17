@@ -247,11 +247,11 @@ jobs:
 
       - name: Upload iOS build to Sentry for size analysis
         id: sentry-upload
-        if: ${{ env.ARTIFACT_PATH != '' }}
+        if: ${{ inputs.variant == 'Release' && env.ARTIFACT_PATH != '' }}
         continue-on-error: true
         timeout-minutes: 5
         run: |
-          OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration ${{ inputs.variant == 'Adhoc' && 'AdHoc' || 'Release' }} --log-level debug 2>&1)
+          OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration Release --log-level debug 2>&1)
           echo "$OUTPUT"
           SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
           if [ -n "$SENTRY_URL" ]; then
