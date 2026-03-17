@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -76,13 +76,16 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         }),
     );
 
-    const skipPages: string[] = [];
-    if (beneficialOwnerNationality !== CONST.COUNTRY.US) {
-        skipPages.push(SUB_PAGE_NAMES.LAST_4_SSN);
-    }
-    if (countryStepCountryValue === CONST.COUNTRY.GB && beneficialOwnerNationality === CONST.COUNTRY.GB) {
-        skipPages.push(SUB_PAGE_NAMES.DOCUMENTS);
-    }
+    const skipPages = useMemo(() => {
+        const pagesToSkip: string[] = [];
+        if (beneficialOwnerNationality !== CONST.COUNTRY.US) {
+            pagesToSkip.push(SUB_PAGE_NAMES.LAST_4_SSN);
+        }
+        if (countryStepCountryValue === CONST.COUNTRY.GB && beneficialOwnerNationality === CONST.COUNTRY.GB) {
+            pagesToSkip.push(SUB_PAGE_NAMES.DOCUMENTS);
+        }
+        return pagesToSkip;
+    }, [beneficialOwnerNationality, countryStepCountryValue]);
 
     const buildRoute = useCallback(
         (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: pageName, action, backTo}),

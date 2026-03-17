@@ -57,6 +57,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
         const percentageKey = `${PREFIX}_${key}_${OWNERSHIP_PERCENTAGE}` as const;
         return acc + (Number(SafeString(reimbursementAccountDraft?.[percentageKey])) || 0);
     }, 0);
+
     const canAddMoreOwners = totalOwnedPercentageSum <= 75;
 
     const isSubmittingRef = useRef(false);
@@ -228,6 +229,8 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
             onBackButtonPress();
         } else if (currentSubPage === SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
             Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER, backTo}));
+        } else if (currentSubPage === SUB_PAGE_NAMES.ARE_THERE_MORE_BENEFICIAL_OWNERS) {
+            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER, backTo}));
         } else if (currentSubPage === SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST) {
             Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.CONFIRMATION, backTo}));
         } else {
