@@ -179,6 +179,7 @@ function TripRoomPreview({
                         showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
                     }}
                     shouldUseHapticsOnLongPress
+                    sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.CARD}
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('iou.viewDetails')}

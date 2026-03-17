@@ -8748,6 +8748,9 @@ const CONST = {
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
         },
+        TRIP_ROOM_PREVIEW: {
+            CARD: 'TripRoomPreview-Card',
+        },
         TRANSACTION_ITEM_ROW: {
             ARROW_RIGHT: 'TransactionItemRow-ArrowRight',
         },
