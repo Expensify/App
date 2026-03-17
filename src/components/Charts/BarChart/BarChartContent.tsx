@@ -172,7 +172,7 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
         return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
     };
 
-    const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
+    const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, isOverClickableTarget, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
         isCursorOverLabel,
@@ -251,7 +251,7 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
     return (
         <GestureDetector gesture={customGestures}>
             <View
-                style={[styles.chartContent, dynamicChartStyle]}
+                style={[styles.chartContent, dynamicChartStyle, isOverClickableTarget && styles.cursorPointer]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (

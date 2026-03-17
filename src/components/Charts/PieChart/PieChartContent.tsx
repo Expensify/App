@@ -31,6 +31,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
     const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
+    const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
     // Shared values for hover state
     const isHovering = useSharedValue(false);
@@ -60,6 +61,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         const {radius, centerX, centerY} = pieGeometry;
         const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, 0, processedSlices);
         setActiveSliceIndex(sliceIndex);
+        setIsHoveringOverPie(sliceIndex >= 0);
     };
 
     // Handle slice press callback
@@ -102,6 +104,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 
                 isHovering.set(false);
                 scheduleOnRN(setActiveSliceIndex, -1);
+                scheduleOnRN(setIsHoveringOverPie, false);
             });
 
     // Tap gesture for click/tap navigation
@@ -159,7 +162,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         <>
             <GestureDetector gesture={combinedGesture}>
                 <Animated.View
-                    style={styles.chartContent}
+                    style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
                     onLayout={handleLayout}
                 >
                     {processedSlices.length > 0 && (

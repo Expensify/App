@@ -178,7 +178,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
         return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
     };
 
-    const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
+    const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, isOverClickableTarget, initialTooltipPosition} = useChartInteractions({
         handlePress: handlePointPress,
         checkIsOver: checkIsOverDot,
         isCursorOverLabel,
@@ -248,7 +248,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     return (
         <GestureDetector gesture={customGestures}>
             <View
-                style={[styles.chartContent, dynamicChartStyle]}
+                style={[styles.chartContent, dynamicChartStyle, isOverClickableTarget && styles.cursorPointer]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
