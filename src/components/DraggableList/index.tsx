@@ -7,6 +7,7 @@ import React, {Fragment, useEffect, useId, useRef} from 'react';
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
 
@@ -40,7 +41,9 @@ function DraggableList<T>({
             if (typeof document === 'undefined' || !isDraggingRef.current) {
                 return;
             }
-            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', code: 'Escape', bubbles: true, cancelable: true}));
+            document.dispatchEvent(
+                new KeyboardEvent('keydown', {key: CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey, code: CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey, bubbles: true, cancelable: true}),
+            );
         };
     }, []);
 
@@ -103,9 +106,9 @@ function DraggableList<T>({
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
             keyboardCodes: {
-                start: ['Space'],
-                cancel: ['Escape'],
-                end: ['Space'],
+                start: [CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey],
+                cancel: [CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey],
+                end: [CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey],
             },
         }),
     );
