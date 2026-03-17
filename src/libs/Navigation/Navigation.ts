@@ -4,6 +4,7 @@ import {CommonActions, StackActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
+import {nanoid} from 'nanoid/non-secure';
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -448,13 +449,13 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
         // StackRouter's REPLACE drops `path`, use a targeted RESET for dynamic routes to preserve it.
         if (actionPayload?.path && findMatchingDynamicSuffix(backToRoute)) {
             const routes = targetState.routes.with(targetState.index ?? targetState.routes.length - 1, {
-                key: `${actionPayload.name}-${Date.now()}`,
+                key: `${actionPayload.name}-${nanoid()}`,
                 name: actionPayload.name,
                 params: actionPayload.params,
                 path: actionPayload.path,
             });
 
-            const resetAction = {type: 'RESET', payload: {index: targetState.index, routes}, target: targetState.key} as NavigationAction;
+            const resetAction = {type: CONST.NAVIGATION_ACTIONS.RESET, payload: {index: targetState.index, routes}, target: targetState.key} as NavigationAction;
             navigationRef.current.dispatch(resetAction);
             return;
         }
