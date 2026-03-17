@@ -10,6 +10,7 @@ import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import computeReportActionsState from '@libs/computeReportActionsState';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
@@ -41,7 +42,6 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getChangedApproverActionMessage,
-    getCombinedReportActions,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDynamicExternalWorkflowRoutedMessage,
@@ -67,7 +67,6 @@ import {
     getReportActionMessageText,
     getRoomAvatarUpdatedMessage,
     getRoomChangeLogMessage,
-    getSortedReportActions,
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
     getUpdateRoomDescriptionMessage,
@@ -103,7 +102,6 @@ import {
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
-    withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -219,48 +217,32 @@ Onyx.connect({
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 const cachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
-let allReportActions: OnyxCollection<ReportActions>;
+
+function updateReportActionsCache(actions: NonNullable<OnyxCollection<ReportActions>>, sourceValue?: OnyxCollection<ReportActions>) {
+    const keysToProcess = sourceValue ? Object.keys(sourceValue) : Object.keys(actions);
+    for (const key of keysToProcess) {
+        const reportID = key.split('_').at(1);
+        if (reportID) {
+            const result = computeReportActionsState(reportID, actions, allReports);
+            allSortedReportActions[reportID] = result.sortedActions;
+            cachedOneTransactionThreadReportIDs[reportID] = result.transactionThreadReportID;
+            if (result.lastAction) {
+                lastReportActions[reportID] = result.lastAction;
+            } else {
+                delete lastReportActions[reportID];
+            }
+        }
+    }
+}
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
-    callback: (actions) => {
+    callback: (actions, _key, sourceValue) => {
         if (!actions) {
             return;
         }
-
-        allReportActions = actions ?? {};
-
-        // Iterate over the report actions to build the sorted report actions objects
-        for (const reportActions of Object.entries(allReportActions)) {
-            const reportID = reportActions[0].split('_').at(1);
-            if (!reportID) {
-                continue;
-            }
-
-            const reportActionsArray = Object.values(reportActions[1] ?? {});
-            let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
-            allSortedReportActions[reportID] = sortedReportActions;
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-
-            // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
-            // to the transaction thread or the report itself.
-            // Cache the result for O(1) lookup in renderItem.
-            const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]]);
-            cachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
-
-            if (transactionThreadReportID) {
-                const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
-                sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
-            }
-
-            const firstReportAction = sortedReportActions.at(0);
-            if (!firstReportAction) {
-                delete lastReportActions[reportID];
-            } else {
-                lastReportActions[reportID] = firstReportAction;
-            }
-        }
+        updateReportActionsCache(actions, sourceValue);
     },
 });
 
@@ -3458,7 +3440,11 @@ export {
     sortAlphabetically,
     personalDetailsComparator,
     processSearchString,
+    updateReportActionsCache,
+    computeReportActionsState,
 };
+
+export type {ProcessedReportActions} from '@libs/computeReportActionsState';
 
 export type {
     FilterUserToInviteConfig,
