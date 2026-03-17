@@ -158,7 +158,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 selectReport={selectReport}
                 removeFromReport={removeFromReport}
                 isEditing={action === CONST.IOU.ACTION.EDIT}
-                createReport={createReport}
+                createReport={policyForMovingExpensesID || shouldSelectPolicy || hasPerDiemTransactions ? createReport : undefined}
                 isPerDiemRequest={hasPerDiemTransactions}
             />
         </>

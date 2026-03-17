@@ -95,6 +95,10 @@ function SearchTransactionsChangeReport() {
     }, [selectedTransactions, selectedTransactionsKeys]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!policyForMovingExpenses?.id) {
+            return;
+        }
+
         const optimisticReport = createNewReport(
             targetOwnerPersonalDetails,
             hasViolations,
@@ -198,7 +202,7 @@ function SearchTransactionsChangeReport() {
                 selectedReportID={selectedReportID}
                 selectReport={selectReport}
                 removeFromReport={removeFromReport}
-                createReport={createReport}
+                createReport={policyForMovingExpensesID || shouldSelectPolicy ? createReport : undefined}
                 isEditing
                 isUnreported={areAllTransactionsUnreported}
                 targetOwnerAccountID={targetOwnerAccountID}
