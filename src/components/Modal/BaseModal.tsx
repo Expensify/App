@@ -6,6 +6,7 @@ import {Animated, DeviceEventEmitter, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
+import ScrollView from '@components/ScrollView';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
@@ -375,11 +376,18 @@ function BaseModal({
                     >
                         <Animated.View
                             onLayout={onViewLayout}
-                            style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelAnimatedStyle]}
+                            style={[
+                                styles.defaultModalContainer,
+                                modalContainerStyle,
+                                modalPaddingStyles,
+                                !isVisible && styles.pointerEventsNone,
+                                sidePanelAnimatedStyle,
+                                isInLandscapeMode && {maxHeight: windowHeight * 0.75},
+                            ]}
                             ref={ref}
                             fsClass={forwardedFSClass}
                         >
-                            <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                            <ColorSchemeWrapper>{isInLandscapeMode ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>

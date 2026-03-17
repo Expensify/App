@@ -1,26 +1,23 @@
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 /* eslint-disable no-restricted-imports */
-import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, StyleProp, View, ViewStyle} from 'react-native';
+import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import ScrollView from '@components/ScrollView';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
@@ -50,19 +47,8 @@ type PopoverReportActionContextMenuProps = {
     ref?: ForwardedRef<ReportActionContextMenu>;
 };
 
-const renderWithConditionalWrapper = (shouldUseScrollView: boolean, style: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
-    if (shouldUseScrollView) {
-        return <ScrollView style={style}>{children}</ScrollView>;
-    }
-
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
-};
-
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate, toLocaleDigit} = useLocalize();
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {windowHeight} = useWindowDimensions();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -487,28 +473,24 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             >
-                {renderWithConditionalWrapper(
-                    isInLandscapeMode,
-                    isInLandscapeMode ? {maxHeight: 0.5 * windowHeight} : undefined,
-                    <BaseReportActionContextMenu
-                        isVisible={isPopoverVisible}
-                        type={typeRef.current}
-                        reportID={reportIDRef.current}
-                        reportActionID={reportActionIDRef.current}
-                        draftMessage={reportActionDraftMessageRef.current}
-                        selection={selectionRef.current}
-                        isArchivedRoom={isRoomArchived}
-                        isChronosReport={isChronosReportEnabled}
-                        isPinnedChat={isChatPinned}
-                        isUnreadChat={hasUnreadMessages}
-                        isThreadReportParentAction={isThreadReportParentAction}
-                        anchor={contextMenuTargetNode}
-                        contentRef={contentRef}
-                        originalReportID={originalReportIDRef.current}
-                        disabledActions={disabledActions}
-                        setIsEmojiPickerActive={onEmojiPickerToggle.current}
-                    />,
-                )}
+                <BaseReportActionContextMenu
+                    isVisible={isPopoverVisible}
+                    type={typeRef.current}
+                    reportID={reportIDRef.current}
+                    reportActionID={reportActionIDRef.current}
+                    draftMessage={reportActionDraftMessageRef.current}
+                    selection={selectionRef.current}
+                    isArchivedRoom={isRoomArchived}
+                    isChronosReport={isChronosReportEnabled}
+                    isPinnedChat={isChatPinned}
+                    isUnreadChat={hasUnreadMessages}
+                    isThreadReportParentAction={isThreadReportParentAction}
+                    anchor={contextMenuTargetNode}
+                    contentRef={contentRef}
+                    originalReportID={originalReportIDRef.current}
+                    disabledActions={disabledActions}
+                    setIsEmojiPickerActive={onEmojiPickerToggle.current}
+                />
             </PopoverWithMeasuredContent>
             <ConfirmModal
                 title={translate('reportActionContextMenu.deleteAction', {action: reportAction})}
