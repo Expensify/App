@@ -5836,10 +5836,6 @@ const staticStyles = (theme: ThemeColors) =>
         chartContent: {
             minHeight: 250,
         },
-        pieChartChartContainer: {
-            height: 250,
-            position: 'relative',
-        },
         pieChartLegendContainer: {
             display: 'flex',
             justifyContent: 'center',
