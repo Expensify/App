@@ -395,7 +395,17 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        if (!odometerStartImage && !odometerEndImage) {
+        if (!odometerStartImage || !odometerEndImage) {
+            const singleImage = odometerStartImage ?? odometerEndImage;
+
+            if (!singleImage) {
+                return;
+            }
+
+            const getImageUri = (img: typeof singleImage): string => (typeof img === 'string' ? img : (img.uri ?? ''));
+            const getImageName = (img: typeof singleImage): string => (typeof img === 'string' ? (img.split('/').pop() ?? '') : (img.name ?? ''));
+
+            setMoneyRequestReceipt(currentTransactionID, getImageUri(singleImage), getImageName(singleImage), shouldUseTransactionDraft(action));
             return;
         }
 
@@ -405,23 +415,10 @@ function IOURequestStepConfirmation({
 
         stitchOdometerImages(odometerStartImage, odometerEndImage)
             .then((stitchedImage) => {
-                if (ignore) {
+                if (ignore || !stitchedImage) {
                     return;
                 }
-                if (!(stitchedImage ?? odometerStartImage ?? odometerEndImage)) {
-                    return;
-                }
-                const uri =
-                    stitchedImage?.uri ??
-                    (typeof odometerStartImage === 'string' ? odometerStartImage : odometerStartImage?.uri) ??
-                    (typeof odometerEndImage === 'string' ? odometerEndImage : odometerEndImage?.uri) ??
-                    '';
-                const name =
-                    stitchedImage?.name ??
-                    (typeof odometerStartImage !== 'string' ? odometerStartImage?.name : odometerStartImage?.split('/').pop()) ??
-                    (typeof odometerEndImage !== 'string' ? odometerEndImage?.name : odometerEndImage?.split('/').pop()) ??
-                    '';
-                setMoneyRequestReceipt(currentTransactionID, uri, name, shouldUseTransactionDraft(action));
+                setMoneyRequestReceipt(currentTransactionID, stitchedImage.uri ?? '', stitchedImage.name ?? '', shouldUseTransactionDraft(action));
             })
             .catch((error: unknown) => {
                 if (ignore) {
