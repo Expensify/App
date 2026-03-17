@@ -311,6 +311,8 @@ function BaseModal({
 
     const dragArea = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ? undefined : false;
 
+    const isBottomDockedModalInLandscapeMode = type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && isInLandscapeMode;
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
@@ -382,12 +384,12 @@ function BaseModal({
                                 modalPaddingStyles,
                                 !isVisible && styles.pointerEventsNone,
                                 sidePanelAnimatedStyle,
-                                isInLandscapeMode && {maxHeight: windowHeight * 0.75},
+                                isBottomDockedModalInLandscapeMode && {maxHeight: windowHeight * 0.75},
                             ]}
                             ref={ref}
                             fsClass={forwardedFSClass}
                         >
-                            <ColorSchemeWrapper>{isInLandscapeMode ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                            <ColorSchemeWrapper>{isBottomDockedModalInLandscapeMode ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>
