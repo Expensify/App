@@ -7,16 +7,16 @@ type InputProps = Omit<InputComponentBaseProps, 'InputComponent' | 'inputID'>;
 type RegisterInput = (inputID: keyof Form, shouldSubmitForm: boolean, inputProps: InputProps) => InputProps;
 type FormContext = {
     registerInput: RegisterInput;
-    errorAnnouncementKey: number;
-    fallbackAnnouncementMessage: string;
+    getErrorAnnouncementKey: () => number;
+    getFallbackAnnouncementMessage: () => string;
 };
 
 export default createContext<FormContext>({
     registerInput: () => {
         throw new Error('Registered input should be wrapped with FormWrapper');
     },
-    errorAnnouncementKey: 0,
-    fallbackAnnouncementMessage: '',
+    getErrorAnnouncementKey: () => 0,
+    getFallbackAnnouncementMessage: () => '',
 });
 
 export type {RegisterInput};

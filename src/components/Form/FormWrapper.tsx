@@ -109,7 +109,9 @@ function FormWrapper({
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
-    const {errorAnnouncementKey, fallbackAnnouncementMessage} = useContext(FormContext);
+    const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
+    const errorAnnouncementKey = getErrorAnnouncementKey();
+    const fallbackAnnouncementMessage = getFallbackAnnouncementMessage();
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);

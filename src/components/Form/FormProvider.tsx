@@ -478,7 +478,9 @@ function FormProvider({
         [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, setIsBlurred, formID, shouldValidateOnChange],
     );
     const fallbackAnnouncementMessage = !isGeneralAlertVisible ? firstFieldErrorMessage : '';
-    const value = useMemo(() => ({registerInput, errorAnnouncementKey, fallbackAnnouncementMessage}), [registerInput, errorAnnouncementKey, fallbackAnnouncementMessage]);
+    const getErrorAnnouncementKey = useCallback(() => errorAnnouncementKey, [errorAnnouncementKey]);
+    const getFallbackAnnouncementMessage = useCallback(() => fallbackAnnouncementMessage, [fallbackAnnouncementMessage]);
+    const value = useMemo(() => ({registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage}), [registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage]);
 
     const submitAndAnnounce = useCallback(() => {
         if (!isEmptyObject(errors)) {

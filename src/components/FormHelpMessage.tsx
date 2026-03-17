@@ -59,7 +59,8 @@ function FormHelpMessage({
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
-    const {errorAnnouncementKey} = useContext(FormContext);
+    const {getErrorAnnouncementKey} = useContext(FormContext);
+    const errorAnnouncementKey = getErrorAnnouncementKey();
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const shouldAnnounceError = isError && typeof message === 'string' && !!message && !shouldRenderMessageAsHTML && children == null && !shouldReannounceOnSubmit;
