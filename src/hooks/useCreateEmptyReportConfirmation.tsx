@@ -75,6 +75,7 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
         };
 
         showConfirmModal({
+            // Adding a space at the end because of this bug in react-native: https://github.com/facebook/react-native/issues/53286
             title: `${translate('report.newReport.emptyReportConfirmationTitle')} `,
             confirmText: translate('report.newReport.createReport'),
             cancelText: translate('common.cancel'),

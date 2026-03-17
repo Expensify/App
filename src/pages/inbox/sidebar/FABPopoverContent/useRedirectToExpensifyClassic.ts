@@ -30,6 +30,11 @@ function useRedirectToExpensifyClassic() {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
+    /**
+     * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
+     * 1. on at least one group policy
+     * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
+     */
     const [shouldRedirectToExpensifyClassic = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldRedirectToExpensifyClassicSelector});
 
     const showRedirectToExpensifyClassicModal = async () => {

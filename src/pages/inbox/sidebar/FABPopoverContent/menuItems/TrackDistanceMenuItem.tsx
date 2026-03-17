@@ -37,6 +37,7 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
                         showRedirectToExpensifyClassicModal();
                         return;
                     }
+                    // Start the flow to start tracking a distance request
                     startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, lastDistanceExpenseType, undefined, undefined, true);
                 })
             }
