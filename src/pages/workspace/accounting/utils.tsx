@@ -9,7 +9,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
-import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import getPlatform from '@libs/getPlatform';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -23,6 +22,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {
     getImportCustomFieldsSettings,
+    getInitialSubPageForNetsuiteTokenInput,
     shouldHideCustomFormIDOptions,
     shouldHideExportForeignCurrencyAmount,
     shouldHideExportJournalsTo,
@@ -46,6 +46,7 @@ function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
+    hasPoliciesConnectedToSageIntacct: boolean,
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
@@ -56,7 +57,6 @@ function getAccountingIntegrationData(
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
-    const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
     const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
@@ -104,6 +104,8 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT,
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
+                    CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR,
+                    CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
                     ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
                         ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]
                         : []),
@@ -221,7 +223,7 @@ function getAccountingIntegrationData(
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias,
                     backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
                         ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
-                        : ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID),
+                        : ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, getInitialSubPageForNetsuiteTokenInput(policy)),
                 },
                 pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields, ...policy?.connections?.netsuite?.options?.config?.pendingFields},
                 errorFields: {...netsuiteConfig?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields, ...policy?.connections?.netsuite?.options?.config?.errorFields},

@@ -1,11 +1,11 @@
-import React, {useCallback, useContext, useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import ImageSVG from '@components/ImageSVG';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -21,7 +21,7 @@ import {shouldShowMissingDetailsPage} from '@libs/PersonalDetailsUtils';
 import {getTravelInvoicingCard} from '@libs/TravelInvoicingUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {useTravelCVV} from './TravelCVVContextProvider';
+import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
 /**
  * TravelCVVPage - Displays the Travel CVV reveal interface.
@@ -34,13 +34,15 @@ function TravelCVVPage() {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['TravelCVV']);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
-    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     // Get CVV from context - shared with TravelCVVVerifyAccountPage
-    const {cvv, setCvv} = useTravelCVV();
+    const {cvv} = useTravelCVVState();
+    const {setCvv} = useTravelCVVActions();
 
     // Clear CVV when the page unmounts (e.g. backdrop close) so it doesn't
     // remain visible the next time the page is opened

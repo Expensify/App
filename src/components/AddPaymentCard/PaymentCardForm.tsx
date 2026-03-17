@@ -126,7 +126,7 @@ function PaymentCardForm({
     currencySelectorRoute,
 }: PaymentCardFormProps) {
     const styles = useThemeStyles();
-    const [data, metadata] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: true});
+    const [data, metadata] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
 
     const {translate} = useLocalize();
     const route = useRoute();

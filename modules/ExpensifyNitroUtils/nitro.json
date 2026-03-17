@@ -11,6 +11,10 @@
         "ContactsModule": {
             "swift": "HybridContactsModule",
             "kotlin": "HybridContactsModule"
+        },
+        "AppStartTimeModule": {
+            "swift": "HybridAppStartTimeModule",
+            "kotlin": "HybridAppStartTimeModule"
         }
     },
     "ignorePaths": ["node_modules"]

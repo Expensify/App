@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -27,8 +28,8 @@ type VerifyAccountPageBaseProps = {
  */
 function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, onValidationSuccess}: VerifyAccountPageBaseProps) {
     const styles = useThemeStyles();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     // sometimes primaryLogin can be empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -42,9 +43,9 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            validateSecondaryLogin(currentUserPersonalDetails, loginList, contactMethod, validateCode, formatPhoneNumber, true);
+            validateSecondaryLogin(contactMethod, validateCode, formatPhoneNumber, true);
         },
-        [currentUserPersonalDetails, loginList, contactMethod, formatPhoneNumber],
+        [contactMethod, formatPhoneNumber],
     );
 
     const handleCloseWithFallback = useCallback(() => {
@@ -81,7 +82,10 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
                     title={translate('contacts.validateAccount')}
                     onBackButtonPress={handleCloseWithFallback}
                 />
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <FullScreenLoadingIndicator
+                    style={[styles.flex1, styles.pRelative]}
+                    reasonAttributes={{context: 'VerifyAccountPageBase', isUserValidated} satisfies SkeletonSpanReasonAttributes}
+                />
             </ScreenWrapper>
         );
     }

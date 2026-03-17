@@ -27,8 +27,8 @@ function AttachmentCarousel({
     attachmentLink,
     onAttachmentError,
 }: AttachmentCarouselProps) {
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
     const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
     const isReportArchived = useReportIsArchived(report.reportID);
@@ -102,7 +102,7 @@ function AttachmentCarousel({
     if (page == null) {
         return (
             <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'AttachmentCarousel'}} />
             </View>
         );
     }

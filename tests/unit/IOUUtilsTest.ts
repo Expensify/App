@@ -594,6 +594,39 @@ describe('canSubmitReport', () => {
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
         expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
     });
+
+    it('returns false when SmartScan failed with missing fields before violation is written', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+        const policy: Policy = {
+            ...createRandomPolicy(8),
+            ownerAccountID: currentUserAccountID,
+            areRulesEnabled: true,
+            preventSelfApproval: false,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+            harvesting: {enabled: false},
+        };
+        const report: Report = {
+            ...createRandomReport(8, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            reportID: report.reportID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            merchant: 'Coffee',
+            created: '',
+            amount: 100,
+        };
+
+        expect(canSubmitReport(report, policy, [transaction], undefined, false, '', currentUserAccountID)).toBe(false);
+    });
 });
 
 describe('Check valid amount for IOU/Expense request', () => {
@@ -787,5 +820,37 @@ describe('canApproveIOU', () => {
 
         // Then canApproveIOU should return false
         expect(canApproveIOU(report, policy, reportMetadata)).toBe(false);
+    });
+});
+
+describe('getExistingTransactionID', () => {
+    test('should return undefined when linkedTrackedExpenseReportAction is undefined', () => {
+        expect(IOUUtils.getExistingTransactionID(undefined)).toBeUndefined();
+    });
+
+    test('should return undefined when reportAction is not a money request action', () => {
+        const nonMoneyRequestAction = {
+            reportActionID: 'action1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '',
+            message: [],
+        } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
+
+        expect(IOUUtils.getExistingTransactionID(nonMoneyRequestAction)).toBeUndefined();
+    });
+
+    test('should return IOUTransactionID from a valid money request action', () => {
+        const moneyRequestAction = {
+            reportActionID: 'action1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            created: '',
+            originalMessage: {
+                IOUTransactionID: 'txn123',
+                IOUReportID: 'report456',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            },
+        } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
+
+        expect(IOUUtils.getExistingTransactionID(moneyRequestAction)).toBe('txn123');
     });
 });

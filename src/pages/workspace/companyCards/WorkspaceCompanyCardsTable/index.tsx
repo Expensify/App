@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {getDefaultCardName, getPlaidInstitutionId} from '@libs/CardUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -86,9 +87,9 @@ function WorkspaceCompanyCardsTable({
         onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata},
     } = companyCards;
 
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
@@ -115,9 +116,12 @@ function WorkspaceCompanyCardsTable({
         feedErrorReloadAction = onReloadFeed;
     }
 
-    const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading;
-    const isLoadingCards = (companyCardEntries ?? []).length === 0 ? isLoadingOnyxValue(cardListMetadata) : false;
-    const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
+    // If we already have fetched cards, then do not show skeleton loader (let the remaining updates refresh in the background), else show it
+    const hasCards = (companyCardEntries ?? []).length > 0;
+    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading);
+    const isLoadingCards = !hasCards ? isLoadingOnyxValue(cardListMetadata) : false;
+    const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
+
     const isLoading = isLoadingPage || isLoadingFeed;
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
@@ -327,6 +331,12 @@ function WorkspaceCompanyCardsTable({
         </View>
     ) : undefined;
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceCompanyCardsTable',
+        isLoading,
+        isLoadingCards,
+    };
+
     return (
         <Table
             ref={tableRef}
@@ -339,14 +349,28 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             filters={filterConfig}
             initialSortColumn="member"
-            ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
+            ListEmptyComponent={
+                isLoadingCards ? (
+                    <TableRowSkeleton
+                        fixedNumItems={5}
+                        reasonAttributes={reasonAttributes}
+                    />
+                ) : (
+                    <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />
+                )
+            }
             ListHeaderComponent={shouldUseNarrowTableLayout ? headerButtonsComponent : undefined}
         >
             {shouldRenderHeaderAsChild && headerButtonsComponent}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
                 <ScrollView>
-                    {isLoading && <TableRowSkeleton fixedNumItems={5} />}
+                    {isLoading && (
+                        <TableRowSkeleton
+                            fixedNumItems={5}
+                            reasonAttributes={reasonAttributes}
+                        />
+                    )}
 
                     {!isLoading && isFeedPending && (
                         <View style={styles.flex1}>

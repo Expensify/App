@@ -35,7 +35,7 @@ function retryReauthenticate(commandName?: string): Promise<boolean> {
             .then(() => retryReauthenticate(commandName))
             .catch(() => {
                 setIsAuthenticating(false);
-                Log.hmmm('Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
+                Log.hmmm('[Reauthenticate] Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
                 redirectToSignIn('passwordForm.error.fallback');
                 return false;
             });
@@ -56,7 +56,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
         .then((data) => {
             // If there is no data for some reason then we cannot reauthenticate
             if (!data) {
-                Log.hmmm('Undefined data in Reauthentication');
+                Log.hmmm('[Reauthenticate] Undefined data in Reauthentication');
                 return;
             }
 

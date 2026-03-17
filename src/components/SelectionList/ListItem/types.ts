@@ -140,6 +140,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Used to initiate payment from search page */
     hash?: number;
+
+    /** BCP 47 language tag for screen reader pronunciation (maps to HTML lang attribute on web) */
+    lang?: string;
 };
 
 type CommonListItemProps<TItem extends ListItem> = {
@@ -191,6 +194,12 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Number of lines to show for alternate text */
     alternateTextNumberOfLines?: number;
 
+    /** Number of lines to show for title text when multiline is supported */
+    titleNumberOfLines?: number;
+
+    /** Whether to show the default right hand side component */
+    shouldUseDefaultRightHandSideComponent?: boolean;
+
     /** Handles what to do when the item is focused */
     onFocus?: ListItemFocusEventHandler;
 
@@ -205,6 +214,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 } & TRightHandSideComponent<TItem> &
     WithSentryLabel;
 
@@ -277,9 +289,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
-
-    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
-    shouldStopMouseLeavePropagation?: boolean;
 };
 
 type ValidListItem =
@@ -310,7 +319,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
-    /** Errors that this user may contain */
+    /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
     /** Test ID of the component. Used to locate this view in end-to-end tests. */
     testID?: string;
@@ -323,9 +332,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
-
-    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
-    shouldStopMouseLeavePropagation?: boolean;
 
     /**
      * Whether the pressable should be accessible as a single element.

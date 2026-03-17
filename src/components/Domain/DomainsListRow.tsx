@@ -45,7 +45,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                 <TextWithTooltip
                     text={title}
                     shouldShowTooltip
-                    style={styles.textStrong}
+                    style={[styles.textStrong, styles.flexShrink1]}
                 />
 
                 {!!badgeText && (
@@ -53,7 +53,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                         <Badge
                             text={badgeText}
                             textStyles={styles.textStrong}
-                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
+                            badgeStyles={styles.alignSelfCenter}
                         />
                     </View>
                 )}

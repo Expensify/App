@@ -43,14 +43,8 @@ type PopoverMenuItem = MenuItemProps & {
     /** A callback triggered when this item is selected */
     onSelected?: () => void;
 
-    /** Whether to call onSelected for items with sub menu */
-    shouldCallOnSelectedForSubMenuItem?: boolean;
-
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
-
-    /** Header text to be displayed when this item's sub menu is opened */
-    subMenuHeaderText?: string;
 
     /** Back button text to be shown if sub menu items are opened */
     backButtonText?: string;
@@ -71,6 +65,9 @@ type PopoverMenuItem = MenuItemProps & {
     rightIcon?: IconAsset;
 
     key?: string;
+
+    /** Whether to ignore key and use a fallback key for React rendering instead. */
+    shouldIgnoreKeyForRendering?: boolean;
 
     /** Whether to keep the modal open after clicking on the menu item */
     shouldKeepModalOpen?: boolean;
@@ -180,9 +177,6 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
 
     /** Used to locate the component in the tests */
     testID?: string;
-
-    /** Whether to put the header text after the back button */
-    shouldPutHeaderTextAfterBackButton?: boolean;
 
     /** Badge style to be shown near the right end. */
     badgeStyle?: StyleProp<ViewStyle>;
@@ -304,7 +298,6 @@ function BasePopoverMenu({
     shouldAvoidSafariException = false,
     shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
     testID,
-    shouldPutHeaderTextAfterBackButton = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -321,25 +314,6 @@ function BasePopoverMenu({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
-    const {currentHeaderText, shouldAlwaysShowHeaderText} = useMemo(() => {
-        let currentItems = menuItems;
-        let currentHeader = headerText ?? '';
-        let shouldShow = true;
-
-        if (enteredSubMenuIndexes.length > 0) {
-            for (const index of enteredSubMenuIndexes) {
-                const item = currentItems.at(index);
-                if (!item?.subMenuItems) {
-                    break;
-                }
-                currentHeader = item.subMenuHeaderText ?? '';
-                shouldShow = !!item.subMenuHeaderText;
-                currentItems = item.subMenuItems;
-            }
-        }
-
-        return {currentHeaderText: currentHeader, shouldAlwaysShowHeaderText: shouldShow};
-    }, [enteredSubMenuIndexes, headerText, menuItems]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -347,9 +321,6 @@ function BasePopoverMenu({
             return;
         }
         if (selectedItem?.subMenuItems) {
-            if (selectedItem?.shouldCallOnSelectedForSubMenuItem) {
-                selectedItem.onSelected?.();
-            }
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
@@ -414,17 +385,28 @@ function BasePopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, badgeText, ...menuItemProps} = item;
+        const {
+            text,
+            onSelected,
+            subMenuItems,
+            shouldCallAfterModalHide,
+            key,
+            shouldIgnoreKeyForRendering,
+            testID: menuItemTestID,
+            shouldShowLoadingSpinnerIcon,
+            badgeText,
+            ...menuItemProps
+        } = item;
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
+        // eslint-disable-next-line react/no-array-index-key
+        const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
         return (
             <OfflineWithFeedback
-                // eslint-disable-next-line react/no-array-index-key
-                key={key ?? `${item.text}_${menuIndex}`}
+                key={reactKey}
                 pendingAction={item.pendingAction}
             >
                 <FocusableMenuItem
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={key ?? `${item.text}_${menuIndex}`}
+                    key={reactKey}
                     pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={(event) => selectItem(menuIndex, event)}
@@ -460,15 +442,15 @@ function BasePopoverMenu({
     });
 
     const renderHeaderText = () => {
-        if (!currentHeaderText || (enteredSubMenuIndexes.length !== 0 && !shouldAlwaysShowHeaderText)) {
+        if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
         return (
             <Text
-                key={`${currentHeaderText}_${shouldPutHeaderTextAfterBackButton}`}
+                key="header-text"
                 style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
             >
-                {currentHeaderText}
+                {headerText}
             </Text>
         );
     };
@@ -641,12 +623,7 @@ function BasePopoverMenu({
                     {renderWithConditionalWrapper(
                         shouldUseScrollView,
                         [scrollViewPaddingStyles, restScrollContainerStyle],
-                        [
-                            !shouldPutHeaderTextAfterBackButton && renderHeaderText(),
-                            enteredSubMenuIndexes.length > 0 && renderBackButtonItem(),
-                            shouldPutHeaderTextAfterBackButton && renderHeaderText(),
-                            renderedMenuItems,
-                        ],
+                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
                     )}
                 </View>
             </FocusTrapForModal>
@@ -674,8 +651,7 @@ export default React.memo(
         prevProps.animationInTiming === nextProps.animationInTiming &&
         prevProps.disableAnimation === nextProps.disableAnimation &&
         prevProps.withoutOverlay === nextProps.withoutOverlay &&
-        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility &&
-        prevProps.shouldPutHeaderTextAfterBackButton === nextProps.shouldPutHeaderTextAfterBackButton,
+        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
 export type {PopoverMenuItem, PopoverMenuProps};
 export {getItemKey, buildKeyPathFromIndexPath, resolveIndexPathByKeyPath};
