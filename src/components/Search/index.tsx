@@ -213,6 +213,7 @@ function Search({
     onDEWModalOpen,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
+    const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON));
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -382,14 +383,68 @@ function Search({
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
-    // For to-do searches, we never show loading state since the data is always available locally from Onyx
+    const deferHeavySearchWork = useCallback((useDoubleFrame = false) => {
+        setShouldDeferHeavySearchWork(true);
+
+        // Search can do a lot of synchronous grouping/sorting work. Deferring by one frame keeps
+        // normal query transitions responsive, while two frames gives the submit-to-search route a
+        // chance to paint the first post-navigation frame before we start the heavier transforms.
+        let secondFrameID: number | undefined;
+        const frameID = requestAnimationFrame(() => {
+            if (!useDoubleFrame) {
+                setShouldDeferHeavySearchWork(false);
+                return;
+            }
+
+            secondFrameID = requestAnimationFrame(() => setShouldDeferHeavySearchWork(false));
+        });
+
+        return () => {
+            cancelAnimationFrame(frameID);
+            if (secondFrameID) {
+                cancelAnimationFrame(secondFrameID);
+            }
+        };
+    }, []);
+
+    // Only defer heavy work (getSections) when data isn't available yet.
+    // Skipping the defer for live data (to-dos) and cached results avoids a
+    // flash of the empty state or a blank page caused by a redundant defer cycle.
+    useEffect(() => {
+        if (shouldUseLiveData || isDataLoaded) {
+            setShouldDeferHeavySearchWork(false);
+            return;
+        }
+        return deferHeavySearchWork();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hash, deferHeavySearchWork, shouldUseLiveData, isDataLoaded]);
+
+    useFocusEffect(
+        useCallback(() => {
+            const pendingSubmitFollowUpAction = getPendingSubmitFollowUpAction();
+            const doesSpanExist = !!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+            const isPendingSearchNavigation = pendingSubmitFollowUpAction?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
+
+            if (!doesSpanExist && !isPendingSearchNavigation) {
+                return;
+            }
+
+            // Re-applying the defer only on the submit-return path keeps the optimization scoped to
+            // the transition we care about instead of slowing every search refocus.
+            return deferHeavySearchWork(true);
+        }, [deferHeavySearchWork]),
+    );
+
+    // Show a skeleton whenever heavy work is deferred, even for live-data (to-do) searches,
+    // so we never fall through to the empty-state check with stale zero-length data.
     const shouldShowLoadingState =
-        !shouldUseLiveData &&
-        !isOffline &&
-        (!isDataLoaded ||
-            (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
-            (hasErrors && searchRequestResponseStatusCode === null) ||
-            isCardFeedsLoading);
+        (!isOffline && shouldDeferHeavySearchWork) ||
+        (!shouldUseLiveData &&
+            !isOffline &&
+            (!isDataLoaded ||
+                (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
+                (hasErrors && searchRequestResponseStatusCode === null) ||
+                isCardFeedsLoading));
 
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
@@ -420,7 +475,7 @@ function Search({
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
-        if (searchResults === undefined || !isDataLoaded) {
+        if (shouldDeferHeavySearchWork || searchResults === undefined || !isDataLoaded) {
             return [[], 0, 0];
         }
 
@@ -461,6 +516,7 @@ function Search({
         exportReportActions,
         validGroupBy,
         isDataLoaded,
+        shouldDeferHeavySearchWork,
         searchResults,
         type,
         archivedReportsIdSet,
@@ -494,7 +550,7 @@ function Search({
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
 
     const filteredData = useMemo(() => {
-        if (!validGroupBy || isExpenseReportType) {
+        if (shouldDeferHeavySearchWork || !validGroupBy || isExpenseReportType) {
             return baseFilteredData;
         }
 
@@ -527,6 +583,7 @@ function Search({
     }, [
         validGroupBy,
         isExpenseReportType,
+        shouldDeferHeavySearchWork,
         baseFilteredData,
         groupByTransactionSnapshots,
         accountID,
@@ -1341,7 +1398,8 @@ function Search({
     }
     const isAnyVisibleActionLoading = filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`));
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyVisibleActionLoading) {
+    // Guard: don't render the empty view while heavy work is still deferred - the data is temporarily [] and not truly empty.
+    if (!shouldDeferHeavySearchWork && shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyVisibleActionLoading) {
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
