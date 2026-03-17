@@ -1267,7 +1267,9 @@ describe('ReportActionsUtils', () => {
     describe('getMessageOfOldDotReportAction', () => {
         it('should return the ACH bounce message with return reason when provided', () => {
             const returnReason = 'R03 - No Account/Unable to Locate Account';
-            const action = {
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
                 actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
                 originalMessage: {returnReason},
             };
@@ -1278,7 +1280,9 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return the default ACH bounce message when return reason is missing', () => {
-            const action = {
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
                 actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
                 originalMessage: {},
             };
