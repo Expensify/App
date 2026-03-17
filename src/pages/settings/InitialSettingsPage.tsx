@@ -519,7 +519,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                         src={icons.Emoji}
                                         width={variables.iconSizeNormal}
                                         height={variables.iconSizeNormal}
-                                        fill={theme.icon}
+                                        fill={theme.iconStrong}
                                     />
                                 )}
                             </View>
