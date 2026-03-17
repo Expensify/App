@@ -6,6 +6,7 @@ import {Animated, DeviceEventEmitter, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -89,6 +90,8 @@ function BaseModal({
     const [modalHeight, setModalHeight] = useState(0);
 
     const insets = useSafeAreaInsets();
+
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
@@ -368,6 +371,7 @@ function BaseModal({
                         type={type}
                         shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
                         shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+                        supportedOrientations={isInLandscapeMode ? ['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right'] : undefined}
                     >
                         <Animated.View
                             onLayout={onViewLayout}
