@@ -21,11 +21,14 @@ type ReportActionActiveEdit = {
 };
 
 type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
-    setEditingMessage: Dispatch<SetStateAction<string | null>>;
     currentEditMessageSelection: TextSelection | null;
-    setCurrentEditMessageSelection: Dispatch<SetStateAction<TextSelection | null>>;
     editingState: EditingState | null;
+};
+
+type ReportActionEditMessageContextActions = {
     setEditingState: Dispatch<SetStateAction<EditingState | null>>;
+    setEditingMessage: Dispatch<SetStateAction<string | null>>;
+    setCurrentEditMessageSelection: Dispatch<SetStateAction<TextSelection | null>>;
 };
 
 const ReportActionEditMessageContext = createContext<ReportActionEditMessageContextValue>({
@@ -33,11 +36,14 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
     editingReportActionID: null,
     editingReportAction: null,
     editingMessage: null,
-    setEditingMessage: NOOP,
     currentEditMessageSelection: null,
-    setCurrentEditMessageSelection: NOOP,
     editingState: null,
+});
+
+const ReportActionEditMessageActionsContext = createContext<ReportActionEditMessageContextActions>({
     setEditingState: NOOP,
+    setEditingMessage: NOOP,
+    setCurrentEditMessageSelection: NOOP,
 });
 
 type ReportActionEditMessageContextProviderProps = {
@@ -147,22 +153,24 @@ function ReportActionEditMessageContextProvider({reportID, parentReportID, paren
         setCurrentEditMessageSelectionState(setSelectionStateAction);
     };
 
+    const reportActionEditMessageContextValue: ReportActionEditMessageContextValue = {
+        editingState,
+        editingReportID,
+        editingReportActionID,
+        editingReportAction,
+        editingMessage,
+        currentEditMessageSelection,
+    };
+
+    const actions: ReportActionEditMessageContextActions = {
+        setEditingState,
+        setEditingMessage,
+        setCurrentEditMessageSelection,
+    };
+
     return (
-        <ReportActionEditMessageContext.Provider
-            // eslint-disable-next-line react/jsx-no-constructed-context-values
-            value={{
-                editingState,
-                setEditingState,
-                editingReportID,
-                editingReportActionID,
-                editingReportAction,
-                editingMessage,
-                setEditingMessage,
-                currentEditMessageSelection,
-                setCurrentEditMessageSelection,
-            }}
-        >
-            {children}
+        <ReportActionEditMessageContext.Provider value={reportActionEditMessageContextValue}>
+            <ReportActionEditMessageActionsContext.Provider value={actions}>{children}</ReportActionEditMessageActionsContext.Provider>
         </ReportActionEditMessageContext.Provider>
     );
 }
@@ -171,5 +179,9 @@ function useReportActionActiveEdit() {
     return useContext(ReportActionEditMessageContext);
 }
 
-export {ReportActionEditMessageContextProvider, useReportActionActiveEdit, ReportActionEditMessageContext};
+function useReportActionActiveEditActions() {
+    return useContext(ReportActionEditMessageActionsContext);
+}
+
+export {ReportActionEditMessageContextProvider, useReportActionActiveEdit, useReportActionActiveEditActions, ReportActionEditMessageContext};
 export type {ReportActionActiveEdit, ReportActionEditMessageContextValue};

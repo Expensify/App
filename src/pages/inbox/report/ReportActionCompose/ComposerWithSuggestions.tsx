@@ -38,7 +38,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
+import {useReportActionActiveEdit, useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
@@ -253,8 +253,8 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {editingState, editingReportActionID, editingReportAction, editingMessage, setEditingMessage, currentEditMessageSelection, setCurrentEditMessageSelection} =
-        useReportActionActiveEdit();
+    const {editingState, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();
+    const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
 
     const [value, setValue] = useState(() => {
         const initialValue = shouldUseNarrowLayout ? (editingMessage ?? draftComment) : draftComment;

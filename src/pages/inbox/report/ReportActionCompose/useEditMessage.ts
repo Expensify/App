@@ -15,7 +15,7 @@ import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
+import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -47,7 +47,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
     const ancestors = useAncestors(originalReport);
 
-    const {setEditingState} = useReportActionActiveEdit();
+    const {setEditingState} = useReportActionActiveEditActions();
 
     useEffect(() => {
         // required for keeping last state of isFocused variable

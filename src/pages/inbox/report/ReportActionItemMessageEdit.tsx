@@ -44,7 +44,7 @@ import SendOrSaveButton from './ReportActionCompose/SendOrSaveButton';
 import Suggestions from './ReportActionCompose/Suggestions';
 import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './ReportActionCompose/useEditMessage';
-import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
+import {useReportActionActiveEdit, useReportActionActiveEditActions} from './ReportActionEditMessageContext';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
 
@@ -96,7 +96,8 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     const tag = useSharedValue(-1);
     const emojisPresentBefore = useRef<Emoji[]>([]);
 
-    const {currentEditMessageSelection, setCurrentEditMessageSelection, editingMessage, setEditingMessage} = useReportActionActiveEdit();
+    const {currentEditMessageSelection, editingMessage} = useReportActionActiveEdit();
+    const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
     const [draft, setDraft] = useState(() => {
         if (editingMessage) {
             emojisPresentBefore.current = extractEmojis(editingMessage);
