@@ -23,7 +23,7 @@ function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFiel
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
     if (!values.mapping) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'ConfirmCustomSegmentStep'}} />;
     }
 
     return (

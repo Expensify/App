@@ -871,7 +871,8 @@ describe('API.write() persistence guarantees', () => {
             let requestPersistedBeforeOptimistic = false;
 
             const updateMock = jest.spyOn(Onyx, 'update').mockImplementation((data) => {
-                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
+                // We use ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
+                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
                 if (hasMarker) {
                     optimisticDataApplied = true;
                     requestPersistedBeforeOptimistic = PersistedRequests.getAll().some((r) => r.command === 'MockCommand');
@@ -884,7 +885,7 @@ describe('API.write() persistence guarantees', () => {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.SET,
-                            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+                            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
                             value: true,
                         },
                     ],
