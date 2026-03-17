@@ -7,7 +7,6 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
@@ -29,7 +28,6 @@ type VerifyAccountPageBaseProps = {
  * This is a base page as RHP for account verification. The back & forward url logic should be handled on per case basis in higher component.
  */
 function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, onValidationSuccess}: VerifyAccountPageBaseProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -85,7 +83,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
                     title={translate('contacts.validateAccount')}
                     onBackButtonPress={handleCloseWithFallback}
                 />
-                <View style={[styles.flex1, styles.pRelative, styles.alignItemsCenter, styles.justifyContentCenter, {backgroundColor: theme.componentBG, opacity: 0.8}]}>
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             </ScreenWrapper>
