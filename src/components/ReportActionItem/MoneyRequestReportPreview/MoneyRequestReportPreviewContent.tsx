@@ -936,6 +936,15 @@ function MoneyRequestReportPreviewContent({
         carouselRef.current?.scrollToEnd();
     }, [carouselTransactions.length]);
 
+    const reportPreviewActionView = {
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: submitAction,
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: approveAction,
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: payAction,
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: exportAction,
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: viewAction,
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE]: addExpenseAction,
+    }[reportPreviewAction];
+
     const renderSeparator = useCallback(() => <View style={styles.transactionsCarouselGap} />, [styles.transactionsCarouselGap]);
 
     const getItemType = (_item: Transaction, index: number) => {
@@ -1121,7 +1130,7 @@ function MoneyRequestReportPreviewContent({
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
                                         <View style={[totalAmountStyle, styles.justifyContentBetween, styles.gap4, StyleUtils.getMinimumHeight(variables.h28)]}>
                                             {/* height is needed to avoid flickering on animation */}
-                                            <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{activeReportPreviewAction}</View>
+                                            <View style={[buttonMaxWidth, styles.flex1, {height: variables.h40}]}>{reportPreviewActionView}</View>
                                             {transactions.length > 1 && !shouldShowAccessPlaceHolder && (
                                                 <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.justifyContentBetween : styles.gap2, styles.alignItemsCenter]}>
                                                     <Text
