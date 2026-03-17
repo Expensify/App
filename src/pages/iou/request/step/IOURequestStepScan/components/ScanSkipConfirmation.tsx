@@ -30,7 +30,6 @@ import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import bridgeCameraToValidation from '@pages/iou/request/step/IOURequestStepScan/utils/bridgeCameraToValidation';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
-import createTestReceiptHandler from '@pages/iou/request/step/IOURequestStepScan/utils/createTestReceiptHandler';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
@@ -47,17 +46,13 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
 import GpsPermissionGate from './GpsPermissionGate';
 
-type ScanSkipConfirmationProps = {
-    onLayout?: (handler: () => void) => void;
-};
-
 /**
  * ScanSkipConfirmation — skip-confirmation variant.
  * Used when !isFromGlobalCreate && shouldSkipConfirmation.
  *
  * Press handler: directly calls requestMoney/trackExpense/startSplitBill
  */
-function ScanSkipConfirmation({onLayout}: ScanSkipConfirmationProps) {
+function ScanSkipConfirmation() {
     const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
     const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
 
@@ -313,8 +308,6 @@ function ScanSkipConfirmation({onLayout}: ScanSkipConfirmationProps) {
         bridgeCameraToValidation(file, source, validateFiles);
     }
 
-    const testReceiptHandler = createTestReceiptHandler(initialTransactionID, isEditing, navigateToConfirmationStep);
-
     // End the create expense span on mount
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
@@ -350,7 +343,7 @@ function ScanSkipConfirmation({onLayout}: ScanSkipConfirmationProps) {
             shouldShowWrapper={shouldShowWrapper}
             testID="IOURequestStepScan"
         >
-            <View onLayout={() => onLayout?.(testReceiptHandler)}>
+            <View>
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization

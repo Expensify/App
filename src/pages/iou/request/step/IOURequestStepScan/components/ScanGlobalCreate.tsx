@@ -19,7 +19,6 @@ import {endSpan} from '@libs/telemetry/activeSpans';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import bridgeCameraToValidation from '@pages/iou/request/step/IOURequestStepScan/utils/bridgeCameraToValidation';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
-import createTestReceiptHandler from '@pages/iou/request/step/IOURequestStepScan/utils/createTestReceiptHandler';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
@@ -33,17 +32,13 @@ import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
 
-type ScanGlobalCreateProps = {
-    onLayout?: (handler: () => void) => void;
-};
-
 /**
  * ScanGlobalCreate — global create flow.
  * Used when isFromGlobalCreate / archived / CREATE type.
  *
  * Press handler: shouldUseDefaultExpensePolicy -> determine target -> set participants -> navigate
  */
-function ScanGlobalCreate({onLayout}: ScanGlobalCreateProps) {
+function ScanGlobalCreate() {
     const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
     const {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport} = route.params;
 
@@ -135,8 +130,6 @@ function ScanGlobalCreate({onLayout}: ScanGlobalCreateProps) {
         bridgeCameraToValidation(file, source, validateFiles);
     }
 
-    const testReceiptHandler = createTestReceiptHandler(initialTransactionID, isEditing, navigateToConfirmationStep);
-
     // End the create expense span on mount
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
@@ -151,7 +144,7 @@ function ScanGlobalCreate({onLayout}: ScanGlobalCreateProps) {
             shouldShowWrapper={shouldShowWrapper}
             testID="IOURequestStepScan"
         >
-            <View onLayout={() => onLayout?.(testReceiptHandler)}>
+            <View>
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization

@@ -83,11 +83,6 @@ type IOURequestStepScanProps = WithWritableReportOrNotFoundProps<typeof SCREENS.
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: OnyxEntry<Transaction>;
 
-    /**
-     * Callback function that is triggered on the `onLayout` event.
-     */
-    onLayout?: (handler: () => void) => void;
-
     /** If the receipts preview should be shown */
     isMultiScanEnabled?: boolean;
 

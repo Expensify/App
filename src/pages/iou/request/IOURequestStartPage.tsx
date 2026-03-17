@@ -3,6 +3,7 @@ import {iouRequestPolicyCollectionSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import TestReceipt from '@assets/images/fake-receipt.png';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -20,13 +21,16 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
+import {navigateToConfirmationPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
@@ -35,11 +39,12 @@ import {
     isControlPolicy,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
-import {getPayeeName} from '@libs/ReportUtils';
+import {generateReportID, getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
-import {initMoneyRequest} from '@userActions/IOU';
+import {getAllPersonalDetails, getUserAccountID, initMoneyRequest, setMoneyRequestParticipants, setMoneyRequestReceipt} from '@userActions/IOU';
+import {removeDraftTransactions} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -254,14 +259,22 @@ function IOURequestStartPage({
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const {isBetaEnabled} = usePermissions();
-    const setTestReceiptAndNavigateRef = useRef<() => void>(() => {});
+    const transactionID = route?.params.transactionID ?? '';
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
         // The test receipt image is served via our server on web so it requires internet connection
         !hasUserSubmittedExpenseOrScannedReceipt && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !(isOffline && isWeb),
         {
             onConfirm: () => {
-                setTestReceiptAndNavigateRef?.current?.();
+                setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
+                    setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, true);
+                    removeDraftTransactions(true);
+                    const mcTestParticipant = getManagerMcTestParticipant(getUserAccountID(), getAllPersonalDetails()) ?? {};
+                    const reportIDParam = mcTestParticipant.reportID ?? (report?.reportID ? generateReportID() : undefined);
+                    setMoneyRequestParticipants(transactionID, [{...mcTestParticipant, reportID: reportIDParam, selected: true}], true).then(() =>
+                        navigateToConfirmationPage(iouType, transactionID, reportID, undefined, true, reportIDParam),
+                    );
+                });
             },
             onDismiss: () => {
                 dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
@@ -338,9 +351,6 @@ function IOURequestStartPage({
                                             <IOURequestStepScan
                                                 route={route}
                                                 navigation={navigation}
-                                                onLayout={(handler) => {
-                                                    setTestReceiptAndNavigateRef.current = handler;
-                                                }}
                                                 isMultiScanEnabled={isMultiScanEnabled}
                                                 setIsMultiScanEnabled={setIsMultiScanEnabled}
                                                 isStartingScan

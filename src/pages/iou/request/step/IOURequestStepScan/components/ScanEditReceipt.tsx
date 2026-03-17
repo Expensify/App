@@ -11,9 +11,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import bridgeCameraToValidation from '@pages/iou/request/step/IOURequestStepScan/utils/bridgeCameraToValidation';
-import createTestReceiptHandler from '@pages/iou/request/step/IOURequestStepScan/utils/createTestReceiptHandler';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
-import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -23,17 +21,13 @@ import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Camera from './Camera';
 
-type ScanEditReceiptProps = {
-    onLayout?: (handler: () => void) => void;
-};
-
 /**
  * ScanEditReceipt — the simplest scan variant.
  * Used when the user is editing/replacing an existing receipt (backTo or isEditing).
  *
  * Press handler: replaceReceipt -> navigateBack
  */
-function ScanEditReceipt({onLayout}: ScanEditReceiptProps) {
+function ScanEditReceipt() {
     const route = useRoute<PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>>();
     const {action, reportID, transactionID: initialTransactionID, backTo} = route.params;
 
@@ -55,13 +49,6 @@ function ScanEditReceipt({onLayout}: ScanEditReceiptProps) {
         replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
         navigateBack();
     };
-
-    function navigateToConfirmationStep() {
-        startScanProcessSpan();
-
-        // For edit variant, backTo is always set — just navigate back
-        Navigation.goBack(backTo);
-    }
 
     function processReceipts(files: FileObject[]) {
         if (files.length === 0) {
@@ -86,8 +73,6 @@ function ScanEditReceipt({onLayout}: ScanEditReceiptProps) {
         bridgeCameraToValidation(file, source, validateFiles);
     }
 
-    const testReceiptHandler = createTestReceiptHandler(initialTransactionID, isEditing, () => navigateToConfirmationStep());
-
     // End the create expense span on mount
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
@@ -102,7 +87,7 @@ function ScanEditReceipt({onLayout}: ScanEditReceiptProps) {
             shouldShowWrapper={shouldShowWrapper}
             testID="IOURequestStepScan"
         >
-            <View onLayout={() => onLayout?.(testReceiptHandler)}>
+            <View>
                 {PDFValidationComponent}
                 <Camera
                     // eslint-disable-next-line react/jsx-no-bind -- React Compiler handles memoization
