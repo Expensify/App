@@ -8,6 +8,9 @@ import {
     areAllGroupPoliciesExpenseChatDisabled,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
+    getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
@@ -1820,6 +1823,136 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('getAllTaxRates (getAllTaxRatesNamesAndKeys)', () => {
+        it('returns empty object when there are no policies or no tax rates', () => {
+            expect(getAllTaxRates(undefined)).toEqual({});
+            expect(getAllTaxRates({})).toEqual({});
+            const policiesWithoutTaxes: OnyxCollection<Policy> = {
+                policy1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: undefined,
+                },
+            };
+            expect(getAllTaxRates(policiesWithoutTaxes)).toEqual({});
+        });
+
+        it('maps tax rate names to their keys across policies', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            id_vat: {name: 'VAT', value: '20'},
+                            id_gst: {name: 'GST', value: '10'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            id_sales: {name: 'Sales Tax', value: '8'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRates(policies);
+            expect(result).toEqual({
+                VAT: ['id_vat'],
+                GST: ['id_gst'],
+                'Sales Tax': ['id_sales'],
+            });
+        });
+
+        it('groups different keys under the same tax name', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            key_a: {name: 'VAT', value: '20'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            key_b: {name: 'VAT', value: '15'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRates(policies);
+            expect(result.VAT).toEqual(['key_a', 'key_b']);
+        });
+
+        it('deduplicates identical keys for the same tax name', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            same_key: {name: 'VAT', value: '20'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            same_key: {name: 'VAT', value: '20'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRates(policies);
+            expect(result.VAT).toEqual(['same_key']);
+        });
+
+        it('skips undefined policy entries', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {id_vat: {name: 'VAT', value: '20'}},
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: undefined,
+            };
+            const result = getAllTaxRates(policies);
+            expect(result).toEqual({VAT: ['id_vat']});
+        });
+    });
+
     describe('canSendInvoiceFromWorkspace', () => {
         it('returns true when areInvoicesEnabled is true', () => {
             const policy = {areInvoicesEnabled: true} as Policy;
@@ -1975,6 +2108,91 @@ describe('PolicyUtils', () => {
         it('should return undefined when the rate is not defined on the policy', () => {
             const policy = createRandomPolicy(1);
             expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
+        });
+    });
+
+    describe('per diem policy filters', () => {
+        const perDiemCustomUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            customUnitID: 'ABCDEF',
+            enabled: true,
+            rates: {
+                London: {
+                    customUnitRateID: 'London',
+                    name: 'London',
+                },
+            },
+        };
+
+        it('returns only control policies from getActivePoliciesWithExpenseChatAndPerDiemEnabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporate: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+                collect: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
+
+        it('returns only control policies with rates from getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporateWithRates: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+                corporateWithoutRates: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: {
+                            ...perDiemCustomUnit,
+                            rates: {},
+                        },
+                    },
+                },
+                collectWithRates: {
+                    ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe('1');
         });
     });
 

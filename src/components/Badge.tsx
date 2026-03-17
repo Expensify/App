@@ -102,7 +102,7 @@ function Badge({
             accessible={false}
         >
             {!!icon && (
-                <View style={[styles.mr2, iconStyles]}>
+                <View style={[styles.mr1, iconStyles]}>
                     <Icon
                         width={iconSize}
                         height={iconSize}
