@@ -54,6 +54,9 @@ function Composer({
     ...props
 }: ComposerProps) {
     const textContainsOnlyEmojis = useMemo(() => {
+        if (!value) {
+            return false;
+        }
         return containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? '')));
     }, [value]);
 
