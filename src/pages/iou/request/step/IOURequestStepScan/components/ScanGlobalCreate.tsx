@@ -65,9 +65,7 @@ function ScanGlobalCreate({onLayout}: ScanGlobalCreateProps) {
         Navigation.goBack(backTo);
     };
 
-    // The extra params satisfy the prop contract but are not used by this variant
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    function navigateToConfirmationStep(files: ReceiptFile[], _locationPermissionGranted = false, _isTestTransaction = false) {
+    function navigateToConfirmationStep(files: ReceiptFile[]) {
         startScanProcessSpan();
 
         if (backTo) {
@@ -126,8 +124,7 @@ function ScanGlobalCreate({onLayout}: ScanGlobalCreateProps) {
             reportID,
         });
 
-        // Global create never skips confirmation in this variant
-        navigateToConfirmationStep(newReceiptFiles, false);
+        navigateToConfirmationStep(newReceiptFiles);
     }
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {

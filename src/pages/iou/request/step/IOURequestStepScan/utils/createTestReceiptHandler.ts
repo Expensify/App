@@ -9,16 +9,12 @@ import CONST from '@src/CONST';
  * Creates a handler function that sets a test receipt and navigates to the confirmation step.
  * Used by the test infrastructure via the onLayout pattern.
  */
-function createTestReceiptHandler(
-    transactionID: string,
-    isEditing: boolean,
-    navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted: boolean, isTestTransaction: boolean) => void,
-): () => void {
+function createTestReceiptHandler(transactionID: string, isEditing: boolean, onNavigate: (files: ReceiptFile[]) => void): () => void {
     return () => {
         setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
             setMoneyRequestReceipt(transactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
             removeDraftTransactions(true);
-            navigateToConfirmationStep([{file, source, transactionID}], false, true);
+            onNavigate([{file, source, transactionID}]);
         });
     };
 }

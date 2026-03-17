@@ -10,7 +10,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import bridgeCameraToValidation from '@pages/iou/request/step/IOURequestStepScan/utils/bridgeCameraToValidation';
 import createTestReceiptHandler from '@pages/iou/request/step/IOURequestStepScan/utils/createTestReceiptHandler';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -57,9 +56,7 @@ function ScanEditReceipt({onLayout}: ScanEditReceiptProps) {
         navigateBack();
     };
 
-    // The extra params satisfy the prop contract but are not used by this variant
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    function navigateToConfirmationStep(files: ReceiptFile[], _locationPermissionGranted = false, _isTestTransaction = false) {
+    function navigateToConfirmationStep() {
         startScanProcessSpan();
 
         // For edit variant, backTo is always set — just navigate back
@@ -89,7 +86,7 @@ function ScanEditReceipt({onLayout}: ScanEditReceiptProps) {
         bridgeCameraToValidation(file, source, validateFiles);
     }
 
-    const testReceiptHandler = createTestReceiptHandler(initialTransactionID, isEditing, navigateToConfirmationStep);
+    const testReceiptHandler = createTestReceiptHandler(initialTransactionID, isEditing, () => navigateToConfirmationStep());
 
     // End the create expense span on mount
     useEffect(() => {

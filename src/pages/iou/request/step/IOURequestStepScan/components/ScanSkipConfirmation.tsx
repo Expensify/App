@@ -112,9 +112,7 @@ function ScanSkipConfirmation({onLayout}: ScanSkipConfirmationProps) {
         Navigation.goBack(backTo);
     };
 
-    // The extra params satisfy the prop contract
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false, _isTestTransaction = false) {
+    function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false) {
         startScanProcessSpan();
 
         if (backTo) {
