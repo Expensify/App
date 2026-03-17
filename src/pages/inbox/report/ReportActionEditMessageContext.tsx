@@ -89,6 +89,15 @@ function ReportActionEditMessageContextProvider({reportID, parentReportID, paren
                 return ancestorDraft?.message !== undefined;
             });
 
+        const updateMessage = (nextMessage: string | null) => {
+            const isInitialEdit = editingMessage == null && editingMessage !== nextMessage;
+            const didReportActionChange = prevEditingReportActionID !== editingReportActionID;
+            if (isInitialEdit || didReportActionChange) {
+                setEditingMessage(nextMessage);
+                setPrevEditingReportActionID(editingReportActionID);
+            }
+        };
+
         if (ancestorWithDraft) {
             const {report: ancestorReport, reportAction: ancestorReportAction} = ancestorWithDraft;
             const ancestorDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${ancestorReport.reportID}`];
@@ -97,13 +106,9 @@ function ReportActionEditMessageContextProvider({reportID, parentReportID, paren
             editingReportID = ancestorReport.reportID;
             editingReportActionID = ancestorReportAction.reportActionID;
             editingReportAction = ancestorReportAction;
-            const nextMessage = ancestorReportActionDraft?.message ?? null;
 
             if (editingState === null) {
                 setEditingState('editing');
-            }
-            if (editingMessage == null && editingMessage !== nextMessage) {
-                setEditingMessage(nextMessage);
             }
         } else if (parentReportAction && parentReportDrafts?.[parentReportAction.reportActionID]) {
             const parentReportActionDraft = parentReportDrafts[parentReportAction.reportActionID];
@@ -116,9 +121,8 @@ function ReportActionEditMessageContextProvider({reportID, parentReportID, paren
             if (editingState === null) {
                 setEditingState('editing');
             }
-            if (editingMessage == null && editingMessage !== nextMessage) {
-                setEditingMessage(nextMessage);
-            }
+            const nextMessage = ancestorReportActionDraft?.message ?? null;
+            updateMessage(nextMessage);
         } else if (reportDrafts) {
             const reportDraftEntry = Object.entries(reportDrafts).find(([, draft]) => draft?.message !== undefined);
 
@@ -128,14 +132,13 @@ function ReportActionEditMessageContextProvider({reportID, parentReportID, paren
                 editingReportID = reportID ?? null;
                 editingReportActionID = reportActionIDOfDraft;
                 editingReportAction = reportActions?.[reportActionIDOfDraft] ?? null;
-                const nextMessage = reportActionDraft?.message ?? null;
 
                 if (editingState === null) {
                     setEditingState('editing');
                 }
-                if (editingMessage == null && editingMessage !== nextMessage) {
-                    setEditingMessage(nextMessage);
-                }
+
+                const nextMessage = reportActionDraft?.message ?? null;
+                updateMessage(nextMessage);
             }
         }
     }
