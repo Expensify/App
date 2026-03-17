@@ -29,7 +29,7 @@ type GroupByPopupProps = {
     /** The currently selected item */
     value: GroupByPopupItem | null;
 
-    style: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle>;
 
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;

@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SingleSelectPopupProps = {
-    style: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle>;
     defaultValue: string;
     placeholder?: string;
     closeOverlay: () => void;

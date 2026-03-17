@@ -43,7 +43,7 @@ type SingleSelectPopupProps<T> = {
     /** The default value to set when reset is clicked */
     defaultValue?: string;
 
-    style: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle>;
 
     /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
