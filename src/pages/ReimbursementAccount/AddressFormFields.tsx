@@ -190,7 +190,7 @@ function AddressFormFields({
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
-                hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
+                hint={translate('common.zipCodeExampleFormat', CONST.COUNTRY_ZIP_REGEX_DATA.US.samples)}
                 containerStyles={styles.mt3}
                 forwardedFSClass={forwardedFSClass}
                 autoComplete="postal-code"
