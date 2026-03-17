@@ -1725,7 +1725,7 @@ function changeDomainSecurityGroup(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                member: {[employeeEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE as PendingAction}},
+                member: {[employeeEmail]: {changeDomainSecurityGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE as PendingAction}},
             },
         },
         {
@@ -1774,7 +1774,7 @@ function changeDomainSecurityGroup(
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 memberErrors: {
-                    [employeeEmail]: {errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.error.moveMember')},
+                    [employeeEmail]: {changeDomainSecurityGroupErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.error.moveMember')},
                 },
             },
         },

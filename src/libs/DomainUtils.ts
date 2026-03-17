@@ -38,7 +38,11 @@ function hasDomainMembersErrors(domainErrors?: DomainErrors): boolean {
 }
 
 function hasDomainMemberDetailsErrors(memberDetailsErrors: DomainMemberErrors): boolean {
-    return !isEmptyObject(memberDetailsErrors?.vacationDelegateErrors) || !isEmptyObject(memberDetailsErrors?.twoFactorAuthExemptEmailsError);
+    return (
+        !isEmptyObject(memberDetailsErrors?.vacationDelegateErrors) ||
+        !isEmptyObject(memberDetailsErrors?.twoFactorAuthExemptEmailsError) ||
+        !isEmptyObject(memberDetailsErrors?.changeDomainSecurityGroupErrors)
+    );
 }
 
 function hasDomainMembersSettingsErrors(domainErrors?: DomainErrors): boolean {

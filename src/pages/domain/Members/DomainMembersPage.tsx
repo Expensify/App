@@ -289,15 +289,26 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         const emailError = email ? getLatestError(emailErrors?.errors) : undefined;
         const vacationDelegatesEmailError = email ? getLatestError(emailErrors?.vacationDelegateErrors) : undefined;
         const twoFactorAuthExemptEmailsError = email ? getLatestError(emailErrors?.twoFactorAuthExemptEmailsError) : undefined;
+        const changeDomainSecurityGroupEmailsError = email ? emailErrors?.changeDomainSecurityGroupErrors : undefined;
+        const changeDomainSecurityGroupErrors = {...getLatestError(accountIDErrors?.changeDomainSecurityGroupErrors), ...changeDomainSecurityGroupEmailsError};
 
         const mergedErrors: DomainMemberErrors = {
-            errors: {...getLatestError(accountIDErrors?.errors), ...getLatestError(accountIDErrors?.lockAccountErrors), ...emailError},
+            errors: {
+                ...getLatestError(accountIDErrors?.errors),
+                ...getLatestError(accountIDErrors?.lockAccountErrors),
+                ...getLatestError(changeDomainSecurityGroupEmailsError),
+                ...emailError,
+            },
             vacationDelegateErrors: {...getLatestError(accountIDErrors?.vacationDelegateErrors), ...vacationDelegatesEmailError},
             twoFactorAuthExemptEmailsError: {...getLatestError(accountIDErrors?.twoFactorAuthExemptEmailsError), ...twoFactorAuthExemptEmailsError},
+            changeDomainSecurityGroupErrors,
         };
         const brickRoadIndicator = hasDomainMemberDetailsErrors(mergedErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-
-        return {errors: getLatestError(mergedErrors?.errors), pendingAction: emailPendingAction ?? accountIDPendingAction, brickRoadIndicator};
+        return {
+            errors: getLatestError(mergedErrors?.errors),
+            pendingAction: emailPendingAction ?? accountIDPendingAction,
+            brickRoadIndicator,
+        };
     };
 
     return (
