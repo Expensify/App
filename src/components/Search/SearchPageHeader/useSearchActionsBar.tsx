@@ -2,7 +2,6 @@ import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
@@ -10,7 +9,7 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import {filterFeedSelector, filterGroupCurrencySelector, filterPolicyIDSelector} from '@components/Search/selectors/Search';
-import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
+import type {SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -35,6 +34,7 @@ import {
 } from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
@@ -173,6 +173,34 @@ function WorkspacePopup({policyIDQuery, updateFilterForm, closeOverlay}: FilterB
     );
 }
 
+function makeDateFilterItem(
+    filterKey: SearchDateFilterKeys,
+    translationKey: TranslationPaths,
+    sentryLabel: string,
+    on: string | undefined,
+    after: string | undefined,
+    before: string | undefined,
+    updateFilterForm: (v: Partial<SearchAdvancedFiltersForm>) => void,
+): FilterItem {
+    const value = {
+        [CONST.SEARCH.DATE_MODIFIERS.ON]: on,
+        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: after,
+        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: before,
+    };
+    return {
+        PopoverComponent: (props) => (
+            <DatePickerFilterPopup
+                closeOverlay={props.closeOverlay}
+                filterKey={filterKey}
+                value={value}
+                translationKey={translationKey}
+                updateFilterForm={updateFilterForm}
+            />
+        ),
+        sentryLabel,
+    };
+}
+
 function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEnabled: boolean): UseSearchActionsBarResult {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const {type: unsafeType} = queryJSON;
@@ -195,14 +223,6 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const typeOptions = getTypeOptions(translate, allPolicies, email);
     const type = typeOptions.find((option) => option.value === unsafeType) ?? {value: CONST.SEARCH.DATA_TYPES.EXPENSE};
-
-    const createDateValue = (filterValues: {on?: string; after?: string; before?: string}): SearchDateValues => {
-        return {
-            [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
-        };
-    };
 
     const updateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
         const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -296,23 +316,16 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.POSTED_ON:
             case FILTER_KEYS.POSTED_AFTER:
-            case FILTER_KEYS.POSTED_BEFORE: {
-                const posted = createDateValue({
-                    on: searchAdvancedFiltersForm.postedOn,
-                    after: searchAdvancedFiltersForm.postedAfter,
-                    before: searchAdvancedFiltersForm.postedBefore,
-                });
-                const postedPickerComponent = (props: PopoverComponentProps) => (
-                    <DatePickerFilterPopup
-                        closeOverlay={props.closeOverlay}
-                        filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}
-                        value={posted}
-                        translationKey="search.filters.posted"
-                        updateFilterForm={updateFilterForm}
-                    />
+            case FILTER_KEYS.POSTED_BEFORE:
+                return makeDateFilterItem(
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+                    'search.filters.posted',
+                    CONST.SENTRY_LABEL.SEARCH.FILTER_POSTED,
+                    searchAdvancedFiltersForm.postedOn,
+                    searchAdvancedFiltersForm.postedAfter,
+                    searchAdvancedFiltersForm.postedBefore,
+                    updateFilterForm,
                 );
-                return {PopoverComponent: postedPickerComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POSTED};
-            }
             case FILTER_KEYS.WITHDRAWAL_TYPE: {
                 const withdrawalType = searchAdvancedFiltersForm[filterKey];
                 const withdrawalTypeOptions = getWithdrawalTypeOptions(translate);
@@ -330,23 +343,16 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.WITHDRAWN_ON:
             case FILTER_KEYS.WITHDRAWN_AFTER:
-            case FILTER_KEYS.WITHDRAWN_BEFORE: {
-                const withdrawn = createDateValue({
-                    on: searchAdvancedFiltersForm.withdrawnOn,
-                    after: searchAdvancedFiltersForm.withdrawnAfter,
-                    before: searchAdvancedFiltersForm.withdrawnBefore,
-                });
-                const withdrawnPickerComponent = (props: PopoverComponentProps) => (
-                    <DatePickerFilterPopup
-                        closeOverlay={props.closeOverlay}
-                        filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN}
-                        value={withdrawn}
-                        translationKey="search.filters.withdrawn"
-                        updateFilterForm={updateFilterForm}
-                    />
+            case FILTER_KEYS.WITHDRAWN_BEFORE:
+                return makeDateFilterItem(
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                    'search.filters.withdrawn',
+                    CONST.SENTRY_LABEL.SEARCH.FILTER_WITHDRAWN,
+                    searchAdvancedFiltersForm.withdrawnOn,
+                    searchAdvancedFiltersForm.withdrawnAfter,
+                    searchAdvancedFiltersForm.withdrawnBefore,
+                    updateFilterForm,
                 );
-                return {PopoverComponent: withdrawnPickerComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_WITHDRAWN};
-            }
             case FILTER_KEYS.STATUS: {
                 const status = searchAdvancedFiltersForm[filterKey];
                 const statusOptions = type ? getStatusOptions(translate, type.value) : [];
@@ -368,23 +374,16 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.DATE_ON:
             case FILTER_KEYS.DATE_AFTER:
-            case FILTER_KEYS.DATE_BEFORE: {
-                const date = createDateValue({
-                    on: searchAdvancedFiltersForm.dateOn,
-                    after: searchAdvancedFiltersForm.dateAfter,
-                    before: searchAdvancedFiltersForm.dateBefore,
-                });
-                const datePickerComponent = (props: PopoverComponentProps) => (
-                    <DatePickerFilterPopup
-                        closeOverlay={props.closeOverlay}
-                        filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}
-                        value={date}
-                        translationKey="common.date"
-                        updateFilterForm={updateFilterForm}
-                    />
+            case FILTER_KEYS.DATE_BEFORE:
+                return makeDateFilterItem(
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    'common.date',
+                    CONST.SENTRY_LABEL.SEARCH.FILTER_DATE,
+                    searchAdvancedFiltersForm.dateOn,
+                    searchAdvancedFiltersForm.dateAfter,
+                    searchAdvancedFiltersForm.dateBefore,
+                    updateFilterForm,
                 );
-                return {PopoverComponent: datePickerComponent, sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_DATE};
-            }
             case FILTER_KEYS.FROM: {
                 const from = searchAdvancedFiltersForm[filterKey];
                 const userPickerComponent = ({closeOverlay}: PopoverComponentProps) => (
