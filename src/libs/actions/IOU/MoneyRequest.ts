@@ -465,5 +465,5 @@ function handleMoneyRequestStepDistanceNavigation({
     }
 }
 
-export {createTransaction, handleMoneyRequestStepDistanceNavigation};
+export {createTransaction, handleMoneyRequestStepDistanceNavigation, getMoneyRequestParticipantOptions};
 export type {MoneyRequestStepDistanceNavigationParams};
