@@ -10,7 +10,7 @@ import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton'
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchResults} from '@src/types/onyx';
 import SearchActionsBarCreateButton from './SearchActionsBarCreateButton';
 import SearchAdvanceFiltersButton from './SearchAdvanceFiltersButton';
@@ -64,6 +64,12 @@ function FeedDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropd
     );
 }
 
+const FILTER_KEY_TO_COMPONENT: Partial<Record<SearchAdvancedFiltersKey, React.ComponentType<SearchDropdownProps>>> = {
+    [FILTER_KEYS.FROM]: FromDropdown,
+    [FILTER_KEYS.POLICY_ID]: WorkspaceDropdown,
+    [FILTER_KEYS.FEED]: FeedDropdown,
+};
+
 function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: SearchActionsBarWideProps) {
     const {filters, hasErrors, shouldShowActionsBarLoading, shouldShowSelectedDropdown, styles} = useSearchActionsBar(queryJSON, false);
 
@@ -96,20 +102,7 @@ function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: 
                             handleSearch={handleSearch}
                         />
                         {filters.map((item) => {
-                            let Component: React.ComponentType<SearchDropdownProps> = DropdownButton;
-
-                            if (item.key === FILTER_KEYS.FROM) {
-                                Component = FromDropdown;
-                            }
-
-                            if (item.key === FILTER_KEYS.POLICY_ID) {
-                                Component = WorkspaceDropdown;
-                            }
-
-                            if (item.key === FILTER_KEYS.FEED) {
-                                Component = FeedDropdown;
-                            }
-
+                            const Component = FILTER_KEY_TO_COMPONENT[item.key] ?? DropdownButton;
                             return (
                                 <Component
                                     key={item.key}
