@@ -80,7 +80,7 @@ type MoneyRequestConfirmationListFooterProps = {
     action: IOUAction;
 
     /** The currency of the transaction */
-    currency: string;
+    distanceRateCurrency: string;
 
     /** Flag indicating if the confirmation is done */
     didConfirm: boolean;
@@ -271,7 +271,7 @@ type ConfirmationField = {
 };
 function MoneyRequestConfirmationListFooter({
     action,
-    currency,
+    distanceRateCurrency,
     didConfirm,
     distance,
     amount,
@@ -343,6 +343,11 @@ function MoneyRequestConfirmationListFooter({
 
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+
+    // Track selected currency separately to allow changing it in the new manual flow
+    const currency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
+    const [selectedCurrency, setSelectedCurrency] = useState(currency);
+    const decimals = getCurrencyDecimals(currency);
 
     // Local state for the new manual expense flow
     const transactionAmountAsString = convertToFrontendAmountAsString(amount, currency);
@@ -522,9 +527,6 @@ function MoneyRequestConfirmationListFooter({
     }, [transaction, translate, isCategoryRequired]);
 
     const allowNegative = shouldEnableNegative(report, policy, iouType, transaction?.participants);
-    // Track selected currency separately to allow changing it in the new manual flow
-    const [selectedCurrency, setSelectedCurrency] = useState(currency);
-    const decimals = getCurrencyDecimals(selectedCurrency || currency);
 
     const showCurrencyPicker = useCallback(() => {
         setIsCurrencyPickerVisible(true);
@@ -1427,7 +1429,7 @@ export default memo(
     MoneyRequestConfirmationListFooter,
     (prevProps, nextProps) =>
         prevProps.action === nextProps.action &&
-        prevProps.currency === nextProps.currency &&
+        prevProps.distanceRateCurrency === nextProps.distanceRateCurrency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
         prevProps.formattedAmount === nextProps.formattedAmount &&

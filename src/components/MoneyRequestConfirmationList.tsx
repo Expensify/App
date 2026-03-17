@@ -1322,7 +1322,7 @@ function MoneyRequestConfirmationList({
         <View style={isCompactMode ? styles.flex1 : undefined}>
             <MoneyRequestConfirmationListFooter
                 action={action}
-                currency={currency}
+                distanceRateCurrency={currency}
                 didConfirm={!!didConfirm}
                 distance={distance}
                 amount={amountToBeUsed}
