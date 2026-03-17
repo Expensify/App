@@ -24,6 +24,7 @@ import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -86,6 +87,7 @@ function WalletPage() {
     const {showLockedAccountModal} = useLockedAccountActions();
     const {login: currentUserLogin, email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, localeCompare} = useLocalize();
+    useDocumentTitle(translate('common.wallet'));
     const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
 
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, currentUserLogin).sort((a, b) => localeCompare(a.name || '', b.name || ''));
@@ -611,6 +613,7 @@ function WalletPage() {
     }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: !!isLoadingApp};
         return (
             <ScreenWrapper
                 testID="WalletPage"
@@ -618,7 +621,7 @@ function WalletPage() {
             >
                 {headerWithBackButton}
                 <View style={styles.flex1}>
-                    <FullScreenLoadingIndicator />
+                    <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />
                 </View>
             </ScreenWrapper>
         );

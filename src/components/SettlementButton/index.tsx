@@ -404,6 +404,7 @@ function SettlementButton({
                     activePolicyID,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                    betas,
                     isSelfTourViewed,
                 }).policyID;
             };

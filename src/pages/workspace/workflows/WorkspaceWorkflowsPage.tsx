@@ -26,6 +26,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -76,6 +77,7 @@ type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<Wo
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
