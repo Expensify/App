@@ -358,15 +358,15 @@ function wasViewExplicitlySet(queryJSON?: SearchQueryJSON) {
         return true;
     }
 
+    if (queryJSON.isViewExplicitlySet) {
+        return true;
+    }
+
     if (queryJSON.view !== getDefaultSearchQueryJSON()?.view) {
         return true;
     }
 
-    if (!queryJSON.inputQuery) {
-        return false;
-    }
-
-    return getRawFilterListFromQuery(queryJSON.inputQuery)?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false;
+    return false;
 }
 
 /**
@@ -493,10 +493,12 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
+        const rawFilterList = rawQuery ? getRawFilterListFromQuery(rawQuery) : result.rawFilterList;
 
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
+        result.isViewExplicitlySet = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false;
 
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
@@ -516,7 +518,7 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
 
         delete result.rawFilterList;
         if (rawQuery) {
-            result.rawFilterList = getRawFilterListFromQuery(rawQuery);
+            result.rawFilterList = rawFilterList;
         }
 
         if (buildSearchQueryJSONCache.size >= BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE) {
