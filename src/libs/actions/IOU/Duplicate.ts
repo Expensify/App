@@ -690,6 +690,7 @@ function duplicateExpenseTransaction({
 type BulkDuplicateExpensesParams = {
     transactionIDs: string[];
     allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>>;
+    allReports: OnyxCollection<OnyxTypes.Report>;
     targetPolicy: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -710,6 +711,7 @@ type BulkDuplicateExpensesParams = {
 function bulkDuplicateExpenses({
     transactionIDs,
     allTransactions,
+    allReports,
     targetPolicy,
     targetPolicyCategories,
     targetPolicyTags,
@@ -739,6 +741,9 @@ function bulkDuplicateExpenses({
         const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
+        const sourceReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+        const sourcePolicyID = sourceReport?.policyID;
+
         duplicateExpenseTransaction({
             transaction: item,
             optimisticChatReportID,
@@ -749,7 +754,7 @@ function bulkDuplicateExpenses({
             quickAction,
             policyRecentlyUsedCurrencies,
             isSelfTourViewed,
-            customUnitPolicyID: targetPolicy?.id,
+            customUnitPolicyID: (isDistanceRequest(item) ? sourcePolicyID : undefined) ?? targetPolicy?.id,
             targetPolicy: targetPolicy ?? undefined,
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetReport,

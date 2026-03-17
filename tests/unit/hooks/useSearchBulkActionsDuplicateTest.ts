@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook, waitFor} from '@testing-library/react-native';
+import {useEffect} from 'react';
 import Onyx from 'react-native-onyx';
 import type {SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import useBulkDuplicateAction from '@hooks/useBulkDuplicateAction';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import CONST from '@src/CONST';
@@ -177,6 +179,24 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         isFromOneTransactionReport: false,
         ...overrides,
     };
+}
+
+/**
+ * Renders useSearchBulkActions + useBulkDuplicateAction together (mirrors the real app tree
+ * where BulkDuplicateHandler mounts when the option is visible and populates the handler ref).
+ */
+function useSearchBulkActionsWithDuplicate({queryJSON}: {queryJSON: SearchQueryJSON}) {
+    const actions = useSearchBulkActions({queryJSON});
+    const {setDuplicateHandler, allTransactions, allReports} = actions;
+    const handleDuplicate = useBulkDuplicateAction({
+        selectedTransactionsKeys: Object.keys(mockSelectedTransactions),
+        allTransactions,
+        allReports,
+    });
+    useEffect(() => {
+        setDuplicateHandler(handleDuplicate);
+    }, [handleDuplicate, setDuplicateHandler]);
+    return actions;
 }
 
 describe('useSearchBulkActions - duplicate option', () => {
@@ -456,7 +476,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}600`, txn1);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}601`, txn2);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -483,7 +503,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({policyID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -506,7 +526,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -542,7 +562,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({policyID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -580,7 +600,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction({policyID})};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -624,7 +644,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1100`, txn1);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1101`, txn2);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -654,7 +674,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
@@ -682,7 +702,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1300`, txn1);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1301`, txn2);
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActionsWithDuplicate({queryJSON: baseQueryJSON}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)).toBeDefined();
