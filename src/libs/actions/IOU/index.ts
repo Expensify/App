@@ -1166,11 +1166,7 @@ function handleNavigateAfterExpenseCreate({
         if (getIsNarrowLayout()) {
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
         } else {
-            Navigation.dismissModal();
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
-            });
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }
     });
 }
@@ -1811,7 +1807,7 @@ function buildOnyxDataForTestDriveIOU(
     });
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', personalDetailsList?.[userAccountID]?.firstName ?? '');
-    const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID, undefined, undefined, testDriveIOUParams.testDriveCommentReportActionID);
+    const textComment = buildOptimisticAddCommentReportAction({text, actorAccountID: userAccountID, reportActionID: testDriveIOUParams.testDriveCommentReportActionID});
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 
     optimisticData.push(
@@ -3831,6 +3827,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             currentUserEmailParam,
             introSelected,
             activePolicyID,
+            betas,
             isSelfTourViewed,
         });
         createdWorkspaceParams = workspaceData.params;
@@ -7569,6 +7566,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         taxAmount,
         taxCode,
         merchant,
+        modifiedAmount,
         billable,
         reimbursable,
         validWaypoints,
@@ -7746,6 +7744,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         }
 
         parameters = {
+            amount: modifiedAmount ?? undefined,
             comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
@@ -9329,6 +9328,7 @@ function getPayMoneyRequestParams({
             introSelected,
             activePolicyID: activePolicy?.id,
             companySize: introSelected?.companySize as OnboardingCompanySize,
+            betas,
             isSelfTourViewed,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;

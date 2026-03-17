@@ -20,12 +20,12 @@ function ShortTermsForm(props: ShortTermsFormProps) {
     return (
         <>
             <Text style={[styles.mb5, styles.textSupporting]}>
-                {translate('termsStep.shortTermsForm.expensifyPaymentsAccount', {
-                    walletProgram:
-                        props.userWallet && props.userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID
-                            ? CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK
-                            : CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS,
-                })}
+                {translate(
+                    'termsStep.shortTermsForm.expensifyPaymentsAccount',
+                    props.userWallet && props.userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID
+                        ? CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK
+                        : CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS,
+                )}
             </Text>
 
             <View style={[styles.shortTermsBorder, styles.p2, styles.mb6]}>
