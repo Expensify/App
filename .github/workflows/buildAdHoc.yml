@@ -235,7 +235,6 @@ jobs:
                 ],
               ]);
 
-
             if (mobileExpensifySHA) {
               const mobileExpensifyUrl = `https://github.com/Expensify/Mobile-Expensify/commit/${mobileExpensifySHA}`;
               const label = '${{ inputs.MOBILE_EXPENSIFY_REF }}' ? 'Mobile-Expensify SHA (Custom)' : 'Mobile-Expensify Submodule SHA';
