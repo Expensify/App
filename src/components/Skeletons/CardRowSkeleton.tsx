@@ -1,8 +1,11 @@
 import React from 'react';
-import {Circle, Rect} from 'react-native-svg';
+import {Circle} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
@@ -10,21 +13,23 @@ type CardRowSkeletonProps = {
     shouldAnimate?: boolean;
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
 const barHeight = 7;
 const longBarWidth = 120;
 const shortBarWidth = 60;
-const leftPaneWidth = variables.sideBarWidth;
+const leftPaneWidth = variables.sideBarWithLHBWidth;
 const gapWidth = 12;
 const rightSideElementWidth = 50;
 const centralPanePadding = 50;
 const rightButtonWidth = 20;
 
-function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: CardRowSkeletonProps) {
+function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, reasonAttributes}: CardRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useSkeletonSpan('CardRowSkeleton', reasonAttributes);
 
     return (
         <ItemListSkeletonView
@@ -39,34 +44,40 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                         cy={32}
                         r={20}
                     />
-                    <Rect
-                        x={66}
-                        y={22}
+                    <SkeletonRect
+                        transform={[{translateX: 66}, {translateY: 22}]}
                         width={longBarWidth}
                         height={barHeight}
                     />
 
-                    <Rect
-                        x={66}
-                        y={36}
+                    <SkeletonRect
+                        transform={[{translateX: 66}, {translateY: 36}]}
                         width={shortBarWidth}
                         height={barHeight}
                     />
 
                     {!shouldUseNarrowLayout && (
                         <>
-                            <Rect
+                            <SkeletonRect
                                 // We have to calculate this value to make sure the element is aligned to the button on the right side.
-                                x={windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}
-                                y={28}
+                                transform={[
+                                    {
+                                        translateX: windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth,
+                                    },
+                                    {translateY: 28},
+                                ]}
                                 width={20}
                                 height={barHeight}
                             />
 
-                            <Rect
+                            <SkeletonRect
                                 // We have to calculate this value to make sure the element is aligned to the right border.
-                                x={windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}
-                                y={28}
+                                transform={[
+                                    {
+                                        translateX: windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding,
+                                    },
+                                    {translateY: 28},
+                                ]}
                                 width={50}
                                 height={barHeight}
                             />
@@ -77,7 +88,5 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
         />
     );
 }
-
-CardRowSkeleton.displayName = 'CardRowSkeleton';
 
 export default CardRowSkeleton;

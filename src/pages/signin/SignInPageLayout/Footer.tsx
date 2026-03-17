@@ -3,11 +3,9 @@ import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
-import type {LinkProps, PressProps} from '@components/TextLink';
-import TextLink from '@components/TextLink';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -18,13 +16,10 @@ import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {SignInPageLayoutProps} from './types';
+import FooterRow from './FooterRow';
+import type {FooterColumnRow, SignInPageLayoutProps} from './types';
 
 type FooterProps = Pick<SignInPageLayoutProps, 'navigateFocus'>;
-
-type FooterColumnRow = (LinkProps | PressProps) & {
-    translationPath: TranslationPaths;
-};
 
 type FooterColumnData = {
     translationPath: TranslationPaths;
@@ -52,7 +47,7 @@ const columns = ({navigateFocus = () => {}}: Pick<FooterProps, 'navigateFocus'>)
                 translationPath: 'footer.companyCreditCard',
             },
             {
-                href: CONST.FOOTER.RECIEPT_SCANNING_URL,
+                href: CONST.FOOTER.RECEIPT_SCANNING_URL,
                 translationPath: 'footer.receiptScanningApp',
             },
             {
@@ -148,6 +143,7 @@ function Footer({navigateFocus}: FooterProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyFooterLogo', 'ExpensifyFooterLogoVertical']);
     const isVertical = shouldUseNarrowLayout;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
@@ -161,7 +157,7 @@ function Footer({navigateFocus}: FooterProps) {
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
                 {isVertical ? (
-                    <View style={[styles.signInPageGradientMobile]}>
+                    <View style={styles.signInPageGradientMobile}>
                         <ImageSVG
                             src={SignInGradient}
                             height="100%"
@@ -175,29 +171,33 @@ function Footer({navigateFocus}: FooterProps) {
                                 key={column.translationPath}
                                 style={footerColumn}
                             >
-                                <Text style={[styles.textHeadline, styles.footerTitle]}>{translate(column.translationPath)}</Text>
+                                <Text
+                                    style={[styles.textHeadline, styles.footerTitle]}
+                                    accessibilityRole={CONST.ROLE.HEADER}
+                                    aria-level={2}
+                                >
+                                    {translate(column.translationPath)}
+                                </Text>
                                 <View style={[styles.footerRow]}>
-                                    {column.rows.map(({href, onPress, translationPath}) => (
-                                        <Hoverable key={translationPath}>
-                                            {(hovered) => (
-                                                <View>
-                                                    {onPress ? (
-                                                        <TextLink
-                                                            style={getTextLinkStyle(hovered)}
-                                                            onPress={onPress}
-                                                        >
-                                                            {translate(translationPath)}
-                                                        </TextLink>
-                                                    ) : (
-                                                        <TextLink
-                                                            style={getTextLinkStyle(hovered)}
-                                                            href={href}
-                                                        >
-                                                            {translate(translationPath)}
-                                                        </TextLink>
-                                                    )}
-                                                </View>
-                                            )}
+                                    {column.rows.map((row) => (
+                                        <Hoverable key={row.translationPath}>
+                                            {(hovered) =>
+                                                row.onPress ? (
+                                                    <FooterRow
+                                                        onPress={row.onPress}
+                                                        translationPath={row.translationPath}
+                                                        text={translate(row.translationPath)}
+                                                        style={getTextLinkStyle(hovered)}
+                                                    />
+                                                ) : (
+                                                    <FooterRow
+                                                        href={row.href}
+                                                        translationPath={row.translationPath}
+                                                        text={translate(row.translationPath)}
+                                                        style={getTextLinkStyle(hovered)}
+                                                    />
+                                                )
+                                            }
                                         </Hoverable>
                                     ))}
                                     {i === 2 && (
@@ -216,10 +216,10 @@ function Footer({navigateFocus}: FooterProps) {
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
                         {!isVertical ? (
-                            <ImageSVG src={Expensicons.ExpensifyFooterLogo} />
+                            <ImageSVG src={icons.ExpensifyFooterLogo} />
                         ) : (
                             <ImageSVG
-                                src={Expensicons.ExpensifyFooterLogoVertical}
+                                src={icons.ExpensifyFooterLogoVertical}
                                 height={variables.verticalLogoHeight}
                                 width={variables.verticalLogoWidth}
                             />
@@ -230,7 +230,5 @@ function Footer({navigateFocus}: FooterProps) {
         </View>
     );
 }
-
-Footer.displayName = 'Footer';
 
 export default Footer;

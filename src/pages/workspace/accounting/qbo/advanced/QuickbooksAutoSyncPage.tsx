@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React from 'react';
+import React, {useCallback} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -18,34 +18,45 @@ import {clearQuickbooksOnlineAutoSyncErrorField} from '@userActions/Policy/Polic
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+
+type QuickbooksAutoSyncPageRouteParams = {
+    backTo?: Route;
+};
 
 function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const config = policy?.connections?.quickbooksOnline?.config;
     const policyID = route.params.policyID;
+    const {backTo} = route.params as QuickbooksAutoSyncPageRouteParams;
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction =
         settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
+    }, [policyID, backTo]);
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={QuickbooksAutoSyncPage.displayName}
+                testID="QuickbooksAutoSyncPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))}
+                    onBackButtonPress={goBack}
                 />
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.autoSync')}
-                    subtitle={translate('workspace.qbo.autoSyncDescription')}
+                    subtitle={translate('workspace.qbo.advancedConfig.autoSyncDescription')}
                     isActive={!!config?.autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     switchAccessibilityLabel={translate('workspace.qbo.advancedConfig.autoSyncDescription')}
@@ -60,12 +71,12 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                         <MenuItemWithTopDescription
                             title={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
-                                    ? translate(`workspace.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
-                                    : translate(`workspace.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
+                                    ? translate(`workspace.qbo.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
+                                    : translate(`workspace.qbo.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
                             }
-                            description={translate('workspace.accountingMethods.label')}
+                            description={translate('workspace.qbo.accountingMethods.label')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD.getRoute(policyID, backTo))}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -73,7 +84,5 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-QuickbooksAutoSyncPage.displayName = 'QuickbooksAutoSyncPage';
 
 export default withPolicyConnections(QuickbooksAutoSyncPage);

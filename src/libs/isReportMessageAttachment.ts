@@ -10,7 +10,7 @@ const attachmentRegex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"
  *
  * @param message report action's message as text, html and translationKey
  */
-export default function isReportMessageAttachment(message: Message | undefined): boolean {
+function isReportMessageAttachment(message: Message | undefined): boolean {
     if (!message?.text || !message.html) {
         return false;
     }
@@ -33,3 +33,6 @@ export default function isReportMessageAttachment(message: Message | undefined):
 
     return Str.isVideo(message.text);
 }
+
+// eslint-disable-next-line import/prefer-default-export
+export {isReportMessageAttachment};

@@ -1,9 +1,10 @@
-import type {Meta} from '@storybook/react';
+import type {Meta} from '@storybook/react-webpack5';
 import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
+// eslint-disable-next-line no-restricted-imports
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem, SelectionListProps} from '@components/SelectionListWithSections/types';
 import withNavigationFallback from '@components/withNavigationFallback';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
@@ -84,13 +85,13 @@ function Default(props: SelectionListProps<ListItem>) {
     });
 
     const onSelectRow = (item: ListItem) => {
-        sections.forEach((section) => {
+        for (const section of sections) {
             const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
                 setSelectedIndex(newSelectedIndex);
             }
-        });
+        }
     };
 
     return (
@@ -129,13 +130,13 @@ function WithTextInput(props: SelectionListProps<ListItem>) {
     });
 
     const onSelectRow = (item: ListItem) => {
-        sections.forEach((section) => {
+        for (const section of sections) {
             const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
                 setSelectedIndex(newSelectedIndex);
             }
-        });
+        }
     };
 
     return (
@@ -195,13 +196,13 @@ function WithAlternateText(props: SelectionListProps<ListItem>) {
     });
 
     const onSelectRow = (item: ListItem) => {
-        sections.forEach((section) => {
+        for (const section of sections) {
             const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
 
             if (newSelectedIndex >= 0) {
                 setSelectedIndex(newSelectedIndex);
             }
-        });
+        }
     };
     return (
         <SelectionListWithNavigation
@@ -242,7 +243,7 @@ function MultipleSelection(props: SelectionListProps<ListItem>) {
                         <Badge
                             text="Admin"
                             textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.badgeBordered}
+                            badgeStyles={defaultStyles.alignSelfCenter}
                         />
                     ),
                 };
@@ -312,7 +313,7 @@ function WithSectionHeader(props: SelectionListProps<ListItem>) {
                         <Badge
                             text="Admin"
                             textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.badgeBordered}
+                            badgeStyles={defaultStyles.alignSelfCenter}
                         />
                     ),
                 };
@@ -380,7 +381,7 @@ function WithConfirmButton(props: SelectionListProps<ListItem>) {
                         <Badge
                             text="Admin"
                             textStyles={defaultStyles.textStrong}
-                            badgeStyles={defaultStyles.badgeBordered}
+                            badgeStyles={defaultStyles.alignSelfCenter}
                         />
                     ),
                 };

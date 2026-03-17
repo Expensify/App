@@ -7,11 +7,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import type {ReactionListAnchor, ReactionListEvent} from '@pages/home/ReportScreenContext';
+import {getEmojiReactionDetails, getLocalizedEmojiName} from '@libs/EmojiUtils';
+import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
+import type {ReactionListAnchor, ReactionListEvent} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import AddReactionBubble from './AddReactionBubble';
@@ -33,7 +35,7 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
      * This can also be an emoji the user already reacted with,
      * hence this function asks to toggle the reaction by emoji.
      */
-    toggleReaction: (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => void;
+    toggleReaction: (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => void;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
@@ -87,13 +89,14 @@ function ReportActionItemEmojiReactions({
     const styles = useThemeStyles();
     const reactionListRef = useContext(ReactionListContext);
     const popoverReactionListAnchors = useRef<PopoverReactionListAnchors>({});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
     const reportActionID = reportAction.reportActionID;
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
     const formattedReactions: Array<FormattedReaction | null> = sortBy(
         Object.entries(emojiReactions ?? {}).map(([emojiName, emojiReaction]) => {
-            const {emoji, emojiCodes, reactionCount, hasUserReacted, userAccountIDs, oldestTimestamp} = EmojiUtils.getEmojiReactionDetails(
+            const {emoji, emojiCodes, reactionCount, hasUserReacted, userAccountIDs, oldestTimestamp} = getEmojiReactionDetails(
                 emojiName,
                 emojiReaction,
                 currentUserPersonalDetails.accountID,
@@ -104,7 +107,7 @@ function ReportActionItemEmojiReactions({
             }
 
             const onPress = () => {
-                toggleReaction(emoji, true);
+                toggleReaction(emoji, preferredSkinTone, true);
             };
 
             const onReactionListOpen = (event: ReactionListEvent) => {
@@ -139,7 +142,7 @@ function ReportActionItemEmojiReactions({
                         <Tooltip
                             renderTooltipContent={() => (
                                 <ReactionTooltipContent
-                                    emojiName={EmojiUtils.getLocalizedEmojiName(reaction.reactionEmojiName, preferredLocale)}
+                                    emojiName={getLocalizedEmojiName(reaction.reactionEmojiName, preferredLocale)}
                                     emojiCodes={reaction.emojiCodes}
                                     accountIDs={reaction.userAccountIDs}
                                     currentUserPersonalDetails={currentUserPersonalDetails}
@@ -154,7 +157,9 @@ function ReportActionItemEmojiReactions({
                                     shouldDisableOpacity={!!reportAction.pendingAction}
                                 >
                                     <EmojiReactionBubble
-                                        ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref ?? null)}
+                                        ref={(ref) => {
+                                            popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref ?? null;
+                                        }}
                                         count={reaction.reactionCount}
                                         emojiCodes={reaction.emojiCodes}
                                         onPress={reaction.onPress}
@@ -178,7 +183,5 @@ function ReportActionItemEmojiReactions({
         )
     );
 }
-
-ReportActionItemEmojiReactions.displayName = 'ReportActionItemReactions';
 
 export default withCurrentUserPersonalDetails(ReportActionItemEmojiReactions);

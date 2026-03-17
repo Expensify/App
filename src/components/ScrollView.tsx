@@ -8,19 +8,34 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 type ScrollViewProps = RNScrollViewProps & {
     /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<RNScrollView>;
 };
 
-function ScrollView(
-    {children, scrollIndicatorInsets, contentContainerStyle: contentContainerStyleProp, addBottomSafeAreaPadding = false, ...props}: ScrollViewProps,
-    ref: ForwardedRef<RNScrollView>,
-) {
-    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyleProp});
+function ScrollView({
+    children,
+    scrollIndicatorInsets,
+    contentContainerStyle: contentContainerStyleProp,
+    addBottomSafeAreaPadding,
+    addOfflineIndicatorBottomSafeAreaPadding,
+    ref,
+    ...props
+}: ScrollViewProps) {
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding,
+        style: contentContainerStyleProp,
+    });
 
     return (
         <RNScrollView
             ref={ref}
             // on iOS, navigation animation sometimes cause the scrollbar to appear
-            // on middle/left side of scrollview. scrollIndicatorInsets with right
+            // on middle/left side of ScrollView. scrollIndicatorInsets with right
             // to closest value to 0 fixes this issue, 0 (default) doesn't work
             // See: https://github.com/Expensify/App/issues/31441
             contentContainerStyle={contentContainerStyle}
@@ -33,8 +48,6 @@ function ScrollView(
     );
 }
 
-ScrollView.displayName = 'ScrollView';
-
 export type {ScrollViewProps};
 
-export default React.forwardRef(ScrollView);
+export default ScrollView;

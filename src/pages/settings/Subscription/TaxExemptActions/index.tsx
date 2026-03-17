@@ -1,17 +1,16 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
-import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {AnchorPosition} from '@styles/index';
 import {navigateToConciergeChat} from '@userActions/Report';
 import {requestTaxExempt} from '@userActions/Subscription';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -19,54 +18,38 @@ const anchorAlignment = {
 };
 
 function TaxExemptActions() {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const threeDotsMenuContainerRef = useRef<View>(null);
+    const icons = useMemoizedLazyExpensifyIcons(['Coins']);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             {
-                icon: Expensicons.Coins,
+                icon: icons.Coins,
                 numberOfLinesTitle: 2,
                 text: translate('subscription.details.taxExempt'),
                 onSelected: () => {
                     requestTaxExempt();
-                    navigateToConciergeChat();
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
                 },
             },
         ],
-        [translate],
+        [translate, icons.Coins, conciergeReportID, introSelected, currentUserAccountID],
     );
 
     return (
-        <View
-            ref={threeDotsMenuContainerRef}
-            style={[styles.mtn2, styles.pAbsolute, styles.rn3]}
-            onLayout={(e: LayoutChangeEvent) => {
-                if (shouldUseNarrowLayout) {
-                    return;
-                }
-                const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
-                target?.measureInWindow((x, y, width) => {
-                    setThreeDotsMenuPosition({
-                        horizontal: x + width,
-                        vertical: y,
-                    });
-                });
-            }}
-        >
+        <View style={[styles.mtn2, styles.pAbsolute, styles.rn3]}>
             <ThreeDotsMenu
+                shouldSelfPosition
                 menuItems={overflowMenu}
-                anchorPosition={threeDotsMenuPosition}
                 anchorAlignment={anchorAlignment}
                 shouldOverlay
             />
         </View>
     );
 }
-
-TaxExemptActions.displayName = 'TaxExemptActions';
 
 export default TaxExemptActions;

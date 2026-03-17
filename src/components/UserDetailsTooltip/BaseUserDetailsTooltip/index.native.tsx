@@ -4,6 +4,4 @@ function BaseUserDetailsTooltip({children}: UserDetailsTooltipProps) {
     return children;
 }
 
-BaseUserDetailsTooltip.displayName = 'BaseUserDetailsTooltip';
-
 export default BaseUserDetailsTooltip;

@@ -1,48 +1,45 @@
-import {screen, waitFor} from '@testing-library/react-native';
+import {act, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-
-const ONYXKEYS = {
-    PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
-    COLLECTION: {
-        REPORT_ACTIONS: 'reportActions_',
-        POLICY: 'policy_',
-    },
-    NETWORK: 'network',
-} as const;
 
 describe('ReportActionItemSingle', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 
-    beforeEach(() => {
+    beforeEach(async () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
-    describe('when the Report is a policy expense chat', () => {
-        describe('and the property "shouldShowSubscriptAvatar" is true', () => {
-            const shouldShowSubscriptAvatar = true;
-            const fakeReport = LHNTestUtils.getFakeReportWithPolicy([1, 2]);
+    describe('when the Report is a DM chat', () => {
+        describe('component properly renders both avatar & name of the sender', () => {
+            const fakeReport = {...LHNTestUtils.getFakeReportWithPolicy([1, 2]), chatType: undefined};
             const fakeReportAction = LHNTestUtils.getFakeAdvancedReportAction();
             const fakePolicy = LHNTestUtils.getFakePolicy(fakeReport.policyID);
-            const faceAccountId = fakeReportAction.actorAccountID ?? -1;
+            const faceAccountId = fakeReportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
             const fakePersonalDetails: PersonalDetailsList = {
                 [faceAccountId]: {
                     accountID: faceAccountId,
@@ -53,32 +50,43 @@ describe('ReportActionItemSingle', () => {
                 },
             };
 
-            function setup() {
-                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
+            async function setup() {
                 const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
-
-                return waitForBatchedUpdates().then(() =>
-                    Onyx.multiSet({
+                await waitForBatchedUpdatesWithAct();
+                await act(async () => {
+                    await Onyx.multiSet({
                         [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
                         [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                        [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`]: {
+                                [fakeReportAction.reportActionID]: fakeReportAction,
+                            },
+                        },
+                        [ONYXKEYS.COLLECTION.REPORT]: {
+                            [fakeReport.reportID]: fakeReport,
+                        },
                         ...policyCollectionDataSet,
-                    }),
-                );
+                    });
+                    await waitForBatchedUpdatesWithAct();
+                });
+                LHNTestUtils.getDefaultRenderedReportActionItemSingle(fakeReport, fakeReportAction);
+                await waitForBatchedUpdatesWithAct();
             }
 
-            it('renders secondary Avatar properly', async () => {
-                const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
+            it('renders avatar properly', async () => {
+                const expectedIconTestID = 'ReportActionAvatars-SingleAvatar';
 
                 await setup();
                 await waitFor(() => {
-                    expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeOnTheScreen();
+                    expect(screen.getByTestId(expectedIconTestID)).toBeOnTheScreen();
                 });
             });
 
-            it('renders Person information', () => {
+            it('renders Person information', async () => {
                 const [expectedPerson] = fakeReportAction.person ?? [];
 
-                return setup().then(() => {
+                await setup();
+                await waitFor(() => {
                     expect(screen.getByText(expectedPerson.text ?? '')).toBeOnTheScreen();
                 });
             });

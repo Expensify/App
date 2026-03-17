@@ -1,15 +1,16 @@
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {emailSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import {isUserOnPrivateDomain} from '@libs/actions/Session';
-import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import useOnyx from './useOnyx';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -17,28 +18,35 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
  * Warning: This hook should be used only once in the app
  */
 function useOnboardingFlowRouter() {
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
-    const [isOnboardingCompleted, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasCompletedGuidedSetupFlowSelector,
-    });
-    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+    const currentUrl = getCurrentUrl();
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
     });
-    const {isHybridAppOnboardingCompleted, hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
+    const {isHybridAppOnboardingCompleted} = tryNewDot ?? {};
+    const isOnboardingLoading = isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata);
 
-    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
-    const isPrivateDomain = isUserOnPrivateDomain();
+    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
 
-    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
-        InteractionManager.runAfterInteractions(() => {
-            if (isLoadingApp !== false) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const handle = InteractionManager.runAfterInteractions(() => {
+            // Prevent showing onboarding if we are logging in as a new user with short lived token
+            if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
                 return;
             }
 
-            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
+            if (isLoadingApp !== false || isOnboardingLoading) {
+                return;
+            }
+
+            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata, dismissedProductTrainingMetadata)) {
                 return;
             }
 
@@ -46,15 +54,8 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
-                const defaultCannedQuery = buildCannedSearchQuery();
-                const query = defaultCannedQuery;
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
-                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
-                return;
-            }
-
-            if (hasBeenAddedToNudgeMigration) {
+            if (currentUrl.endsWith('/r')) {
+                // Don't trigger onboarding if we are in the middle of a redirect to a report
                 return;
             }
 
@@ -68,35 +69,31 @@ function useOnboardingFlowRouter() {
                 if (isHybridAppOnboardingCompleted === false) {
                     Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
                 }
-
-                // But if the hybrid app onboarding is completed, but NewDot onboarding is not completed, we start NewDot onboarding flow
-                // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
-                if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false) {
-                    startOnboardingFlow(isPrivateDomain);
-                }
-            }
-
-            // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
-            if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false) {
-                startOnboardingFlow(isPrivateDomain);
             }
         });
+
+        return () => {
+            handle.cancel();
+        };
     }, [
         isLoadingApp,
-        isOnboardingCompleted,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
-        tryNewDotdMetadata,
+        tryNewDotMetadata,
         isSingleNewDotEntryMetadata,
         isSingleNewDotEntry,
-        hasBeenAddedToNudgeMigration,
         dismissedProductTrainingMetadata,
-        dismissedProductTraining?.migratedUserWelcomeModal,
-        dismissedProductTraining,
-        isPrivateDomain,
+        currentUrl,
+        isLoggingInAsNewSessionUser,
+        isOnboardingLoading,
+        onboardingValues,
     ]);
 
-    return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
+    return {
+        isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues),
+        isHybridAppOnboardingCompleted,
+        isOnboardingLoading: !!onboardingValues?.isLoading,
+    };
 }
 
 export default useOnboardingFlowRouter;

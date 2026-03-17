@@ -7483,6 +7483,10 @@ const esEmojis: EmojisList = {
         name: 'gales',
         keywords: ['bandera', 'bandera-gales'],
     },
+    '\uE100': {
+        name: 'crear-global',
+        keywords: ['fab', 'flotante', 'acción', 'botón', 'verde', 'más'],
+    },
 };
 
 export default esEmojis;

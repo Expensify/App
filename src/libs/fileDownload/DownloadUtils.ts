@@ -2,7 +2,7 @@ import * as ApiUtils from '@libs/ApiUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import * as FileUtils from './FileUtils';
+import {appendTimeToFileName, getFileName} from './FileUtils';
 import type {FileDownload} from './types';
 
 const createDownloadLink = (href: string, fileName: string) => {
@@ -27,10 +27,19 @@ const createDownloadLink = (href: string, fileName: string) => {
 };
 
 /**
- * The function downloads an attachment on web/desktop platforms.
+ * The function downloads an attachment on web platforms.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false, formData = undefined, requestType = 'get', onDownloadFailed?: () => void) => {
+const fetchFileDownload: FileDownload = (
+    translate,
+    url,
+    fileName,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    successMessage = '',
+    shouldOpenExternalLink = false,
+    formData = undefined,
+    requestType = 'get',
+    onDownloadFailed?: () => void,
+) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
 
     const isApiUrl = resolvedUrl.startsWith(ApiUtils.getApiRoot());
@@ -50,6 +59,7 @@ const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', sho
     const fetchOptions: RequestInit = {
         method: requestType,
         body: formData,
+        credentials: 'same-origin',
     };
 
     return fetch(url, fetchOptions)
@@ -63,7 +73,7 @@ const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', sho
         .then((blob) => {
             // Create blob link to download
             const href = URL.createObjectURL(new Blob([blob]));
-            const completeFileName = FileUtils.appendTimeToFileName(fileName ?? FileUtils.getFileName(url));
+            const completeFileName = appendTimeToFileName(fileName ?? getFileName(url));
             createDownloadLink(href, completeFileName);
         })
         .catch(() => {

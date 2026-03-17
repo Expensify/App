@@ -21,7 +21,7 @@ type GenericFunction = (...args: any[]) => void;
  * @returns Returns a function to call the debounced function.
  */
 export default function useDebounce<T extends GenericFunction>(func: T, wait: number, options?: DebounceSettings): T {
-    const debouncedFnRef = useRef<DebouncedFunc<T>>();
+    const debouncedFnRef = useRef<DebouncedFunc<T> | undefined>(undefined);
     const {leading, maxWait, trailing = true} = options ?? {};
 
     useEffect(() => {
@@ -42,6 +42,5 @@ export default function useDebounce<T extends GenericFunction>(func: T, wait: nu
         }
     }, []);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     return debounceCallback as T;
 }

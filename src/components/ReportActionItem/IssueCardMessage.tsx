@@ -1,16 +1,21 @@
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import {useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
+import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useLocalize from '@hooks/useLocalize';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPolicy, getWorkspaceAccountID, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getCardIssuedMessage, getOriginalMessage, isActionOfType, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
-import CONST from '@src/CONST';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getCardIssuedMessage, getOriginalMessage, shouldShowActivateCard, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type {IssueNewCardOriginalMessage} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -18,44 +23,54 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
     policyID: string | undefined;
+    shouldNavigateToCardDetails: boolean;
 };
 
-function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
+function IssueCardMessage({action, policyID, shouldNavigateToCardDetails}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const session = useSession();
     const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
-    const cardIssuedActionOriginalMessage = isActionOfType(
-        action,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-    )
-        ? getOriginalMessage(action)
-        : undefined;
-    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    const card = isPolicyAdmin(getPolicy(policyID)) ? cardsList?.[cardID] : cardList[cardID];
+    const expensifyCard = useGetExpensifyCardFromReportAction({reportAction: action, policyID});
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
-    const shouldShowAddMissingDetailsButton = isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, card);
+    const cardList = useNonPersonalCardList();
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const companyCard = cardList?.[(getOriginalMessage(action) as IssueNewCardOriginalMessage)?.cardID];
+    const shouldShowAddMissingDetailsButton = !!expensifyCard?.cardID && isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, privatePersonalDetails);
+    const shouldShowActivateButton = isAssigneeCurrentUser && shouldShowActivateCard(action?.actionName, expensifyCard, privatePersonalDetails);
+
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
 
     return (
         <>
-            <RenderHTML html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, policyID, card})}</muted-text>`} />
+            <RenderHTML
+                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, expensifyCard, companyCard, translate})}</muted-text>`}
+            />
             {shouldShowAddMissingDetailsButton && (
                 <Button
-                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(expensifyCard.cardID)));
+                    }}
                     success
                     style={[styles.alignSelfStart, styles.mt3]}
                     text={translate('workspace.expensifyCard.addShippingDetails')}
                 />
             )}
+            {shouldShowActivateButton && (
+                <Button
+                    onPress={() => {
+                        if (!expensifyCard?.cardID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.REPORT_CARD_ACTIVATE.getRoute(expensifyCard.cardID, route.params?.reportID, route.params?.reportActionID));
+                    }}
+                    success
+                    style={[styles.alignSelfStart, styles.mt3]}
+                    text={translate('activateCardPage.activateCard')}
+                />
+            )}
         </>
     );
 }
-
-IssueCardMessage.displayName = 'IssueCardMessage';
 
 export default IssueCardMessage;

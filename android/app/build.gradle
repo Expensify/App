@@ -1,7 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-apply plugin: "com.google.firebase.firebase-perf"
 apply plugin: "fullstory"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
@@ -13,7 +12,7 @@ apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.grad
 /* Fullstory settings */
 fullstory {
     org 'o-1WN56P-na1'
-    enabledVariants 'production'
+    enabledVariants 'all'
     logcatLevel 'debug'
     recordOnStart false
 }
@@ -66,8 +65,8 @@ react {
     autolinkLibrariesWithApp()
     // Added by install-expo-modules
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", rootDir.getAbsoluteFile().getParentFile().getAbsolutePath(), "android", "absolute"].execute(null, rootDir).text.trim())
-    cliFile = new File(["node", "--print", "require.resolve('@expo/cli')"].execute(null, rootDir).text.trim())
-    bundleCommand = "export:embed"
+    cliFile = file("../../node_modules/rock/dist/src/bin.js")
+    bundleCommand = "bundle"
 }
 
 project.ext.envConfigFiles = [
@@ -76,8 +75,6 @@ project.ext.envConfigFiles = [
     adhocRelease: ".env.adhoc",
     developmentRelease: ".env",
     developmentDebug: ".env",
-    e2eRelease: "tests/e2e/.env.e2e",
-    e2edeltaRelease: "tests/e2e/.env.e2edelta"
 ]
 
 /**
@@ -89,14 +86,14 @@ def enableProguardInReleaseBuilds = true
  * The preferred build flavor of JavaScriptCore (JSC)
  *
  * For example, to use the international variant, you can use:
- * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
+ * `def jscFlavor = io.github.react-native-community:jsc-android-intl:2026004.+`
  *
  * The international variant includes ICU i18n library and necessary data
  * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
  * give correct results when using with locales other than en-US. Note that
  * this variant is about 6MiB larger per architecture than default.
  */
-def jscFlavor = 'org.webkit:android-jsc:+'
+def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
     androidResources {
@@ -114,8 +111,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009011300
-        versionName "9.1.13-0"
+        versionCode 1009033900
+        versionName "9.3.39-0"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -125,20 +122,6 @@ android {
     productFlavors {
         // we need to define a production flavor but since it has default config, we can leave it empty
         production
-        e2e {
-            // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
-            // applies all non-production flavors
-            applicationIdSuffix ".e2e"
-            signingConfig signingConfigs.debug
-            resValue "string", "build_config_package", "com.expensify.chat"
-        }
-        e2edelta {
-            // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
-            // applies all non-production flavors
-            applicationIdSuffix ".e2edelta"
-            signingConfig signingConfigs.debug
-            resValue "string", "build_config_package", "com.expensify.chat"
-        }
         adhoc {
             applicationIdSuffix ".adhoc"
             signingConfig signingConfigs.debug
@@ -175,23 +158,18 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 
-            signingConfig null
             // buildTypes take precedence over productFlavors when it comes to the signing configuration,
-            // thus we need to manually set the signing config, so that the e2e uses the debug config again.
-            // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode.
+            // so we need to manually set the signing config per flavor in release mode.
+            signingConfig null
             productFlavors.all { flavor ->
-                // All release builds should be signed with the release config ...
                 flavor.signingConfig signingConfigs.release
             }
-            // ... except for the e2e flavor, which we maybe want to build locally:
-            productFlavors.e2e.signingConfig signingConfigs.debug
-            productFlavors.e2edelta.signingConfig signingConfigs.debug
         }
     }
 
-    // since we don't need variants adhocDebug and e2eDebug, we can force gradle to ignore them
+    // Filter out unnecessary build variants
     variantFilter { variant ->
-        if (variant.name == "adhocDebug" || variant.name == "e2eDebug" || variant.name == "e2edeltaDebug") {
+        if (variant.name == "adhocDebug") {
             setIgnore(true)
         }
     }
@@ -200,15 +178,34 @@ android {
 afterEvaluate {
     // As the App is building from source, we need to make sure hermesc is built before the JS bundle is created.
     // Otherwise the release version of the app will fail to build due to missing hermesc.
-    def hermesCTask = gradle.includedBuild("react-native").task(":packages:react-native:ReactAndroid:hermes-engine:buildHermesC")
+    if (reactNativeIncludedBuild != null) {
+        def hermesCTask = rootProject.ext.reactNativeIncludedBuild.task(":packages:react-native:ReactAndroid:hermes-engine:buildHermesC")
+        android.applicationVariants.configureEach { variant ->
+            if (variant.buildType.name == "release" || variant.buildType.name == "adhoc") {
+                def variantName = variant.name.capitalize()
+                def bundleTask = tasks.named("createBundle${variantName}JsAndAssets").getOrNull()
 
-    android.applicationVariants.configureEach { variant ->
-        if (variant.buildType.name == "release" || variant.buildType.name == "adhoc") {
-            def variantName = variant.name.capitalize()
-            def bundleTask = tasks.named("createBundle${variantName}JsAndAssets").getOrNull()
+                if (bundleTask != null) {
+                    bundleTask.dependsOn(hermesCTask)
+                }
+            }
+        }
+    }
 
-            if (bundleTask != null) {
-                bundleTask.dependsOn(hermesCTask)
+    // If we are not building from source, we need to substitute the react-native and react-android dependencies with our patched versions
+    if(!patchedArtifactsConfig.buildFromSource) {
+        def group = "com.expensify.${patchedArtifactsConfig.packageName}"
+        project.rootProject.allprojects { eachProject ->
+                eachProject.configurations.all { configuration ->
+                    configuration.resolutionStrategy {
+                        dependencySubstitution {
+                            substitute(module('com.facebook.react:react-native'))
+                                .using(module("${group}:react-android:${patchedArtifactsConfig.version}"))
+                            substitute(module('com.facebook.react:react-android'))
+                                .using(module("${group}:react-android:${patchedArtifactsConfig.version}"))
+                        }
+                    force "${group}:react-android:${patchedArtifactsConfig.version}"
+                }
             }
         }
     }
@@ -226,12 +223,10 @@ dependencies {
 
     // Firebase libraries (using the Firebase BoM for consistency - see https://firebase.google.com/docs/android/learn-more#bom)
     implementation platform("com.google.firebase:firebase-bom:29.0.3")
-    implementation "com.google.firebase:firebase-perf"
-    implementation "com.google.firebase:firebase-crashlytics"
 
     // GIF support
-    implementation 'com.facebook.fresco:fresco:2.5.0'
-    implementation 'com.facebook.fresco:animated-gif:2.5.0'
+    implementation 'com.facebook.fresco:fresco:3.4.0'
+    implementation 'com.facebook.fresco:animated-gif:3.4.0'
 
     // AndroidX support library
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
@@ -253,4 +248,3 @@ dependencies {
 }
 
 apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
-apply plugin: 'com.google.firebase.crashlytics'

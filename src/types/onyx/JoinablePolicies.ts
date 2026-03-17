@@ -18,5 +18,4 @@ type JoinablePolicy = {
 type JoinablePolicies = Record<string, JoinablePolicy>;
 
 export default JoinablePolicies;
-
 export type {JoinablePolicy};

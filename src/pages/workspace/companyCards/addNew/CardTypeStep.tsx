@@ -1,20 +1,21 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
+import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
@@ -23,10 +24,11 @@ type AvailableCompanyCardTypes = {
     translate: LocaleContextProps['translate'];
     typeSelected?: CardFeedProvider;
     styles: StyleProp<ViewStyle>;
+    companyCardBankIcons: ReturnType<typeof useCompanyCardBankIcons>;
 };
 
-function getAvailableCompanyCardTypes({translate, typeSelected, styles}: AvailableCompanyCardTypes) {
-    return [
+function getAvailableCompanyCardTypes({translate, typeSelected, styles, companyCardBankIcons}: AvailableCompanyCardTypes) {
+    const defaultCards = [
         {
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             text: translate('workspace.companyCards.addNewCard.cardProviders.cdf'),
@@ -34,7 +36,7 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles}: Availab
             isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
             leftElement: (
                 <Icon
-                    src={Illustrations.MasterCardCompanyCardDetail}
+                    src={companyCardBankIcons.MasterCardCompanyCardDetail}
                     height={variables.iconSizeExtraLarge}
                     width={variables.iconSizeExtraLarge}
                     additionalStyles={styles}
@@ -48,7 +50,7 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles}: Availab
             isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
             leftElement: (
                 <Icon
-                    src={Illustrations.VisaCompanyCardDetail}
+                    src={companyCardBankIcons.VisaCompanyCardDetail}
                     height={variables.iconSizeExtraLarge}
                     width={variables.iconSizeExtraLarge}
                     additionalStyles={styles}
@@ -56,24 +58,50 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles}: Availab
             ),
         },
     ];
+
+    return [
+        {
+            value: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            text: translate('workspace.companyCards.addNewCard.cardProviders.gl1025'),
+            keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            leftElement: (
+                <Icon
+                    src={companyCardBankIcons.AmexCardCompanyCardDetail}
+                    height={variables.iconSizeExtraLarge}
+                    width={variables.iconSizeExtraLarge}
+                    additionalStyles={styles}
+                />
+            ),
+        },
+        ...defaultCards,
+    ];
 }
 
 function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const companyCardBankIcons = useCompanyCardBankIcons();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
+    const [localTypeSelected, setLocalTypeSelected] = useState<CardFeedProvider>();
+    const typeSelected = localTypeSelected ?? addNewCard?.data.feedType;
     const [isError, setIsError] = useState(false);
-    const data = getAvailableCompanyCardTypes({translate, typeSelected, styles: styles.mr3});
+    const data = getAvailableCompanyCardTypes({
+        translate,
+        typeSelected,
+        styles: styles.mr3,
+        companyCardBankIcons,
+    });
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const isNewCardTypeSelected = typeSelected !== feedType;
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data.selectedCountry);
 
-    const submit = () => {
+    const submit = useCallback(() => {
         if (!typeSelected) {
             setIsError(true);
         } else {
-            CompanyCards.setAddNewCompanyCardStepAndData({
+            setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
                 data: {
                     feedType: typeSelected,
@@ -82,24 +110,33 @@ function CardTypeStep() {
                 isEditing: false,
             });
         }
-    };
-
-    useEffect(() => {
-        setTypeSelected(addNewCard?.data.feedType);
-    }, [addNewCard?.data.feedType]);
+    }, [bankName, isNewCardTypeSelected, isOtherBankSelected, typeSelected]);
 
     const handleBackButtonPress = () => {
         if (isOtherBankSelected) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
+        if (!doesCountrySupportPlaid) {
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
+            return;
+        }
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.next'),
+            onConfirm: submit,
+        }),
+        [submit, translate],
+    );
 
     return (
         <ScreenWrapper
-            testID={CardTypeStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+            testID="CardTypeStep"
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -110,18 +147,17 @@ function CardTypeStep() {
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.yourCardProvider')}</Text>
             <SelectionList
+                data={data}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => {
-                    setTypeSelected(value);
+                    setLocalTypeSelected(value);
                     setIsError(false);
                 }}
-                sections={[{data}]}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={addNewCard?.data.feedType}
+                initiallyFocusedItemKey={addNewCard?.data.feedType}
                 shouldUpdateFocusedIndex
-                showConfirmButton
-                confirmButtonText={translate('common.next')}
-                onConfirm={submit}
+                addBottomSafeAreaPadding
             >
                 {isError && (
                     <View style={[styles.ph5, styles.mb3]}>
@@ -135,7 +171,5 @@ function CardTypeStep() {
         </ScreenWrapper>
     );
 }
-
-CardTypeStep.displayName = 'CardTypeStep';
 
 export default CardTypeStep;

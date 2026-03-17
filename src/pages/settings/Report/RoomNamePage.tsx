@@ -1,7 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -11,6 +10,8 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,6 +39,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
     const {translate} = useLocalize();
     const reportID = report?.reportID;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const goBack = useCallback(() => {
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo)));
@@ -60,17 +62,17 @@ function RoomNamePage({report}: RoomNamePageProps) {
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', values.roomName));
             } else if (isExistingRoomName(values.roomName, reports, report?.policyID)) {
                 // The room name can't be set to one that already exists on the policy
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', values.roomName.length, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             return errors;
         },
-        [report, reports, translate],
+        [report?.reportName, report?.policyID, reports, translate],
     );
 
     const updatePolicyRoomName = useCallback(
@@ -85,9 +87,9 @@ function RoomNamePage({report}: RoomNamePageProps) {
         <ScreenWrapper
             onEntryTransitionEnd={() => roomNameInputRef.current?.focus()}
             includeSafeAreaPaddingBottom
-            testID={RoomNamePage.displayName}
+            testID="RoomNamePage"
         >
-            <FullPageNotFoundView shouldShow={shouldDisableRename(report)}>
+            <FullPageNotFoundView shouldShow={shouldDisableRename(report, isReportArchived)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={goBack}
@@ -99,6 +101,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
                     validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -114,7 +117,5 @@ function RoomNamePage({report}: RoomNamePageProps) {
         </ScreenWrapper>
     );
 }
-
-RoomNamePage.displayName = 'RoomNamePage';
 
 export default RoomNamePage;

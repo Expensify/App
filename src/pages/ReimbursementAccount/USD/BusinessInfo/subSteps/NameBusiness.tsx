@@ -1,11 +1,12 @@
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors, isValidCompanyName} from '@libs/ValidationUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -20,11 +21,17 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const defaultCompanyName = reimbursementAccount?.achData?.companyName ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
 
-    const shouldDisableCompanyName = !!(bankAccountID && defaultCompanyName && reimbursementAccount?.achData?.state !== 'SETUP');
+    const bankAccountState = reimbursementAccount?.achData?.state ?? '';
+    const shouldDisableCompanyName = !!(
+        bankAccountID &&
+        defaultCompanyName &&
+        bankAccountState !== CONST.BANK_ACCOUNT.STATE.SETUP &&
+        bankAccountState !== CONST.BANK_ACCOUNT.STATE.VERIFYING
+    );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.companyName && !isValidCompanyName(values.companyName)) {
                 errors.companyName = translate('bankAccount.error.companyName');
@@ -59,7 +66,5 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-NameBusiness.displayName = 'NameBusiness';
 
 export default NameBusiness;

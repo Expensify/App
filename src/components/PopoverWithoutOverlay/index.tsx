@@ -1,40 +1,39 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import {PopoverContext} from '@components/PopoverProvider';
+import {usePopoverActions} from '@components/PopoverProvider';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {onModalDidClose, setCloseModal, willAlertModalBecomeVisible} from '@libs/actions/Modal';
-import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
 import type PopoverWithoutOverlayProps from './types';
 
-function PopoverWithoutOverlay(
-    {
-        anchorPosition = {},
-        anchorRef,
-        withoutOverlayRef,
-        innerContainerStyle = {},
-        outerStyle,
-        onModalShow = () => {},
-        isVisible,
-        onClose,
-        onModalHide = () => {},
-        children,
-    }: PopoverWithoutOverlayProps,
-    ref: ForwardedRef<View>,
-) {
+const NOOP = () => {};
+
+function PopoverWithoutOverlay({
+    anchorPosition = {},
+    anchorRef,
+    withoutOverlayRef,
+    innerContainerStyle = {},
+    outerStyle,
+    onModalShow = () => {},
+    isVisible,
+    onClose,
+    onModalHide = () => {},
+    children,
+    shouldDisplayBelowModals = false,
+}: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {onOpen, close} = useContext(PopoverContext);
+    const {onOpen, close} = usePopoverActions();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
         StyleUtils.getModalStyles(
-            'popover',
+            CONST.MODAL.MODAL_TYPE.POPOVER,
             {
                 windowWidth,
                 windowHeight,
@@ -43,18 +42,20 @@ function PopoverWithoutOverlay(
             anchorPosition,
             innerContainerStyle,
             outerStyle,
+            shouldDisplayBelowModals,
         );
 
     useEffect(() => {
         let removeOnClose: () => void;
         if (isVisible) {
             onModalShow();
+
             onOpen?.({
                 ref: withoutOverlayRef,
-                close: onClose,
+                close: onClose ?? NOOP,
                 anchorRef,
             });
-            removeOnClose = setCloseModal(onClose);
+            removeOnClose = setCloseModal(onClose ?? NOOP);
         } else {
             onModalHide();
             close(anchorRef);
@@ -69,49 +70,20 @@ function PopoverWithoutOverlay(
             removeOnClose();
         };
         // We want this effect to run strictly ONLY when isVisible prop changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
-
-    const {
-        paddingTop: safeAreaPaddingTop,
-        paddingBottom: safeAreaPaddingBottom,
-        paddingLeft: safeAreaPaddingLeft,
-        paddingRight: safeAreaPaddingRight,
-    } = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
 
     const modalPaddingStyles = useMemo(
         () =>
             StyleUtils.getModalPaddingStyles({
-                safeAreaPaddingTop,
-                safeAreaPaddingBottom,
-                safeAreaPaddingLeft,
-                safeAreaPaddingRight,
                 shouldAddBottomSafeAreaMargin,
                 shouldAddTopSafeAreaMargin,
                 shouldAddBottomSafeAreaPadding,
                 shouldAddTopSafeAreaPadding,
-                modalContainerStyleMarginTop: modalContainerStyle.marginTop,
-                modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
-                modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
-                modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                modalContainerStyle,
                 insets,
             }),
-        [
-            StyleUtils,
-            insets,
-            modalContainerStyle.marginBottom,
-            modalContainerStyle.marginTop,
-            modalContainerStyle.paddingBottom,
-            modalContainerStyle.paddingTop,
-            safeAreaPaddingBottom,
-            safeAreaPaddingLeft,
-            safeAreaPaddingRight,
-            safeAreaPaddingTop,
-            shouldAddBottomSafeAreaMargin,
-            shouldAddBottomSafeAreaPadding,
-            shouldAddTopSafeAreaMargin,
-            shouldAddTopSafeAreaPadding,
-        ],
+        [StyleUtils, insets, modalContainerStyle, shouldAddBottomSafeAreaMargin, shouldAddBottomSafeAreaPadding, shouldAddTopSafeAreaMargin, shouldAddTopSafeAreaPadding],
     );
 
     if (!isVisible) {
@@ -120,7 +92,7 @@ function PopoverWithoutOverlay(
 
     return (
         <View
-            style={[modalStyle, {zIndex: variables.popoverzIndex}]}
+            style={modalStyle}
             ref={viewRef(withoutOverlayRef)}
             // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
             onClick={(e) => e.stopPropagation()}
@@ -132,7 +104,6 @@ function PopoverWithoutOverlay(
                     ...modalContainerStyle,
                     ...modalPaddingStyles,
                 }}
-                ref={ref}
             >
                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
             </View>
@@ -140,6 +111,4 @@ function PopoverWithoutOverlay(
     );
 }
 
-PopoverWithoutOverlay.displayName = 'PopoverWithoutOverlay';
-
-export default forwardRef(PopoverWithoutOverlay);
+export default PopoverWithoutOverlay;

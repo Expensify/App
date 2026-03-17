@@ -1,9 +1,9 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -41,7 +41,7 @@ type ConnectionLayoutProps = {
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
 
-    /** The content container style of Scrollview */
+    /** The content container style of ScrollView */
     contentContainerStyle?: StyleProp<ViewStyle> | undefined;
 
     /** Style of the title text */
@@ -110,31 +110,28 @@ function ConnectionLayout({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
-    const renderSelectionContent = useMemo(
-        () => (
-            <ConnectionLayoutContent
-                title={title}
-                titleStyle={titleStyle}
-                titleAlreadyTranslated={titleAlreadyTranslated}
-            >
-                {children}
-            </ConnectionLayoutContent>
-        ),
-        [title, titleStyle, children, titleAlreadyTranslated],
-    );
-
     const shouldBlockByConnection = shouldLoadForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
+
+    const selectionContent = (
+        <ConnectionLayoutContent
+            title={title}
+            titleStyle={titleStyle}
+            titleAlreadyTranslated={titleAlreadyTranslated}
+        >
+            {children}
+        </ConnectionLayoutContent>
+    );
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
+            shouldBeBlocked={!!shouldBeBlocked && shouldBlockByConnection}
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
-                shouldEnableMaxHeight
                 testID={displayName}
             >
                 <HeaderWithBackButton
@@ -143,14 +140,18 @@ function ConnectionLayout({
                     onBackButtonPress={onBackButtonPress}
                 />
                 {shouldUseScrollView ? (
-                    <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
+                    <ScrollView
+                        contentContainerStyle={contentContainerStyle}
+                        addBottomSafeAreaPadding
+                    >
+                        {selectionContent}
+                    </ScrollView>
                 ) : (
-                    <View style={contentContainerStyle}>{renderSelectionContent}</View>
+                    <View style={contentContainerStyle}>{selectionContent}</View>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
 
-ConnectionLayout.displayName = 'ConnectionLayout';
 export default ConnectionLayout;

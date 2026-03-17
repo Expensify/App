@@ -59,10 +59,14 @@ function WorkspaceTaxesSettingsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceTaxesSettingsPage.displayName}
+                testID="WorkspaceTaxesSettingsPage"
                 style={styles.defaultModalContainer}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    addBottomSafeAreaPadding
+                >
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
                         {menuItems.map((item) => (
@@ -86,7 +90,5 @@ function WorkspaceTaxesSettingsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxesSettingsPage.displayName = 'WorkspaceTaxesSettingsPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesSettingsPage);

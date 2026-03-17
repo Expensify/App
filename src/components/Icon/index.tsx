@@ -1,17 +1,31 @@
 import type {ImageContentFit} from 'expo-image';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import React, {useCallback, useMemo, useState} from 'react';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import {PixelRatio, StyleSheet, View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+import type {SharedValue} from 'react-native-reanimated';
+import type {AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import ImageSVG from '@components/ImageSVG';
+import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {Dimensions} from '@src/types/utils/Layout';
 import IconWrapperStyles from './IconWrapperStyles';
+
+type IconCarouselPagerProps = {
+    pagerRef: AttachmentCarouselPagerStateContextType['pagerRef'];
+    isScrollEnabled: SharedValue<boolean>;
+    onTap: () => void;
+    onSwipeDown: () => void;
+};
 
 type IconProps = {
     /** The asset to render. */
-    src: IconAsset;
+    src: IconAsset | undefined;
 
     /** The width of the icon. */
     width?: number;
@@ -23,6 +37,7 @@ type IconProps = {
     fill?: string;
 
     /** Is small icon */
+    extraSmall?: boolean;
     small?: boolean;
 
     /** Is large icon */
@@ -51,6 +66,9 @@ type IconProps = {
 
     /** Determines whether the icon is being used within a button. The icon size will remain the same for both icon-only buttons and buttons with text. */
     isButtonIcon?: boolean;
+
+    /** Renders the Icon component within a MultiGestureCanvas for improved gesture controls. */
+    enableMultiGestureCanvas?: boolean;
 };
 
 function Icon({
@@ -58,6 +76,7 @@ function Icon({
     width = variables.iconSizeNormal,
     height = variables.iconSizeNormal,
     fill = undefined,
+    extraSmall = false,
     small = false,
     large = false,
     medium = false,
@@ -68,17 +87,55 @@ function Icon({
     testID = '',
     contentFit = 'cover',
     isButtonIcon = false,
+    enableMultiGestureCanvas = false,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, isButtonIcon);
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(extraSmall, small, medium, large, width, height, isButtonIcon);
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
+    const contentSize: Dimensions = {width: iconWidth as number, height: iconHeight as number};
+    const [canvasSize, setCanvasSize] = useState<Dimensions>();
+    const isCanvasLoading = canvasSize === undefined;
+    const updateCanvasSize = useCallback(
+        ({
+            nativeEvent: {
+                layout: {width: layoutWidth, height: layoutHeight},
+            },
+        }: LayoutChangeEvent) => setCanvasSize({width: PixelRatio.roundToNearestPixel(layoutWidth), height: PixelRatio.roundToNearestPixel(layoutHeight)}),
+        [],
+    );
+
+    const isScrollingEnabledFallback = useSharedValue(false);
+    const state = useAttachmentCarouselPagerState();
+    const actions = useAttachmentCarouselPagerActions();
+
+    const {onTap, onSwipeDown, pagerRef, isScrollEnabled}: IconCarouselPagerProps = useMemo((): IconCarouselPagerProps => {
+        if (state === null || actions === null) {
+            return {
+                pagerRef: undefined,
+                isScrollEnabled: isScrollingEnabledFallback,
+                onTap: () => {},
+                onSwipeDown: () => {},
+            };
+        }
+        return {
+            pagerRef: state.pagerRef,
+            isScrollEnabled: state.isScrollEnabled,
+            onTap: actions.onTap ?? (() => {}),
+            onSwipeDown: actions.onSwipeDown ?? (() => {}),
+        };
+    }, [state, actions, isScrollingEnabledFallback]);
+
+    if (!src) {
+        return null;
+    }
 
     if (inline) {
         return (
             <View
                 testID={testID}
                 style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
+                pointerEvents="none"
             >
                 <View style={iconStyles}>
                     <ImageSVG
@@ -89,8 +146,47 @@ function Icon({
                         hovered={hovered}
                         pressed={pressed}
                         contentFit={contentFit}
+                        pointerEvents="none"
                     />
                 </View>
+            </View>
+        );
+    }
+
+    if (canUseTouchScreen() && enableMultiGestureCanvas) {
+        return (
+            <View
+                style={StyleSheet.absoluteFill}
+                onLayout={updateCanvasSize}
+            >
+                {!isCanvasLoading && (
+                    <MultiGestureCanvas
+                        isActive
+                        canvasSize={canvasSize}
+                        contentSize={contentSize}
+                        zoomRange={DEFAULT_ZOOM_RANGE}
+                        pagerRef={pagerRef}
+                        isUsedInCarousel={false}
+                        isPagerScrollEnabled={isScrollEnabled}
+                        onTap={onTap}
+                        onSwipeDown={onSwipeDown}
+                    >
+                        <View
+                            testID={testID}
+                            style={[additionalStyles]}
+                        >
+                            <ImageSVG
+                                src={src}
+                                width={iconWidth}
+                                height={iconHeight}
+                                fill={fill}
+                                hovered={hovered}
+                                pressed={pressed}
+                                contentFit={contentFit}
+                            />
+                        </View>
+                    </MultiGestureCanvas>
+                )}
             </View>
         );
     }
@@ -99,6 +195,10 @@ function Icon({
         <View
             testID={testID}
             style={additionalStyles}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            accessible={false}
+            pointerEvents="none"
         >
             <ImageSVG
                 src={src}
@@ -108,12 +208,11 @@ function Icon({
                 hovered={hovered}
                 pressed={pressed}
                 contentFit={contentFit}
+                pointerEvents="none"
             />
         </View>
     );
 }
 
-Icon.displayName = 'Icon';
-
-export type {IconProps};
 export default Icon;
+export type {IconProps};

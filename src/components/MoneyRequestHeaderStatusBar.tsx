@@ -27,8 +27,6 @@ function MoneyRequestHeaderStatusBar({icon, description, shouldStyleFlexGrow = t
     );
 }
 
-MoneyRequestHeaderStatusBar.displayName = 'MoneyRequestHeaderStatusBar';
-
 export default MoneyRequestHeaderStatusBar;
 
 export type {MoneyRequestHeaderStatusBarProps};

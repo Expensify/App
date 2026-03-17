@@ -1,17 +1,27 @@
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import type ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
 
-type SettlementButtonProps = {
-    /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean) => void;
+type PaymentActionParams = {
+    paymentType?: PaymentMethodType;
+    payAsBusiness?: boolean;
+    methodID?: number;
+    paymentMethod?: PaymentMethod;
+    policyID?: string;
+};
+
+type SettlementButtonProps = WithSentryLabel & {
+    /** Callback to execute when this button is pressed. Receives payment action params. */
+    onPress: (params: PaymentActionParams) => void;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
@@ -44,7 +54,7 @@ type SettlementButtonProps = {
     shouldDisableApproveButton?: boolean;
 
     /** The policyID of the report we are paying */
-    policyID?: string;
+    policyID: string | undefined;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
@@ -61,14 +71,17 @@ type SettlementButtonProps = {
     /** The size of button size */
     buttonSize?: ButtonSizeValue;
 
-    /** Route for the Add Bank Account screen for a given navigation stack */
-    addBankAccountRoute?: Route;
+    /** Render button in extra-small size */
+    extraSmall?: boolean;
 
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
 
     /** Whether the button should be disabled */
     isDisabled?: boolean;
+
+    /** Whether the button should stay visually normal even when disabled. */
+    shouldStayNormalOnDisable?: boolean;
 
     /** Whether we should show a loading state for the main button */
     isLoading?: boolean;
@@ -93,6 +106,13 @@ type SettlementButtonProps = {
 
     /** Whether we only show pay elsewhere button */
     onlyShowPayElsewhere?: boolean;
+
+    /** Whether to use short form for the button */
+    shouldUseShortForm?: boolean;
+
+    /** Whether we the report has only held expenses */
+    hasOnlyHeldExpenses?: boolean;
 };
 
 export default SettlementButtonProps;
+export type {PaymentActionParams};

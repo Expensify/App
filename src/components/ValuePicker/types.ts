@@ -1,4 +1,7 @@
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
 import type {ListItem} from '@components/SelectionList/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 type ValuePickerListItem = ListItem & {
     value?: string;
@@ -37,9 +40,23 @@ type ValueSelectorModalProps = {
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
+
+    /** Whether to add bottom safe area padding */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to disable keyboard shortcuts */
+    disableKeyboardShortcuts?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateNumberOfSupportedLines?: number;
 };
 
-type ValuePickerProps = {
+type ValueSelectionListProps = Pick<
+    ValueSelectorModalProps,
+    'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding' | 'disableKeyboardShortcuts' | 'alternateNumberOfSupportedLines'
+>;
+
+type ValuePickerProps = ForwardedFSClassProps & {
     /** Item to display */
     value?: string;
 
@@ -63,6 +80,21 @@ type ValuePickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    /** Whether to show the selector modal */
+    shouldShowModal?: boolean;
+
+    /** Reference to the outer element */
+    ref: ForwardedRef<View>;
+
+    /** Whether to add bottom safe area padding */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to disable keyboard shortcuts */
+    disableKeyboardShortcuts?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateNumberOfSupportedLines?: number;
 };
 
-export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValuePickerListItem};
+export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

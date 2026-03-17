@@ -54,9 +54,9 @@ describe('convertToLTRForComposer', () => {
     test('input with special characters remains unchanged', () => {
         // Test when input contains special characters
         const specialCharacters = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '-', '=', '{', '}', '[', ']', '"', ':', ';', '<', '>', '?', '`', '~'];
-        specialCharacters.forEach((character) => {
+        for (const character of specialCharacters) {
             const result = convertToLTRForComposer(character);
             expect(result).toBe(character);
-        });
+        }
     });
 });

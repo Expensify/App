@@ -1,14 +1,16 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setBankAccountSubStep, validatePlaidSelection} from '@userActions/BankAccounts';
 import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -26,12 +28,11 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const prevIsFocused = usePrevious(isFocused);
     const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
     const handleNextPress = useCallback(() => {
-        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find(
-            (account) => account.plaidAccountID === reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? null,
-        );
+        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]);
 
         const bankAccountData = {
             [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ROUTING_NUMBER],
@@ -47,16 +48,21 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
         onNext(bankAccountData);
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     useEffect(() => {
         const plaidBankAccounts = plaidData?.bankAccounts ?? [];
-        if (isFocused || plaidBankAccounts.length) {
+
+        // Only cleanup if the screen has been intentionally blurred (was focused, now not focused)
+        // This prevents cleanup during transient focus changes during navigation
+        const wasIntentionallyBlurred = prevIsFocused && !isFocused;
+
+        if (isFocused || plaidBankAccounts.length || !wasIntentionallyBlurred) {
             return;
         }
         setBankAccountSubStep(null);
         setUSDBankAccountStep(null);
-    }, [isFocused, plaidData, setUSDBankAccountStep]);
+    }, [isFocused, prevIsFocused, plaidData?.bankAccounts, setUSDBankAccountStep]);
 
     const handlePlaidExit = () => {
         setBankAccountSubStep(null);
@@ -72,6 +78,7 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
+            shouldHideFixErrorsAlert
         >
             <InputWrapper
                 InputComponent={AddPlaidBankAccount}
@@ -90,7 +97,5 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
         </FormProvider>
     );
 }
-
-Plaid.displayName = 'Plaid';
 
 export default Plaid;

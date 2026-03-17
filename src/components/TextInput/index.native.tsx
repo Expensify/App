@@ -1,11 +1,11 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {AppState, Keyboard} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Log from '@libs/Log';
 import BaseTextInput from './BaseTextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './BaseTextInput/types';
+import type {BaseTextInputProps} from './BaseTextInput/types';
 
-function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+function TextInput({ref, navigation, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
@@ -13,8 +13,12 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
             return;
         }
 
+        if (!navigation) {
+            Log.warn('disableKeyboard is enabled, but "navigation" isn\'t passed to the TextInput component!');
+        }
+
         const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-            if (!nextAppState.match(/inactive|background/)) {
+            if (!nextAppState.match(/inactive|background/) || (navigation && !navigation.isFocused())) {
                 return;
             }
 
@@ -24,7 +28,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
         return () => {
             appStateSubscription.remove();
         };
-    }, [props.disableKeyboard]);
+    }, [props.disableKeyboard, navigation]);
 
     return (
         <BaseTextInput
@@ -35,10 +39,9 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
             ref={ref}
             autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
             inputStyle={[styles.baseTextInput, props.inputStyle]}
+            textInputContainerStyles={[props.textInputContainerStyles]}
         />
     );
 }
 
-TextInput.displayName = 'TextInput';
-
-export default forwardRef(TextInput);
+export default TextInput;

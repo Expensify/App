@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -34,6 +35,8 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const decodedCategoryName = getDecodedCategoryName(categoryName ?? '');
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
@@ -45,9 +48,9 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
                 errors.categoryName = translate('workspace.categories.existingCategoryError');
             } else if (newCategoryName === CONST.INVALID_CATEGORY_NAME) {
                 errors.categoryName = translate('workspace.categories.invalidCategoryName');
-            } else if ([...newCategoryName].length > CONST.CATEGORY_NAME_LIMIT) {
+            } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                addErrorMessage(errors, 'categoryName', translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}));
+                addErrorMessage(errors, 'categoryName', translate('common.error.characterLimitExceedCounter', [...newCategoryName].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH));
             }
 
             return errors;
@@ -72,11 +75,13 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             validate={validateEdit || validate}
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
+            addBottomSafeAreaPadding
         >
             <InputWrapper
                 ref={inputCallbackRef}
                 InputComponent={TextInput}
-                defaultValue={categoryName}
+                defaultValue={decodedCategoryName}
                 label={translate('common.name')}
                 accessibilityLabel={translate('common.name')}
                 inputID={INPUT_IDS.CATEGORY_NAME}
@@ -85,7 +90,5 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
         </FormProvider>
     );
 }
-
-CategoryForm.displayName = 'CategoryForm';
 
 export default CategoryForm;

@@ -1,12 +1,13 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
+import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
+import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {queueOnyxUpdates} from './QueuedOnyxUpdates';
@@ -14,7 +15,9 @@ import {queueOnyxUpdates} from './QueuedOnyxUpdates';
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
 let lastUpdateIDAppliedToClient: number | undefined = 0;
-Onyx.connect({
+
+// We have used `connectWithoutView` here because OnyxUpdates is not connected to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
@@ -25,17 +28,17 @@ let pusherEventsPromise = Promise.resolve();
 
 let airshipEventsPromise = Promise.resolve();
 
-function applyHTTPSOnyxUpdates(request: Request, response: Response) {
-    Performance.markStart(CONST.TIMING.APPLY_HTTPS_UPDATES);
-    console.debug('[OnyxUpdateManager] Applying https update');
+function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number) {
+    Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-    const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
+    const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
     const onyxDataUpdatePromise = response.onyxData ? updateHandler(response.onyxData) : Promise.resolve();
+
     return onyxDataUpdatePromise
         .then(() => {
             // Handle the request's success/failure data (client-side data)
@@ -51,6 +54,14 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
                     Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
                     return Promise.resolve();
                 }
+
+                trackExpenseApiError({
+                    command: request.command,
+                    jsonCode: response.jsonCode ?? 0,
+                    message: response.message,
+                    requestData: request.data,
+                });
+
                 return updateHandler(request.failureData);
             }
             return Promise.resolve();
@@ -62,41 +73,34 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
             return Promise.resolve();
         })
         .then(() => {
-            Performance.markEnd(CONST.TIMING.APPLY_HTTPS_UPDATES);
-            console.debug('[OnyxUpdateManager] Done applying HTTPS update');
+            Log.info('[OnyxUpdateManager] Done applying HTTPS update', false, {lastUpdateID});
             return Promise.resolve(response);
         });
 }
 
-function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
-    Performance.markStart(CONST.TIMING.APPLY_PUSHER_UPDATES);
-
+function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
     pusherEventsPromise = pusherEventsPromise.then(() => {
-        console.debug('[OnyxUpdateManager] Applying pusher update');
+        Log.info('[OnyxUpdateManager] Applying pusher update', false, {lastUpdateID});
     });
 
     pusherEventsPromise = updates
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
-            Performance.markEnd(CONST.TIMING.APPLY_PUSHER_UPDATES);
-            console.debug('[OnyxUpdateManager] Done applying Pusher update');
+            Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
         });
 
     return pusherEventsPromise;
 }
 
-function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[]) {
-    Performance.markStart(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
-
+function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
     airshipEventsPromise = airshipEventsPromise.then(() => {
-        console.debug('[OnyxUpdateManager] Applying Airship updates');
+        Log.info('[OnyxUpdateManager] Applying Airship updates', false, {lastUpdateID});
     });
 
     airshipEventsPromise = updates
-        .reduce((promise, update) => promise.then(() => Onyx.update(update.data)), airshipEventsPromise)
+        .reduce((promise, update) => promise.then(() => Onyx.update(update.data as Array<OnyxUpdate<TKey>>)), airshipEventsPromise)
         .then(() => {
-            Performance.markEnd(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
-            console.debug('[OnyxUpdateManager] Done applying Airship updates');
+            Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});
         });
 
     return airshipEventsPromise;
@@ -107,16 +111,33 @@ function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[]) {
  * @param [updateParams.response] Exists if updateParams.type === 'https'
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
-function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdateEvent[]; type: 'pusher'}>): Promise<void>;
-function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
-function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<Response>;
-function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
+function apply<TKey extends OnyxKey>({
+    lastUpdateID,
+    type,
+    request,
+    response,
+    updates,
+}: Merge<OnyxUpdatesFromServer<TKey>, {updates: Array<OnyxUpdateEvent<TKey>>; type: 'pusher'}>): Promise<void>;
+function apply<TKey extends OnyxKey>({
+    lastUpdateID,
+    type,
+    request,
+    response,
+    updates,
+}: Merge<OnyxUpdatesFromServer<TKey>, {request: Request<TKey>; response: Response<TKey>; type: 'https'}>): Promise<Response<TKey>>;
+function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<Response<TKey>>;
+function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
-    if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient) {
+    const isUpdateOld = lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient;
+    const isOpenAppRequest = request?.command === WRITE_COMMANDS.OPEN_APP;
+    const isFullReconnectRequest = request?.command === SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP && !request?.data?.updateIDFrom;
+
+    if (isUpdateOld && !isOpenAppRequest && !isFullReconnectRequest) {
         Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData', false, {
             lastUpdateID,
             lastUpdateIDAppliedToClient,
+            command: request?.command,
         });
 
         // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.
@@ -131,22 +152,22 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 
             // We use a spread here instead of delete because we don't want to change the response for other middlewares
             const {onyxData, ...responseWithoutOnyxData} = response;
-            return applyHTTPSOnyxUpdates(request, responseWithoutOnyxData);
+            return applyHTTPSOnyxUpdates(request, responseWithoutOnyxData, Number(lastUpdateID));
         }
 
-        return Promise.resolve();
+        return Promise.resolve(response);
     }
     if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        return applyHTTPSOnyxUpdates(request, response);
+        return applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
-        return applyPusherOnyxUpdates(updates);
+        return applyPusherOnyxUpdates(updates, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
-        return applyAirshipOnyxUpdates(updates);
+        return applyAirshipOnyxUpdates(updates, Number(lastUpdateID));
     }
 }
 
@@ -155,15 +176,16 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
  * @param [updateParams.response] Exists if updateParams.type === 'https'
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
-function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
+function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFromServer<TKey>) {
     let modifiedUpdateParams = updateParams;
     // We don't want to store the data in the updateParams if it's a HTTPS update since it is useless anyways
     // and it causes serialization issues when storing in Onyx
     if (updateParams.type === CONST.ONYX_UPDATE_TYPES.HTTPS && updateParams.request) {
-        modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: undefined}};
+        modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
-    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as AnyOnyxUpdatesFromServer);
 }
 
 type DoesClientNeedToBeUpdatedParams = {

@@ -1,17 +1,18 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {updatePronouns as updatePronounsPersonalDetails} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,12 +25,13 @@ type PronounsPageProps = WithCurrentUserPersonalDetailsProps;
 
 function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const currentPronouns = currentUserPersonalDetails?.pronouns ?? '';
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
     const [searchValue, setSearchValue] = useState('');
     const isOptionSelected = useRef(false);
+    const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     useEffect(() => {
         if (isLoadingApp && !currentUserPersonalDetails.pronouns) {
@@ -40,7 +42,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
         setSearchValue(currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '');
 
         // Only need to update search value when the first time the data is loaded
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
     const filteredPronounsList = useMemo((): PronounEntry[] => {
@@ -54,7 +56,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                 keyForList: value,
                 isSelected: isCurrentPronouns,
             };
-        }).sort((a, b) => a.text.toLowerCase().localeCompare(b.text.toLowerCase()));
+        }).sort((a, b) => localeCompare(a.text.toLowerCase(), b.text.toLowerCase()));
 
         const trimmedSearch = searchValue.trim();
 
@@ -62,26 +64,35 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
             return [];
         }
         return pronouns.filter((pronoun) => pronoun.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
-    }, [searchValue, currentPronouns, translate]);
-
-    const headerMessage = searchValue.trim() && filteredPronounsList?.length === 0 ? translate('common.noResultsFound') : '';
+    }, [searchValue, currentPronouns, translate, localeCompare]);
 
     const updatePronouns = (selectedPronouns: PronounEntry) => {
         if (isOptionSelected.current) {
             return;
         }
         isOptionSelected.current = true;
-        updatePronounsPersonalDetails(selectedPronouns.keyForList === currentPronounsKey ? '' : selectedPronouns?.value ?? '');
+        updatePronounsPersonalDetails(selectedPronouns.keyForList === currentPronounsKey ? '' : (selectedPronouns?.value ?? ''), currentUserAccountID);
         Navigation.goBack();
     };
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('pronounsPage.pronouns'),
+            value: searchValue,
+            onChangeText: setSearchValue,
+            placeholder: translate('pronounsPage.placeholderText'),
+            headerMessage: searchValue.trim() && filteredPronounsList?.length === 0 ? translate('common.noResultsFound') : '',
+        }),
+        [translate, searchValue, filteredPronounsList?.length],
+    );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={PronounsPage.displayName}
+            testID="PronounsPage"
         >
             {isLoadingApp && !currentUserPersonalDetails.pronouns ? (
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'PronounsPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes} />
             ) : (
                 <>
                     <HeaderWithBackButton
@@ -90,23 +101,17 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                     />
                     <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
                     <SelectionList
-                        headerMessage={headerMessage}
-                        textInputLabel={translate('pronounsPage.pronouns')}
-                        textInputPlaceholder={translate('pronounsPage.placeholderText')}
-                        textInputValue={searchValue}
-                        sections={[{data: filteredPronounsList}]}
+                        data={filteredPronounsList}
                         ListItem={RadioListItem}
                         onSelectRow={updatePronouns}
+                        textInputOptions={textInputOptions}
+                        initiallyFocusedItemKey={currentPronounsKey}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchValue}
-                        initiallyFocusedOptionKey={currentPronounsKey}
                     />
                 </>
             )}
         </ScreenWrapper>
     );
 }
-
-PronounsPage.displayName = 'PronounsPage';
 
 export default withCurrentUserPersonalDetails(PronounsPage);

@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -17,6 +17,7 @@ import {
     findSelectedTaxAccountWithDefaultSelect,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
@@ -47,41 +48,35 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const backTo = route?.params?.backTo;
     const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
-    const {canUseNetSuiteUSATax} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const config = policy?.connections?.netsuite?.options.config;
     const shouldGoBackToSpecificRoute =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
-            config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT) &&
-        backTo;
+        config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
+        config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT;
+
+    const goBack = () => {
+        return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
+    };
 
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
-    const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
+    const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
+    const selectedReceivable = findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount);
+    const selectedItem = findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem);
 
-    const selectedReceivable = useMemo(() => findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount), [receivableList, config?.receivableAccount]);
+    let invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
+    if (config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
+        invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
+    } else if (selectedItem) {
+        invoiceItemValue = selectedItem.name;
+    } else if (config?.invoiceItemPreference) {
+        invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.select.label');
+    }
 
-    const selectedItem = useMemo(() => findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem), [items, config?.invoiceItem]);
-
-    const invoiceItemValue = useMemo(() => {
-        if (!config?.invoiceItemPreference) {
-            return translate('workspace.netsuite.invoiceItem.values.create.label');
-        }
-        if (config.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
-            return translate('workspace.netsuite.invoiceItem.values.create.label');
-        }
-        if (!selectedItem) {
-            return translate('workspace.netsuite.invoiceItem.values.select.label');
-        }
-        return selectedItem.name;
-    }, [config?.invoiceItemPreference, selectedItem, translate]);
-
-    const selectedTaxPostingAccount = useMemo(() => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.taxPostingAccount), [taxAccountsList, config?.taxPostingAccount]);
-
-    const selectedProvTaxPostingAccount = useMemo(
-        () => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.provincialTaxPostingAccount),
-        [taxAccountsList, config?.provincialTaxPostingAccount],
-    );
+    const filteredTaxAccountsList = (taxAccountsList ?? []).filter(({country}) => country === selectedSubsidiary?.country);
+    const selectedTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.taxPostingAccount);
+    const selectedProvTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.provincialTaxPostingAccount);
 
     const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {
@@ -176,7 +171,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.netsuite.journalEntriesTaxPostingAccount'),
             onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT],
-            shouldHide: shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax, selectedSubsidiary, config),
+            shouldHide: shouldHideTaxPostingAccountSelect(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary, config),
         },
         {
             type: 'toggle',
@@ -203,13 +198,13 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteExportConfigurationPage.displayName}
+            displayName="NetSuiteExportConfigurationPage"
             headerTitle="workspace.accounting.export"
             headerSubtitle={config?.subsidiary ?? ''}
             title="workspace.netsuite.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.goBack(backTo) : undefined}
+            onBackButtonPress={goBack}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
@@ -257,7 +252,5 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         </ConnectionLayout>
     );
 }
-
-NetSuiteExportConfigurationPage.displayName = 'NetSuiteExportConfigurationPage';
 
 export default withPolicyConnections(NetSuiteExportConfigurationPage);

@@ -1,26 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
+import type BetaConfiguration from '@src/types/onyx/BetaConfiguration';
 
+// eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
-}
-
-function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
-}
-
-function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
-}
-
-function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
-    // Don't check for all betas or nobody can use test travel on dev
-    return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
-}
-
-function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
 /**
@@ -30,45 +15,28 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>): boolean {
+    const hasAllBetasEnabled = canUseAllBetas(betas);
+    const isFeatureEnabled = !!betas?.includes(beta);
+
+    // Explicit only betas and exclusion betas are not enabled only by the 'all' beta. Explicit only betas must be set explicitly to enable the feature.
+    // Exclusion betas are designed to disable features, so being on the 'all' beta should not disable these features as that contradicts its purpose.
+    if (((betaConfiguration?.explicitOnly?.includes(beta) ?? false) || (betaConfiguration?.exclusion?.includes(beta) ?? false)) && hasAllBetasEnabled && !isFeatureEnabled) {
+        return false;
+    }
+
+    return isFeatureEnabled || hasAllBetasEnabled;
 }
 
-function canUsePDFExport(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_PDF_EXPORT) || canUseAllBetas(betas);
-}
-
-function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
-}
-
-function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
-}
-
-function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
-}
-
-function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
-}
-
-function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
+/**
+ * Track flows are temporarily disabled.
+ */
+function canUseTrackFlows(): boolean {
+    return false;
 }
 
 export default {
-    canUseDefaultRooms,
     canUseLinkPreviews,
-    canUseSpotnanaTravel,
-    isBlockedFromSpotnanaTravel,
-    canUseNetSuiteUSATax,
-    canUsePDFExport,
-    canUseMergeAccounts,
-    canUseManagerMcTest,
-    canUseInternationalBankAccount,
-    canUseNSQS,
-    canUseCustomRules,
-    canUseTableReportView,
+    canUseTrackFlows,
+    isBetaEnabled,
 };

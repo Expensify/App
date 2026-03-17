@@ -1,9 +1,10 @@
-import React, {useContext, useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
+import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -21,25 +22,26 @@ type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
-    const {initialURL} = useContext(InitialURLContext);
+    const {initialURL} = useInitialURLState();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountLoading = account?.isLoading;
+    const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
 
     useEffect(() => {
         const sessionEmail = session?.email;
         const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
-        const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
+        const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         if (isLoggingInAsNewUser) {
             // We don't want to close react-native app in this particular case.
-            signOutAndRedirectToSignIn(false, isSupportalLogin, false);
+            signOutAndRedirectToSignIn(false, isSupportalLogin);
             return;
         }
 
         if (isSupportalLogin) {
-            signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
+            signInWithSupportAuthToken(shortLivedAuthToken);
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
@@ -47,18 +49,21 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             });
             return;
         }
+        const isLoggingInAsDelegate = isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined);
+
+        if (isLoggingInAsDelegate) {
+            return;
+        }
 
         // Even if the user was already authenticated in NewDot, we need to reauthenticate them with shortLivedAuthToken,
         // because the old authToken stored in Onyx may be invalid.
-        const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
         signInWithShortLivedAuthToken(shortLivedAuthToken);
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL]);
 
     useEffect(() => {
-        const exitTo = route.params.exitTo as Route | null;
         const sessionEmail = session?.email;
         const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
@@ -71,16 +76,17 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 // remove this screen and navigate to exit route
                 Navigation.goBack();
                 if (exitTo) {
-                    Navigation.navigate(exitTo);
+                    Navigation.navigate(exitTo as Route);
                 }
             });
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
-    return <FullScreenLoadingIndicator />;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'LogOutPreviousUserPage',
+    };
+    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
 }
-
-LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
 
 export default LogOutPreviousUserPage;

@@ -1,3 +1,4 @@
+import type {OnyxKey} from 'react-native-onyx';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
@@ -34,7 +35,7 @@ function serializeLoggingData<T extends Record<string, unknown> | undefined>(log
     }
 }
 
-function logRequestDetails(message: string, request: Request, response?: Response | void) {
+function logRequestDetails<TKey extends OnyxKey>(message: string, request: Request<TKey>, response?: Response<TKey> | void) {
     // Don't log about log or else we'd cause an infinite loop
     if (request.command === 'Log') {
         return;
@@ -92,16 +93,20 @@ const Logging: Middleware = (response, request) => {
                 request,
             };
 
+            // If the command that failed is Log it's possible that the next call to Log may also fail.
+            // This will lead to infinitely growing logPacket param inside request.data.logPacket.
+            // To escape it, we pass only command and type info as logParams.request.
+            if (request.command === 'Log') {
+                logParams.request = {
+                    command: request.command,
+                    type: request.type,
+                };
+            }
+
             if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
                 // Cancelled requests are normal and can happen when a user logs out.
                 Log.info('[Network] API request error: Request canceled', false, logParams);
             } else if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
-                // If the command that failed is Log it's possible that the next call to Log may also fail.
-                // This will lead to infinitely complex log params that can eventually crash the app.
-                if (request.command === 'Log') {
-                    delete logParams.request;
-                }
-
                 // Log when we get a "Failed to fetch" error. Very common if a user is offline or experiencing an unlikely scenario like
                 // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 Log.hmmm('[Network] API request error: Failed to fetch', logParams);
@@ -147,7 +152,7 @@ const Logging: Middleware = (response, request) => {
                 Log.info('[Network] API request error: A record already exists with this ID', false, logParams);
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
-                Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown API request error caught while processing request`, logParams, false);
+                Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} unknown API request error caught while processing request`, logParams, false);
             }
 
             // Re-throw this error so the next handler can manage it

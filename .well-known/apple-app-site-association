@@ -13,6 +13,14 @@
                         "comment": "Profile Page"
                     },
                     {
+                        "/": "/home/*",
+                        "comment": "Home Page"
+                    },
+                    {
+                        "/": "/workspaces/*",
+                        "comment": "Workspaces List Page"
+                    },
+                    {
                         "/": "/settings/*",
                         "comment": "Profile and app settings"
                     },

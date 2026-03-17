@@ -14,6 +14,4 @@ function GrowlNotificationContainer({children, translateY}: GrowlNotificationCon
     return <Animated.View style={[StyleUtils.getPlatformSafeAreaPadding(insets), styles.growlNotificationContainer, animatedStyles]}>{children}</Animated.View>;
 }
 
-GrowlNotificationContainer.displayName = 'GrowlNotificationContainer';
-
 export default GrowlNotificationContainer;

@@ -1,6 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -9,61 +8,66 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Tag from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagListName, isMultiLevelTags} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {renamePolicyTagList} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
 
-type WorkspaceEditTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_EDIT>;
+type WorkspaceEditTagsPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_EDIT>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT>;
 
 function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const taglistName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
+    const tagListName = getTagListName(policyTags, route.params.orderWeight);
     const {inputCallbackRef} = useAutoFocusInput();
     const backTo = route.params.backTo;
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT;
+    const isMultiLevelTagsEnabled = isMultiLevelTags(policyTags);
 
-    const validateTagName = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};
-            if (!values[INPUT_IDS.POLICY_TAGS_NAME] && values[INPUT_IDS.POLICY_TAGS_NAME].trim() === '') {
-                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('common.error.fieldRequired');
-            }
-            if (values[INPUT_IDS.POLICY_TAGS_NAME]?.trim() === '0') {
-                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.invalidTagNameError');
-            }
-            if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== route.params.orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
-                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
-            }
-            return errors;
-        },
-        [translate, policyTags, route.params.orderWeight],
-    );
+    const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};
+        if (!values[INPUT_IDS.POLICY_TAGS_NAME] && values[INPUT_IDS.POLICY_TAGS_NAME].trim() === '') {
+            errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('common.error.fieldRequired');
+        }
+        if (values[INPUT_IDS.POLICY_TAGS_NAME]?.trim() === '0') {
+            errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.invalidTagNameError');
+        }
+        if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== route.params.orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
+            errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
+        }
+        return errors;
+    };
 
-    const goBackToTagsSettings = useCallback(
-        () => Navigation.goBack(isQuickSettingsFlow ? backTo : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID)),
-        [isQuickSettingsFlow, backTo, route.params.policyID],
-    );
+    const goBackToTagsSettings = () => {
+        if (isQuickSettingsFlow) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(
+            isMultiLevelTagsEnabled
+                ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, route.params.orderWeight)
+                : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
+        );
+    };
 
-    const updateTaglistName = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-            if (values[INPUT_IDS.POLICY_TAGS_NAME] !== taglistName) {
-                Tag.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
-            }
-            goBackToTagsSettings();
-        },
-        [taglistName, goBackToTagsSettings, route.params.policyID, route.params.orderWeight, policyTags],
-    );
+    const updateTagListName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
+        if (values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
+            renamePolicyTagList(route.params.policyID, {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
+        }
+        goBackToTagsSettings();
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -72,9 +76,9 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceEditTagsPage.displayName}
+                testID="WorkspaceEditTagsPage"
             >
                 <HeaderWithBackButton
                     title={translate(`workspace.tags.customTagName`)}
@@ -83,10 +87,12 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
-                    onSubmit={updateTaglistName}
+                    onSubmit={updateTagListName}
                     validate={validateTagName}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -94,7 +100,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                             inputID={INPUT_IDS.POLICY_TAGS_NAME}
                             label={translate(`workspace.tags.customTagName`)}
                             accessibilityLabel={translate(`workspace.tags.customTagName`)}
-                            defaultValue={PolicyUtils.getCleanedTagName(taglistName)}
+                            defaultValue={getCleanedTagName(tagListName)}
                             role={CONST.ROLE.PRESENTATION}
                             ref={inputCallbackRef}
                         />
@@ -104,7 +110,5 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceEditTagsPage.displayName = 'WorkspaceEditTagsPage';
 
 export default WorkspaceEditTagsPage;

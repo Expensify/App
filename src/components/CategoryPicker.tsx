@@ -1,85 +1,96 @@
-import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import * as CategoryOptionsListUtils from '@libs/CategoryOptionListUtils';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem} from './SelectionList/types';
 
 type CategoryPickerProps = {
     policyID: string | undefined;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
+
+    /**
+     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerProps) {
+const getSelectedOptions = (selectedCategory?: string): Category[] => {
+    if (!selectedCategory) {
+        return [];
+    }
+
+    return [
+        {
+            name: selectedCategory,
+            isSelected: true,
+            enabled: true,
+        },
+    ];
+};
+
+function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
+    const styles = useThemeStyles();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const {isOffline} = useNetwork();
 
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const selectedOptions = useMemo((): Category[] => {
-        if (!selectedCategory) {
-            return [];
-        }
+    const selectedOptions = getSelectedOptions(selectedCategory);
 
-        return [
-            {
-                name: selectedCategory,
-                isSelected: true,
-                enabled: true,
-            },
-        ];
-    }, [selectedCategory]);
+    const categories = policyCategories ?? policyCategoriesDraft ?? {};
+    const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
+    const sections = getCategoryListSections({
+        searchValue: debouncedSearchValue,
+        selectedOptions,
+        categories,
+        localeCompare,
+        recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+        translate,
+    });
 
-    const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
-        const categories = policyCategories ?? policyCategoriesDraft ?? {};
-        const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
-        const categoryOptions = CategoryOptionsListUtils.getCategoryListSections({
-            searchValue: debouncedSearchValue,
-            selectedOptions,
-            categories,
-            recentlyUsedCategories: validPolicyRecentlyUsedCategories,
-        });
+    const categoryData = sections?.at(0)?.data ?? [];
+    const categoriesCount = getEnabledCategoriesCount(categories);
+    const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
 
-        const categoryData = categoryOptions?.at(0)?.data ?? [];
-        const header = OptionsListUtils.getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue);
-        const categoriesCount = OptionsListUtils.getEnabledCategoriesCount(categories);
-        const isCategoriesCountBelowThreshold = categoriesCount < CONST.STANDARD_LIST_ITEM_LIMIT;
-        const showInput = !isCategoriesCountBelowThreshold;
-
-        return [categoryOptions, header, showInput];
-    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, policyCategoriesDraft]);
-
-    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).filter((category) => category.searchText === selectedCategory).at(0)?.keyForList, [sections, selectedCategory]);
+    const textInputOptions = {
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+        headerMessage: getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue),
+        hint: offlineMessage,
+    };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             sections={sections}
-            headerMessage={headerMessage}
-            textInputValue={searchValue}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            textInputHint={offlineMessage}
-            onChangeText={setSearchValue}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            textInputOptions={textInputOptions}
+            initiallyFocusedItemKey={selectedOptionKey}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            style={{listItemTitleStyles: styles.w100}}
             isRowMultilineSupported
+            titleNumberOfLines={3}
+            shouldUseDefaultRightHandSideComponent
         />
     );
 }
-
-CategoryPicker.displayName = 'CategoryPicker';
 
 export default CategoryPicker;

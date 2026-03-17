@@ -1,30 +1,28 @@
 import Onyx from 'react-native-onyx';
-import {waitForActiveRequestsToBeEmpty} from '@libs/E2E/utils/NetworkInterceptor';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import {getAll, getLength, getOngoingRequest} from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import type Request from '../../src/types/onyx/Request';
-import type {ConflictActionData} from '../../src/types/onyx/Request';
+import type {AnyRequest, ConflictActionData} from '../../src/types/onyx/Request';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const request: Request = {
+const request: Request<'userMetadata'> = {
     command: 'ReconnectApp',
     successData: [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}],
     failureData: [{key: 'userMetadata', onyxMethod: 'set', value: {}}],
 };
-
+beforeAll(() => {
+    Onyx.init({
+        keys: ONYXKEYS,
+    });
+});
+beforeEach(() => {
+    global.fetch = TestHelper.getGlobalFetchMock();
+    return Onyx.clear().then(waitForBatchedUpdates);
+});
 describe('SequentialQueue', () => {
-    beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-        });
-    });
-    beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        return Onyx.clear().then(waitForBatchedUpdates);
-    });
-
     it('should push one request and persist one', () => {
         SequentialQueue.push(request);
         expect(getLength()).toBe(1);
@@ -38,7 +36,7 @@ describe('SequentialQueue', () => {
 
     it('should push two requests with conflict resolution and replace', () => {
         SequentialQueue.push(request);
-        const requestWithConflictResolution: Request = {
+        const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
             checkAndFixConflictingRequest: (persistedRequests) => {
@@ -63,7 +61,7 @@ describe('SequentialQueue', () => {
 
     it('should push two requests with conflict resolution and push', () => {
         SequentialQueue.push(request);
-        const requestWithConflictResolution: Request = {
+        const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
             checkAndFixConflictingRequest: () => {
@@ -76,7 +74,7 @@ describe('SequentialQueue', () => {
 
     it('should push two requests with conflict resolution and noAction', () => {
         SequentialQueue.push(request);
-        const requestWithConflictResolution: Request = {
+        const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
             checkAndFixConflictingRequest: () => {
@@ -94,7 +92,7 @@ describe('SequentialQueue', () => {
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
 
-        const requestWithConflictResolution: Request = {
+        const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
             checkAndFixConflictingRequest: (persistedRequests) => {
@@ -121,7 +119,7 @@ describe('SequentialQueue', () => {
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
 
-        const conflictResolver = (persistedRequests: Request[]): ConflictActionData => {
+        const conflictResolver = <TKey extends OnyxKey>(persistedRequests: Array<Request<TKey>>): ConflictActionData => {
             // should be one instance of ReconnectApp, get the index to replace it later
             const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
             if (index === -1) {
@@ -133,13 +131,13 @@ describe('SequentialQueue', () => {
             };
         };
 
-        const requestWithConflictResolution: Request = {
+        const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
             checkAndFixConflictingRequest: conflictResolver,
         };
 
-        const requestWithConflictResolution2: Request = {
+        const requestWithConflictResolution2: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
             checkAndFixConflictingRequest: conflictResolver,
@@ -155,7 +153,7 @@ describe('SequentialQueue', () => {
         SequentialQueue.push({command: 'OpenReport'});
         SequentialQueue.push(request);
 
-        const requestWithConflictResolution: Request = {
+        const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp',
             data: {accountID: 56789},
             checkAndFixConflictingRequest: (persistedRequests) => {
@@ -194,7 +192,7 @@ describe('SequentialQueue', () => {
         SequentialQueue.push({command: 'OpenReport6'});
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
-        const requestWithConflictResolution: Request = {
+        const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp-replaced',
             data: {accountID: 56789},
             checkAndFixConflictingRequest: (persistedRequests) => {
@@ -218,7 +216,7 @@ describe('SequentialQueue', () => {
         });
 
         await Promise.resolve();
-        await waitForActiveRequestsToBeEmpty();
+        await Promise.resolve();
         const persistedRequests = getAll();
 
         // We know ReconnectApp is at index 9 in the queue, so we can get it to verify
@@ -232,7 +230,7 @@ describe('SequentialQueue', () => {
         const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false};
         SequentialQueue.push(persistedRequest);
 
-        const connectionId = Onyx.connect({
+        const connectionId = Onyx.connect<typeof ONYXKEYS.PERSISTED_ONGOING_REQUESTS>({
             key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
             callback: (ongoingRequest) => {
                 if (!ongoingRequest) {
@@ -249,12 +247,26 @@ describe('SequentialQueue', () => {
 
     it('should get the ongoing request from onyx and start processing it', async () => {
         const persistedRequest = {...request, persistWhenOngoing: true, initiatedOffline: false};
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, persistedRequest);
+        Onyx.set<typeof ONYXKEYS.PERSISTED_ONGOING_REQUESTS>(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, persistedRequest as AnyRequest);
         SequentialQueue.push({command: 'OpenReport'});
 
         await Promise.resolve();
 
         expect(persistedRequest).toEqual(getOngoingRequest());
         expect(getAll().length).toBe(1);
+    });
+});
+
+describe('SequentialQueue - QueueFlushedData', () => {
+    it('should add to queueFlushedData', async () => {
+        const updates: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>> = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}];
+        await SequentialQueue.saveQueueFlushedData(...updates);
+        expect(SequentialQueue.getQueueFlushedData()).toEqual([{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}]);
+    });
+    it('should clear queueFlushedData', async () => {
+        const updates: Array<OnyxUpdate<typeof ONYXKEYS.USER_METADATA>> = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}];
+        await SequentialQueue.saveQueueFlushedData(...updates);
+        await SequentialQueue.clearQueueFlushedData();
+        expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
     });
 });

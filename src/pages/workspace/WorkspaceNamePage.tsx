@@ -31,7 +31,7 @@ function WorkspaceNamePage({policy}: Props) {
                 return;
             }
 
-            updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
+            updateGeneralSettings(policy, values.name.trim(), policy.outputCurrency);
             Keyboard.dismiss();
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
@@ -48,7 +48,7 @@ function WorkspaceNamePage({policy}: Props) {
             } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
                 // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             return errors;
@@ -62,9 +62,9 @@ function WorkspaceNamePage({policy}: Props) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceNamePage.displayName}
+                testID="WorkspaceNamePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.workspaceName')}
@@ -79,6 +79,8 @@ function WorkspaceNamePage({policy}: Props) {
                     validate={validate}
                     onSubmit={submit}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -90,7 +92,6 @@ function WorkspaceNamePage({policy}: Props) {
                             defaultValue={policy?.name}
                             spellCheck={false}
                             autoFocus
-                            shouldDelayFocus
                         />
                     </View>
                 </FormProvider>
@@ -98,7 +99,5 @@ function WorkspaceNamePage({policy}: Props) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceNamePage.displayName = 'WorkspaceNamePage';
 
 export default withPolicy(WorkspaceNamePage);

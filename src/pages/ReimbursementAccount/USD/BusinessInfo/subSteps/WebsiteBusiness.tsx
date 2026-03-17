@@ -1,33 +1,37 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidWebsite} from '@libs/ValidationUtils';
 import {addBusinessWebsiteForDraft} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const COMPANY_WEBSITE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE;
 const STEP_FIELDS = [COMPANY_WEBSITE_KEY];
 
 function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account, true), [session, account]);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.website && !isValidWebsite(Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
                 errors.website = translate('bankAccount.error.website');
@@ -47,13 +51,21 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
         shouldSaveDraft: true,
     });
 
+    if (isLoadingReimbursementAccount) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'WebsiteBusiness',
+            isLoadingReimbursementAccount,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.enterYourCompanysWebsite')}
+            formTitle={translate('businessInfoStep.enterYourCompanyWebsite')}
             formDisclaimer={translate('common.websiteExample')}
             validate={validate}
             onSubmit={handleSubmit}
@@ -65,7 +77,5 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-WebsiteBusiness.displayName = 'WebsiteBusiness';
 
 export default WebsiteBusiness;

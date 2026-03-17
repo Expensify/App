@@ -1,15 +1,13 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import CommunicationsLink from '@components/CommunicationsLink';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -19,13 +17,14 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {
     findSelfDMReportID,
     getChatByParticipants,
@@ -54,22 +53,6 @@ import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 type ProfilePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
 
 /**
- * Gets the phone number to display for SMS logins
- */
-const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined => {
-    const {login = '', displayName = ''} = details ?? {};
-    // If the user hasn't set a displayName, it is set to their phone number
-    const parsedPhoneNumber = parsePhoneNumber(displayName);
-
-    if (parsedPhoneNumber.possible) {
-        return parsedPhoneNumber?.number?.e164;
-    }
-
-    // If the user has set a displayName, get the phone number from the SMS login
-    return login ? Str.removeSMSDomain(login) : '';
-};
-
-/**
  * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
  * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
  */
@@ -83,26 +66,24 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
         chatType: report.chatType,
     };
 
+const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
+
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector)});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
-    const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => account?.guideCalendarLink,
-    });
-
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const isCurrentUser = session?.accountID === accountID;
-    const reportKey = useMemo(() => {
-        const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
+    const isCurrentUser = currentUserAccountID === accountID;
+    const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
+    const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
-        if (isAnonymousUserSession() || !reportID) {
-            return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
-        }
-        return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, isCurrentUser, reports, session]);
     const [report] = useOnyx(reportKey);
 
     const styles = useThemeStyles();
@@ -111,26 +92,26 @@ function ProfilePage({route}: ProfilePageProps) {
     const isValidAccountID = isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
 
-    const details = useMemo((): OnyxEntry<PersonalDetails> => {
-        // Check if we have the personal details already in Onyx
-        if (personalDetails?.[accountID]) {
-            return personalDetails?.[accountID] ?? undefined;
-        }
+    let details: OnyxEntry<PersonalDetails>;
+    // Check if we have the personal details already in Onyx
+    if (personalDetails?.[accountID]) {
+        details = personalDetails?.[accountID] ?? undefined;
+    } else if (!loginParams) {
         // Check if we have the login param
-        if (!loginParams) {
-            return isValidAccountID ? undefined : {accountID: 0};
-        }
+        details = isValidAccountID ? undefined : {accountID: 0};
+    } else {
         // Look up the personal details by login
         const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
         if (foundDetails) {
-            return foundDetails;
+            details = foundDetails;
+        } else {
+            // If we don't have the personal details in Onyx, we can create an optimistic account
+            const optimisticAccountID = generateAccountID(loginParams);
+            details = {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
         }
-        // If we don't have the personal details in Onyx, we can create an optimistic account
-        const optimisticAccountID = generateAccountID(loginParams);
-        return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
-    }, [personalDetails, accountID, loginParams, isValidAccountID]);
+    }
 
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser));
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
@@ -149,7 +130,6 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const isSMSLogin = Str.isSMSLogin(login);
     const phoneNumber = getPhoneNumber(details);
-    const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
     const hasAvatar = !!details?.avatar;
     const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
@@ -168,31 +148,28 @@ function ProfilePage({route}: ProfilePageProps) {
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
+    const isConcierge = isConciergeChatReport(report);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (isValidAccountRoute(accountID) && !loginParams) {
+        // Concierge's profile page information is already available in CONST.ts
+        if (isValidAccountRoute(accountID) && !loginParams && !isConcierge) {
             openPublicProfilePage(accountID);
         }
-    }, [accountID, loginParams]);
+    }, [accountID, loginParams, isConcierge]);
 
-    const promotedActions = useMemo(() => {
-        const result: PromotedAction[] = [];
-        if (report) {
-            result.push(PromotedActions.pin(report));
-        }
+    const promotedActions: PromotedAction[] = [];
+    if (report) {
+        promotedActions.push(PromotedActions.pin(report));
+    }
 
-        // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
-        if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
-            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams}));
-        }
-        return result;
-    }, [accountID, isCurrentUser, loginParams, report]);
-
-    const isConcierge = isConciergeChatReport(report);
+    // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
+    if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
+        promotedActions.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID, introSelected, isSelfTourViewed}));
+    }
 
     return (
-        <ScreenWrapper testID={ProfilePage.displayName}>
+        <ScreenWrapper testID="ProfilePage">
             <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
@@ -203,10 +180,11 @@ function ProfilePage({route}: ProfilePageProps) {
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <PressableWithoutFocus
                                 style={[styles.noOutline, styles.mb4]}
-                                onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
+                                onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID, Navigation.getActiveRoute()))}
                                 accessibilityLabel={translate('common.profile')}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 disabled={!hasAvatar}
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.AVATAR}
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
                                     <Avatar
@@ -215,7 +193,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         source={details?.avatar}
                                         avatarID={accountID}
                                         type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.XLARGE}
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
                                         fallbackIcon={fallbackIcon}
                                     />
                                 </OfflineWithFeedback>
@@ -233,51 +211,49 @@ function ProfilePage({route}: ProfilePageProps) {
                                 containerStyle={[styles.ph0, styles.mb8]}
                             />
                             {hasStatus && (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate('statusPage.status')}
-                                    </Text>
-                                    <Text>{statusContent}</Text>
+                                <View style={[styles.detailsPageSectionContainer, styles.w100]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={statusContent}
+                                        description={translate('statusPage.status')}
+                                        interactive={false}
+                                    />
                                 </View>
                             )}
 
                             {/* Don't display email if current user is anonymous */}
                             {!(isCurrentUser && isAnonymousUserSession()) && login ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                    </Text>
-                                    <CommunicationsLink value={phoneOrEmail ?? ''}>
-                                        <UserDetailsTooltip accountID={details?.accountID ?? CONST.DEFAULT_NUMBER_ID}>
-                                            <Text
-                                                numberOfLines={1}
-                                                style={styles.w100}
-                                            >
-                                                {isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
-                                            </Text>
-                                        </UserDetailsTooltip>
-                                    </CommunicationsLink>
+                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
+                                        copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
+                                        description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                        interactive={false}
+                                        copyable
+                                    />
                                 </View>
                             ) : null}
                             {pronouns ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate('profilePage.preferredPronouns')}
-                                    </Text>
-                                    <Text numberOfLines={1}>{pronouns}</Text>
+                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={pronouns}
+                                        description={translate('profilePage.preferredPronouns')}
+                                        interactive={false}
+                                    />
                                 </View>
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
+                        {isCurrentUser && (
+                            <MenuItem
+                                shouldShowRightIcon
+                                title={translate('common.editYourProfile')}
+                                icon={expensifyIcons.Pencil}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
+                            />
+                        )}
                         {shouldShowNotificationPreference && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -290,8 +266,8 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
-                                icon={Expensicons.Pencil}
-                                onPress={() => navigateToPrivateNotes(report, session, navigateBackTo)}
+                                icon={expensifyIcons.Pencil}
+                                onPress={() => navigateToPrivateNotes(report, currentUserAccountID, navigateBackTo)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -300,7 +276,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         {isConcierge && !!guideCalendarLink && (
                             <MenuItem
                                 title={translate('videoChatButtonAndMenu.tooltip')}
-                                icon={Expensicons.Phone}
+                                icon={expensifyIcons.Phone}
                                 isAnonymousAction={false}
                                 onPress={callFunctionIfActionIsAllowed(() => {
                                     openExternalLink(guideCalendarLink);
@@ -310,19 +286,22 @@ function ProfilePage({route}: ProfilePageProps) {
                         {!!report?.reportID && !!isDebugModeEnabled && (
                             <MenuItem
                                 title={translate('debug.debug')}
-                                icon={Expensicons.Bug}
+                                icon={expensifyIcons.Bug}
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
                             />
                         )}
                     </ScrollView>
-                    {!hasAvatar && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
+                    {!hasAvatar && isLoading && (
+                        <FullScreenLoadingIndicator
+                            style={styles.flex1}
+                            reasonAttributes={{context: 'ProfilePage', isLoading}}
+                        />
+                    )}
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
-
-ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;

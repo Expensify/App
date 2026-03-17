@@ -4,7 +4,7 @@ import type {NetworkStatus} from '@libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionChanges} from '@src/types/onyx/Network';
 
-function setNetworkLastOffline(lastOfflineAt: Date) {
+function setNetworkLastOffline(lastOfflineAt: string) {
     Onyx.merge(ONYXKEYS.NETWORK, {lastOfflineAt});
 }
 

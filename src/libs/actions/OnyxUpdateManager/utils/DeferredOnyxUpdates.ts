@@ -1,15 +1,18 @@
+import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+import type {AnyDeferredUpdatesDictionary, DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 // eslint-disable-next-line import/no-cycle
-import * as OnyxUpdateManagerUtils from '.';
+import {validateAndApplyDeferredUpdates} from '.';
 
-let missingOnyxUpdatesQueryPromise: Promise<Response | Response[] | void> | undefined;
-let deferredUpdates: DeferredUpdatesDictionary = {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let missingOnyxUpdatesQueryPromise: Promise<Response<any> | Array<Response<any>> | void> | undefined;
+let deferredUpdates: AnyDeferredUpdatesDictionary = {};
 
 /**
  * Returns the promise that fetches the missing onyx updates
@@ -22,11 +25,11 @@ function getMissingOnyxUpdatesQueryPromise() {
 /**
  * Sets the promise that fetches the missing onyx updates
  */
-function setMissingOnyxUpdatesQueryPromise(promise: Promise<Response | Response[] | void>) {
+function setMissingOnyxUpdatesQueryPromise<TKey extends OnyxKey>(promise: Promise<Response<TKey> | Array<Response<TKey>> | void>) {
     missingOnyxUpdatesQueryPromise = promise;
 }
 
-type GetDeferredOnyxUpdatesOptiosn = {
+type GetDeferredOnyxUpdatesOptions = {
     minUpdateID?: number;
 };
 
@@ -35,12 +38,12 @@ type GetDeferredOnyxUpdatesOptiosn = {
  * @param minUpdateID An optional minimum update ID to filter the deferred updates by
  * @returns
  */
-function getUpdates(options?: GetDeferredOnyxUpdatesOptiosn) {
+function getUpdates(options?: GetDeferredOnyxUpdatesOptions) {
     if (options?.minUpdateID == null) {
         return deferredUpdates;
     }
 
-    return Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
+    return Object.entries(deferredUpdates).reduce<AnyDeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
         if (Number(lastUpdateID) > (options.minUpdateID ?? CONST.DEFAULT_NUMBER_ID)) {
             acc[Number(lastUpdateID)] = update;
         }
@@ -61,10 +64,10 @@ function isEmpty() {
  */
 function process() {
     if (missingOnyxUpdatesQueryPromise) {
-        missingOnyxUpdatesQueryPromise.finally(() => OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates);
+        missingOnyxUpdatesQueryPromise.finally(() => validateAndApplyDeferredUpdates);
     }
 
-    missingOnyxUpdatesQueryPromise = OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates();
+    missingOnyxUpdatesQueryPromise = validateAndApplyDeferredUpdates();
 }
 
 type EnqueueDeferredOnyxUpdatesOptions = {
@@ -76,8 +79,9 @@ type EnqueueDeferredOnyxUpdatesOptions = {
  * @param updates The updates that should be applied (e.g. updates from push notifications)
  * @param options additional flags to change the behaviour of this function
  */
-function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
+function enqueue<TKey extends OnyxKey>(updates: OnyxUpdatesFromServer<TKey> | DeferredUpdatesDictionary<TKey>, options?: EnqueueDeferredOnyxUpdatesOptions) {
     if (options?.shouldPauseSequentialQueue ?? true) {
+        Log.info('[DeferredOnyxUpdates] Pausing SequentialQueue');
         SequentialQueue.pause();
     }
 
@@ -85,27 +89,22 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
     // If so, we only need to insert one update into the deferred updates queue.
     if (isValidOnyxUpdateFromServer(updates)) {
         const lastUpdateID = Number(updates.lastUpdateID);
+        // Prioritize HTTPS since it provides complete request information for updating in the correct logical order
+        if (deferredUpdates[lastUpdateID] && updates.type !== CONST.ONYX_UPDATE_TYPES.HTTPS) {
+            return;
+        }
         deferredUpdates[lastUpdateID] = updates;
     } else {
         // If the "updates" param is an object, we need to insert multiple updates into the deferred updates queue.
-        Object.entries(updates).forEach(([lastUpdateIDString, update]) => {
+        for (const [lastUpdateIDString, update] of Object.entries(updates)) {
             const lastUpdateID = Number(lastUpdateIDString);
             if (deferredUpdates[lastUpdateID]) {
-                return;
+                continue;
             }
 
-            deferredUpdates[lastUpdateID] = update;
-        });
+            deferredUpdates[lastUpdateID] = update as OnyxUpdatesFromServer<TKey>;
+        }
     }
-}
-
-/**
- * Adds updates to the deferred updates queue and processes them immediately
- * @param updates The updates that should be applied (e.g. updates from push notifications)
- */
-function enqueueAndProcess(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
-    enqueue(updates, options);
-    process();
 }
 
 type ClearDeferredOnyxUpdatesOptions = {
@@ -130,4 +129,4 @@ function clear(options?: ClearDeferredOnyxUpdatesOptions) {
     }
 }
 
-export {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, process, enqueue, enqueueAndProcess, clear};
+export {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, process, enqueue, clear};

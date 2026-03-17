@@ -1,14 +1,14 @@
-import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Session from '@userActions/Session';
+import {normalizeLogin} from '@libs/LoginUtils';
+import {clearSignInData} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -17,12 +17,8 @@ function EmailDeliveryFailurePage() {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
-    const login = useMemo(() => {
-        if (!credentials?.login) {
-            return '';
-        }
-        return Str.isSMSLogin(credentials.login) ? Str.removeSMSDomain(credentials.login) : credentials.login;
-    }, [credentials?.login]);
+
+    const login = normalizeLogin(credentials?.login);
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {
@@ -36,42 +32,27 @@ function EmailDeliveryFailurePage() {
         <>
             <View style={[styles.mv3, styles.flexRow]}>
                 <View style={[styles.flex1]}>
-                    <Text>{translate('emailDeliveryFailurePage.ourEmailProvider', {login})}</Text>
-                    <Text style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>{translate('emailDeliveryFailurePage.confirmThat', {login})}</Text>
-                        {translate('emailDeliveryFailurePage.emailAliases')}
-                    </Text>
-                    <Text style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>{translate('emailDeliveryFailurePage.ensureYourEmailClient')}</Text>
-                        {translate('emailDeliveryFailurePage.youCanFindDirections')}
-                        <TextLink
-                            href={CONST.SET_NOTIFICATION_LINK}
-                            style={[styles.link]}
-                        >
-                            {translate('common.here')}
-                        </TextLink>
-                        {translate('emailDeliveryFailurePage.helpConfigure')}
-                    </Text>
-                    <Text style={styles.mt5}>
-                        {translate('emailDeliveryFailurePage.onceTheAbove')}
-                        <TextLink
-                            href={`mailto:${CONST.EMAIL.CONCIERGE}`}
-                            style={[styles.link]}
-                        >
-                            {CONST.EMAIL.CONCIERGE}
-                        </TextLink>
-                        {translate('emailDeliveryFailurePage.toUnblock')}
-                    </Text>
+                    <Text>{translate('emailDeliveryFailurePage.ourEmailProvider', login)}</Text>
+                    <View style={[styles.mt5, styles.renderHTML]}>
+                        <RenderHTML html={translate('emailDeliveryFailurePage.confirmThat', login)} />
+                    </View>
+                    <View style={[styles.mt5, styles.renderHTML]}>
+                        <RenderHTML html={translate('emailDeliveryFailurePage.ensureYourEmailClient')} />
+                    </View>
+                    <View style={[styles.mt5, styles.renderHTML]}>
+                        <RenderHTML html={translate('emailDeliveryFailurePage.onceTheAbove')} />
+                    </View>
                 </View>
             </View>
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
-                    onPress={() => Session.clearSignInData()}
+                    onPress={() => clearSignInData()}
                     role="button"
                     accessibilityLabel={translate('common.back')}
                     // disable hover dim for switch
                     hoverDimmingValue={1}
                     pressDimmingValue={0.2}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
@@ -79,7 +60,5 @@ function EmailDeliveryFailurePage() {
         </>
     );
 }
-
-EmailDeliveryFailurePage.displayName = 'EmailDeliveryFailurePage';
 
 export default EmailDeliveryFailurePage;

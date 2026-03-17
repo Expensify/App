@@ -1,10 +1,8 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
-import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
@@ -14,33 +12,34 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import Parser from '@libs/Parser';
+import getFileSize from '@pages/Share/getFileSize';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 
-function Composer(
-    {
-        onClear: onClearProp = () => {},
-        onPasteFile = () => {},
-        isDisabled = false,
-        maxLines,
-        isComposerFullSize = false,
-        style,
-        // On native layers we like to have the Text Input not focused so the
-        // user can read new chats without the keyboard in the way of the view.
-        // On Android the selection prop is required on the TextInput but this prop has issues on IOS
-        selection,
-        value,
-        isGroupPolicyReport = false,
-        ...props
-    }: ComposerProps,
-    ref: ForwardedRef<TextInput>,
-) {
+function Composer({
+    onClear: onClearProp = () => {},
+    onPasteFile = () => {},
+    isDisabled = false,
+    maxLines,
+    isComposerFullSize = false,
+    style,
+    // On native layers we like to have the Text Input not focused so the
+    // user can read new chats without the keyboard in the way of the view.
+    // On Android the selection prop is required on the TextInput but this prop has issues on IOS
+    selection,
+    value,
+    isGroupPolicyReport = false,
+    ref,
+    ...props
+}: ComposerProps) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
-    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(value ?? ''), [value]);
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
-    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
+    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -60,15 +59,14 @@ function Composer(
 
         return () => clearTimeout(timeoutID);
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     /**
      * Set the TextInput Ref
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef) => {
-        // eslint-disable-next-line react-compiler/react-compiler
+    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef | null) => {
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
@@ -79,11 +77,11 @@ function Composer(
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
         ref(textInput.current);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const onClear = useCallback(
-        ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+        ({nativeEvent}: TextInputChangeEvent) => {
             onClearProp(nativeEvent.text);
         },
         [onClearProp],
@@ -101,8 +99,10 @@ function Composer(
             const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
             const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
             const fileName = `${stem}.${fileExtension}`;
-            const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
-            onPasteFile(file);
+            let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
+            getFileSize(file.uri ?? '')
+                .then((size) => (file = {...file, size}))
+                .finally(() => onPasteFile(file));
         },
         [onPasteFile],
     );
@@ -132,6 +132,4 @@ function Composer(
     );
 }
 
-Composer.displayName = 'Composer';
-
-export default React.forwardRef(Composer);
+export default Composer;

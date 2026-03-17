@@ -1,13 +1,14 @@
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors, isValidOwnershipPercentage} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 
 type OwnershipPercentageProps = SubStepProps & {
     isUserEnteringHisOwnData: boolean;
@@ -23,14 +24,14 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const ownershipPercentageInputID = `${PREFIX}_${ownerBeingModifiedID}_${OWNERSHIP_PERCENTAGE}` as const;
-    const defaultOwnershipPercentage = String(reimbursementAccountDraft?.[ownershipPercentageInputID] ?? '');
+    const defaultOwnershipPercentage = SafeString(reimbursementAccountDraft?.[ownershipPercentageInputID]);
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYoursPercentage' : 'ownershipInfoStep.whatPercentage');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [ownershipPercentageInputID]);
+            const errors = getFieldRequiredErrors(values, [ownershipPercentageInputID], translate);
 
-            if (values[ownershipPercentageInputID] && !isValidOwnershipPercentage(String(values[ownershipPercentageInputID]), totalOwnedPercentage, ownerBeingModifiedID)) {
+            if (values[ownershipPercentageInputID] && !isValidOwnershipPercentage(SafeString(values[ownershipPercentageInputID]), totalOwnedPercentage, ownerBeingModifiedID)) {
                 errors[ownershipPercentageInputID] = translate('bankAccount.error.ownershipPercentage');
             }
 
@@ -67,7 +68,5 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
         />
     );
 }
-
-OwnershipPercentage.displayName = 'OwnershipPercentage';
 
 export default OwnershipPercentage;

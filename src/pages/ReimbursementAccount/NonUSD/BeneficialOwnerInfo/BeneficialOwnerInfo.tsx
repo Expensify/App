@@ -1,24 +1,27 @@
 import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
-import React, {useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useEffect, useRef, useState} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getOwnerDetailsAndOwnerFilesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getOwnerDetailsAndOwnerFilesForBeneficialOwners';
 import {clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners, saveCorpayOnboardingBeneficialOwners} from '@userActions/BankAccounts';
-import {setDraftValues} from '@userActions/FormActions';
+import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import SafeString from '@src/utils/SafeString';
 import Address from './BeneficialOwnerDetailsFormSubSteps/Address';
 import Confirmation from './BeneficialOwnerDetailsFormSubSteps/Confirmation';
 import DateOfBirth from './BeneficialOwnerDetailsFormSubSteps/DateOfBirth';
 import Documents from './BeneficialOwnerDetailsFormSubSteps/Documents';
 import Last4SSN from './BeneficialOwnerDetailsFormSubSteps/Last4SSN';
 import Name from './BeneficialOwnerDetailsFormSubSteps/Name';
+import Nationality from './BeneficialOwnerDetailsFormSubSteps/Nationality';
 import OwnershipPercentage from './BeneficialOwnerDetailsFormSubSteps/OwnershipPercentage';
 import BeneficialOwnersList from './BeneficialOwnersList';
 
@@ -28,10 +31,13 @@ type BeneficialOwnerInfoProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
 const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {NATIONALITY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const SUBSTEP = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 
 type BeneficialOwnerDetailsFormProps = SubStepProps & {
@@ -42,29 +48,31 @@ type BeneficialOwnerDetailsFormProps = SubStepProps & {
     setTotalOwnedPercentage: (ownedPercentage: Record<string, number>) => void;
 };
 
-const bodyContent: Array<ComponentType<BeneficialOwnerDetailsFormProps>> = [Name, OwnershipPercentage, DateOfBirth, Address, Last4SSN, Documents, Confirmation];
+const bodyContent: Array<ComponentType<BeneficialOwnerDetailsFormProps>> = [Name, Nationality, OwnershipPercentage, DateOfBirth, Address, Last4SSN, Documents, Confirmation];
 
-function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoProps) {
+function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: BeneficialOwnerInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const [ownerKeys, setOwnerKeys] = useState<string[]>([]);
-    const [ownerBeingModifiedID, setOwnerBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.CURRENT_USER_KEY);
+    const [ownerBeingModifiedID, setOwnerBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
     const [isEditingCreatedOwner, setIsEditingCreatedOwner] = useState(false);
     const [isUserEnteringHisOwnData, setIsUserEnteringHisOwnData] = useState(false);
     const [isUserOwner, setIsUserOwner] = useState(false);
     const [isAnyoneElseOwner, setIsAnyoneElseOwner] = useState(false);
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
+    const previousSubStep = usePrevious(currentSubStep);
     const [totalOwnedPercentage, setTotalOwnedPercentage] = useState<Record<string, number>>({});
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isSubmittingRef = useRef(false);
 
     const totalOwnedPercentageSum = Object.values(totalOwnedPercentage).reduce((acc, value) => acc + value, 0);
     const canAddMoreOwners = totalOwnedPercentageSum <= 75;
 
-    const submit = () => {
+    const submit = ({anyIndividualOwn25PercentOrMore}: {anyIndividualOwn25PercentOrMore?: boolean}) => {
         const {ownerDetails, ownerFiles} = getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys, reimbursementAccountDraft);
 
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
@@ -73,8 +81,9 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
             [BENEFICIAL_OWNERS]: JSON.stringify(ownerDetails),
         });
 
+        isSubmittingRef.current = true;
         saveCorpayOnboardingBeneficialOwners({
-            inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore: isUserOwner || isAnyoneElseOwner}),
+            inputs: JSON.stringify({...ownerDetails, anyIndividualOwn25PercentOrMore}),
             ...ownerFiles,
             beneficialOwnerIDs: ownerKeys.length > 0 ? ownerKeys.join(',') : undefined,
             bankAccountID,
@@ -87,7 +96,9 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        // We need to check value of local isSubmittingRef because on initial render reimbursementAccount?.isSuccess is still true after submitting the previous step
+        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
             onSubmit();
             clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners();
         }
@@ -95,7 +106,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners();
         };
-    }, [reimbursementAccount, onSubmit]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields, reimbursementAccount?.isSuccess, onSubmit]);
 
     const addOwner = (ownerID: string) => {
         const newOwners = [...ownerKeys, ownerID];
@@ -146,10 +157,11 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     };
 
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const beneficialOwnerAddressCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
-    const beneficialOwnerAddressCountryValue = reimbursementAccountDraft?.[beneficialOwnerAddressCountryInputID] ?? '';
+    const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
+    const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
 
     const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             goToTheLastStep();
             return;
@@ -166,22 +178,27 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
         } else if (currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
             setCurrentSubStep(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
         } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && screenIndex > 0) {
-            if (screenIndex === 5) {
+            if (screenIndex === 6) {
                 // User is on documents sub step and is not from US (no SSN needed)
-                if (beneficialOwnerAddressCountryValue !== CONST.COUNTRY.US) {
-                    moveTo(3, false);
+                if (beneficialOwnerNationality !== CONST.COUNTRY.US) {
+                    moveTo(4, false);
                     return;
                 }
             }
 
-            if (screenIndex === 6) {
+            if (screenIndex === 7) {
                 // User is on confirmation screen and is GB (no SSN or documents needed)
-                if (countryStepCountryValue === CONST.COUNTRY.GB && beneficialOwnerAddressCountryValue === CONST.COUNTRY.GB) {
-                    moveTo(3, false);
+                if (countryStepCountryValue === CONST.COUNTRY.GB && beneficialOwnerNationality === CONST.COUNTRY.GB) {
+                    moveTo(4, false);
                     return;
                 }
             }
+
             prevScreen();
+        } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && previousSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER) {
+            setCurrentSubStep(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
+        } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && previousSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
+            setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER);
         } else {
             setCurrentSubStep((subStep) => subStep - 1);
         }
@@ -199,7 +216,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
 
             setIsUserOwner(value);
             setIsUserEnteringHisOwnData(value);
-            setOwnerKeys((currentOwnersKeys) => currentOwnersKeys.filter((key) => key !== CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.CURRENT_USER_KEY));
+            setOwnerKeys((currentOwnersKeys) => currentOwnersKeys.filter((key) => key !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY));
 
             // User is an owner but there are 4 other owners already added, so we remove last one
             if (value && ownerKeys.length === 4) {
@@ -229,13 +246,13 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
             // User is not an owner and no one else is an owner
             if (!isUserOwner && !value) {
                 setOwnerKeys([]);
-                submit();
+                submit({anyIndividualOwn25PercentOrMore: false});
                 return;
             }
 
             // User is an owner and no one else is an owner
             if (isUserOwner && !value) {
-                setOwnerKeys([CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.CURRENT_USER_KEY]);
+                setOwnerKeys([CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY]);
                 setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
                 return;
             }
@@ -271,27 +288,30 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BeneficialOwnerInfo.displayName}
+            wrapperID="BeneficialOwnerInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('ownershipInfoStep.ownerInfo')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
+            shouldShowOfflineIndicatorInWideScreen={currentSubStep === SUBSTEP.BENEFICIAL_OWNERS_LIST}
             startStepIndex={3}
         >
             {currentSubStep === SUBSTEP.IS_USER_BENEFICIAL_OWNER && (
                 <YesNoStep
-                    title={translate('ownershipInfoStep.doYouOwn', {companyName})}
+                    title={translate('ownershipInfoStep.doYouOwn', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isUserOwner}
                     onSelectedValue={handleNextSubStep}
+                    isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                 />
             )}
 
             {currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER && (
                 <YesNoStep
-                    title={translate('ownershipInfoStep.doesAnyoneOwn', {companyName})}
+                    title={translate('ownershipInfoStep.doesAnyoneOwn', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isAnyoneElseOwner}
                     onSelectedValue={handleNextSubStep}
+                    isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                 />
             )}
 
@@ -310,10 +330,11 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
 
             {currentSubStep === SUBSTEP.ARE_THERE_MORE_BENEFICIAL_OWNERS && (
                 <YesNoStep
-                    title={translate('ownershipInfoStep.areThereOther', {companyName})}
+                    title={translate('ownershipInfoStep.areThereOther', companyName)}
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={false}
                     onSelectedValue={handleNextSubStep}
+                    isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                 />
             )}
 
@@ -327,7 +348,5 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
         </InteractiveStepWrapper>
     );
 }
-
-BeneficialOwnerInfo.displayName = 'BeneficialOwnerInfo';
 
 export default BeneficialOwnerInfo;

@@ -1,32 +1,25 @@
 // The cards_ object keys don't follow normal naming convention, so to test this reliably we have to disable liner
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {buildCardFeedsData, buildCardsData} from '@libs/CardFeedUtils';
-// eslint-disable-next-line no-restricted-syntax
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type {DomainFeedData} from '@libs/CardFeedUtils';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type {CardList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 
-// Use jest.spyOn to mock the implementation
-jest.spyOn(PolicyUtils, 'getPolicy').mockImplementation((policyID?: string): Policy => {
-    switch (policyID) {
-        case '1':
-            return {name: ''} as Policy;
-        case '2':
-            return {name: 'test1'} as Policy;
-        case '3':
-            return {name: 'test2'} as Policy;
-        default:
-            return {name: ''} as Policy;
-    }
-});
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
+const mockPolicies = {
+    policy_1: {id: '1', name: ''} as Policy,
+    policy_2: {id: '2', name: 'test1'} as Policy,
+    policy_3: {id: '3', name: 'test2'} as Policy,
+};
 
 const workspaceCardFeeds = {
     cards_18680694_vcf: {
         '21593492': {
             accountID: 1,
             bank: 'vcf',
+            fundID: '18680694',
             cardID: 21593492,
             cardName: '480801XXXXXX9411',
             domainName: 'expensify-policy1.exfy',
@@ -35,6 +28,7 @@ const workspaceCardFeeds = {
         '21604933': {
             accountID: 1,
             bank: 'vcf',
+            fundID: '18680694',
             cardID: 21604933,
             cardName: '480801XXXXXX1601',
             domainName: 'expensify-policy1.exfy',
@@ -43,6 +37,7 @@ const workspaceCardFeeds = {
         '21638320': {
             accountID: 1,
             bank: 'vcf',
+            fundID: '18680694',
             cardID: 21638320,
             cardName: '480801XXXXXX2617',
             domainName: 'expensify-policy1.exfy',
@@ -51,6 +46,7 @@ const workspaceCardFeeds = {
         '21638598': {
             accountID: 1,
             bank: 'vcf',
+            fundID: '18680694',
             cardID: 21638598,
             cardName: '480801XXXXXX2111',
             domainName: 'expensify-policy1.exfy',
@@ -64,6 +60,7 @@ const workspaceCardFeeds = {
         '21588678': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755165',
             cardID: 21588678,
             cardName: '455594XXXXXX1138',
             domainName: 'expensify-policy2.exfy',
@@ -72,6 +69,7 @@ const workspaceCardFeeds = {
         '21588684': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755165',
             cardID: 21588684,
             cardName: '',
             domainName: 'expensify-policy2.exfy',
@@ -82,6 +80,7 @@ const workspaceCardFeeds = {
         '21589168': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755166',
             cardID: 21589168,
             cardName: '455594XXXXXX4163',
             domainName: 'expensify-policy3.exfy',
@@ -90,6 +89,7 @@ const workspaceCardFeeds = {
         '21589182': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755166',
             cardID: 21589182,
             cardName: '',
             domainName: 'expensify-policy3.exfy',
@@ -98,6 +98,7 @@ const workspaceCardFeeds = {
         '21589202': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755166',
             cardID: 21589202,
             cardName: '455594XXXXXX6232',
             domainName: 'expensify-policy3.exfy',
@@ -106,9 +107,29 @@ const workspaceCardFeeds = {
         '21638322': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755166',
             cardID: 21638322,
             cardName: '',
             domainName: 'expensify-policy3.exfy',
+            lastFourPAN: '',
+        },
+    },
+    'cards_11111212_Expensify Card': {
+        '21589168': {
+            accountID: 1,
+            bank: 'Expensify Card',
+            fundID: '18755167',
+            cardID: 21589168,
+            cardName: '455594XXXXXX4163',
+            domainName: 'mockDomain.com',
+            lastFourPAN: '4163',
+        },
+        '21589182': {
+            accountID: 1,
+            bank: 'Expensify Card',
+            cardID: 21589182,
+            cardName: '',
+            domainName: 'mockDomain.com',
             lastFourPAN: '',
         },
     },
@@ -273,7 +294,9 @@ const cardListClosed = {
     },
 };
 
-const domainFeedDataMock = {testDomain: {domainName: 'testDomain', bank: 'Expensify Card', correspondingCardIDs: ['11111111']}};
+const domainFeedDataMock = {
+    'mockDomain.com': {domainName: 'mockDomain.com', bank: 'Expensify Card', correspondingCardIDs: ['21589168', '21589182']},
+} as const satisfies Record<string, DomainFeedData>;
 
 const translateMock = jest.fn();
 
@@ -287,6 +310,19 @@ const illustrationsMock = {
     GenericCompanyCardLarge: jest.fn(),
     GenericCSVCompanyCardLarge: jest.fn(),
 };
+const companyCardIconsMock = {
+    VisaCompanyCardDetailLarge: jest.fn(),
+    AmexCardCompanyCardDetailLarge: jest.fn(),
+    MasterCardCompanyCardDetailLarge: jest.fn(),
+    BankOfAmericaCompanyCardDetailLarge: jest.fn(),
+    CapitalOneCompanyCardDetailLarge: jest.fn(),
+    ChaseCompanyCardDetailLarge: jest.fn(),
+    CitibankCompanyCardDetailLarge: jest.fn(),
+    WellsFargoCompanyCardDetailLarge: jest.fn(),
+    BrexCompanyCardDetailLarge: jest.fn(),
+    StripeCompanyCardDetailLarge: jest.fn(),
+    PlaidCompanyCardDetailLarge: jest.fn(),
+};
 
 describe('buildIndividualCardsData', () => {
     it("Builds all individual cards and doesn't generate duplicates", () => {
@@ -296,9 +332,10 @@ describe('buildIndividualCardsData', () => {
             {},
             ['21588678'],
             illustrationsMock as IllustrationsType,
+            companyCardIconsMock,
         );
 
-        expect(result.unselected.length + result.selected.length).toEqual(11);
+        expect(result.unselected.length + result.selected.length).toEqual(13);
 
         // Check if Expensify card was built correctly
         const expensifyCard = result.selected.find((card) => card.keyForList === '21588678');
@@ -321,6 +358,7 @@ describe('buildIndividualCardsData', () => {
             {},
             [],
             illustrationsMock as IllustrationsType,
+            companyCardIconsMock,
         );
         expect(result.unselected.length + result.selected.length).toEqual(0);
     });
@@ -334,6 +372,7 @@ describe('buildCardsData closed cards', () => {
             {},
             ['21539012'],
             illustrationsMock as IllustrationsType,
+            companyCardIconsMock,
             true,
         );
         expect(result.unselected.length + result.selected.length).toEqual(4);
@@ -356,7 +395,7 @@ describe('buildCardsData closed cards', () => {
 
 describe('buildCardsData with empty argument objects', () => {
     it('Returns empty array when cardList and workspaceCardFeeds are empty', () => {
-        const result = buildCardsData({}, {}, {}, [], illustrationsMock as IllustrationsType);
+        const result = buildCardsData({}, {}, {}, [], illustrationsMock as IllustrationsType, companyCardIconsMock);
         expect(result).toEqual({selected: [], unselected: []});
     });
 });
@@ -365,43 +404,47 @@ describe('buildCardFeedsData', () => {
     const result = buildCardFeedsData(
         workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>,
         domainFeedDataMock,
+        mockPolicies,
         [],
         translateMock as LocaleContextProps['translate'],
         illustrationsMock as IllustrationsType,
+        companyCardIconsMock,
     );
 
-    it('Buids domain card feed properly', () => {
-        // Check if domain card feed was built properly
+    it('Build domain card feed properly', () => {
+        // Check if external domain feed was built properly
         expect(result.unselected.at(0)).toMatchObject({
             isCardFeed: true,
-            correspondingCards: ['11111111'],
+            correspondingCards: ['21589168', '21589182'],
         });
-        expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'testDomain'});
-        // Check if workspace card feed that comes from company cards was built properly.
+        expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'mockDomain.com'});
+
+        // Check if domain card feed was built properly
         expect(result.unselected.at(1)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['21593492', '21604933', '21638320', '21638598'],
         });
         expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: 'Visa', cardFeedLabel: undefined});
-        // Check if workspace card feed that comes from expensify cards was built properly
+        // Check if workspace card feed that comes from company cards was built properly.
         expect(result.unselected.at(2)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['21588678', '21588684'],
         });
         expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'test1'});
-
-        // Check if workspace card feed that comes from expensify cards was built properly.
+        // Check if workspace card feed that comes from expensify cards was built properly
         expect(result.unselected.at(3)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['21589168', '21589182', '21589202', '21638322'],
         });
         expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'test2'});
+        // Check if domain card feed was built properly
+        expect(result.unselected.length).toEqual(4);
     });
 });
 
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Return empty array when domainCardFeeds and workspaceCardFeeds are empty', () => {
-        const result = buildCardFeedsData({}, {}, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType);
+        const result = buildCardFeedsData({}, {}, mockPolicies, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType, companyCardIconsMock);
         expect(result).toEqual({selected: [], unselected: []});
     });
 });

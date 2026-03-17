@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import textRef from '@src/types/utils/textRef';
 import type TextInputLabelProps from './types';
 
-function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}: TextInputLabelProps) {
+function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, isMultiline}: TextInputLabelProps) {
     const styles = useThemeStyles();
     const labelRef = useRef<Text | HTMLFormElement>(null);
 
@@ -16,17 +16,22 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}:
             return;
         }
         labelRef.current.setAttribute('for', inputId);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => styles.textInputLabelTransformation(labelTranslateY, labelScale));
 
     return (
         <Animated.Text
-            // eslint-disable-next-line react-compiler/react-compiler
+            numberOfLines={!isMultiline ? 1 : undefined}
+            ellipsizeMode={!isMultiline ? 'tail' : undefined}
             ref={textRef(labelRef)}
             role={CONST.ROLE.PRESENTATION}
-            style={[styles.textInputLabel, animatedStyle, styles.pointerEventsNone]}
+            accessible={false}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+            aria-hidden
+            style={[styles.textInputLabelContainer, styles.textInputLabel, animatedStyle, styles.pointerEventsNone]}
         >
             {label}
         </Animated.Text>

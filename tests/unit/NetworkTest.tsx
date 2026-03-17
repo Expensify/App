@@ -1,11 +1,17 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import NetInfo from '@react-native-community/netinfo';
+import type {NetInfoState} from '@react-native-community/netinfo';
+import {NavigationContainer} from '@react-navigation/native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {sub as dateSubtract} from 'date-fns/sub';
 import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import TestToolMenu from '@components/TestToolMenu';
 import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
+import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import * as NetworkActions from '@src/libs/actions/Network';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -24,6 +30,7 @@ import type {Session as OnyxSession} from '@src/types/onyx';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 type OnResolved = (params: {jsonCode?: string | number}) => void;
 
@@ -65,6 +72,80 @@ afterEach(() => {
 });
 
 describe('NetworkTests', () => {
+    test('should not perform a network check if one is already pending', () => {
+        // Given a check is already in progress (simulating concurrent recheck attempts)
+        const logInfoSpy = jest.spyOn(Log, 'info');
+        const originalIsCheckPending = NetworkConnection.recheckNetworkState.isCheckPending;
+        NetworkConnection.recheckNetworkState.isCheckPending = true;
+
+        // When another recheck is attempted
+        NetworkConnection.recheckNetworkConnection();
+
+        // Then the function should return early without making a new NetInfo call
+        expect(logInfoSpy).toHaveBeenCalledWith('[NetworkConnection] NetInfo.refresh already in progress, skipping new check.');
+        expect(NetworkConnection.recheckNetworkState.isCheckPending).toBe(true);
+
+        // Cleanup
+        NetworkConnection.recheckNetworkState.isCheckPending = originalIsCheckPending;
+        logInfoSpy.mockRestore();
+    });
+
+    test('should not perform a network check if called before the minimum interval', () => {
+        // Given a check was recently performed (to enforce the minimum interval between checks)
+        const logInfoSpy = jest.spyOn(Log, 'info');
+        const now = Date.now();
+        const originalIsCheckPending = NetworkConnection.recheckNetworkState.isCheckPending;
+        const originalLastCheckTimestamp = NetworkConnection.recheckNetworkState.lastCheckTimestamp;
+        NetworkConnection.recheckNetworkState.isCheckPending = false;
+        NetworkConnection.recheckNetworkState.lastCheckTimestamp = now;
+        jest.spyOn(Date, 'now').mockReturnValue(now + CONST.NETWORK.MAX_PENDING_TIME_MS - 1);
+
+        // When another recheck is requested before the minimum interval elapses
+        NetworkConnection.recheckNetworkConnection();
+
+        // Then the function should skip the check to respect the interval
+        expect(logInfoSpy).toHaveBeenCalledWith('[NetworkConnection] NetInfo.refresh called too soon, skipping to respect interval.');
+
+        // Cleanup
+        NetworkConnection.recheckNetworkState.isCheckPending = originalIsCheckPending;
+        NetworkConnection.recheckNetworkState.lastCheckTimestamp = originalLastCheckTimestamp;
+        (Date.now as jest.Mock).mockRestore();
+        logInfoSpy.mockRestore();
+    });
+
+    test('should perform a network check and reset pending state when conditions are met', async () => {
+        // Given sufficient time has passed since the last check (allowing a new check to proceed)
+        const logInfoSpy = jest.spyOn(Log, 'info');
+        const refreshMock = jest.spyOn(NetInfo, 'refresh').mockResolvedValue(null as unknown as NetInfoState);
+        const now = Date.now();
+        const originalIsCheckPending = NetworkConnection.recheckNetworkState.isCheckPending;
+        const originalLastCheckTimestamp = NetworkConnection.recheckNetworkState.lastCheckTimestamp;
+        NetworkConnection.recheckNetworkState.isCheckPending = false;
+        NetworkConnection.recheckNetworkState.lastCheckTimestamp = now - CONST.NETWORK.MAX_PENDING_TIME_MS - 1;
+        jest.spyOn(Date, 'now').mockReturnValue(now);
+
+        // When a recheck is triggered
+        NetworkConnection.recheckNetworkConnection();
+
+        // Then the network refresh should be initiated and the pending state should be tracked
+        expect(logInfoSpy).toHaveBeenCalledWith('[NetworkConnection] refresh NetInfo.');
+        expect(refreshMock).toHaveBeenCalled();
+        expect(NetworkConnection.recheckNetworkState.isCheckPending).toBe(true);
+
+        // And after the refresh completes, the pending state should be cleared
+        await waitFor(() => {
+            expect(logInfoSpy).toHaveBeenCalledWith('[NetworkConnection] NetInfo.refresh finished.');
+        });
+        expect(NetworkConnection.recheckNetworkState.isCheckPending).toBe(false);
+
+        // Cleanup
+        NetworkConnection.recheckNetworkState.isCheckPending = originalIsCheckPending;
+        NetworkConnection.recheckNetworkState.lastCheckTimestamp = originalLastCheckTimestamp;
+        (Date.now as jest.Mock).mockRestore();
+        logInfoSpy.mockRestore();
+        refreshMock.mockRestore();
+    });
+
     test('failing to reauthenticate should not log out user', () => {
         // Use fake timers to control timing in the test
         jest.useFakeTimers();
@@ -250,9 +331,9 @@ describe('NetworkTests', () => {
             .then(() => {
                 // We should expect to see the three calls to OpenApp, but only one call to Authenticate.
                 // And we should also see the reconnection callbacks triggered.
-                const callsToopenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
                 const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
-                expect(callsToopenPublicProfilePage.length).toBe(3);
+                expect(callsToOpenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectionCallbacksSpy.mock.calls.length).toBe(3);
             });
@@ -403,25 +484,36 @@ describe('NetworkTests', () => {
         const setShouldFailAllRequestsSpy = jest.spyOn(NetworkActions, 'setShouldFailAllRequests');
 
         // Given an opened test tool menu
-        render(<TestToolMenu />);
+        render(
+            <ComposeProviders components={[LocaleContextProvider]}>
+                <NavigationContainer
+                    ref={navigationRef}
+                    onReady={() => {
+                        // Navigation is ready, but we still need to handle the timing issue
+                    }}
+                >
+                    <TestToolMenu />
+                </NavigationContainer>
+            </ComposeProviders>,
+        );
         expect(screen.getByAccessibilityHint('Force offline')).not.toBeDisabled();
         expect(screen.getByAccessibilityHint('Simulate failing network requests')).not.toBeDisabled();
 
         // When the connection simulation is turned on
         NetworkActions.setShouldSimulatePoorConnection(true, undefined);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the connection status change log should be displayed as well Simulate poor internet connection toggle should be checked
         expect(logSpy).toHaveBeenCalledWith(expect.stringMatching(/\[NetworkConnection\] Set connection status "(online|offline)" for (\d+(?:\.\d+)?) sec/));
         expect(screen.getByAccessibilityHint('Simulate poor internet connection')).toBeChecked();
 
         // And the setShouldForceOffline and setShouldFailAllRequests should not be called as the Force offline and Simulate failing network requests toggles are disabled
-        fireEvent.press(screen.getByAccessibilityHint('Force offline'));
-        await waitForBatchedUpdates();
+        fireEvent.press(screen.getByAccessibilityHint('Force offline, Locked'));
+        await waitForBatchedUpdatesWithAct();
         expect(setShouldForceOfflineSpy).not.toHaveBeenCalled();
 
-        fireEvent.press(screen.getByAccessibilityHint('Simulate failing network requests'));
-        await waitForBatchedUpdates();
+        fireEvent.press(screen.getByAccessibilityHint('Simulate failing network requests, Locked'));
+        await waitForBatchedUpdatesWithAct();
         expect(setShouldFailAllRequestsSpy).not.toHaveBeenCalled();
     });
 
@@ -430,10 +522,11 @@ describe('NetworkTests', () => {
 
         // Given tracked connection changes started at least an hour ago
         Onyx.merge(ONYXKEYS.NETWORK, {connectionChanges: {amount: 5, startTime: dateSubtract(new Date(), {hours: 1}).getTime()}});
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // When the connection is changed one more time
         NetworkConnection.setOfflineStatus(true);
+        await waitForBatchedUpdatesWithAct();
 
         // Then the log with information about connection changes since the start time should be shown
         expect(logSpy).toHaveBeenCalledWith('[NetworkConnection] Connection has changed 6 time(s) for the last 1 hour(s). Poor connection simulation is turned off');

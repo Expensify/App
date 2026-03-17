@@ -2,10 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +29,8 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
     const {environmentURL} = useEnvironment();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
 
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox']);
+
     const benefits = [
         translate('workspace.downgrade.commonFeatures.benefits.benefit1'),
         translate('workspace.downgrade.commonFeatures.benefits.benefit2'),
@@ -37,10 +39,10 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
     ];
 
     return (
-        <View style={[styles.m5, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
+        <View style={[styles.m5, styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
             <View style={[styles.mb3]}>
                 <Icon
-                    src={Illustrations.Mailbox}
+                    src={illustrations.Mailbox}
                     width={48}
                     height={48}
                 />
@@ -53,7 +55,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
                         key={benefit}
                         style={[styles.pl2, styles.flexRow]}
                     >
-                        <Text style={[styles.textNormal, styles.textSupporting]}>• </Text>
+                        <Text style={[styles.textNormal, styles.textSupporting, styles.mr1]}>•</Text>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{benefit}</Text>
                     </View>
                 ))}
@@ -95,7 +97,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
                 <Button
                     text={translate('workspace.common.goToWorkspaces')}
                     success
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
                     large
                 />
             )}

@@ -2,8 +2,9 @@ import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
-type DisplayNamesWithoutTooltipProps = {
+type DisplayNamesWithoutTooltipProps = ForwardedFSClassProps & {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle?: string;
 
@@ -17,19 +18,18 @@ type DisplayNamesWithoutTooltipProps = {
     renderAdditionalText?: () => React.ReactNode;
 };
 
-function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = '', renderAdditionalText}: DisplayNamesWithoutTooltipProps) {
+function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = '', renderAdditionalText, forwardedFSClass}: DisplayNamesWithoutTooltipProps) {
     const styles = useThemeStyles();
     return (
         <Text
             style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
             numberOfLines={numberOfLines}
+            fsClass={forwardedFSClass}
         >
             {fullTitle}
             {renderAdditionalText?.()}
         </Text>
     );
 }
-
-DisplayNamesWithoutTooltip.displayName = 'DisplayNamesWithoutTooltip';
 
 export default DisplayNamesWithoutTooltip;

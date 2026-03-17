@@ -1,3 +1,5 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** The pending member of report */
@@ -14,6 +16,9 @@ type PendingChatMember = {
 
 /** Model of report metadata */
 type ReportMetadata = {
+    /** Whether the user has successfully opened a report at least once, or if it was created by this user */
+    hasOnceLoadedReportActions?: boolean;
+
     /** Are we loading newer report actions? */
     isLoadingNewerReportActions?: boolean;
 
@@ -40,6 +45,15 @@ type ReportMetadata = {
 
     /** Pending members of the report */
     pendingChatMembers?: PendingChatMember[];
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
+
+    /** Whether the report has violations or errors */
+    errors?: OnyxCommon.Errors;
+
+    /** Pending expense action for DEW policies (e.g., SUBMIT or APPROVE in progress) */
+    pendingExpenseAction?: ValueOf<typeof CONST.EXPENSE_PENDING_ACTION>;
 };
 
 export default ReportMetadata;

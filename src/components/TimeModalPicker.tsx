@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -21,9 +22,12 @@ type TimeModalPickerProps = {
 
     /** Label for the picker */
     label: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: TimeModalPickerProps) {
+function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref}: TimeModalPickerProps) {
     const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const currentTime = value ? DateUtils.extractTime12Hour(value) : undefined;
@@ -47,20 +51,20 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
+                ref={ref}
             />
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
                 isVisible={isPickerVisible}
                 onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
-                hideModalContentWhileAnimating
-                useNativeDriver
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <ScreenWrapper
                     style={styles.pb0}
                     includePaddingTop={false}
                     includeSafeAreaPaddingBottom
-                    testID={TimeModalPicker.displayName}
+                    testID="TimeModalPicker"
                 >
                     <HeaderWithBackButton
                         title={label}
@@ -79,5 +83,4 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
     );
 }
 
-TimeModalPicker.displayName = 'TimeModalPicker';
 export default TimeModalPicker;

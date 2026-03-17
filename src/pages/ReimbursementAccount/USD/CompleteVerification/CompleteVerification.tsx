@@ -1,12 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ComponentType} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {acceptACHContractForBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -25,22 +25,25 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
 
     const values = useMemo(() => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
 
     const submit = useCallback(() => {
-        BankAccounts.acceptACHContractForBankAccount(
-            Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
+        acceptACHContractForBankAccount(
+            Number(reimbursementAccount?.achData?.bankAccountID),
             {
                 isAuthorizedToUseBankAccount: values.isAuthorizedToUseBankAccount,
                 certifyTrueInformation: values.certifyTrueInformation,
                 acceptTermsAndConditions: values.acceptTermsAndConditions,
             },
             policyID,
+            policyID ? lastPaymentMethod?.[policyID] : undefined,
         );
-    }, [reimbursementAccount, values, policyID]);
+    }, [reimbursementAccount?.achData?.bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod]);
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
@@ -58,12 +61,12 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CompleteVerification.displayName}
+            wrapperID="CompleteVerification"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('completeVerificationStep.completeVerification')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={5}
+            startStepIndex={6}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep
@@ -74,7 +77,5 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
         </InteractiveStepWrapper>
     );
 }
-
-CompleteVerification.displayName = 'CompleteVerification';
 
 export default CompleteVerification;

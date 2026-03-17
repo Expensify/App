@@ -1,9 +1,12 @@
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import type {PersonalDetailsForm} from '@src/types/form';
 
-type CustomSubStepProps = SubStepProps & {
+type CustomSubPageProps = SubPageProps & {
     /** User's personal details values */
     personalDetailsValues: PersonalDetailsForm;
+
+    /** Whether the flow should collect a PIN */
+    shouldCollectPin: boolean;
 };
 
 type CountryZipRegex = {
@@ -11,4 +14,4 @@ type CountryZipRegex = {
     samples?: string;
 };
 
-export type {CustomSubStepProps, CountryZipRegex};
+export type {CustomSubPageProps, CountryZipRegex};

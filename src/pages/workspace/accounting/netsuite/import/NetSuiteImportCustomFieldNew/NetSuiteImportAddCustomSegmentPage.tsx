@@ -1,6 +1,6 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useOnyx from '@hooks/useOnyx';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,7 +12,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
     const isLoading = isLoadingOnyxValue(draftValuesMetadata);
 
     if (isLoading) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'NetSuiteImportAddCustomSegmentPage'}} />;
     }
 
     return (
@@ -22,7 +22,5 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
         />
     );
 }
-
-NetSuiteImportAddCustomSegmentPage.displayName = 'NetSuiteImportAddCustomSegmentPage';
 
 export default withPolicyConnections(NetSuiteImportAddCustomSegmentPage);

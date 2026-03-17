@@ -38,7 +38,7 @@ function EmojiSkinToneList() {
             return;
         }
         toggleIsSkinToneListVisible();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
     }, [preferredSkinTone]);
 
     const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone);
@@ -55,6 +55,7 @@ function EmojiSkinToneList() {
                     style={[styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
                     accessibilityLabel={translate('emojiPicker.skinTonePickerLabel')}
                     role={CONST.ROLE.BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SKIN_TONE_TOGGLE}
                 >
                     <View style={[styles.emojiItem, styles.wAuto, styles.justifyContentCenter]}>
                         <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>{currentSkinTone.code}</Text>
@@ -79,7 +80,5 @@ function EmojiSkinToneList() {
         </View>
     );
 }
-
-EmojiSkinToneList.displayName = 'EmojiSkinToneList';
 
 export default EmojiSkinToneList;

@@ -1,15 +1,16 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BankAccount from '@libs/models/BankAccount';
 import ConnectedVerifiedBankAccount from '@pages/ReimbursementAccount/ConnectedVerifiedBankAccount';
-import * as Report from '@userActions/Report';
+import {navigateToConciergeChat} from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
@@ -30,38 +31,42 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, true);
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
-    if (bankAccountState === BankAccount.STATE.OPEN) {
+    if (bankAccountState === CONST.BANK_ACCOUNT.STATE.OPEN) {
         return (
             <ConnectedVerifiedBankAccount
                 reimbursementAccount={reimbursementAccount}
                 onBackButtonPress={onBackButtonPress}
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 setUSDBankAccountStep={setUSDBankAccountStep}
+                isNonUSDWorkspace={false}
             />
         );
     }
 
     const maxAttemptsReached = reimbursementAccount?.maxAttemptsReached ?? false;
-    const isBankAccountVerifying = !maxAttemptsReached && bankAccountState === BankAccount.STATE.VERIFYING;
-    const isBankAccountPending = bankAccountState === BankAccount.STATE.PENDING;
+    const isBankAccountVerifying = !maxAttemptsReached && bankAccountState === CONST.BANK_ACCOUNT.STATE.VERIFYING;
+    const isBankAccountPending = bankAccountState === CONST.BANK_ACCOUNT.STATE.PENDING;
     const requiresTwoFactorAuth = account?.requiresTwoFactorAuth ?? false;
 
     return (
         <ScreenWrapper
-            testID={ConnectBankAccount.displayName}
+            testID="ConnectBankAccount"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={isBankAccountPending ? translate('connectBankAccountStep.validateYourBankAccount') : translate('connectBankAccountStep.connectBankAccount')}
+                title={isBankAccountPending ? translate('connectBankAccountStep.validateYourBankAccount') : translate('bankAccount.addBankAccount')}
                 onBackButtonPress={onBackButtonPress}
             />
             {maxAttemptsReached && (
@@ -83,12 +88,11 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                 <FinishChatCard
                     requiresTwoFactorAuth={requiresTwoFactorAuth}
                     reimbursementAccount={reimbursementAccount}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
                 />
             )}
         </ScreenWrapper>
     );
 }
-
-ConnectBankAccount.displayName = 'ConnectBankAccount';
 
 export default ConnectBankAccount;

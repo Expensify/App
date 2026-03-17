@@ -1,21 +1,19 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import type {EdgeInsets} from 'react-native-safe-area-context';
+import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useOnyx from '@hooks/useOnyx';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
-import type {Tax, TaxRatesOption} from '@libs/TaxOptionsListUtils';
+import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getEnabledTaxRateCount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 
 type TaxPickerProps = {
     /** The selected tax rate of an expense */
@@ -27,12 +25,6 @@ type TaxPickerProps = {
     /** ID of the transaction */
     transactionID?: string;
 
-    /**
-     * Safe area insets required for reflecting the portion of the view,
-     * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
-     */
-    insets?: EdgeInsets;
-
     /** Callback to fire when a tax is pressed */
     onSubmit: (tax: TaxRatesOption) => void;
 
@@ -42,12 +34,16 @@ type TaxPickerProps = {
     /** The type of IOU */
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
 
-    onDismiss?: () => void;
+    onDismiss: () => void;
+
+    /**
+     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSubmit, action, iouType, onDismiss = Navigation.goBack}: TaxPickerProps) {
-    const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, action, iouType, onDismiss = Navigation.goBack, addBottomSafeAreaPadding}: TaxPickerProps) {
+    const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -59,6 +55,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSub
             }
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         })(),
+        {},
     );
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -71,62 +68,52 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSub
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const selectedOptions = useMemo<Tax[]>(() => {
-        if (!selectedTaxRate) {
-            return [];
+    const selectedOptions = selectedTaxRate
+        ? [
+              {
+                  modifiedName: selectedTaxRate,
+                  isDisabled: false,
+                  accountID: null,
+              },
+          ]
+        : [];
+
+    const sections = getTaxRatesSection({
+        policy,
+        searchValue,
+        localeCompare,
+        selectedOptions,
+        transaction: currentTransaction,
+    });
+
+    const selectedOptionKey = sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList;
+
+    const handleSelectRow = (newSelectedOption: TaxRatesOption) => {
+        if (selectedOptionKey === newSelectedOption.keyForList) {
+            onDismiss();
+            return;
         }
+        onSubmit(newSelectedOption);
+    };
 
-        return [
-            {
-                modifiedName: selectedTaxRate,
-                isDisabled: false,
-                accountID: null,
-            },
-        ];
-    }, [selectedTaxRate]);
-
-    const sections = useMemo(
-        () =>
-            getTaxRatesSection({
-                policy,
-                searchValue,
-                selectedOptions,
-                transaction: currentTransaction,
-            }),
-        [searchValue, selectedOptions, policy, currentTransaction],
-    );
-
-    const headerMessage = getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
-
-    const selectedOptionKey = useMemo(() => sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
-
-    const handleSelectRow = useCallback(
-        (newSelectedOption: TaxRatesOption) => {
-            if (selectedOptionKey === newSelectedOption.keyForList) {
-                onDismiss();
-                return;
-            }
-            onSubmit(newSelectedOption);
-        },
-        [onSubmit, onDismiss, selectedOptionKey],
-    );
+    const textInputOptions = {
+        label: translate('common.search'),
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage: getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue),
+    };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             sections={sections}
-            headerMessage={headerMessage}
-            textInputValue={searchValue}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            onChangeText={setSearchValue}
+            shouldShowTextInput={shouldShowTextInput}
+            textInputOptions={textInputOptions}
             onSelectRow={handleSelectRow}
             ListItem={RadioListItem}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
-            containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
+            initiallyFocusedItemKey={selectedOptionKey ?? undefined}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
 }
-
-TaxPicker.displayName = 'TaxPicker';
 
 export default TaxPicker;

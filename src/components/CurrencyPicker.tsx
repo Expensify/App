@@ -1,8 +1,8 @@
 import type {ReactNode} from 'react';
 import React, {Fragment, useState} from 'react';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
@@ -41,6 +41,7 @@ type CurrencyPickerProps = {
 
 function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, disabled = false, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const styles = useThemeStyles();
 
@@ -71,19 +72,17 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 isVisible={isPickerVisible}
                 onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
-                hideModalContentWhileAnimating
                 shouldEnableNewFocusManagement
-                useNativeDriver
                 onBackdropPress={Navigation.dismissModal}
                 shouldUseModalPaddingStyle={false}
                 shouldHandleNavigationBack
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
-                    includePaddingTop
-                    includeSafeAreaPaddingBottom
-                    testID={CurrencyPicker.displayName}
+                    testID="CurrencyPicker"
                     shouldEnableMaxHeight
+                    enableEdgeToEdgeBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
                         title={label}
@@ -97,6 +96,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                             onSelect={updateInput}
                             searchInputLabel={translate('common.search')}
                             excludedCurrencies={excludeCurrencies}
+                            addBottomSafeAreaPadding
                         />
                     </BlockingComponent>
                 </ScreenWrapper>
@@ -105,5 +105,4 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
     );
 }
 
-CurrencyPicker.displayName = 'CurrencyPicker';
 export default CurrencyPicker;

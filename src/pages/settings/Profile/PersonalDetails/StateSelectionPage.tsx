@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
@@ -66,10 +66,22 @@ function StateSelectionPage() {
         [params?.backTo],
     );
 
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage,
+            // Label can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            label: label || translate('common.state'),
+            value: searchValue,
+            onChangeText: setSearchValue,
+        }),
+        [headerMessage, label, searchValue, translate],
+    );
+
     return (
         <ScreenWrapper
-            testID={StateSelectionPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            testID="StateSelectionPage"
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 // Label can be an empty string
@@ -89,25 +101,18 @@ function StateSelectionPage() {
             />
             {/* This empty, non-harmful view fixes the issue with SelectionList scrolling and shouldUseDynamicMaxToRenderPerBatch. It can be removed without consequences if a solution for SelectionList is found. See comment https://github.com/Expensify/App/pull/36770#issuecomment-2017028096 */}
             <View />
-
             <SelectionList
-                onSelectRow={selectCountryState}
-                shouldSingleExecuteRowSelect
-                headerMessage={headerMessage}
-                // Label can be an empty string
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                textInputLabel={label || translate('common.state')}
-                textInputValue={searchValue}
-                sections={[{data: searchResults}]}
-                onChangeText={setSearchValue}
-                initiallyFocusedOptionKey={currentState}
-                shouldUseDynamicMaxToRenderPerBatch
+                data={searchResults}
                 ListItem={RadioListItem}
+                onSelectRow={selectCountryState}
+                textInputOptions={textInputOptions}
+                initiallyFocusedItemKey={currentState}
+                shouldSingleExecuteRowSelect
+                disableMaintainingScrollPosition
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );
 }
-
-StateSelectionPage.displayName = 'StateSelectionPage';
 
 export default StateSelectionPage;

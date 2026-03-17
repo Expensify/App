@@ -1,10 +1,10 @@
 import type {OnyxCollection} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
-import type {CardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
@@ -30,8 +30,12 @@ function buildSubstitutionsMap(
     personalDetails: PersonalDetailsList | undefined,
     reports: OnyxCollection<Report>,
     allTaxRates: Record<string, string[]>,
-    cardList: CardList,
-    cardFeedNamesWithType: CardFeedNamesWithType,
+    cardList: CardList | undefined,
+    cardFeeds: OnyxCollection<CardFeeds>,
+    policies: OnyxCollection<Policy>,
+    currentUserAccountID: number,
+    translate: LocalizedTranslate,
+    conciergeReportID: string | undefined,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -51,21 +55,37 @@ function buildSubstitutionsMap(
 
             const taxRateNames = taxRates.length > 0 ? taxRates : [taxRateID];
             const uniqueTaxRateNames = [...new Set(taxRateNames)];
-            uniqueTaxRateNames.forEach((taxRateName) => {
+            for (const taxRateName of uniqueTaxRateNames) {
                 const substitutionKey = getSubstitutionsKey(filterKey, taxRateName);
 
                 // eslint-disable-next-line no-param-reassign
                 map[substitutionKey] = taxRateID;
-            });
+            }
         } else if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
-            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeedNamesWithType);
+            const displayValue = getFilterDisplayValue({
+                filterName: filterKey,
+                filterValue,
+                personalDetails,
+                reports,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                translate,
+                conciergeReportID,
+            });
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {

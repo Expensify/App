@@ -1,40 +1,49 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
+import type {ScrollView as RNScrollView} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
-import Avatar from './Avatar';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
-import CurrencyPicker from './CurrencyPicker';
+import CurrencySelector from './CurrencySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import PlanTypeSelector from './PlanTypeSelector';
 import ScrollView from './ScrollView';
+import Switch from './Switch';
 import Text from './Text';
 import TextInput from './TextInput';
 
-function getFirstAlphaNumericCharacter(str = '') {
-    return str
-        .normalize('NFD')
-        .replace(/[^0-9a-z]/gi, '')
-        .toUpperCase()[0];
-}
+type PolicyType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
 
 type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
     currency: string;
+    planType?: PolicyType;
+    owner?: string;
+    makeMeAdmin: boolean;
     avatarFile: File | CustomRNImageManipulatorResult | undefined;
     policyID: string;
 };
@@ -49,14 +58,21 @@ type WorkspaceConfirmationFormProps = {
     /** Submit function */
     onSubmit: (params: WorkspaceConfirmationSubmitFunctionParams) => void;
 
-    /** go back function */
+    /** Go back function */
     onBackButtonPress?: () => void;
+
+    /** Whether bottom safe area padding should be added */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack()}: WorkspaceConfirmationFormProps) {
+function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isApprovedAccountant = !!account?.isApprovedAccountant;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
@@ -68,27 +84,64 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
             } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
                 // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             if (!isRequiredFulfilled(values[INPUT_IDS.CURRENCY])) {
                 errors[INPUT_IDS.CURRENCY] = translate('common.error.fieldRequired');
             }
 
+            // Only validate plan type and owner for approved accountants
+            if (isApprovedAccountant) {
+                if (!isRequiredFulfilled(values[INPUT_IDS.PLAN_TYPE])) {
+                    errors[INPUT_IDS.PLAN_TYPE] = translate('common.error.fieldRequired');
+                }
+
+                if (!isRequiredFulfilled(values[INPUT_IDS.OWNER])) {
+                    errors[INPUT_IDS.OWNER] = translate('common.error.fieldRequired');
+                }
+            }
+
             return errors;
         },
-        [translate],
+        [translate, isApprovedAccountant],
     );
 
     const policyID = useMemo(() => generatePolicyID(), []);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session, metadata] = useOnyx(ONYXKEYS.SESSION);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
 
-    const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail || session?.email);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
-    const userCurrency = allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
+    const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
+
+    const isMemberOfControlWorkspace = useMemo(() => {
+        if (!policies) {
+            return false;
+        }
+        return Object.values(policies).some((policy) => policy && policy.type === CONST.POLICY.TYPE.CORPORATE);
+    }, [policies]);
+
+    const defaultPlanType = isMemberOfControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+    const userPlanType = draftValues?.planType ?? defaultPlanType;
+    const defaultOwner = (policyOwnerEmail || session?.email) ?? '';
+
+    const userOwner = draftValues?.owner ?? defaultOwner;
+    const ownerDisplayName = userOwner;
+
+    const [makeMeAdmin, setMakeMeAdmin] = useState(true);
+    const currentUserEmail = session?.email ?? '';
+    const isOwnerDifferentFromCurrentUser = userOwner !== currentUserEmail && currentUserEmail !== '';
+
+    useEffect(() => {
+        return () => {
+            clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM);
+        };
+    }, []);
 
     const [workspaceAvatar, setWorkspaceAvatar] = useState<{avatarUri: string | null; avatarFileName?: string | null; avatarFileType?: string | null}>({
         avatarUri: null,
@@ -99,22 +152,12 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
-    const DefaultAvatar = useCallback(
-        () => (
-            <Avatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-                source={workspaceAvatar?.avatarUri || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter)}
-                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.XLARGE}
-                name={workspaceNameFirstCharacter}
-                avatarID={policyID}
-                type={CONST.ICON_TYPE_WORKSPACE}
-            />
-        ),
-        [workspaceAvatar?.avatarUri, workspaceNameFirstCharacter, styles.alignSelfCenter, styles.avatarXLarge, policyID],
-    );
+    const DefaultAvatar = useWorkspaceConfirmationAvatar({
+        policyID,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
+        source: stashedLocalAvatarImage || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter),
+        name: workspaceNameFirstCharacter,
+    });
 
     return (
         <>
@@ -123,15 +166,21 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                 onBackButtonPress={onBackButtonPress}
             />
             <ScrollView
+                ref={scrollViewRef}
                 contentContainerStyle={styles.flexGrow1}
                 keyboardShouldPersistTaps="always"
+                onContentSizeChange={() => {
+                    if (!isApprovedAccountant) {
+                        return;
+                    }
+                    scrollViewRef.current?.scrollToEnd({animated: true});
+                }}
             >
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
                 </View>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     avatarID={policyID}
                     source={stashedLocalAvatarImage}
                     onImageSelected={(image) => {
@@ -142,15 +191,14 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.XLARGE}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
-                    shouldDisableViewPhoto
-                    editIcon={Expensicons.Camera}
+                    editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
                     DefaultAvatar={DefaultAvatar}
-                    editorMaskImage={Expensicons.ImageCropSquareMask}
+                    editorMaskImage={icons.ImageCropSquareMask}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM}
@@ -158,50 +206,99 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     validate={validate}
-                    onSubmit={(val) =>
+                    onSubmit={(val) => {
                         onSubmit({
                             name: val[INPUT_IDS.NAME],
                             currency: val[INPUT_IDS.CURRENCY],
+                            planType: isApprovedAccountant ? (val[INPUT_IDS.PLAN_TYPE] as PolicyType) : undefined,
+                            owner: isApprovedAccountant ? val[INPUT_IDS.OWNER] : '',
+                            makeMeAdmin: isApprovedAccountant && isOwnerDifferentFromCurrentUser ? makeMeAdmin : false,
                             avatarFile,
                             policyID,
-                        })
-                    }
+                        });
+                    }}
                     enabledWhenOffline
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    shouldScrollToEnd={isApprovedAccountant}
                 >
                     <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.common.workspaceName')}
-                            accessibilityLabel={translate('workspace.common.workspaceName')}
-                            spellCheck={false}
-                            defaultValue={defaultWorkspaceName}
-                            onChangeText={(str) => {
-                                if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
-                                    return;
-                                }
-                                setWorkspaceNameFirstCharacter(str);
-                            }}
-                            ref={inputCallbackRef}
-                        />
+                        {!isLoadingOnyxValue(metadata) && (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('workspace.common.workspaceName')}
+                                accessibilityLabel={translate('workspace.common.workspaceName')}
+                                spellCheck={false}
+                                defaultValue={defaultWorkspaceName}
+                                onChangeText={(str) => {
+                                    if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
+                                        return;
+                                    }
+                                    setWorkspaceNameFirstCharacter(str);
+                                }}
+                                ref={inputCallbackRef}
+                            />
+                        )}
 
                         <View style={[styles.mhn5, styles.mt4]}>
                             <InputWrapper
-                                InputComponent={CurrencyPicker}
+                                InputComponent={CurrencySelector}
                                 inputID={INPUT_IDS.CURRENCY}
                                 label={translate('workspace.editor.currencyInputLabel')}
-                                defaultValue={userCurrency}
+                                value={userCurrency}
+                                shouldShowCurrencySymbol
+                                currencySelectorRoute={ROUTES.CURRENCY_SELECTION}
                             />
                         </View>
+                        {isApprovedAccountant && (
+                            <>
+                                <View style={[styles.mhn5]}>
+                                    <InputWrapper
+                                        InputComponent={PlanTypeSelector}
+                                        inputID={INPUT_IDS.PLAN_TYPE}
+                                        label={translate('workspace.common.planType')}
+                                        defaultValue={userPlanType}
+                                    />
+                                </View>
+
+                                <View style={[styles.mhn5]}>
+                                    <InputWrapper
+                                        InputComponent={MenuItemWithTopDescription}
+                                        inputID={INPUT_IDS.OWNER}
+                                        description={translate('workspace.common.workspaceOwner')}
+                                        title={ownerDisplayName}
+                                        interactive
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.OWNER_SELECTOR.path));
+                                        }}
+                                        value={userOwner}
+                                    />
+                                </View>
+
+                                {isOwnerDifferentFromCurrentUser && (
+                                    <View style={[styles.mhn5]}>
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph5, styles.pv3]}>
+                                            <View style={styles.flex1}>
+                                                <Text style={[styles.textNormal]}>{translate('workspace.common.keepMeAsAdmin')}</Text>
+                                            </View>
+                                            <Switch
+                                                accessibilityLabel={translate('workspace.common.keepMeAsAdmin')}
+                                                isOn={makeMeAdmin}
+                                                onToggle={setMakeMeAdmin}
+                                            />
+                                        </View>
+                                    </View>
+                                )}
+                            </>
+                        )}
                     </View>
                 </FormProvider>
             </ScrollView>
         </>
     );
 }
-
-WorkspaceConfirmationForm.displayName = 'WorkspaceConfirmationForm';
 
 export default WorkspaceConfirmationForm;
 

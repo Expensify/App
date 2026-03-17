@@ -1,121 +1,175 @@
 import {useFocusEffect} from '@react-navigation/core';
-import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Alert, AppState, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
-import {useCameraDevice} from 'react-native-vision-camera';
-import type {TupleToUnion} from 'type-fest';
-import Hand from '@assets/images/hand.svg';
-import Shutter from '@assets/images/shutter.svg';
-import type {FileObject} from '@components/AttachmentModal';
+import {useCameraDevice, useCameraFormat} from 'react-native-vision-camera';
+import {scheduleOnRN} from 'react-native-worklets';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import FeatureTrainingModal from '@components/FeatureTrainingModal';
+import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
-import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
-import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
+import type Platform from '@libs/getPlatform/types';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
-import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getDefaultTaxCode} from '@libs/TransactionUtils';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {
-    replaceReceipt,
-    requestMoney,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReceipt,
-    startSplitBill,
-    trackExpense,
-    updateLastLocationPermissionPrompt,
-} from '@userActions/IOU';
+import {replaceReceipt, setMoneyRequestReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Participant} from '@src/types/onyx/IOU';
-import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
-import NavigationAwareCamera from './NavigationAwareCamera/Camera';
+import NavigationAwareCamera from './components/NavigationAwareCamera/Camera';
+import ReceiptPreviews from './components/ReceiptPreviews';
+import useMobileReceiptScan from './hooks/useMobileReceiptScan';
+import useReceiptScan from './hooks/useReceiptScan';
 import type IOURequestStepScanProps from './types';
 
 function IOURequestStepScan({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport},
     },
-    transaction,
+    transaction: initialTransaction,
     currentUserPersonalDetails,
+    onLayout,
+    isMultiScanEnabled = false,
+    isStartingScan = false,
+    setIsMultiScanEnabled,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+    const {isLoaderVisible} = useFullScreenLoaderState();
+    const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
+    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {videoResolution: 'max'}, {photoResolution: 'max'}]);
+    // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
+    const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
 
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const navigateBack = useCallback(() => {
+        Navigation.goBack(backTo);
+    }, [backTo]);
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
-    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
-    const [fileResize, setFileResize] = useState<null | FileObject>(null);
-    const [fileSource, setFileSource] = useState('');
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const policy = usePolicy(report?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'Shutter']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
     const platform = getPlatform(true);
-    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
+    const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
-    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
+    const policy = usePolicy(report?.policyID);
 
-    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
 
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
-    const transactionTaxAmount = transaction?.taxAmount ?? 0;
+    // Track camera init telemetry
+    const cameraInitSpanStarted = useRef(false);
+    const cameraInitialized = useRef(false);
 
-    // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
-    // request and the workspace requires a category or a tag
-    const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
-            return false;
+    // Ref for double-tap protection (doesn't trigger re-render)
+    const isCapturingPhoto = useRef(false);
+
+    // Start camera init span when permission is granted and camera is ready
+    useEffect(() => {
+        if (cameraInitSpanStarted.current || cameraPermissionStatus !== RESULTS.GRANTED || device == null) {
+            return;
         }
+        startSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT, {
+            name: CONST.TELEMETRY.SPAN_CAMERA_INIT,
+            op: CONST.TELEMETRY.SPAN_CAMERA_INIT,
+        });
+        cameraInitSpanStarted.current = true;
+    }, [cameraPermissionStatus, device]);
 
-        return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, reportNameValuePairs]);
+    // Cancel spans when permission is denied/blocked/unavailable
+    useEffect(() => {
+        if (cameraPermissionStatus !== RESULTS.BLOCKED && cameraPermissionStatus !== RESULTS.UNAVAILABLE && cameraPermissionStatus !== RESULTS.DENIED) {
+            return;
+        }
+        cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+    }, [cameraPermissionStatus]);
 
-    const {translate} = useLocalize();
+    // Cancel spans on unmount if camera never initialized
+    useEffect(() => {
+        return () => {
+            // If camera initialized successfully, spans were already ended
+            if (cameraInitialized.current) {
+                return;
+            }
+            // Cancel camera init span if it was started
+            if (cameraInitSpanStarted.current) {
+                cancelSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
+            }
+            // Always cancel the create expense span if camera never initialized
+            cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        };
+    }, []);
 
-    const askForPermissions = () => {
+    const handleCameraInitialized = useCallback(() => {
+        // Prevent duplicate span endings if callback fires multiple times
+        if (cameraInitialized.current) {
+            return;
+        }
+        cameraInitialized.current = true;
+        // Only end camera init span if it was actually started
+        if (cameraInitSpanStarted.current) {
+            endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
+        }
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+
+        // Pre-create upload directory to avoid latency during capture
+        const path = getReceiptsUploadFolderPath();
+        ReactNativeBlobUtil.fs
+            .isDir(path)
+            .then((isDir) => {
+                if (isDir) {
+                    return;
+                }
+                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
+                    Log.warn('Error creating the receipts upload directory', error);
+                });
+            })
+            .catch((error: string) => {
+                Log.warn('Error checking if the upload directory exists', error);
+            });
+    }, []);
+
+    const askForPermissions = useCallback(() => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
         // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
         CameraPermission.requestCameraPermission?.()
@@ -123,13 +177,13 @@ function IOURequestStepScan({
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    showCameraPermissionsAlert();
+                    showCameraPermissionsAlert(translate);
                 }
             })
             .catch(() => {
                 setCameraPermissionStatus(RESULTS.UNAVAILABLE);
             });
-    };
+    }, [translate]);
 
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
@@ -155,7 +209,6 @@ function IOURequestStepScan({
 
     const tapGesture = Gesture.Tap()
         .enabled(device?.supportsFocus ?? false)
-        // eslint-disable-next-line react-compiler/react-compiler
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
@@ -164,22 +217,20 @@ function IOURequestStepScan({
             focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
             focusIndicatorPosition.set(point);
 
-            runOnJS(focusCamera)(point);
+            scheduleOnRN(focusCamera, point);
         });
 
     useFocusEffect(
         useCallback(() => {
             setDidCapturePhoto(false);
+            isCapturingPhoto.current = false;
             const refreshCameraPermissionStatus = () => {
                 CameraPermission?.getCameraPermissionStatus?.()
                     .then(setCameraPermissionStatus)
                     .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
             };
 
-            InteractionManager.runAfterInteractions(() => {
-                // Check initial camera permission status
-                refreshCameraPermissionStatus();
-            });
+            refreshCameraPermissionStatus();
 
             // Refresh permission status when app gain focus
             const subscription = AppState.addEventListener('change', (appState) => {
@@ -192,322 +243,100 @@ function IOURequestStepScan({
 
             return () => {
                 subscription.remove();
+                cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+                cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+
+                if (isLoaderVisible) {
+                    setIsLoaderVisible(false);
+                }
             };
-        }, []),
-    );
-
-    const validateReceipt = (file: FileObject) => {
-        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-        if (
-            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-            )
-        ) {
-            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-            return false;
-        }
-
-        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-            Alert.alert(
-                translate('attachmentPicker.attachmentTooLarge'),
-                translate('attachmentPicker.sizeExceededWithLimit', {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)}),
-            );
-            return false;
-        }
-
-        if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-            return false;
-        }
-        return true;
-    };
-
-    const navigateBack = () => {
-        Navigation.goBack();
-    };
-
-    const navigateToParticipantPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
-
-    const navigateToConfirmationPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
-
-    const createTransaction = useCallback(
-        (receipt: Receipt, participant: Participant) => {
-            if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                trackExpense({
-                    report,
-                    isDraftPolicy: false,
-                    participantParams: {
-                        payeeEmail: currentUserPersonalDetails.login,
-                        payeeAccountID: currentUserPersonalDetails.accountID,
-                        participant,
-                    },
-                    transactionParams: {
-                        amount: 0,
-                        currency: transaction?.currency ?? 'USD',
-                        created: transaction?.created,
-                        receipt,
-                    },
-                });
-            } else {
-                requestMoney({
-                    report,
-                    participantParams: {
-                        payeeEmail: currentUserPersonalDetails.login,
-                        payeeAccountID: currentUserPersonalDetails.accountID,
-                        participant,
-                    },
-                    transactionParams: {
-                        amount: 0,
-                        attendees: transaction?.attendees,
-                        currency: transaction?.currency ?? 'USD',
-                        created: transaction?.created ?? '',
-                        merchant: '',
-                        receipt,
-                    },
-                });
-            }
-        },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
-    );
-    const navigateToConfirmationStep = useCallback(
-        (file: FileObject, source: string, locationPermissionGranted = false) => {
-            if (backTo) {
-                Navigation.goBack(backTo);
-                return;
-            }
-
-            // If the transaction was created from the global create, the person needs to select participants, so take them there.
-            // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
-                if (activePolicy && isPaidGroupPolicy(activePolicy) && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                    const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
-                    setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat);
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CREATE,
-                            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                            transactionID,
-                            activePolicyExpenseChat?.reportID,
-                        ),
-                    );
-                } else {
-                    navigateToParticipantPage();
-                }
-                return;
-            }
-
-            // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
-            // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-            const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
-            const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
-            });
-
-            if (shouldSkipConfirmation) {
-                const receipt: Receipt = file;
-                receipt.source = source;
-                receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
-                if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    playSound(SOUNDS.DONE);
-                    startSplitBill({
-                        participants,
-                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        comment: '',
-                        receipt,
-                        existingSplitChatReportID: reportID,
-                        billable: false,
-                        category: '',
-                        tag: '',
-                        currency: transaction?.currency ?? 'USD',
-                        taxCode: transactionTaxCode,
-                        taxAmount: transactionTaxAmount,
-                    });
-                    return;
-                }
-                const participant = participants.at(0);
-                if (!participant) {
-                    return;
-                }
-                if (locationPermissionGranted) {
-                    getCurrentPosition(
-                        (successData) => {
-                            playSound(SOUNDS.DONE);
-                            if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                                trackExpense({
-                                    report,
-                                    isDraftPolicy: false,
-                                    participantParams: {
-                                        payeeEmail: currentUserPersonalDetails.login,
-                                        payeeAccountID: currentUserPersonalDetails.accountID,
-                                        participant,
-                                    },
-                                    policyParams: {
-                                        policy,
-                                    },
-                                    transactionParams: {
-                                        amount: 0,
-                                        currency: transaction?.currency ?? 'USD',
-                                        created: transaction?.created,
-                                        receipt,
-                                        billable: false,
-                                        gpsPoints: {
-                                            lat: successData.coords.latitude,
-                                            long: successData.coords.longitude,
-                                        },
-                                    },
-                                });
-                            } else {
-                                requestMoney({
-                                    report,
-                                    participantParams: {
-                                        payeeEmail: currentUserPersonalDetails.login,
-                                        payeeAccountID: currentUserPersonalDetails.accountID,
-                                        participant,
-                                    },
-                                    policyParams: {
-                                        policy,
-                                    },
-                                    gpsPoints: {
-                                        lat: successData.coords.latitude,
-                                        long: successData.coords.longitude,
-                                    },
-                                    transactionParams: {
-                                        amount: 0,
-                                        attendees: transaction?.attendees,
-                                        currency: transaction?.currency ?? 'USD',
-                                        created: transaction?.created ?? '',
-                                        merchant: '',
-                                        receipt,
-                                        billable: false,
-                                    },
-                                });
-                            }
-                        },
-                        (errorData) => {
-                            Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
-                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            playSound(SOUNDS.DONE);
-                            createTransaction(receipt, participant);
-                        },
-                        {
-                            maximumAge: CONST.GPS.MAX_AGE,
-                            timeout: CONST.GPS.TIMEOUT,
-                        },
-                    );
-                    return;
-                }
-                playSound(SOUNDS.DONE);
-                createTransaction(receipt, participant);
-                return;
-            }
-            navigateToConfirmationPage();
-        },
-        [
-            backTo,
-            transaction?.isFromGlobalCreate,
-            transaction?.currency,
-            transaction?.created,
-            transaction?.attendees,
-            iouType,
-            report,
-            transactionID,
-            shouldSkipConfirmation,
-            navigateToConfirmationPage,
-            activePolicy,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.login,
-            navigateToParticipantPage,
-            personalDetails,
-            createTransaction,
-            reportID,
-            transactionTaxCode,
-            transactionTaxAmount,
-            policy,
-        ],
+        }, [isLoaderVisible, setIsLoaderVisible]),
     );
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            navigateBack();
-            replaceReceipt(transactionID, file as File, source);
+            // Fix for the issue where the navigation state is lost after returning from device settings https://github.com/Expensify/App/issues/65992
+            const navigationState = navigationRef.current?.getState();
+            const reportsSplitNavigator = navigationState?.routes?.findLast((route) => route.name === 'ReportsSplitNavigator');
+            const hasLostNavigationsState = reportsSplitNavigator && !reportsSplitNavigator.state;
+            if (hasLostNavigationsState) {
+                if (backTo) {
+                    Navigation.navigate(backTo as Route);
+                } else {
+                    Navigation.navigate(ROUTES.INBOX);
+                }
+            } else {
+                navigateBack();
+            }
+            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
         },
-        [transactionID],
+        [initialTransactionID, policy, policyCategories, backTo, navigateBack],
     );
 
-    /**
-     * Sets the Receipt objects and navigates the user to the next page
-     */
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        if (!validateReceipt(originalFile)) {
-            return;
-        }
+    const getSource = useCallback((file: FileObject) => file.uri ?? '', []);
 
-        // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-        if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
-            setPdfFile(originalFile);
-            return;
-        }
+    const {
+        isEditing,
+        shouldAcceptMultipleFiles,
+        shouldSkipConfirmation,
+        startLocationPermissionFlow,
+        setStartLocationPermissionFlow,
+        receiptFiles,
+        setReceiptFiles,
+        navigateToConfirmationStep,
+        validateFiles,
+        PDFValidationComponent,
+        ErrorModal,
+        setTestReceiptAndNavigate,
+    } = useReceiptScan({
+        report,
+        reportID,
+        initialTransactionID,
+        initialTransaction,
+        iouType,
+        action,
+        currentUserPersonalDetails,
+        backTo,
+        backToReport,
+        isMultiScanEnabled,
+        isStartingScan,
+        updateScanAndNavigate,
+        getSource,
+    });
 
-        // With the image size > 24MB, we use manipulateAsync to resize the image.
-        // It takes a long time so we should display a loading indicator while the resize image progresses.
-        if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            setIsLoadingReceipt(true);
-        }
-        resizeImageIfNeeded(originalFile).then((file) => {
-            setIsLoadingReceipt(false);
-            // Store the receipt on the transaction object in Onyx
-            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-            // So, let us also save the file type in receipt for later use during blob fetch
-            setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
-
-            if (isEditing) {
-                updateScanAndNavigate(file, file?.uri ?? '');
-                return;
-            }
-            if (shouldSkipConfirmation) {
-                setFileResize(file);
-                setFileSource(file?.uri ?? '');
-                const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-
-                if (gpsRequired) {
-                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                    if (beginLocationPermissionFlow) {
-                        setStartLocationPermissionFlow(true);
-                        return;
-                    }
-                }
-            }
-            navigateToConfirmationStep(file, file?.uri ?? '', false);
+    const {canUseMultiScan, shouldShowMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts, toggleMultiScan, dismissMultiScanEducationalPopup, blinkStyle, showBlink} =
+        useMobileReceiptScan({
+            initialTransaction,
+            iouType,
+            isMultiScanEnabled,
+            isStartingScan,
+            receiptFiles,
+            navigateToConfirmationStep,
+            shouldSkipConfirmation,
+            setStartLocationPermissionFlow,
+            setIsMultiScanEnabled,
         });
-    };
+
+    const maybeCancelShutterSpan = useCallback(() => {
+        if (isMultiScanEnabled) {
+            return;
+        }
+
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+    }, [isMultiScanEnabled]);
 
     const capturePhoto = useCallback(() => {
+        if (!isMultiScanEnabled) {
+            startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
+                name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+            });
+        }
+
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
+            maybeCancelShutterSpan();
             askForPermissions();
             return;
         }
@@ -517,93 +346,107 @@ function IOURequestStepScan({
         };
 
         if (!camera.current) {
+            maybeCancelShutterSpan();
             showCameraAlert();
-        }
-
-        if (didCapturePhoto) {
             return;
         }
 
-        setDidCapturePhoto(true);
+        if (isCapturingPhoto.current) {
+            maybeCancelShutterSpan();
+            return;
+        }
+
+        startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+        });
+
+        isCapturingPhoto.current = true;
+        showBlink();
 
         const path = getReceiptsUploadFolderPath();
 
-        ReactNativeBlobUtil.fs
-            .isDir(path)
-            .then((isDir) => {
-                if (isDir) {
+        camera?.current
+            ?.takePhoto({
+                flash: flash && hasFlash ? 'on' : 'off',
+                enableShutterSound: !isPlatformMuted,
+                path,
+            })
+            .then((photo: PhotoFile) => {
+                setDidCapturePhoto(true);
+
+                const transaction =
+                    isMultiScanEnabled && initialTransaction?.receipt?.source
+                        ? buildOptimisticTransactionAndCreateDraft({
+                              initialTransaction,
+                              currentUserPersonalDetails,
+                              reportID,
+                          })
+                        : initialTransaction;
+                const transactionID = transaction?.transactionID ?? initialTransactionID;
+                const source = getPhotoSource(photo.path);
+                const filename = photo.path;
+                endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+
+                const cameraFile = {
+                    uri: source,
+                    name: filename,
+                    type: 'image/jpeg',
+                    source,
+                };
+
+                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
+
+                if (isEditing) {
+                    updateScanAndNavigate(cameraFile as FileObject, source);
                     return;
                 }
 
-                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
-                    Log.warn('Error creating the directory', error);
-                });
+                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
+                setReceiptFiles(newReceiptFiles);
+
+                if (isMultiScanEnabled) {
+                    setDidCapturePhoto(false);
+                    isCapturingPhoto.current = false;
+                    return;
+                }
+
+                submitReceipts(newReceiptFiles);
             })
             .catch((error: string) => {
-                Log.warn('Error checking if the directory exists', error);
-            })
-            .then(() => {
-                camera?.current
-                    ?.takePhoto({
-                        flash: flash && hasFlash ? 'on' : 'off',
-                        enableShutterSound: !isPlatformMuted,
-                        path,
-                    })
-                    .then((photo: PhotoFile) => {
-                        // Store the receipt on the transaction object in Onyx
-                        const source = getPhotoSource(photo.path);
-                        setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
-
-                        readFileAsync(
-                            source,
-                            photo.path,
-                            (file) => {
-                                if (isEditing) {
-                                    updateScanAndNavigate(file, source);
-                                    return;
-                                }
-                                if (shouldSkipConfirmation) {
-                                    setFileResize(file);
-                                    setFileSource(source);
-                                    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-                                    if (gpsRequired) {
-                                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                                        if (beginLocationPermissionFlow) {
-                                            setStartLocationPermissionFlow(true);
-                                            return;
-                                        }
-                                    }
-                                }
-                                navigateToConfirmationStep(file, source, false);
-                            },
-                            () => {
-                                setDidCapturePhoto(false);
-                                showCameraAlert();
-                                Log.warn('Error reading photo');
-                            },
-                        );
-                    })
-                    .catch((error: string) => {
-                        setDidCapturePhoto(false);
-                        showCameraAlert();
-                        Log.warn('Error taking photo', error);
-                    });
+                isCapturingPhoto.current = false;
+                cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+                maybeCancelShutterSpan();
+                showCameraAlert();
+                Log.warn('Error taking photo', error);
             });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
     }, [
         cameraPermissionStatus,
-        didCapturePhoto,
+        isMultiScanEnabled,
+        translate,
+        showBlink,
         flash,
         hasFlash,
         isPlatformMuted,
-        translate,
-        transactionID,
+        initialTransaction,
+        currentUserPersonalDetails,
+        reportID,
+        initialTransactionID,
         isEditing,
-        shouldSkipConfirmation,
-        navigateToConfirmationStep,
+        receiptFiles,
+        submitReceipts,
         updateScanAndNavigate,
-        transaction?.amount,
-        iouType,
+        askForPermissions,
     ]);
+
+    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepScan',
+        cameraPermissionGranted: cameraPermissionStatus === RESULTS.GRANTED,
+        deviceAvailable: device != null,
+    };
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -616,148 +459,221 @@ function IOURequestStepScan({
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper={!!backTo || isEditing}
-            testID={IOURequestStepScan.displayName}
+            testID="IOURequestStepScan"
         >
-            {isLoadingReceipt && <FullScreenLoadingIndicator />}
-            {!!pdfFile && (
-                <PDFThumbnail
-                    style={styles.invisiblePDF}
-                    previewSourceURL={pdfFile?.uri ?? ''}
-                    onLoadSuccess={() => {
-                        setPdfFile(null);
-                        if (pdfFile) {
-                            setReceiptAndNavigate(pdfFile, true);
-                        }
-                    }}
-                    onPassword={() => {
-                        setPdfFile(null);
-                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
-                    }}
-                    onLoadError={() => {
-                        setPdfFile(null);
-                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                    }}
-                />
-            )}
-            {cameraPermissionStatus !== RESULTS.GRANTED && (
-                <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                    <ImageSVG
-                        contentFit="contain"
-                        src={Hand}
-                        width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                        height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                        style={styles.pb5}
-                    />
-
-                    <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                    <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                    <Button
-                        success
-                        text={translate('common.continue')}
-                        accessibilityLabel={translate('common.continue')}
-                        style={[styles.p9, styles.pt5]}
-                        onPress={capturePhoto}
-                    />
-                </View>
-            )}
-            {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
-                <View style={[styles.cameraView]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        color={theme.textSupporting}
-                    />
-                </View>
-            )}
-            {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                <View style={[styles.cameraView]}>
-                    <GestureDetector gesture={tapGesture}>
-                        <View style={styles.flex1}>
-                            <NavigationAwareCamera
-                                ref={camera}
-                                device={device}
-                                style={styles.flex1}
-                                zoom={device.neutralZoom}
-                                photo
-                                cameraTabIndex={1}
+            <View
+                style={styles.flex1}
+                onLayout={() => {
+                    if (!onLayout) {
+                        return;
+                    }
+                    onLayout(setTestReceiptAndNavigate);
+                }}
+            >
+                {PDFValidationComponent}
+                <View style={[styles.flex1]}>
+                    {cameraPermissionStatus !== RESULTS.GRANTED && (
+                        <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
+                            <ImageSVG
+                                contentFit="contain"
+                                src={lazyIllustrations.Hand}
+                                width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                                height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                                style={styles.pb5}
                             />
-                            <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+
+                            <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                            <Button
+                                success
+                                text={translate('common.continue')}
+                                accessibilityLabel={translate('common.continue')}
+                                style={[styles.p9, styles.pt5]}
+                                onPress={capturePhoto}
+                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
+                            />
                         </View>
-                    </GestureDetector>
+                    )}
+                    {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
+                        <View style={[styles.cameraView]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                style={[styles.flex1]}
+                                color={theme.textSupporting}
+                                reasonAttributes={cameraLoadingReasonAttributes}
+                            />
+                        </View>
+                    )}
+                    {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
+                        <View style={[styles.cameraView, styles.alignItemsCenter]}>
+                            <GestureDetector gesture={tapGesture}>
+                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio)}>
+                                    <NavigationAwareCamera
+                                        ref={camera}
+                                        device={device}
+                                        format={format}
+                                        style={styles.flex1}
+                                        zoom={device.neutralZoom}
+                                        photo
+                                        cameraTabIndex={1}
+                                        forceInactive={isAttachmentPickerActive || didCapturePhoto}
+                                        onInitialized={handleCameraInitialized}
+                                    />
+                                    <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+                                    <Animated.View
+                                        pointerEvents="none"
+                                        style={[StyleSheet.absoluteFillObject, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
+                                    />
+                                </View>
+                            </GestureDetector>
+                            {canUseMultiScan ? (
+                                <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
+                                    <PressableWithFeedback
+                                        role={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={translate('receipt.flash')}
+                                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+                                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                                    >
+                                        <Icon
+                                            height={16}
+                                            width={16}
+                                            src={lazyIcons.Bolt}
+                                            fill={flash ? theme.white : theme.icon}
+                                        />
+                                    </PressableWithFeedback>
+                                </View>
+                            ) : null}
+                        </View>
+                    )}
                 </View>
-            )}
-            <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker>
-                    {({openPicker}) => (
+                {shouldShowMultiScanEducationalPopup && (
+                    <FeatureTrainingModal
+                        title={translate('iou.scanMultipleReceipts')}
+                        image={lazyIllustrations.MultiScan}
+                        shouldRenderSVG
+                        imageHeight={220}
+                        modalInnerContainerStyle={styles.pt0}
+                        illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
+                        onConfirm={dismissMultiScanEducationalPopup}
+                        titleStyles={styles.mb2}
+                        confirmText={translate('common.buttonConfirm')}
+                        description={translate('iou.scanMultipleReceiptsDescription')}
+                        contentInnerContainerStyles={styles.mb6}
+                        shouldGoBack={false}
+                    />
+                )}
+                <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
+                    <AttachmentPicker
+                        onOpenPicker={() => {
+                            setIsAttachmentPickerActive(true);
+                            setIsLoaderVisible(true);
+                        }}
+                        fileLimit={shouldAcceptMultipleFiles ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
+                        shouldValidateImage={false}
+                    >
+                        {({openPicker}) => (
+                            <PressableWithFeedback
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('receipt.gallery')}
+                                sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
+                                style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
+                                onPress={() => {
+                                    openPicker({
+                                        onPicked: (data) => validateFiles(data),
+                                        onCanceled: () => setIsLoaderVisible(false),
+                                        // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
+                                        onClosed: () => {
+                                            setIsAttachmentPickerActive(false);
+                                            setIsLoaderVisible(false);
+                                        },
+                                    });
+                                }}
+                            >
+                                <Icon
+                                    height={32}
+                                    width={32}
+                                    src={lazyIcons.Gallery}
+                                    fill={theme.textSupporting}
+                                />
+                            </PressableWithFeedback>
+                        )}
+                    </AttachmentPicker>
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.shutter')}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
+                        style={[styles.alignItemsCenter]}
+                        onPress={capturePhoto}
+                    >
+                        <ImageSVG
+                            contentFit="contain"
+                            src={lazyIllustrations.Shutter}
+                            width={CONST.RECEIPT.SHUTTER_SIZE}
+                            height={CONST.RECEIPT.SHUTTER_SIZE}
+                        />
+                    </PressableWithFeedback>
+                    {canUseMultiScan ? (
                         <PressableWithFeedback
+                            accessibilityRole="button"
                             role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.gallery')}
-                            style={[styles.alignItemsStart]}
-                            onPress={() => {
-                                openPicker({
-                                    onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
-                                });
-                            }}
+                            accessibilityLabel={translate('receipt.multiScan')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
+                            style={styles.alignItemsEnd}
+                            onPress={toggleMultiScan}
                         >
                             <Icon
                                 height={32}
                                 width={32}
-                                src={Expensicons.Gallery}
+                                src={lazyIcons.ReceiptMultiple}
+                                fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
+                            />
+                        </PressableWithFeedback>
+                    ) : (
+                        <PressableWithFeedback
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.flash')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+                            style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
+                            disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                            onPress={() => setFlash((prevFlash) => !prevFlash)}
+                        >
+                            <Icon
+                                height={32}
+                                width={32}
+                                src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
                                 fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
                     )}
-                </AttachmentPicker>
-                <PressableWithFeedback
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('receipt.shutter')}
-                    style={[styles.alignItemsCenter]}
-                    onPress={capturePhoto}
-                >
-                    <ImageSVG
-                        contentFit="contain"
-                        src={Shutter}
-                        width={CONST.RECEIPT.SHUTTER_SIZE}
-                        height={CONST.RECEIPT.SHUTTER_SIZE}
+                </View>
+
+                {canUseMultiScan && (
+                    <ReceiptPreviews
+                        isMultiScanEnabled={isMultiScanEnabled}
+                        submit={submitMultiScanReceipts}
+                        isCapturingPhoto={didCapturePhoto}
                     />
-                </PressableWithFeedback>
-                {hasFlash && (
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.flash')}
-                        style={[styles.alignItemsEnd]}
-                        disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                        onPress={() => setFlash((prevFlash) => !prevFlash)}
-                    >
-                        <Icon
-                            height={32}
-                            width={32}
-                            src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
-                            fill={theme.textSupporting}
-                        />
-                    </PressableWithFeedback>
                 )}
+
+                {startLocationPermissionFlow && !!receiptFiles.length && (
+                    <LocationPermissionModal
+                        startPermissionFlow={startLocationPermissionFlow}
+                        resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                        onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
+                        onDeny={() => {
+                            updateLastLocationPermissionPrompt();
+                            navigateToConfirmationStep(receiptFiles, false);
+                        }}
+                    />
+                )}
+                {ErrorModal}
             </View>
-            {startLocationPermissionFlow && !!fileResize && (
-                <LocationPermissionModal
-                    startPermissionFlow={startLocationPermissionFlow}
-                    resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                    onGrant={() => navigateToConfirmationStep(fileResize, fileSource, true)}
-                    onDeny={() => {
-                        updateLastLocationPermissionPrompt();
-                        navigateToConfirmationStep(fileResize, fileSource, false);
-                    }}
-                />
-            )}
         </StepScreenWrapper>
     );
 }
 
-IOURequestStepScan.displayName = 'IOURequestStepScan';
-
-const IOURequestStepScanWithOnyx = IOURequestStepScan;
-
-const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanWithOnyx);
+const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables

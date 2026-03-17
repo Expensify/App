@@ -1,34 +1,16 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 /**
  * @jest-environment node
  */
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
+import {RequestError} from '@octokit/request-error';
 import type {Writable} from 'type-fest';
-import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
+import CONST from '@github/libs/CONST';
+import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
-
-type Label = {
-    id: number;
-    number?: number;
-    isVerified?: boolean;
-    node_id: string;
-    url: string;
-    name: string;
-    color: string;
-    default: boolean;
-    description: string;
-};
-
-type Issue = {
-    url: string;
-    title: string;
-    labels: Label[];
-    body: string;
-};
 
 type ObjectMethodData<T> = {
     data: T;
@@ -43,7 +25,7 @@ beforeAll(() => {
     asMutable(core).getInput = mockGetInput;
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 create: jest.fn().mockImplementation((arg: Parameters<OctokitCreateIssue>[0]) =>
@@ -60,7 +42,7 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
     } as unknown as InternalOctokit;
 
-    GithubUtils.internalOctokit = moctokit;
+    GithubUtils.internalOctokit = mockOctokit;
 });
 
 afterEach(() => {
@@ -69,141 +51,6 @@ afterEach(() => {
 });
 
 describe('GithubUtils', () => {
-    describe('getStagingDeployCash', () => {
-        const baseIssue: Issue = {
-            url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
-            title: 'Andrew Test Issue',
-            labels: [
-                {
-                    id: 2783847782,
-                    node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
-                    url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
-                    name: 'StagingDeployCash',
-                    color: '6FC269',
-                    default: false,
-                    description: '',
-                },
-            ],
-            // eslint-disable-next-line max-len
-            body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/21\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/22\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/23\r\n\r\n`,
-        };
-        const issueWithDeployBlockers = {...baseIssue};
-        // eslint-disable-next-line max-len
-        issueWithDeployBlockers.body += `\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/2\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234\r\n`;
-
-        const baseExpectedResponse: Partial<Awaited<ReturnType<typeof GithubUtils.getStagingDeployCash>>> = {
-            PRList: [
-                {
-                    url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/21`,
-                    number: 21,
-                    isVerified: false,
-                },
-                {
-                    url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/22`,
-                    number: 22,
-                    isVerified: true,
-                },
-                {
-                    url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/23`,
-                    number: 23,
-                    isVerified: false,
-                },
-            ],
-            labels: [
-                {
-                    color: '6FC269',
-                    default: false,
-                    description: '',
-                    id: 2783847782,
-                    name: 'StagingDeployCash',
-                    node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
-                    url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
-                },
-            ],
-            tag: '1.0.1-47',
-            title: 'Andrew Test Issue',
-            url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
-            number: 29,
-            deployBlockers: [],
-            internalQAPRList: [],
-            isTimingDashboardChecked: false,
-            isFirebaseChecked: false,
-            isGHStatusChecked: false,
-        };
-        const expectedResponseWithDeployBlockers = {...baseExpectedResponse};
-        expectedResponseWithDeployBlockers.deployBlockers = [
-            {
-                url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1`,
-                number: 1,
-                isResolved: false,
-            },
-            {
-                url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/2`,
-                number: 2,
-                isResolved: true,
-            },
-            {
-                url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234`,
-                number: 1234,
-                isResolved: false,
-            },
-        ];
-
-        test('Test finding an open issue with no PRs successfully', () => {
-            const bareIssue: Issue = {
-                ...baseIssue,
-                // eslint-disable-next-line max-len
-                body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n`,
-            };
-
-            const bareExpectedResponse: Partial<Awaited<ReturnType<typeof GithubUtils.getStagingDeployCash>>> = {
-                ...baseExpectedResponse,
-                PRList: [],
-            };
-
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]}) as unknown as ListForRepoMethod;
-            return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(bareExpectedResponse));
-        });
-
-        test('Test finding an open issue successfully', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]}) as unknown as ListForRepoMethod;
-            return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(baseExpectedResponse));
-        });
-
-        test('Test finding an open issue successfully and parsing with deploy blockers', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]}) as unknown as ListForRepoMethod;
-            return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
-        });
-
-        test('Test finding an open issue successfully and parsing with blockers w/o carriage returns', () => {
-            const modifiedIssueWithDeployBlockers = {...issueWithDeployBlockers};
-            modifiedIssueWithDeployBlockers.body = modifiedIssueWithDeployBlockers.body.replace(/\r/g, '');
-
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({
-                data: [modifiedIssueWithDeployBlockers],
-            }) as unknown as ListForRepoMethod;
-            return GithubUtils.getStagingDeployCash().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
-        });
-
-        test('Test finding an open issue without a body', () => {
-            const noBodyIssue = baseIssue;
-            noBodyIssue.body = '';
-
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]}) as unknown as ListForRepoMethod;
-            return GithubUtils.getStagingDeployCash().catch((e) => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue with correct data.')));
-        });
-
-        test('Test finding more than one issue', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{a: 1}, {b: 2}]}) as unknown as ListForRepoMethod;
-            return GithubUtils.getStagingDeployCash().catch((e) => expect(e).toEqual(new Error('Found more than one StagingDeployCash issue.')));
-        });
-
-        test('Test finding no issues', () => {
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []}) as unknown as ListForRepoMethod;
-            return GithubUtils.getStagingDeployCash().catch((e) => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue.')));
-        });
-    });
-
     describe('getPullRequestNumberFromURL', () => {
         describe('valid pull requests', () => {
             test.each([
@@ -290,338 +137,170 @@ describe('GithubUtils', () => {
         });
     });
 
-    describe('generateStagingDeployCashBody', () => {
-        const mockTags = [{name: '1.0.2-0'}, {name: '1.0.2-12'}];
-        const mockPRs = [
-            {
-                number: 1,
-                title: 'Test PR 1',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1`,
-                user: {login: 'testUser'},
-                labels: [],
+    const commitHistoryData = {
+        emptyResponse: {
+            data: {
+                commits: [],
             },
-            {
-                number: 2,
-                title: 'Test PR 2',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/2`,
-                user: {login: 'testUser'},
-                labels: [],
-            },
-            {
-                number: 3,
-                title: 'Test PR 3',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`,
-                user: {login: 'testUser'},
-                labels: [],
-            },
-            {
-                number: 4,
-                title: '[NO QA] Test No QA PR uppercase',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`,
-                user: {login: 'testUser'},
-                labels: [],
-            },
-            {
-                number: 5,
-                title: '[NoQa] Test No QA PR Title Case',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`,
-                user: {login: 'testUser'},
-                labels: [],
-            },
-            {
-                number: 6,
-                title: '[Internal QA] Another Test Internal QA PR',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`,
-                user: {login: 'testUser'},
-                labels: [
+        },
+        singleCommit: {
+            data: {
+                commits: [
                     {
-                        id: 1234,
-                        node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
-                        url: `https://api.github.com/${process.env.GITHUB_REPOSITORY}/labels/InternalQA`,
-                        name: 'InternalQA',
-                        description: 'An Expensifier needs to test this.',
-                        color: 'f29513',
+                        sha: 'abc123',
+                        commit: {
+                            message: 'Test commit message',
+                            author: {
+                                name: 'Test Author',
+                                date: '2024-01-01T00:00:00Z',
+                            },
+                            committer: {
+                                date: '2024-01-01T00:00:00Z',
+                            },
+                        },
+                        author: {
+                            login: 'username',
+                        },
                     },
                 ],
-                assignees: [],
             },
+        },
+        expectedFormattedCommit: [
             {
-                number: 7,
-                title: '[Internal QA] Another Test Internal QA PR',
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`,
-                user: {login: 'testUser'},
-                labels: [
+                commit: 'abc123',
+                subject: 'Test commit message',
+                authorName: 'Test Author',
+                date: '2024-01-01T00:00:00Z',
+            },
+        ],
+        multipleCommitsResponse: {
+            data: {
+                commits: [
                     {
-                        id: 1234,
-                        node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
-                        url: `https://api.github.com/${process.env.GITHUB_REPOSITORY}/labels/InternalQA`,
-                        name: 'InternalQA',
-                        description: 'An Expensifier needs to test this.',
-                        color: 'f29513',
+                        sha: 'abc123',
+                        commit: {
+                            message: 'First commit',
+                            author: {name: 'Author One', date: '2024-01-02T00:00:00Z'},
+                            committer: {date: '2024-01-02T00:00:00Z'},
+                        },
+                    },
+                    {
+                        sha: 'def456',
+                        commit: {
+                            message: 'Second commit',
+                            author: {name: 'Author Two', date: '2024-01-03T00:00:00Z'},
+                            committer: {date: '2024-01-03T00:00:00Z'},
+                        },
                     },
                 ],
-                assignees: [],
             },
-        ];
-        const mockInternalQaPR = {
-            merged_by: {login: 'octocat'},
-        };
-        const mockGithub = jest.fn(() => ({
-            getOctokit: () => ({
+        },
+    };
+
+    describe('getCommitHistoryBetweenTags', () => {
+        let mockCompareCommits: jest.Mock;
+
+        beforeEach(() => {
+            jest.spyOn(core, 'getInput').mockImplementation((name) => {
+                if (name === 'GITHUB_TOKEN') {
+                    return 'mock-token';
+                }
+                return '';
+            });
+
+            // Prepare the mocked GitHub API
+            mockCompareCommits = jest.fn();
+            const mockOctokitInstance = {
                 rest: {
                     repos: {
-                        listTags: jest.fn().mockResolvedValue({data: mockTags}),
-                    },
-                    pulls: {
-                        list: jest.fn().mockResolvedValue({data: mockPRs}),
-                        get: jest.fn().mockResolvedValue({data: mockInternalQaPR}),
+                        compareCommits: mockCompareCommits,
                     },
                 },
-                paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
-            }),
-        }));
+                paginate: jest.fn(),
+            } as unknown as InternalOctokit;
 
-        const octokit = mockGithub().getOctokit();
-        const githubUtils = class extends GithubUtils {};
-        githubUtils.internalOctokit = octokit as unknown as InternalOctokit;
-        const tag = '1.0.2-12';
-        const basePRList = [
-            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/2`,
-            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`,
-            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1`,
-            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`, // This is an intentional duplicate for testing duplicates
-            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`, // No QA
-            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`, // No QA
-        ];
+            // Replace the real initOctokit with our mocked one
+            jest.spyOn(GithubUtils, 'initOctokit').mockImplementation(() => {});
+            GithubUtils.internalOctokit = mockOctokitInstance;
+        });
 
-        const internalQAPRList = [
-            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`, // Internal QA
-            `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`, // Internal QA
-        ];
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
 
-        const baseDeployBlockerList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`, `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/4`];
+        test('should call GitHub API with correct parameters', async () => {
+            mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
-        // eslint-disable-next-line max-len
-        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
-        const openCheckbox = '- [ ] ';
-        const closedCheckbox = '- [x] ';
-        const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
-        const deployBlockerHeader = '\r\n**Deploy Blockers:**';
-        const internalQAHeader = '\r\n\r\n**Internal QA:**';
-        const lineBreak = '\r\n';
-        const lineBreakDouble = '\r\n\r\n';
-        const assignOctocat = ' - @octocat';
-        const deployerVerificationsHeader = '\r\n**Deployer verifications:**';
-        // eslint-disable-next-line max-len
-        const timingDashboardVerification =
-            'I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.';
-        // eslint-disable-next-line max-len
-        const firebaseVerificationCurrentRelease =
-            'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
-        // eslint-disable-next-line max-len
-        const firebaseVerificationPreviousRelease =
-            'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
-        // eslint-disable-next-line max-len
-        const ghVerification = 'I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.';
+            await GithubUtils.getCommitHistoryBetweenTags('v1.0.0', 'v1.0.1', CONST.APP_REPO);
 
-        // Valid output which will be reused in the deploy blocker tests
-        const allVerifiedExpectedOutput =
-            `${baseExpectedOutput}` +
-            `${closedCheckbox}${basePRList.at(2)}` +
-            `${lineBreak}${closedCheckbox}${basePRList.at(0)}` +
-            `${lineBreak}${closedCheckbox}${basePRList.at(1)}` +
-            `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
-            `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
-            `${lineBreak}`;
-
-        test('Test no verified PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList).then((issue) => {
-                if (typeof issue !== 'object') {
-                    return;
-                }
-                expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
-                        `${openCheckbox}${basePRList.at(2)}` +
-                        `${lineBreak}${openCheckbox}${basePRList.at(0)}` +
-                        `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
-                        `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
-                        `${lineBreak}${openCheckbox}${ghVerification}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`,
-                );
-                expect(issue.issueAssignees).toEqual([]);
+            expect(mockCompareCommits).toHaveBeenCalledWith({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                base: 'v1.0.0',
+                head: 'v1.0.1',
+                page: 1,
+                per_page: 250,
             });
         });
 
-        test('Test some verified PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, [basePRList.at(0) ?? '']).then((issue) => {
-                if (typeof issue !== 'object') {
-                    return;
-                }
+        test('should return empty array when no commits found', async () => {
+            mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
-                expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
-                        `${openCheckbox}${basePRList.at(2)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(0)}` +
-                        `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
-                        `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
-                        `${lineBreak}${openCheckbox}${ghVerification}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`,
-                );
-                expect(issue.issueAssignees).toEqual([]);
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
+            expect(result).toEqual([]);
+        });
+
+        test('should return formatted commit history when commits exist', async () => {
+            mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
+
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
+            expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
+        });
+
+        test('should handle multiple commits correctly', async () => {
+            mockCompareCommits.mockResolvedValue(commitHistoryData.multipleCommitsResponse);
+
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
+
+            expect(result).toHaveLength(2);
+            expect(result.at(0)).toEqual({
+                commit: 'abc123',
+                subject: 'First commit',
+                authorName: 'Author One',
+                date: '2024-01-02T00:00:00Z',
+            });
+            expect(result.at(1)).toEqual({
+                commit: 'def456',
+                subject: 'Second commit',
+                authorName: 'Author Two',
+                date: '2024-01-03T00:00:00Z',
             });
         });
 
-        test('Test all verified PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList).then((issue) => {
-                if (typeof issue !== 'object') {
-                    return;
-                }
-
-                expect(issue.issueBody).toBe(
-                    `${allVerifiedExpectedOutput}` +
-                        `${lineBreak}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
-                        `${lineBreak}${openCheckbox}${ghVerification}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`,
-                );
-                expect(issue.issueAssignees).toEqual([]);
+        test('should handle 404 RequestError with specific error message', async () => {
+            const coreErrorSpy = jest.spyOn(core, 'error').mockImplementation();
+            const requestError = new RequestError('Not Found', 404, {
+                request: {
+                    method: 'GET',
+                    url: '/repos/compare',
+                    headers: {},
+                },
             });
+
+            mockCompareCommits.mockRejectedValue(requestError);
+
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow(requestError);
+            expect(coreErrorSpy).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "❓❓ Failed to get commits with the GitHub API. The base tag ('1.0.0') or head tag ('1.0.1') likely doesn't exist on the remote repository. If this is the case, create or push them.",
+                ),
+            );
         });
 
-        test('Test no resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList).then((issue) => {
-                if (typeof issue !== 'object') {
-                    return;
-                }
+        test('should handle generic API errors gracefully', async () => {
+            mockCompareCommits.mockRejectedValue(new Error('API Error'));
 
-                expect(issue.issueBody).toBe(
-                    `${allVerifiedExpectedOutput}` +
-                        `${lineBreak}${deployBlockerHeader}` +
-                        `${lineBreak}${openCheckbox}${baseDeployBlockerList.at(0)}` +
-                        `${lineBreak}${openCheckbox}${baseDeployBlockerList.at(1)}` +
-                        `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
-                        `${lineBreak}${openCheckbox}${ghVerification}${lineBreak}` +
-                        `${lineBreak}${ccApplauseLeads}`,
-                );
-                expect(issue.issueAssignees).toEqual([]);
-            });
-        });
-
-        test('Test some resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList.at(0) ?? '']).then((issue) => {
-                if (typeof issue !== 'object') {
-                    return;
-                }
-
-                expect(issue.issueBody).toBe(
-                    `${allVerifiedExpectedOutput}` +
-                        `${lineBreak}${deployBlockerHeader}` +
-                        `${lineBreak}${closedCheckbox}${baseDeployBlockerList.at(0)}` +
-                        `${lineBreak}${openCheckbox}${baseDeployBlockerList.at(1)}` +
-                        `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
-                        `${lineBreak}${openCheckbox}${ghVerification}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`,
-                );
-                expect(issue.issueAssignees).toEqual([]);
-            });
-        });
-
-        test('Test all resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList).then((issue) => {
-                if (typeof issue !== 'object') {
-                    return;
-                }
-                expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
-                        `${closedCheckbox}${basePRList.at(2)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(0)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(1)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
-                        `${lineBreakDouble}${deployBlockerHeader}` +
-                        `${lineBreak}${closedCheckbox}${baseDeployBlockerList.at(0)}` +
-                        `${lineBreak}${closedCheckbox}${baseDeployBlockerList.at(1)}` +
-                        `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
-                        `${lineBreak}${openCheckbox}${ghVerification}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`,
-                );
-                expect(issue.issueAssignees).toEqual([]);
-            });
-        });
-
-        test('Test internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList]).then((issue) => {
-                if (typeof issue !== 'object') {
-                    return;
-                }
-
-                expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
-                        `${openCheckbox}${basePRList.at(2)}` +
-                        `${lineBreak}${openCheckbox}${basePRList.at(0)}` +
-                        `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
-                        `${lineBreak}${internalQAHeader}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList.at(0)}${assignOctocat}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList.at(1)}${assignOctocat}` +
-                        `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
-                        `${lineBreak}${openCheckbox}${ghVerification}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`,
-                );
-                expect(issue.issueAssignees).toEqual(['octocat']);
-            });
-        });
-
-        test('Test some verified internalQA PRs', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, [...basePRList, ...internalQAPRList], [], [], [], [internalQAPRList.at(0) ?? '']).then((issue) => {
-                if (typeof issue !== 'object') {
-                    return;
-                }
-
-                expect(issue.issueBody).toBe(
-                    `${baseExpectedOutput}` +
-                        `${openCheckbox}${basePRList.at(2)}` +
-                        `${lineBreak}${openCheckbox}${basePRList.at(0)}` +
-                        `${lineBreak}${openCheckbox}${basePRList.at(1)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(4)}` +
-                        `${lineBreak}${closedCheckbox}${basePRList.at(5)}` +
-                        `${lineBreak}${internalQAHeader}` +
-                        `${lineBreak}${closedCheckbox}${internalQAPRList.at(0)}${assignOctocat}` +
-                        `${lineBreak}${openCheckbox}${internalQAPRList.at(1)}${assignOctocat}` +
-                        `${lineBreakDouble}${deployerVerificationsHeader}` +
-                        `${lineBreak}${openCheckbox}${timingDashboardVerification}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                        `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
-                        `${lineBreak}${openCheckbox}${ghVerification}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`,
-                );
-                expect(issue.issueAssignees).toEqual(['octocat']);
-            });
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow('API Error');
         });
     });
 
@@ -629,6 +308,10 @@ describe('GithubUtils', () => {
         test.each([
             [1234, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234`],
             [54321, `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/54321`],
-        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input)).toBe(expectedOutput));
+        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input, CONST.APP_REPO_URL)).toBe(expectedOutput));
+        test.each([
+            [1234, `https://github.com/Expensify/Mobile-Expensify/pull/1234`],
+            [54321, `https://github.com/Expensify/Mobile-Expensify/pull/54321`],
+        ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => expect(GithubUtils.getPullRequestURLFromNumber(input, CONST.MOBILE_EXPENSIFY_URL)).toBe(expectedOutput));
     });
 });

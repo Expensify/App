@@ -73,6 +73,4 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
     );
 }
 
-OptionItem.displayName = 'OptionItem';
-
 export default OptionItem;

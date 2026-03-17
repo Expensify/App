@@ -1,16 +1,17 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,33 +20,43 @@ function SelectFeedType() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
+    const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
+    const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
+    const defaultTypeSelected = addNewCard?.data.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : undefined);
+    const typeSelected = localTypeSelected ?? defaultTypeSelected;
 
-    const submit = () => {
+    const submit = useCallback(() => {
         if (!typeSelected) {
             setHasError(true);
             return;
         }
+        const isDirectSelected = typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT;
+
+        if (!isDirectSelected) {
+            setAddNewCompanyCardStepAndData({
+                step: isDirectSelected ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                data: {selectedFeedType: typeSelected},
+            });
+            return;
+        }
+        const step = isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION;
         setAddNewCompanyCardStepAndData({
-            step: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+            step,
             data: {selectedFeedType: typeSelected},
         });
-    };
-
-    useEffect(() => {
-        setTypeSelected(addNewCard?.data.selectedFeedType);
-    }, [addNewCard?.data.selectedFeedType]);
+    }, [isUSCountry, typeSelected]);
 
     const handleBackButtonPress = () => {
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
     };
 
     const data = [
         {
             value: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             text: translate('workspace.companyCards.commercialFeed'),
-            alternateText: translate('workspace.companyCards.addNewCard.commercialFeedDetails'),
+            alternateText: translate('workspace.companyCards.addNewCard.commercialFeedPlaidDetails'),
             keyForList: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
         },
@@ -58,10 +69,29 @@ function SelectFeedType() {
         },
     ];
 
+    const getFinalData = () => {
+        if (doesCountrySupportPlaid) {
+            return data.reverse();
+        }
+
+        return data.slice(0, 1);
+    };
+
+    const finalData = getFinalData();
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.next'),
+            onConfirm: submit,
+        }),
+        [submit, translate],
+    );
+
     return (
         <ScreenWrapper
-            testID={SelectFeedType.displayName}
-            includeSafeAreaPaddingBottom={false}
+            testID="SelectFeedType"
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -71,26 +101,24 @@ function SelectFeedType() {
             />
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.howDoYouWantToConnect')}</Text>
-            <Text style={[styles.textSupporting, styles.ph5, styles.mb6]}>
-                {`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.text')}`}
-                <TextLink href={CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}>{`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.linkText')}`}</TextLink>
-            </Text>
+            <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.mb6]}>
+                <RenderHTML html={translate('workspace.companyCards.addNewCard.learnMoreAboutOptions')} />
+            </View>
 
             <SelectionList
+                key={typeSelected ? 'feed-type-loaded' : 'feed-type-loading'}
                 ListItem={RadioListItem}
+                data={finalData}
                 onSelectRow={({value}) => {
-                    setTypeSelected(value);
+                    setLocalTypeSelected(value);
                     setHasError(false);
                 }}
-                sections={[{data}]}
                 shouldSingleExecuteRowSelect
-                isAlternateTextMultilineSupported
-                alternateTextNumberOfLines={3}
-                initiallyFocusedOptionKey={addNewCard?.data.selectedFeedType}
+                confirmButtonOptions={confirmButtonOptions}
+                alternateNumberOfSupportedLines={3}
+                initiallyFocusedItemKey={typeSelected}
                 shouldUpdateFocusedIndex
-                showConfirmButton
-                confirmButtonText={translate('common.next')}
-                onConfirm={submit}
+                addBottomSafeAreaPadding
             >
                 {hasError && (
                     <View style={[styles.ph5, styles.mb3]}>
@@ -104,7 +132,5 @@ function SelectFeedType() {
         </ScreenWrapper>
     );
 }
-
-SelectFeedType.displayName = 'SelectFeedType';
 
 export default SelectFeedType;

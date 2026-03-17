@@ -1,19 +1,28 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import type {ColorValue, GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
+    canEditReportTitle,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
-    getIcons,
     getParentNavigationSubtitle,
-    getReportName,
+    getReportStatusColorStyle,
+    getReportStatusTranslation,
     isChatThread,
     isExpenseReport,
     isInvoiceReport,
@@ -22,29 +31,25 @@ import {
     isMoneyRequestReport,
     isTrackExpenseReport,
     navigateToDetailsPage,
-    shouldReportShowSubscript,
 } from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getButtonRole} from './Button/utils';
-import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
-import {FallbackAvatar} from './Icon/Expensicons';
-import MultipleAvatars from './MultipleAvatars';
+import type DisplayNamesProps from './DisplayNames/types';
+import Icon from './Icon';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import SubscriptAvatar from './SubscriptAvatar';
+import ReportActionAvatars from './ReportActionAvatars';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
-
-    /** The policy which the user has access to and which the report is tied to */
-    policy?: OnyxEntry<Policy>;
 
     /** The size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -54,35 +59,155 @@ type AvatarWithDisplayNameProps = {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
+
+    /** Whether the avatar is pressable to open the actor details */
+    shouldEnableAvatarNavigation?: boolean;
+
+    /** Whether we should enable custom title logic designed for search lis */
+    shouldUseCustomSearchTitleName?: boolean;
+
+    /** Whether we should display the status of the report */
+    shouldDisplayStatus?: boolean;
+
+    /** Transactions inside report */
+    transactions?: TransactionListItemType[];
+
+    /** Whether to open the parent report link in the current tab if possible */
+    openParentReportInCurrentTab?: boolean;
+
+    /** Color of the secondary avatar border, usually should match the container background */
+    avatarBorderColor?: ColorValue;
+
+    /** The style of the custom display name text */
+    customDisplayNameStyle?: TextStyle;
+
+    /** The style of the parent navigation subtitle text */
+    parentNavigationSubtitleTextStyles?: StyleProp<TextStyle>;
+
+    /** The style of the parent navigation status container */
+    parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
+
+    /** The policy associated with the report */
+    policy?: OnyxEntry<Policy>;
 };
 
-const fallbackIcon: Icon = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
-};
+function getCustomDisplayName(
+    shouldUseCustomSearchTitleName: boolean,
+    report: OnyxEntry<Report>,
+    title: string,
+    displayNamesWithTooltips: DisplayNameWithTooltips,
+    transactions: TransactionListItemType[],
+    shouldUseFullTitle: boolean,
+    customSearchDisplayStyle: TextStyle[],
+    regularStyle: TextStyle[],
+    isAnonymous: boolean,
+    isMoneyRequestOrReport: boolean,
+): React.ReactNode {
+    const reportName = report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME;
+    const isIOUOrInvoice = report?.type === CONST.REPORT.TYPE.IOU || report?.type === CONST.REPORT.TYPE.INVOICE;
+    const hasTransactions = transactions.length > 0;
 
-function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONST.AVATAR_SIZE.DEFAULT, shouldEnableDetailPageNavigation = false}: AvatarWithDisplayNameProps) {
+    function getDisplayProps(): DisplayNamesProps {
+        const baseProps = {
+            displayNamesWithTooltips,
+            tooltipEnabled: true,
+            numberOfLines: 1,
+        };
+
+        if (shouldUseCustomSearchTitleName) {
+            const styleProps = {
+                textStyles: customSearchDisplayStyle,
+            };
+
+            if (!hasTransactions) {
+                return {
+                    fullTitle: reportName,
+                    shouldUseFullTitle,
+                    ...baseProps,
+                    ...styleProps,
+                };
+            }
+
+            if (isIOUOrInvoice) {
+                return {
+                    fullTitle: title,
+                    shouldUseFullTitle: true,
+                    ...baseProps,
+                    ...styleProps,
+                };
+            }
+
+            return {
+                fullTitle: reportName,
+                shouldUseFullTitle,
+                ...baseProps,
+                ...styleProps,
+            };
+        }
+
+        return {
+            fullTitle: title,
+            textStyles: regularStyle,
+            shouldUseFullTitle: isMoneyRequestOrReport || isAnonymous,
+            ...baseProps,
+        };
+    }
+
+    const {fullTitle, textStyles, displayNamesWithTooltips: displayNamesWithTooltipsProp, tooltipEnabled, numberOfLines, shouldUseFullTitle: shouldUseFullTitleProp} = getDisplayProps();
+
+    return (
+        <DisplayNames
+            fullTitle={fullTitle}
+            displayNamesWithTooltips={displayNamesWithTooltipsProp}
+            tooltipEnabled={tooltipEnabled}
+            numberOfLines={numberOfLines}
+            textStyles={textStyles}
+            shouldUseFullTitle={shouldUseFullTitleProp}
+        />
+    );
+}
+
+function AvatarWithDisplayName({
+    report,
+    policy,
+    isAnonymous = false,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    shouldEnableDetailPageNavigation = false,
+    shouldEnableAvatarNavigation = true,
+    shouldUseCustomSearchTitleName = false,
+    transactions = [],
+    openParentReportInCurrentTab = false,
+    avatarBorderColor: avatarBorderColorProp,
+    shouldDisplayStatus = false,
+    customDisplayNameStyle = {},
+    parentNavigationSubtitleTextStyles,
+    parentNavigationStatusContainerStyles = {},
+}: AvatarWithDisplayNameProps) {
+    const {localeCompare, formatPhoneNumber} = useLocalize();
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST) ?? CONST.EMPTY_OBJECT;
-
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
-    );
-    const title = getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
-    const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
+    const {translate} = useLocalize();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to display the edit button only on large screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
+    const reportAttributes = useReportAttributes();
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const title = getReportName(report, reportAttributes);
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const subtitle = getChatRoomSubtitle(report, true, isReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived, reportAttributes);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
-    const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
-    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report);
-    const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare, formatPhoneNumber);
+    const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
+    const statusText = shouldDisplayStatus ? getReportStatusTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
+    const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil']);
+    const shouldShowReportTitleEditButton = shouldEnableDetailPageNavigation && !isSmallScreenWidth && canEditReportTitle(report, policy);
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
@@ -91,13 +216,18 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
         }
         const parentReportAction = parentReportActions?.[report?.parentReportActionID];
         actorAccountID.current = parentReportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    }, [parentReportActions, report]);
+    }, [parentReportActions, report?.parentReportActionID]);
 
-    const goToDetailsPage = useCallback(() => {
-        navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
-    }, [report]);
+    const goToDetailsPage = () => {
+        navigateToDetailsPage(report, Navigation.getActiveRoute());
+    };
 
-    const showActorDetails = useCallback(() => {
+    const navigateToEditReportTitle = (event?: GestureResponderEvent | KeyboardEvent) => {
+        event?.stopPropagation?.();
+        Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, Navigation.getReportRHPActiveRoute()));
+    };
+
+    const showActorDetails = () => {
         // We should navigate to the details page if the report is a IOU/expense report
         if (shouldEnableDetailPageNavigation) {
             goToDetailsPage();
@@ -126,51 +256,85 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
             // Report detail route is added as fallback but based on the current implementation this route won't be executed
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
-    }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
+    };
+
+    const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
+    const displayNameContent = getCustomDisplayName(
+        shouldUseCustomSearchTitleName,
+        report,
+        title,
+        displayNamesWithTooltips,
+        transactions,
+        shouldUseFullTitle,
+        [styles.headerText, styles.pre, customDisplayNameStyle],
+        [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
+        isAnonymous,
+        isMoneyRequestOrReport,
+    );
+
+    const multipleAvatars = (
+        <ReportActionAvatars
+            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+            subscriptAvatarBorderColor={avatarBorderColor}
+            size={size}
+            secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)}
+            reportID={report?.reportID}
+        />
+    );
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <PressableWithoutFeedback
-                        onPress={showActorDetails}
-                        accessibilityLabel={title}
-                        role={getButtonRole(true)}
-                    >
-                        <View accessibilityLabel={title}>
-                            {shouldShowSubscriptAvatar ? (
-                                <SubscriptAvatar
-                                    backgroundColor={avatarBorderColor}
-                                    mainAvatar={icons.at(0) ?? fallbackIcon}
-                                    secondaryAvatar={icons.at(1)}
-                                    size={size}
-                                />
-                            ) : (
-                                <MultipleAvatars
-                                    icons={icons}
-                                    size={size}
-                                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-                                />
-                            )}
-                        </View>
-                    </PressableWithoutFeedback>
+                    <View accessibilityLabel={title}>
+                        {shouldEnableAvatarNavigation ? (
+                            <PressableWithoutFeedback
+                                sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.SHOW_ACTOR_DETAILS}
+                                onPress={showActorDetails}
+                                accessibilityLabel={title}
+                                role={getButtonRole(true)}
+                            >
+                                {multipleAvatars}
+                            </PressableWithoutFeedback>
+                        ) : (
+                            multipleAvatars
+                        )}
+                    </View>
+
                     <View style={[styles.flex1, styles.flexColumn]}>
-                        <CaretWrapper>
-                            <DisplayNames
-                                fullTitle={title}
-                                displayNamesWithTooltips={displayNamesWithTooltips}
-                                tooltipEnabled
-                                numberOfLines={1}
-                                textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                                shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
-                            />
-                        </CaretWrapper>
+                        {shouldShowReportTitleEditButton ? (
+                            <PressableWithoutFeedback
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.DETAILS_BUTTON}
+                                onPress={navigateToEditReportTitle}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.mw100]}
+                                accessibilityLabel={title}
+                                role={CONST.ROLE.BUTTON}
+                            >
+                                <View style={[styles.flexShrink1]}>{displayNameContent}</View>
+                                <Icon
+                                    src={icons.Pencil}
+                                    width={variables.iconSizeExtraSmall}
+                                    height={variables.iconSizeExtraSmall}
+                                    additionalStyles={styles.ml1}
+                                    fill={theme.icon}
+                                />
+                            </PressableWithoutFeedback>
+                        ) : (
+                            displayNameContent
+                        )}
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                reportID={report?.reportID}
                                 parentReportID={report?.parentReportID}
                                 parentReportActionID={report?.parentReportActionID}
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
+                                openParentReportInCurrentTab={openParentReportInCurrentTab}
+                                statusText={statusText}
+                                textStyles={parentNavigationSubtitleTextStyles}
+                                statusTextContainerStyles={parentNavigationStatusContainerStyles}
+                                statusTextColor={reportStatusColorStyle?.textColor}
+                                statusTextBackgroundColor={reportStatusColorStyle?.backgroundColor}
                             />
                         )}
                         {!!subtitle && (
@@ -193,6 +357,7 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
 
     return (
         <PressableWithoutFeedback
+            sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.GO_TO_DETAILS_PAGE}
             onPress={goToDetailsPage}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
@@ -202,7 +367,5 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
         </PressableWithoutFeedback>
     );
 }
-
-AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
 export default AvatarWithDisplayName;

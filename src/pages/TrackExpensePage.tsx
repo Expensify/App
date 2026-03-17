@@ -1,17 +1,19 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as App from '@userActions/App';
-import * as IOU from '@userActions/IOU';
+import {findSelfDMReportID, generateReportID} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,19 +30,21 @@ function TrackExpensePage() {
     const {isOffline} = useNetwork();
     const [hasSeenTrackTraining, hasSeenTrackTrainingResult] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
     const isLoadingHasSeenTrackTraining = isLoadingOnyxValue(hasSeenTrackTrainingResult);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
-            App.confirmReadyToOpenApp();
+            confirmReadyToOpenApp();
             Navigation.isNavigationReady().then(() => {
                 if (isUnmounted.current || isLoadingHasSeenTrackTraining) {
                     return;
                 }
                 Navigation.goBack();
-                IOU.startMoneyRequest(
+                startMoneyRequest(
                     CONST.IOU.TYPE.TRACK,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                    findSelfDMReportID() || generateReportID(),
+                    draftTransactionIDs,
                 );
 
                 if (!hasSeenTrackTraining && !isOffline) {
@@ -59,16 +63,22 @@ function TrackExpensePage() {
         [],
     );
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TrackExpensePage',
+        isLoadingHasSeenTrackTraining,
+    };
+
     return (
-        <ScreenWrapper testID={TrackExpensePage.displayName}>
+        <ScreenWrapper testID="TrackExpensePage">
             <View style={[styles.borderBottom]}>
-                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+                <ReportHeaderSkeletonView
+                    onBackButtonPress={Navigation.goBack}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>
     );
 }
-
-TrackExpensePage.displayName = 'TrackExpensePage';
 
 export default TrackExpensePage;

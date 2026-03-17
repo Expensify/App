@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ReimbursementAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import type {ACHData, Corpay} from '@src/types/onyx/ReimbursementAccount';
 
@@ -16,7 +17,7 @@ function getSubStepValues<TProps extends keyof ReimbursementAccountForm>(
         acc[value] = (reimbursementAccountDraft?.[value] ??
             reimbursementAccount?.achData?.[value as keyof ACHData] ??
             reimbursementAccount?.achData?.corpay?.[value as keyof Corpay] ??
-            '') as ReimbursementAccountForm[TProps];
+            (value === INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM ? [] : '')) as ReimbursementAccountForm[TProps];
         return acc;
     }, {} as SubStepValues<TProps>);
 }

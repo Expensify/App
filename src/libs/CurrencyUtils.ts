@@ -1,13 +1,14 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Currency} from '@src/types/onyx';
-import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
+import type {Locale} from '@src/types/onyx';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
+/* eslint-disable rulesdir/prefer-onyx-connect-in-libs -- may refactor to useOnyx/connectWithoutView later */
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
     callback: (val) => {
@@ -18,6 +19,7 @@ Onyx.connect({
         currencyList = val;
     },
 });
+/* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
 
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
@@ -29,11 +31,6 @@ Onyx.connect({
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     const decimals = currencyList?.[currency]?.decimals;
     return decimals ?? 2;
-}
-
-function getCurrency(currency: string = CONST.CURRENCY.USD): Currency | null {
-    const currencyItem = currencyList?.[currency];
-    return currencyItem;
 }
 
 /**
@@ -49,8 +46,8 @@ function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
 /**
  * Get localized currency symbol for currency(ISO 4217) Code
  */
-function getLocalizedCurrencySymbol(currencyCode: string): string | undefined {
-    const parts = formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
+function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
+    const parts = formatToParts(locale, 0, {
         style: 'currency',
         currency: currencyCode,
     });
@@ -62,19 +59,6 @@ function getLocalizedCurrencySymbol(currencyCode: string): string | undefined {
  */
 function getCurrencySymbol(currencyCode: string): string | undefined {
     return currencyList?.[currencyCode]?.symbol;
-}
-
-/**
- * Whether the currency symbol is left-to-right.
- */
-function isCurrencySymbolLTR(currencyCode: string): boolean {
-    const parts = formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
-        style: 'currency',
-        currency: currencyCode,
-    });
-
-    // Currency is LTR when the first part is of currency type.
-    return parts.at(0)?.type === 'currency';
 }
 
 /**
@@ -118,7 +102,7 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
  * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param currency - IOU currency
  */
-function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
+function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, shouldUseLocalCurrencySymbol = false): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     /**
      * Fallback currency to USD if it empty string or undefined
@@ -127,7 +111,21 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     if (!currency) {
         currencyWithFallback = CONST.CURRENCY.USD;
     }
-    return format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+
+    if (shouldUseLocalCurrencySymbol) {
+        const currencySymbol = getCurrencySymbol(currencyWithFallback);
+
+        if (currencySymbol) {
+            const formattedNumber = format(IntlStore.getCurrentLocale(), convertedAmount, {
+                style: 'decimal',
+                minimumFractionDigits: getCurrencyDecimals(currency),
+                maximumFractionDigits: 2,
+            });
+            return `${currencySymbol}${formattedNumber}`;
+        }
+    }
+
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency: currencyWithFallback,
 
@@ -137,6 +135,14 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
         // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
         maximumFractionDigits: 2,
     });
+}
+
+/** Same intended use as convertToDisplayString, but purposely omit currency symbol if not provided */
+function convertToDisplayStringWithExplicitCurrency(amountInCents: number, currency: string | undefined): string {
+    if (!currency) {
+        return convertToDisplayStringWithoutCurrency(amountInCents);
+    }
+    return convertToDisplayString(amountInCents, currency);
 }
 
 /**
@@ -149,7 +155,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
 function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
 
-    return format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency,
 
@@ -167,7 +173,7 @@ function convertToShortDisplayString(amountInCents = 0, currency: string = CONST
  */
 function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = amount / 100.0;
-    return format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency,
         minimumFractionDigits: CONST.MIN_TAX_RATE_DECIMAL_PLACES,
@@ -180,7 +186,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
-    return formatToParts(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+    return formatToParts(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency,
 
@@ -204,24 +210,18 @@ function isValidCurrencyCode(currencyCode: string): boolean {
     return !!currency;
 }
 
-function sanitizeCurrencyCode(currencyCode: string): string {
-    return isValidCurrencyCode(currencyCode) ? currencyCode : CONST.CURRENCY.USD;
-}
-
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
-    isCurrencySymbolLTR,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
     convertToDisplayString,
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    convertToDisplayStringWithExplicitCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
-    getCurrency,
-    sanitizeCurrencyCode,
 };

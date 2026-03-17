@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,12 +8,14 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
+import {setWorkspaceCategoryDescriptionHint} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,6 +32,7 @@ function CategoryDescriptionHintPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const decodedCategoryName = getDecodedCategoryName(categoryName);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -43,9 +45,9 @@ function CategoryDescriptionHintPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryDescriptionHintPage.displayName}
+                testID="CategoryDescriptionHintPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -56,14 +58,16 @@ function CategoryDescriptionHintPage({
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM}
                     onSubmit={({commentHint}) => {
-                        Category.setWorkspaceCategoryDescriptionHint(policyID, categoryName, commentHint);
+                        setWorkspaceCategoryDescriptionHint(policyID, categoryName, commentHint, policyCategories);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
-                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', {categoryName})}</Text>
+                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', decodedCategoryName)}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.COMMENT_HINT}
@@ -79,7 +83,5 @@ function CategoryDescriptionHintPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryDescriptionHintPage.displayName = 'CategoryDescriptionHintPage';
 
 export default CategoryDescriptionHintPage;

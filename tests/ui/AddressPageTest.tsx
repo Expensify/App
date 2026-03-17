@@ -4,12 +4,13 @@ import {act, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import PersonalAddressPage from '@pages/settings/Profile/PersonalDetails/PersonalAddressPage';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
@@ -23,15 +24,11 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ADDRESS) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -47,10 +44,15 @@ const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ADDRESS) =
 };
 
 describe('AddressPageTest', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        });
+        await waitForBatchedUpdatesWithAct();
     });
     it('should not reset state', async () => {
         await TestHelper.signInWithTestUser();
@@ -67,15 +69,63 @@ describe('AddressPageTest', () => {
             await Onyx.merge(`${ONYXKEYS.IS_LOADING_APP}`, false);
         });
 
+        await waitForBatchedUpdatesWithAct();
+
         renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
 
         await waitForBatchedUpdatesWithAct();
-        const state = screen.getAllByLabelText('State / Province');
-        expect(state.at(1)?.props.value).toEqual('Test');
+        const stateInput = screen.getByLabelText('State / Province');
+        expect(stateInput.props.value).toEqual('Test');
         Navigation.setParams({
             country: 'VN',
         });
         await waitForBatchedUpdatesWithAct();
-        expect(state?.at(1)?.props.value).toEqual('Test');
+        const stateInputAfterParams = screen.getByLabelText('State / Province');
+        expect(stateInputAfterParams.props.value).toEqual('Test');
+    });
+
+    it('should prefill address line 2 from explicit street2', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.PRIVATE_PERSONAL_DETAILS}`, {
+                addresses: [
+                    {
+                        country: 'US',
+                        street: '123 Main St\nLegacy Suite',
+                        street2: 'Suite 500',
+                    },
+                ],
+            });
+            await Onyx.merge(`${ONYXKEYS.IS_LOADING_APP}`, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByDisplayValue('Suite 500')).toBeDefined();
+    });
+
+    it('should prefill address line 2 from legacy newline when street2 is missing', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.PRIVATE_PERSONAL_DETAILS}`, {
+                addresses: [
+                    {
+                        country: 'US',
+                        street: '123 Main St\nLegacy Suite',
+                    },
+                ],
+            });
+            await Onyx.merge(`${ONYXKEYS.IS_LOADING_APP}`, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByDisplayValue('Legacy Suite')).toBeDefined();
     });
 });

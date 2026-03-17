@@ -1,4 +1,5 @@
 import type CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type AccountData from './AccountData';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
@@ -28,6 +29,15 @@ type BankAccountAdditionalData = {
 
     /** Is billing card */
     isBillingCard?: boolean;
+
+    /** ID of related policy */
+    policyID?: string;
+
+    /** Corpay fields */
+    corpay?: {
+        /** Powerform files */
+        achAuthorizationForm?: FileObject[];
+    };
 };
 
 /** Model of bank account */
@@ -43,6 +53,9 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Determines if the bank account is a savings account */
     isSavings?: boolean;
+
+    /** Determines if the bank account is an Expensify Card settlement account */
+    isExpensifyCardSettlementAccount?: boolean;
 
     /** Date when the 3 micro amounts for validation were supposed to reach the bank account */
     validateCodeExpectedDate?: string;
@@ -73,4 +86,4 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type BankAccountList = Record<string, BankAccount>;
 
 export default BankAccount;
-export type {AccountData, BankAccountAdditionalData, BankAccountList};
+export type {BankAccountAdditionalData, BankAccountList};

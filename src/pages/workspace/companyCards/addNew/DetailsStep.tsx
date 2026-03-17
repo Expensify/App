@@ -1,46 +1,35 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
-import {addNewCompanyCardsFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
-type DetailsStepProps = {
-    /** ID of the current policy */
-    policyID: string | undefined;
-};
-
-function DetailsStep({policyID}: DetailsStepProps) {
+function DetailsStep() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
 
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
@@ -52,15 +41,12 @@ function DetailsStep({policyID}: DetailsStepProps) {
             return;
         }
 
-        const feedDetails = Object.entries({
+        const feedDetails = {
             ...values,
             bankName: addNewCard.data.bankName ?? 'Amex',
-        })
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(', ');
+        };
 
-        addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, lastSelectedFeed);
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE, data: {feedDetails}});
     };
 
     const handleBackButtonPress = () => {
@@ -71,64 +57,46 @@ function DetailsStep({policyID}: DetailsStepProps) {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS});
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID]);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID], translate);
 
-            switch (feedProvider) {
-                case CONST.COMPANY_CARD.FEED_BANK_NAME.VISA:
-                    if (!values[INPUT_IDS.BANK_ID]) {
-                        errors[INPUT_IDS.BANK_ID] = translate('common.error.fieldRequired');
-                    } else if (values[INPUT_IDS.BANK_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
-                        errors[INPUT_IDS.BANK_ID] = translate('common.error.characterLimitExceedCounter', {
-                            length: values[INPUT_IDS.BANK_ID].length,
-                            limit: CONST.STANDARD_LENGTH_LIMIT,
-                        });
-                    }
-                    if (!values[INPUT_IDS.PROCESSOR_ID]) {
-                        errors[INPUT_IDS.PROCESSOR_ID] = translate('common.error.fieldRequired');
-                    } else if (values[INPUT_IDS.PROCESSOR_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
-                        errors[INPUT_IDS.PROCESSOR_ID] = translate('common.error.characterLimitExceedCounter', {
-                            length: values[INPUT_IDS.PROCESSOR_ID].length,
-                            limit: CONST.STANDARD_LENGTH_LIMIT,
-                        });
-                    }
-                    if (!values[INPUT_IDS.COMPANY_ID]) {
-                        errors[INPUT_IDS.COMPANY_ID] = translate('common.error.fieldRequired');
-                    } else if (values[INPUT_IDS.COMPANY_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
-                        errors[INPUT_IDS.COMPANY_ID] = translate('common.error.characterLimitExceedCounter', {
-                            length: values[INPUT_IDS.COMPANY_ID].length,
-                            limit: CONST.STANDARD_LENGTH_LIMIT,
-                        });
-                    }
-                    break;
-                case CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD:
-                    if (!values[INPUT_IDS.DISTRIBUTION_ID]) {
-                        errors[INPUT_IDS.DISTRIBUTION_ID] = translate('common.error.fieldRequired');
-                    } else if (values[INPUT_IDS.DISTRIBUTION_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
-                        errors[INPUT_IDS.DISTRIBUTION_ID] = translate('common.error.characterLimitExceedCounter', {
-                            length: values[INPUT_IDS.DISTRIBUTION_ID].length,
-                            limit: CONST.STANDARD_LENGTH_LIMIT,
-                        });
-                    }
-                    break;
-                case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
-                    if (!values[INPUT_IDS.DELIVERY_FILE_NAME]) {
-                        errors[INPUT_IDS.DELIVERY_FILE_NAME] = translate('common.error.fieldRequired');
-                    } else if (values[INPUT_IDS.DELIVERY_FILE_NAME].length > CONST.STANDARD_LENGTH_LIMIT) {
-                        errors[INPUT_IDS.DELIVERY_FILE_NAME] = translate('common.error.characterLimitExceedCounter', {
-                            length: values[INPUT_IDS.DELIVERY_FILE_NAME].length,
-                            limit: CONST.STANDARD_LENGTH_LIMIT,
-                        });
-                    }
-                    break;
-                default:
-                    break;
-            }
-            return errors;
-        },
-        [feedProvider, translate],
-    );
+        switch (feedProvider) {
+            case CONST.COMPANY_CARD.FEED_BANK_NAME.VISA:
+                if (!values[INPUT_IDS.BANK_ID]) {
+                    errors[INPUT_IDS.BANK_ID] = translate('common.error.fieldRequired');
+                } else if (values[INPUT_IDS.BANK_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
+                    errors[INPUT_IDS.BANK_ID] = translate('common.error.characterLimitExceedCounter', values[INPUT_IDS.BANK_ID].length, CONST.STANDARD_LENGTH_LIMIT);
+                }
+                if (!values[INPUT_IDS.PROCESSOR_ID]) {
+                    errors[INPUT_IDS.PROCESSOR_ID] = translate('common.error.fieldRequired');
+                } else if (values[INPUT_IDS.PROCESSOR_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
+                    errors[INPUT_IDS.PROCESSOR_ID] = translate('common.error.characterLimitExceedCounter', values[INPUT_IDS.PROCESSOR_ID].length, CONST.STANDARD_LENGTH_LIMIT);
+                }
+                if (!values[INPUT_IDS.COMPANY_ID]) {
+                    errors[INPUT_IDS.COMPANY_ID] = translate('common.error.fieldRequired');
+                } else if (values[INPUT_IDS.COMPANY_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
+                    errors[INPUT_IDS.COMPANY_ID] = translate('common.error.characterLimitExceedCounter', values[INPUT_IDS.COMPANY_ID].length, CONST.STANDARD_LENGTH_LIMIT);
+                }
+                break;
+            case CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD:
+                if (!values[INPUT_IDS.DISTRIBUTION_ID]) {
+                    errors[INPUT_IDS.DISTRIBUTION_ID] = translate('common.error.fieldRequired');
+                } else if (values[INPUT_IDS.DISTRIBUTION_ID].length > CONST.STANDARD_LENGTH_LIMIT) {
+                    errors[INPUT_IDS.DISTRIBUTION_ID] = translate('common.error.characterLimitExceedCounter', values[INPUT_IDS.DISTRIBUTION_ID].length, CONST.STANDARD_LENGTH_LIMIT);
+                }
+                break;
+            case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
+                if (!values[INPUT_IDS.DELIVERY_FILE_NAME]) {
+                    errors[INPUT_IDS.DELIVERY_FILE_NAME] = translate('common.error.fieldRequired');
+                } else if (values[INPUT_IDS.DELIVERY_FILE_NAME].length > CONST.STANDARD_LENGTH_LIMIT) {
+                    errors[INPUT_IDS.DELIVERY_FILE_NAME] = translate('common.error.characterLimitExceedCounter', values[INPUT_IDS.DELIVERY_FILE_NAME].length, CONST.STANDARD_LENGTH_LIMIT);
+                }
+                break;
+            default:
+                break;
+        }
+        return errors;
+    };
 
     const renderInputs = () => {
         switch (feedProvider) {
@@ -142,6 +110,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
                             ref={inputCallbackRef}
+                            defaultValue={addNewCard?.data.feedDetails?.processorID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -149,6 +118,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.bankLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
+                            defaultValue={addNewCard?.data.feedDetails?.bankID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -156,6 +126,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.companyLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
+                            defaultValue={addNewCard?.data.feedDetails?.companyID}
                         />
                     </>
                 );
@@ -168,6 +139,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
+                        defaultValue={addNewCard?.data.feedDetails?.distributionID}
                     />
                 );
             case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
@@ -179,6 +151,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
+                        defaultValue={addNewCard?.data.feedDetails?.deliveryFileName}
                     />
                 );
             default:
@@ -188,8 +161,8 @@ function DetailsStep({policyID}: DetailsStepProps) {
 
     return (
         <ScreenWrapper
-            testID={DetailsStep.displayName}
-            includeSafeAreaPaddingBottom
+            testID="DetailsStep"
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -199,20 +172,21 @@ function DetailsStep({policyID}: DetailsStepProps) {
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
-                submitButtonText={translate('common.submit')}
+                submitButtonText={translate('common.next')}
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
-                enabledWhenOffline
+                shouldHideFixErrorsAlert={feedProvider !== CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}
+                addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>
                     {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
-                {renderInputs()}
+                <View fsClass={CONST.FULLSTORY.CLASS.MASK}>{renderInputs()}</View>
                 {!!feedProvider && !isStripeFeedProvider && (
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Icon
-                            src={Expensicons.QuestionMark}
+                            src={icons.QuestionMark}
                             width={variables.iconSizeExtraSmall}
                             height={variables.iconSizeExtraSmall}
                             fill={theme.icon}
@@ -229,7 +203,5 @@ function DetailsStep({policyID}: DetailsStepProps) {
         </ScreenWrapper>
     );
 }
-
-DetailsStep.displayName = 'DetailsStep';
 
 export default DetailsStep;

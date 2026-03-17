@@ -7,11 +7,11 @@ type PDFThumbnailProps = {
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
-    /** Whether the PDF thumbnail requires an authToken */
-    isAuthTokenRequired?: boolean;
-
     /** Whether the PDF thumbnail can be loaded */
     enabled?: boolean;
+
+    /** Fit policy for the PDF thumbnail */
+    fitPolicy?: 0 | 1 | 2;
 
     /** Callback to call if PDF is password protected */
     onPassword?: () => void;

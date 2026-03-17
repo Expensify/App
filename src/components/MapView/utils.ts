@@ -2,16 +2,16 @@ import type {LngLat} from 'react-map-gl';
 import type {Coordinate} from './MapViewTypes';
 
 function getBounds(waypoints: Coordinate[], directionCoordinates: undefined | Coordinate[]): {southWest: Coordinate; northEast: Coordinate} {
-    const lngs = waypoints.map((waypoint) => waypoint[0]);
-    const lats = waypoints.map((waypoint) => waypoint[1]);
+    const longitudes = waypoints.map((waypoint) => waypoint[0]);
+    const latitudes = waypoints.map((waypoint) => waypoint[1]);
     if (directionCoordinates) {
-        lngs.push(...directionCoordinates.map((coordinate) => coordinate[0]));
-        lats.push(...directionCoordinates.map((coordinate) => coordinate[1]));
+        longitudes.push(...directionCoordinates.map((coordinate) => coordinate[0]));
+        latitudes.push(...directionCoordinates.map((coordinate) => coordinate[1]));
     }
 
     return {
-        southWest: [Math.min(...lngs), Math.min(...lats)],
-        northEast: [Math.max(...lngs), Math.max(...lats)],
+        southWest: [Math.min(...longitudes), Math.min(...latitudes)],
+        northEast: [Math.max(...longitudes), Math.max(...latitudes)],
     };
 }
 

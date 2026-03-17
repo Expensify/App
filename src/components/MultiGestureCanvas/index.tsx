@@ -1,17 +1,19 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import type {GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import type {GestureType} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
-import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
+import Animated, {cancelAnimation, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
-import type {CanvasSize, ContentSize, OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
+import type {Dimensions} from '@src/types/utils/Layout';
+import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG} from './constants';
+import type {OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
@@ -19,7 +21,7 @@ import * as MultiGestureCanvasUtils from './utils';
 
 type MultiGestureCanvasProps = ChildrenProps & {
     /**
-     * Wheter the canvas is currently active (in the screen) or not.
+     * Whether the canvas is currently active (in the screen) or not.
      * Disables certain gestures and functionality
      */
     isActive?: boolean;
@@ -27,12 +29,12 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** The width and height of the canvas.
      *  This is needed in order to properly scale the content in the canvas
      */
-    canvasSize: CanvasSize;
+    canvasSize: Dimensions;
 
     /** The width and height of the content.
      *  This is needed in order to properly scale the content in the canvas
      */
-    contentSize?: ContentSize;
+    contentSize?: Dimensions;
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: Partial<ZoomRange>;
@@ -57,6 +59,9 @@ type MultiGestureCanvasProps = ChildrenProps & {
 
     /** Handles swipe down event */
     onSwipeDown?: OnSwipeDownCallback;
+
+    /** We need to ensure that any native gesture handlers in this component tree is working simultaneously with panning and do not get blocked. */
+    externalGestureHandler?: GestureType;
 };
 
 const defaultContentSize = {width: 1, height: 1};
@@ -74,6 +79,7 @@ function MultiGestureCanvas({
     onTap,
     onScaleChanged,
     onSwipeDown,
+    externalGestureHandler,
 }: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -121,7 +127,7 @@ function MultiGestureCanvas({
             if (!isUsedInCarousel) {
                 return;
             }
-            // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+            // eslint-disable-next-line no-param-reassign
             isPagerScrollEnabled.set(!current);
         },
     );
@@ -189,7 +195,6 @@ function MultiGestureCanvas({
         onTap,
         shouldDisableTransformationGestures,
     });
-    // eslint-disable-next-line react-compiler/react-compiler
     const singleTapGesture = baseSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
     const panGestureSimultaneousList = useMemo(
@@ -212,7 +217,6 @@ function MultiGestureCanvas({
         onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
-        // eslint-disable-next-line react-compiler/react-compiler
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
@@ -238,7 +242,7 @@ function MultiGestureCanvas({
         }
 
         if (!isActive) {
-            runOnUI(reset)(false);
+            scheduleOnUI(reset, false);
         }
     }, [isActive, mounted, reset]);
 
@@ -264,12 +268,14 @@ function MultiGestureCanvas({
 
     const containerStyles = useMemo(() => [styles.flex1, StyleUtils.getMultiGestureCanvasContainerStyle(canvasSize.width)], [StyleUtils, canvasSize.width, styles.flex1]);
 
+    const panGestureWrapper = externalGestureHandler ? panGesture.simultaneousWithExternalGesture(externalGestureHandler) : panGesture;
+
     return (
         <View
             collapsable={false}
             style={containerStyles}
         >
-            <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGesture))}>
+            <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGestureWrapper))}>
                 <View
                     collapsable={false}
                     onTouchEnd={(e) => e.preventDefault()}
@@ -286,8 +292,6 @@ function MultiGestureCanvas({
         </View>
     );
 }
-MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
-export {DEFAULT_ZOOM_RANGE, ZOOM_RANGE_BOUNCE_FACTORS};
-export type {MultiGestureCanvasProps};
+export {DEFAULT_ZOOM_RANGE};

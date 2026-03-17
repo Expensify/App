@@ -2,19 +2,15 @@ import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import LottieAnimations from '@components/LottieAnimations';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -22,7 +18,13 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -30,10 +32,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate} from '@libs/actions/Delegate';
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {AnchorPosition} from '@styles/index';
+import colors from '@styles/theme/colors';
 import {close as modalClose} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -41,22 +44,62 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Delegate} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import useSecuritySettingsSectionIllustration from './useSecuritySettingsSectionIllustration';
+
+type BaseMenuItemType = WithSentryLabel & {
+    translationKey: TranslationPaths;
+    icon: IconAsset;
+    iconRight?: IconAsset;
+    action: () => Promise<void> | void;
+    link?: string;
+    wrapperStyle?: StyleProp<ViewStyle>;
+};
 
 function SecuritySettingsPage() {
+    const icons = useMemoizedLazyExpensifyIcons([
+        'ArrowCollapse',
+        'ClosedSign',
+        'FallbackAvatar',
+        'Fingerprint',
+        'Pencil',
+        'Shield',
+        'ThreeDots',
+        'Trashcan',
+        'UserLock',
+        'UserPlus',
+    ] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
+    const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('initialSettingsPage.security'));
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
-
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const privateSubscription = usePrivateSubscription();
+    const isUserValidated = account?.validated;
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
-    const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
     const [selectedDelegate, setSelectedDelegate] = useState<Delegate | undefined>();
     const [selectedEmail, setSelectedEmail] = useState<string | undefined>();
+
+    const {showConfirmModal} = useConfirmModal();
+    const showRemoveCopilotModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('delegate.removeCopilot'),
+            prompt: translate('delegate.removeCopilotConfirmation'),
+            confirmText: translate('delegate.removeCopilot'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    }, [showConfirmModal, translate]);
 
     const errorFields = account?.delegatedAccess?.errorFields ?? {};
 
@@ -65,14 +108,17 @@ function SecuritySettingsPage() {
         vertical: 0,
     });
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
+
+    const hasEverRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== CONST.MULTIFACTOR_AUTHENTICATION.PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED;
 
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
@@ -94,9 +140,6 @@ function SecuritySettingsPage() {
         setSelectedEmail(delegate.email);
     };
 
-    const showDelegateNoAccessMenu = () => {
-        setIsNoDelegateAccessMenuVisible(true);
-    };
     useLayoutEffect(() => {
         const popoverPositionListener = Dimensions.addEventListener('change', () => {
             debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
@@ -111,33 +154,120 @@ function SecuritySettingsPage() {
     }, [setMenuPosition]);
 
     const securityMenuItems = useMemo(() => {
-        const baseMenuItems = [
+        const baseMenuItems: BaseMenuItemType[] = [
             {
                 translationKey: 'twoFactorAuth.headerTitle',
-                icon: Expensicons.Shield,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())),
-            },
-            {
-                translationKey: 'closeAccountPage.closeAccount',
-                icon: Expensicons.ClosedSign,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
+                icon: icons.Shield,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.TWO_FACTOR_AUTH,
+                action: () => {
+                    if (isActingAsDelegate) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+                    if (isAccountLocked) {
+                        showLockedAccountModal();
+                        return;
+                    }
+                    if (!isUserValidated) {
+                        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
+                },
             },
         ];
 
+        if (hasEverRegisteredForMultifactorAuthentication) {
+            baseMenuItems.push({
+                translationKey: 'multifactorAuthentication.revoke.title',
+                icon: icons.Fingerprint,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.REVOKE_MFA,
+                action: () => {
+                    Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
+                },
+            });
+        }
+
+        baseMenuItems.push({
+            translationKey: 'mergeAccountsPage.mergeAccount',
+            icon: icons.ArrowCollapse,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_ACCOUNTS,
+            action: () => {
+                if (isAccountLocked) {
+                    showLockedAccountModal();
+                    return;
+                }
+                if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                    Navigation.navigate(
+                        ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                    );
+                    return;
+                }
+
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
+            },
+        });
+
+        if (isAccountLocked) {
+            baseMenuItems.push({
+                translationKey: 'lockAccountPage.unlockAccount',
+                icon: icons.UserLock,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
+            });
+        } else {
+            baseMenuItems.push({
+                translationKey: 'lockAccountPage.reportSuspiciousActivity',
+                icon: icons.UserLock,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
+            });
+        }
+
+        baseMenuItems.push({
+            translationKey: 'closeAccountPage.closeAccount',
+            icon: icons.ClosedSign,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
+            action: () => {
+                if (isAccountLocked) {
+                    showLockedAccountModal();
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_CLOSE);
+            },
+        });
         return baseMenuItems.map((item) => ({
             key: item.translationKey,
-            title: translate(item.translationKey as TranslationPaths),
+            title: translate(item.translationKey),
             icon: item.icon,
             onPress: item.action,
             shouldShowRightIcon: true,
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
+            sentryLabel: item.sentryLabel,
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate]);
+    }, [
+        icons.ArrowCollapse,
+        icons.ClosedSign,
+        icons.UserLock,
+        icons.Shield,
+        icons.Fingerprint,
+        isAccountLocked,
+        isActingAsDelegate,
+        isUserValidated,
+        showDelegateNoAccessModal,
+        showLockedAccountModal,
+        privateSubscription?.type,
+        currentUserPersonalDetails.login,
+        waitForNavigate,
+        translate,
+        styles.sectionMenuItemTopDescription,
+        hasEverRegisteredForMultifactorAuthentication,
+    ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
-        () =>
-            delegates
+        () => {
+            const menuItems = delegates
                 .filter((d) => !d.optimisticAccountID)
                 .map(({email, role, pendingAction, pendingFields}) => {
                     const personalDetail = getPersonalDetailByEmail(email);
@@ -158,7 +288,7 @@ function SecuritySettingsPage() {
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role, true));
+                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role));
                     };
 
                     const formattedEmail = formatPhoneNumber(email);
@@ -167,27 +297,30 @@ function SecuritySettingsPage() {
                         description: personalDetail?.displayName ? formattedEmail : '',
                         badgeText: translate('delegate.role', {role}),
                         avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        icon: personalDetail?.avatar ?? FallbackAvatar,
+                        icon: personalDetail?.avatar ?? icons.FallbackAvatar,
                         iconType: CONST.ICON_TYPE_AVATAR,
                         numberOfLinesDescription: 1,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        iconRight: Expensicons.ThreeDots,
+                        iconRight: icons.ThreeDots,
                         shouldShowRightIcon: true,
                         pendingAction,
                         shouldForceOpacity: !!pendingAction,
-                        onPendingActionDismiss: () => clearDelegateErrorsByField(email, 'addDelegate'),
+                        onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
                         error,
                         onPress,
                         success: selectedEmail === email,
+                        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_ITEM,
                     };
-                }),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail],
+                });
+            return sortAlphabetically(menuItems, 'title', localeCompare);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail, icons.FallbackAvatar, icons.ThreeDots, localeCompare],
     );
 
     const delegatorMenuItems: MenuItemProps[] = useMemo(
-        () =>
-            delegators.map(({email, role}) => {
+        () => {
+            const menuItems = delegators.map(({email, role}) => {
                 const personalDetail = getPersonalDetailByEmail(email);
                 const formattedEmail = formatPhoneNumber(email);
 
@@ -196,24 +329,31 @@ function SecuritySettingsPage() {
                     description: personalDetail?.displayName ? formattedEmail : '',
                     badgeText: translate('delegate.role', {role}),
                     avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    icon: personalDetail?.avatar ?? FallbackAvatar,
+                    icon: personalDetail?.avatar ?? icons.FallbackAvatar,
                     iconType: CONST.ICON_TYPE_AVATAR,
                     numberOfLinesDescription: 1,
                     wrapperStyle: [styles.sectionMenuItemTopDescription],
                     interactive: false,
                 };
-            }),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [delegators, styles, translate, personalDetails],
+            });
+            return sortAlphabetically(menuItems, 'title', localeCompare);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [delegators, styles, translate, personalDetails, icons.FallbackAvatar, localeCompare],
     );
 
     const delegatePopoverMenuItems: PopoverMenuItem[] = [
         {
             text: translate('delegate.changeAccessLevel'),
-            icon: Expensicons.Pencil,
+            icon: icons.Pencil,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_CHANGE_ACCESS,
             onPress: () => {
                 if (isActingAsDelegate) {
-                    modalClose(() => setIsNoDelegateAccessMenuVisible(true));
+                    modalClose(() => showDelegateNoAccessModal());
+                    return;
+                }
+                if (isAccountLocked) {
+                    modalClose(() => showLockedAccountModal());
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
@@ -224,16 +364,32 @@ function SecuritySettingsPage() {
         },
         {
             text: translate('delegate.removeCopilot'),
-            icon: Expensicons.Trashcan,
+            icon: icons.Trashcan,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_REMOVE,
             onPress: () => {
-                if (isActingAsDelegate) {
-                    modalClose(() => setIsNoDelegateAccessMenuVisible(true));
+                if (selectedDelegate?.email !== account?.delegatedAccess?.delegate && isActingAsDelegate) {
+                    modalClose(() => showDelegateNoAccessModal());
+                    return;
+                }
+                if (isAccountLocked) {
+                    modalClose(() => showLockedAccountModal());
                     return;
                 }
                 modalClose(() => {
                     setShouldShowDelegatePopoverMenu(false);
-                    setShouldShowRemoveDelegateModal(true);
                     setSelectedEmail(undefined);
+                    showRemoveCopilotModal().then((result) => {
+                        if (result.action === ModalActions.CLOSE) {
+                            setSelectedDelegate(undefined);
+                        } else {
+                            if (selectedDelegate?.email !== account?.delegatedAccess?.delegate && isActingAsDelegate) {
+                                showDelegateNoAccessModal();
+                                return;
+                            }
+                            removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
+                            setSelectedDelegate(undefined);
+                        }
+                    });
                 });
             },
         },
@@ -245,7 +401,7 @@ function SecuritySettingsPage() {
 
     return (
         <ScreenWrapper
-            testID={SecuritySettingsPage.displayName}
+            testID="SecuritySettingsPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
@@ -255,10 +411,11 @@ function SecuritySettingsPage() {
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.security')}
                         shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={() => Navigation.goBack()}
-                        icon={Illustrations.LockClosed}
+                        onBackButtonPress={Navigation.goBack}
+                        icon={illustrations.LockClosed}
                         shouldUseHeadlineHeader
                         shouldDisplaySearchRouter
+                        shouldDisplayHelpButton
                     />
                     <ScrollView contentContainerStyle={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -267,9 +424,12 @@ function SecuritySettingsPage() {
                                 subtitle={translate('securityPage.subtitle')}
                                 isCentralPane
                                 subtitleMuted
-                                illustration={LottieAnimations.Safe}
+                                illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                                illustrationBackgroundColor={colors.ice500}
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={styles.pt5}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...securitySettingsIllustration}
                             >
                                 <MenuItemList
                                     menuItems={securityMenuItems}
@@ -285,9 +445,11 @@ function SecuritySettingsPage() {
                                             <TextLink
                                                 style={[styles.link]}
                                                 href={CONST.COPILOT_HELP_URL}
+                                                accessibilityLabel={translate('delegate.learnMoreAboutDelegatedAccess')}
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>
+                                            .
                                         </Text>
                                     )}
                                     isCentralPane
@@ -301,15 +463,28 @@ function SecuritySettingsPage() {
                                             <MenuItemList menuItems={delegateMenuItems} />
                                         </>
                                     )}
-                                    {!isActingAsDelegate && (
-                                        <MenuItem
-                                            title={translate('delegate.addCopilot')}
-                                            icon={Expensicons.UserPlus}
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
-                                            shouldShowRightIcon
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
-                                        />
-                                    )}
+                                    <MenuItem
+                                        title={translate('delegate.addCopilot')}
+                                        icon={icons.UserPlus}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT}
+                                        onPress={() => {
+                                            if (isActingAsDelegate) {
+                                                modalClose(() => showDelegateNoAccessModal());
+                                                return;
+                                            }
+                                            if (!isUserValidated) {
+                                                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
+                                                return;
+                                            }
+                                            if (isAccountLocked) {
+                                                showLockedAccountModal();
+                                                return;
+                                            }
+                                            Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
+                                        }}
+                                        shouldShowRightIcon
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
+                                    />
                                     {hasDelegators && (
                                         <>
                                             <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
@@ -320,7 +495,7 @@ function SecuritySettingsPage() {
                             </View>
                             <PopoverMenu
                                 isVisible={shouldShowDelegatePopoverMenu}
-                                anchorRef={delegateButtonRef as RefObject<View>}
+                                anchorRef={delegateButtonRef as RefObject<View | null>}
                                 anchorPosition={{
                                     horizontal: anchorPosition.horizontal,
                                     vertical: anchorPosition.vertical,
@@ -335,36 +510,12 @@ function SecuritySettingsPage() {
                                     setSelectedEmail(undefined);
                                 }}
                             />
-                            <ConfirmModal
-                                isVisible={shouldShowRemoveDelegateModal}
-                                title={translate('delegate.removeCopilot')}
-                                prompt={translate('delegate.removeCopilotConfirmation')}
-                                danger
-                                onConfirm={() => {
-                                    removeDelegate(selectedDelegate?.email ?? '');
-                                    setShouldShowRemoveDelegateModal(false);
-                                    setSelectedDelegate(undefined);
-                                }}
-                                onCancel={() => {
-                                    setShouldShowRemoveDelegateModal(false);
-                                    setSelectedDelegate(undefined);
-                                }}
-                                confirmText={translate('delegate.removeCopilot')}
-                                cancelText={translate('common.cancel')}
-                                shouldShowCancelButton
-                            />
                         </View>
                     </ScrollView>
-                    <DelegateNoAccessModal
-                        isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                        onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                    />
                 </>
             )}
         </ScreenWrapper>
     );
 }
-
-SecuritySettingsPage.displayName = 'SettingSecurityPage';
 
 export default SecuritySettingsPage;

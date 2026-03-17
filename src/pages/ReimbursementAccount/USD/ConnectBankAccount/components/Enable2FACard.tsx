@@ -1,48 +1,49 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 type Enable2FACardProps = {
-    policyID: string;
+    policyID?: string | undefined;
 };
 
 function Enable2FACard({policyID}: Enable2FACardProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
+    const icons = useMemoizedLazyExpensifyIcons(['Shield'] as const);
 
     return (
         <Section
-            title={translate('validationStep.enable2FATitle')}
-            icon={Illustrations.ShieldYellow}
-            titleStyles={[styles.mb4]}
-            containerStyles={[styles.mh5]}
+            title={translate('connectBankAccountStep.enable2FATitle')}
+            icon={ShieldYellow}
+            titleStyles={styles.mb4}
+            containerStyles={styles.mh5}
             menuItems={[
                 {
-                    title: translate('validationStep.secureYourAccount'),
-                    onPress: () => {
-                        Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
-                    },
-                    icon: Expensicons.Shield,
+                    title: translate('connectBankAccountStep.secureYourAccount'),
+                    // Assuming user is validated here, validation is checked at the beginning of ConnectBank Flow
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID}))),
+                    icon: icons.Shield,
                     shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    wrapperStyle: [styles.cardMenuItem],
+                    outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                 },
             ]}
         >
             <View style={styles.mb6}>
-                <Text>{translate('validationStep.enable2FAText')}</Text>
+                <Text>{translate('connectBankAccountStep.enable2FAText')}</Text>
             </View>
         </Section>
     );
 }
-
-Enable2FACard.displayName = 'Enable2FAPrompt';
 
 export default Enable2FACard;

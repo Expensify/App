@@ -1,10 +1,10 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@libs/actions/FormActions';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -73,7 +73,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         }
 
         setReason(draft.reason);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- only sync with draft data when it is loaded
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync with draft data when it is loaded
     }, [isLoadingDraft]);
 
     const handleOptionSelect = (value: string) => {
@@ -88,7 +88,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         }
 
         onSubmit(draft.reason, draft.note?.trim());
-        FormActions.clearDraftValues(formID);
+        clearDraftValues(formID);
     };
 
     const handleSetNote = () => {
@@ -134,7 +134,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                     </>
                 )}
             </View>
-            <FixedFooter>
+            <FixedFooter style={styles.pb0}>
                 {!!footerText && footerText}
                 <FormAlertWithSubmitButton
                     isAlertVisible={shouldShowReasonError}
@@ -149,7 +149,5 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         </FormProvider>
     );
 }
-
-FeedbackSurvey.displayName = 'FeedbackSurvey';
 
 export default FeedbackSurvey;

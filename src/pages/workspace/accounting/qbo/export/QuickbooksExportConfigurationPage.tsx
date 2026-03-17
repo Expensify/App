@@ -1,19 +1,25 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
+import {getCardSettings} from '@libs/CardUtils';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -21,18 +27,29 @@ import type SCREENS from '@src/SCREENS';
 function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT>>();
     const backTo = route?.params?.backTo;
     const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const errorFields = qboConfig?.errorFields;
+    const {accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const travelPayableAccount = accountPayable?.find((account) => account.id === qboConfig?.travelInvoicingPayableAccountID);
+
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING) && getIsTravelInvoicingEnabled(travelSettings);
 
     const shouldShowVendorMenuItems = useMemo(
         () => qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
         [qboConfig?.nonReimbursableExpensesExportDestination],
     );
-    const shouldGoBackToSpecificRoute = shouldShowVendorMenuItems && backTo;
+
+    const goBack = useCallback(() => {
+        return goBackFromExportConnection(shouldShowVendorMenuItems, backTo);
+    }, [backTo, shouldShowVendorMenuItems]);
 
     const menuItems = [
         {
@@ -61,6 +78,16 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             title: qboConfig?.receivableAccount?.name,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
         },
+        ...(isTravelInvoicingEnabled
+            ? [
+                  {
+                      description: translate('workspace.qbo.travelInvoicing'),
+                      onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
+                      title: travelPayableAccount?.name,
+                      subscribedSettings: [CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+                  },
+              ]
+            : []),
         {
             description: translate('workspace.accounting.exportCompanyCard'),
             onPress: !policyID
@@ -85,12 +112,12 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksExportConfigurationPage.displayName}
+            displayName="QuickbooksExportConfigurationPage"
             headerTitle="workspace.accounting.export"
             title="workspace.qbo.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.goBack(backTo) : undefined}
+            onBackButtonPress={goBack}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
@@ -107,23 +134,21 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                         description={menuItem.description}
                         shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={
+                            areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ||
+                            (menuItem.subscribedSettings?.some((setting) => setting === CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION) &&
+                                shouldShowQBOReimbursableExportDestinationAccountError(policy))
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : undefined
+                        }
                     />
                 </OfflineWithFeedback>
             ))}
-            <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
-                <Text style={[styles.mutedNormalTextLabel]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
-                <TextLink
-                    onPress={() => openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
-                    style={[styles.mutedNormalTextLabel, styles.link]}
-                >
-                    {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}
-                </TextLink>
-            </Text>
+            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.mt2]}>
+                <RenderHTML html={translate('workspace.common.deepDiveExpensifyCard')} />
+            </View>
         </ConnectionLayout>
     );
 }
-
-QuickbooksExportConfigurationPage.displayName = 'QuickbooksExportConfigurationPage';
 
 export default withPolicyConnections(QuickbooksExportConfigurationPage);

@@ -13,6 +13,14 @@ export default {
         height: '100%',
     },
 
+    h7: {
+        height: 28,
+    },
+
+    h10: {
+        height: 40,
+    },
+
     h68: {
         height: 272,
     },
@@ -35,6 +43,10 @@ export default {
 
     mh100: {
         maxHeight: '100%',
+    },
+
+    mh45vh: {
+        maxHeight: '45vh',
     },
 
     mh65vh: {
@@ -83,9 +95,20 @@ export default {
     mnw100: {
         minWidth: '100%',
     },
+    mnw64p: {
+        minWidth: 64,
+    },
+
+    mnw100p: {
+        minWidth: 100,
+    },
 
     mnw120: {
         minWidth: 120,
+    },
+
+    mnw200: {
+        minWidth: 200,
     },
 
     w40: {
@@ -127,9 +150,11 @@ export default {
     mw100: {
         maxWidth: '100%',
     },
+
     wAuto: {
         width: 'auto',
     },
+
     wFitContent: {
         width: 'fit-content',
     },

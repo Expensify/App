@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 function AddPaymentCard() {
     return (
         <ScreenWrapper
-            testID={AddPaymentCard.displayName}
+            testID="AddPaymentCard"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -13,7 +13,5 @@ function AddPaymentCard() {
         </ScreenWrapper>
     );
 }
-
-AddPaymentCard.displayName = 'AddPaymentCard';
 
 export default AddPaymentCard;

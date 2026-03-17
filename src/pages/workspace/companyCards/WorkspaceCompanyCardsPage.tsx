@@ -1,177 +1,120 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import DecisionModal from '@components/DecisionModal';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
-import * as Illustrations from '@components/Icon/Illustrations';
+import useAssignCard from '@hooks/useAssignCard';
+import useCompanyCards from '@hooks/useCompanyCards';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkspaceAccountID, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
-import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
-import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
-import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import WorkspaceCompanyCardsTable from './WorkspaceCompanyCardsTable';
 
-type WorkspaceCompanyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
-function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const theme = useTheme();
+function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-
-    const {cardList, ...cards} = cardsList ?? {};
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
-    const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
-
-    const companyCards = getCompanyFeeds(cardFeeds);
-    const selectedFeedData = selectedFeed && companyCards[selectedFeed];
-    const isNoFeed = !selectedFeedData;
-    const isPending = !!selectedFeedData?.pending;
-    const isFeedAdded = !isPending && !isNoFeed;
-    const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
-    const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
+    const {translate} = useLocalize();
+    const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const fetchCompanyCards = useCallback(() => {
-        openPolicyCompanyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID]);
 
-    const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
+    const policy = usePolicy(policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.companyCards');
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+    const companyCards = useCompanyCards({policyID});
+    const {
+        allCardFeeds,
+        feedName,
+        selectedFeed,
+        bankName,
+        isFeedPending,
+        isFeedAdded,
+        onyxMetadata: {cardListMetadata},
+    } = companyCards;
+
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
+
+    // Use a ref so that changes to the employee list (e.g. after inviting a member) don't
+    // recreate the callback and trigger an unnecessary re-fetch that flashes a skeleton loader.
+    const employeeListRef = useRef(policy?.employeeList);
+    useEffect(() => {
+        employeeListRef.current = policy?.employeeList;
+    }, [policy?.employeeList]);
+
+    const loadPolicyCompanyCardsPage = useCallback(() => {
+        // Skip the API call when workspaceAccountID is 0 -- Onyx discards writes to collection keys with member ID '0'.
+        if (domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID) {
+            return;
+        }
+
+        const emailList = Object.keys(getMemberAccountIDsForWorkspace(employeeListRef.current));
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
+    }, [domainOrWorkspaceAccountID, policyID, translate]);
+
+    const {isOffline} = useNetwork({
+        onReconnect: loadPolicyCompanyCardsPage,
+    });
+
+    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
 
     useEffect(() => {
-        fetchCompanyCards();
-    }, [fetchCompanyCards]);
+        if (isOffline) {
+            return;
+        }
+
+        loadPolicyCompanyCardsPage();
+    }, [loadPolicyCompanyCardsPage, isOffline]);
+
+    const loadPolicyCompanyCardsFeed = useCallback(() => {
+        if (isLoading || !bankName || isFeedPending || isOffline) {
+            return;
+        }
+
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
+    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policyID, translate, isOffline]);
 
     useEffect(() => {
-        if (isLoading || !selectedFeed || isPending) {
-            return;
-        }
+        loadPolicyCompanyCardsFeed();
+    }, [loadPolicyCompanyCardsFeed]);
 
-        openPolicyCompanyCardsFeed(policyID, selectedFeed);
-    }, [selectedFeed, isLoading, policyID, isPending]);
-
-    const handleAssignCard = () => {
-        if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
-            return;
-        }
-        if (!selectedFeed) {
-            return;
-        }
-
-        const isCommercialFeed = isCustomFeed(selectedFeed);
-
-        // If the feed is a direct feed (not a commercial feed) and the user is offline,
-        // show the offline alert modal to inform them of the connectivity issue.
-        if (!isCommercialFeed && isOffline) {
-            setShouldShowOfflineModal(true);
-            return;
-        }
-
-        const data: Partial<AssignCardData> = {
-            bankName: selectedFeed,
-        };
-
-        let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
-        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
-
-        if (employeeList.length === 1) {
-            const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
-            data.email = userEmail;
-            const personalDetails = getPersonalDetailByEmail(userEmail);
-            const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
-            data.cardName = `${memberName}'s card`;
-            currentStep = CONST.COMPANY_CARD.STEP.CARD;
-
-            if (hasOnlyOneCardToAssign(filteredCardList)) {
-                currentStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
-                data.cardNumber = Object.keys(filteredCardList).at(0);
-                data.encryptedCardNumber = Object.values(filteredCardList).at(0);
-            }
-        }
-
-        if (isFeedExpired) {
-            currentStep = CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
-        }
-
-        setAssignCardStepAndData({data, currentStep});
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, selectedFeed)));
-    };
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
+    const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
 
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
-            {!!isLoading && (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={styles.flex1}
-                    color={theme.spinner}
+            <WorkspacePageWithSections
+                icon={memoizedIllustrations.CompanyCard}
+                headerText={translate('workspace.common.companyCards')}
+                route={route}
+                shouldShowOfflineIndicatorInWideScreen
+                showLoadingAsFirstRender={false}
+                addBottomSafeAreaPadding
+            >
+                <WorkspaceCompanyCardsTable
+                    policyID={policyID}
+                    isPolicyLoaded={!!policy}
+                    domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+                    companyCards={companyCards}
+                    onAssignCard={assignCard}
+                    isAssigningCardDisabled={isAssigningCardDisabled}
+                    onReloadPage={loadPolicyCompanyCardsPage}
+                    onReloadFeed={loadPolicyCompanyCardsFeed}
                 />
-            )}
-            {!isLoading && (
-                <WorkspacePageWithSections
-                    shouldUseScrollView={isNoFeed}
-                    icon={Illustrations.CompanyCard}
-                    headerText={translate('workspace.common.companyCards')}
-                    route={route}
-                    shouldShowOfflineIndicatorInWideScreen
-                    includeSafeAreaPaddingBottom
-                    showLoadingAsFirstRender={false}
-                >
-                    {(isFeedAdded || isPending) && !!selectedFeed && (
-                        <WorkspaceCompanyCardsListHeaderButtons
-                            policyID={policyID}
-                            selectedFeed={selectedFeed}
-                            shouldShowAssignCardButton={isPending || !isEmptyObject(cards)}
-                            handleAssignCard={handleAssignCard}
-                        />
-                    )}
-                    {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
-                    {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
-                    {isFeedAdded && !isPending && (
-                        <WorkspaceCompanyCardsList
-                            cardsList={cardsList}
-                            policyID={policyID}
-                            handleAssignCard={handleAssignCard}
-                            isDisabledAssignCardButton={!selectedFeedData || isFeedConnectionBroken}
-                        />
-                    )}
-                </WorkspacePageWithSections>
-            )}
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
+            </WorkspacePageWithSections>
 
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
@@ -186,6 +129,4 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     );
 }
 
-WorkspaceCompanyCardPage.displayName = 'WorkspaceCompanyCardPage';
-
-export default WorkspaceCompanyCardPage;
+export default WorkspaceCompanyCardsPage;

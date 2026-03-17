@@ -13,9 +13,11 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
-type TagApproverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_APPROVER>;
+type TagApproverPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_APPROVER>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_APPROVER>;
 
 function TagApproverPage({route}: TagApproverPageProps) {
     const {policyID, tagName, orderWeight, backTo} = route.params;
@@ -25,7 +27,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
     const policy = usePolicy(policyID);
 
     const tagApprover = getTagApproverRule(policy, tagName)?.approver;
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_APPROVER;
 
     const goBack = () => {
         Navigation.goBack(
@@ -40,9 +42,9 @@ function TagApproverPage({route}: TagApproverPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={TagApproverPage.displayName}
+                testID="TagApproverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -53,7 +55,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
                     policyID={policyID}
                     selectedApprover={tagApprover ?? ''}
                     setApprover={(email) => {
-                        setPolicyTagApprover(policyID, tagName, email);
+                        setPolicyTagApprover(policy, tagName, email);
                         Navigation.setNavigationActionToMicrotaskQueue(goBack);
                     }}
                 />
@@ -61,7 +63,5 @@ function TagApproverPage({route}: TagApproverPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-TagApproverPage.displayName = 'TagApproverPage';
 
 export default TagApproverPage;

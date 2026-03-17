@@ -1,27 +1,35 @@
 import type {NavigationState} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportIDFromLink} from '@libs/ReportUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 
-type CurrentReportIDContextValue = {
-    updateCurrentReportID: (state: NavigationState) => void;
+type CurrentReportIDStateContextType = {
     currentReportID: string | undefined;
-    currentReportIDFromPath: string | undefined;
+};
+
+type CurrentReportIDActionsContextType = {
+    updateCurrentReportID: (state: NavigationState) => void;
 };
 
 type CurrentReportIDContextProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
+    /** Optional callback invoked whenever `currentReportID` is explicitly updated.
+     * This is intended only for unit testing, to detect when the hook
+     * actually attempts to change the `currentReportID` value.
+     */
+    onSetCurrentReportID?: (reportID: string | undefined) => void;
 };
 
-const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>(null);
+const defaultCurrentReportIDActionsContext: CurrentReportIDActionsContextType = {
+    updateCurrentReportID: () => {},
+};
+
+const CurrentReportIDStateContext = createContext<CurrentReportIDStateContextType>({currentReportID: undefined});
+
+const CurrentReportIDActionsContext = createContext<CurrentReportIDActionsContextType>(defaultCurrentReportIDActionsContext);
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-    const lastAccessReportFromPath = getReportIDFromLink(lastVisitedPath ?? null);
 
     /**
      * This function is used to update the currentReportID
@@ -39,32 +47,55 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
                 return;
             }
+            // Prevent unnecessary updates when the report ID hasn't changed
+            if (currentReportID === reportID) {
+                return;
+            }
+
+            // Also prevent updates when both are undefined/null (no report context)
+            if (!currentReportID && !reportID) {
+                return;
+            }
+
+            props.onSetCurrentReportID?.(reportID);
             setCurrentReportID(reportID);
         },
-        [setCurrentReportID],
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
+        [setCurrentReportID, currentReportID],
     );
 
-    /**
-     * The context this component exposes to child components
-     * @returns currentReportID to share between central pane and LHN
-     */
-    const contextValue = useMemo(
-        (): CurrentReportIDContextValue => ({
+    const actionsContextValue = useMemo<CurrentReportIDActionsContextType>(
+        () => ({
             updateCurrentReportID,
-            currentReportID,
-            currentReportIDFromPath: lastAccessReportFromPath || undefined,
         }),
-        [updateCurrentReportID, currentReportID, lastAccessReportFromPath],
+        [updateCurrentReportID],
     );
 
-    return <CurrentReportIDContext.Provider value={contextValue}>{props.children}</CurrentReportIDContext.Provider>;
+    const stateContextValue = useMemo<CurrentReportIDStateContextType>(
+        () => ({
+            currentReportID,
+        }),
+        [currentReportID],
+    );
+
+    return (
+        <CurrentReportIDStateContext.Provider value={stateContextValue}>
+            <CurrentReportIDActionsContext.Provider value={actionsContextValue}>{props.children}</CurrentReportIDActionsContext.Provider>
+        </CurrentReportIDStateContext.Provider>
+    );
 }
 
-CurrentReportIDContextProvider.displayName = 'CurrentReportIDContextProvider';
-
-export default function useCurrentReportID(): CurrentReportIDContextValue | null {
-    return useContext(CurrentReportIDContext);
+function useCurrentReportIDState() {
+    return useContext(CurrentReportIDStateContext);
 }
 
-export {CurrentReportIDContextProvider};
+function useCurrentReportIDActions() {
+    return useContext(CurrentReportIDActionsContext);
+}
+
+export {CurrentReportIDContextProvider, useCurrentReportIDState, useCurrentReportIDActions};
+
+// Backward compatible type alias
+type CurrentReportIDContextValue = CurrentReportIDStateContextType & CurrentReportIDActionsContextType;
+
 export type {CurrentReportIDContextValue};

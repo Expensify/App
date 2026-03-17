@@ -1,20 +1,28 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import {createOptionFromReport, createOptionList} from '@libs/OptionsListUtils';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
-import {usePersonalDetails} from './OnyxProvider';
+import {usePersonalDetails} from './OnyxListItemProvider';
 
-type OptionsListContextProps = {
+type OptionsListStateContextProps = {
     /** List of options for reports and personal details */
     options: OptionList;
-    /** Function to initialize the options */
-    initializeOptions: () => void;
     /** Flag to check if the options are initialized */
     areOptionsInitialized: boolean;
+};
+
+type OptionsListActionsContextProps = {
+    /** Function to initialize the options */
+    initializeOptions: () => void;
     /** Function to reset the options */
     resetOptions: () => void;
 };
@@ -24,13 +32,16 @@ type OptionsListProviderProps = {
     children: React.ReactNode;
 };
 
-const OptionsListContext = createContext<OptionsListContextProps>({
+const OptionsListStateContext = createContext<OptionsListStateContextProps>({
     options: {
         reports: [],
         personalDetails: [],
     },
-    initializeOptions: () => {},
     areOptionsInitialized: false,
+});
+
+const OptionsListActionsContext = createContext<OptionsListActionsContextProps>({
+    initializeOptions: () => {},
     resetOptions: () => {},
 });
 
@@ -46,34 +57,130 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         reports: [],
         personalDetails: [],
     });
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+    const prevReportAttributesLocale = usePrevious(reportAttributes?.locale);
+    const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const prevReports = usePrevious(reports);
+    const [, {sourceValue: changedReportActions}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
+
+    const loadOptions = useCallback(() => {
+        const optionLists = createOptionList(personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports);
+        setOptions({
+            reports: optionLists.reports,
+            personalDetails: optionLists.personalDetails,
+        });
+    }, [personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports]);
 
     /**
-     * This effect is used to update the options list when reports change.
+     * This effect is responsible for generating the options list when their data is not yet initialized
      */
     useEffect(() => {
-        // there is no need to update the options if the options are not initialized
-        if (!areOptionsInitialized.current || !reports) {
+        if (!areOptionsInitialized.current || !reports || hasInitialData) {
             return;
         }
-        // Since reports updates can happen in bulk, and some reports depend on other reports, we need to recreate the whole list from scratch.
-        const newReports = createOptionList(personalDetails, reports).reports;
+
+        loadOptions();
+    }, [reports, personalDetails, hasInitialData, loadOptions]);
+
+    /**
+     * This effect is responsible for generating the options list when the locale changes
+     * Since options might use report attributes, it's necessary to call this after report attributes are loaded with the new locale to make sure the options are generated in a proper language
+     */
+    useEffect(() => {
+        if (!areOptionsInitialized.current || reportAttributes?.locale === prevReportAttributesLocale) {
+            return;
+        }
+
+        loadOptions();
+    }, [prevReportAttributesLocale, loadOptions, reportAttributes?.locale]);
+
+    const changedReportsEntries = useMemo(() => {
+        const result: OnyxCollection<OnyxEntry<Report> | null> = {};
+
+        for (const key of Object.keys(changedReports ?? {})) {
+            let report: Report | null = reports?.[key] ?? null;
+            result[key] = report;
+            if (reports?.[key] === undefined && prevReports?.[key]) {
+                report = null;
+            }
+        }
+        return result;
+    }, [changedReports, reports, prevReports]);
+
+    /**
+     * This effect is responsible for updating the options only for changed reports
+     */
+    useEffect(() => {
+        if (!changedReportsEntries || !areOptionsInitialized.current) {
+            return;
+        }
 
         setOptions((prevOptions) => {
-            const newOptions = {
-                ...prevOptions,
-                reports: newReports,
-            };
+            const changedReportKeys = Object.keys(changedReportsEntries);
+            if (changedReportKeys.length === 0) {
+                return prevOptions;
+            }
 
-            return newOptions;
+            const updatedReportsMap = new Map(prevOptions.reports.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
+            for (const reportKey of changedReportKeys) {
+                const report = changedReportsEntries[reportKey];
+                const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+                const {reportOption} = processReport(report, personalDetails, privateIsArchived, currentUserAccountID, reportAttributes?.reports);
+
+                if (reportOption) {
+                    updatedReportsMap.set(reportID, reportOption);
+                } else {
+                    updatedReportsMap.delete(reportID);
+                }
+            }
+
+            return {
+                ...prevOptions,
+                reports: Array.from(updatedReportsMap.values()),
+            };
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [reports, reportNameValuePairs, preferredLocale]);
+    }, [changedReportsEntries, personalDetails, currentUserAccountID, reports, reportAttributes?.reports, privateIsArchivedMap]);
+
+    useEffect(() => {
+        if (!changedReportActions || !areOptionsInitialized.current) {
+            return;
+        }
+
+        setOptions((prevOptions) => {
+            const changedReportActionsEntries = Object.entries(changedReportActions);
+            if (changedReportActionsEntries.length === 0) {
+                return prevOptions;
+            }
+
+            const updatedReportsMap = new Map(prevOptions.reports.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
+            for (const [key, reportAction] of changedReportActionsEntries) {
+                if (!reportAction) {
+                    continue;
+                }
+
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+                const reportItem = updatedReportsMap.get(reportID)?.item;
+                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+                const {reportOption} = processReport(reportItem, personalDetails, privateIsArchived, currentUserAccountID, reportAttributes?.reports);
+
+                if (reportOption) {
+                    updatedReportsMap.set(reportID, reportOption);
+                }
+            }
+
+            return {
+                ...prevOptions,
+                reports: Array.from(updatedReportsMap.values()),
+            };
+        });
+    }, [changedReportActions, personalDetails, currentUserAccountID, reports, reportAttributes?.reports, privateIsArchivedMap]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -91,7 +198,13 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         // Handle initial personal details load. This initialization is required here specifically to prevent
         // UI freezing that occurs when resetting the app from the troubleshooting page.
         if (!prevPersonalDetails) {
-            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(personalDetails, reports);
+            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(
+                personalDetails,
+                currentUserAccountID,
+                privateIsArchivedMap,
+                reports,
+                reportAttributes?.reports,
+            );
             setOptions((prevOptions) => ({
                 ...prevOptions,
                 personalDetails: newPersonalDetailsOptions,
@@ -105,54 +218,67 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             newReportOption: SearchOption<Report>;
         }> = [];
 
-        Object.keys(personalDetails).forEach((accountID) => {
+        for (const accountID of Object.keys(personalDetails)) {
             const prevPersonalDetail = prevPersonalDetails?.[accountID];
             const personalDetail = personalDetails[accountID];
 
             if (prevPersonalDetail && personalDetail && isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
-                return;
+                continue;
             }
 
-            Object.values(reports ?? {})
-                .filter((report) => !!Object.keys(report?.participants ?? {}).includes(accountID) || (isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
-                .forEach((report) => {
-                    if (!report) {
-                        return;
-                    }
-                    const newReportOption = createOptionFromReport(report, personalDetails);
-                    const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
-                    newReportOptions.push({
-                        newReportOption,
-                        replaceIndex,
-                    });
+            for (const report of Object.values(reports ?? {})) {
+                if (!report) {
+                    continue;
+                }
+
+                const isParticipant = accountID in (report.participants ?? {});
+                const isOwnerOfSelfDM = isSelfDM(report) && report?.ownerAccountID === Number(accountID);
+                if (!isParticipant && !isOwnerOfSelfDM) {
+                    continue;
+                }
+
+                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+                const newReportOption = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, reportAttributes?.reports, {
+                    showPersonalDetails: true,
                 });
-        });
+                const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
+                newReportOptions.push({
+                    newReportOption,
+                    replaceIndex,
+                });
+            }
+        }
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
-        const newPersonalDetailsOptions = createOptionList(personalDetails).personalDetails;
+        const newPersonalDetailsOptions = createOptionList(personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports).personalDetails;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
             newOptions.personalDetails = newPersonalDetailsOptions;
-            newReportOptions.forEach((newReportOption) => (newOptions.reports[newReportOption.replaceIndex] = newReportOption.newReportOption));
+            for (const newReportOption of newReportOptions) {
+                newOptions.reports[newReportOption.replaceIndex] = newReportOption.newReportOption;
+            }
             return newOptions;
         });
 
         // This effect is used to update the options list when personal details change so we ignore all dependencies except personalDetails
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [personalDetails]);
 
-    const loadOptions = useCallback(() => {
-        const optionLists = createOptionList(personalDetails, reports);
-        setOptions({
-            reports: optionLists.reports,
-            personalDetails: optionLists.personalDetails,
-        });
-    }, [personalDetails, reports]);
-
     const initializeOptions = useCallback(() => {
+        const isSearchRouterSpanActive = !!getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
+        if (isSearchRouterSpanActive) {
+            startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT, {
+                name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT,
+                op: 'function',
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
+            });
+        }
         loadOptions();
         areOptionsInitialized.current = true;
+        if (isSearchRouterSpanActive) {
+            endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT);
+        }
     }, [loadOptions]);
 
     const resetOptions = useCallback(() => {
@@ -167,21 +293,54 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         });
     }, []);
 
+    const stateValue = useMemo(() => ({options, areOptionsInitialized: areOptionsInitialized.current}), [options]);
+    const actionsValue = useMemo(() => ({initializeOptions, resetOptions}), [initializeOptions, resetOptions]);
+
     return (
-        <OptionsListContext.Provider // eslint-disable-next-line react-compiler/react-compiler
-            value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current, resetOptions}), [options, initializeOptions, resetOptions])}
-        >
-            {children}
-        </OptionsListContext.Provider>
+        <OptionsListStateContext.Provider value={stateValue}>
+            <OptionsListActionsContext.Provider value={actionsValue}>{children}</OptionsListActionsContext.Provider>
+        </OptionsListStateContext.Provider>
     );
 }
 
-const useOptionsListContext = () => useContext(OptionsListContext);
+const useOptionsListState = () => useContext(OptionsListStateContext);
+
+const useOptionsListActions = () => useContext(OptionsListActionsContext);
 
 // Hook to use the OptionsListContext with an initializer to load the options
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
-    const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
+    const {options: optionsList, areOptionsInitialized} = useOptionsListState();
+    const {initializeOptions, resetOptions} = useOptionsListActions();
+    const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
+    const prevOptions = useRef<OptionList>(null);
+    const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
+
+    const prevIsInitialized = usePrevious(areOptionsInitialized);
+    useEffect(() => {
+        if (!prevOptions.current) {
+            prevOptions.current = optionsList;
+            setInternalOptions(optionsList);
+            setAreInternalOptionsInitialized(areOptionsInitialized);
+            return;
+        }
+        /**
+         * optionsList reference can change multiple times even the value of its arrays is the same. We perform shallow comparison to check if the options have truly changed.
+         * This is necessary to avoid unnecessary re-renders in components that use this context.
+         */
+        const areOptionsEqual = shallowOptionsListCompare(prevOptions.current, optionsList);
+        prevOptions.current = optionsList;
+        const hasInitializedChanged = prevIsInitialized !== areOptionsInitialized;
+        if (areOptionsEqual) {
+            if (hasInitializedChanged) {
+                setAreInternalOptionsInitialized(areOptionsInitialized);
+            }
+
+            return;
+        }
+        setInternalOptions(optionsList);
+        setAreInternalOptionsInitialized(areOptionsInitialized);
+    }, [optionsList, areOptionsInitialized, prevIsInitialized]);
 
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized) {
@@ -191,14 +350,22 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         initializeOptions();
     }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
 
-    return {
-        initializeOptions,
-        options: optionsList,
-        areOptionsInitialized,
-        resetOptions,
-    };
+    const resetInternalOptions = useCallback(() => {
+        setAreInternalOptionsInitialized(false);
+        resetOptions();
+    }, [resetOptions]);
+
+    return useMemo(
+        () => ({
+            initializeOptions,
+            options: internalOptions,
+            areOptionsInitialized: areInternalOptionsInitialized,
+            resetOptions: resetInternalOptions,
+        }),
+        [initializeOptions, internalOptions, resetInternalOptions, areInternalOptionsInitialized],
+    );
 };
 
 export default OptionsListContextProvider;
 
-export {useOptionsListContext, useOptionsList, OptionsListContext};
+export {useOptionsList, useOptionsListState, useOptionsListActions, OptionsListStateContext, OptionsListActionsContext};

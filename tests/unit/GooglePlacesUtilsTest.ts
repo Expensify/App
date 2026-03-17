@@ -6,14 +6,14 @@ const standardObjectToFind: FieldsToExtract = {
     sublocality: 'long_name',
     administrative_area_level_1: 'short_name',
     postal_code: 'long_name',
-    'doesnt-exist': 'long_name',
+    'does-not-exist': 'long_name',
 };
 
 const objectWithCountryToFind: FieldsToExtract = {
     sublocality: 'long_name',
     administrative_area_level_1: 'short_name',
     postal_code: 'long_name',
-    'doesnt-exist': 'long_name',
+    'does-not-exist': 'long_name',
     country: 'long_name',
 };
 
@@ -53,12 +53,12 @@ describe('GooglePlacesUtilsTest', () => {
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {sublocality: 'long_name'})).toStrictEqual({sublocality: 'Brooklyn'});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {administrative_area_level_1: 'short_name'})).toStrictEqual({administrative_area_level_1: 'NY'});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {postal_code: 'long_name'})).toStrictEqual({postal_code: '11206'});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {'doesnt-exist': 'long_name'})).toStrictEqual({'doesnt-exist': ''});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {'does-not-exist': 'long_name'})).toStrictEqual({'does-not-exist': ''});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, standardObjectToFind)).toStrictEqual({
                 sublocality: 'Brooklyn',
                 administrative_area_level_1: 'NY',
                 postal_code: '11206',
-                'doesnt-exist': '',
+                'does-not-exist': '',
             });
         });
     });
@@ -67,13 +67,13 @@ describe('GooglePlacesUtilsTest', () => {
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {sublocality: 'long_name'})).toStrictEqual({sublocality: 'Brooklyn'});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {administrative_area_level_1: 'short_name'})).toStrictEqual({administrative_area_level_1: 'NY'});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {postal_code: 'long_name'})).toStrictEqual({postal_code: '11206'});
-            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {'doesnt-exist': 'long_name'})).toStrictEqual({'doesnt-exist': ''});
+            expect(GooglePlacesUtils.getAddressComponents(addressComponents, {'does-not-exist': 'long_name'})).toStrictEqual({'does-not-exist': ''});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, {country: 'long_name'})).toStrictEqual({country: 'United States'});
             expect(GooglePlacesUtils.getAddressComponents(addressComponents, objectWithCountryToFind)).toStrictEqual({
                 sublocality: 'Brooklyn',
                 administrative_area_level_1: 'NY',
                 postal_code: '11206',
-                'doesnt-exist': '',
+                'does-not-exist': '',
                 country: 'United States',
             });
         });
@@ -85,7 +85,6 @@ describe('GooglePlacesUtilsTest', () => {
                 state: 'Bangladesh Border Road',
                 city: '',
                 street: '',
-                streetNumber: '',
             });
         });
     });

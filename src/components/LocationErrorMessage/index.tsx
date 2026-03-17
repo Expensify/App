@@ -19,6 +19,4 @@ function LocationErrorMessage(props: LocationErrorMessageProps) {
     );
 }
 
-LocationErrorMessage.displayName = 'LocationErrorMessage';
-
 export default LocationErrorMessage;

@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
@@ -10,9 +10,12 @@ type RequestorStepProps = {
 
     /** If we should show Onfido flow */
     shouldShowOnfido: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function RequestorStep({shouldShowOnfido, onBackButtonPress}: RequestorStepProps, ref: ForwardedRef<View>) {
+function RequestorStep({shouldShowOnfido, onBackButtonPress, ref}: RequestorStepProps) {
     if (shouldShowOnfido) {
         return <VerifyIdentity onBackButtonPress={onBackButtonPress} />;
     }
@@ -25,6 +28,4 @@ function RequestorStep({shouldShowOnfido, onBackButtonPress}: RequestorStepProps
     );
 }
 
-RequestorStep.displayName = 'RequestorStep';
-
-export default forwardRef(RequestorStep);
+export default RequestorStep;

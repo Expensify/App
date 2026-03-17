@@ -8,13 +8,13 @@ import {AppState, DeviceEventEmitter} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {setSidebarLoaded} from '@libs/actions/App';
 import {trackExpense} from '@libs/actions/IOU';
 import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {lastItem} from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-import {translateLocal} from '@libs/Localize';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
@@ -22,9 +22,9 @@ import FontUtils from '@styles/utils/FontUtils';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -33,23 +33,29 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
+jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
+
+let hasRenderedApp = false;
 
 beforeEach(() => {
     Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
 });
 
+afterEach(() => {
+    hasRenderedApp = false;
+});
+
 function scrollUpToRevealNewMessagesBadge() {
-    const hintText = translateLocal('sidebarScreen.listOfChatMessages');
+    const hintText = TestHelper.translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(screen.getByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
@@ -70,7 +76,7 @@ function scrollUpToRevealNewMessagesBadge() {
 }
 
 function isNewMessagesBadgeVisible(): boolean {
-    const hintText = translateLocal('accessibilityHints.scrollToNewestMessages');
+    const hintText = TestHelper.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
     const badgeProps = badge?.props as {style: ViewStyle};
     const transformStyle = badgeProps.style.transform?.[0] as {translateY: number};
@@ -79,7 +85,7 @@ function isNewMessagesBadgeVisible(): boolean {
 }
 
 function navigateToSidebar(): Promise<void> {
-    const hintText = translateLocal('accessibilityHints.navigateToChatsList');
+    const hintText = TestHelper.translateLocal('accessibilityHints.navigateToChatsList');
     const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
     if (reportHeaderBackButton) {
         fireEvent(reportHeaderBackButton, 'press');
@@ -88,7 +94,7 @@ function navigateToSidebar(): Promise<void> {
 }
 
 function areYouOnChatListScreen(): boolean {
-    const hintText = translateLocal('sidebarScreen.listOfChats');
+    const hintText = TestHelper.translateLocal('sidebarScreen.listOfChats');
     const sidebarLinks = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
 
     return !sidebarLinks?.at(0)?.props?.accessibilityElementsHidden;
@@ -101,88 +107,123 @@ const USER_B_ACCOUNT_ID = 2;
 const USER_B_EMAIL = 'user_b@test.com';
 const USER_C_ACCOUNT_ID = 3;
 const USER_C_EMAIL = 'user_c@test.com';
+const TEST_AUTH_TOKEN = 'test-auth-token';
+const TEST_AUTO_GENERATED_LOGIN = 'expensify.cash-abc123';
 let reportAction3CreatedDate: string;
 let reportAction9CreatedDate: string;
+const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+const createdReportActionID = rand64().toString();
+const createdReportAction = {
+    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+    automatic: false,
+    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
+    reportActionID: createdReportActionID,
+    message: [
+        {
+            style: 'strong',
+            text: '__FAKE__',
+            type: 'TEXT',
+        },
+        {
+            style: 'normal',
+            text: 'created this report',
+            type: 'TEXT',
+        },
+    ],
+};
+
+function renderAppOnce() {
+    if (hasRenderedApp) {
+        return;
+    }
+    render(<App />);
+    hasRenderedApp = true;
+}
+
+async function fastSignInWithTestUser() {
+    await Onyx.multiSet({
+        [ONYXKEYS.CREDENTIALS]: {
+            login: USER_A_EMAIL,
+            autoGeneratedLogin: TEST_AUTO_GENERATED_LOGIN,
+            autoGeneratedPassword: 'Password1',
+        },
+        [ONYXKEYS.ACCOUNT]: {
+            validated: true,
+            isUsingExpensifyCard: false,
+        },
+        [ONYXKEYS.SESSION]: {
+            authToken: TEST_AUTH_TOKEN,
+            accountID: USER_A_ACCOUNT_ID,
+            email: USER_A_EMAIL,
+            encryptedAuthToken: TEST_AUTH_TOKEN,
+        },
+        [ONYXKEYS.BETAS]: ['all'],
+        [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+            [USER_A_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_A_EMAIL, USER_A_ACCOUNT_ID, 'A'),
+        },
+    });
+    await waitForBatchedUpdates();
+}
 
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
  */
-function signInAndGetAppWithUnreadChat(): Promise<void> {
-    // Render the App and sign in as a test user.
-    render(<App />);
-    return waitForBatchedUpdatesWithAct()
-        .then(async () => {
-            await waitForBatchedUpdatesWithAct();
-            const hintText = translateLocal('loginForm.loginForm');
-            const loginForm = screen.queryAllByLabelText(hintText);
-            expect(loginForm).toHaveLength(1);
+async function signInAndGetAppWithUnreadChat(): Promise<void> {
+    await fastSignInWithTestUser();
 
-            await act(async () => {
-                await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-            });
-            return waitForBatchedUpdatesWithAct();
-        })
-        .then(() => {
-            subscribeToUserEvents();
-            return waitForBatchedUpdates();
-        })
-        .then(async () => {
-            const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-            reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
-            reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
+    // Render the App and ensure initial navigation state settles.
+    renderAppOnce();
+    await waitForBatchedUpdatesWithAct();
 
-            // Simulate setting an unread report and personal details
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                reportID: REPORT_ID,
-                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                lastReadTime: reportAction3CreatedDate,
-                lastVisibleActionCreated: reportAction9CreatedDate,
-                lastMessageText: 'Test',
-                participants: {
-                    [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                    [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-                lastActorAccountID: USER_B_ACCOUNT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
-            });
-            const createdReportActionID = rand64().toString();
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                [createdReportActionID]: {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    automatic: false,
-                    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
-                    reportActionID: createdReportActionID,
-                    message: [
-                        {
-                            style: 'strong',
-                            text: '__FAKE__',
-                            type: 'TEXT',
-                        },
-                        {
-                            style: 'normal',
-                            text: 'created this report',
-                            type: 'TEXT',
-                        },
-                    ],
-                },
-                1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1'),
-                2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2'),
-                3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
-                4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4'),
-                5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5'),
-                6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6'),
-                7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7'),
-                8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
-                9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
-            });
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
-            });
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
 
-            // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
-            setSidebarLoaded();
-            return waitForBatchedUpdatesWithAct();
-        });
+    await waitForBatchedUpdates();
+
+    reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
+    reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
+
+    const personalDetails = {
+        [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+    };
+
+    const report = {
+        reportID: REPORT_ID,
+        reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+        lastReadTime: reportAction3CreatedDate,
+        lastVisibleActionCreated: reportAction9CreatedDate,
+        lastMessageText: 'Test',
+        participants: {
+            [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+        },
+        lastActorAccountID: USER_B_ACCOUNT_ID,
+        type: CONST.REPORT.TYPE.CHAT,
+    };
+
+    const reportActions = {
+        [createdReportActionID]: createdReportAction,
+        1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1'),
+        2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2'),
+        3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
+        4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4'),
+        5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5'),
+        6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6'),
+        7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7'),
+        8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
+        9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
+    };
+
+    await Promise.all([
+        Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
+        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report),
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions),
+    ]);
+
+    // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
+    setSidebarLoaded();
+    await waitForBatchedUpdatesWithAct();
 }
 
 describe('Unread Indicators', () => {
@@ -192,10 +233,13 @@ describe('Unread Indicators', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.clear();
+        hasRenderedApp = false;
 
+        global.fetch = TestHelper.getGlobalFetchMock();
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
+
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () =>
@@ -205,35 +249,34 @@ describe('Unread Indicators', () => {
                 expect((LocalNotification.showCommentNotification as jest.Mock).mock.calls).toHaveLength(0);
 
                 // Verify the sidebar links are rendered
-                const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
+                const sidebarLinksHintText = TestHelper.translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-                const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(1);
 
                 // And that the text is bold
-                const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameHintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
                 expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
 
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
-                const welcomeMessageHintText = translateLocal('accessibilityHints.chatWelcomeMessage');
+                const welcomeMessageHintText = TestHelper.translateLocal('accessibilityHints.chatWelcomeMessage');
                 const createdAction = screen.queryByLabelText(welcomeMessageHintText);
                 expect(createdAction).toBeTruthy();
-                const reportCommentsHintText = translateLocal('accessibilityHints.chatMessage');
-                const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
+                const reportCommentsHintText = TestHelper.translateLocal('accessibilityHints.chatMessage');
+                const reportComments = screen.queryAllByAccessibilityHint(reportCommentsHintText);
                 expect(reportComments).toHaveLength(9);
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
@@ -246,10 +289,10 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
-            .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+            .then(() => {
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify the unread indicator is present
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
             })
@@ -272,7 +315,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the unread indicator is not present
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 // Tap on the chat again
@@ -280,7 +323,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the unread indicator is not present
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
@@ -293,9 +336,9 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_ID = '2';
                 const NEW_REPORT_CREATED_DATE = subSeconds(new Date(), 5);
                 const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
-                const createdReportActionID = rand64();
+                const createdReportActionIDLocal = rand64();
                 const commentReportActionID = rand64();
-                PusherHelper.emitOnyxUpdate([
+                PusherHelper.emitOnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>([
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
@@ -317,11 +360,11 @@ describe('Unread Indicators', () => {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
                         value: {
-                            [createdReportActionID]: {
+                            [createdReportActionIDLocal]: {
                                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                                 automatic: false,
                                 created: format(NEW_REPORT_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
-                                reportActionID: createdReportActionID,
+                                reportActionID: createdReportActionIDLocal,
                             },
                             [commentReportActionID]: {
                                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -346,54 +389,62 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify notification was created
-                expect(LocalNotification.showCommentNotification).toBeCalled();
+                expect(LocalNotification.showCommentNotification).toHaveBeenCalled();
             })
             .then(() => {
                 // // Verify the new report option appears in the LHN
-                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-                const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(2);
                 // Verify the text for both chats are bold indicating that nothing has not yet been read
-                const displayNameHintTexts = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameHintTexts = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts.at(0);
                 expect((firstReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('C User')).toBeOnTheScreen();
+                expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 const secondReportOption = displayNameTexts.at(1);
                 expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('B User')).toBeOnTheScreen();
+                expect(screen.getByText('C User')).toBeOnTheScreen();
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
             })
             .then(waitForBatchedUpdates)
-            .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+            .then(() => {
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
-                const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                 expect(displayNameTexts).toHaveLength(2);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
-                expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
+                expect(screen.getAllByText('B User').at(0)).toBeOnTheScreen();
                 expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
+                expect(screen.getByText('C User', {includeHiddenElements: true})).toBeOnTheScreen();
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread report
             .then(() => navigateToSidebarOption(0))
-            .then(() => {
+            .then(async () => {
+                const reportActions: OnyxEntry<ReportActions> = await new Promise((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        callback: (val) => {
+                            Onyx.disconnect(connection);
+                            resolve(val);
+                        },
+                    });
+                });
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                markCommentAsUnread(REPORT_ID, reportAction3CreatedDate);
+                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // Verify the indicator appears above the last action
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
@@ -406,7 +457,7 @@ describe('Unread Indicators', () => {
             .then(navigateToSidebar)
             .then(() => {
                 // Verify the report is marked as unread in the sidebar
-                const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
@@ -418,7 +469,7 @@ describe('Unread Indicators', () => {
             .then(() => navigateToSidebar())
             .then(() => {
                 // Verify the report is now marked as read
-                const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
@@ -428,7 +479,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
@@ -447,17 +498,25 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
                 // Leave a comment as the current user and verify the indicator is removed
-                addComment(REPORT_ID, 'Current User Comment 1');
+                const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+                addComment({
+                    report,
+                    notifyReportID: REPORT_ID,
+                    ancestors: [],
+                    text: 'Current User Comment 1',
+                    timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                    currentUserAccountID: USER_A_ACCOUNT_ID,
+                });
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
             }));
@@ -472,7 +531,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -480,17 +539,26 @@ describe('Unread Indicators', () => {
                 return navigateToSidebar();
             })
             .then(() => navigateToSidebarOption(0))
-            .then(() => {
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+            .then(async () => {
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
+                const reportActions: OnyxEntry<ReportActions> = await new Promise((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        callback: (val) => {
+                            Onyx.disconnect(connection);
+                            resolve(val);
+                        },
+                    });
+                });
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                markCommentAsUnread(REPORT_ID, reportAction9CreatedDate);
+                markCommentAsUnread(REPORT_ID, reportActions, createdReportAction, USER_A_ACCOUNT_ID);
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+                const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
                 let unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -514,9 +582,17 @@ describe('Unread Indicators', () => {
             signInAndGetAppWithUnreadChat()
                 // Navigate to the chat and simulate leaving a comment from the current user
                 .then(() => navigateToSidebarOption(0))
-                .then(() => {
+                .then(async () => {
+                    const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     // Leave a comment as the current user
-                    addComment(REPORT_ID, 'Current User Comment 1');
+                    addComment({
+                        report,
+                        notifyReportID: REPORT_ID,
+                        ancestors: [],
+                        text: 'Current User Comment 1',
+                        timezoneParam: CONST.DEFAULT_TIME_ZONE,
+                        currentUserAccountID: USER_A_ACCOUNT_ID,
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -529,22 +605,23 @@ describe('Unread Indicators', () => {
                     });
                     return waitForBatchedUpdates();
                 })
-                .then(() => {
+                .then(async () => {
                     // Verify the chat preview text matches the last comment from the current user
-                    const hintText = translateLocal('accessibilityHints.lastChatMessagePreview');
+                    const hintText = TestHelper.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                     expect(alternateText).toHaveLength(1);
 
                     // This message is visible on the sidebar and the report screen, so there are two occurrences.
                     expect(screen.getAllByText('Current User Comment 1').at(0)).toBeOnTheScreen();
 
+                    const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
-                        deleteReportComment(REPORT_ID, lastReportAction);
+                        deleteReportComment(report, lastReportAction, [], undefined, undefined, '');
                     }
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    const hintText = translateLocal('accessibilityHints.lastChatMessagePreview');
+                    const hintText = TestHelper.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                     expect(alternateText).toHaveLength(1);
                     expect(screen.getAllByText('Comment 9').at(0)).toBeOnTheScreen();
@@ -561,29 +638,29 @@ describe('Unread Indicators', () => {
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOption(0);
 
-        addComment(REPORT_ID, 'Comment 1');
+        const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Comment 1', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
 
         await waitForBatchedUpdates();
 
         const firstNewReportAction = reportActions ? lastItem(reportActions) : undefined;
 
         if (firstNewReportAction) {
-            markCommentAsUnread(REPORT_ID, firstNewReportAction?.created);
+            markCommentAsUnread(REPORT_ID, reportActions, firstNewReportAction, USER_A_ACCOUNT_ID);
 
             await waitForBatchedUpdates();
 
-            addComment(REPORT_ID, 'Comment 2');
+            addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Comment 2', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(REPORT_ID, firstNewReportAction);
+            deleteReportComment(report, firstNewReportAction, [], undefined, undefined, '');
 
             await waitForBatchedUpdates();
         }
 
         const secondNewReportAction = reportActions ? lastItem(reportActions) : undefined;
-
-        const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+        const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(1);
         const reportActionID = unreadIndicator.at(0)?.props?.['data-action-id'] as string;
@@ -596,7 +673,7 @@ describe('Unread Indicators', () => {
         // Given a read report
         await signInAndGetAppWithUnreadChat();
 
-        readNewestAction(REPORT_ID, true);
+        readNewestAction(REPORT_ID, true, true);
 
         await waitForBatchedUpdates();
 
@@ -608,7 +685,7 @@ describe('Unread Indicators', () => {
         });
 
         // Then the new line indicator shouldn't be displayed
-        const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+        const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(0);
     });
@@ -621,8 +698,7 @@ describe('Unread Indicators', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
 
         const selfDMReport = {
-            ...createRandomReport(2),
-            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.SELF_DM),
             type: CONST.REPORT.TYPE.CHAT,
             lastMessageText: 'test',
         };
@@ -656,6 +732,12 @@ describe('Unread Indicators', () => {
             comment: 'description',
         };
 
+        let recentWaypoints: RecentWaypoint[] = [];
+        Onyx.connect({
+            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+            callback: (val) => (recentWaypoints = val ?? []),
+        });
+
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
@@ -672,12 +754,94 @@ describe('Unread Indicators', () => {
                 currency: fakeTransaction.currency,
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
+            isASAPSubmitBetaEnabled: true,
+            currentUserAccountIDParam: USER_A_ACCOUNT_ID,
+            currentUserEmailParam: USER_A_EMAIL,
+            introSelected: undefined,
+            activePolicyID: undefined,
+            quickAction: undefined,
+            recentWaypoints,
+            betas: [CONST.BETAS.ALL],
+            draftTransactionIDs: [fakeTransaction.transactionID],
+            isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
 
         // Then the new line indicator shouldn't be displayed
-        const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
+        const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(0);
+    });
+    it('Mark the chat as unread on clicking "Mark as unread" on an item in LHN when the last message of the chat was deleted by another user', async () => {
+        await signInAndGetAppWithUnreadChat();
+
+        await navigateToSidebar();
+
+        const reportAction11CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 110), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const reportAction11 = TestHelper.buildTestReportComment(reportAction11CreatedDate, USER_B_ACCOUNT_ID, '11');
+        const reportAction12CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 120), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const reportAction12 = TestHelper.buildTestReportComment(reportAction12CreatedDate, USER_B_ACCOUNT_ID, '12');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+            11: reportAction11,
+            12: reportAction12,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            lastVisibleActionCreated: reportAction12CreatedDate,
+        });
+
+        const message = reportAction12.message.at(0);
+        if (message) {
+            message.html = ''; // Simulate the server response for deleting the last message
+        }
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            lastVisibleActionCreated: reportAction11CreatedDate,
+        });
+
+        const reportActions: OnyxEntry<ReportActions> = await new Promise((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                callback: (val) => {
+                    Onyx.disconnect(connection);
+                    resolve(val);
+                },
+            });
+        });
+        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID); // Marking the chat as unread from LHN passing a dummy reportActionID
+
+        await waitForBatchedUpdates();
+        const hintText = TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames');
+        const displayNameTexts = screen.queryAllByLabelText(hintText);
+        expect(displayNameTexts).toHaveLength(1);
+        expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+    });
+
+    it('Mark the last comment as unread should set lastReadTime to the last action’s creation time', async () => {
+        await signInAndGetAppWithUnreadChat();
+        await navigateToSidebarOption(0);
+
+        const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+
+        // When USER_A add a comment
+        addComment({report, notifyReportID: REPORT_ID, ancestors: [], text: 'Current User Comment', timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: USER_A_ACCOUNT_ID});
+        await waitForBatchedUpdates();
+
+        const reportActions: OnyxEntry<ReportActions> = await new Promise((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                callback: (val) => {
+                    Onyx.disconnect(connection);
+                    resolve(val);
+                },
+            });
+        });
+        // Then USER_A mark the report as unread
+        markCommentAsUnread(REPORT_ID, reportActions, {reportActionID: -1} as unknown as ReportAction, USER_A_ACCOUNT_ID);
+        await waitForBatchedUpdates();
+
+        // Then the lastReadTime of report should same as last action from USER_B
+        const updatedReport = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        expect(updatedReport?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportAction9CreatedDate, 1));
     });
 });

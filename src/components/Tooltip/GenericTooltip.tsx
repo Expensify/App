@@ -20,7 +20,8 @@ import type {GenericTooltipProps} from './types';
 function GenericTooltip({
     children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
-    maxWidth = variables.sideBarWidth,
+    maxWidth = variables.sideBarWidth - 2 * variables.uploadViewMargin,
+    minWidth,
     text = '',
     renderTooltipContent,
     renderTooltipContentKey = [],
@@ -37,7 +38,8 @@ function GenericTooltip({
     shouldTeleportPortalToModalLayer,
     shouldRender = true,
     isEducationTooltip = false,
-    onTooltipPress = () => {},
+    onTooltipPress,
+    computeHorizontalShiftForNative = false,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -136,7 +138,6 @@ function GenericTooltip({
         cancelAnimation(animation);
 
         if (TooltipSense.isActive() && !isTooltipSenseInitiator.get()) {
-            // eslint-disable-next-line react-compiler/react-compiler
             animation.set(0);
         } else {
             // Hide the first tooltip which initiated the TooltipSense with animation
@@ -157,7 +158,6 @@ function GenericTooltip({
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
-        // eslint-disable-next-line react-compiler/react-compiler
         return children({isVisible, showTooltip, hideTooltip, updateTargetBounds});
     }
 
@@ -166,7 +166,6 @@ function GenericTooltip({
             {shouldRender && isRendered && (
                 <BaseGenericTooltip
                     isEducationTooltip={isEducationTooltip}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     animation={animation}
                     windowWidth={windowWidth}
                     xOffset={xOffset}
@@ -177,6 +176,7 @@ function GenericTooltip({
                     shiftVertical={callOrReturn(shiftVertical)}
                     text={text}
                     maxWidth={maxWidth}
+                    minWidth={minWidth}
                     numberOfLines={numberOfLines}
                     renderTooltipContent={renderTooltipContent}
                     // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
@@ -189,14 +189,12 @@ function GenericTooltip({
                     shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                     onHideTooltip={onPressOverlay}
                     onTooltipPress={onTooltipPress}
+                    computeHorizontalShiftForNative={computeHorizontalShiftForNative}
                 />
             )}
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({isVisible, showTooltip, hideTooltip, updateTargetBounds})}
         </>
     );
 }
-
-GenericTooltip.displayName = 'GenericTooltip';
 
 export default memo(GenericTooltip);

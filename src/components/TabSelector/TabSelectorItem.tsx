@@ -2,47 +2,22 @@ import React, {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
+import {useTabSelectorActions} from './TabSelectorContext';
+import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
-type TabSelectorItemProps = {
-    /** Function to call when onPress */
-    onPress?: () => void;
-
-    /** Icon to display on tab */
-    icon?: IconAsset;
-
-    /** Title of the tab */
-    title?: string;
-
-    /** Animated background color value for the tab button */
-    backgroundColor?: string | Animated.AnimatedInterpolation<string>;
-
-    /** Animated opacity value while the tab is in inactive state */
-    inactiveOpacity?: number | Animated.AnimatedInterpolation<number>;
-
-    /** Animated opacity value while the tab is in active state */
-    activeOpacity?: number | Animated.AnimatedInterpolation<number>;
-
-    /** Whether this tab is active */
-    isActive?: boolean;
-
-    /** Whether to show the label when the tab is inactive */
-    shouldShowLabelWhenInactive?: boolean;
-
-    /** Whether to show the test receipt tooltip */
-    shouldShowTestReceiptTooltip?: boolean;
-};
+type TabSelectorItemProps = BaseTabSelectorItemProps;
 
 function TabSelectorItem({
+    tabKey,
     icon,
     title = '',
     onPress = () => {},
@@ -51,22 +26,38 @@ function TabSelectorItem({
     inactiveOpacity = 1,
     isActive = false,
     shouldShowLabelWhenInactive = true,
-    shouldShowTestReceiptTooltip = false,
+    testID,
+    sentryLabel,
+    shouldShowProductTrainingTooltip = false,
+    renderProductTrainingTooltip,
+    equalWidth = false,
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, shouldShowTestReceiptTooltip);
+    const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
 
-    const content = () => (
+    const {onTabLayout, scrollToTab} = useTabSelectorActions();
+
+    const accessibilityState = {selected: isActive};
+
+    const children = (
         <AnimatedPressableWithFeedback
             accessibilityLabel={title}
+            accessibilityState={accessibilityState}
+            accessibilityRole={CONST.ROLE.TAB}
             style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
-            wrapperStyle={[styles.flexGrow1]}
-            onPress={onPress}
+            wrapperStyle={[equalWidth ? styles.flex1 : styles.flexGrow1]}
+            onPress={() => {
+                scrollToTab(tabKey);
+                onPress();
+            }}
+            onWrapperLayout={(event) => onTabLayout(tabKey, event)}
             onHoverIn={() => setIsHovered(true)}
             onHoverOut={() => setIsHovered(false)}
-            role={CONST.ROLE.BUTTON}
+            role={CONST.ROLE.TAB}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            testID={testID}
+            sentryLabel={sentryLabel}
         >
             <TabIcon
                 icon={icon}
@@ -78,35 +69,36 @@ function TabSelectorItem({
                     title={title}
                     activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                    hasIcon={!!icon}
                 />
             )}
         </AnimatedPressableWithFeedback>
     );
 
-    return shouldShowTestReceiptTooltip ? (
+    return shouldShowEducationalTooltip ? (
         <EducationalTooltip
-            shouldRender={shouldShowProductTrainingTooltip}
+            shouldRender
             renderTooltipContent={renderProductTrainingTooltip}
             shouldHideOnNavigate
+            shouldHideOnScroll
             anchorAlignment={{
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             }}
-            wrapperStyle={styles.productTrainingTooltipWrapper}
-            shiftVertical={18}
+            wrapperStyle={[styles.productTrainingTooltipWrapper, styles.pAbsolute]}
+            computeHorizontalShiftForNative
+            minWidth={variables.minScanTooltipWidth}
         >
-            {content()}
+            {children}
         </EducationalTooltip>
     ) : (
         <Tooltip
             shouldRender={!shouldShowLabelWhenInactive && !isActive}
             text={title}
         >
-            {content()}
+            {children}
         </Tooltip>
     );
 }
-
-TabSelectorItem.displayName = 'TabSelectorItem';
 
 export default TabSelectorItem;

@@ -105,7 +105,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         PushMessage message = arguments.getMessage();
         Log.d(TAG, "buildNotification: " + message.toString());
 
-        // Improve notification delivery by categorising as a time-critical message
+        // Improve notification delivery by categorizing as a time-critical message
         builder.setCategory(CATEGORY_MESSAGE);
         builder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE);
 
@@ -224,7 +224,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
             // Use the formatted alert message from the backend. Otherwise fallback on the message in the Onyx data.
             String message = alert != null ? alert : messageData.get("message").getList().get(0).getMap().get("text").getString();
-            String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+            String subtitle = payload.get("subtitle") == null ? "" : payload.get("subtitle").getString("");
 
             // Create the Person object who sent the latest report comment
             Bitmap personIcon = fetchIcon(context, avatar);
@@ -257,11 +257,11 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             }
 
             // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
-            if (!roomName.isEmpty()) {
+            if (!subtitle.isEmpty()) {
                 // Create the messaging style notification builder for this notification, associating it with the person who sent the report comment
                 messagingStyle
                         .setGroupConversation(true)
-                        .setConversationTitle(roomName);
+                        .setConversationTitle(subtitle);
             }
             builder.setStyle(messagingStyle);
             builder.setShortcutId(accountID);

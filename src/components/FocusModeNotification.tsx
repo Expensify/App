@@ -1,56 +1,46 @@
-import React, {useEffect} from 'react';
+import React from 'react';
+import {View} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openLink} from '@libs/actions/Link';
-import {clearFocusModeNotification, updateChatPriorityMode} from '@libs/actions/User';
 import colors from '@styles/theme/colors';
-import CONST from '@src/CONST';
 import ConfirmModal from './ConfirmModal';
-import {ThreeLeggedLaptopWoman} from './Icon/Illustrations';
-import Text from './Text';
-import TextLinkWithRef from './TextLink';
+import RenderHTML from './RenderHTML';
 
-function FocusModeNotification() {
+type FocusModeNotificationProps = {
+    onClose: () => void;
+};
+
+function FocusModeNotification({onClose}: FocusModeNotificationProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['ThreeLeggedLaptopWoman']);
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
-    useEffect(() => {
-        updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
-    }, []);
-    const href = `${environmentURL}/settings/preferences/priority-mode`;
+    const priorityModePageUrl = `${environmentURL}/settings/preferences/priority-mode`;
+
     return (
         <ConfirmModal
             title={translate('focusModeUpdateModal.title')}
             confirmText={translate('common.buttonConfirm')}
-            onConfirm={clearFocusModeNotification}
+            onConfirm={onClose}
             shouldShowCancelButton={false}
-            onBackdropPress={clearFocusModeNotification}
-            onCancel={clearFocusModeNotification}
+            onBackdropPress={onClose}
+            onCancel={onClose}
             prompt={
-                <Text>
-                    {translate('focusModeUpdateModal.prompt')}
-                    <TextLinkWithRef
-                        style={styles.link}
-                        onPress={() => {
-                            clearFocusModeNotification();
-                            openLink(href, environmentURL);
-                        }}
-                    >
-                        {translate('focusModeUpdateModal.settings')}
-                    </TextLinkWithRef>
-                    .
-                </Text>
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={translate('focusModeUpdateModal.prompt', priorityModePageUrl)} />
+                </View>
             }
+            success
             isVisible
-            image={ThreeLeggedLaptopWoman}
+            image={illustrations.ThreeLeggedLaptopWoman}
             imageStyles={StyleUtils.getBackgroundColorStyle(colors.pink800)}
             titleStyles={[styles.textHeadline, styles.mbn3]}
         />
     );
 }
 
-FocusModeNotification.displayName = 'FocusModeNotification';
 export default FocusModeNotification;

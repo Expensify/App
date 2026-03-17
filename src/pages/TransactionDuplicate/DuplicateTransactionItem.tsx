@@ -1,50 +1,96 @@
-import React from 'react';
+import {isUserValidatedSelector} from '@selectors/Account';
+import {tierNameSelector} from '@selectors/UserWallet';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+import {ReportActionItemActionsContext, ReportActionItemStateContext} from '@pages/inbox/report/ReportActionItemContext';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
     index: number;
+    onPreviewPressed: (reportID: string) => void;
 };
 
-function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
+const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>) => transaction?.errorFields?.route ?? null;
+
+function DuplicateTransactionItem({transaction, index, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.transaction?.reportID}`);
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const personalDetails = usePersonalDetails();
+
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
-        const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : -1;
-        return IOUTransactionID === props.transaction?.transactionID;
+        const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
+        return IOUTransactionID === transaction?.transactionID;
     });
+
+    const originalReportID = getOriginalReportID(report?.reportID, action, reportActions);
+
+    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
+
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action?.reportActionID}`);
+
+    const [linkedTransactionRouteError] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined)}`,
+        {
+            selector: linkedTransactionRouteErrorSelector,
+        },
+    );
+
+    const stateValue = useMemo(() => ({shouldOpenReportInRHP: true}), []);
+    const actionsValue = useMemo(() => ({onPreviewPressed}), [onPreviewPressed]);
 
     if (!action || !report) {
         return null;
     }
 
+    const reportDraftMessage = draftMessage?.[action.reportActionID];
+    const matchingDraftMessage = reportDraftMessage?.message;
+
     return (
         <View style={styles.pb2}>
-            <ReportActionItem
-                action={action}
-                report={report}
-                parentReportAction={ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '')}
-                index={props.index}
-                reportActions={Object.values(reportActions ?? {})}
-                displayAsGroup={false}
-                shouldDisplayNewMarker={false}
-                isMostRecentIOUReportAction={false}
-                isFirstVisibleReportAction={false}
-                shouldDisplayContextMenu={false}
-            />
+            <ReportActionItemStateContext.Provider value={stateValue}>
+                <ReportActionItemActionsContext.Provider value={actionsValue}>
+                    <ReportActionItem
+                        action={action}
+                        report={report}
+                        parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
+                        index={index}
+                        displayAsGroup={false}
+                        shouldDisplayNewMarker={false}
+                        isMostRecentIOUReportAction={false}
+                        isFirstVisibleReportAction={false}
+                        shouldDisplayContextMenu={false}
+                        userWalletTierName={userWalletTierName}
+                        isUserValidated={isUserValidated}
+                        personalDetails={personalDetails}
+                        draftMessage={matchingDraftMessage}
+                        emojiReactions={emojiReactions}
+                        linkedTransactionRouteError={linkedTransactionRouteError}
+                        userBillingFundID={userBillingFundID}
+                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                    />
+                </ReportActionItemActionsContext.Provider>
+            </ReportActionItemStateContext.Provider>
         </View>
     );
 }
 
-DuplicateTransactionItem.displayName = 'DuplicateTransactionItem';
 export default DuplicateTransactionItem;

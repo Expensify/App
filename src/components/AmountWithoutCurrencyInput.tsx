@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
-import type {ForwardedRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
+import getAmountInputKeyboard from '@libs/getAmountInputKeyboard';
+import {handleNegativeAmountFlipping, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -15,12 +15,29 @@ type AmountFormProps = {
 
     /** Should we allow negative number as valid input */
     shouldAllowNegative?: boolean;
+
+    /** Whether to allow flipping the amount */
+    allowFlippingAmount?: boolean;
+
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
 } & Partial<BaseTextInputProps>;
 
-function AmountWithoutCurrencyInput(
-    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, onInputChange, ...rest}: AmountFormProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function AmountWithoutCurrencyInput({
+    value: amount,
+    shouldAllowNegative = false,
+    inputID,
+    name,
+    defaultValue,
+    accessibilityLabel,
+    role,
+    label,
+    onInputChange,
+    allowFlippingAmount,
+    toggleNegative,
+    ref,
+    ...rest
+}: AmountFormProps) {
     const {toLocaleDigit} = useLocalize();
     const separator = useMemo(
         () =>
@@ -39,11 +56,26 @@ function AmountWithoutCurrencyInput(
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
+            const processedAmount = handleNegativeAmountFlipping(newAmountWithoutSpaces, allowFlippingAmount ?? false, toggleNegative);
+            const replacedCommasAmount = replaceCommasWithPeriod(processedAmount);
             onInputChange?.(replacedCommasAmount);
         },
-        [onInputChange],
+        [onInputChange, allowFlippingAmount, toggleNegative],
     );
+
+    // Add custom notation for using '-' character in the mask.
+    // If we only use '-' for characterSet instead of '0123456789.-'
+    // then the first character has to be '-' optionally, but we also want to allow a digit in first position if the value is positive.
+    // More info: https://github.com/IvanIhnatsiuk/react-native-advanced-input-mask?tab=readme-ov-file#custom-notations
+    const customMask = [
+        {
+            character: '~',
+            characterSet: '0123456789.-',
+            isOptional: true,
+        },
+    ];
+
+    const {keyboardType, inputMode} = getAmountInputKeyboard(shouldAllowNegative);
 
     return (
         <TextInput
@@ -55,11 +87,13 @@ function AmountWithoutCurrencyInput(
             accessibilityLabel={accessibilityLabel}
             role={role}
             ref={ref}
-            keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
+            keyboardType={keyboardType}
+            inputMode={inputMode}
             type="mask"
-            mask={`[09999999]${separator}[09]`}
-            allowedKeys="0123456789.,"
-            validationRegex={'^(?!.*[.,].*[.,])\\d{0,8}(?:[.,]\\d{0,2})?$'}
+            mask={shouldAllowNegative ? `[~][9999999999]${separator}[09]` : `[0999999999]${separator}[09]`}
+            customNotations={customMask}
+            allowedKeys="0123456789.,-"
+            validationRegex={`^-?(?!.*[.,].*[.,])\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}(?:[.,]\\d{0,2})?$`}
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
@@ -69,6 +103,4 @@ function AmountWithoutCurrencyInput(
     );
 }
 
-AmountWithoutCurrencyInput.displayName = 'AmountWithoutCurrencyForm';
-
-export default React.forwardRef(AmountWithoutCurrencyInput);
+export default AmountWithoutCurrencyInput;

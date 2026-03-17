@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,21 +57,29 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
 
     const styles = useThemeStyles();
 
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: translate('common.search'),
+            onChangeText: setSearchValue,
+            headerMessage,
+        }),
+        [headerMessage, searchValue, translate, setSearchValue],
+    );
+
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             onBackdropPress={onBackdropPress}
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={CountrySelectorModal.displayName}
+                testID="CountrySelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -79,23 +87,17 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    headerMessage={headerMessage}
-                    sections={[{data: searchResults}]}
-                    textInputValue={searchValue}
-                    textInputLabel={translate('common.search')}
-                    onChangeText={setSearchValue}
+                    data={searchResults}
+                    textInputOptions={textInputOptions}
                     onSelectRow={onCountrySelected}
                     ListItem={RadioListItem}
-                    initiallyFocusedOptionKey={currentCountry}
+                    initiallyFocusedItemKey={currentCountry}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
-                    shouldUseDynamicMaxToRenderPerBatch
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-CountrySelectorModal.displayName = 'CountrySelectorModal';
 
 export default CountrySelectorModal;

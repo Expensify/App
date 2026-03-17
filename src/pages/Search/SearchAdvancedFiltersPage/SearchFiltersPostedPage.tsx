@@ -1,16 +1,14 @@
 import React from 'react';
-import SearchDateFilterBase from '@components/Search/SearchDateFilterBase';
+import SearchDatePresetFilterBasePage from '@components/Search/SearchDatePresetFilterBasePage';
 import CONST from '@src/CONST';
 
 function SearchFiltersPostedPage() {
     return (
-        <SearchDateFilterBase
+        <SearchDatePresetFilterBasePage
             dateKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}
             titleKey="search.filters.posted"
         />
     );
 }
-
-SearchFiltersPostedPage.displayName = 'SearchFiltersPostedPage';
 
 export default SearchFiltersPostedPage;

@@ -4,15 +4,18 @@
  * */
 export default {
     CENTRAL_PANE_NAVIGATOR: 'CentralPaneNavigator',
-    LEFT_MODAL_NAVIGATOR: 'LeftModalNavigator',
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
     ONBOARDING_MODAL_NAVIGATOR: 'OnboardingModalNavigator',
-    FEATURE_TRANING_MODAL_NAVIGATOR: 'FeatureTrainingModalNavigator',
-    WELCOME_VIDEO_MODAL_NAVIGATOR: 'WelcomeVideoModalNavigator',
+    FEATURE_TRAINING_MODAL_NAVIGATOR: 'FeatureTrainingModalNavigator',
     EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
     MIGRATED_USER_MODAL_NAVIGATOR: 'MigratedUserModalNavigator',
+    TEST_DRIVE_MODAL_NAVIGATOR: 'TestDriveModalNavigator',
+    TEST_DRIVE_DEMO_NAVIGATOR: 'TestDriveDemoNavigator',
     REPORTS_SPLIT_NAVIGATOR: 'ReportsSplitNavigator',
     SETTINGS_SPLIT_NAVIGATOR: 'SettingsSplitNavigator',
     WORKSPACE_SPLIT_NAVIGATOR: 'WorkspaceSplitNavigator',
+    DOMAIN_SPLIT_NAVIGATOR: 'DomainSplitNavigator',
     SEARCH_FULLSCREEN_NAVIGATOR: 'SearchFullscreenNavigator',
+    SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
+    TEST_TOOLS_MODAL_NAVIGATOR: 'TestToolsModalNavigator',
 } as const;

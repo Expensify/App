@@ -1,14 +1,16 @@
 import {exists, unlink} from 'react-native-fs';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Add, Clear, ClearAll, ClearByKey} from './types';
+import type {Add, Clear, ClearByKey} from './types';
 
 /*
  * We need to save the paths of PDF files so we can delete them later.
  * This is to remove the cached PDFs when an attachment is deleted or the user logs out.
  */
 let pdfPaths: Record<string, string> = {};
-Onyx.connect({
+// We use `connectWithoutView` here since this connection only updates a module-level variable
+// and doesn't need to trigger component re-renders
+Onyx.connectWithoutView({
     key: ONYXKEYS.CACHED_PDF_PATHS,
     callback: (val) => {
         pdfPaths = val ?? {};
@@ -40,8 +42,4 @@ const clearByKey: ClearByKey = (id: string) => {
     clear(pdfPaths[id] ?? '').then(() => Onyx.merge(ONYXKEYS.CACHED_PDF_PATHS, {[id]: null}));
 };
 
-const clearAll: ClearAll = () => {
-    Promise.all(Object.values(pdfPaths).map(clear)).then(() => Onyx.merge(ONYXKEYS.CACHED_PDF_PATHS, {}));
-};
-
-export {add, clearByKey, clearAll};
+export {add, clearByKey};

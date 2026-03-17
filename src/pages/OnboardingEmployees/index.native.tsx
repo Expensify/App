@@ -12,6 +12,4 @@ function OnboardingEmployees(props: OnboardingEmployeesProps) {
     );
 }
 
-OnboardingEmployees.displayName = 'OnboardingEmployees';
-
 export default OnboardingEmployees;

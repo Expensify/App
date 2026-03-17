@@ -5,7 +5,7 @@
  */
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import {isOpeningRouteInDesktop, resetIsOpeningRouteInDesktop} from '@libs/Browser/index.website';
+import {setModalVisibility} from '@libs/actions/Modal';
 import {setActiveClients} from '@userActions/ActiveClients';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Init, IsClientTheLeader, IsReady} from './types';
@@ -24,7 +24,8 @@ let beforeunloadListenerAdded = false;
  */
 const isReady: IsReady = () => savedSelfPromise;
 
-Onyx.connect({
+// We have opted for `connectWithoutView` here as this code is not connected to UI at all.
+Onyx.connectWithoutView({
     key: ONYXKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
         if (!val) {
@@ -95,13 +96,8 @@ const init: Init = () => {
 
     beforeunloadListenerAdded = true;
     window.addEventListener('beforeunload', () => {
-        // When we open route in desktop, beforeunload is fired unexpectedly here.
-        // So we should return early in this case to prevent cleaning the clientID
-        if (isOpeningRouteInDesktop()) {
-            resetIsOpeningRouteInDesktop();
-            return;
-        }
         cleanUpClientId();
+        setModalVisibility(false);
     });
 };
 

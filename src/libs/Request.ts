@@ -1,32 +1,25 @@
+import type {OnyxKey} from 'react-native-onyx';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import HttpUtils from './HttpUtils';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
-import {hasReadRequiredDataFromStorage, isSupportAuthToken, isSupportRequest} from './Network/NetworkStore';
+import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 
 let middlewares: Middleware[] = [];
 
-function makeXHR(request: Request): Promise<Response | void> {
+function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response<TKey> | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
-    return hasReadRequiredDataFromStorage().then((): Promise<Response | void> => {
-        // If we're using the Supportal token and this is not a Supportal request
-        // let's just return a promise that will resolve itself.
-        if (isSupportAuthToken() && !isSupportRequest(request.command)) {
-            return new Promise<void>((resolve) => {
-                resolve();
-            });
-        }
-
+    return hasReadRequiredDataFromStorage().then((): Promise<Response<TKey> | void> => {
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline);
     });
 }
 
-function processWithMiddleware(request: Request, isFromSequentialQueue = false): Promise<Response | void> {
+function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
     return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
 }
 
-function use(middleware: Middleware) {
+function addMiddleware(middleware: Middleware) {
     middlewares.push(middleware);
 }
 
@@ -34,5 +27,5 @@ function clearMiddlewares() {
     middlewares = [];
 }
 
-export {clearMiddlewares, processWithMiddleware, use};
+export {clearMiddlewares, processWithMiddleware, addMiddleware};
 export type {Middleware};

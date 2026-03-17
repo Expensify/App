@@ -34,14 +34,12 @@ function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, lab
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
-                testID={UnitSelectorModal.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID="UnitSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -56,7 +54,5 @@ function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, lab
         </Modal>
     );
 }
-
-UnitSelectorModal.displayName = 'UnitSelectorModal';
 
 export default UnitSelectorModal;

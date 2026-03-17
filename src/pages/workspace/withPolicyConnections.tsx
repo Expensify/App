@@ -1,11 +1,11 @@
 import isBoolean from 'lodash/isBoolean';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import type {ComponentType} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
+import useOnyx from '@hooks/useOnyx';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -29,34 +29,27 @@ type WithPolicyConnectionsProps = WithPolicyProps & {
 function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>, shouldBlockView = true) {
     function WithPolicyConnections(props: TProps) {
         const {isOffline} = useNetwork();
-        const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '-1'}`);
+        const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id}`);
         const isOnyxDataLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
         const isConnectionDataFetchNeeded =
             !isOnyxDataLoading && !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
 
-        const [isFetchingData, setIsFetchingData] = useState(false);
-
-        const prevHasConnectionsDataBeenFetched = usePrevious(hasConnectionsDataBeenFetched);
+        const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
 
         useEffect(() => {
-            if (prevHasConnectionsDataBeenFetched !== undefined || !isBoolean(hasConnectionsDataBeenFetched)) {
-                return;
-            }
-            setIsFetchingData(false);
-        }, [hasConnectionsDataBeenFetched, prevHasConnectionsDataBeenFetched]);
-
-        useEffect(() => {
-            // When the accounting feature is not enabled, or if the connections data already exists,
-            // there is no need to fetch the connections data.
             if (!isConnectionDataFetchNeeded || !props.policy?.id) {
                 return;
             }
-            setIsFetchingData(true);
             openPolicyAccountingPage(props.policy.id);
         }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
-        if ((isConnectionDataFetchNeeded || isFetchingData || isOnyxDataLoading) && shouldBlockView) {
-            return <FullScreenLoadingIndicator />;
+        if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'withPolicyConnections',
+                isFetchingData,
+                isOnyxDataLoading,
+            };
+            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
         }
 
         return (

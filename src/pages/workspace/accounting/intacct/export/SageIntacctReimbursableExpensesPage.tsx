@@ -44,6 +44,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
             >
                 <MenuItemWithTopDescription
+                    key={item.title}
                     title={item.title}
                     description={item.description}
                     shouldShowRightIcon
@@ -56,7 +57,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
     const menuItems: ExtendedMenuItemWithSubscribedSettings[] = [
         {
             type: 'menuitem',
-            title: reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${reimbursable}`) : translate('workspace.sageIntacct.notConfigured'),
+            title: reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${reimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
             onPress: () => {
                 if (!policyID) {
@@ -70,7 +71,8 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             type: 'toggle',
             title: translate('workspace.sageIntacct.defaultVendor'),
             key: 'Default vendor toggle',
-            subtitle: translate('workspace.sageIntacct.defaultVendorDescription', {isReimbursable: true}),
+            subtitle: translate('workspace.sageIntacct.defaultVendorDescription', true),
+            shouldPlaceSubtitleBelowSwitch: true,
             isActive: !!config?.export.reimbursableExpenseReportDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
             onToggle: (enabled) => {
@@ -92,7 +94,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             children: [
                 {
                     type: 'menuitem',
-                    title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.notConfigured'),
+                    title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : undefined,
                     description: translate('workspace.sageIntacct.defaultVendor'),
                     onPress: () => {
                         if (!policyID) {
@@ -112,7 +114,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctReimbursableExpensesPage.displayName}
+            displayName="SageIntacctReimbursableExpensesPage"
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.sageIntacct.reimbursableExpenses.description"
             onBackButtonPress={() => Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)))}
@@ -154,7 +156,5 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
         </ConnectionLayout>
     );
 }
-
-SageIntacctReimbursableExpensesPage.displayName = 'SageIntacctReimbursableExpensesPage';
 
 export default withPolicyConnections(SageIntacctReimbursableExpensesPage);

@@ -3,11 +3,11 @@ import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import {NativeStackView} from '@react-navigation/native-stack';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import React, {useMemo} from 'react';
+import {addCustomHistoryRouterExtension} from '@libs/Navigation/AppNavigator/customHistory';
 import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,
-    PlatformNavigationBuilderOptions,
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
     PlatformStackNavigatorProps,
@@ -18,7 +18,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     displayName: string,
     options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
-    const createRouter = options?.createRouter ?? StackRouter;
+    const createRouter = addCustomHistoryRouterExtension(options?.createRouter ?? StackRouter);
     const defaultScreenOptions = options?.defaultScreenOptions;
     const useCustomState = options?.useCustomState ?? (() => undefined);
     const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
@@ -40,6 +40,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             navigation,
             state: originalState,
             descriptors,
+            describe,
             NavigationContent,
         } = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
@@ -53,14 +54,13 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             {
                 id,
                 children,
-                screenOptions,
-                defaultScreenOptions,
+                screenOptions: {...defaultScreenOptions, ...screenOptions},
                 screenListeners,
                 initialRouteName,
                 sidebarScreen,
                 defaultCentralScreen,
                 parentRoute,
-            } as PlatformNavigationBuilderOptions<PlatformStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, RouterOptions>,
+            },
             convertToNativeNavigationOptions,
         );
 
@@ -97,15 +97,15 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                         state={state}
                         descriptors={descriptors}
                         navigation={navigation}
+                        describe={describe}
                     />
-
                     {!!ExtraContent && (
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         <ExtraContent {...customCodePropsWithCustomState} />
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, descriptors, navigation, props, state],
+            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, navigation, props, state],
         );
 
         // eslint-disable-next-line react/jsx-props-no-spreading

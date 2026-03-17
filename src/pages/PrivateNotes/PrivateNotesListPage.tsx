@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {AttachmentContext} from '@components/AttachmentContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,13 +8,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import {goBackToDetailsPage} from '@libs/ReportUtils';
-import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
-import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
+import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
+import withReportAndPrivateNotesOrNotFound from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -78,7 +78,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
             return {
                 reportID: report.reportID,
                 accountID: privateNoteAccountID,
-                title: Number(sessionAccountID) === accountID ? translate('privateNotes.myNote') : personalDetailsList?.[privateNoteAccountID]?.login ?? '',
+                title: Number(sessionAccountID) === accountID ? translate('privateNotes.myNote') : (personalDetailsList?.[privateNoteAccountID]?.login ?? ''),
                 action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID, backTo)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
                 note: privateNote?.note ?? '',
@@ -88,10 +88,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
     }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={PrivateNotesListPage.displayName}
-        >
+        <ScreenWrapper testID="PrivateNotesListPage">
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
                 shouldShowBackButton
@@ -108,7 +105,5 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
         </ScreenWrapper>
     );
 }
-
-PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
 export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(PrivateNotesListPage);

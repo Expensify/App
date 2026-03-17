@@ -1,11 +1,20 @@
-import type {Section} from '@libs/OptionsListUtils';
-import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
+import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
+import IntlStore from '@src/languages/IntlStore';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import {localeCompare} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('TaxOptionsListUtils', () => {
+    beforeAll(() => {
+        IntlStore.load('en');
+        return waitForBatchedUpdates();
+    });
     it('getTaxRatesSection()', () => {
         const search = 'rate';
         const emptySearch = '';
+        const tokenizeSearch = 'Tax 2';
         const wrongSearch = 'bla bla';
 
         const taxRatesWithDefault: TaxRatesWithDefault = {
@@ -45,14 +54,14 @@ describe('TaxOptionsListUtils', () => {
             taxCode: 'CODE1',
         } as Transaction;
 
-        const resultList: Section[] = [
+        const resultList: Array<Section<TaxRatesOption>> = [
             {
                 data: [
                     {
                         code: 'CODE1',
                         isDisabled: false,
                         isSelected: undefined,
-                        keyForList: 'Tax exempt 1 (0%) • Default',
+                        keyForList: 'Tax exempt 1 (0%) • Default-0',
                         searchText: 'Tax exempt 1 (0%) • Default',
                         text: 'Tax exempt 1 (0%) • Default',
                         tooltipText: 'Tax exempt 1 (0%) • Default',
@@ -62,7 +71,7 @@ describe('TaxOptionsListUtils', () => {
                         code: 'CODE3',
                         isDisabled: false,
                         isSelected: undefined,
-                        keyForList: 'Tax option 3 (5%)',
+                        keyForList: 'Tax option 3 (5%)-1',
                         searchText: 'Tax option 3 (5%)',
                         text: 'Tax option 3 (5%)',
                         tooltipText: 'Tax option 3 (5%)',
@@ -72,63 +81,74 @@ describe('TaxOptionsListUtils', () => {
                         code: 'CODE2',
                         isDisabled: true,
                         isSelected: undefined,
-                        keyForList: 'Tax rate 2 (3%)',
+                        keyForList: 'Tax rate 2 (3%)-2',
                         searchText: 'Tax rate 2 (3%)',
                         text: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
                         pendingAction: 'delete',
                     },
                 ],
-                shouldShow: false,
+                sectionIndex: 2,
                 title: '',
             },
         ];
 
-        const searchResultList: Section[] = [
+        const searchResultList: Array<Section<TaxRatesOption>> = [
             {
                 data: [
                     {
                         code: 'CODE2',
                         isDisabled: true,
                         isSelected: undefined,
-                        keyForList: 'Tax rate 2 (3%)',
+                        keyForList: 'Tax rate 2 (3%)-0',
                         searchText: 'Tax rate 2 (3%)',
                         text: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
                         pendingAction: 'delete',
                     },
                 ],
-                shouldShow: true,
+                sectionIndex: 1,
                 title: '',
             },
         ];
 
-        const wrongSearchResultList: Section[] = [
+        const wrongSearchResultList: Array<Section<TaxRatesOption>> = [
             {
                 data: [],
-                shouldShow: true,
+                sectionIndex: 1,
                 title: '',
             },
         ];
 
-        const result = TaxOptionsListUtils.getTaxRatesSection({
+        const result = getTaxRatesSection({
             policy,
             searchValue: emptySearch,
+            localeCompare,
             transaction,
         });
 
         expect(result).toStrictEqual(resultList);
 
-        const searchResult = TaxOptionsListUtils.getTaxRatesSection({
+        const searchResult = getTaxRatesSection({
             policy,
             searchValue: search,
+            localeCompare,
             transaction,
         });
         expect(searchResult).toStrictEqual(searchResultList);
 
-        const wrongSearchResult = TaxOptionsListUtils.getTaxRatesSection({
+        const tokenizeSearchResult = getTaxRatesSection({
+            policy,
+            searchValue: tokenizeSearch,
+            localeCompare,
+            transaction,
+        });
+        expect(tokenizeSearchResult).toStrictEqual(searchResultList);
+
+        const wrongSearchResult = getTaxRatesSection({
             policy,
             searchValue: wrongSearch,
+            localeCompare,
             transaction,
         });
         expect(wrongSearchResult).toStrictEqual(wrongSearchResultList);

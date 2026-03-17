@@ -27,23 +27,153 @@
 }}
 
 // per-parser initializer (code executed before every parse)
-{
+{  
+  const GROUP_BY_DEFAULT_SORT = {
+    from: "groupFrom",
+    card: "groupCard",
+    "withdrawal-id": "groupWithdrawn",
+    category: "groupCategory",
+    tag: "groupTag",
+    merchant: "groupMerchant",
+    month: "groupmonth",
+    week: "groupweek",
+    year: "groupyear",
+    quarter: "groupquarter",
+  };
+
+  const GROUP_BY_DEFAULT_SORT_ORDER = {
+    from: "asc",
+    card: "asc",
+    "withdrawal-id": "desc",
+    category: "asc",
+    tag: "asc",
+    merchant: "asc",
+    month: "desc",
+    week: "desc",
+    year: "desc",
+    quarter: "desc",
+  };
+
+  const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
+
+  const TIME_BASED_GROUP_BY = new Set(["week", "month", "year", "quarter"]);
+
   const defaultValues = {
     type: "expense",
-    status: "all",
+    status: "",
     sortBy: "date",
     sortOrder: "desc",
+    view: "table",
   };
+  let rawFilterList = [];
+  let userProvidedSortBy = false;
+  let userProvidedSortOrder = false;
+
+  // List fields where you cannot prefix it with "-" to negate it
+  const nonNegatableKeys = new Set([
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view"
+  ]);
+
+  function isDefaultSortValue(sortBy) {
+    return DEFAULT_SORT_BY_VALUES.has(sortBy);
+  }
+
+  function getDefaultSortByForGroupBy(groupBy) {
+    return GROUP_BY_DEFAULT_SORT[groupBy];
+  }
+
+  function getDefaultSortOrderForGroupBy(groupBy) {
+    return GROUP_BY_DEFAULT_SORT_ORDER[groupBy];
+  }
 
   function applyDefaults(filters) {
     return {
       ...defaultValues,
       filters,
+      rawFilterList,
     };
   }
 
+  // Each groupBy has a natural sortBy column and sortOrder (e.g. groupBy:category sorts by groupCategory asc).
+  // When groupBy changes we re-derive both so the UI always starts with the correct default sort for the new grouping,
+  // unless the user explicitly provided sortBy or sortOrder in the query.
+  function deriveGroupByDefaults(groupByValue) {
+    if (!userProvidedSortBy) {
+      const defaultSortBy = getDefaultSortByForGroupBy(groupByValue);
+      if (defaultSortBy && defaultValues.sortBy !== defaultSortBy) {
+        defaultValues.sortBy = defaultSortBy;
+      }
+    }
+    if (!userProvidedSortOrder) {
+      const defaultSortOrder = getDefaultSortOrderForGroupBy(groupByValue);
+      if (defaultSortOrder) {
+        defaultValues.sortOrder = defaultSortOrder;
+      }
+    }
+  }
+
   function updateDefaultValues(field, value) {
+    if (field === "status" && value === "all") {
+      defaultValues[field] = "";
+      return;
+    }
+
+    // Track if user explicitly provided a custom (non-default) sortBy
+    if (field === "sortBy" && !isDefaultSortValue(value)) {
+      userProvidedSortBy = true;
+    }
+
+    // Track if user explicitly provided sortOrder
+    if (field === "sortOrder") {
+      userProvidedSortOrder = true;
+    }
+
+    // Auto-update sortBy and sortOrder when groupBy changes
+    if (field === "groupBy" && value) {
+      deriveGroupByDefaults(value);
+
+      if (defaultValues.view !== "table" && TIME_BASED_GROUP_BY.has(value) && !userProvidedSortOrder) {
+        defaultValues.sortOrder = "asc";
+      }
+    }
+
+    // Chart views (bar, line, pie) require a groupBy to aggregate data, so we assign a sensible
+    // default groupBy when none was provided (line defaults to month for chronological display,
+    // others default to category). We also default sortOrder to asc for time-based groupBys so
+    // that charts display data in chronological order (oldest to newest).
+    if (field === "view" && value && value !== "table") {
+      if (!defaultValues.groupBy) {
+        const defaultGroupBy = value === "line" ? "month" : "category";
+        defaultValues.groupBy = defaultGroupBy;
+        deriveGroupByDefaults(defaultGroupBy);
+      }
+
+      if (TIME_BASED_GROUP_BY.has(defaultValues.groupBy) && !userProvidedSortOrder) {
+        defaultValues.sortOrder = "asc";
+      }
+    }
+
     defaultValues[field] = value;
+  }
+
+  function createRawFilter(filter) {
+    if (!filter || !filter.right) {
+      return null;
+    }
+
+    if (typeof filter.left !== "string") {
+      return null;
+    }
+
+    const key = filter.left;
+    const value = Array.isArray(filter.right) ? [...filter.right] : filter.right;
+
+    return {
+      key,
+      operator: filter.operator,
+      value,
+      isDefault: !!filter.isDefault,
+    };
   }
 }
 
@@ -54,15 +184,19 @@ filterList
       const allFilters = [head, ...tail.map(([_, filter]) => filter)]
         .filter(Boolean)
         .filter((filter) => filter.right);
-      if (!allFilters.length) {
+      rawFilterList = allFilters.map(createRawFilter).filter(Boolean);
+
+      const filtersWithoutDefaults = allFilters.filter((filter) => !filter.isDefault);
+
+      if (!filtersWithoutDefaults.length) {
         return null;
       }
 
-      const keywords = allFilters.filter(
+      const keywords = filtersWithoutDefaults.filter(
         (filter) =>
           filter.left === "keyword" || filter.right?.left === "keyword"
       );
-      const nonKeywords = allFilters.filter(
+      const nonKeywords = filtersWithoutDefaults.filter(
         (filter) =>
           filter.left !== "keyword" && filter.right?.left !== "keyword"
       );
@@ -71,7 +205,7 @@ filterList
         "eq",
         "keyword",
         keywords
-          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
+          .map((filter) => filter.right.replaceAll(/^(['"])(.*)\1$/g, "$2"))
           .flat()
       );
       if (keywordFilter.right.length > 0) {
@@ -87,6 +221,7 @@ filter = @(standardFilter / defaultFilter / freeTextFilter)
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
       updateDefaultValues(key, value);
+      return {...buildFilter(op, key, value), isDefault: true};
     }
 
 freeTextFilter
@@ -102,40 +237,84 @@ freeTextFilter
     }
 
 standardFilter
-  = _ field:key _ op:operator _ values:identifier {
-      return buildFilter(op, field, values);
+  = _ neg:"-"? field:filterKey _ op:filterOperator _ values:identifier {
+      expectingNestedQuote = false; nameOperator = false;
+
+      const key = field;
+      let operator = op;
+
+      // Apply negation only when "-" is present and the key can be negated
+      if (neg && !nonNegatableKeys.has(key)) {
+        if (operator === "eq") {
+          operator = "neq";
+        }
+      }
+
+      return buildFilter(operator, key, values);
     }
 
+reportFieldDynamic
+  = ("report-field"i / "reportfield"i) "-" rest:$((!([ \t\r\n\xA0,:=<>!]) .)*) {
+      const suffix = rest.replaceAll(/^-+/g, "");
+      return "reportField-" + (suffix ? suffix : "");
+    }
+    
 key "key"
   = @(
       date
       / amount
+      / total
       / merchant
       / description
       / reportID
       / keyword
       / in
       / currency
+      / groupCurrency
       / tag
       / category
       / to
       / taxRate
       / cardID
       / from
+      / attendee
+      / payer
+      / exporter
       / expenseType
+      / withdrawalType
+      / withdrawalID
       / submitted
       / approved
       / paid
+      / exportedTo
       / exported
       / posted
+      / withdrawn
       / feed
+      / title
+      / assignee
+      / createdBy
+      / reimbursable
+      / billable
+      / action
+      / has
+      / is
+      / purchaseCurrency
+      / purchaseAmount
+      / reportFieldDynamic
     )
 
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
+filterKey
+  = k:key {
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
+      return k;
+    }
+    
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns / limit / view)
 
 identifier
-  = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
-      const value = parts.flat().map((word) => {
+  = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
+      const value = parts.flat().filter(Boolean).map((word) => {
         if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
           return word.slice(1, -1);
         }

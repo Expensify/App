@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
+import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -11,12 +12,12 @@ import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/N
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-const loadReportScreen = () => require<ReactComponentModule>('@pages/home/ReportScreen').default;
-const loadSidebarScreen = () => require<ReactComponentModule>('@pages/home/sidebar/BaseSidebarScreen').default;
-
+const loadReportScreen = () => require<ReactComponentModule>('@pages/inbox/ReportScreen').default;
+const loadSidebarScreen = () => require<ReactComponentModule>('@pages/inbox/sidebar/BaseSidebarScreen').default;
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
 /**
@@ -24,46 +25,67 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  * There can be multiple report screens in the stack with different report IDs.
  */
 function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
-    const {canUseDefaultRooms} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
 
     const [initialReportID] = useState(() => {
+        // Deep links and REPORT_WITH_ID navigation pass the reportID in nested params,
+        // which lets us skip the O(n) findLastAccessedReport scan over all reports.
+        if (route.params?.screen === SCREENS.REPORT && route.params.params?.reportID) {
+            return route.params.params.reportID;
+        }
+
         const currentURL = getCurrentUrl();
-        const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        const isTransitioning = currentURL.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+
+        const reportIdFromPath = currentURL ? new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1) : undefined;
         if (reportIdFromPath) {
             return reportIdFromPath;
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
+        // If we are in a transition, we explicitly do NOT want to load the last accessed report.
+        // Returning an empty string here will cause ReportScreen to skip the `openReport` call initially.
+        if (isTransitioning) {
+            return '';
+        }
+
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, archivedReportsIdSet);
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
 
+    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
+    usePreloadFullScreenNavigators();
+
+    const reportScreenInitialParams = {
+        reportID: initialReportID,
+        openOnAdminRoom: isOpenOnAdminRoom ? true : undefined,
+    };
+
     return (
         <FreezeWrapper>
             <Split.Navigator
-                persistentScreens={[SCREENS.HOME]}
-                sidebarScreen={SCREENS.HOME}
+                persistentScreens={[SCREENS.INBOX]}
+                sidebarScreen={SCREENS.INBOX}
                 defaultCentralScreen={SCREENS.REPORT}
                 parentRoute={route}
                 screenOptions={splitNavigatorScreenOptions.centralScreen}
             >
                 <Split.Screen
-                    name={SCREENS.HOME}
+                    name={SCREENS.INBOX}
                     getComponent={loadSidebarScreen}
                     options={splitNavigatorScreenOptions.sidebarScreen}
                 />
                 <Split.Screen
                     name={SCREENS.REPORT}
-                    initialParams={{reportID: initialReportID, openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined}}
+                    initialParams={reportScreenInitialParams}
                     getComponent={loadReportScreen}
                 />
             </Split.Navigator>
         </FreezeWrapper>
     );
 }
-
-ReportsSplitNavigator.displayName = 'ReportsSplitNavigator';
 
 export default ReportsSplitNavigator;

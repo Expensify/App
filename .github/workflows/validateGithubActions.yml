@@ -4,15 +4,16 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['.github/**', 'package.json', 'package-lock.json', 'tsconfig.json']
+    paths: ['.github/**', 'scripts/**', 'package.json', 'package-lock.json', 'tsconfig.json']
 
 jobs:
   verify:
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -21,6 +22,3 @@ jobs:
       # because that would be a sign that the PR author did not rebuild the Github Actions
       - name: Verify Javascript Action Builds
         run: ./.github/scripts/verifyActions.sh
-
-      - name: Validate actions and workflows
-        run: npm run gh-actions-validate

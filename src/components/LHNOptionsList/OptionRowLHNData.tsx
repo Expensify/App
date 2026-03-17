@@ -1,10 +1,18 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
-import useCurrentReportID from '@hooks/useCurrentReportID';
+import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
+import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
+import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
-import {hasReportViolations, isReportOwner, isSettled, shouldDisplayViolationsRBRInLHN} from '@src/libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -15,8 +23,10 @@ import type {OptionRowLHNDataProps} from './types';
  * re-render if the data really changed.
  */
 function OptionRowLHNData({
-    isFocused = false,
+    isOptionFocused = false,
     fullReport,
+    reportAttributes,
+    reportAttributesDerived,
     oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
@@ -31,49 +41,81 @@ function OptionRowLHNData({
     lastReportActionTransaction,
     transactionViolations,
     lastMessageTextFromReport,
+    localeCompare,
+    translate,
+    isReportArchived = false,
+    lastAction,
+    lastActionReport,
+    currentUserAccountID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
-    const currentReportIDValue = useCurrentReportID();
-    const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
+    const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
+    const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
+    const optionItemRef = useRef<OptionData | undefined>(undefined);
 
-    const optionItemRef = useRef<OptionData>();
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {login} = useCurrentUserPersonalDetails();
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
+    // Check the report errors equality to avoid re-rendering when there are no changes
+    const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
+    const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
 
-    const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
-    const isReportSettled = isSettled(fullReport);
-    const shouldDisplayReportViolations = !isReportSettled && isReportOwner(fullReport) && hasReportViolations(reportID);
+    const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
+
+    const isIOUReport = fullReport?.type === CONST.REPORT.TYPE.IOU;
+    const [chatReportForIOU] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isIOUReport ? fullReport?.chatReportID : undefined)}`);
+    const reportPreviewSenderID = useReportPreviewSenderID({
+        iouReport: isIOUReport ? fullReport : undefined,
+        action: parentReportAction,
+        chatReport: chatReportForIOU,
+    });
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
+            reportAttributes,
             oneTransactionThreadReport,
             reportNameValuePairs,
-            reportActions,
             personalDetails,
-            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
+            conciergeReportID,
             lastMessageTextFromReport,
-            transactionViolations,
             invoiceReceiverPolicy,
+            card,
+            lastAction,
+            translate,
+            localeCompare,
+            isReportArchived,
+            lastActionReport,
+            movedFromReport,
+            movedToReport,
+            currentUserAccountID,
+            reportAttributesDerived,
+            policyTags,
+            currentUserLogin: login ?? '',
         });
-        // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
-            // eslint-disable-next-line react-compiler/react-compiler
             return optionItemRef.current;
         }
 
-        // eslint-disable-next-line react-compiler/react-compiler
         optionItemRef.current = item;
 
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // Listen to lastAction to update when action is deleted or gets pendingAction
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         fullReport,
+        reportAttributes?.brickRoadStatus,
+        reportAttributes?.actionBadge,
+        reportAttributes?.reportName,
+        areReportErrorsEqual,
         oneTransactionThreadReport,
         reportNameValuePairs,
         lastReportActionTransaction,
@@ -82,21 +124,46 @@ function OptionRowLHNData({
         preferredLocale,
         policy,
         parentReportAction,
+        conciergeReportID,
         iouReportReportActions,
         transaction,
-        transactionViolations,
         receiptTransactions,
         invoiceReceiverPolicy,
-        shouldDisplayReportViolations,
         lastMessageTextFromReport,
+        card,
+        lastAction,
+        lastActionReport,
+        translate,
+        localeCompare,
+        isReportArchived,
+        movedFromReport,
+        movedToReport,
+        currentUserAccountID,
+        reportAttributesDerived,
+        policyTags,
+        login,
     ]);
+
+    // For single-sender IOUs, trim to the sender's avatar to match the header.
+    // The header uses reportPreviewSenderID as accountID for its primary avatar,
+    // so we pick the matching icon from getIconsForIOUReport to stay consistent.
+    const finalOptionItem = useMemo(() => {
+        if (!optionItem || !isIOUReport || reportPreviewSenderID === undefined || !optionItem.icons || optionItem.icons.length <= 1) {
+            return optionItem;
+        }
+        // eslint-disable-next-line rulesdir/prefer-at -- .find() is needed to search by predicate (matching icon.id to senderID), not by index
+        const senderIcon = optionItem.icons.find((icon) => Number(icon.id) === reportPreviewSenderID);
+        return {...optionItem, icons: [senderIcon ?? optionItem.icons.at(0)].filter((icon): icon is Icon => !!icon)};
+    }, [optionItem, isIOUReport, reportPreviewSenderID]);
 
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
-            isFocused={isReportFocused}
-            optionItem={optionItem}
+            isOptionFocused={isReportFocused}
+            optionItem={finalOptionItem}
+            report={fullReport}
+            conciergeReportID={conciergeReportID}
         />
     );
 }

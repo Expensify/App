@@ -1,17 +1,17 @@
-import React, {useCallback, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import {CompanyCardsEmptyState, CreditCardsNew, HandCard, MagnifyingGlassMoney} from '@components/Icon/Illustrations';
+import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasIssuedExpensifyCard} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import colors from '@styles/theme/colors';
 import {clearAddNewCardFlow} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -19,66 +19,101 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import WorkspaceCompanyCardExpensifyCardPromotionBanner from './WorkspaceCompanyCardExpensifyCardPromotionBanner';
 
-const companyCardFeatures: FeatureListItem[] = [
-    {
-        icon: CreditCardsNew,
-        translationKey: 'workspace.moreFeatures.companyCards.feed.features.support',
-    },
-    {
-        icon: HandCard,
-        translationKey: 'workspace.moreFeatures.companyCards.feed.features.assignCards',
-    },
-    {
-        icon: MagnifyingGlassMoney,
-        translationKey: 'workspace.moreFeatures.companyCards.feed.features.automaticImport',
-    },
-];
+type WorkspaceCompanyCardPageEmptyStateProps = {
+    policyID: string;
+    shouldShowGBDisclaimer?: boolean;
+};
 
-function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoadingProps) {
+function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: WorkspaceCompanyCardPageEmptyStateProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID, allWorkspaceCards);
 
-    const handleCtaPress = useCallback(() => {
+    const policy = usePolicy(policyID);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards);
+
+    const illustrations = useMemoizedLazyIllustrations([
+        'CreditCardsNew',
+        'HandCard',
+        'MagnifyingGlassMoney',
+        'CompanyCardsEmptyStateUSCA',
+        'CompanyCardsEmptyStateUKEU',
+        'CompanyCardsEmptyStateGeneric',
+    ]);
+
+    const features = [
+        {
+            icon: illustrations.CreditCardsNew,
+            translationKey: 'workspace.moreFeatures.companyCards.feed.features.support' as const,
+        },
+
+        {
+            icon: illustrations.HandCard,
+            translationKey: 'workspace.moreFeatures.companyCards.feed.features.assignCards' as const,
+        },
+
+        {
+            icon: illustrations.MagnifyingGlassMoney,
+            translationKey: 'workspace.moreFeatures.companyCards.feed.features.automaticImport' as const,
+        },
+    ];
+    const companyCardFeatures = features
+        .filter((feature) => feature.icon !== null)
+        .map((feature) => ({
+            icon: feature.icon,
+            translationKey: feature.translationKey,
+        }));
+
+    const getCompanyCardIllustration = () => {
+        const currency = policy?.outputCurrency ?? '';
+
+        if (currency === CONST.CURRENCY.USD || currency === CONST.CURRENCY.CAD) {
+            return illustrations.CompanyCardsEmptyStateUSCA;
+        }
+
+        if (currency === CONST.CURRENCY.GBP || currency === CONST.CURRENCY.EUR) {
+            return illustrations.CompanyCardsEmptyStateUKEU;
+        }
+
+        return illustrations.CompanyCardsEmptyStateGeneric;
+    };
+
+    const handleCtaPress = () => {
         if (!policy?.id) {
             return;
         }
         if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
             return;
         }
         clearAddNewCardFlow();
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy.id));
-    }, [policy, isActingAsDelegate]);
+    };
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             {shouldShowExpensifyCardPromotionBanner && <WorkspaceCompanyCardExpensifyCardPromotionBanner policy={policy} />}
             <FeatureList
-                menuItems={companyCardFeatures}
+                menuItems={companyCardFeatures as FeatureListItem[]}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}
-                subtitle={translate('workspace.moreFeatures.companyCards.subtitle')}
+                subtitle={translate('workspace.moreFeatures.companyCards.feed.subtitle')}
                 ctaText={translate('workspace.companyCards.addCards')}
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={handleCtaPress}
-                illustrationBackgroundColor={colors.blue700}
-                illustration={CompanyCardsEmptyState}
-                illustrationStyle={styles.emptyStateCardIllustration}
-                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
+                illustrationBackgroundColor={colors.blue800}
+                illustration={getCompanyCardIllustration()}
+                illustrationStyle={styles.getEmptyStateCompanyCardsIllustration(shouldUseNarrowLayout)}
+                illustrationContainerStyle={styles.getEmptyStateCompanyCardsIllustrationContainer(shouldUseNarrowLayout)}
                 titleStyles={styles.textHeadlineH1}
+                isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}
             />
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
+            {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
         </View>
     );
 }
 
-WorkspaceCompanyCardPageEmptyState.displayName = 'WorkspaceCompanyCardPageEmptyState';
-
-export default withPolicyAndFullscreenLoading(WorkspaceCompanyCardPageEmptyState);
+export default WorkspaceCompanyCardPageEmptyState;

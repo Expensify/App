@@ -1,14 +1,20 @@
 import Onyx from 'react-native-onyx';
 import type {AppActionsMock} from '@userActions/__mocks__/App';
 import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as AppImport from '@userActions/App';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManager from '@userActions/OnyxUpdateManager';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManagerUtilsImport from '@userActions/OnyxUpdateManager/utils';
 import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ApplyUpdatesImport from '@userActions/OnyxUpdateManager/utils/applyUpdates';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 
 jest.mock('@userActions/OnyxUpdates');
@@ -22,15 +28,20 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     }),
 }));
 
-const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock;
+jest.mock('@src/libs/SearchUIUtils', () => ({
+    getSuggestedSearches: jest.fn().mockReturnValue({}),
+}));
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock<any>;
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 
-const update2 = OnyxUpdateMockUtils.createUpdate(2);
+const update2: OnyxUpdatesFromServer<never> = OnyxUpdateMockUtils.createUpdate(2);
 const pendingUpdateUpTo2 = OnyxUpdateMockUtils.createPendingUpdate(2);
 
-const update3 = OnyxUpdateMockUtils.createUpdate(3);
+const update3: OnyxUpdatesFromServer<never> = OnyxUpdateMockUtils.createUpdate(3);
 const pendingUpdateUpTo3 = OnyxUpdateMockUtils.createPendingUpdate(3);
 const offsetUpdate3 = OnyxUpdateMockUtils.createUpdate(3, undefined, 1);
 
@@ -43,6 +54,10 @@ const update8 = OnyxUpdateMockUtils.createUpdate(8);
 describe('OnyxUpdateManager', () => {
     let lastUpdateIDAppliedToClient = 1;
     beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+
         Onyx.connect({
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
             callback: (value) => (lastUpdateIDAppliedToClient = value ?? 1),

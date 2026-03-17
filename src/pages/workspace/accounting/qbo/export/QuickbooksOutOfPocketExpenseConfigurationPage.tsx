@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -15,7 +16,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type QBOSectionType = {
     title?: string;
@@ -25,6 +26,7 @@ type QBOSectionType = {
     hintText?: string;
     subscribedSettings: string[];
     pendingAction?: PendingAction;
+    errors?: Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 const account = [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT];
@@ -57,6 +59,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                 description = translate('workspace.qbo.accountsPayable');
                 break;
             default:
+                description = translate('workspace.qbo.account');
                 break;
         }
 
@@ -79,7 +82,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
             brickRoadIndicator: areSettingsInErrorFields(accountOrExportDestination, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
-            title: qboConfig?.reimbursableExpensesAccount?.name ?? translate('workspace.qbo.notConfigured'),
+            title: qboConfig?.reimbursableExpensesAccount?.name,
             description: accountDescription,
             onPress: () => {
                 if (!policyID) {
@@ -90,12 +93,20 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
             subscribedSettings: account,
             pendingAction: settingsPendingAction(account, qboConfig?.pendingFields),
             brickRoadIndicator: areSettingsInErrorFields(account, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            errors:
+                shouldShowQBOReimbursableExportDestinationAccountError(policy) && qboConfig?.reimbursableExpensesExportDestination
+                    ? {
+                          [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(
+                              `workspace.qbo.exportDestinationAccountsMisconfigurationError.${qboConfig.reimbursableExpensesExportDestination}`,
+                          ),
+                      }
+                    : undefined,
         },
     ];
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksOutOfPocketExpenseConfigurationPage.displayName}
+            displayName="QuickbooksOutOfPocketExpenseConfigurationPage"
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.qbo.exportOutOfPocketExpensesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -111,6 +122,8 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                     pendingAction={section.pendingAction}
                     // eslint-disable-next-line react/no-array-index-key
                     key={index}
+                    errors={section.errors}
+                    errorRowStyles={[styles.ph5]}
                 >
                     <MenuItemWithTopDescription
                         title={section.title}
@@ -125,7 +138,5 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
         </ConnectionLayout>
     );
 }
-
-QuickbooksOutOfPocketExpenseConfigurationPage.displayName = 'QuickbooksExportOutOfPocketExpensesPage';
 
 export default withPolicyConnections(QuickbooksOutOfPocketExpenseConfigurationPage);

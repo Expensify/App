@@ -3,6 +3,12 @@ import type {TooltipExtendedProps} from '@components/Tooltip/types';
 import BaseEducationalTooltip from './BaseEducationalTooltip';
 
 function EducationalTooltip({children, ...props}: TooltipExtendedProps) {
+    const {shouldRender} = props;
+
+    if (!shouldRender) {
+        return children;
+    }
+
     return (
         <BaseEducationalTooltip
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -12,7 +18,5 @@ function EducationalTooltip({children, ...props}: TooltipExtendedProps) {
         </BaseEducationalTooltip>
     );
 }
-
-EducationalTooltip.displayName = 'EducationalTooltip';
 
 export default EducationalTooltip;

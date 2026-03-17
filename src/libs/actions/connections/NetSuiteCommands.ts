@@ -18,8 +18,12 @@ type SubsidiaryParam = {
     subsidiary: string;
 };
 
-function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
-    const optimisticData: OnyxUpdate[] = [
+function writeNetSuiteCredentials(
+    command: typeof WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE | typeof WRITE_COMMANDS.UPDATE_NETSUITE_TOKENS,
+    policyID: string,
+    credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
@@ -34,7 +38,15 @@ function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPoli
         policyID,
         ...credentials,
     };
-    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, parameters, {optimisticData});
+    API.write(command, parameters, {optimisticData});
+}
+
+function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
+    writeNetSuiteCredentials(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, policyID, credentials);
+}
+
+function updateNetSuiteTokens(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
+    writeNetSuiteCredentials(WRITE_COMMANDS.UPDATE_NETSUITE_TOKENS, policyID, credentials);
 }
 
 function createPendingFields<TSettingName extends keyof Connections['netsuite']['options']['config']>(
@@ -73,11 +85,16 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
     oldSettingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const exporterOptimisticData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterOptimisticData,
                 connections: {
                     netsuite: {
                         options: {
@@ -93,11 +110,13 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterErrorData,
                 connections: {
                     netsuite: {
                         options: {
@@ -113,7 +132,7 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -149,7 +168,7 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
             [settingName]: settingValue ?? null,
         };
     }
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -183,7 +202,7 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
             [modifiedFieldID ?? settingName]: null,
         };
     }
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -205,7 +224,7 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -231,7 +250,7 @@ function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connection
 }
 
 function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryParam, oldSubsidiary: SubsidiaryParam) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -314,12 +333,15 @@ function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryPar
 }
 
 function updateNetSuiteImportMapping<TMappingName extends keyof Connections['netsuite']['options']['config']['syncOptions']['mapping']>(
-    policyID: string,
+    policyID: string | undefined,
     mappingName: TMappingName,
     mappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
     oldMappingValue?: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES> | null,
 ) {
-    const onyxData: OnyxData = {
+    if (!policyID) {
+        return;
+    }
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -433,7 +455,7 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
 }
 
 function updateNetSuiteCustomersJobsMapping(
-    policyID: string,
+    policyID: string | undefined,
     mappingValue: {
         customersMapping: NetSuiteMappingValues;
         jobsMapping: NetSuiteMappingValues;
@@ -443,7 +465,10 @@ function updateNetSuiteCustomersJobsMapping(
         jobsMapping?: NetSuiteMappingValues;
     },
 ) {
-    const onyxData: OnyxData = {
+    if (!policyID) {
+        return;
+    }
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -570,12 +595,16 @@ function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, i
 }
 
 function updateNetSuiteCustomSegments(
-    policyID: string,
+    policyID: string | undefined,
     records: NetSuiteCustomSegment[],
     oldRecords: NetSuiteCustomSegment[],
     modifiedSegmentID: string,
     pendingAction: OnyxCommon.PendingAction,
 ) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords, modifiedSegmentID, pendingAction);
 
     API.write(
@@ -588,7 +617,17 @@ function updateNetSuiteCustomSegments(
     );
 }
 
-function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[], modifiedListID: string, pendingAction: OnyxCommon.PendingAction) {
+function updateNetSuiteCustomLists(
+    policyID: string | undefined,
+    records: NetSuiteCustomList[],
+    oldRecords: NetSuiteCustomList[],
+    modifiedListID: string,
+    pendingAction: OnyxCommon.PendingAction,
+) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords, modifiedListID, pendingAction);
     API.write(
         WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS,
@@ -770,7 +809,7 @@ function updateNetSuiteAutoSync(policyID: string | undefined, value: boolean) {
     if (!policyID) {
         return;
     }
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -794,7 +833,7 @@ function updateNetSuiteAutoSync(policyID: string | undefined, value: boolean) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -818,7 +857,7 @@ function updateNetSuiteAutoSync(policyID: string | undefined, value: boolean) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -947,6 +986,7 @@ function updateNetSuiteAccountingMethod(
     if (!policyID) {
         return;
     }
+
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
 
     const parameters = {
@@ -1024,6 +1064,7 @@ function updateNetSuiteCustomFormIDOptions(
 
 export {
     connectPolicyToNetSuite,
+    updateNetSuiteTokens,
     updateNetSuiteSubsidiary,
     updateNetSuiteSyncTaxConfiguration,
     updateNetSuiteExporter,

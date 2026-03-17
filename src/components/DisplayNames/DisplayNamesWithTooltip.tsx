@@ -19,11 +19,11 @@ function DisplayNamesWithToolTip({
     textStyles = [],
     numberOfLines = 1,
     renderAdditionalText,
+    forwardedFSClass,
 }: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
     const childRefs = useRef<HTMLElementWithText[]>([]);
-    // eslint-disable-next-line react-compiler/react-compiler
     const isEllipsisActive = !!containerRef.current?.offsetWidth && !!containerRef.current?.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth;
 
     /**
@@ -62,7 +62,8 @@ function DisplayNamesWithToolTip({
             style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
-            testID={DisplayNamesWithToolTip.displayName}
+            testID="DisplayNamesWithToolTip"
+            fsClass={forwardedFSClass}
         >
             {shouldUseFullTitle
                 ? formatReportLastMessageText(fullTitle)
@@ -78,6 +79,7 @@ function DisplayNamesWithToolTip({
                               avatar={avatar}
                               textStyles={textStyles}
                               childRefs={childRefs}
+                              forwardedFSClass={forwardedFSClass}
                           />
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                           {shouldAddEllipsis && index === displayNamesWithTooltips.length - 1 && <Text style={textStyles}>...</Text>}
@@ -95,7 +97,5 @@ function DisplayNamesWithToolTip({
         </Text>
     );
 }
-
-DisplayNamesWithToolTip.displayName = 'DisplayNamesWithTooltip';
 
 export default DisplayNamesWithToolTip;

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-
 /**
  * @jest-environment node
  */
@@ -68,7 +67,7 @@ beforeAll(() => {
     asMutable(core).getInput = mockGetInput;
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             actions: {
                 ...(GithubUtils.internalOctokit as unknown as typeof GithubUtils.octokit.actions),
@@ -77,7 +76,7 @@ beforeAll(() => {
         },
     };
 
-    GithubUtils.internalOctokit = moctokit as InternalOctokit;
+    GithubUtils.internalOctokit = mockOctokit as InternalOctokit;
 });
 
 beforeEach(() => {

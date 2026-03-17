@@ -1,16 +1,14 @@
 import React from 'react';
-import SearchDateFilterBase from '@components/Search/SearchDateFilterBase';
+import SearchDatePresetFilterBasePage from '@components/Search/SearchDatePresetFilterBasePage';
 import CONST from '@src/CONST';
 
 function SearchFiltersDatePage() {
     return (
-        <SearchDateFilterBase
+        <SearchDatePresetFilterBasePage
             dateKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}
             titleKey="common.date"
         />
     );
 }
-
-SearchFiltersDatePage.displayName = 'SearchFiltersDatePage';
 
 export default SearchFiltersDatePage;

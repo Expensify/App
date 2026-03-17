@@ -1,117 +1,161 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderGap from '@components/HeaderGap';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
-import TopBar from '@components/Navigation/TopBar';
-import ScreenWrapper from '@components/ScreenWrapper';
-import Search from '@components/Search';
-import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import Animated from 'react-native-reanimated';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import type {SearchParams} from '@components/Search/types';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import Navigation from '@libs/Navigation/Navigation';
+import {searchInServer} from '@libs/actions/Report';
+import {search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
-import ROUTES from '@src/ROUTES';
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
-import SearchTypeMenu from './SearchTypeMenu';
+import SearchPageWide from './SearchPageWide';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
+    useDocumentTitle(translate('common.search'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
+    const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
 
-    const {q, name} = route.params;
+    const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
-    const {queryJSON, policyID} = useMemo(() => {
-        const parsedQuery = buildSearchQueryJSON(q);
-        const extractedPolicyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
+    const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
 
-        return {queryJSON: parsedQuery, policyID: extractedPolicyID};
-    }, [q]);
+    useConfirmReadyToOpenApp();
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
-    const {clearSelectedTransactions} = useSearchContext();
+    useEffect(() => {
+        if (!currentSearchResults?.search?.type) {
+            return;
+        }
 
-    const isSearchNameModified = name === q;
-    const searchName = isSearchNameModified ? undefined : name;
+        setLastSearchType(currentSearchResults.search.type);
+        if (currentSearchResults.data) {
+            lastNonEmptySearchResults.current = currentSearchResults;
+        }
+    }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults]);
 
-    if (shouldUseNarrowLayout) {
-        return (
-            <SearchPageNarrow
-                queryJSON={queryJSON}
-                policyID={policyID}
-                searchName={searchName}
-            />
-        );
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+
+    const {resetVideoPlayerData} = usePlaybackActionsContext();
+
+    const [isSorting, setIsSorting] = useState(false);
+
+    let searchResults: SearchResults | undefined;
+    if (currentSearchResults?.data) {
+        searchResults = currentSearchResults;
+    } else if (isSorting) {
+        searchResults = lastNonEmptySearchResults.current;
     }
 
+    const metadata = searchResults?.search;
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
+
+    useEffect(() => {
+        if (shouldUseNarrowLayout) {
+            return;
+        }
+        resetVideoPlayerData();
+        return () => {
+            if (shouldUseNarrowLayout) {
+                return;
+            }
+            resetVideoPlayerData();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
+
+    useEffect(() => {
+        if (!isSorting || !prevIsLoading || currentSearchResults?.isLoading) {
+            return;
+        }
+
+        setIsSorting(false);
+    }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
+
+    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
+
+    const handleSearchAction = useCallback((value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            setSearchRequestResponseStatusCode(null);
+            search(value)?.then((jsonCode) => {
+                setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
+            });
+        }
+    }, []);
+
+    const footerData = useMemo(() => {
+        if (!shouldAllowFooterTotals && selectedTransactionsKeys.length === 0) {
+            return {count: undefined, total: undefined, currency: undefined};
+        }
+
+        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
+        const selectedTransactionItems = Object.values(selectedTransactions);
+        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
+        const numberOfExpense = shouldUseClientTotal
+            ? selectedTransactionsKeys.reduce((count, key) => {
+                  const item = selectedTransactions[key];
+                  if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
+                      return count;
+                  }
+                  return count + 1;
+              }, 0)
+            : metadata?.count;
+        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
+
+        return {count: numberOfExpense, total, currency};
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
+
+    const onSortPressedCallback = useCallback(() => {
+        setIsSorting(true);
+    }, []);
+
     return (
-        <ScreenWrapper
-            testID={Search.displayName}
-            shouldEnableMaxHeight
-            headerGapStyles={styles.searchHeaderGap}
-        >
-            <FullPageNotFoundView
-                shouldForceFullScreen
-                shouldShow={!queryJSON}
-                onBackButtonPress={handleOnBackButtonPress}
-                shouldShowLink={false}
-            >
-                {!!queryJSON && (
-                    <View style={styles.searchSplitContainer}>
-                        <View style={styles.searchSidebar}>
-                            {queryJSON ? (
-                                <View style={styles.flex1}>
-                                    <HeaderGap />
-                                    <TopBar
-                                        activeWorkspaceID={policyID}
-                                        breadcrumbLabel={translate('common.reports')}
-                                        shouldDisplaySearch={false}
-                                    />
-                                    <SearchTypeMenu queryJSON={queryJSON} />
-                                </View>
-                            ) : (
-                                <HeaderWithBackButton
-                                    title={translate('common.selectMultiple')}
-                                    onBackButtonPress={() => {
-                                        clearSelectedTransactions();
-                                        turnOffMobileSelectionMode();
-                                    }}
-                                />
-                            )}
-                            <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
-                        </View>
-                        <ScreenWrapper
-                            testID={Search.displayName}
-                            shouldShowOfflineIndicatorInWideScreen
-                            offlineIndicatorStyle={styles.mtAuto}
-                        >
-                            <SearchPageHeader queryJSON={queryJSON} />
-                            <SearchStatusBar queryJSON={queryJSON} />
-                            <Search
-                                key={queryJSON.hash}
-                                queryJSON={queryJSON}
-                            />
-                        </ScreenWrapper>
-                    </View>
-                )}
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+        <Animated.View style={[styles.flex1]}>
+            {shouldUseNarrowLayout ? (
+                <SearchPageNarrow
+                    queryJSON={currentSearchQueryJSON}
+                    metadata={metadata}
+                    searchResults={searchResults}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    footerData={footerData}
+                    shouldShowFooter={shouldShowFooter}
+                />
+            ) : (
+                <SearchPageWide
+                    queryJSON={currentSearchQueryJSON}
+                    searchResults={searchResults}
+                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    footerData={footerData}
+                    handleSearchAction={handleSearchAction}
+                    onSortPressedCallback={onSortPressedCallback}
+                    route={route}
+                    shouldShowFooter={shouldShowFooter}
+                />
+            )}
+        </Animated.View>
     );
 }
 
-SearchPage.displayName = 'SearchPage';
 SearchPage.whyDidYouRender = true;
 
 export default SearchPage;

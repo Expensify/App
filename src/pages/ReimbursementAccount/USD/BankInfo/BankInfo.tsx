@@ -1,13 +1,13 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
-import {connectBankAccountManually, connectBankAccountWithPlaid, setBankAccountSubStep} from '@userActions/BankAccounts';
-import {hideBankAccountErrors, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {connectBankAccountManually, connectBankAccountWithPlaid} from '@userActions/BankAccounts';
+import {hideBankAccountErrors} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
@@ -42,51 +42,48 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
     const {translate} = useLocalize();
 
     const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
-    const values = useMemo(() => getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {});
 
     let setupType = reimbursementAccount?.achData?.subStep ?? '';
 
-    const shouldReinitializePlaidLink = plaidLinkToken && receivedRedirectURI && setupType !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
+    const shouldReinitializePlaidLink = plaidLinkToken && receivedRedirectURI && setupType !== CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     if (shouldReinitializePlaidLink) {
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
-    const submit = useCallback(
-        (submitData: unknown) => {
-            const data = submitData as ReimbursementAccountForm;
-            if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-                connectBankAccountManually(
-                    bankAccountID,
-                    {
-                        [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
-                        [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: data[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
-                        [BANK_INFO_STEP_KEYS.BANK_NAME]: data[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
-                        [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: data[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '',
-                        [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: data[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
-                        [BANK_INFO_STEP_KEYS.PLAID_MASK]: data[BANK_INFO_STEP_KEYS.PLAID_MASK] ?? '',
-                        [BANK_INFO_STEP_KEYS.IS_SAVINGS]: data[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
-                    },
-                    policyID,
-                );
-            } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-                connectBankAccountWithPlaid(
-                    bankAccountID,
-                    {
-                        [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
-                        [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: data[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
-                        [BANK_INFO_STEP_KEYS.BANK_NAME]: data[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
-                        [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: data[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '',
-                        [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: data[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
-                        [BANK_INFO_STEP_KEYS.PLAID_MASK]: data[BANK_INFO_STEP_KEYS.PLAID_MASK] ?? '',
-                        [BANK_INFO_STEP_KEYS.IS_SAVINGS]: data[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
-                    },
-                    policyID,
-                );
-            }
-        },
-        [setupType, bankAccountID, policyID],
-    );
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID);
+    const submit = (submitData: unknown) => {
+        const data = submitData as ReimbursementAccountForm;
+        if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
+            connectBankAccountManually(
+                bankAccountID,
+                {
+                    [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
+                    [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: data[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
+                    [BANK_INFO_STEP_KEYS.BANK_NAME]: data[BANK_INFO_STEP_KEYS.BANK_NAME] ?? values?.bankName ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: data[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? values?.plaidAccountID,
+                    [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: data[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? values?.plaidAccessToken ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_MASK]: data[BANK_INFO_STEP_KEYS.PLAID_MASK] ?? values?.mask ?? '',
+                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: data[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
+                },
+                policyID,
+            );
+        } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+            connectBankAccountWithPlaid(
+                bankAccountID,
+                {
+                    [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
+                    [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: data[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
+                    [BANK_INFO_STEP_KEYS.BANK_NAME]: data[BANK_INFO_STEP_KEYS.BANK_NAME] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: data[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: data[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
+                    [BANK_INFO_STEP_KEYS.PLAID_MASK]: data[BANK_INFO_STEP_KEYS.PLAID_MASK] ?? '',
+                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: data[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
+                },
+                policyID,
+            );
+        }
+    };
 
     const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubSteps : manualSubSteps;
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
@@ -101,27 +98,12 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '' && !redirectedFromPlaidToManual) {
             setRedirectedFromPlaidToManual(true);
         }
-    }, [redirectedFromPlaidToManual, setupType, values]);
+    }, [redirectedFromPlaidToManual, setupType, values.bankName]);
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            if (bankAccountID) {
-                onBackButtonPress();
-            } else {
-                const bankAccountData = {
-                    [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
-                    [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
-                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: false,
-                    [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
-                    [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
-                };
-                updateReimbursementAccountDraft(bankAccountData);
-                hideBankAccountErrors();
-                setBankAccountSubStep(null);
-                setUSDBankAccountStep(null);
-            }
+            onBackButtonPress();
+            hideBankAccountErrors();
         } else {
             prevScreen();
         }
@@ -129,11 +111,11 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BankInfo.displayName}
+            wrapperID="BankInfo"
             shouldEnablePickerAvoiding={false}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('bankAccount.bankInfo')}
-            startStepIndex={0}
+            startStepIndex={1}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep
@@ -145,7 +127,5 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
         </InteractiveStepWrapper>
     );
 }
-
-BankInfo.displayName = 'BankInfo';
 
 export default BankInfo;

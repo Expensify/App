@@ -1,14 +1,16 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import type {ComponentType} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
 import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
 import {clearReimbursementAccountBankCreation, createCorpayBankAccount, getCorpayBankAccountFields} from '@userActions/BankAccounts';
+import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
@@ -16,7 +18,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AccountHolderDetails from './subSteps/AccountHolderDetails';
 import BankAccountDetails from './subSteps/BankAccountDetails';
 import Confirmation from './subSteps/Confirmation';
-import type {BankInfoSubStepProps} from './types';
+import type BankInfoSubStepProps from './types';
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
@@ -26,45 +28,73 @@ type BankInfoProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** ID of current policy */
+    policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
-function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
+function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
-    const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? '';
-    const country = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
+    const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
-    const startFrom = getInitialSubStepForBankInfoStep(values, corpayFields);
+    const startFrom = useMemo(() => getInitialSubStepForBankInfoStep(values, corpayFields), [corpayFields, values]);
+    const isSubmittingRef = useRef(false);
 
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
 
+        isSubmittingRef.current = true;
         createCorpayBankAccount({...values, ...corpayData} as ReimbursementAccountForm, policyID);
     };
 
+    useNetwork({
+        onReconnect: () => {
+            getCorpayBankAccountFields(country, currency);
+        },
+    });
+
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.isLoading === true || !!reimbursementAccount?.errors) {
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        // We need to check value of local isSubmittingRef because on initial render reimbursementAccount?.isSuccess is still true after submitting the previous step
+        if (reimbursementAccount?.isSuccess === true && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
             onSubmit();
             clearReimbursementAccountBankCreation();
         }
-
-        return () => clearReimbursementAccountBankCreation();
-    }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+    }, [corpayFields?.bankCurrency, country, currency, onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     useEffect(() => {
+        // No fetching when there is no country
+        if (country === '') {
+            return;
+        }
+
+        // When workspace currency is set to EUR we need to refetch if country from Step 1 doesn't match country inside fetched Corpay data
+        if (currency === CONST.CURRENCY.EUR && country !== corpayFields?.bankCountry) {
+            getCorpayBankAccountFields(country, currency);
+            return;
+        }
+
+        // No fetching when workspace currency matches the currency inside fetched Corpay
+        if (currency === corpayFields?.bankCurrency) {
+            return;
+        }
+
         getCorpayBankAccountFields(country, currency);
-    }, [country, currency]);
+    }, [corpayFields?.bankCurrency, corpayFields?.bankCountry, country, currency]);
 
     const bodyContent: Array<ComponentType<BankInfoSubStepProps>> = [BankAccountDetails, AccountHolderDetails, Confirmation];
 
@@ -76,9 +106,11 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             goToTheLastStep();
             return;
@@ -91,16 +123,16 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
         }
     };
 
-    if (corpayFields?.isLoading !== undefined && !corpayFields?.isLoading && corpayFields?.isSuccess !== undefined && !corpayFields?.isSuccess) {
+    if (corpayFields !== undefined && corpayFields?.isLoading === false && corpayFields?.isSuccess !== undefined && corpayFields?.isSuccess === false) {
         return <NotFoundPage />;
     }
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BankInfo.displayName}
+            wrapperID="BankInfo"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('bankAccount.bankInfo')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
             startStepIndex={1}
         >
             <SubStep
@@ -112,7 +144,5 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-BankInfo.displayName = 'BankInfo';
 
 export default BankInfo;

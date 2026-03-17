@@ -1,16 +1,15 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import * as App from '@userActions/App';
-import * as Report from '@userActions/Report';
-import * as Task from '@userActions/Task';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,39 +22,26 @@ import ROUTES from '@src/ROUTES';
 function ConciergePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
-    const route = useRoute();
-
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const viewTourTaskReportID = introSelected?.viewTour;
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
 
     useFocusEffect(
         useCallback(() => {
             if (session && 'authToken' in session) {
-                App.confirmReadyToOpenApp();
+                confirmReadyToOpenApp();
                 Navigation.isNavigationReady().then(() => {
                     if (isUnmounted.current || isLoadingReportData === undefined || !!isLoadingReportData) {
                         return;
                     }
 
-                    // Mark the viewTourTask as complete if we are redirected to Concierge after finishing the Navattic tour
-                    const {navattic} = (route.params as {navattic?: string}) ?? {};
-                    if (navattic === CONST.NAVATTIC.COMPLETED) {
-                        if (viewTourTaskReport) {
-                            if (viewTourTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || viewTourTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-                                Task.completeTask(viewTourTaskReport);
-                            }
-                        }
-                    }
-                    Report.navigateToConciergeChat(true, () => !isUnmounted.current);
+                    navigateToConciergeChat(conciergeReportID, introSelected, session.accountID ?? CONST.DEFAULT_NUMBER_ID, true, () => !isUnmounted.current);
                 });
             } else {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData, route.params, viewTourTaskReport]),
+        }, [session, isLoadingReportData, conciergeReportID, introSelected]),
     );
 
     useEffect(() => {
@@ -65,16 +51,23 @@ function ConciergePage() {
         };
     }, []);
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ConciergePage',
+        isLoadingReportData,
+        hasConciergeReportID: !!conciergeReportID,
+    };
+
     return (
-        <ScreenWrapper testID={ConciergePage.displayName}>
-            <View style={[styles.borderBottom, styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
-                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+        <ScreenWrapper testID="ConciergePage">
+            <View style={[styles.borderBottom, styles.appContentHeader]}>
+                <ReportHeaderSkeletonView
+                    onBackButtonPress={Navigation.goBack}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>
     );
 }
-
-ConciergePage.displayName = 'ConciergePage';
 
 export default ConciergePage;

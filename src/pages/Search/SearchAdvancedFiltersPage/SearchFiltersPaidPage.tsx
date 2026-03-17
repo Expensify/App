@@ -1,16 +1,14 @@
 import React from 'react';
-import SearchDateFilterBase from '@components/Search/SearchDateFilterBase';
+import SearchDatePresetFilterBasePage from '@components/Search/SearchDatePresetFilterBasePage';
 import CONST from '@src/CONST';
 
 function SearchFiltersPaidPage() {
     return (
-        <SearchDateFilterBase
+        <SearchDatePresetFilterBasePage
             dateKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID}
             titleKey="search.filters.paid"
         />
     );
 }
-
-SearchFiltersPaidPage.displayName = 'SearchFiltersPaidPage';
 
 export default SearchFiltersPaidPage;

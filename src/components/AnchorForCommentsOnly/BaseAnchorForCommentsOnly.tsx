@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -10,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {hideContextMenu, showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
 
@@ -37,7 +38,7 @@ function BaseAnchorForCommentsOnly({
 
     useEffect(
         () => () => {
-            ReportActionContextMenu.hideContextMenu();
+            hideContextMenu();
         },
         [],
     );
@@ -51,8 +52,9 @@ function BaseAnchorForCommentsOnly({
         linkProps.href = href;
     }
     const defaultTextStyle = canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
-    const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
+    const isEmail = Str.isValidEmail(href.replaceAll(/mailto:/gi, ''));
     const linkHref = !linkHasImage ? href : undefined;
+    const isFocused = useIsFocused();
 
     return (
         <PressableWithSecondaryInteraction
@@ -60,7 +62,12 @@ function BaseAnchorForCommentsOnly({
             suppressHighlighting
             style={[styles.cursorDefault, !!flattenStyle.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)]}
             onSecondaryInteraction={(event) => {
-                ReportActionContextMenu.showContextMenu(isEmail ? CONST.CONTEXT_MENU_TYPES.EMAIL : CONST.CONTEXT_MENU_TYPES.LINK, event, href, linkRef.current);
+                showContextMenu({
+                    type: isEmail ? CONST.CONTEXT_MENU_TYPES.EMAIL : CONST.CONTEXT_MENU_TYPES.LINK,
+                    event,
+                    selection: href,
+                    contextMenuAnchor: linkRef.current,
+                });
             }}
             onPress={(event) => {
                 if (!linkProps.onPress) {
@@ -73,14 +80,19 @@ function BaseAnchorForCommentsOnly({
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             role={CONST.ROLE.LINK}
+            tabIndex={-1}
             accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
         >
-            <Tooltip text={linkHref}>
+            <Tooltip
+                text={linkHref}
+                isFocused={isFocused}
+            >
                 <Text
                     ref={linkRef}
                     style={StyleSheet.flatten([style, defaultTextStyle])}
                     role={CONST.ROLE.LINK}
+                    tabIndex={0}
                     hrefAttrs={{
                         rel,
                         target: isEmail || !linkProps.href ? '_self' : target,
@@ -98,7 +110,5 @@ function BaseAnchorForCommentsOnly({
         </PressableWithSecondaryInteraction>
     );
 }
-
-BaseAnchorForCommentsOnly.displayName = 'BaseAnchorForCommentsOnly';
 
 export default BaseAnchorForCommentsOnly;

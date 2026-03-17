@@ -1,15 +1,18 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getCleanedTagName} from '@libs/PolicyUtils';
+import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {FieldItemType} from './ReviewFields';
@@ -18,15 +21,27 @@ import ReviewFields from './ReviewFields';
 function ReviewTag() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
     const {translate} = useLocalize();
-    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
-
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const transactionID = getTransactionID(report);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const allDuplicateIDs = useMemo(
+        () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
+        [transactionViolations],
+    );
+    const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
+    const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reviewDuplicates?.reportID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
+
+    const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, undefined, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
         Object.keys(compareResult.change ?? {}),
         'tag',
-        route.params.threadReportID ?? '',
+        route.params.threadReportID,
         route.params.backTo,
     );
     const options = useMemo(
@@ -35,7 +50,7 @@ function ReviewTag() {
                 !tag
                     ? {text: translate('violations.none'), value: ''}
                     : {
-                          text: PolicyUtils.getCleanedTagName(tag),
+                          text: getCleanedTagName(tag),
                           value: tag,
                       },
             ),
@@ -49,7 +64,7 @@ function ReviewTag() {
     };
 
     return (
-        <ScreenWrapper testID={ReviewTag.displayName}>
+        <ScreenWrapper testID="ReviewTag">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
@@ -64,7 +79,5 @@ function ReviewTag() {
         </ScreenWrapper>
     );
 }
-
-ReviewTag.displayName = 'ReviewTag';
 
 export default ReviewTag;

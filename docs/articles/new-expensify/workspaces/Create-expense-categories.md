@@ -1,173 +1,144 @@
 ---
-title: Create expense categories
-description: Add categories to use for coding expenses
+title: Create Expense Categories
+description: Add categories to use for coding expenses.
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding]
+internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes. Does not cover personal expense rules or accounting integration setup.
 ---
-<div id="new-expensify" markdown="1">
 
-In Expensify, categories refer to the **chart of accounts, GL accounts, expense accounts**, and other line-item details that help code expenses for accounting and financial reporting.
 
-An admin can manually create categories for a workspace, or they will be automatically imported if your workspace is connected to another platform such as QuickBooks Online, QuickBooks Desktop, Intacct, Xero, or NetSuite. These imported categories can be enabled or disabled to use as categories for expenses added to Expensify. Additionally, Expensify will learn how you apply categories to specific merchants over time and apply them automatically.
+In Expensify, categories represent your **chart of accounts, GL accounts, expense accounts**, or other financial coding used for reporting and accounting.
 
-![The Categories tab]({{site.url}}/assets/images/ExpensifyHelp_R3_Categories_1.png){:width="100%"}
+Workspace Admins can create categories manually, or import them automatically when connecting an accounting system such as QuickBooks, Xero, NetSuite, or Sage Intacct. Once categories are available, they can be enabled or disabled as needed. Over time, Expensify also learns how categories are applied to specific merchants and suggests them automatically.
 
-# Manually add or delete categories
+The Categories table displays the category **Name**, **GL Code** (if assigned), and whether it's **Enabled** for workspace members to use.
 
-To manually add a category,
+![The Categories tab]({{site.url}}/assets/images/NewExpensify_ManageCategories_1.png){:width="100%"}
 
-{% include selector.html values="desktop, mobile" %}
+---
 
-{% include option.html value="desktop" %}
-1. Click your profile image or icon in the bottom left menu.
-2. Scroll down and click **Workspaces** in the left menu. 
-3. Select the workspace you want to add categories to. 
-4. Click **Categories** in the left menu.
-5. Click **Add Category** in the top right. 
-6. Enter a name for the category and click **Save**.
-{% include end-option.html %}
+# How to add or delete categories manually
 
-{% include option.html value="mobile" %}
-1. Tap your profile image or icon in the bottom menu.
-2. Tap **Workspaces**. 
-3. Select the workspace you want to add categories to.
-4. Tap **Categories**.
-5. Tap **Add Category**. 
-6. Enter a name for the category and tap **Save**. 
-{% include end-option.html %}
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Click **Add Category** in the top-right corner.
+5. Enter a category name and click **Save**.
 
-{% include end-selector.html %}
+To delete a category:
+1. Click the category from the list.
+2. Click the **three-dot menu** in the top-right corner.
+3. Select **Delete category**.
 
-To delete a category, 
+---
 
-{% include selector.html values="desktop, mobile" %}
+## How to upload categories using a CSV file
 
-{% include option.html value="desktop" %}
-1. Click the category on the Categories page. 
-2. Click the 3-dot menu in the top right. 
-3. Click **Delete category** to permanently delete the category.
-{% include end-option.html %}
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Click the **three-dot menu**, then select **Import Spreadsheet**.
+5. Format your spreadsheet using the required columns.
+6. Download the template using **Download CSV** if needed.
+7. Upload your completed file and follow the prompts.
 
-{% include option.html value="mobile" %}
-1. Tap the category on the Categories page. 
-2. Tap the 3-dot menu in the top right. 
-3. Tap **Delete category** to permanently delete the category.
-{% include end-option.html %}
+---
 
-{% include end-selector.html %}
+## How to enable or disable categories
 
-# Upload expense categories via CSV
+Once categories are added (manually or via import), they can be toggled on or off.
 
-To upload expense categories via a CSV file:
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Click a category.
+5. Use the toggle to enable or disable it.
 
-{% include selector.html values="desktop, mobile" %}
+Bulk actions are available using the checkboxes and **Selected** menu.
 
-{% include option.html value="desktop" %}
-1. Click your profile image or icon in the bottom left menu.
-2. Scroll down and click **Workspaces** in the left menu.
-3. Select the workspace you want to upload categories to.
-4. Click **Categories** in the left menu.
-5. Click the 3-dot menu in the top right corner and select **Import Spreadsheet**.
-6. Ensure your spreadsheet is formatted with all required columns, even if you do not plan to use them all.
-7. To obtain an example file, click the 3-dot menu again and select **Download CSV**.
-8. After preparing your file, upload the CSV by following the prompts and save your changes.
-{% include end-option.html %}
+**Note:** GL and payroll code import is available on the **Control** plan only.
 
-{% include option.html value="mobile" %}
-1. Tap your profile image or icon in the bottom menu.
-2. Tap **Workspaces**.
-3. Select the workspace you want to upload categories to.
-4. Tap **Categories**.
-5. Tap the 3-dot menu in the top right corner and select **Import Spreadsheet**.
-6. Ensure your spreadsheet is formatted with all required columns, even if you do not plan to use them all.
-7. To obtain an example file, tap the 3-dot menu again and select **Download CSV**.
-8. After preparing your file, upload the CSV by following the prompts and save your changes.
-{% include end-option.html %}
+---
 
-{% include end-selector.html %}
+## How to add or edit GL codes or payroll codes
 
-# Enable or disable categories
+Workspaces on the **Control** plan can assign optional **GL codes** and **payroll codes** to each category. These codes are not visible to members but can be exported for accounting purposes.
 
-Once you have manually added your categories or automatically imported them from a connected accounting system, you can enable or disable the categories to determine whether they can be added to expenses. 
+To edit these fields:
 
-{% include info.html %}
-Importing GL & payroll codes from your accounting system is only available on the Control plan. After connecting an accounting system, Expensify automatically imports charts of accounts, GL accounts, expense accounts, and additional details into your workspace as **disabled** categories. Workspace admins can enable these categories to make them available for workspace members to add to their expenses.
-{% include end-info.html %}
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Click a category to open the detail panel.
+5. Edit the **GL Code** or **Payroll Code** field.
+6. Click **Save**.
 
-To enable or disable a category, 
+![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/NewExpensify_ManageCategories_2.png){:width="100%"}
 
-{% include selector.html values="desktop, mobile" %}
+---
 
-{% include option.html value="desktop" %}
-1. Click your profile image or icon in the bottom left menu.
-2. Scroll down and click **Workspaces** in the left menu. 
-3. Select a workspace. 
-4. Click **Categories** in the left menu.
-5. Click a category and use the toggle to enable or disable it.
+# How to configure Category Rules
 
-{% include info.html %}
-You can enable, disable, or delete categories in bulk by selecting the checkbox to the left of the categories. Then click the “selected” dropdown menu at the top right of the page and select the desired option. 
-{% include end-info.html %}
+Category Rules let you control how specific categories behave. You can require additional information, assign approvers, or set spending thresholds for individual categories.
 
-{% include end-option.html %}
+To manage Category Rules:
 
-{% include option.html value="mobile" %}
-1. Tap your profile image or icon in the bottom menu.
-2. Tap **Workspaces**. 
-3. Select a workspace. 
-4. Tap **Categories**.
-5. Tap a category and use the toggle to enable or disable it. 
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Select a category to open its settings panel.
 
-{% include info.html %}
-You can enable, disable, or delete categories in bulk by selecting the checkbox to the left of the categories. Then tap the “selected” dropdown menu at the top of the page and select the desired option.
-{% include end-info.html %}
+Available Category Rule options include:
 
-{% include end-option.html %}
+- **Approver** – Assign a specific approver for expenses in this category.
+- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Flag amounts over** - Set a spending cap for this category.
+- **Require receipts over** – Set a threshold for when receipts are required.
+- **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
+- **Require fields** - Require specific fields be completed for this category. The options are:
+   - **Require description** - Force members to enter a reason when using the category.
+   - **Require attendees** - Force members to add additional attendees when using the category.
 
-{% include end-selector.html %} 
+Category Rules apply to all members who use that category. If both a Category Rule and a Workspace Rule apply to the same expense, the Category Rule takes priority.
 
-# Add or edit a GL code or payroll code
+---
 
-If your workspace is on the Control plan, you can optionally add a GL code and payroll code to each category. Collect plan users will need to upgrade to Control for access to GL codes and payroll codes.
+# How to apply categories automatically
 
-GL codes and payroll codes can be exported to a CSV export. They are not displayed to users.
+Expensify offers two ways to automatically apply categories based on merchant:
 
-**To edit GL codes or payroll codes for a category:**
+## Learned Categorization
 
-1. Click your profile image or icon in the bottom left menu
-2. Click **Workspaces** in the left menu
-3. Select a workspace
-4. Click **Categories**
-5. Click a category to open the category-settings
-6. To add or edit a GL code, click the GL code field, make the desired change, then click **Save**
-7. To add or edit a payroll code, click the payroll code field, make the desired change, then click **Save**
+Expensify learns your category preferences over time and suggests them automatically based on the merchant.
 
-![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/workspace_gl_payroll_codes.png){:width="100%"}
+- If you manually change a category, Expensify remembers the update.
+- Existing expenses are not updated retroactively.
+- These suggestions are based on patterns and may vary by user.
 
-# Apply categories to expenses automatically
+## Workspace Merchant Rules
 
-Over time, Expensify learns how you categorize specific merchants and automatically applies that category to the merchant in the future. 
-- If you change a category, Expensify learns that correction over time as well. However, changing a category on one expense does not change it for other expenses that have already been assigned the category.
-- Any expense rules for your workspace take priority over Expensify’s automatic categories. 
-- Expensify won’t automatically add a category to an expense if it is already manually assigned a category. 
+Workspace Admins can configure [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) to apply consistent categories based on merchant name across all workspace members.
 
-{% include faq-begin.md %}
-**Can I edit my categories on a submitted expense report?**
+- Rules apply across all expenses on the workspace.
+- Rules take precedence over learned suggestions.
+- If a category is already set manually, Expensify won't override it.
 
-Yes, you can edit categories on an expense you have submitted until the expense is approved or reimbursed. 
+---
 
-Approvers can also edit categories on the submitter’s behalf, even after approval. If you are an approver reviewing a report that wasn’t submitted to you, you’ll see the option to take control of the report and then you can change the category. 
+# FAQ
 
-**Can I see an audit trail of category changes on an expense?** 
+## Can I edit categories on a submitted expense report?
 
-Yes. When a category is manually edited, Expensify will log the change in the related workspace chat. 
+Yes, until an expense is approved or reimbursed. Approvers can also edit categories—even post-approval—by taking control of the report.
 
-**If I change categories in my accounting system, what happens to categories in the workspace?**
+## Can I see an audit trail of category changes?
 
-If a category is disabled in the accounting system, it will be removed from the workspace’s categories list in the workspace. However, the disabled category will remain on approved and drafted expense reports that it has been previously added to. An admin can change the category on an approved or reimbursed expense, and anyone can change the category on an unapproved expense.
+Yes. When a category is manually edited, the change is logged in the related expense chat.
 
-**How can my employees see the GL codes on categories?**
+## What happens if a category is disabled in my accounting system?
 
-GL codes added in the GL section of individual category settings are not visible to employees. If your employees need to see the GL code associated with a category, the category name would need to be edited to include it.
+It will be removed from the workspace’s category list. However, it will remain visible on previously submitted or drafted reports where it was already applied.
 
-{% include faq-end.md %}
+## How can members see GL codes?
 
-</div>
+GL codes are not visible to members by default. If visibility is required, consider including the GL code in the category name itself.
+

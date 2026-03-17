@@ -1,6 +1,10 @@
-import type {ReactElement, RefAttributes} from 'react';
+import type {HTMLAttributes, ReactElement, Ref} from 'react';
 
-type HoverableChild = ReactElement & RefAttributes<HTMLElement>;
+type HoverableChildProps = HTMLAttributes<HTMLElement> & {
+    ref?: Ref<HTMLElement>;
+};
+
+type HoverableChild = ReactElement<HoverableChildProps>;
 type HoverableChildren = ((isHovered: boolean) => HoverableChild) | HoverableChild;
 
 type HoverableProps = {
@@ -9,6 +13,9 @@ type HoverableProps = {
 
     /** Whether to disable the hover action */
     isDisabled?: boolean;
+
+    /** Whether the screen containing the element is focused */
+    isFocused?: boolean;
 
     /** Function that executes when the mouse moves over the children. */
     onHoverIn?: () => void;
@@ -21,8 +28,9 @@ type HoverableProps = {
 
     /** Decides whether to freeze the capture of the hover event */
     shouldFreezeCapture?: boolean;
+
+    /** Reference to the outer element */
+    ref?: Ref<HTMLElement>;
 };
 
 export default HoverableProps;
-
-export type {HoverableChild};

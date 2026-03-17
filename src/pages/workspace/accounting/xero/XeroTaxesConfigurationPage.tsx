@@ -20,7 +20,7 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroTaxesConfigurationPage.displayName}
+            displayName="XeroTaxesConfigurationPage"
             headerTitle="workspace.accounting.taxes"
             title="workspace.xero.taxesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -41,7 +41,5 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-XeroTaxesConfigurationPage.displayName = 'XeroTaxesConfigurationPage';
 
 export default withPolicyConnections(XeroTaxesConfigurationPage);

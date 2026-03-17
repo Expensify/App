@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
 import AddressPage from '@pages/AddressPage';
 import {updateAddress} from '@userActions/Policy/Policy';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -21,24 +22,25 @@ function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressP
     const backTo = route.params.backTo;
     const address: Address = useMemo(() => {
         const tempAddress = policy?.address;
-        const [street1, street2] = (tempAddress?.addressStreet ?? '').split('\n');
+        const {streetLineOne, streetLineTwo} = getWorkspaceAddressStreetLines(tempAddress?.addressStreet, tempAddress?.addressStreet2);
         const result = {
-            street: street1?.trim() ?? '',
-            street2: street2?.trim() ?? '',
+            street: streetLineOne,
+            street2: streetLineTwo,
             city: tempAddress?.city?.trim() ?? '',
             state: tempAddress?.state?.trim() ?? '',
             zip: tempAddress?.zipCode?.trim().toUpperCase() ?? '',
             country: tempAddress?.country ?? '',
         };
         return result;
-    }, [policy]);
+    }, [policy?.address]);
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {
             return;
         }
         updateAddress(policy?.id, {
-            addressStreet: `${values.addressLine1?.trim() ?? ''}\n${values.addressLine2?.trim() ?? ''}`,
+            addressStreet: values.addressLine1?.trim() ?? '',
+            addressStreet2: values.addressLine2?.trim() ?? '',
             city: values.city.trim(),
             state: values.state.trim(),
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
@@ -57,7 +59,5 @@ function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressP
         />
     );
 }
-
-WorkspaceOverviewAddressPage.displayName = 'WorkspaceOverviewAddressPage';
 
 export default withPolicy(WorkspaceOverviewAddressPage);

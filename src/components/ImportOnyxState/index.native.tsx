@@ -1,8 +1,7 @@
 import React, {useState} from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import {useOnyx} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
-import {setIsUsingImportedState, setPreservedUserSession} from '@libs/actions/App';
+import useOnyx from '@hooks/useOnyx';
+import {setIsUsingImportedState, setPreservedAccount, setPreservedUserSession} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
 import {rollbackOngoingRequest} from '@libs/actions/PersistedRequests';
 import {cleanAndTransformState, importState} from '@libs/ImportOnyxStateUtils';
@@ -10,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {FileObject} from '@src/types/utils/Attachment';
 import BaseImportOnyxState from './BaseImportOnyxState';
 import type ImportOnyxStateProps from './types';
 
@@ -27,6 +27,7 @@ function readOnyxFile(fileUri: string) {
 export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const handleFileRead = (file: FileObject) => {
         if (!file.uri) {
@@ -40,6 +41,12 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
                 const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
                 const currentUserSessionCopy = {...session};
                 setPreservedUserSession(currentUserSessionCopy);
+
+                if (account) {
+                    const currentAccountCopy = {...account};
+                    setPreservedAccount(currentAccountCopy);
+                }
+
                 setShouldForceOffline(true);
                 return importState(transformedState);
             })

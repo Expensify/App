@@ -1,6 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -9,12 +10,13 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import TestNavigationContainer from '../utils/TestNavigationContainer';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
-jest.mock('@pages/home/sidebar/BottomTabAvatar');
-jest.mock('@src/components/Navigation/TopLevelBottomTabBar');
+jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
+jest.mock('@src/components/Navigation/TopLevelNavigationTabBar');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
@@ -55,7 +57,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the same split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+                Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute());
             });
 
             // Then push a new page to the current split navigator
@@ -146,23 +148,24 @@ describe('Navigate', () => {
             expect(lastSplitAfterNavigate?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
         });
 
-        it('to the report split from the search page passing the active workspace id', () => {
-            // Given the initialized navigation on the narrow layout with the search page with the active workspace id
+        it('to the sub-route from a different split navigator', () => {
+            // Given the initialized navigation on the narrow layout with the reports split navigator
             render(
                 <TestNavigationContainer
                     initialState={{
                         index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
                                 state: {
                                     index: 0,
                                     routes: [
                                         {
-                                            name: SCREENS.SEARCH.ROOT,
-                                            params: {
-                                                q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1',
-                                            },
+                                            name: SCREENS.INBOX,
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '1'},
                                         },
                                     ],
                                 },
@@ -175,19 +178,167 @@ describe('Navigate', () => {
             const rootStateBeforeNavigate = navigationRef.current?.getRootState();
             const lastSplitBeforeNavigate = rootStateBeforeNavigate?.routes.at(-1);
             expect(rootStateBeforeNavigate?.index).toBe(0);
-            expect(lastSplitBeforeNavigate?.name).toBe(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+            expect(lastSplitBeforeNavigate?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+            expect(lastSplitBeforeNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
 
-            // When navigate to the Home page when the active workspace is set
+            // When navigate to the page from the different split navigator
             act(() => {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
             });
 
-            // Then push a new report split navigator with policyID in params
+            // Then push a new split navigator to the navigation state
             const rootStateAfterNavigate = navigationRef.current?.getRootState();
+            expect(rootStateAfterNavigate?.index).toBe(2);
+
+            const middleSplitAfterNavigate = rootStateAfterNavigate?.routes.at(-2);
+            expect(middleSplitAfterNavigate?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+            expect(middleSplitAfterNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
+
             const lastSplitAfterNavigate = rootStateAfterNavigate?.routes.at(-1);
-            expect(rootStateAfterNavigate?.index).toBe(1);
-            expect(lastSplitAfterNavigate?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-            expect(lastSplitAfterNavigate?.params).toMatchObject({policyID: '1'});
+            expect(lastSplitAfterNavigate?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+            expect(lastSplitAfterNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.RIGHT_MODAL.SETTINGS);
+        });
+
+        it('to the sub-route from a same split navigator', () => {
+            // Given the initialized navigation on the narrow layout with the settings split navigator
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SETTINGS.ROOT,
+                                        },
+                                        {
+                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            const rootStateBeforeNavigate = navigationRef.current?.getRootState();
+            const lastSplitBeforeNavigate = rootStateBeforeNavigate?.routes.at(-1);
+            expect(rootStateBeforeNavigate?.index).toBe(0);
+            expect(lastSplitBeforeNavigate?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+            expect(lastSplitBeforeNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+
+            // When navigate to the page from the same split navigator
+            act(() => {
+                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+            });
+
+            // Then push a new split navigator to the navigation state
+            const rootStateAfterNavigate = navigationRef.current?.getRootState();
+            expect(rootStateAfterNavigate?.index).toBe(2);
+
+            const middleSplitAfterNavigate = rootStateAfterNavigate?.routes.at(-2);
+            expect(middleSplitAfterNavigate?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+            expect(middleSplitAfterNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
+
+            const lastSplitAfterNavigate = rootStateAfterNavigate?.routes.at(-1);
+            expect(lastSplitAfterNavigate?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+            expect(lastSplitAfterNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.RIGHT_MODAL.SETTINGS);
+        });
+
+        it.each([ROUTES.REPORT_ADD_ATTACHMENT.getRoute('1'), ROUTES.REPORT_ATTACHMENTS.getRoute()])(
+            'does not close the side panel when navigating to attachment routes (%s)',
+            async (route) => {
+                // Given the initialized navigation on the narrow layout with the reports split navigator
+                render(
+                    <TestNavigationContainer
+                        initialState={{
+                            index: 0,
+                            routes: [
+                                {
+                                    name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                    state: {
+                                        index: 1,
+                                        routes: [
+                                            {
+                                                name: SCREENS.INBOX,
+                                            },
+                                            {
+                                                name: SCREENS.REPORT,
+                                                params: {reportID: '1'},
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        }}
+                    />,
+                );
+
+                const closeSidePanelSpy = jest.spyOn(SidePanelActions, 'closeSidePanel');
+
+                // Open side panel on narrow screen
+                act(() => {
+                    SidePanelActions.openSidePanel(true);
+                });
+                await waitForBatchedUpdates();
+
+                // When navigate to an attachment route
+                act(() => {
+                    Navigation.navigate(route);
+                });
+
+                // Then side panel should remain open
+                expect(closeSidePanelSpy).not.toHaveBeenCalled();
+            },
+        );
+
+        it('closes the side panel when navigating to workspaces list', async () => {
+            // Given the initialized navigation on the narrow layout with the reports split navigator
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 1,
+                                    routes: [
+                                        {
+                                            name: SCREENS.INBOX,
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '1'},
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            const closeSidePanelSpy = jest.spyOn(SidePanelActions, 'closeSidePanel');
+
+            // Open side panel on narrow screen
+            act(() => {
+                SidePanelActions.openSidePanel(true);
+            });
+            await waitForBatchedUpdates();
+
+            // When navigate to a non-attachment route
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute());
+            });
+
+            // Then side panel should close on narrow screen
+            expect(closeSidePanelSpy).toHaveBeenCalledWith(true);
+            expect(closeSidePanelSpy).toHaveBeenCalledTimes(1);
         });
     });
 });

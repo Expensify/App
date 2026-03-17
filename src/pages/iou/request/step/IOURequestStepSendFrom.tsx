@@ -1,15 +1,15 @@
+import {emailSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as IOU from '@userActions/IOU';
+import {canSendInvoiceFromWorkspace, getActiveAdminWorkspaces, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -27,18 +27,26 @@ type IOURequestStepSendFromProps = WithWritableReportOrNotFoundProps<typeof SCRE
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM>;
 
 function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProps) {
-    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
+    const {translate, localeCompare} = useLocalize();
     const {transactionID, backTo} = route.params;
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.find((participant) => participant.isSender), [transaction]);
 
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
-        const availableWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin).filter((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
+        const availableWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin).filter((policy) => canSendInvoiceFromWorkspace(policy));
 
         return availableWorkspaces
-            .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.id, name: policy1.name}, {policyID: policy2.id, name: policy2.name}, selectedWorkspace?.policyID))
+            .sort((policy1, policy2) =>
+                sortWorkspacesBySelected(
+                    {policyID: policy1.id, name: policy1.name},
+                    {policyID: policy2.id, name: policy2.name},
+                    selectedWorkspace?.policyID ? [selectedWorkspace?.policyID] : [],
+                    localeCompare,
+                ),
+            )
             .map((policy) => ({
                 text: policy.name,
                 value: policy.id,
@@ -46,15 +54,15 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
                 icons: [
                     {
                         id: policy.id,
-                        source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+                        fallbackIcon: icons.FallbackWorkspaceAvatar,
                         name: policy.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace?.policyID, localeCompare, icons.FallbackWorkspaceAvatar]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -69,7 +77,7 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
             selected: false,
         });
 
-        IOU.setMoneyRequestParticipants(transactionID, newParticipants);
+        setMoneyRequestParticipants(transactionID, newParticipants);
         navigateBack();
     };
 
@@ -78,20 +86,18 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
             headerTitle={translate('workspace.invoices.sendFrom')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepSendFrom.displayName}
+            testID="IOURequestStepSendFrom"
             includeSafeAreaPaddingBottom
         >
             <SelectionList
-                sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
+                data={workspaceOptions}
                 onSelectRow={selectWorkspace}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
-                initiallyFocusedOptionKey={selectedWorkspace?.policyID}
+                initiallyFocusedItemKey={selectedWorkspace?.policyID}
             />
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepSendFrom.displayName = 'IOURequestStepSendFrom';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepSendFrom));

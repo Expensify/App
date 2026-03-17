@@ -3,6 +3,7 @@ import type {KeyCommandEvent} from './bindHandlerToKeydownEvent/types';
 
 const keyModifierControl = KeyCommand?.constants.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants.keyModifierCommand ?? 'keyModifierCommand';
+const keyModifierShift = KeyCommand?.constants.keyModifierShift ?? 'keyModifierShift';
 const keyModifierShiftControl = KeyCommand?.constants.keyModifierShiftControl ?? 'keyModifierShiftControl';
 const keyModifierShiftCommand = KeyCommand?.constants.keyModifierShiftCommand ?? 'keyModifierShiftCommand';
 
@@ -21,6 +22,9 @@ function getKeyEventModifiers(event: KeyCommandEvent): string[] {
     }
     if (event.modifierFlags === keyModifierShiftCommand) {
         return ['META', 'Shift'];
+    }
+    if (event.modifierFlags === keyModifierShift) {
+        return ['Shift'];
     }
 
     return [];

@@ -1,7 +1,7 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
@@ -40,7 +40,7 @@ function FeesAndTerms() {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={FeesAndTerms.displayName}
+            wrapperID="FeesAndTerms"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('termsStep.headerTitleRefactor')}
@@ -56,7 +56,5 @@ function FeesAndTerms() {
         </InteractiveStepWrapper>
     );
 }
-
-FeesAndTerms.displayName = 'TermsAndFees';
 
 export default FeesAndTerms;

@@ -1,5 +1,6 @@
 type AcceptSpotnanaTermsParams = {
-    domain?: string;
+    domainName?: string;
+    policyID?: string;
 };
 
 export default AcceptSpotnanaTermsParams;

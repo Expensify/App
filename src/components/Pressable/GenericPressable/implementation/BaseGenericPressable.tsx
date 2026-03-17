@@ -1,9 +1,8 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
-import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,41 +12,43 @@ import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
-function GenericPressable(
-    {
-        children,
-        onPress = () => {},
-        onLongPress,
-        onKeyDown,
-        disabled,
-        style,
-        disabledStyle = {},
-        hoverStyle = {},
-        focusStyle = {},
-        pressStyle = {},
-        screenReaderActiveStyle = {},
-        shouldUseHapticsOnLongPress = true,
-        shouldUseHapticsOnPress = false,
-        nextFocusRef,
-        keyboardShortcut,
-        shouldUseAutoHitSlop = false,
-        enableInScreenReaderStates = CONST.SCREEN_READER_STATES.ALL,
-        onPressIn,
-        onPressOut,
-        accessible = true,
-        fullDisabled = false,
-        interactive = true,
-        isNested = false,
-        ...rest
-    }: PressableProps,
-    ref: PressableRef,
-) {
+function GenericPressable({
+    children,
+    onPress,
+    onLongPress,
+    onKeyDown,
+    disabled,
+    style,
+    disabledStyle = {},
+    hoverStyle = {},
+    focusStyle = {},
+    pressStyle = {},
+    screenReaderActiveStyle = {},
+    shouldUseHapticsOnLongPress = true,
+    shouldUseHapticsOnPress = false,
+    nextFocusRef,
+    keyboardShortcut,
+    shouldUseAutoHitSlop = false,
+    enableInScreenReaderStates = CONST.SCREEN_READER_STATES.ALL,
+    onPressIn,
+    onPressOut,
+    accessible = true,
+    fullDisabled = false,
+    interactive = true,
+    isNested = false,
+    ref,
+    dataSet,
+    forwardedFSClass,
+    accessibilityState,
+    ...rest
+}: PressableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
     const [isHovered, setIsHovered] = useState(false);
+    const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
@@ -75,11 +76,16 @@ function GenericPressable(
         if (shouldUseDisabledCursor) {
             return styles.cursorDisabled;
         }
+
+        if (onPress) {
+            return styles.cursorPointer;
+        }
+
         if ([rest.accessibilityRole, rest.role].includes(CONST.ROLE.PRESENTATION) && !isNested) {
             return styles.cursorText;
         }
         return styles.cursorPointer;
-    }, [interactive, shouldUseDisabledCursor, rest.accessibilityRole, rest.role, isNested, styles.cursorPointer, styles.cursorDefault, styles.cursorDisabled, styles.cursorText]);
+    }, [onPress, interactive, shouldUseDisabledCursor, rest.accessibilityRole, rest.role, isNested, styles.cursorPointer, styles.cursorDefault, styles.cursorDisabled, styles.cursorText]);
 
     const onLongPressHandler = useCallback(
         (event: GestureResponderEvent) => {
@@ -143,18 +149,41 @@ function GenericPressable(
         return KeyboardShortcut.subscribe(shortcutKey, onKeyboardShortcutPressHandler, descriptionKey, modifiers, true, false, 0, false);
     }, [keyboardShortcut, onKeyboardShortcutPressHandler]);
 
+    const isRoleLink = rest.role === CONST.ROLE.LINK;
+
+    /**
+     * Handles keyboard events for the pressable element.
+     * If a custom onKeyDown handler is provided, it delegates to that handler.
+     * Otherwise, for elements with role="link", it triggers onPress when Enter is pressed
+     * to comply with W3C APG Link Pattern (https://www.w3.org/WAI/ARIA/apg/patterns/link/).
+     */
+    const handleKeyDown = useCallback(
+        (event: React.KeyboardEvent) => {
+            if (onKeyDown) {
+                onKeyDown(event as unknown as React.KeyboardEvent<Element>);
+                return;
+            }
+
+            if (isRoleLink && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                event.preventDefault();
+                onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
+            }
+        },
+        [onKeyDown, isRoleLink, onPressHandler],
+    );
+
     return (
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref as ForwardedRef<View>}
             disabled={fullDisabled}
-            // eslint-disable-next-line react-compiler/react-compiler
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
-            onKeyDown={!isDisabled ? onKeyDown : undefined}
+            onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
+            dataSet={{...(isRoleButton ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : {}), ...(dataSet ?? {})}}
             style={(state) => [
                 cursorStyle,
                 StyleUtils.parseStyleFromFunction(style, state),
@@ -163,18 +192,22 @@ function GenericPressable(
                 (state.hovered || isHovered) && StyleUtils.parseStyleFromFunction(hoverStyle, state),
                 state.pressed && StyleUtils.parseStyleFromFunction(pressStyle, state),
                 isDisabled && [StyleUtils.parseStyleFromFunction(disabledStyle, state), styles.noSelect],
+                isRoleButton && styles.userSelectNone,
             ]}
             // accessibility props
             accessibilityState={{
                 disabled: isDisabled,
-                ...rest.accessibilityState,
+                ...accessibilityState,
             }}
             aria-disabled={isDisabled}
+            aria-checked={accessibilityState?.checked}
+            aria-selected={accessibilityState?.selected}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
             onMagicTap={!isDisabled ? voidOnPressHandler : undefined}
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
+            fsClass={forwardedFSClass}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             onHoverOut={(event) => {
@@ -198,6 +231,4 @@ function GenericPressable(
     );
 }
 
-GenericPressable.displayName = 'GenericPressable';
-
-export default forwardRef(GenericPressable);
+export default GenericPressable;

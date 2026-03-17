@@ -3,7 +3,7 @@ import type {QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 type UpdateQuickbooksDesktopExpensesExportDestinationTypeParams = {
     policyID: string;
     reimbursableExpensesExportDestination: QBDReimbursableExportAccountType;
-    reimbursableExpensesAccount: string;
+    reimbursableExpensesAccount?: string;
     idempotencyKey: string;
 };
 

@@ -1,17 +1,18 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import TextLink from '@components/TextLink';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
+import {getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -26,16 +27,18 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const defaultFundID = useDefaultFundID(policyID);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const settings = getCardSettings(cardSettings);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
-    const isMonthlySettlementAllowed = cardSettings?.isMonthlySettlementAllowed ?? false;
-    const settlementFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+    const paymentBankAccountID = settings?.paymentBankAccountID;
+    const paymentBankAccountNumber = settings?.paymentBankAccountNumber;
+    const isMonthlySettlementAllowed = settings?.isMonthlySettlementAllowed ?? false;
+    const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
-    const bankAccountNumber = paymentBankAccountID ? bankAccountList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '' : '';
+    const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -44,12 +47,15 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCardSettingsPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                testID="WorkspaceCardSettingsPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    addBottomSafeAreaPadding
+                >
                     <View>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItemWithTopDescription
@@ -76,6 +82,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>
+                                            .
                                         </>
                                     ) : undefined
                                 }
@@ -87,7 +94,5 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCardSettingsPage.displayName = 'WorkspaceCardSettingsPage';
 
 export default WorkspaceCardSettingsPage;

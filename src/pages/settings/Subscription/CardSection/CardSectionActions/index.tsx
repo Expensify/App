@@ -1,14 +1,9 @@
-import React, {useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
+import React, {useMemo} from 'react';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
-import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@navigation/Navigation';
-import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -18,53 +13,33 @@ const anchorAlignment = {
 };
 
 function CardSectionActions() {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const threeDotsMenuContainerRef = useRef<View>(null);
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'MoneyCircle']);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             {
-                icon: Expensicons.CreditCard,
+                icon: icons.CreditCard,
                 text: translate('subscription.cardSection.changeCard'),
                 onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
             },
             {
-                icon: Expensicons.MoneyCircle,
+                icon: icons.MoneyCircle,
                 text: translate('subscription.cardSection.changeCurrency'),
                 onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY),
             },
         ],
-        [translate],
+        [translate, icons.CreditCard, icons.MoneyCircle],
     );
 
     return (
-        <View
-            ref={threeDotsMenuContainerRef}
-            onLayout={(e: LayoutChangeEvent) => {
-                if (shouldUseNarrowLayout) {
-                    return;
-                }
-                const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
-                target?.measureInWindow((x, y, width) => {
-                    setThreeDotsMenuPosition({
-                        horizontal: x + width,
-                        vertical: y,
-                    });
-                });
-            }}
-        >
-            <ThreeDotsMenu
-                menuItems={overflowMenu}
-                anchorPosition={threeDotsMenuPosition}
-                anchorAlignment={anchorAlignment}
-                shouldOverlay
-            />
-        </View>
+        <ThreeDotsMenu
+            shouldSelfPosition
+            menuItems={overflowMenu}
+            anchorAlignment={anchorAlignment}
+            shouldOverlay
+        />
     );
 }
-
-CardSectionActions.displayName = 'CardSectionActions';
 
 export default CardSectionActions;

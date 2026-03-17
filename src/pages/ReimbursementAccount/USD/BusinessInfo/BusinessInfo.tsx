@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AddressBusiness from './subSteps/AddressBusiness';
 import ConfirmationBusiness from './subSteps/ConfirmationBusiness';
+import IncorporationCode from './subSteps/IncorporationCode';
 import IncorporationDateBusiness from './subSteps/IncorporationDateBusiness';
 import IncorporationStateBusiness from './subSteps/IncorporationStateBusiness';
 import NameBusiness from './subSteps/NameBusiness';
@@ -40,6 +41,7 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
     TypeBusiness,
     IncorporationDateBusiness,
     IncorporationStateBusiness,
+    IncorporationCode,
     ConfirmationBusiness,
 ];
 
@@ -53,7 +55,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
             ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
             ...lodashPick(reimbursementAccountDraft, ...fieldNames),
         }),
-        [reimbursementAccount, reimbursementAccountDraft],
+        [reimbursementAccount?.achData, reimbursementAccountDraft],
     );
 
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -67,7 +69,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
                 {
                     ...values,
                     ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
-                    companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
+                    companyTaxID: values.companyTaxID?.replaceAll(CONST.REGEX.NON_NUMERIC, ''),
                     companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
                     website: isValidWebsite(companyWebsite) ? companyWebsite : undefined,
                 },
@@ -75,10 +77,11 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
                 isConfirmPage,
             );
         },
-        [reimbursementAccount, values, getBankAccountFields, policyID],
+        [reimbursementAccount?.achData?.bankAccountID, values, getBankAccountFields, policyID],
     );
 
-    const startFrom = useMemo(() => getInitialSubStepForBusinessInfo(values), [values]);
+    const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
+    const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values)), [values, isBankAccountVerifying]);
 
     const {
         componentToRender: SubStep,
@@ -105,12 +108,12 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BusinessInfo.displayName}
+            wrapperID="BusinessInfo"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('businessInfoStep.businessInfo')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={3}
+            startStepIndex={4}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep
@@ -121,7 +124,5 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-BusinessInfo.displayName = 'BusinessInfo';
 
 export default BusinessInfo;

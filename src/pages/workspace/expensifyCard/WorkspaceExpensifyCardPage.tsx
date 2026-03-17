@@ -1,13 +1,15 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback} from 'react';
-import {ActivityIndicator} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect} from 'react';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -20,23 +22,55 @@ type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNa
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const policy = usePolicy(policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.expensifyCard');
+    const defaultFundID = useDefaultFundID(policyID);
 
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const settings = getCardSettings(cardSettings);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
     const fetchExpensifyCards = useCallback(() => {
-        openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID]);
+        updateSelectedExpensifyCardFeed(defaultFundID, policyID);
+        openPolicyExpensifyCardsPage(policyID, defaultFundID);
+    }, [policyID, defaultFundID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
-    useFocusEffect(fetchExpensifyCards);
+    useEffect(() => {
+        fetchExpensifyCards();
+    }, [fetchExpensifyCards]);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
+    const paymentBankAccountID = settings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isLoading = !isOffline && (!cardSettings || settings?.isLoading) && !cardSettings?.hasOnceLoaded;
+
+    const renderContent = () => {
+        if (isLoading) {
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'WorkspaceExpensifyCardPage',
+                isOffline,
+                hasOnceLoaded: !!cardSettings?.hasOnceLoaded,
+            };
+            return (
+                <FullScreenLoadingIndicator
+                    shouldUseGoBackButton
+                    reasonAttributes={reasonAttributes}
+                />
+            );
+        }
+        if (paymentBankAccountID) {
+            return (
+                <WorkspaceExpensifyCardListPage
+                    cardsList={cardsList}
+                    fundID={defaultFundID}
+                    route={route}
+                />
+            );
+        }
+        if (!paymentBankAccountID) {
+            return <WorkspaceExpensifyCardPageEmptyState route={route} />;
+        }
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -44,24 +78,9 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            {!!isLoading && !paymentBankAccountID && (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={styles.flex1}
-                    color={theme.spinner}
-                />
-            )}
-            {!!paymentBankAccountID && (
-                <WorkspaceExpensifyCardListPage
-                    cardsList={cardsList}
-                    route={route}
-                />
-            )}
-            {!paymentBankAccountID && !isLoading && <WorkspaceExpensifyCardPageEmptyState route={route} />}
+            {renderContent()}
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceExpensifyCardPage.displayName = 'WorkspaceExpensifyCardPage';
 
 export default WorkspaceExpensifyCardPage;

@@ -1,18 +1,18 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CategorySelector from '@components/CategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -90,15 +90,16 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={PolicyDistanceRatesSettingsPage.displayName}
+                testID="PolicyDistanceRatesSettingsPage"
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <FullPageBlockingView style={customUnit ? styles.flexGrow1 : []}>
                     <ScrollView
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="always"
+                        addBottomSafeAreaPadding
                     >
                         <View>
                             {!!defaultUnit && (
@@ -142,7 +143,13 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             >
                                 <View style={[styles.mt2, styles.mh5]}>
                                     <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>
+                                        <Text
+                                            style={[styles.textNormal, styles.colorMuted]}
+                                            accessible={false}
+                                            aria-hidden
+                                        >
+                                            {translate('workspace.distanceRates.trackTax')}
+                                        </Text>
                                         <Switch
                                             isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                             accessibilityLabel={translate('workspace.distanceRates.trackTax')}
@@ -153,13 +160,15 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 </View>
                                 {!isPolicyTrackTaxEnabled && (
                                     <View style={[styles.mh5]}>
-                                        <Text style={styles.colorMuted}>
-                                            {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
-                                            <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}>
-                                                {translate('workspace.common.moreFeatures')}
-                                            </TextLink>
-                                            {translate('workspace.distanceRates.changePromptMessage')}
-                                        </Text>
+                                        <RenderHTML
+                                            html={translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
+                                            onLinkPress={() => {
+                                                Navigation.dismissModal();
+                                                Navigation.isNavigationReady().then(() => {
+                                                    Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                                                });
+                                            }}
+                                        />
                                     </View>
                                 )}
                             </OfflineWithFeedback>
@@ -170,7 +179,5 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRatesSettingsPage.displayName = 'PolicyDistanceRatesSettingsPage';
 
 export default PolicyDistanceRatesSettingsPage;

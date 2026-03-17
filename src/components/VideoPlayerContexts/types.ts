@@ -1,54 +1,67 @@
-import type {NavigationState} from '@react-navigation/native';
-import type {MutableRefObject} from 'react';
-import type {View} from 'react-native';
+import type {VideoPlayer} from 'expo-video';
 import type {SharedValue} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import type CONST from '@src/CONST';
-import type {ResponsiveLayoutProperties} from './FullScreenContext';
+import type {FullScreenActionsContextType, FullScreenStateContextType} from './FullScreenContextProvider';
 
-type PlaybackContext = {
-    updateCurrentlyPlayingURL: (url: string | null) => void;
-    currentlyPlayingURL: string | null;
-    currentlyPlayingURLReportID: string | undefined;
-    originalParent: View | HTMLDivElement | null;
-    sharedElement: View | HTMLDivElement | null;
-    videoResumeTryNumberRef: MutableRefObject<number>;
-    currentVideoPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
-    shareVideoPlayerElements: (ref: VideoWithOnFullScreenUpdate | null, parent: View | HTMLDivElement | null, child: View | HTMLDivElement | null, isUploading: boolean) => void;
-    playVideo: () => void;
-    pauseVideo: () => void;
-    checkVideoPlaying: (statusCallback: StatusCallback) => void;
-    setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
-    updateCurrentPlayingReportID: (state: NavigationState) => void;
+type VolumeStateContextType = {
+    /**
+     * The current volume value.
+     */
+    volume: SharedValue<number>;
+
+    /**
+     * The last non-zero volume value before mute.
+     * This value is restored after unmuting.
+     */
+    lastNonZeroVolume: SharedValue<number>;
 };
 
-type VolumeContext = {
+type VolumeActionsContextType = {
+    /**
+     * Updates the current volume.
+     * @param newVolume The new volume value to set.
+     */
     updateVolume: (newVolume: number) => void;
-    volume: SharedValue<number>;
-    lastNonZeroVolume: SharedValue<number>;
+
+    /**
+     * Toggles the mute state.
+     */
     toggleMute: () => void;
 };
 
-type VideoPopoverMenuContext = {
+type VolumeContext = VolumeStateContextType & VolumeActionsContextType;
+
+type VideoPopoverMenuStateContextType = {
+    /**
+     * The items displayed in the video popover menu.
+     */
     menuItems: PopoverMenuItem[];
-    videoPopoverMenuPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
-    currentPlaybackSpeed: PlaybackSpeed;
+};
+
+type VideoPopoverMenuActionsContextType = {
+    /**
+     * Updates the video player reference used by the popover menu.
+     * @param ref The video player ref.
+     */
+    updateVideoPopoverMenuPlayerRef: (videoPlayer: VideoPlayer | null) => void;
+
+    /**
+     * Updates the playback speed inside VideoPopoverMenuContext.
+     * @param speed The new playback speed value.
+     */
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
-    setCurrentPlaybackSpeed: (speed: PlaybackSpeed) => void;
-    setSource: (source: string) => void;
+
+    /**
+     * Updates the video source URL inside VideoPopoverMenuContext.
+     * @param source The new source URL.
+     */
+    updateSource: (source: string) => void;
 };
 
-type FullScreenContext = {
-    isFullScreenRef: MutableRefObject<boolean>;
-    lockedWindowDimensionsRef: MutableRefObject<ResponsiveLayoutProperties | null>;
-    lockWindowDimensions: (newResponsiveLayoutResult: ResponsiveLayoutProperties) => void;
-    unlockWindowDimensions: () => void;
-};
-
-type StatusCallback = (isPlaying: boolean) => void;
+type FullScreenContext = FullScreenStateContextType & FullScreenActionsContextType;
 
 type PlaybackSpeed = TupleToUnion<typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS>;
 
-export type {PlaybackContext, VolumeContext, VideoPopoverMenuContext, FullScreenContext, StatusCallback, PlaybackSpeed};
+export type {VolumeContext, VolumeStateContextType, VolumeActionsContextType, VideoPopoverMenuStateContextType, VideoPopoverMenuActionsContextType, FullScreenContext, PlaybackSpeed};

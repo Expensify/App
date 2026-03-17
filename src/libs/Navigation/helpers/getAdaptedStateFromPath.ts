@@ -1,38 +1,61 @@
-import type {NavigationState, PartialState, Route} from '@react-navigation/native';
-import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import pick from 'lodash/pick';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
-import {isAnonymousUser} from '@libs/actions/Session';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {config} from '@libs/Navigation/linkingConfig/config';
-import {RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, SEARCH_TO_RHP} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
-import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getSearchParamFromPath} from '@libs/Url';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route as RoutePath} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
-import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
+import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
+import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
+import getRedirectedPath from './getRedirectedPath';
+import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
+import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
 
 type GetAdaptedStateReturnType = ReturnType<typeof getStateFromPath>;
 
-type GetAdaptedStateFromPath = (...args: [...Parameters<typeof getStateFromPath>, shouldReplacePathInNestedState?: boolean]) => GetAdaptedStateReturnType;
+type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPath>, shouldReplacePathInNestedState?: boolean]) => GetAdaptedStateReturnType;
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
+
+const SCREENS_WITH_ONYX_TAB_NAVIGATOR = [
+    SCREENS.MONEY_REQUEST.SPLIT_EXPENSE,
+    SCREENS.MONEY_REQUEST.CREATE,
+    SCREENS.MONEY_REQUEST.DISTANCE_CREATE,
+    SCREENS.NEW_CHAT.ROOT,
+    SCREENS.SHARE.ROOT,
+    SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT,
+] as const;
+
+/**
+ * Works like React Navigation's {@link findFocusedRoute} but stops recursing when it reaches
+ * a screen that hosts an OnyxTabNavigator. Without this guard the lookup would drill into the
+ * tab navigator's internal state and return the individual tab name (e.g. "amount", "scan")
+ * instead of the parent screen (e.g. "Money_Request_Split_Expense").
+ */
+function findFocusedRouteWithOnyxTabGuard(state: PartialState<NavigationState>): ReturnType<typeof findFocusedRoute> {
+    const route = state.routes[state.index ?? state.routes.length - 1];
+    if (route === undefined) {
+        return undefined;
+    }
+    if ((SCREENS_WITH_ONYX_TAB_NAVIGATOR as readonly string[]).includes(route.name)) {
+        return route as ReturnType<typeof findFocusedRoute>;
+    }
+    if (route.state) {
+        return findFocusedRouteWithOnyxTabGuard(route.state);
+    }
+    return route as ReturnType<typeof findFocusedRoute>;
+}
 
 function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
     return route.params !== undefined && 'backTo' in route.params && typeof route.params.backTo === 'string';
@@ -42,10 +65,27 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
-function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: string) {
+/**
+ * Get the appropriate screen name for RHP_TO_SEARCH lookup.
+ * Split tabs (amount, percentage, date) are nested routes within SPLIT_EXPENSE/SPLIT_EXPENSE_SEARCH.
+ * When a split tab route is accessed from search context (path contains '/search'),
+ * we use SPLIT_EXPENSE_SEARCH for the mapping lookup instead of the tab name.
+ */
+function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
+    const splitTabNames = Object.values(CONST.TAB.SPLIT) as string[];
+    const isSplitTabRoute = splitTabNames.includes(route.name);
+
+    if (isSplitTabRoute && route.path?.includes('/search')) {
+        return SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH;
+    }
+
+    return route.name;
+}
+
+function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
-        const stateForBackTo = getStateFromPath(route.params.backTo, config);
+        const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
 
         // This may happen if the backTo url is invalid.
         const lastRoute = stateForBackTo?.routes.at(-1);
@@ -60,32 +100,57 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
             return lastRoute;
         }
 
-        const focusedStateForBackToRoute = findFocusedRoute(stateForBackTo);
+        const focusedStateForBackToRoute = findFocusedRouteWithOnyxTabGuard(stateForBackTo);
 
         if (!focusedStateForBackToRoute) {
             return undefined;
         }
         // If not, get the matching full screen route for the back to state.
-        return getMatchingFullScreenRoute(focusedStateForBackToRoute, policyID);
+        return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
 
-    if (SEARCH_TO_RHP.includes(route.name)) {
-        const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.ROOT);
+    const routeNameForLookup = getSearchScreenNameForRoute(route);
+    if (RHP_TO_SEARCH[routeNameForLookup]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[routeNameForLookup]);
+        const copiedParams = paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : {};
+        let queryParam: Record<string, string> = {};
+        if (route.path) {
+            const query = getSearchParamFromPath(route.path, 'q');
+            if (query) {
+                queryParam = {q: query};
+            }
+        }
 
+        const searchRoute = {
+            name: RHP_TO_SEARCH[routeNameForLookup],
+            params: Object.keys({...copiedParams, ...queryParam}).length > 0 ? {...copiedParams, ...queryParam} : undefined,
+        };
         return {
             name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-            params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            state: getRoutesWithIndex([searchRoute]),
         };
     }
 
     if (RHP_TO_SIDEBAR[route.name]) {
-        return getInitialSplitNavigatorState(
-            {
-                name: RHP_TO_SIDEBAR[route.name],
-            },
-            undefined,
-            policyID ? {policyID} : undefined,
-        );
+        return getInitialSplitNavigatorState({
+            name: RHP_TO_SIDEBAR[route.name],
+        });
+    }
+
+    if (RHP_TO_HOME[route.name]) {
+        return {
+            name: SCREENS.HOME,
+            path: normalizePath(ROUTES.HOME),
+        };
+    }
+
+    if (RHP_TO_WORKSPACES_LIST[route.name]) {
+        return {
+            name: SCREENS.WORKSPACES_LIST,
+            // prepending a slash to ensure closing the RHP after refreshing the page
+            // replaces the whole path with "/workspaces", instead of just replacing the last url segment ("/x/y/workspaces")
+            path: normalizePath(ROUTES.WORKSPACES_LIST.route),
+        };
     }
 
     if (RHP_TO_WORKSPACE[route.name]) {
@@ -117,6 +182,56 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
         );
     }
 
+    if (RHP_TO_DOMAIN[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_DOMAIN[route.name]);
+
+        return getInitialSplitNavigatorState(
+            {
+                name: SCREENS.DOMAIN.INITIAL,
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+            {
+                name: RHP_TO_DOMAIN[route.name],
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+        );
+    }
+
+    // Handle dynamic routes: find the appropriate full screen route
+    if (route.path) {
+        const dynamicRouteSuffix = findMatchingDynamicSuffix(route.path);
+        if (dynamicRouteSuffix) {
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicRouteSuffix);
+
+            if (!pathWithoutDynamicSuffix) {
+                return undefined;
+            }
+
+            // Get navigation state for the base path without dynamic suffix
+            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
+            const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
+
+            if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
+                return undefined;
+            }
+
+            const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
+
+            if (isLastRouteFullScreen) {
+                return lastRoute;
+            }
+
+            const focusedStateForDynamicRoute = findFocusedRoute(stateUnderDynamicRoute);
+
+            if (!focusedStateForDynamicRoute) {
+                return undefined;
+            }
+
+            // Recursively find the matching full screen route for the focused dynamic route
+            return getMatchingFullScreenRoute(focusedStateForDynamicRoute);
+        }
+    }
+
     return undefined;
 }
 
@@ -124,43 +239,37 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
 // It is the reports split navigator with report. If the reportID is defined in the focused route, we want to use it for the default report.
 // This is separated from getMatchingFullScreenRoute because we want to use it only for the initial state.
 // We don't want to make this route mandatory e.g. after deep linking or opening a specific flow.
-function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: string) {
-    // We will use it if the reportID is not defined. Router of this navigator has logic to fill it with a report.
-    const fallbackRoute = {
-        name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-        params: policyID ? {policyID} : undefined,
-    };
-
+function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
     if (route && isRouteWithReportID(route)) {
         const reportID = route.params.reportID;
 
-        if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
-            return fallbackRoute;
+        // Only allReports should be checked here
+        if (!getReportOrDraftReport(reportID, undefined, undefined, {})) {
+            return {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR};
         }
 
         return getInitialSplitNavigatorState(
             {
-                name: SCREENS.HOME,
+                name: SCREENS.INBOX,
             },
             {
                 name: SCREENS.REPORT,
                 params: {reportID},
             },
-            policyID ? {policyID} : undefined,
         );
     }
 
-    return fallbackRoute;
+    return {name: SCREENS.HOME};
 }
 
 function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {
     const onboardingRoute = state.routes.at(0);
-    if (!onboardingRoute || onboardingRoute.name === SCREENS.ONBOARDING.PURPOSE) {
+    if (!onboardingRoute || onboardingRoute.name === SCREENS.ONBOARDING.PURPOSE || onboardingRoute.name === SCREENS.ONBOARDING.WORK_EMAIL) {
         return state;
     }
 
     const routes = [];
-    routes.push({name: SCREENS.ONBOARDING.PURPOSE});
+    routes.push({name: onboardingRoute.name === SCREENS.ONBOARDING.WORKSPACES ? SCREENS.ONBOARDING.PERSONAL_DETAILS : SCREENS.ONBOARDING.PURPOSE});
     if (onboardingRoute.name === SCREENS.ONBOARDING.ACCOUNTING) {
         routes.push({name: SCREENS.ONBOARDING.EMPLOYEES});
     }
@@ -169,46 +278,34 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
     return getRoutesWithIndex(routes);
 }
 
-function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>, policyID?: string): GetAdaptedStateReturnType {
+function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
-    const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
-    const isReportSplitNavigator = fullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
     const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
-    // If policyID is defined, it should be passed to the reportNavigator params.
-    if (isReportSplitNavigator && policyID) {
-        const routes = [];
-        const reportNavigatorWithPolicyID = {...fullScreenRoute};
-        reportNavigatorWithPolicyID.params = {...reportNavigatorWithPolicyID.params, policyID};
-        routes.push(reportNavigatorWithPolicyID);
-
-        return getRoutesWithIndex(routes);
-    }
-
     if (isWorkspaceSplitNavigator) {
-        const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.SETTINGS.WORKSPACES});
-        return getRoutesWithIndex([settingsSplitRoute, ...state.routes]);
+        const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
+        return getRoutesWithIndex([workspacesListRoute, ...state.routes]);
     }
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
-        const focusedRoute = findFocusedRoute(state);
+        const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
 
         if (focusedRoute) {
-            const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute, policyID);
+            const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute);
 
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
                 const routes = [matchingRootRoute, ...state.routes];
                 if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                    const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.SETTINGS.WORKSPACES});
-                    routes.unshift(settingsSplitRoute);
+                    const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
+                    routes.unshift(workspacesListRoute);
                 }
                 return getRoutesWithIndex(routes);
             }
         }
 
-        const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute, policyID);
+        const onboardingNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
 
         // The onboarding flow consists of several screens. If we open any of the screens, the previous screens from that flow should be in the state.
         if (onboardingNavigator?.state) {
@@ -217,8 +314,16 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 state: getOnboardingAdaptedState(onboardingNavigator.state),
             };
 
-            return getRoutesWithIndex([defaultFullScreenRoute, adaptedOnboardingNavigator]);
+            return getRoutesWithIndex([{name: SCREENS.HOME}, adaptedOnboardingNavigator]);
         }
+
+        const isRightModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+
+        if (isRightModalNavigator) {
+            return getRoutesWithIndex([{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, ...state.routes]);
+        }
+
+        const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);
 
         // If not, add the default full screen route.
         return getRoutesWithIndex([defaultFullScreenRoute, ...state.routes]);
@@ -227,15 +332,30 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
     return state;
 }
 
+/**
+ * Generate a navigation state from a given path, adapting it to handle cases like onboarding flow,
+ * displaying RHP screens and navigating in the Workspaces tab.
+ * For detailed information about generating state from a path,
+ * see the NAVIGATION.md documentation.
+ *
+ * @param path - The path to generate state from
+ * @param options - Extra options kept for react-navigation compatibility
+ * @param shouldReplacePathInNestedState - Whether to replace the path in nested state (if passing this arg, pass `undefined` for `options`, otherwise omit both)
+ * @returns The adapted navigation state
+ * @throws Error if unable to get state from path
+ */
+// We keep `options` in the signature for `linkingConfig` compatibility with react-navigation.
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
-    const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
-    const pathWithoutPolicyID = getPathWithoutPolicyID(normalizedPath);
-    const isAnonymous = isAnonymousUser();
+    let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    normalizedPath = getRedirectedPath(normalizedPath);
+    normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
-    // Anonymous users don't have access to workspaces
-    const policyID = isAnonymous ? undefined : extractPolicyIDFromPath(path);
+    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
+    if (normalizedPath === CONST.SIGNIN_ROUTE) {
+        normalizedPath = '/';
+    }
 
-    const state = getStateFromPath(pathWithoutPolicyID, options) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
     }
@@ -244,10 +364,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         throw new Error(`[getAdaptedStateFromPath] Unable to get state from path: ${path}`);
     }
 
-    // On SCREENS.SEARCH.ROOT policyID is stored differently inside search query ("q" param), so we're handling this case
-    const focusedRoute = findFocusedRoute(state);
-    const policyIDFromQuery = extractPolicyIDFromQuery(focusedRoute);
-    return getAdaptedState(state, policyID ?? policyIDFromQuery);
+    return getAdaptedState(state);
 };
 
 export default getAdaptedStateFromPath;

@@ -2,7 +2,7 @@ import {useCallback, useRef} from 'react';
 import type {SetStateAction} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 
-function useCarouselContextEvents(setShouldShowArrows: (show?: SetStateAction<boolean>) => void) {
+function useCarouselContextEvents(setShouldShowArrows?: (show?: SetStateAction<boolean>) => void) {
     const scale = useRef(1);
     const isScrollEnabled = useSharedValue(true);
 
@@ -12,11 +12,11 @@ function useCarouselContextEvents(setShouldShowArrows: (show?: SetStateAction<bo
     const onRequestToggleArrows = useCallback(
         (showArrows?: boolean) => {
             if (showArrows === undefined) {
-                setShouldShowArrows((prevShouldShowArrows) => !prevShouldShowArrows);
+                setShouldShowArrows?.((prevShouldShowArrows) => !prevShouldShowArrows);
                 return;
             }
 
-            setShouldShowArrows(showArrows);
+            setShouldShowArrows?.(showArrows);
         },
         [setShouldShowArrows],
     );
@@ -49,13 +49,16 @@ function useCarouselContextEvents(setShouldShowArrows: (show?: SetStateAction<bo
      * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.
      * It is used to trigger touch events on the pager when the user taps on the MultiGestureCanvas/Lightbox.
      */
-    const handleTap = useCallback(() => {
-        if (!isScrollEnabled.get()) {
-            return;
-        }
+    const handleTap = useCallback(
+        (shouldShowArrows?: boolean) => {
+            if (!isScrollEnabled.get()) {
+                return;
+            }
 
-        onRequestToggleArrows();
-    }, [isScrollEnabled, onRequestToggleArrows]);
+            onRequestToggleArrows(shouldShowArrows);
+        },
+        [isScrollEnabled, onRequestToggleArrows],
+    );
 
     return {handleTap, handleScaleChange, scale, isScrollEnabled};
 }

@@ -1,26 +1,80 @@
-import React from 'react';
-import {RenderHTMLSource} from 'react-native-render-html';
+import React, {useMemo} from 'react';
+import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
+import type {RenderersProps} from 'react-native-render-html';
+import useHasTextAncestor from '@hooks/useHasTextAncestor';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Parser from '@libs/Parser';
+import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
+import SparklesIconRenderer from './HTMLEngineProvider/HTMLRenderers/SparklesIconRenderer';
+
+type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 
 type RenderHTMLProps = {
     /** HTML string to render */
     html: string;
+
+    /** Callback to handle link press */
+    onLinkPress?: LinkPressHandler;
+
+    /** Whether the rendered text should be selectable */
+    isSelectable?: boolean;
 };
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
-function RenderHTML({html}: RenderHTMLProps) {
+function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProps) {
+    const hasTextAncestor = useHasTextAncestor();
+    if (__DEV__ && hasTextAncestor) {
+        throw new Error('RenderHTML must not be rendered inside a <Text> component, as it will break the layout on iOS. Render it as a sibling instead.');
+    }
+
     const {windowWidth} = useWindowDimensions();
-    return (
+    const html = useMemo(() => {
+        return (
+            Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
+                // Escape brackets when pasting a link, since unescaped [] can break Markdown link syntax
+                .replaceAll('&amp;#91;', '[')
+                .replaceAll('&amp;#93;', ']')
+                // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
+                .replaceAll(/(<emoji[^>]*>)(?:<emoji[^>]*>)+/g, '$1')
+                .replaceAll(/(<\/emoji[^>]*>)(?:<\/emoji[^>]*>)+/g, '$1')
+        );
+    }, [htmlParam]);
+
+    const renderersProps = useMemo(() => {
+        return {
+            a: {
+                onPress: onLinkPress,
+            },
+        };
+    }, [onLinkPress]);
+
+    const renderers = {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        'bullet-item': BulletItemRenderer,
+        'sparkles-icon': SparklesIconRenderer,
+    };
+
+    const htmlSource = (
         <RenderHTMLSource
             contentWidth={windowWidth * 0.8}
             source={{html}}
         />
     );
-}
 
-RenderHTML.displayName = 'RenderHTML';
+    return onLinkPress ? (
+        <RenderHTMLConfigProvider
+            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
+            renderersProps={renderersProps}
+            renderers={renderers}
+        >
+            {htmlSource}
+        </RenderHTMLConfigProvider>
+    ) : (
+        htmlSource
+    );
+}
 
 export default RenderHTML;

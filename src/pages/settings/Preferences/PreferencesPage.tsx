@@ -1,84 +1,114 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {togglePlatformMute, updateNewsletterSubscription} from '@libs/actions/User';
 import getPlatform from '@libs/getPlatform';
-import LocaleUtils from '@libs/LocaleUtils';
+import type Platform from '@libs/getPlatform/types';
 import Navigation from '@libs/Navigation/Navigation';
-import * as User from '@userActions/User';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
+import {isFullySupportedLocale, LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import usePreferencesSectionIllustration from './usePreferencesSectionIllustration';
 
 function PreferencesPage() {
+    const {getCurrencySymbol} = useCurrencyListActions();
+    const illustrations = useMemoizedLazyIllustrations(['Gears']);
+    const preferencesIllustration = usePreferencesSectionIllustration();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
     const platform = getPlatform(true);
-    const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
+    const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+
+    const personalPolicy = usePolicy(personalPolicyID);
+
+    const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('common.preferences'));
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={PreferencesPage.displayName}
+            testID="PreferencesPage"
         >
             <HeaderWithBackButton
                 title={translate('common.preferences')}
-                icon={Illustrations.Gears}
+                icon={illustrations.Gears}
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack()}
+                shouldDisplayHelpButton
+                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('preferencesPage.appSection.title')}
-                        isCentralPane
-                        illustration={LottieAnimations.PreferencesDJ}
                         titleStyles={styles.accountSettingsSectionTitle}
+                        isCentralPane
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                        illustrationBackgroundColor={colors.blue500}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...preferencesIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>
                                 <View style={styles.flex4}>
-                                    <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                    </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                                        isOn={user?.isSubscribedToNewsletter ?? true}
-                                        onToggle={User.updateNewsletterSubscription}
+                                        isOn={account?.isSubscribedToNewsletter ?? true}
+                                        onToggle={updateNewsletterSubscription}
                                     />
                                 </View>
                             </View>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween]}>
                                 <View style={styles.flex4}>
-                                    <Text>{translate('preferencesPage.muteAllSounds')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('preferencesPage.muteAllSounds')}
+                                    </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
                                         isOn={isPlatformMuted ?? false}
-                                        onToggle={() => User.togglePlatformMute(platform, mutedPlatforms)}
+                                        onToggle={() => togglePlatformMute(platform, mutedPlatforms)}
                                     />
                                 </View>
                             </View>
@@ -88,13 +118,24 @@ function PreferencesPage() {
                                 description={translate('priorityModePage.priorityMode')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`)}
+                                title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
                                 description={translate('languagePage.language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
+                            />
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={`${paymentCurrency} - ${getCurrencySymbol(paymentCurrency)}`}
+                                description={translate('billingCurrency.paymentCurrency')}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -102,6 +143,7 @@ function PreferencesPage() {
                                 description={translate('themePage.theme')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
                             />
                         </View>
                     </Section>
@@ -110,7 +152,5 @@ function PreferencesPage() {
         </ScreenWrapper>
     );
 }
-
-PreferencesPage.displayName = 'PreferencesPage';
 
 export default PreferencesPage;

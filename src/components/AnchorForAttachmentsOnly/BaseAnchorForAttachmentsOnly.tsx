@@ -1,17 +1,20 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AttachmentView from '@components/Attachments/AttachmentView';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as Browser from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as Download from '@userActions/Download';
+import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
+import {setDownload} from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type AnchorForAttachmentsOnlyProps from './types';
 
 type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
@@ -23,56 +26,58 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
 };
 
 function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut, isDeleted}: BaseAnchorForAttachmentsOnlyProps) {
-    const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
-    const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+    const sourceID = (source.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID) ?? [])[1];
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
+    const session = useSession();
+    const {translate} = useLocalize();
 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
     const isDownloading = download?.isDownloading ?? false;
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    const sourceURLWithAuth = addEncryptedAuthTokenToURL(source, encryptedAuthToken);
+
+    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {checkIfContextMenuActive} = useShowContextMenuActions();
 
     return (
-        <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
-                <PressableWithoutFeedback
-                    style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
-                    onPress={() => {
-                        if (isDownloading || isOffline || !sourceID) {
-                            return;
-                        }
-                        Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
-                    }}
-                    onPressIn={onPressIn}
-                    onPressOut={onPressOut}
-                    onLongPress={(event) => {
-                        if (isDisabled) {
-                            return;
-                        }
-                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs));
-                    }}
-                    shouldUseHapticsOnLongPress
-                    accessibilityLabel={displayName}
-                    role={CONST.ROLE.BUTTON}
-                >
-                    <AttachmentView
-                        source={source}
-                        file={{name: displayName}}
-                        shouldShowDownloadIcon={!!sourceID && !isOffline}
-                        shouldShowLoadingSpinnerIcon={isDownloading}
-                        isUsedAsChatAttachment
-                        isDeleted={!!isDeleted}
-                        isUploading={!sourceID}
-                        isAuthTokenRequired={!!sourceID}
-                    />
-                </PressableWithoutFeedback>
-            )}
-        </ShowContextMenuContext.Consumer>
+        <PressableWithoutFeedback
+            style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
+            onPress={() => {
+                if (isDownloading || isOffline || !sourceID) {
+                    return;
+                }
+                setDownload(sourceID, true);
+                fileDownload(translate, sourceURLWithAuth, displayName, '', isMobileSafari()).then(() => setDownload(sourceID, false));
+            }}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
+            onLongPress={(event) => {
+                if (isDisabled || !shouldDisplayContextMenu) {
+                    return;
+                }
+                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived));
+            }}
+            shouldUseHapticsOnLongPress
+            accessibilityLabel={displayName}
+            role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.BASE_ANCHOR_FOR_ATTACHMENTS_ONLY.DOWNLOAD_BUTTON}
+        >
+            <AttachmentView
+                source={source}
+                file={{name: displayName}}
+                shouldShowDownloadIcon={!!sourceID && !isOffline}
+                shouldShowLoadingSpinnerIcon={isDownloading}
+                isUsedAsChatAttachment
+                isDeleted={!!isDeleted}
+                isUploading={!sourceID}
+                isAuthTokenRequired={!!sourceID}
+                isUploaded={!isEmptyObject(report)}
+            />
+        </PressableWithoutFeedback>
     );
 }
-
-BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
 
 export default BaseAnchorForAttachmentsOnly;

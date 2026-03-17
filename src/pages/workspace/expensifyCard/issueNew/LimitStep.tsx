@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -8,6 +7,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -19,9 +19,15 @@ import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 type LimitStepProps = {
     /** ID of the policy */
     policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames: readonly string[];
+
+    /** Start from step index */
+    startStepIndex: number;
 };
 
-function LimitStep({policyID}: LimitStepProps) {
+function LimitStep({policyID, stepNames, startStepIndex}: LimitStepProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
@@ -51,7 +57,7 @@ function LimitStep({policyID}: LimitStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT], translate);
 
             // We only want integers to be sent as the limit
             if (!Number(values.limit)) {
@@ -70,13 +76,14 @@ function LimitStep({policyID}: LimitStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={LimitStep.displayName}
+            wrapperID="LimitStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={3}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.setLimit')}</Text>
             <FormProvider
@@ -90,11 +97,13 @@ function LimitStep({policyID}: LimitStepProps) {
                 disablePressOnEnter={false}
                 validate={validate}
                 enabledWhenOffline
+                addBottomSafeAreaPadding
             >
                 <InputWrapper
                     InputComponent={AmountForm}
-                    defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, CONST.CURRENCY.USD, false)}
+                    defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, issueNewCard?.data?.currency, false)}
                     isCurrencyPressable={false}
+                    currency={issueNewCard?.data?.currency}
                     inputID={INPUT_IDS.LIMIT}
                     ref={inputCallbackRef}
                 />
@@ -102,7 +111,5 @@ function LimitStep({policyID}: LimitStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-LimitStep.displayName = 'LimitStep';
 
 export default LimitStep;

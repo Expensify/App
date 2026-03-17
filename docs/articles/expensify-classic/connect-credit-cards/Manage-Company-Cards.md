@@ -1,7 +1,9 @@
 ---
 title: Manage Company Credit Cards in Expensify
 description: Learn how to assign, manage, and unassign company cards in Expensify to streamline expense tracking and maintain accurate transaction records.
+keywords: [Expensify Classic, company cards, direct bank feeds, commercial card feeds]
 ---
+
 Assigning company cards in Expensify ensures employees can seamlessly track business expenses, while administrators maintain accurate transaction records. This guide explains how to assign, manage, and unassign company cards to keep your expense management streamlined
 
 ## Main Uses
@@ -71,7 +73,7 @@ A CSV upload is a manual method for importing credit card transactions into Expe
 ## American Express
 1. Complete the required [Amex forms](https://drive.google.com/file/d/1zqDA_MCk06jk_fWjzx2y0r4gOyAMqKJe/view?usp=sharing).
 2. Email the forms to American Express.
-3. Submit the provided production file information to Expensify.
+3. Submit the feed details provided by American Express to concierge@expensify.com.
 
 ---
 # CSV Upload: How do I import credit card transactions using a CSV?
@@ -160,10 +162,11 @@ Commercial feeds are more stable and reliable but require setup by your bank. Di
 Ensure the file includes the required fields and matches the formatting guidelines. Use Expensify’s [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for reference.
 
 ## Unassigning Cards: What happens when I unassign a card?
-Unassigning a card deletes all open or unreported expenses linked to it. Submitted or processed expenses remain unaffected.
+Unassigning a card deletes all draft or unreported expenses linked to it. Submitted or processed expenses remain unaffected.
 
 ## Connection Issues: Why is my card connection broken?
 Check for changes to bank credentials, security questions, or login details. Update the information in Expensify and re-establish the connection via **Fix Card**.
 
 ## Historical Data: How far back can I import transactions?
 Most banks provide 30-90 days of historical data. Older transactions can be imported using the CSV upload method.
+

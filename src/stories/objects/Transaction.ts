@@ -1,3 +1,5 @@
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
+import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 
 const transaction: Transaction & {mcc: string; modifiedMCC: string} = {
@@ -13,13 +15,12 @@ const transaction: Transaction & {mcc: string; modifiedMCC: string} = {
     },
     created: '2025-02-18',
     currency: 'PLN',
-    filename: '',
     hasEReceipt: false,
     inserted: '2025-02-18 14:23:29',
     managedCard: false,
     mcc: '',
     merchant: "Mario's",
-    modifiedAmount: 0,
+    modifiedAmount: '',
     modifiedCreated: '',
     modifiedCurrency: '',
     modifiedMCC: '',
@@ -36,4 +37,22 @@ const transaction: Transaction & {mcc: string; modifiedMCC: string} = {
     transactionID: '1564303948126109676',
 };
 
+const transactionWithOptionalSearchFields: TransactionWithOptionalSearchFields = {
+    ...transaction,
+    from: {
+        accountID: 1,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
+        displayName: 'johnDoe@example.com User',
+        login: 'johnDoe@example.com',
+    },
+    to: {
+        accountID: 1,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
+        displayName: 'johnDoe@example.com User',
+        login: 'johnDoe@example.com',
+    },
+    action: CONST.SEARCH.ACTION_TYPES.VIEW,
+};
+
 export default transaction;
+export {transactionWithOptionalSearchFields};

@@ -4,6 +4,12 @@ import type {SectionListProps as RNSectionListProps, SectionList} from 'react-na
 type SectionListProps<ItemT, SectionT> = RNSectionListProps<ItemT, SectionT> & {
     /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Reference to the outer element */
+    ref?: SectionListRef<ItemT, SectionT>;
 };
 
 type SectionListRef<ItemT, SectionT> = ForwardedRef<SectionList<ItemT, SectionT>>;

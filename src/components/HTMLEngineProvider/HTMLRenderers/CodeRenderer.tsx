@@ -42,6 +42,4 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
     );
 }
 
-CodeRenderer.displayName = 'CodeRenderer';
-
 export default CodeRenderer;

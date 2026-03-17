@@ -45,10 +45,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
             if (!isRequiredFulfilled(customTaxName)) {
                 errors.name = translate('workspace.taxes.error.customNameRequired');
             } else if (customTaxName.length > CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH) {
-                errors.name = translate('common.error.characterLimitExceedCounter', {
-                    length: customTaxName.length,
-                    limit: CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH,
-                });
+                errors.name = translate('common.error.characterLimitExceedCounter', customTaxName.length, CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH);
             }
 
             return errors;
@@ -68,9 +65,9 @@ function WorkspaceTaxesSettingsCustomTaxName({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceTaxesSettingsCustomTaxName.displayName}
+                testID="WorkspaceTaxesSettingsCustomTaxName"
                 style={styles.defaultModalContainer}
             >
                 <HeaderWithBackButton title={translate('workspace.taxes.customTaxName')} />
@@ -83,6 +80,8 @@ function WorkspaceTaxesSettingsCustomTaxName({
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -101,7 +100,5 @@ function WorkspaceTaxesSettingsCustomTaxName({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxesSettingsCustomTaxName.displayName = 'WorkspaceTaxesSettingsCustomTaxName';
 
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesSettingsCustomTaxName);

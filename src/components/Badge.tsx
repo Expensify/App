@@ -17,6 +17,12 @@ type BadgeProps = {
     /** Is Error type */
     error?: boolean;
 
+    /** Whether badge uses strong (filled) style instead of outlined */
+    isStrong?: boolean;
+
+    /** Whether badge uses condensed (smaller) sizing */
+    isCondensed?: boolean;
+
     /** Whether badge is clickable */
     pressable?: boolean;
 
@@ -43,11 +49,16 @@ type BadgeProps = {
 
     /** Additional styles from OfflineWithFeedback applied to the row */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether to use XXSmall icon size */
+    shouldUseXXSmallIcon?: boolean;
 };
 
 function Badge({
     success = false,
     error = false,
+    isStrong = false,
+    isCondensed = false,
     pressable = false,
     text,
     environment = CONST.ENVIRONMENT.DEV,
@@ -57,24 +68,28 @@ function Badge({
     icon,
     iconStyles = [],
     style,
+    shouldUseXXSmallIcon = false,
 }: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const Wrapper = pressable ? PressableWithoutFeedback : View;
 
-    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
-    const iconColor = StyleUtils.getIconColorStyle(success, error);
+    const iconColor = StyleUtils.getIconColorStyle(success, error, isStrong);
+
+    const iconSize = isCondensed || shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall;
 
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
         ({pressed}) => [
             styles.defaultBadge,
+            isCondensed && styles.condensedBadge,
             styles.alignSelfCenter,
             styles.ml2,
-            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC),
+            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
             badgeStyles,
         ],
-        [styles.defaultBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles],
+        [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
     );
 
     return (
@@ -87,17 +102,27 @@ function Badge({
             accessible={false}
         >
             {!!icon && (
-                <View style={[styles.mr2, iconStyles]}>
+                <View style={[styles.mr1, iconStyles]}>
                     <Icon
-                        width={variables.iconSizeExtraSmall}
-                        height={variables.iconSizeExtraSmall}
+                        width={iconSize}
+                        height={iconSize}
                         src={icon}
                         fill={iconColor}
                     />
                 </View>
             )}
             <Text
-                style={[styles.badgeText, styles.textStrong, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                style={[
+                    styles.badgeText,
+                    styles.textStrong,
+                    isCondensed && styles.condensedBadgeText,
+                    !isStrong && !success && !error && styles.badgeDefaultText,
+                    !isStrong && success && styles.badgeSuccessText,
+                    !isStrong && error && styles.badgeDangerText,
+                    isStrong && (success || error) && styles.badgeStrongText,
+                    textStyles,
+                    isDeleted ? styles.offlineFeedbackDeleted : {},
+                ]}
                 numberOfLines={1}
             >
                 {text}
@@ -105,7 +130,5 @@ function Badge({
         </Wrapper>
     );
 }
-
-Badge.displayName = 'Badge';
 
 export default Badge;

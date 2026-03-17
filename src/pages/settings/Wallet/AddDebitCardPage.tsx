@@ -1,15 +1,18 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useCallback, useContext, useEffect, useRef} from 'react';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import type {PaymentCardParams} from '@libs/API/parameters';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {addPaymentCard as addPaymentCardAction, clearPaymentCardFormErrorAndSubmit, continueSetup} from '@userActions/PaymentMethods';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function DebitCardPage() {
@@ -20,16 +23,16 @@ function DebitCardPage() {
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
     const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
-
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const kycWallRef = useContext(KYCWallContext);
     /**
      * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
      */
     useEffect(() => {
-        PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+        clearPaymentCardFormErrorAndSubmit();
 
         return () => {
-            PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+            clearPaymentCardFormErrorAndSubmit();
         };
     }, []);
 
@@ -38,12 +41,12 @@ function DebitCardPage() {
             return;
         }
 
-        PaymentMethods.continueSetup();
-    }, [prevFormDataSetupComplete, formData?.setupComplete]);
+        continueSetup(kycWallRef);
+    }, [prevFormDataSetupComplete, formData?.setupComplete, kycWallRef]);
 
     const addPaymentCard = useCallback(
         (params: PaymentCardParams) => {
-            PaymentMethods.addPaymentCard(accountID ?? 0, params);
+            addPaymentCardAction(accountID ?? CONST.DEFAULT_NUMBER_ID, params);
         },
         [accountID],
     );
@@ -52,7 +55,7 @@ function DebitCardPage() {
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current?.focus()}
             includeSafeAreaPaddingBottom={false}
-            testID={DebitCardPage.displayName}
+            testID="DebitCardPage"
         >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}
@@ -70,7 +73,5 @@ function DebitCardPage() {
         </ScreenWrapper>
     );
 }
-
-DebitCardPage.displayName = 'DebitCardPage';
 
 export default DebitCardPage;

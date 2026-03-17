@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -17,21 +17,27 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
-function QuickbooksAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
+type QuickbooksAccountingMethodPageRouteParams = {
+    backTo?: Route;
+};
+
+function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
+    const {backTo} = route.params as QuickbooksAccountingMethodPageRouteParams;
     const styles = useThemeStyles();
     const config = policy?.connections?.quickbooksOnline?.config;
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const data: MenuListItem[] = Object.values(COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD).map((accountingMethodType) => ({
         value: accountingMethodType,
-        text: translate(`workspace.accountingMethods.values.${accountingMethodType}` as TranslationPaths),
-        alternateText: translate(`workspace.accountingMethods.alternateText.${accountingMethodType}` as TranslationPaths),
+        text: translate(`workspace.qbo.accountingMethods.values.${accountingMethodType}` as TranslationPaths),
+        alternateText: translate(`workspace.qbo.accountingMethods.alternateText.${accountingMethodType}` as TranslationPaths),
         keyForList: accountingMethodType,
         isSelected: accountingMethod === accountingMethodType,
     }));
@@ -42,7 +48,7 @@ function QuickbooksAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const headerContent = useMemo(
         () => (
             <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.accountingMethods.description')}</Text>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountingMethods.description')}</Text>
             </View>
         ),
         [translate, styles.pb5, styles.ph5],
@@ -53,30 +59,29 @@ function QuickbooksAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
             if (row.value !== config?.accountingMethod) {
                 updateQuickbooksOnlineAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID));
+            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo));
         },
-        [config?.accountingMethod, policyID],
+        [config?.accountingMethod, policyID, backTo],
     );
 
     return (
         <SelectionScreen
-            displayName={QuickbooksAccountingMethodPage.displayName}
-            title="workspace.accountingMethods.label"
+            displayName="QuickbooksAccountingMethodPage"
+            headerTitleAlreadyTranslated={translate('workspace.qbo.accountingMethods.label')}
             headerContent={headerContent}
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExpenseReportApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             pendingAction={pendingAction}
+            shouldBeBlocked={!config?.autoSync?.enabled}
         />
     );
 }
-
-QuickbooksAccountingMethodPage.displayName = 'QuickbooksAccountingMethodPage';
 
 export default withPolicyConnections(QuickbooksAccountingMethodPage);

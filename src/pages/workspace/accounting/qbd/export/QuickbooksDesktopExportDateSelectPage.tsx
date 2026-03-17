@@ -1,6 +1,7 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -10,11 +11,14 @@ import {updateQuickbooksDesktopExportDate} from '@libs/actions/connections/Quick
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type CardListItem = ListItem & {
     value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
@@ -25,6 +29,8 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
     const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const exportDate = qbdConfig?.export?.exportDate;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT>>();
+    const backTo = route.params.backTo;
 
     const data: CardListItem[] = useMemo(
         () =>
@@ -38,6 +44,10 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
         [exportDate, translate],
     );
 
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
+    }, [policyID, backTo]);
+
     const selectExportDate = useCallback(
         (row: CardListItem) => {
             if (!policyID) {
@@ -46,9 +56,9 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
             if (row.value !== exportDate) {
                 updateQuickbooksDesktopExportDate(policyID, row.value, exportDate);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
+            goBack();
         },
-        [policyID, exportDate],
+        [policyID, exportDate, goBack],
     );
 
     return (
@@ -56,16 +66,11 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopExportDateSelectPage.displayName}
-            sections={[{data}]}
+            displayName="QuickbooksDesktopExportDateSelectPage"
+            data={data}
             listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbd.exportDate.description')}</Text>}
-            onBackButtonPress={() => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
-            }}
+            onBackButtonPress={goBack}
             onSelectRow={selectExportDate}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.qbd.exportDate.label"
@@ -83,7 +88,5 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
         />
     );
 }
-
-QuickbooksDesktopExportDateSelectPage.displayName = 'QuickbooksDesktopExportDateSelectPage';
 
 export default withPolicyConnections(QuickbooksDesktopExportDateSelectPage);

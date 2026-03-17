@@ -1,8 +1,8 @@
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setColumnName} from '@libs/actions/ImportSpreadsheet';
 import CONST from '@src/CONST';
@@ -11,6 +11,7 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import Text from './Text';
 
+// cspell:disable
 function findColumnName(header: string): string {
     let attribute = '';
     const formattedHeader = Str.removeSpaces(String(header).toLowerCase().trim());
@@ -26,7 +27,7 @@ function findColumnName(header: string): string {
 
         case 'category':
         case 'categories':
-            attribute = CONST.CSV_IMPORT_COLUMNS.EMAIL;
+            attribute = CONST.CSV_IMPORT_COLUMNS.CATEGORY;
             break;
 
         case 'glcode':
@@ -102,6 +103,19 @@ function findColumnName(header: string): string {
             attribute = CONST.CSV_IMPORT_COLUMNS.CURRENCY;
             break;
 
+        case 'date':
+        case 'transactiondate':
+        case 'transaction_date':
+            attribute = CONST.CSV_IMPORT_COLUMNS.DATE;
+            break;
+
+        case 'merchant':
+        case 'merchants':
+        case 'vendor':
+        case 'vendors':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT;
+            break;
+
         case 'rateid':
             attribute = CONST.CSV_IMPORT_COLUMNS.RATE_ID;
             break;
@@ -117,6 +131,7 @@ function findColumnName(header: string): string {
 
     return attribute;
 }
+// cspell:enable
 
 type ColumnRole = {
     /** Translated text to be displayed */
@@ -140,19 +155,23 @@ type ImportColumnProps = {
     columnName: string;
 
     /** Array of all possible column roles for specific data import */
-    columnRoles: ColumnRole[];
+    columnRoles?: ColumnRole[];
 
     /** Index of the column in the spreadsheet */
     columnIndex: number;
+
+    /** Whether to show the dropdown menu */
+    shouldShowDropdownMenu?: boolean;
 };
 
-function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColumnProps) {
+function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowDropdownMenu = true}: ImportColumnProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const {containsHeader = true} = spreadsheet ?? {};
+    const hasAutoDetected = useRef(false);
 
-    const options: Array<DropdownOption<string>> = columnRoles.map((item) => ({
+    const options: Array<DropdownOption<string>> = (columnRoles ?? []).map((item) => ({
         text: item.text,
         value: item.value,
         description: item.description ?? (item.isRequired ? translate('common.required') : undefined),
@@ -161,19 +180,29 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
 
     const columnValuesString = column.slice(containsHeader ? 1 : 0).join(', ');
 
-    const colName = findColumnName(column.at(0) ?? '');
-    const defaultSelectedIndex = columnRoles.findIndex((item) => item.value === colName);
-    const finalIndex = defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0;
+    const currentColumnValue = spreadsheet?.columns?.[columnIndex];
+    // Treat 'ignore' as unmapped so auto-detection can still run
+    const isMapped = currentColumnValue && currentColumnValue !== CONST.CSV_IMPORT_COLUMNS.IGNORE;
+    const autoDetectedColName = isMapped ? '' : findColumnName(column.at(0) ?? '');
+
+    const foundIndex = columnRoles?.findIndex((item) => item.value === (currentColumnValue ?? autoDetectedColName)) ?? -1;
+    const selectedIndex = foundIndex !== -1 ? foundIndex : 0;
 
     useEffect(() => {
-        if (defaultSelectedIndex === -1) {
+        // Only run auto-detection once on mount
+        if (hasAutoDetected.current) {
             return;
         }
-        setColumnName(columnIndex, colName);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, []);
 
-    const columnHeader = containsHeader ? column.at(0) : translate('spreadsheet.column', {name: columnName});
+        if (isMapped || !autoDetectedColName) {
+            return;
+        }
+
+        hasAutoDetected.current = true;
+        setColumnName(columnIndex, autoDetectedColName);
+    }, [isMapped, autoDetectedColName, columnIndex]);
+
+    const columnHeader = containsHeader ? column.at(0) : translate('spreadsheet.column', columnName);
 
     return (
         <View style={[styles.importColumnCard, styles.mt4]}>
@@ -183,7 +212,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
             >
                 {columnHeader}
             </Text>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.justifyContentBetween, styles.w100]}>
                 <Text
                     numberOfLines={2}
                     ellipsizeMode="tail"
@@ -192,26 +221,27 @@ function ImportColumn({column, columnName, columnRoles, columnIndex}: ImportColu
                     {columnValuesString}
                 </Text>
 
-                <View style={styles.ml2}>
-                    <ButtonWithDropdownMenu
-                        onPress={() => {}}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                        shouldShowSelectedItemCheck
-                        menuHeaderText={columnHeader}
-                        isSplitButton={false}
-                        onOptionSelected={(option) => {
-                            setColumnName(columnIndex, option.value);
-                        }}
-                        defaultSelectedIndex={finalIndex}
-                        options={options}
-                    />
-                </View>
+                {shouldShowDropdownMenu && (
+                    <View style={styles.ml2}>
+                        <ButtonWithDropdownMenu
+                            onPress={() => {}}
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                            shouldShowSelectedItemCheck
+                            menuHeaderText={columnHeader}
+                            isSplitButton={false}
+                            onOptionSelected={(option) => {
+                                setColumnName(columnIndex, option.value);
+                            }}
+                            defaultSelectedIndex={selectedIndex}
+                            options={options}
+                            success={false}
+                        />
+                    </View>
+                )}
             </View>
         </View>
     );
 }
-
-ImportColumn.displayName = 'ImportColumn';
 
 export type {ColumnRole};
 export default ImportColumn;

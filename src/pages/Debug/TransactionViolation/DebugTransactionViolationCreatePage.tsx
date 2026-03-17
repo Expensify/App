@@ -52,6 +52,7 @@ const getInitialTransactionViolation = () =>
             displayPercentVariance: undefined,
             duplicates: [],
             rterType: undefined,
+            comment: undefined,
         },
     } satisfies TransactionViolation);
 
@@ -96,7 +97,7 @@ function DebugTransactionViolationCreatePage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugTransactionViolationCreatePage.displayName}
+            testID="DebugTransactionViolationCreatePage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -115,7 +116,8 @@ function DebugTransactionViolationCreatePage({
                                 multiline
                                 value={draftTransactionViolation}
                                 onChangeText={editJSON}
-                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.p5]}
+                                // We need to explicitly add styles.pt5 and styles.pb5 to override the default top and bottom padding of the text input
+                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.ph5, styles.pt5, styles.pb5]}
                             />
                         </View>
                         <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
@@ -131,7 +133,5 @@ function DebugTransactionViolationCreatePage({
         </ScreenWrapper>
     );
 }
-
-DebugTransactionViolationCreatePage.displayName = 'DebugTransactionViolationCreatePage';
 
 export default DebugTransactionViolationCreatePage;

@@ -1,30 +1,32 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {ModalProps} from 'react-native-modal';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type IconAsset from '@src/types/utils/IconAsset';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
-import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
-import type BottomDockedModalProps from './Modal/BottomDockedModal/types';
+import type ReanimatedModalProps from './Modal/ReanimatedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
@@ -34,6 +36,9 @@ import Text from './Text';
 type PopoverMenuItem = MenuItemProps & {
     /** Text label */
     text: string;
+
+    /** Badge text to be shown near the right end. */
+    badgeText?: string;
 
     /** A callback triggered when this item is selected */
     onSelected?: () => void;
@@ -56,26 +61,50 @@ type PopoverMenuItem = MenuItemProps & {
     shouldCloseAllModals?: boolean;
 
     pendingAction?: PendingAction;
+
+    rightIcon?: IconAsset;
+
+    key?: string;
+
+    /** Whether to ignore key and use a fallback key for React rendering instead. */
+    shouldIgnoreKeyForRendering?: boolean;
+
+    /** Whether to keep the modal open after clicking on the menu item */
+    shouldKeepModalOpen?: boolean;
+
+    /** Test identifier used to find elements in tests */
+    testID?: string;
+
+    /** Whether to show a loading spinner icon for the menu item */
+    shouldShowLoadingSpinnerIcon?: boolean;
+
+    /** Whether to close the modal on select */
+    shouldCloseModalOnSelect?: boolean;
+
+    /** Additional data for the menu item */
+    additionalData?: Record<string, unknown>;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
-    Pick<BottomDockedModalProps, 'animationInDelay'> & {
-        /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
-        shouldUseNewModal?: boolean;
-    };
+type ModalAnimationProps = Pick<ReanimatedModalProps, 'animationInDelay' | 'animationIn' | 'animationInTiming' | 'animationOut' | 'animationOutTiming'>;
 
-type PopoverMenuProps = Partial<PopoverModalProps> & {
+type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Callback method fired when the user requests to close the modal */
     onClose: () => void;
 
+    /** Optional callback passed to popover's children container */
+    onLayout?: (e: LayoutChangeEvent) => void;
+
     /** Callback method fired when the modal is shown */
     onModalShow?: () => void;
+
+    /** Callback method fired when the modal is hidden */
+    onModalHide?: () => void;
 
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
 
     /** Callback to fire when a CreateMenu item is selected */
-    onItemSelected?: (selectedItem: PopoverMenuItem, index: number) => void;
+    onItemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Menu items to be rendered on the list */
     menuItems: PopoverMenuItem[];
@@ -90,7 +119,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     anchorPosition: AnchorPosition;
 
     /** Ref of the anchor */
-    anchorRef: RefObject<View | HTMLDivElement>;
+    anchorRef: RefObject<View | HTMLDivElement | null>;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;
@@ -103,6 +132,8 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Whether we want to show the popover on the right side of the screen */
     fromSidebarMediumScreen?: boolean;
+
+    shouldHandleNavigationBack?: boolean;
 
     /**
      * Whether the modal should enable the new focus manager.
@@ -131,6 +162,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
 
+    /** Whether we should set a max height to the popover content */
+    shouldEnableMaxHeight?: boolean;
+
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
 
@@ -140,8 +174,14 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Whether we want to avoid the safari exception of ignoring shouldCallAfterModalHide  */
     shouldAvoidSafariException?: boolean;
 
+    /** Whether to preserve focus on sub items after selection */
+    shouldMaintainFocusAfterSubItemSelect?: boolean;
+
     /** Used to locate the component in the tests */
     testID?: string;
+
+    /** Badge style to be shown near the right end. */
+    badgeStyle?: StyleProp<ViewStyle>;
 };
 
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
@@ -149,23 +189,91 @@ const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentConta
         return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
     }
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return <View style={contentContainerStyle}>{children}</View>;
 };
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
 }
 
-function PopoverMenu({
+/**
+ * Return a stable string key for a menu item.
+ * Prefers explicit `key` property on the item. If missing, falls back to `text`.
+ *
+ * IMPORTANT: the key must be stable and unique across the whole menu tree for the
+ * path-resolution algorithm to work reliably when menu arrays change.
+ */
+const getItemKey = (item: PopoverMenuItem) => item.key ?? item.text;
+
+/**
+ * Build a key-path (array of keys) by walking the `root` using `indexPath`.
+ *
+ * The `indexPath` is an array of indexes which represent the path previously
+ * selected by the user (e.g. [1, 2] means: at root index 1, then its subMenuItems index 2).
+ *
+ * We iterate down the `root` following `indexPath` and collect getItemKey(node)
+ * for each visited node. If any index is out-of-bounds for a level, we stop
+ * and return the keys collected so far (could be empty).
+ */
+function buildKeyPathFromIndexPath(root: PopoverMenuItem[], indexPath: readonly number[]): string[] {
+    const keys: string[] = [];
+    let level: PopoverMenuItem[] | undefined = root;
+
+    for (const idx of indexPath) {
+        const node: PopoverMenuItem | undefined = level?.[idx];
+        if (!node) {
+            break;
+        }
+        keys.push(getItemKey(node));
+        level = node.subMenuItems;
+    }
+    return keys;
+}
+
+/**
+ * Try to resolve a key-path against the current `root` and return the corresponding index-path
+ * and the `itemsAtLeaf` (the subMenuItems array of the final matched node, or an empty array).
+ *
+ * Returns `{found: false}` if any key in keyPath cannot be found at the expected level.
+ */
+function resolveIndexPathByKeyPath(root: PopoverMenuItem[], keyPath: string[]) {
+    let level: PopoverMenuItem[] = root;
+    const indexes: number[] = [];
+
+    for (const key of keyPath) {
+        const i = level.findIndex((n) => getItemKey(n) === key);
+        if (i === -1) {
+            return {found: false as const};
+        }
+        indexes.push(i);
+        const next = level.at(i)?.subMenuItems;
+        level = next ?? [];
+    }
+    return {found: true as const, indexes, itemsAtLeaf: level};
+}
+
+function PopoverMenu(props: PopoverMenuProps) {
+    const wasVisible = usePrevious(props.isVisible);
+    // Do not render the PopoverMenu before it gets opened. Until then both values are false
+    if (!wasVisible && !props.isVisible) {
+        return null;
+    }
+    return <BasePopoverMenu {...props} />;
+}
+
+function BasePopoverMenu({
     menuItems,
     onItemSelected,
     isVisible,
     anchorPosition,
     anchorRef,
     onClose,
+    onLayout,
     onModalShow,
+    onModalHide,
     headerText,
     fromSidebarMediumScreen,
+    shouldHandleNavigationBack,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -182,31 +290,35 @@ function PopoverMenu({
     restoreFocusType,
     shouldShowSelectedItemCheck = false,
     containerStyles,
+    badgeStyle,
     headerStyles,
     innerContainerStyle,
     scrollContainerStyle,
     shouldUseScrollView = false,
+    shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
-    shouldUseNewModal,
-    testID,
     shouldAvoidSafariException = false,
+    shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
+    testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
-    const {windowHeight} = useWindowDimensions();
     const platform = getPlatform();
-    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+    const isWeb = platform === CONST.PLATFORM.WEB;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
+    const prevMenuItems = usePrevious(menuItems);
 
-    const selectItem = (index: number) => {
+    const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
         if (!selectedItem) {
             return;
@@ -216,8 +328,12 @@ function PopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
+        } else if (selectedItem.shouldCloseModalOnSelect === false) {
+            onItemSelected?.(selectedItem, index, event);
+            selectedItem.onSelected?.();
+            setFocusedIndex(-1);
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
-            onItemSelected?.(selectedItem, index);
+            onItemSelected?.(selectedItem, index, event);
             close(
                 () => {
                     selectedItem.onSelected?.();
@@ -226,7 +342,7 @@ function PopoverMenu({
                 selectedItem.shouldCloseAllModals,
             );
         } else {
-            onItemSelected?.(selectedItem, index);
+            onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
         }
     };
@@ -246,19 +362,22 @@ function PopoverMenu({
     const renderBackButtonItem = () => {
         const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
-        const hasBackButtonText = !!previouslySelectedItem.backButtonText;
+        const hasBackButtonText = !!previouslySelectedItem?.backButtonText;
+        const backButtonTitle = hasBackButtonText ? previouslySelectedItem?.backButtonText : previouslySelectedItem?.text;
 
         return (
             <MenuItem
-                key={previouslySelectedItem.text}
-                icon={Expensicons.BackArrow}
-                iconFill={theme.icon}
+                key={previouslySelectedItem?.text}
+                icon={expensifyIcons.BackArrow}
+                iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
-                title={hasBackButtonText ? previouslySelectedItem.backButtonText : previouslySelectedItem.text}
+                additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
+                title={backButtonTitle}
+                accessibilityLabel={`${translate('common.goBack')}, ${backButtonTitle}`}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
                 shouldShowBasicTitle={hasBackButtonText}
                 shouldCheckActionAllowedOnPress={false}
-                description={previouslySelectedItem.description}
+                description={previouslySelectedItem?.description}
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
@@ -269,39 +388,57 @@ function PopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
+        const {
+            text,
+            onSelected,
+            subMenuItems,
+            shouldCallAfterModalHide,
+            key,
+            shouldIgnoreKeyForRendering,
+            testID: menuItemTestID,
+            shouldShowLoadingSpinnerIcon,
+            badgeText,
+            ...menuItemProps
+        } = item;
+        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
+        // eslint-disable-next-line react/no-array-index-key
+        const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
         return (
             <OfflineWithFeedback
-                // eslint-disable-next-line react/no-array-index-key
-                key={`${item.text}_${menuIndex}`}
+                key={reactKey}
                 pendingAction={item.pendingAction}
             >
                 <FocusableMenuItem
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`${item.text}_${menuIndex}`}
-                    pressableTestID={`PopoverMenuItem-${item.text}`}
+                    key={reactKey}
+                    pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
-                    onPress={() => selectItem(menuIndex)}
+                    onPress={(event) => selectItem(menuIndex, event)}
                     focused={focusedIndex === menuIndex}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     shouldCheckActionAllowedOnPress={false}
+                    iconRight={item.rightIcon}
+                    shouldShowRightIcon={!!item.rightIcon}
+                    brickRoadIndicator={item.brickRoadIndicator}
                     onFocus={() => {
                         if (!shouldUpdateFocusedIndex) {
                             return;
                         }
                         setFocusedIndex(menuIndex);
                     }}
-                    wrapperStyle={StyleUtils.getItemBackgroundColorStyle(
-                        !!item.isSelected,
-                        focusedIndex === menuIndex,
-                        item.disabled ?? false,
-                        theme.activeComponentBG,
-                        theme.hoverComponentBG,
-                    )}
+                    badgeText={badgeText}
+                    badgeStyle={StyleSheet.flatten(badgeStyle)}
+                    wrapperStyle={[
+                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
+                        shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
+                    ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                    icon={icon}
+                    role={CONST.ROLE.BUTTON}
                     // Spread other props dynamically
                     {...menuItemProps}
+                    hasSubMenuItems={!!subMenuItems?.length}
+                    shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />
             </OfflineWithFeedback>
         );
@@ -311,7 +448,14 @@ function PopoverMenu({
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}>{headerText}</Text>;
+        return (
+            <Text
+                key="header-text"
+                style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
+            >
+                {headerText}
+            </Text>
+        );
     };
 
     useKeyboardShortcut(
@@ -337,34 +481,111 @@ function PopoverMenu({
         [shouldUseScrollView],
     );
 
-    // On web and desktop, pressing the space bar after interacting with the parent view
+    // On web, pressing the space bar after interacting with the parent view
     // can cause the parent view to scroll when the space bar is pressed.
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWebOrDesktop && isVisible, shouldPreventDefault: false});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWeb && isVisible, shouldPreventDefault: false});
 
-    const onModalHide = () => {
-        setFocusedIndex(currentMenuItemsFocusedIndex);
+    const handleModalHide = () => {
+        onModalHide?.();
+        const keyPath = buildKeyPathFromIndexPath(menuItems, enteredSubMenuIndexes);
+        const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
+
+        if (resolved.found) {
+            setFocusedIndex(getSelectedItemIndex(resolved.itemsAtLeaf));
+        } else {
+            setFocusedIndex(currentMenuItemsFocusedIndex);
+        }
     };
 
     // When the menu items are changed, we want to reset the sub-menu to make sure
     // we are not accessing the wrong sub-menu parent or possibly undefined when rendering the back button.
     // We use useLayoutEffect so the reset happens before the repaint
     useLayoutEffect(() => {
-        if (menuItems.length === 0) {
+        if (menuItems.length === 0 || deepEqual(menuItems, prevMenuItems)) {
             return;
         }
+
+        // The following logic is designed to check whether the submenu was open, and if so, we check whether the path to this
+        // submenu remained after the menuItems changes. If we were able to recreate the submenu from the new items, we leave it open;
+        // if not, we close it. This is necessary in order to close the submenu only if its parent element has been removed from menuItems.
+        const keyPath = buildKeyPathFromIndexPath(prevMenuItems ?? menuItems, enteredSubMenuIndexes);
+
+        if (keyPath.length === 0) {
+            setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
+            setCurrentMenuItems(menuItems);
+            if (!isVisible) {
+                setFocusedIndex(getSelectedItemIndex(menuItems));
+            }
+            return;
+        }
+
+        const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
+
+        if (resolved.found && shouldPreserveFocusOnSubItems) {
+            setEnteredSubMenuIndexes(resolved.indexes);
+            setCurrentMenuItems(resolved.itemsAtLeaf);
+            if (!isVisible) {
+                setFocusedIndex(getSelectedItemIndex(resolved.itemsAtLeaf));
+            }
+            return;
+        }
+
         setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
         setCurrentMenuItems(menuItems);
-
-        // Update the focused item to match the selected item, but only when the popover is not visible.
-        // This ensures that if the popover is visible, highlight from the keyboard navigation is not overridden
-        // by external updates.
-        if (isVisible) {
-            return;
+        if (!isVisible) {
+            setFocusedIndex(getSelectedItemIndex(menuItems));
         }
-        setFocusedIndex(getSelectedItemIndex(menuItems));
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex]);
+
+    const menuContainerStyle = useMemo(() => {
+        if (isSmallScreenWidth) {
+            return shouldEnableMaxHeight ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
+        }
+
+        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
+
+        if (shouldUseScrollView && shouldEnableMaxHeight) {
+            stylesArray.push({maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT});
+        }
+
+        return stylesArray;
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView]);
+
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+    const {
+        paddingVertical: menuContainerPaddingVertical,
+        paddingTop: menuContainerPaddingTop,
+        paddingBottom: menuContainerPaddingBottom,
+        ...restMenuContainerStyle
+    } = StyleSheet.flatten(menuContainerStyle) ?? {};
+
+    const {
+        paddingVertical: containerPaddingVertical,
+        paddingTop: containerPaddingTop,
+        paddingBottom: containerPaddingBottom,
+        ...restContainerStyles
+    } = StyleSheet.flatten(containerStyles) ?? {};
+
+    const scrollViewPaddingStyles = useMemo(
+        () => ({
+            paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop,
+            paddingBottom: paddingBottom ?? containerPaddingBottom ?? menuContainerPaddingBottom,
+            paddingVertical: paddingVertical ?? containerPaddingVertical ?? menuContainerPaddingVertical ?? 0,
+        }),
+        [
+            paddingTop,
+            containerPaddingTop,
+            menuContainerPaddingTop,
+            paddingBottom,
+            containerPaddingBottom,
+            menuContainerPaddingBottom,
+            paddingVertical,
+            containerPaddingVertical,
+            menuContainerPaddingVertical,
+        ],
+    );
 
     return (
         <PopoverWithMeasuredContent
@@ -377,7 +598,7 @@ function PopoverMenu({
                 onClose();
             }}
             isVisible={isVisible}
-            onModalHide={onModalHide}
+            onModalHide={handleModalHide}
             onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
@@ -389,18 +610,25 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-            useNativeDriver
             restoreFocusType={restoreFocusType}
-            innerContainerStyle={innerContainerStyle}
+            innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             testID={testID}
-            shouldUseNewModal={shouldUseNewModal}
         >
-            <FocusTrapForModal active={isVisible}>
-                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
-                    {renderHeaderText()}
-                    {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
+            <FocusTrapForModal
+                active={isVisible}
+                shouldReturnFocus={!shouldEnableNewFocusManagement}
+            >
+                <View
+                    onLayout={onLayout}
+                    style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
+                >
+                    {renderWithConditionalWrapper(
+                        shouldUseScrollView,
+                        [scrollViewPaddingStyles, restScrollContainerStyle],
+                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                    )}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
@@ -412,13 +640,16 @@ PopoverMenu.displayName = 'PopoverMenu';
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- menuItems array is created inline in most usages with unstable references
+        deepEqual(prevProps.menuItems, nextProps.menuItems) &&
         prevProps.isVisible === nextProps.isVisible &&
-        lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorPosition object is created inline in most usages
+        deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&
         prevProps.headerText === nextProps.headerText &&
         prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
-        lodashIsEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorAlignment object is created inline in most usages
+        deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
         prevProps.animationIn === nextProps.animationIn &&
         prevProps.animationOut === nextProps.animationOut &&
         prevProps.animationInTiming === nextProps.animationInTiming &&
@@ -427,3 +658,4 @@ export default React.memo(
         prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
 export type {PopoverMenuItem, PopoverMenuProps};
+export {getItemKey, buildKeyPathFromIndexPath, resolveIndexPathByKeyPath};

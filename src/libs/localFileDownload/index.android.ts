@@ -1,5 +1,5 @@
 import RNFetchBlob from 'react-native-blob-util';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {getMimeType, showGeneralErrorAlert, showSuccessAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import localFileCreate from '@libs/localFileCreate';
 import type LocalFileDownload from './types';
 
@@ -8,22 +8,23 @@ import type LocalFileDownload from './types';
  * and textContent, so we're able to copy it to the Android public download dir.
  * After the file is copied, it is removed from the internal dir.
  */
-const localFileDownload: LocalFileDownload = (fileName, textContent, successMessage) => {
+const localFileDownload: LocalFileDownload = (fileName, textContent, translate, successMessage) => {
     localFileCreate(fileName, textContent).then(({path, newFileName}) => {
+        const {fileExtension} = splitExtensionFromFileName(newFileName);
         RNFetchBlob.MediaCollection.copyToMediaStore(
             {
                 name: newFileName,
                 parentFolder: '', // subdirectory in the Media Store, empty goes to 'Downloads'
-                mimeType: 'text/plain',
+                mimeType: getMimeType(fileExtension),
             },
             'Download',
             path,
         )
             .then(() => {
-                FileUtils.showSuccessAlert(successMessage);
+                showSuccessAlert(translate, successMessage);
             })
             .catch(() => {
-                FileUtils.showGeneralErrorAlert();
+                showGeneralErrorAlert(translate);
             })
             .finally(() => {
                 RNFetchBlob.fs.unlink(path);

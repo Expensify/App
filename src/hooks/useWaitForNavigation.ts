@@ -13,9 +13,9 @@ export default function useWaitForNavigation(): UseWaitForNavigation {
     useFocusEffect(
         useCallback(() => {
             return () => {
-                resolvePromises.current.forEach((resolve) => {
+                for (const resolve of resolvePromises.current) {
                     resolve();
-                });
+                }
                 resolvePromises.current = [];
             };
         }, []),

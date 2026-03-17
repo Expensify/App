@@ -1,94 +1,114 @@
-import React, {useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
+import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
-import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
-import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function ProfilePage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
+    const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
+    useDocumentTitle(translate('common.profile'));
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
+    const logins = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [loginList, session?.email, translate]);
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart];
+    const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
+    const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
-    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList);
+    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: currentUserPersonalDetails?.displayName ?? '',
+            title: formatPhoneNumber(getDisplayNameOrDefault(currentUserPersonalDetails)),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
         },
         {
-            description: translate('contacts.contactMethod'),
-            title: formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
+            description: translate('contacts.contactMethods'),
+            title: logins
+                .map((login) => login?.menuItemTitle)
+                .filter(Boolean)
+                .join(', '),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
+            testID: 'contact-method-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHODS,
         },
         {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
+            brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
         {
             description: translate('pronounsPage.pronouns'),
             title: getPronouns(),
             pageRoute: ROUTES.SETTINGS_PRONOUNS,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PRONOUNS,
         },
         {
             description: translate('timezonePage.timezone'),
             title: currentUserPersonalDetails?.timezone?.selected ?? '',
             pageRoute: ROUTES.SETTINGS_TIMEZONE,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.TIMEZONE,
         },
     ];
 
@@ -96,9 +116,10 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
             action: () => {
                 if (isActingAsDelegate) {
-                    setIsNoDelegateAccessMenuVisible(true);
+                    showDelegateNoAccessModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
@@ -107,9 +128,10 @@ function ProfilePage() {
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
             action: () => {
                 if (isActingAsDelegate) {
-                    setIsNoDelegateAccessMenuVisible(true);
+                    showDelegateNoAccessModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
@@ -118,9 +140,10 @@ function ProfilePage() {
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
             action: () => {
                 if (isActingAsDelegate) {
-                    setIsNoDelegateAccessMenuVisible(true);
+                    showDelegateNoAccessModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
@@ -130,9 +153,10 @@ function ProfilePage() {
         {
             description: translate('privatePersonalDetails.address'),
             title: getFormattedAddress(privateDetails),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
             action: () => {
                 if (isActingAsDelegate) {
-                    setIsNoDelegateAccessMenuVisible(true);
+                    showDelegateNoAccessModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
@@ -140,18 +164,30 @@ function ProfilePage() {
         },
     ];
 
+    const privateSectionReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ProfilePage.privateSection',
+        isLoadingApp: !!isLoadingApp,
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={ProfilePage.displayName}
+            testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => {
+                    if (route.params?.backTo) {
+                        Navigation.goBack(route.params?.backTo);
+                        return;
+                    }
+                    Navigation.goBack();
+                }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                icon={Illustrations.Profile}
+                shouldDisplayHelpButton
+                icon={Profile}
                 shouldUseHeadlineHeader
             />
             <ScrollView
@@ -171,27 +207,28 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.XLARGE} />
+                                    <AvatarSkeleton
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        reasonAttributes={{
+                                            context: 'ProfilePage',
+                                            isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
+                                            isAccountIDInvalid: accountID === -1,
+                                            hasNoAvatarURL: !avatarURL,
+                                        }}
+                                    />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
-                                        <AvatarWithImagePicker
-                                            isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
+                                        <AvatarButtonWithIcon
+                                            text={translate('avatarWithImagePicker.editImage')}
                                             source={avatarURL}
                                             avatarID={accountID}
-                                            onImageSelected={updateAvatar}
-                                            onImageRemoved={deleteAvatar}
-                                            size={CONST.AVATAR_SIZE.XLARGE}
-                                            avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
+                                            size={CONST.AVATAR_SIZE.X_LARGE}
+                                            avatarStyle={avatarStyle}
                                             pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                            errorRowStyles={styles.mt6}
-                                            onErrorClose={clearAvatarErrors}
-                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
-                                            previewSource={getFullSizeAvatar(avatarURL, accountID)}
-                                            originalFileName={currentUserPersonalDetails.originalFileName}
-                                            headerTitle={translate('profilePage.profileAvatar')}
                                             fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                                             editIconStyle={styles.profilePageAvatar}
+                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}
                                         />
                                     </MenuItemGroup>
                                 )}
@@ -206,14 +243,17 @@ function ProfilePage() {
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={() => Navigation.navigate(detail.pageRoute)}
                                     brickRoadIndicator={detail.brickRoadIndicator}
+                                    pressableTestID={detail?.testID}
+                                    sentryLabel={detail.sentryLabel}
                                 />
                             ))}
                             <Button
                                 accessibilityLabel={translate('common.shareCode')}
                                 text={translate('common.share')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                icon={Expensicons.QrCode}
+                                icon={icons.QrCode}
                                 style={[styles.alignSelfStart, styles.mt6]}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.SHARE_CODE}
                             />
                         </Section>
                         <Section
@@ -225,7 +265,12 @@ function ProfilePage() {
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
                             {isLoadingApp ? (
-                                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
+                                <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
+                                    <ActivityIndicator
+                                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                        reasonAttributes={privateSectionReasonAttributes}
+                                    />
+                                </View>
                             ) : (
                                 <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
                                     {privateOptions.map((detail, index) => (
@@ -238,6 +283,7 @@ function ProfilePage() {
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
                                             onPress={detail.action}
                                             brickRoadIndicator={detail.brickRoadIndicator}
+                                            sentryLabel={detail.sentryLabel}
                                         />
                                     ))}
                                 </MenuItemGroup>
@@ -246,14 +292,8 @@ function ProfilePage() {
                     </View>
                 </MenuItemGroup>
             </ScrollView>
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
         </ScreenWrapper>
     );
 }
-
-ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;

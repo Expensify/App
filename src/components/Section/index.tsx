@@ -14,6 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
+import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import IconSection from './IconSection';
@@ -52,11 +53,17 @@ type SectionProps = Partial<ChildrenProps> & {
     /** Customize the Section container */
     subtitleStyles?: StyleProp<ViewStyle>;
 
+    /** Customize the Section subtitle text */
+    subtitleTextStyles?: StyleProp<TextStyle>;
+
     /** Customize the Section container */
     childrenStyles?: StyleProp<ViewStyle>;
 
     /** Customize the Icon container */
     iconContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Customize the Central pane container */
+    centralPaneContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether the section is in the central pane of the layout */
     isCentralPane?: boolean;
@@ -105,11 +112,13 @@ function Section({
     menuItems,
     subtitle,
     subtitleStyles,
+    subtitleTextStyles,
     subtitleMuted = false,
     title,
     renderTitle,
     titleStyles,
     isCentralPane = false,
+    centralPaneContainerStyle,
     illustration,
     illustrationBackgroundColor,
     illustrationContainerStyle,
@@ -159,6 +168,7 @@ function Section({
                                 webStyle={styles.h100}
                                 autoPlay
                                 loop
+                                shouldLoadAfterInteractions={shouldUseNarrowLayout}
                             />
                         ) : (
                             <ImageSVG
@@ -170,7 +180,7 @@ function Section({
                     {overlayContent?.()}
                 </View>
             )}
-            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : contentPaddingOnLargeScreens ?? styles.p8)]}>
+            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : (contentPaddingOnLargeScreens ?? styles.p8)), centralPaneContainerStyle]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
                         <IconSection
@@ -180,7 +190,18 @@ function Section({
                             iconContainerStyles={[styles.flexGrow0, styles.justifyContentStart, iconContainerStyles]}
                         />
                     )}
-                    <View style={[styles.flexShrink1]}>{renderTitle ? renderTitle() : <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>}</View>
+                    <View style={[styles.flexShrink1, styles.w100]}>
+                        {renderTitle
+                            ? renderTitle()
+                            : !!title && (
+                                  <Text
+                                      style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}
+                                      accessibilityRole={CONST.ROLE.HEADER}
+                                  >
+                                      {title}
+                                  </Text>
+                              )}
+                    </View>
                     {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
                         <IconSection
                             width={iconWidth}
@@ -197,7 +218,7 @@ function Section({
                           <View
                               style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt2, subtitleStyles]}
                           >
-                              <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
+                              <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted, subtitleTextStyles]}>{subtitle}</Text>
                           </View>
                       )}
 
@@ -208,7 +229,7 @@ function Section({
         </View>
     );
 }
-Section.displayName = 'Section';
 
+export type {SectionProps};
 export {CARD_LAYOUT};
 export default Section;

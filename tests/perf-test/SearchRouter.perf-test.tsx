@@ -4,18 +4,19 @@ import React, {useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import {OptionsListContext} from '@components/OptionListContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {OptionsListActionsContext, OptionsListStateContext} from '@components/OptionListContextProvider';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
-import OnyxProvider from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -43,6 +44,22 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isDisplayedInModal: jest.fn(() => false),
 }));
 
+jest.mock('@src/hooks/useRootNavigationState', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
+}));
+
+jest.mock('@hooks/useExportedToFilterOptions', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: () => ({
+        exportedToFilterOptions: [],
+        combinedUniqueExportTemplates: [],
+        connectedIntegrationNames: new Set<string>(),
+    }),
+}));
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
@@ -50,8 +67,7 @@ jest.mock('@react-navigation/native', () => {
         useFocusEffect: jest.fn(),
         useIsFocused: () => true,
         useRoute: () => jest.fn(),
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        UNSTABLE_usePreventRemove: () => jest.fn(),
+        usePreventRemove: () => jest.fn(),
         useNavigation: () => ({
             navigate: jest.fn(),
             addListener: () => jest.fn(),
@@ -69,15 +85,12 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@libs/runOnLiveMarkdownRuntime', () => {
-    const runOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue) => worklet;
-    return runOnLiveMarkdownRuntime;
-});
+jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-        (index) => createRandomReport(index),
+        (index) => createRandomReport(index, undefined),
         length,
     );
 
@@ -88,15 +101,18 @@ const getMockedPersonalDetails = (length = 100) =>
         length,
     );
 
+const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
+
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
-const mockedOptions = createOptionList(mockedPersonalDetails, mockedReports);
+const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
+const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports);
 
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT],
+        evictableKeys: [ONYXKEYS.COLLECTION.REPORT],
     }),
 );
 
@@ -117,7 +133,7 @@ const mockOnClose = jest.fn();
 function SearchAutocompleteInputWrapper() {
     const [value, setValue] = React.useState('');
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SearchAutocompleteInput
                 value={value}
                 onSearchQueryChange={(searchTerm) => setValue(searchTerm)}
@@ -130,10 +146,12 @@ function SearchAutocompleteInputWrapper() {
 
 function SearchRouterWrapperWithCachedOptions() {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
-            <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, resetOptions: () => {}, areOptionsInitialized: true}), [])}>
-                <SearchRouter onRouterClose={mockOnClose} />
-            </OptionsListContext.Provider>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <OptionsListStateContext.Provider value={useMemo(() => ({options: mockedOptions, areOptionsInitialized: true}), [])}>
+                <OptionsListActionsContext.Provider value={useMemo(() => ({initializeOptions: () => {}, resetOptions: () => {}}), [])}>
+                    <SearchRouter onRouterClose={mockOnClose} />
+                </OptionsListActionsContext.Provider>
+            </OptionsListStateContext.Provider>
         </ComposeProviders>
     );
 }

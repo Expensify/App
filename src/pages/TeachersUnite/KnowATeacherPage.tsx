@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -11,11 +10,12 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isValidDisplayName} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidDisplayName} from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,14 +26,14 @@ function KnowATeacherPage() {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
-        const phoneLogin = getPhoneLogin(values.partnerUserID);
-        const validateIfnumber = validateNumber(phoneLogin);
-        const contactMethod = (validateIfnumber || values.partnerUserID).trim().toLowerCase();
+        const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
+        const validateIfNumber = validateNumber(phoneLogin);
+        const contactMethod = (validateIfNumber || values.partnerUserID).trim().toLowerCase();
         const firstName = values.firstName.trim();
         const lastName = values.lastName.trim();
 
@@ -47,33 +47,19 @@ function KnowATeacherPage() {
      */
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
-            const errors = {};
-            const phoneLogin = getPhoneLogin(values.partnerUserID);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME], translate);
+            const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
             const validateIfNumber = validateNumber(phoneLogin);
 
-            if (!values.firstName || !isValidDisplayName(values.firstName)) {
+            if (!isValidDisplayName(values.firstName)) {
                 addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
-            } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'firstName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.firstName.length,
-                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
-                    }),
-                );
+            } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
+                addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
             }
-            if (!values.lastName || !isValidDisplayName(values.lastName)) {
+            if (!isValidDisplayName(values.lastName)) {
                 addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
-            } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'lastName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.lastName.length,
-                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
-                    }),
-                );
+            } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
+                addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!values.partnerUserID) {
                 addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
@@ -87,13 +73,13 @@ function KnowATeacherPage() {
 
             return errors;
         },
-        [loginList, translate],
+        [countryCode, loginList, translate],
     );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={KnowATeacherPage.displayName}
+            testID="KnowATeacherPage"
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iKnowATeacher')}
@@ -117,6 +103,7 @@ function KnowATeacherPage() {
                         accessibilityLabel={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete="given-name"
                     />
                 </View>
                 <View style={styles.mv4}>
@@ -128,6 +115,7 @@ function KnowATeacherPage() {
                         accessibilityLabel={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete="family-name"
                     />
                 </View>
                 <View>
@@ -146,7 +134,5 @@ function KnowATeacherPage() {
         </ScreenWrapper>
     );
 }
-
-KnowATeacherPage.displayName = 'KnowATeacherPage';
 
 export default KnowATeacherPage;

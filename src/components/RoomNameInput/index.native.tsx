@@ -1,24 +1,19 @@
-import type {ForwardedRef} from 'react';
 import React from 'react';
-import type {NativeSyntheticEvent, TextInputChangeEventData} from 'react-native';
+import type {TextInputChangeEvent} from 'react-native';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import {modifyRoomName} from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
 
-function RoomNameInput(
-    {disabled = false, autoFocus = false, shouldDelayFocus = false, isFocused, value, onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, onBlur, onChangeText, onInputChange, ref, ...props}: RoomNameInputProps) {
     const {translate} = useLocalize();
 
     /**
      * Calls the onChangeText callback with a modified room name
      */
-    const setModifiedRoomName = (event: NativeSyntheticEvent<TextInputChangeEventData>) => {
+    const setModifiedRoomName = (event: TextInputChangeEvent) => {
         const roomName = event.nativeEvent.text;
         const modifiedRoomName = modifyRoomName(roomName);
         onChangeText?.(modifiedRoomName);
@@ -45,7 +40,6 @@ function RoomNameInput(
             value={value?.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
             onBlur={(event) => isFocused && onBlur?.(event)}
             autoFocus={isFocused && autoFocus}
-            shouldDelayFocus={shouldDelayFocus}
             autoCapitalize="none"
             onChange={setModifiedRoomName}
             keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
@@ -53,6 +47,4 @@ function RoomNameInput(
     );
 }
 
-RoomNameInput.displayName = 'RoomNameInput';
-
-export default React.forwardRef(RoomNameInput);
+export default RoomNameInput;

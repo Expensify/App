@@ -1,6 +1,5 @@
-import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import AmountWithoutCurrencyForm from '@components/AmountWithoutCurrencyForm';
+import React from 'react';
+import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -8,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,7 +15,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PerDiem from '@userActions/Policy/PerDiem';
+import {editPerDiemRateAmount} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,32 +42,26 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
 
-            const newAmount = values.amount.trim();
-            const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
-            if (backendAmount === 0 || newAmount === '-') {
-                errors.amount = translate('common.error.fieldRequired');
-            }
+        const newAmount = values.amount.trim();
+        const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
+        if (backendAmount === 0 || newAmount === '-') {
+            errors.amount = translate('common.error.fieldRequired');
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const editAmount = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
-            const newAmount = values.amount.trim();
-            const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
-            if (backendAmount !== Number(selectedSubrate?.rate)) {
-                PerDiem.editPerDiemRateAmount(policyID, rateID, subRateID, customUnit, backendAmount);
-            }
-            Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
-        },
-        [selectedSubrate?.rate, policyID, rateID, subRateID, customUnit],
-    );
+    const editAmount = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
+        const newAmount = values.amount.trim();
+        const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
+        if (backendAmount !== Number(selectedSubrate?.rate)) {
+            editPerDiemRateAmount(policyID, rateID, subRateID, customUnit, backendAmount);
+        }
+        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -77,9 +71,9 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate) || isEmptyObject(selectedSubrate)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditPerDiemAmountPage.displayName}
+                testID="EditPerDiemAmountPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -93,23 +87,24 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         ref={inputCallbackRef}
-                        InputComponent={AmountWithoutCurrencyForm}
+                        InputComponent={AmountWithoutCurrencyInput}
                         defaultValue={defaultAmount}
                         label={translate('workspace.perDiem.amount')}
                         accessibilityLabel={translate('workspace.perDiem.amount')}
                         inputID={INPUT_IDS.AMOUNT}
                         role={CONST.ROLE.PRESENTATION}
                         shouldAllowNegative
+                        uncontrolled
                     />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditPerDiemAmountPage.displayName = 'EditPerDiemAmountPage';
 
 export default EditPerDiemAmountPage;

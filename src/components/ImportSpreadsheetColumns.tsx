@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setContainsHeader} from '@libs/actions/ImportSpreadsheet';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,7 +25,7 @@ type ImportSpreadsheetColumnsProps = {
     columnNames: string[];
 
     // An array of column roles to define the role of each column.
-    columnRoles: ColumnRole[];
+    columnRoles?: ColumnRole[];
 
     // A function to perform the import operation.
     importFunction: () => void;
@@ -38,9 +38,28 @@ type ImportSpreadsheetColumnsProps = {
 
     // Link to learn more about the file preparation for import.
     learnMoreLink?: string;
+
+    // An optional boolean indicating whether to show the column header.
+    shouldShowColumnHeader?: boolean;
+
+    // An optional boolean indicating whether to show the dropdown menu.
+    shouldShowDropdownMenu?: boolean;
+
+    customHeaderText?: string;
 };
 
-function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles, errors, importFunction, isButtonLoading, learnMoreLink}: ImportSpreadsheetColumnsProps) {
+function ImportSpreadsheetColumns({
+    spreadsheetColumns,
+    columnNames,
+    columnRoles,
+    errors,
+    importFunction,
+    isButtonLoading,
+    learnMoreLink,
+    shouldShowColumnHeader = true,
+    shouldShowDropdownMenu = true,
+    customHeaderText,
+}: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -52,21 +71,30 @@ function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles,
             <ScrollView>
                 <View style={styles.mh5}>
                     <Text>
-                        {translate('spreadsheet.importDescription')}
-                        <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
+                        {customHeaderText ?? (
+                            <>
+                                {translate('spreadsheet.importDescription')}
+                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>.
+                            </>
+                        )}
                     </Text>
-
-                    <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Text>{translate('spreadsheet.fileContainsHeader')}</Text>
-
-                        <Switch
-                            accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
-                            isOn={containsHeader}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            onToggle={setContainsHeader}
-                        />
-                    </View>
-
+                    {shouldShowColumnHeader && (
+                        <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                            <Text
+                                style={[styles.flex1, styles.mr2]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('spreadsheet.fileContainsHeader')}
+                            </Text>
+                            <Switch
+                                accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
+                                isOn={containsHeader}
+                                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                onToggle={setContainsHeader}
+                            />
+                        </View>
+                    )}
                     {spreadsheetColumns.map((column, index) => {
                         return (
                             <ImportColumn
@@ -75,23 +103,24 @@ function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles,
                                 columnName={columnNames.at(index) ?? ''}
                                 columnRoles={columnRoles}
                                 columnIndex={index}
+                                shouldShowDropdownMenu={shouldShowDropdownMenu}
                             />
                         );
                     })}
                 </View>
             </ScrollView>
-            <FixedFooter>
+            <FixedFooter addBottomSafeAreaPadding>
                 <OfflineWithFeedback
                     shouldDisplayErrorAbove
                     errors={errors}
                     errorRowStyles={styles.mv2}
-                    canDismissError={false}
                 >
                     <Button
                         text={translate('common.import')}
                         onPress={importFunction}
                         isLoading={isButtonLoading}
                         isDisabled={isOffline}
+                        pressOnEnter
                         success
                         large
                     />
@@ -100,7 +129,5 @@ function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles,
         </>
     );
 }
-
-ImportSpreadsheetColumns.displayName = 'ImportSpreadsheetColumns';
 
 export default ImportSpreadsheetColumns;

@@ -3,46 +3,49 @@ name: Build and deploy apps for testing
 on:
   workflow_dispatch:
     inputs:
-      PULL_REQUEST_NUMBER:
-        description: Pull Request number for correct placement of apps
+      # If not specified, only build iOS and Android apps from the main branch of Expensify/App
+      APP_PULL_REQUEST_URL:
+        description: The Expensify/App pull request URL (e.g., https://github.com/Expensify/App/pull/12345). Defaults to main.
+        required: false
+        default: ''
+      # Pull Request URL from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified defaults to Mobile-Expensify's main
+      MOBILE_EXPENSIFY_PULL_REQUEST_URL:
+        description: The Expensify/Mobile-Expensify pull request URL. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
+        required: false
+        default: ''
+      REVIEWED_CODE:
+        description: I reviewed this pull request and verified that it does not contain any malicious code.
+        type: boolean
         required: true
+        default: false
       WEB:
         description: Should build web app?
-        type: boolean
-        default: true
-      DESKTOP:
-        description: Should build desktop app?
         type: boolean
         default: true
       IOS:
         description: Should build iOS app?
         type: boolean
         default: true
-      IOS_HYBRID:
-        description: Should build iOS hybrid app? 
-        type: boolean
-        default: true
       ANDROID:
-        description: Should build android app? 
+        description: Should build android app?
         type: boolean
         default: true
-      ANDROID_HYBRID:
-        description: Should build android hybrid app? 
+      FORCE_NATIVE_BUILD:
+        description: Force a full native build, bypassing Rock remote cache
         type: boolean
-        default: true
-
-env:
-  # This variable is needed for fastlane to construct correct path
-  PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+        default: false
 
 jobs:
   prep:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
-      REF: ${{ steps.getHeadRef.outputs.REF }}
+      APP_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
+      APP_PR_NUMBER: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}
+      MOBILE_PR_NUMBER: ${{ steps.extractMobilePRNumber.outputs.PR_NUMBER }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Validate that user is an Expensify employee
         uses: ./.github/actions/composite/validateActor
@@ -50,301 +53,113 @@ jobs:
           REQUIRE_APP_DEPLOYER: false
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
-      - name: Check if pull request number is correct
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: Validate that the user reviewed the pull request before running a test build
+        if: ${{ !inputs.REVIEWED_CODE }}
+        run: |
+          echo "::error::🕵️‍♀️ Please carefully review the pull request before running a test build to ensure it does not contain any malicious code"
+          exit 1
+
+      - name: Extract App PR number from URL
+        id: extractAppPRNumber
+        if: ${{ inputs.APP_PULL_REQUEST_URL != '' }}
+        run: |
+          PR_NUMBER=$(echo '${{ inputs.APP_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::❌ Could not extract PR number from URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/App/pull/12345)"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Extract Mobile-Expensify PR number from URL
+        id: extractMobilePRNumber
+        if: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL != '' }}
+        run: |
+          PR_NUMBER=$(echo '${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::❌ Could not extract PR number from URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/Mobile-Expensify/pull/12345)"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Check if App pull request number is correct
         id: getHeadRef
         run: |
           set -e
-          echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          if [ -z "${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}" ]; then
+            echo "REF=" >> "$GITHUB_OUTPUT"
+          else
+            echo "REF=$(gh pr view ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-  postGitHubCommentBuildStarted:
-    name: Post build started comment
-    uses: ./.github/workflows/postBuildStartedComment.yml
+  getMobileExpensifyPR:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [prep]
-    secrets: inherit
-    with:
-      APP_PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-
-  buildAndroid:
-    name: Build Android app for testing
-    if: ${{ inputs.ANDROID }}
-    uses: ./.github/workflows/buildAndroid.yml
-    needs: [prep]
-    secrets: inherit
-    with:
-      type: adhoc
-      ref: ${{ needs.prep.outputs.REF }}
-      pull_request_number: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-
-  uploadAndroid:
-    name: Upload Android app to S3
-    needs: [buildAndroid]
-    runs-on: ubuntu-latest
     outputs:
-      S3_APK_PATH: ${{ steps.exportS3Path.outputs.S3_APK_PATH }}
+      MOBILE_EXPENSIFY_PR: ${{ steps.mobileExpensifyPR.outputs.result }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+      - name: Check if author specified Expensify/Mobile-Expensify PR
+        id: mobileExpensifyPR
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
-          bundler-cache: true
+          github-token: ${{ github.token }}
+          result-encoding: string
+          script: |
+            if ('${{ needs.prep.outputs.MOBILE_PR_NUMBER }}') {
+              return '${{ needs.prep.outputs.MOBILE_PR_NUMBER }}';
+            }
 
-      - name: Download Android build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/artifacts
-          pattern: android-*-artifact
-          merge-multiple: true
+            if (!'${{ needs.prep.outputs.APP_PR_NUMBER }}') {
+              return '';
+            }
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+            const pullRequest = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: '${{ needs.prep.outputs.APP_PR_NUMBER }}',
+            });
+            
+            const body = pullRequest.data.body;
+            const regex = /MOBILE-EXPENSIFY:\s*https:\/\/github.com\/Expensify\/Mobile-Expensify\/pull\/(?<prNumber>\d+)/;
+            const found = body.match(regex)?.groups?.prNumber || "";
 
-      - name: Upload AdHoc build to S3
-        run: bundle exec fastlane android upload_s3
-        env:
-          apkPath: /tmp/artifacts/${{ needs.buildAndroid.outputs.APK_FILE_NAME }}
-          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          S3_BUCKET: ad-hoc-expensify-cash
-          S3_REGION: us-east-1
+            return found.trim();
 
-      - name: Export S3 paths
-        id: exportS3Path
-        run: |
-          # $s3APKPath is set from within the Fastfile, android upload_s3 lane
-          echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
+  getMobileExpensifyRef:
+      runs-on: blacksmith-4vcpu-ubuntu-2404
+      needs: [prep, getMobileExpensifyPR]
+      outputs:
+        MOBILE_EXPENSIFY_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
+      steps:
+        - name: Checkout
+          # v6
+          uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
-  iOS:
-    name: Build and deploy iOS for testing
-    if: ${{ inputs.IOS }}
-    needs: [prep]
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
-    runs-on: macos-15-xlarge
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prep.outputs.REF }}
+        - name: Check if Expensify/Mobile-Expensify pull request number is correct
+          id: getHeadRef
+          run: |
+            set -e
+            if [[ -z "${{ needs.prep.outputs.MOBILE_PR_NUMBER }}" && -z "${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}" ]]; then
+              echo "REF=" >> "$GITHUB_OUTPUT"
+            else
+              echo "PR=${{ needs.prep.outputs.MOBILE_PR_NUMBER || needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}" >> "$GITHUB_OUTPUT"
+              echo "REF=$(gh pr view ${{ needs.prep.outputs.MOBILE_PR_NUMBER || needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+            fi
+          env:
+            GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
-        run: |
-          cp .env.staging .env.adhoc
-          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
-
-      - name: Setup Node
-        id: setup-node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Setup XCode
-        run: sudo xcode-select -switch /Applications/Xcode_16.2.0.app
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.204.0
-        with:
-          bundler-cache: true
-
-      - name: Cache Pod dependencies
-        uses: actions/cache@v4
-        id: pods-cache
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
-
-      - name: Compare Podfile.lock and Manifest.lock
-        id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
-
-      - name: Install cocoapods
-        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
-        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: scripts/pod-install.sh
-
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
-
-      - name: Load files from 1Password
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc/NewApp_AdHoc.mobileprovision" --force --out-file ./NewApp_AdHoc.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc_Notification_Service/NewApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./NewApp_AdHoc_Notification_Service.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc_Share_Extension/NewApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./NewApp_AdHoc_Share_Extension.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Build AdHoc app
-        run: bundle exec fastlane ios build_adhoc
-
-      - name: Upload AdHoc build to S3
-        run: bundle exec fastlane ios upload_s3
-        env:
-          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          S3_BUCKET: ad-hoc-expensify-cash
-          S3_REGION: us-east-1
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios
-          path: ./ios_paths.json
-
-  desktop:
-    name: Build and deploy Desktop for testing
-    if: ${{ inputs.DESKTOP }}
-    needs: [prep]
-    runs-on: macos-14-large
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prep.outputs.REF }}
-
-      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
-        run: |
-          cp .env.staging .env.adhoc
-          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-        with:
-          IS_DESKTOP_BUILD: true
-
-      - name: Load Desktop credentials from 1Password
-        id: load-credentials
-        uses: 1password/load-secrets-action@v2
-        with:
-          export-env: false
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DESKTOP_CERTIFICATE_BASE64: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_LINK"
-          DESKTOP_CERTIFICATE_PASSWORD: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_KEY_PASSWORD"
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Build desktop app for testing
-        run: npm run desktop-build-adhoc
-        env:
-          CSC_LINK: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_BASE64 }}
-          CSC_KEY_PASSWORD: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_STAGING }}
-
-  web:
-    name: Build and deploy Web
-    if: ${{ inputs.WEB }}
-    needs: [prep]
-    runs-on: ubuntu-latest-xl
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prep.outputs.REF }}
-
-      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
-        run: |
-          cp .env.staging .env.adhoc
-          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Build web for testing
-        run: npm run build-adhoc
-
-      - name: Deploy to S3 for internal testing
-        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
-
-  buildHybridApps:
-    name: Build hybrid adhoc apps
-    uses: ./.github/workflows/testBuildHybrid.yml
-    needs: [prep]
-    secrets: inherit
+  buildApps:
+    needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
+    uses: ./.github/workflows/buildAdHoc.yml
     with:
-      APP_PR_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-      APP_REF: ${{ needs.prep.outputs.REF }}
-      IOS_HYBRID: ${{ inputs.IOS_HYBRID }}
-      ANDROID_HYBRID: ${{ inputs.ANDROID_HYBRID }}
-
-  postGithubComment:
-    runs-on: ubuntu-latest
-    if: always()
-    name: Post a GitHub comment with app download links for testing
-    needs: [prep, uploadAndroid, iOS, desktop, web, buildHybridApps]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prep.outputs.REF }}
-
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-
-      - name: Read JSONs with iOS paths
-        id: get_ios_path
-        if: ${{ needs.iOS.result == 'success' }}
-        run: |
-          content_ios="$(cat ./ios/ios_paths.json)"
-          content_ios="${content_ios//'%'/'%25'}"
-          content_ios="${content_ios//$'\n'/'%0A'}"
-          content_ios="${content_ios//$'\r'/'%0D'}"
-          ios_path=$(echo "$content_ios" | jq -r '.html_path')
-          echo "ios_path=$ios_path" >> "$GITHUB_OUTPUT"
-
-      - name: Publish links to apps for download
-        uses: ./.github/actions/javascript/postTestBuildComment
-        with:
-          PR_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          GITHUB_TOKEN: ${{ github.token }}
-          ANDROID: ${{ needs.uploadAndroid.result }}
-          ANDROID_HYBRID: ${{ needs.buildHybridApps.result }}
-          DESKTOP: ${{ needs.desktop.result }}
-          IOS: ${{ needs.iOS.result }}
-          IOS_HYBRID: ${{ needs.buildHybridApps.result }}
-          WEB: ${{ needs.web.result }}
-          ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_APK_PATH }}
-          ANDROID_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.ANDROID_LINK }}
-          DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ github.event.inputs.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
-          IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
-          IOS_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.IOS_LINK }}
-          WEB_LINK: https://${{ github.event.inputs.PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
+      APP_REF: ${{ needs.prep.outputs.APP_REF }}
+      APP_PR_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
+      MOBILE_EXPENSIFY_REF: ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
+      MOBILE_EXPENSIFY_PR: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
+      BUILD_WEB: ${{ inputs.WEB && 'true' || 'false' }}
+      BUILD_IOS: ${{ inputs.IOS && 'true' || 'false' }}
+      BUILD_ANDROID: ${{ inputs.ANDROID && 'true' || 'false' }}
+      FORCE_NATIVE_BUILD: ${{ inputs.FORCE_NATIVE_BUILD && 'true' || 'false' }}
+    secrets: inherit

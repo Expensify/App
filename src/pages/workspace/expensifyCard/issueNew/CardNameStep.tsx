@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -8,73 +7,94 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
-import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
+import KeyboardUtils from '@src/utils/keyboard';
 
 type CardNameStepProps = {
     /** ID of the policy */
     policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames: readonly string[];
+
+    /** Start from step index */
+    startStepIndex: number;
 };
 
-function CardNameStep({policyID}: CardNameStepProps) {
+function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const {isBetaEnabled} = usePermissions();
 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
+    const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
 
     const userName = getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
-    const defaultCardTitle = data?.cardType !== CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL ? getDefaultCardName(userName) : '';
+    const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
-        const length = values.cardTitle.length;
-        if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE], translate);
+        if (values.cardTitle) {
+            const {isValid, byteLength} = isValidInputLength(values.cardTitle, CONST.STANDARD_LENGTH_LIMIT);
+            if (!isValid) {
+                addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
+            }
         }
         return errors;
     };
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-            setIssueNewCardStepAndData({
-                step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
-                data: {
-                    cardTitle: values.cardTitle,
-                },
-                isEditing: false,
-                policyID,
+            KeyboardUtils.dismiss().then(() => {
+                setIssueNewCardStepAndData({
+                    step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
+                    data: {
+                        cardTitle: values.cardTitle,
+                    },
+                    isEditing: false,
+                    policyID,
+                });
             });
         },
         [policyID],
     );
 
     const handleBackButtonPress = useCallback(() => {
-        if (isEditing) {
-            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
-            return;
-        }
-        setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT, policyID});
-    }, [isEditing, policyID]);
+        KeyboardUtils.dismiss().then(() => {
+            if (isEditing) {
+                setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
+                return;
+            }
+            setIssueNewCardStepAndData({
+                step: isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS) && isVirtualCard ? CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS : CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE,
+                policyID,
+            });
+        });
+    }, [isEditing, isBetaEnabled, isVirtualCard, policyID]);
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CardNameStep.displayName}
+            wrapperID="CardNameStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={4}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>
             <FormProvider
@@ -84,6 +104,8 @@ function CardNameStep({policyID}: CardNameStepProps) {
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
+                addBottomSafeAreaPadding
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -100,7 +122,5 @@ function CardNameStep({policyID}: CardNameStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-CardNameStep.displayName = 'CardNameStep';
 
 export default CardNameStep;

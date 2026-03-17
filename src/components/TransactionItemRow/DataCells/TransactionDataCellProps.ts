@@ -1,7 +1,7 @@
-import type Transaction from '@src/types/onyx/Transaction';
+import type {TransactionWithOptionalSearchFields} from '..';
 
 type TransactionDataCellProps = {
-    transactionItem: Transaction;
+    transactionItem: TransactionWithOptionalSearchFields;
     shouldShowTooltip: boolean;
     shouldUseNarrowLayout?: boolean;
 };

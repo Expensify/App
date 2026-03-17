@@ -1,8 +1,9 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
 import mergeRefs from '@libs/mergeRefs';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -55,6 +56,7 @@ type MenuItemListProps = {
 function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapperStyle = {}, icon = undefined, iconWidth = undefined, iconHeight = undefined}: MenuItemListProps) {
     const popoverAnchor = useRef<View>(null);
     const {isExecuting, singleExecution} = useSingleExecution();
+    const isFocused = useIsFocused();
 
     /**
      * Handle the secondary interaction for a menu item.
@@ -64,15 +66,26 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
      */
     const secondaryInteraction = (link: MenuItemLink | undefined, event: GestureResponderEvent | MouseEvent) => {
         if (typeof link === 'function') {
-            link().then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
+            link().then((url) =>
+                showContextMenu({
+                    type: CONST.CONTEXT_MENU_TYPES.LINK,
+                    event,
+                    selection: url,
+                    contextMenuAnchor: popoverAnchor.current,
+                }),
+            );
         } else if (link) {
-            ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current);
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.LINK,
+                event,
+                selection: link,
+                contextMenuAnchor: popoverAnchor.current,
+            });
         }
     };
 
     return (
         // ref is accessed for MenuItem's ref initialization
-        // eslint-disable-next-line react-compiler/react-compiler
         menuItems.map(({key, ref, ...menuItemProps}) => (
             <OfflineWithFeedback
                 key={key ?? menuItemProps.title}
@@ -94,13 +107,12 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     {...menuItemProps}
                     disabled={!!menuItemProps.disabled || isExecuting}
                     onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
+                    isFocused={isFocused}
                 />
             </OfflineWithFeedback>
         ))
     );
 }
-
-MenuItemList.displayName = 'MenuItemList';
 
 export type {MenuItemWithLink};
 export default MenuItemList;

@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -28,9 +29,12 @@ type HeaderProps = {
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
+
+    /** Line number for the title */
+    numberOfTitleLines?: number;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = ''}: HeaderProps) {
+function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = '', numberOfTitleLines = 2}: HeaderProps) {
     const styles = useThemeStyles();
     const renderedSubtitle = useMemo(
         () => (
@@ -72,8 +76,10 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                 {typeof title === 'string'
                     ? !!title && (
                           <Text
-                              numberOfLines={2}
-                              style={[styles.headerText, styles.textLarge, textStyles]}
+                              numberOfLines={numberOfTitleLines}
+                              style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
+                              accessibilityRole={CONST.ROLE.HEADER}
+                              accessibilityLabel={title}
                           >
                               {title}
                           </Text>
@@ -86,8 +92,6 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
         </View>
     );
 }
-
-Header.displayName = 'Header';
 
 export default Header;
 

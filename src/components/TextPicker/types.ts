@@ -1,3 +1,5 @@
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
@@ -24,8 +26,23 @@ type TextSelectorModalProps = {
 
     /** The ID used to uniquely identify the input in a Form */
     inputID: string;
+
+    /** Whether the field is required */
+    required?: boolean;
+
+    /** Custom validation function */
+    customValidate?: (values: Record<string, string>) => Record<string, string>;
+
+    /** Whether the form should be actionable when offline */
+    enabledWhenOffline?: boolean;
+
+    /** Whether HTML is allowed in form inputs */
+    allowHTML?: boolean;
+
+    /** Whether to use strict HTML tag validation regex */
+    shouldUseStrictHtmlTagValidation?: boolean;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
-    TextProps;
+    Omit<TextProps, 'ref'>;
 
 type TextPickerProps = {
     /** Item to display */
@@ -40,6 +57,12 @@ type TextPickerProps = {
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;
 
+    /**
+     * Called after the user commits the value (presses Save in the modal),
+     * once the modal has closed, the parent value is updated.
+     */
+    onValueCommitted?: (value: string) => void;
+
     /** Text to display under the main menu item */
     furtherDetails?: string;
 
@@ -48,7 +71,25 @@ type TextPickerProps = {
 
     /** The ID used to uniquely identify the input in a Form */
     inputID: string;
-} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive'> &
+
+    /** Whether the field is required */
+    required?: boolean;
+
+    /** Custom validation function */
+    customValidate?: (values: Record<string, string>) => Record<string, string>;
+
+    /** Whether the form should be actionable when offline */
+    enabledWhenOffline?: boolean;
+
+    /** Whether HTML is allowed in form inputs */
+    allowHTML?: boolean;
+
+    /** Whether to use strict HTML tag validation regex */
+    shouldUseStrictHtmlTagValidation?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive' | 'wrapperStyle' | 'numberOfLinesTitle' | 'titleStyle' | 'descriptionTextStyle'> &
     TextProps;
 
 export type {TextSelectorModalProps, TextPickerProps};

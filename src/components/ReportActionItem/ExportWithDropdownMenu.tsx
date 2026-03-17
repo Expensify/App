@@ -1,30 +1,31 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {StyleSheet} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, ReportExportType} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyActions from '@libs/actions/Policy/Policy';
-import * as ReportActions from '@libs/actions/Report';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
+import {savePreferredExportMethod as savePreferredExportMethodUtils} from '@libs/actions/Policy/Policy';
+import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
+import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type ExportWithDropdownMenuProps = {
-    policy: OnyxEntry<Policy>;
-
+type ExportWithDropdownMenuProps = WithSentryLabel & {
     report: OnyxEntry<Report>;
+
+    reportActions: OnyxEntry<ReportActions>;
 
     connectionName: ConnectionName;
 
@@ -34,27 +35,27 @@ type ExportWithDropdownMenuProps = {
 };
 
 function ExportWithDropdownMenu({
-    policy,
     report,
+    reportActions,
     connectionName,
     dropdownAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
     wrapperStyle,
+    sentryLabel,
 }: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
+    const {showConfirmModal} = useConfirmModal();
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare']);
 
-    const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
-    const canBeExported = ReportUtils.canBeExported(report);
-    const isExported = ReportUtils.isExported(reportActions);
-    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectionName);
+    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
+    const canBeExported = canBeExportedUtils(report);
+    const isExported = isExportedUtils(reportActions, report);
     const flattenedWrapperStyle = StyleSheet.flatten([styles.flex1, wrapperStyle]);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
@@ -74,7 +75,7 @@ function ExportWithDropdownMenu({
             },
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-                text: translate('workspace.common.markAsExported'),
+                text: translate('workspace.common.markAsEntered'),
                 ...optionTemplate,
             },
         ];
@@ -83,66 +84,58 @@ function ExportWithDropdownMenu({
             options.sort((method) => (method.value === exportMethod ? -1 : 0));
         }
         return options;
-        // We do not include exportMethods not to re-render the component when the preffered export method changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // We do not include exportMethods not to re-render the component when the preferred export method changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canBeExported, iconToDisplay, connectionName, report?.policyID, translate]);
 
-    const confirmExport = useCallback(() => {
-        setModalStatus(null);
+    const handleExport = (exportType: ReportExportType) => {
         if (!reportID) {
             return;
         }
-        if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-            ReportActions.exportToIntegration(reportID, connectionName);
-        } else if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            ReportActions.markAsManuallyExported(reportID, connectionName);
+        if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+            exportToIntegration(reportID, connectionName);
+        } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+            markAsManuallyExported([reportID], connectionName);
         }
-    }, [connectionName, modalStatus, reportID]);
+    };
 
     const savePreferredExportMethod = (value: ReportExportType) => {
         if (!report?.policyID) {
             return;
         }
-        PolicyActions.savePreferredExportMethod(report?.policyID, value);
+        savePreferredExportMethodUtils(report?.policyID, value);
     };
 
     return (
-        <>
-            <ButtonWithDropdownMenu<ReportExportType>
-                success={!hasIntegrationAutoSync}
-                pressOnEnter
-                shouldAlwaysShowDropdownMenu
-                anchorAlignment={dropdownAnchorAlignment}
-                onPress={(_, value) => {
-                    if (isExported) {
-                        setModalStatus(value);
-                        return;
-                    }
-                    if (!reportID) {
-                        return;
-                    }
-                    if (value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                        ReportActions.exportToIntegration(reportID, connectionName);
-                    } else if (value === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                        ReportActions.markAsManuallyExported(reportID, connectionName);
-                    }
-                }}
-                onOptionSelected={({value}) => savePreferredExportMethod(value)}
-                options={dropdownOptions}
-                style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                wrapperStyle={flattenedWrapperStyle}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-            />
-            <ConfirmModal
-                title={translate('workspace.exportAgainModal.title')}
-                onConfirm={confirmExport}
-                onCancel={() => setModalStatus(null)}
-                prompt={translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''})}
-                confirmText={translate('workspace.exportAgainModal.confirmText')}
-                cancelText={translate('workspace.exportAgainModal.cancelText')}
-                isVisible={!!modalStatus}
-            />
-        </>
+        <ButtonWithDropdownMenu<ReportExportType>
+            success
+            pressOnEnter
+            shouldAlwaysShowDropdownMenu
+            anchorAlignment={dropdownAnchorAlignment}
+            onPress={(_, value) => {
+                if (isExported) {
+                    showConfirmModal({
+                        title: translate('workspace.exportAgainModal.title'),
+                        prompt: translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''}),
+                        confirmText: translate('workspace.exportAgainModal.confirmText'),
+                        cancelText: translate('workspace.exportAgainModal.cancelText'),
+                    }).then(({action}) => {
+                        if (action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        handleExport(value);
+                    });
+                    return;
+                }
+                handleExport(value);
+            }}
+            onOptionSelected={({value}) => savePreferredExportMethod(value)}
+            options={dropdownOptions}
+            style={[shouldUseNarrowLayout && styles.flexGrow1]}
+            wrapperStyle={flattenedWrapperStyle}
+            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            sentryLabel={sentryLabel}
+        />
     );
 }
 

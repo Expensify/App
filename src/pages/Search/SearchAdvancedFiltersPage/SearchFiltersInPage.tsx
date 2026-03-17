@@ -1,13 +1,13 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFiltersChatsSelector from '@components/Search/SearchFiltersChatsSelector';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchActions from '@userActions/Search';
+import {updateAdvancedFilters} from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -23,7 +23,7 @@ function SearchFiltersInPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersInPage.displayName}
+            testID="SearchFiltersInPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             onEntryTransitionEnd={handleScreenTransitionEnd}
@@ -32,14 +32,14 @@ function SearchFiltersInPage() {
             <HeaderWithBackButton
                 title={translate('common.in')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
                 <SearchFiltersChatsSelector
                     isScreenTransitionEnd={isScreenTransitionEnd}
                     onFiltersUpdate={(selectedAccountIDs) => {
-                        SearchActions.updateAdvancedFilters({
+                        updateAdvancedFilters({
                             in: selectedAccountIDs,
                         });
                     }}
@@ -49,7 +49,5 @@ function SearchFiltersInPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersInPage.displayName = 'SearchFiltersInPage';
 
 export default SearchFiltersInPage;

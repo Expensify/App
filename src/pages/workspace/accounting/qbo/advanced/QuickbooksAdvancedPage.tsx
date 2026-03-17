@@ -9,7 +9,7 @@ import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {updateQuickbooksOnlineAutoCreateVendor, updateQuickbooksOnlineCollectionAccountID, updateQuickbooksOnlineSyncPeople} from '@libs/actions/connections/QuickbooksOnline';
+import {updateQuickbooksOnlineAutoCreateVendor, updateQuickbooksOnlineSyncPeople, updateQuickbooksOnlineSyncReimbursedReports} from '@libs/actions/connections/QuickbooksOnline';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -38,7 +38,10 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const qboAccountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
     const invoiceAccountCollectionOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
 
-    const isSyncReimbursedSwitchOn = !!qboConfig?.collectionAccountID;
+    const isSyncReimbursedSwitchOn = useMemo(
+        () => !!qboConfig?.collectionAccountID || !!qboConfig?.reimbursementAccountID,
+        [qboConfig?.collectionAccountID, qboConfig?.reimbursementAccountID],
+    );
 
     const reimbursementAccountID = qboConfig?.reimbursementAccountID;
     const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name, [qboAccountOptions, reimbursementAccountID]);
@@ -55,6 +58,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const AccordionMenuItems = [
         {
+            key: 'qboBillPaymentAccount',
             title: selectedQboAccountName,
             description: translate('workspace.qbo.advancedConfig.qboBillPaymentAccount'),
             onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID))),
@@ -63,6 +67,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: settingsPendingAction(reimbursementOrCollectionAccountIDs, qboConfig?.pendingFields),
         },
         {
+            key: 'qboInvoiceCollectionAccount',
             title: selectedInvoiceCollectionAccountName,
             description: translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount'),
             onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID))),
@@ -75,7 +80,10 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const syncReimbursedSubMenuItems = () => (
         <View style={[styles.mt3]}>
             {AccordionMenuItems.map((item) => (
-                <OfflineWithFeedback pendingAction={item.pendingAction}>
+                <OfflineWithFeedback
+                    key={item.key}
+                    pendingAction={item.pendingAction}
+                >
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={item.title}
@@ -107,7 +115,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             isActive: !!qboConfig?.autoCreateVendor,
             onToggle: (isOn: boolean) => {
                 const nonReimbursableVendorUpdateValue = isOn
-                    ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
+                    ? (policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE)
                     : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
                 const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
 
@@ -132,12 +140,14 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
-            onToggle: () =>
-                updateQuickbooksOnlineCollectionAccountID(
+            onToggle: () => {
+                updateQuickbooksOnlineSyncReimbursedReports(
                     policyID,
                     isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions].at(0)?.id,
                     qboConfig?.collectionAccountID,
-                ),
+                    qboConfig?.reimbursementAccountID,
+                );
+            },
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
             errors: getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
             pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID], qboConfig?.pendingFields),
@@ -146,7 +156,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksAdvancedPage.displayName}
+            displayName="QuickbooksAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -170,7 +180,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         if (!qboConfig?.autoSync?.enabled) {
                             return undefined;
                         }
-                        return translate(`workspace.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths);
+                        return translate(`workspace.qbo.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths);
                     })()}
                 />
             </OfflineWithFeedback>
@@ -198,7 +208,5 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksAdvancedPage.displayName = 'QuickbooksAdvancedPage';
 
 export default withPolicyConnections(QuickbooksAdvancedPage);

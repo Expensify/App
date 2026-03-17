@@ -44,8 +44,8 @@ function NamePage({
     const submit = () => {
         const taxName = name.trim();
         // Do not call the API if the edited tax name is the same as the current tag name
-        if (currentTaxRate?.name !== taxName) {
-            renamePolicyTax(policyID, taxID, taxName);
+        if (currentTaxRate?.name !== taxName && policy?.taxRates?.taxes[taxID]) {
+            renamePolicyTax(policyID, taxID, taxName, policy?.taxRates?.taxes[taxID]);
         }
         goBack();
     };
@@ -58,9 +58,9 @@ function NamePage({
             if (values[INPUT_IDS.NAME] === currentTaxRate?.name) {
                 return {};
             }
-            return validateTaxName(policy, values);
+            return validateTaxName(policy, values, translate);
         },
-        [currentTaxRate?.name, policy],
+        [currentTaxRate?.name, policy, translate],
     );
 
     if (!currentTaxRate) {
@@ -74,9 +74,9 @@ function NamePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={NamePage.displayName}
+                testID="NamePage"
             >
                 <HeaderWithBackButton
                     title={translate('common.name')}
@@ -90,6 +90,9 @@ function NamePage({
                     onSubmit={submit}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -108,7 +111,5 @@ function NamePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-NamePage.displayName = 'NamePage';
 
 export default withPolicyAndFullscreenLoading(NamePage);

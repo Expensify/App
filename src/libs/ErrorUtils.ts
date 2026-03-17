@@ -1,14 +1,17 @@
 import mapValues from 'lodash/mapValues';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, TranslationKeyError, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
-import * as Localize from './Localize';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+import {translate, translateLocal} from './Localize';
 
-function getAuthenticateErrorMessage(response: Response): TranslationPaths {
+function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TKey>): TranslationPaths {
     switch (response.jsonCode) {
         case CONST.JSON_CODE.UNABLE_TO_RETRY:
             return 'session.offlineMessageRetry';
@@ -42,7 +45,16 @@ function getAuthenticateErrorMessage(response: Response): TranslationPaths {
  * @param error - The translation key for the error message.
  */
 function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
-    return {[errorKey ?? DateUtils.getMicroseconds()]: Localize.translateLocal(error)};
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return {[errorKey ?? DateUtils.getMicroseconds()]: translateLocal(error)};
+}
+
+/**
+ * Creates an error object with a timestamp (in microseconds) as the key and the translation key as the value.
+ * @param translationKey - The translation key for the error message.
+ */
+function getMicroSecondTranslationErrorWithTranslationKey(translationKey: TranslationPaths, errorKey?: number): TranslationKeyErrors {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: {translationKey}};
 }
 
 /**
@@ -84,11 +96,16 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: O
 function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: OnyxEntry<TOnyxData>): Errors {
     const errors = onyxData?.errors ?? {};
 
-    if (Object.keys(errors).length === 0) {
+    if (isEmptyValueObject(errors)) {
         return {};
     }
 
     const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+    const currentLocale = IntlStore.getCurrentLocale();
+
+    if (errors[key] === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
+        return {key: translate(currentLocale, 'bankAccount.error.sameDepositAndWithdrawalAccount')};
+    }
 
     return {key: errors[key]};
 }
@@ -100,7 +117,7 @@ type OnyxDataWithErrorFields = {
 function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: OnyxEntry<TOnyxData>, fieldName: string): Errors {
     const errorsForField = onyxData?.errorFields?.[fieldName] ?? {};
 
-    if (Object.keys(errorsForField).length === 0) {
+    if (isEmptyValueObject(errorsForField)) {
         return {};
     }
 
@@ -111,7 +128,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
 function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: OnyxEntry<TOnyxData>, fieldName: string): Errors {
     const errorsForField = onyxData?.errorFields?.[fieldName] ?? {};
 
-    if (Object.keys(errorsForField).length === 0) {
+    if (isEmptyValueObject(errorsForField)) {
         return {};
     }
 
@@ -125,7 +142,7 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
 function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: OnyxEntry<TOnyxData>): Errors {
     const errorFields = onyxData?.errorFields ?? {};
 
-    if (Object.keys(errorFields).length === 0) {
+    if (isEmptyValueObject(errorFields)) {
         return {};
     }
 
@@ -135,7 +152,7 @@ function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorField
 }
 
 function getLatestError(errors?: Errors): Errors {
-    if (!errors || Object.keys(errors).length === 0) {
+    if (!errors || isEmptyValueObject(errors)) {
         return {};
     }
 
@@ -197,6 +214,19 @@ function isReceiptError(message: unknown): message is ReceiptError {
     return ((message as Record<string, unknown>)?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
 }
 
+/**
+ * Check if the error includes a translation key.
+ */
+function isTranslationKeyError(message: unknown): message is TranslationKeyError {
+    if (!message || typeof message === 'string' || Array.isArray(message)) {
+        return false;
+    }
+    if (Object.keys(message as Record<string, unknown>).length !== 1) {
+        return false;
+    }
+    return (message as Record<string, unknown>)?.translationKey !== undefined;
+}
+
 export {
     addErrorMessage,
     getAuthenticateErrorMessage,
@@ -212,6 +242,8 @@ export {
     getMicroSecondOnyxErrorWithMessage,
     getMicroSecondOnyxErrorObject,
     isReceiptError,
+    isTranslationKeyError,
+    getMicroSecondTranslationErrorWithTranslationKey,
 };
 
 export type {OnyxDataWithErrors};

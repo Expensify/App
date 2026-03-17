@@ -79,9 +79,9 @@ describe('libs/StringUtils.removeInvisibleCharacters', () => {
         expect(StringUtils.removeInvisibleCharacters('test😀😀😀')).toBe('test😀😀😀');
     });
     it('all emojis not removed', () => {
-        Object.keys(enEmojis).forEach((key) => {
+        for (const key of Object.keys(enEmojis)) {
             expect(StringUtils.removeInvisibleCharacters(key)).toBe(key);
-        });
+        }
     });
     it('remove invisible characters (editpad)', () => {
         expect(StringUtils.removeInvisibleCharacters('test\u0020')).toBe('test');

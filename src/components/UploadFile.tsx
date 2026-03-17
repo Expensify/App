@@ -2,19 +2,19 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
-import type {FileObject} from './AttachmentModal';
+import type {FileObject} from '@src/types/utils/Attachment';
 import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
-import Text from './Text';
+import TextWithMiddleEllipsis from './TextWithMiddleEllipsis';
 
 type UploadFileProps = {
     /** Text displayed on button when no file is uploaded */
@@ -64,10 +64,10 @@ function UploadFile({
     totalFilesSizeLimit = 0,
     fileLimit = 0,
 }: UploadFileProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-
     const handleFileUpload = (files: FileObject[]) => {
         const resultedFiles = [...uploadedFiles, ...files];
 
@@ -75,28 +75,28 @@ function UploadFile({
 
         if (totalFilesSizeLimit) {
             if (totalSize > totalFilesSizeLimit) {
-                setError(translate('attachmentPicker.sizeExceededWithValue', {maxUploadSizeInMB: totalFilesSizeLimit / (1024 * 1024)}));
+                setError(translate('attachmentPicker.sizeExceededWithValue', totalFilesSizeLimit / (1024 * 1024)));
                 return;
             }
         }
 
         if (fileLimit && resultedFiles.length > 0 && resultedFiles.length > fileLimit) {
-            setError(translate('attachmentPicker.tooManyFiles', {fileLimit}));
+            setError(translate('attachmentPicker.tooManyFiles', fileLimit));
             return;
         }
 
         if (acceptedFileTypes.length > 0) {
-            const filesExtensions = files.map((file) => FileUtils.splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase());
+            const filesExtensions = new Set(files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase()));
 
-            if (acceptedFileTypes.every((element) => !filesExtensions.includes(element as string))) {
+            if (acceptedFileTypes.every((element) => !filesExtensions.has(element as string))) {
                 setError(translate('attachmentPicker.notAllowedExtension'));
                 return;
             }
         }
 
-        const uploadedFilesNames = uploadedFiles.map((uploadedFile) => uploadedFile.name);
+        const uploadedFilesNames = new Set(uploadedFiles.map((uploadedFile) => uploadedFile.name));
 
-        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.includes(file.name));
+        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.has(file.name));
 
         onInputChange(newFilesToUpload);
         onUpload(newFilesToUpload);
@@ -108,7 +108,7 @@ function UploadFile({
             <AttachmentPicker
                 acceptedFileTypes={acceptedFileTypes}
                 fileLimit={fileLimit}
-                allowMultiple={!!fileLimit}
+                allowMultiple={fileLimit > 1}
             >
                 {({openPicker}) => (
                     <Button
@@ -125,27 +125,27 @@ function UploadFile({
             </AttachmentPicker>
             {uploadedFiles.map((file) => (
                 <View
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3, styles.mw100]}
                     key={file.name}
                 >
                     <Icon
-                        src={Expensicons.Paperclip}
+                        src={icons.Paperclip}
                         fill={theme.icon}
                         medium
                     />
-                    <Text
-                        style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord, styles.w100, styles.flexShrink1]}
-                        numberOfLines={2}
-                    >
-                        {file.name}
-                    </Text>
+                    <TextWithMiddleEllipsis
+                        text={file.name ?? ''}
+                        style={[styles.ml2, styles.mr2, styles.w100, styles.flexShrink1]}
+                        textStyle={styles.textBold}
+                    />
                     <PressableWithFeedback
                         onPress={() => onRemove(file?.name ?? '')}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.remove')}
+                        sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
                     >
                         <Icon
-                            src={Expensicons.Close}
+                            src={icons.Close}
                             fill={theme.icon}
                             medium
                         />
@@ -162,7 +162,5 @@ function UploadFile({
         </View>
     );
 }
-
-UploadFile.displayName = 'UploadFile';
 
 export default UploadFile;

@@ -1,41 +1,49 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
-import {translateLocal} from '@libs/Localize';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
+import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
-import * as Expensicons from './Icon/Expensicons';
 
 type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.JOIN;
+type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
-} & {
-    [CONST.PROMOTED_ACTIONS.HOLD]: (params: {
-        isTextHold: boolean;
-        reportAction: ReportAction | undefined;
+    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {
         reportID?: string;
-        isDelegateAccessRestricted: boolean;
-        setIsNoDelegateAccessMenuVisible: (isVisible: boolean) => void;
-        currentSearchHash?: number;
+        accountID?: number;
+        login?: string;
+        currentUserAccountID: number;
+        introSelected: OnyxEntry<IntroSelected>;
+        isSelfTourViewed: boolean | undefined;
     }) => PromotedAction;
+} & {
+    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
+};
+
+type PromotedActionsBarProps = {
+    /** The list of actions to show */
+    promotedActions: PromotedAction[];
+
+    /** The style of the container */
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
 const PromotedActions = {
@@ -47,70 +55,41 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.SHARE,
         ...getShareMenuItem(report, backTo),
     }),
-    join: (report) => ({
+    join: (report, currentUserAccountID) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
-        icon: Expensicons.ChatBubbles,
-        text: translateLocal('common.join'),
+        icon: 'ChatBubbles',
+        translationKey: 'common.join',
         onSelected: callFunctionIfActionIsAllowed(() => {
             Navigation.dismissModal();
-            joinRoom(report);
+            joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login}) => ({
+    message: ({reportID, accountID, login, currentUserAccountID, introSelected, isSelfTourViewed}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
-        icon: Expensicons.CommentBubbles,
-        text: translateLocal('common.message'),
+        icon: 'CommentBubbles',
+        translationKey: 'common.message',
         onSelected: () => {
             if (reportID) {
-                Navigation.navigateToReportWithPolicyCheck({reportID});
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], false);
+                navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed, false);
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID]);
+                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected);
             }
-        },
-    }),
-    hold: ({isTextHold, reportAction, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible, currentSearchHash}) => ({
-        key: CONST.PROMOTED_ACTIONS.HOLD,
-        icon: Expensicons.Stopwatch,
-        text: translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
-        onSelected: () => {
-            if (isDelegateAccessRestricted) {
-                setIsNoDelegateAccessMenuVisible(true); // Show the menu
-                return;
-            }
-
-            if (!isTextHold) {
-                Navigation.goBack();
-            }
-
-            if (!isSearchTopmostFullScreenRoute() && isTextHold) {
-                changeMoneyRequestHoldStatus(reportAction);
-                return;
-            }
-
-            changeMoneyRequestHoldStatus(reportAction, currentSearchHash);
         },
     }),
 } satisfies PromotedActionsType;
-
-type PromotedActionsBarProps = {
-    /** The list of actions to show */
-    promotedActions: PromotedAction[];
-
-    /** The style of the container */
-    containerStyle?: StyleProp<ViewStyle>;
-};
-
 function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles', 'CommentBubbles']);
 
     if (promotedActions.length === 0) {
         return null;
@@ -118,7 +97,7 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
-            {promotedActions.map(({key, onSelected, ...props}) => (
+            {promotedActions.map(({key, onSelected, translationKey, icon}) => (
                 <View
                     style={[styles.flex1, styles.mw50]}
                     key={key}
@@ -126,16 +105,15 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                     <Button
                         onPress={onSelected}
                         iconFill={theme.icon}
+                        text={translate(translationKey)}
+                        icon={typeof icon === 'string' ? icons[icon] : icon}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
                     />
                 </View>
             ))}
         </View>
     );
 }
-
-PromotedActionsBar.displayName = 'PromotedActionsBar';
 
 export default PromotedActionsBar;
 

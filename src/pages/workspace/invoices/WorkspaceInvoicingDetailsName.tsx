@@ -1,5 +1,4 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -8,13 +7,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
+import {updateInvoiceCompanyName} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -30,14 +30,13 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM>) => {
-        Policy.updateInvoiceCompanyName(policyID, values[INPUT_IDS.COMPANY_NAME]);
+        updateInvoiceCompanyName(policyID, values[INPUT_IDS.COMPANY_NAME]);
         Navigation.goBack();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM> =>
-        ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME]);
+        getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME], translate);
 
     return (
         <AccessOrNotFoundWrapper
@@ -46,9 +45,10 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceInvoicingDetailsName.displayName}
+                testID="WorkspaceInvoicingDetailsName"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton title={translate('workspace.invoices.companyName')} />
                 <FormProvider
@@ -58,6 +58,8 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -73,7 +75,5 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInvoicingDetailsName.displayName = 'WorkspaceInvoicingDetailsName';
 
 export default WorkspaceInvoicingDetailsName;

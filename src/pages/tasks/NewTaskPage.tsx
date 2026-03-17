@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -10,18 +9,19 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,73 +34,87 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails), [task?.assigneeAccountID, personalDetails]);
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails), false);
-    const shareDestination = useMemo(
-        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails) : undefined),
-        [task?.shareDestination, reports, personalDetails],
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails);
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
+        getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
+        false,
+        localeCompare,
+        formatPhoneNumber,
     );
-    const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
-    const [errorMessage, setErrorMessage] = useState('');
+    const shareDestination = task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined;
+    const parentReport = task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined;
+    const ancestors = useAncestors(parentReport);
+    const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
+    const [error, setError] = useState<{message: string; taskKey: string}>({message: '', taskKey: ''});
+    const errorMessage = error.taskKey === taskKey ? error.message : '';
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
-    const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || isAllowedToComment(parentReport), [parentReport]);
+    const isAllowedToCreateTask = isEmptyObject(parentReport) || isAllowedToComment(parentReport);
 
     const {paddingBottom} = useSafeAreaPaddings();
 
     const backTo = route.params?.backTo;
     const confirmButtonRef = useRef<View>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                InteractionManager.runAfterInteractions(() => {
-                    blurActiveElement();
-                });
-            }, CONST.ANIMATED_TRANSITION);
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, []),
-    );
+    useFocusEffect(() => {
+        focusTimeoutRef.current = setTimeout(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                blurActiveElement();
+            });
+        }, CONST.ANIMATED_TRANSITION);
+        return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+    });
 
     useEffect(() => {
-        setErrorMessage('');
-
-        // We only set the parentReportID if we are creating a task from a report
-        // this allows us to go ahead and set that report as the share destination
-        // and disable the share destination selector
-        if (task?.parentReportID) {
-            setShareDestinationValue(task.parentReportID);
+        if (!task?.parentReportID) {
+            return;
         }
-    }, [task?.assignee, task?.assigneeAccountID, task?.description, task?.parentReportID, task?.shareDestination, task?.title]);
+        setShareDestinationValue(task.parentReportID);
+    }, [task?.parentReportID]);
 
     // On submit, we want to call the createTask function and wait to validate
     // the response
     const onSubmit = () => {
         if (!task?.title && !task?.shareDestination) {
-            setErrorMessage(translate('newTaskPage.confirmError'));
+            setError({message: translate('newTaskPage.confirmError'), taskKey});
             return;
         }
 
         if (!task.title) {
-            setErrorMessage(translate('newTaskPage.pleaseEnterTaskName'));
+            setError({message: translate('newTaskPage.pleaseEnterTaskName'), taskKey});
             return;
         }
 
         if (!task.shareDestination) {
-            setErrorMessage(translate('newTaskPage.pleaseEnterTaskDestination'));
+            setError({message: translate('newTaskPage.pleaseEnterTaskDestination'), taskKey});
             return;
         }
 
-        playSound(SOUNDS.DONE);
-        createTaskAndNavigate(parentReport?.reportID, task.title, task?.description ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport, parentReport?.policyID);
+        createTaskAndNavigate({
+            parentReport,
+            title: task.title,
+            description: task?.description ?? '',
+            assigneeEmail: task?.assignee ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserEmail: currentUserPersonalDetails.email ?? '',
+            assigneeAccountID: task.assigneeAccountID,
+            assigneeChatReport: task.assigneeChatReport,
+            policyID: parentReport?.policyID,
+            isCreatedUsingMarkdown: false,
+            quickAction,
+            ancestors,
+        });
     };
 
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={NewTaskPage.displayName}
+            testID="NewTaskPage"
         >
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
@@ -125,7 +139,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                 <ScrollView
                     contentContainerStyle={styles.flexGrow1}
                     // on iOS, navigation animation sometimes cause the scrollbar to appear
-                    // on middle/left side of scrollview. scrollIndicatorInsets with right
+                    // on middle/left side of ScrollView. scrollIndicatorInsets with right
                     // to closest value to 0 fixes this issue, 0 (default) doesn't work
                     // See: https://github.com/Expensify/App/issues/31441
                     scrollIndicatorInsets={{right: Number.MIN_VALUE}}
@@ -139,6 +153,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 shouldShowRightIcon
                                 rightLabel={translate('common.required')}
                                 shouldParseTitle
+                                excludedMarkdownRules={[...CONST.TASK_TITLE_DISABLED_RULES]}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('task.description')}
@@ -153,7 +168,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 label={assignee?.displayName ? translate('task.assignee') : ''}
                                 title={assignee?.displayName ?? ''}
                                 description={assignee?.displayName ? formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
-                                icon={assignee?.icons}
+                                iconAccountID={task?.assigneeAccountID}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE.getRoute(backTo))}
                                 shouldShowRightIcon
                                 titleWithTooltips={assigneeTooltipDetails}
@@ -162,7 +177,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 label={shareDestination?.displayName ? translate('common.share') : ''}
                                 title={shareDestination?.displayName ?? ''}
                                 description={shareDestination?.displayName ? shareDestination.subtitle : translate('common.share')}
-                                icon={shareDestination?.icons}
+                                iconReportID={task?.shareDestination}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                                 interactive={!task?.parentReportID}
                                 shouldShowRightIcon={!task?.parentReportID}
@@ -187,7 +202,5 @@ function NewTaskPage({route}: NewTaskPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewTaskPage.displayName = 'NewTaskPage';
 
 export default NewTaskPage;

@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -20,6 +20,7 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Account, QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
 function Footer({isTaxEnabled}: {isTaxEnabled: boolean}) {
@@ -52,6 +53,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const policyID = policy?.id;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT>>();
     const backTo = route.params?.backTo;
+    const [selectedExportDestinationError, setSelectedExportDestinationError] = useState<Errors | null>(null);
 
     const data: MenuItem[] = useMemo(
         () => [
@@ -83,13 +85,21 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
         [qboConfig?.reimbursableExpensesExportDestination, qboConfig?.syncLocations, translate, bankAccounts, accountPayable, journalEntryAccounts, isTaxesEnabled],
     );
 
-    const sections = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
+    const filteredData = useMemo(() => data.filter((item) => item.isShown), [data]);
     const goBack = useCallback(() => {
         Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)));
     }, [policyID, backTo]);
     const selectExportEntity = useCallback(
         (row: MenuItem) => {
+            if (!row.accounts.at(0)) {
+                setSelectedExportDestinationError({
+                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.exportDestinationSetupAccountsInfo.${row.value}`),
+                });
+                return;
+            }
+
             if (row.value !== qboConfig?.reimbursableExpensesExportDestination) {
+                setSelectedExportDestinationError(null);
                 updateManyPolicyConnectionConfigs(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.QBO,
@@ -105,16 +115,21 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             }
             goBack();
         },
-        [qboConfig?.reimbursableExpensesExportDestination, policyID, qboConfig?.reimbursableExpensesAccount, goBack],
+        [qboConfig?.reimbursableExpensesExportDestination, policyID, qboConfig?.reimbursableExpensesAccount, goBack, translate],
     );
+
+    const errors =
+        hasErrors && qboConfig?.reimbursableExpensesExportDestination
+            ? {[CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}Error`)}
+            : getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
 
     return (
         <SelectionScreen
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
-            sections={sections}
+            displayName="QuickbooksOutOfPocketExpenseEntitySelectPage"
+            data={filteredData}
             listItem={RadioListItem}
             onBackButtonPress={goBack}
             onSelectRow={(selection: SelectorType) => selectExportEntity(selection as MenuItem)}
@@ -126,18 +141,15 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
                 qboConfig?.pendingFields,
             )}
-            errors={
-                hasErrors && qboConfig?.reimbursableExpensesExportDestination
-                    ? {[CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}Error`)}
-                    : getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)
-            }
+            errors={selectedExportDestinationError ?? errors}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
+            onClose={() => {
+                setSelectedExportDestinationError(null);
+                clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
+            }}
             listFooterContent={<Footer isTaxEnabled={isTaxesEnabled} />}
         />
     );
 }
-
-QuickbooksOutOfPocketExpenseEntitySelectPage.displayName = 'QuickbooksOutOfPocketExpenseEntitySelectPage';
 
 export default withPolicyConnections(QuickbooksOutOfPocketExpenseEntitySelectPage);

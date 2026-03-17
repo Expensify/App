@@ -1,24 +1,34 @@
-type FSPageInterface = {
-    start: jest.Mock<void, []>;
-};
+import type {Fullstory, FSPageLike as mockFSPageLike} from '@libs/Fullstory/types';
 
 export default function mockFSLibrary() {
     jest.mock('@fullstory/react-native', () => {
-        class Fullstory {
-            consent = jest.fn();
+        return {
+            FSPage: jest.fn(),
+            default: jest.fn(),
+        };
+    });
 
-            anonymize = jest.fn();
-
-            identify = jest.fn();
+    jest.mock<Fullstory>('@libs/Fullstory', () => {
+        class FSPage implements mockFSPageLike {
+            start() {}
         }
 
         return {
-            FSPage(): FSPageInterface {
-                return {
-                    start: jest.fn(() => {}),
-                };
-            },
-            default: Fullstory,
+            Page: FSPage,
+            getChatFSClass: jest.fn(),
+            init: jest.fn(),
+            onReady: jest.fn(),
+            shouldInitialize: jest.fn().mockReturnValue(false),
+            consent: jest.fn(),
+            identify: jest.fn(),
+            consentAndIdentify: jest.fn(),
+            anonymize: jest.fn(),
+            getSessionId: jest.fn().mockResolvedValue(undefined),
+            getSessionURL: jest.fn().mockResolvedValue(undefined),
+            event: jest.fn(),
+            log: jest.fn(),
+            setUserVars: jest.fn(),
+            resetIdleTimer: jest.fn(),
         };
     });
 }

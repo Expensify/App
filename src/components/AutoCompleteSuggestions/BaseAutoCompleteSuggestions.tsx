@@ -6,7 +6,7 @@ import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';
 import type {RenderSuggestionMenuItemProps} from './types';
@@ -40,6 +40,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                 onPress={() => onSelect(index)}
                 onLongPress={() => {}}
                 accessibilityLabel={accessibilityLabelExtractor(item, index)}
+                role={CONST.ROLE.MENUITEM}
             >
                 {renderSuggestionMenuItem(item, index)}
             </PressableWithFeedback>
@@ -92,7 +93,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
         <Animated.View
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
             onPointerDown={(e) => {
-                if (DeviceCapabilities.hasHoverSupport()) {
+                if (hasHoverSupport()) {
                     return;
                 }
                 e.preventDefault();
@@ -108,12 +109,11 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                     removeClippedSubviews={false}
                     showsVerticalScrollIndicator={innerHeight > rowHeight.get()}
                     extraData={[highlightedSuggestionIndex, renderSuggestionMenuItem]}
+                    style={styles.overscrollBehaviorContain}
                 />
             </ColorSchemeWrapper>
         </Animated.View>
     );
 }
-
-BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
 
 export default BaseAutoCompleteSuggestions;

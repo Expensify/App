@@ -1,21 +1,23 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -32,14 +34,15 @@ type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingPr
 
 function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsEditPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const formRef = useRef<ScrollView>(null);
+    const {showConfirmModal} = useConfirmModal();
+    const isDeleting = useRef(false);
 
-    const updateApprovalWorkflowCallback = useCallback(() => {
+    const updateApprovalWorkflowCallback = () => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
             return;
         }
@@ -52,36 +55,38 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
         const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
         Navigation.dismissModal();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
+            updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
         });
-    }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID]);
+    };
 
-    const removeApprovalWorkflowCallback = useCallback(() => {
+    const removeApprovalWorkflowCallback = () => {
         if (!initialApprovalWorkflow) {
             return;
         }
 
-        setIsDeleteModalVisible(false);
+        // Mark as deleting to prevent the useEffect from clearing the workflow and causing a blink
+        isDeleting.current = true;
         Navigation.dismissModal();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             // Remove the approval workflow using the initial data as it could be already edited
-            removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
+            removeApprovalWorkflow(initialApprovalWorkflow, policy);
         });
-    }, [initialApprovalWorkflow, route.params.policyID]);
+    };
 
-    const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {
+    const getApprovalWorkflowData = () => {
         if (!policy || !personalDetails) {
             return {};
         }
 
-        const defaultApprover = policy?.approver ?? policy.owner;
         const firstApprover = route.params.firstApproverEmail;
         const result = convertPolicyEmployeesToApprovalWorkflows({
-            employees: policy.employeeList ?? {},
-            defaultApprover,
+            policy,
             personalDetails,
             firstApprover,
+            localeCompare,
         });
 
         return {
@@ -89,7 +94,9 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             usedApproverEmails: result.usedApproverEmails,
             currentApprovalWorkflow: result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover),
         };
-    }, [personalDetails, policy, route.params.firstApproverEmail]);
+    };
+
+    const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = getApprovalWorkflowData();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || !currentApprovalWorkflow;
@@ -101,18 +108,28 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         if (!currentApprovalWorkflow) {
+            // Don't clear if we're in the middle of deleting - this prevents the UI from blinking
+            if (isDeleting.current) {
+                return;
+            }
             return clearApprovalWorkflow();
         }
 
         setApprovalWorkflow({
             ...currentApprovalWorkflow,
-            availableMembers: [...currentApprovalWorkflow.members, ...defaultWorkflowMembers],
+            availableMembers: mergeWorkflowMembersWithAvailableMembers(currentApprovalWorkflow.members, defaultWorkflowMembers),
             usedApproverEmails,
             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
             errors: null,
+            originalApprovers: currentApprovalWorkflow.approvers,
         });
+        // Intentional: synchronizes the initial workflow snapshot when the current workflow changes.
+        // This runs alongside setApprovalWorkflow above and is part of the same logical update.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setInitialApprovalWorkflow(currentApprovalWorkflow);
     }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails]);
+
+    const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 
     return (
         <AccessOrNotFoundWrapper
@@ -120,14 +137,15 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
-                testID={WorkspaceWorkflowsApprovalsEditPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID="WorkspaceWorkflowsApprovalsEditPage"
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={goBackFromInvalidPolicy}
                     onLinkPress={goBackFromInvalidPolicy}
+                    addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsEditApprovalsPage.title')}
@@ -137,7 +155,19 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
-                                removeApprovalWorkflow={() => setIsDeleteModalVisible(true)}
+                                removeApprovalWorkflow={async () => {
+                                    const result = await showConfirmModal({
+                                        title: translate('workflowsEditApprovalsPage.deleteTitle'),
+                                        prompt: translate('workflowsEditApprovalsPage.deletePrompt'),
+                                        confirmText: translate('common.delete'),
+                                        cancelText: translate('common.cancel'),
+                                        danger: true,
+                                    });
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
+                                    removeApprovalWorkflowCallback();
+                                }}
                                 policy={policy}
                                 policyID={route.params.policyID}
                                 ref={formRef}
@@ -149,28 +179,17 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                     formRef.current?.scrollTo({y: 0, animated: true});
                                 }}
                                 buttonText={translate('common.save')}
-                                containerStyles={[styles.mb5, styles.mh5]}
+                                containerStyles={submitButtonContainerStyles}
                                 enabledWhenOffline
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EDIT_SAVE}
                             />
                         </>
                     )}
-                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator />}
+                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsEditPage'}} />}
                 </FullPageNotFoundView>
-                <ConfirmModal
-                    title={translate('workflowsEditApprovalsPage.deleteTitle')}
-                    isVisible={isDeleteModalVisible}
-                    onConfirm={removeApprovalWorkflowCallback}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={translate('workflowsEditApprovalsPage.deletePrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsApprovalsEditPage.displayName = 'WorkspaceWorkflowsApprovalsEditPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsEditPage);

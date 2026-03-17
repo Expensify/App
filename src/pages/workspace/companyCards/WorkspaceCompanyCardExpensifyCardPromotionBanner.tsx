@@ -2,7 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import {CreditCardsNewGreen} from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -26,6 +26,8 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
 
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNewGreen']);
+
     const handleLearnMore = useCallback(() => {
         if (!policyID) {
             return;
@@ -48,6 +50,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
                     onPress={handleLearnMore}
                     style={shouldUseNarrowLayout && styles.flex1}
                     text={translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}
+                    accessibilityLabel={`${translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}, ${translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}`}
                 />
             </View>
         );
@@ -56,7 +59,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
     return (
         <View style={[styles.ph4, styles.mb4]}>
             <BillingBanner
-                icon={CreditCardsNewGreen}
+                icon={illustrations.CreditCardsNewGreen}
                 title={translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}
                 titleStyle={StyleUtils.getTextColorStyle(theme.text)}
                 subtitle={translate('workspace.moreFeatures.companyCards.expensifyCardBannerSubtitle')}

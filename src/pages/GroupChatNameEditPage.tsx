@@ -1,5 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -8,11 +7,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
-import {getGroupChatName} from '@libs/ReportUtils';
+import {getGroupChatName} from '@libs/ReportNameUtils';
+import StringUtils from '@libs/StringUtils';
 import {setGroupDraft, updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
 import type {Report as ReportOnyxType} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type GroupChatNameEditPageProps = Partial<PlatformStackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
     report?: ReportOnyxType;
@@ -31,53 +33,50 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     // In this case its better to use empty string as the reportID if there is no reportID
     const reportID = report?.reportID;
     const isUpdatingExistingReport = !!reportID;
-    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [groupChatDraft, groupChatDraftMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const existingReportName = useMemo(() => (report ? getGroupChatName(undefined, false, report) : getGroupChatName(groupChatDraft?.participants)), [groupChatDraft?.participants, report]);
+    const existingReportName = report ? getGroupChatName(formatPhoneNumber, undefined, false, report) : getGroupChatName(formatPhoneNumber, groupChatDraft?.participants);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
-            const errors: Errors = {};
-            const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
-            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-            const nameLength = [...name.trim()].length;
-            if (nameLength > CONST.REPORT_NAME_LIMIT) {
-                errors.newChatName = translate('common.error.characterLimitExceedCounter', {length: nameLength, limit: CONST.REPORT_NAME_LIMIT});
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
+        const errors: Errors = {};
+        const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
+        const nameLength = StringUtils.getUTF8ByteLength(name.trim());
+        if (nameLength > CONST.REPORT_NAME_LIMIT) {
+            errors.newChatName = translate('common.error.characterLimitExceedCounter', nameLength, CONST.REPORT_NAME_LIMIT);
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const editName = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
-            if (isUpdatingExistingReport) {
-                if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                    updateChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.GROUP);
-                }
-                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
-                return;
-            }
+    const editName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
+        if (isUpdatingExistingReport) {
             if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
+                updateChatName(reportID, report.reportName, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.GROUP);
             }
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM));
-        },
-        [isUpdatingExistingReport, reportID, currentChatName],
-    );
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
+            return;
+        }
+        if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
+            setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM));
+    };
+
+    if (isLoadingOnyxValue(groupChatDraftMetadata)) {
+        return null;
+    }
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
-            testID={GroupChatNameEditPage.displayName}
+            testID="GroupChatNameEditPage"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -91,6 +90,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                 validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -100,13 +100,10 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                     inputID={INPUT_IDS.NEW_CHAT_NAME}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
-                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>
     );
 }
-
-GroupChatNameEditPage.displayName = 'GroupChatNameEditPage';
 
 export default GroupChatNameEditPage;

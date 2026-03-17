@@ -26,7 +26,7 @@ type WorkspaceUpgradeNavigationDetails = {
 
 type AccountingIntegration = {
     title: string;
-    icon: IconAsset;
+    icon?: IconAsset;
     setupConnectionFlow: React.ReactNode;
     onImportPagePress: () => void;
     subscribedImportSettings?: string[];
@@ -40,4 +40,4 @@ type AccountingIntegration = {
     workspaceUpgradeNavigationDetails?: WorkspaceUpgradeNavigationDetails;
 };
 
-export type {MenuItemData, PolicyAccountingPageOnyxProps, PolicyAccountingPageProps, AccountingIntegration};
+export type {MenuItemData, PolicyAccountingPageProps, AccountingIntegration};

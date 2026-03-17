@@ -25,6 +25,4 @@ function FreezeWrapper({children}: ChildrenProps) {
     return <Freeze freeze={freezed}>{children}</Freeze>;
 }
 
-FreezeWrapper.displayName = 'FreezeWrapper';
-
 export default FreezeWrapper;

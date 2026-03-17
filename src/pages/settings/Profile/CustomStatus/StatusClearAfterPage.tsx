@@ -1,20 +1,20 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {validateDateTimeIsAtLeastOneMinuteInFuture} from '@libs/ValidationUtils';
+import {updateDraftCustomStatus, updateStatusDraftCustomClearAfterDate} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,11 +43,11 @@ function getSelectedStatusType(data: string): CustomStatusTypes {
     }
 }
 
-const useValidateCustomDate = (data: string) => {
+const useValidateCustomDate = (translate: LocalizedTranslate, data: string) => {
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
     const validate = () => {
-        const {dateValidationErrorKey, timeValidationErrorKey} = ValidationUtils.validateDateTimeIsAtLeastOneMinuteInFuture(data);
+        const {dateValidationErrorKey, timeValidationErrorKey} = validateDateTimeIsAtLeastOneMinuteInFuture(translate, data);
 
         setCustomDateError(dateValidationErrorKey);
         setCustomTimeError(timeValidationErrorKey);
@@ -63,7 +63,7 @@ const useValidateCustomDate = (data: string) => {
             return;
         }
         validate();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data]);
 
     const validateCustomDate = () => validate();
@@ -77,6 +77,7 @@ function StatusClearAfterPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
     const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
+    const [statusDraftCustomClearAfterDate] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
 
     const draftClearAfter = customStatus?.clearAfter ?? '';
     const [draftPeriod, setDraftPeriod] = useState(() => getSelectedStatusType(draftClearAfter || clearAfter));
@@ -91,7 +92,7 @@ function StatusClearAfterPage() {
         [draftPeriod, translate],
     );
 
-    const {customDateError, customTimeError, validateCustomDate} = useValidateCustomDate(draftClearAfter);
+    const {customDateError, customTimeError} = useValidateCustomDate(translate, draftClearAfter);
 
     const {redBrickDateIndicator, redBrickTimeIndicator} = useMemo(
         () => ({
@@ -101,22 +102,6 @@ function StatusClearAfterPage() {
         [customTimeError, customDateError],
     );
 
-    const onSubmit = () => {
-        const {dateError, timeError} = validateCustomDate();
-        if (dateError || timeError) {
-            return;
-        }
-        let calculatedDraftDate: string;
-        if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
-            calculatedDraftDate = draftClearAfter;
-        } else {
-            const selectedRange = statusType.find((item) => item.isSelected);
-            calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
-        }
-        User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
-        Navigation.goBack(ROUTES.SETTINGS_STATUS);
-    };
-
     const updateMode = useCallback(
         (mode: StatusType) => {
             if (mode.value === draftPeriod) {
@@ -125,93 +110,111 @@ function StatusClearAfterPage() {
             setDraftPeriod(mode.value);
 
             if (mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
-                User.updateDraftCustomStatus({clearAfter: DateUtils.getOneHourFromNow()});
-            } else {
-                const selectedRange = statusType.find((item) => item.value === mode.value);
-                const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
-                User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
+                updateStatusDraftCustomClearAfterDate(DateUtils.getOneHourFromNow());
             }
         },
-        [draftPeriod, statusType],
+        [draftPeriod],
     );
 
     useEffect(() => {
-        User.updateDraftCustomStatus({
-            clearAfter: draftClearAfter || clearAfter,
-        });
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        updateStatusDraftCustomClearAfterDate(draftClearAfter || clearAfter);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const customStatusDate = DateUtils.extractDate(draftClearAfter);
-    const customStatusTime = DateUtils.extractTime12Hour(draftClearAfter);
+    const customStatusDate = DateUtils.extractDate(statusDraftCustomClearAfterDate ?? '');
+    const customStatusTime = DateUtils.extractTime12Hour(statusDraftCustomClearAfterDate ?? '');
+
+    const listFooterContent = useMemo(() => {
+        if (draftPeriod !== CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
+            return;
+        }
+        return (
+            <>
+                <MenuItemWithTopDescription
+                    title={customStatusDate}
+                    description={translate('statusPage.date')}
+                    shouldShowRightIcon
+                    containerStyle={styles.pr2}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE)}
+                    errorText={customDateError}
+                    titleStyle={styles.flex1}
+                    brickRoadIndicator={redBrickDateIndicator}
+                />
+                <MenuItemWithTopDescription
+                    title={customStatusTime}
+                    description={translate('statusPage.time')}
+                    shouldShowRightIcon
+                    containerStyle={styles.pr2}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}
+                    errorText={customTimeError}
+                    titleStyle={styles.flex1}
+                    brickRoadIndicator={redBrickTimeIndicator}
+                />
+            </>
+        );
+    }, [translate, styles.pr2, styles.flex1, draftPeriod, customStatusDate, customStatusTime, redBrickDateIndicator, redBrickTimeIndicator, customDateError, customTimeError]);
+
+    const saveAndGoBack = useCallback(() => {
+        if (!draftPeriod) {
+            return;
+        }
+
+        let calculatedDraftDate = '';
+
+        if (draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
+            calculatedDraftDate = statusDraftCustomClearAfterDate ?? DateUtils.getOneHourFromNow();
+        } else {
+            const selectedRange = statusType.find((item) => item.value === draftPeriod);
+            calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
+        }
+
+        updateDraftCustomStatus({clearAfter: calculatedDraftDate});
+
+        Navigation.goBack(ROUTES.SETTINGS_STATUS);
+    }, [draftPeriod, statusType, statusDraftCustomClearAfterDate]);
+
+    const initialFocusedIndex = useMemo(() => {
+        return statusType.find((item) => item.isSelected)?.keyForList;
+    }, [statusType]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('statusPage.save'),
+            onConfirm: saveAndGoBack,
+        }),
+        [saveAndGoBack, translate],
+    );
 
     const timePeriodOptions = useCallback(
-        () =>
-            statusType.map((item) => (
-                <RadioListItem
-                    item={item}
-                    onSelectRow={() => updateMode(item)}
-                    showTooltip={false}
-                    isFocused={item.isSelected}
-                />
-            )),
-        [statusType, updateMode],
+        () => (
+            <SelectionList
+                data={statusType}
+                ListItem={RadioListItem}
+                onSelectRow={updateMode}
+                listFooterContent={listFooterContent}
+                confirmButtonOptions={confirmButtonOptions}
+                initiallyFocusedItemKey={initialFocusedIndex}
+                shouldUpdateFocusedIndex
+            />
+        ),
+        [statusType, updateMode, listFooterContent, confirmButtonOptions, initialFocusedIndex],
     );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={StatusClearAfterPage.displayName}
+            testID="StatusClearAfterPage"
         >
             <HeaderWithBackButton
                 title={translate('statusPage.clearAfter')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
             />
             <Text style={[styles.textNormal, styles.mh5, styles.mv4]}>{translate('statusPage.whenClearStatus')}</Text>
-            <FormProvider
-                formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM}
-                submitButtonText={translate('statusPage.save')}
-                onSubmit={onSubmit}
-                style={[styles.flexGrow1, styles.mb4]}
-                scrollContextEnabled={false}
-                isSubmitButtonVisible={false}
-                enabledWhenOffline
-            >
-                <View>
-                    {timePeriodOptions()}
-                    {draftPeriod === CONST.CUSTOM_STATUS_TYPES.CUSTOM && (
-                        <>
-                            <MenuItemWithTopDescription
-                                title={customStatusDate}
-                                description={translate('statusPage.date')}
-                                shouldShowRightIcon
-                                containerStyle={styles.pr2}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE)}
-                                errorText={customDateError}
-                                titleStyle={styles.flex1}
-                                brickRoadIndicator={redBrickDateIndicator}
-                            />
-                            <MenuItemWithTopDescription
-                                title={customStatusTime}
-                                description={translate('statusPage.time')}
-                                shouldShowRightIcon
-                                containerStyle={styles.pr2}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}
-                                errorText={customTimeError}
-                                titleStyle={styles.flex1}
-                                brickRoadIndicator={redBrickTimeIndicator}
-                            />
-                        </>
-                    )}
-                </View>
-            </FormProvider>
+            {timePeriodOptions()}
         </ScreenWrapper>
     );
 }
-
-StatusClearAfterPage.displayName = 'StatusClearAfterPage';
 
 export default StatusClearAfterPage;

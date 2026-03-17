@@ -1,36 +1,38 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setTitleValue} from '@libs/actions/Task';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
+import {setTitleValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type NewTaskTitlePageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
 
 function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK);
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-
+    const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
     const {translate} = useLocalize();
 
     const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
@@ -43,7 +45,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
             // We error if the user doesn't enter a task name
             addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
         } else if (parsedTitleLength > CONST.TASK_TITLE_CHARACTER_LIMIT) {
-            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: parsedTitleLength, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
+            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', parsedTitleLength, CONST.TASK_TITLE_CHARACTER_LIMIT));
         }
 
         return errors;
@@ -56,11 +58,16 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
         goBack();
     };
 
+    if (isLoadingOnyxValue(taskMetadata)) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'NewTaskTitlePage'};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={NewTaskTitlePage.displayName}
+            testID="NewTaskTitlePage"
         >
             <HeaderWithBackButton
                 title={translate('task.title')}
@@ -74,6 +81,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
                 validate={validate}
                 onSubmit={onSubmit}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <View style={styles.mb5}>
                     <InputWrapperWithRef
@@ -93,7 +101,5 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
         </ScreenWrapper>
     );
 }
-
-NewTaskTitlePage.displayName = 'NewTaskTitlePage';
 
 export default NewTaskTitlePage;

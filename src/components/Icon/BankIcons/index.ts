@@ -1,4 +1,4 @@
-import GenericBank from '@assets/images/bankicons/generic-bank-account.svg';
+import GenericBank from '@assets/images/bank-icons/generic-bank-account.svg';
 import GenericBankCard from '@assets/images/cardicons/generic-bank-card.svg';
 import type {BankIconParams} from '@components/Icon/BankIconsUtils';
 import {getBankIconAsset, getBankNameKey} from '@components/Icon/BankIconsUtils';
@@ -24,7 +24,7 @@ export default function getBankIcon({styles, bankName, isCard = false}: BankIcon
     if (bankName) {
         const bankNameKey = getBankNameKey(bankName.toLowerCase());
 
-        if (bankNameKey && Object.keys(CONST.BANK_NAMES).includes(bankNameKey)) {
+        if (bankNameKey && bankNameKey in CONST.BANK_NAMES) {
             bankIcon.icon = (getBankIconAsset(bankNameKey, isCard) as BankIconAsset).default;
         }
     }

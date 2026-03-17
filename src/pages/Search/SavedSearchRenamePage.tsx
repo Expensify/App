@@ -8,7 +8,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAdvancedFilters, saveSearch} from '@libs/actions/Search';
+import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -24,7 +24,6 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     const {inputCallbackRef} = useAutoFocusInput();
 
     const applyFiltersAndNavigate = () => {
-        clearAdvancedFilters();
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(
@@ -49,7 +48,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
 
     return (
         <ScreenWrapper
-            testID={SavedSearchRenamePage.displayName}
+            testID="SavedSearchRenamePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -61,6 +60,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                 onSubmit={onSaveSearch}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -71,13 +71,10 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                     onChangeText={(renamedName) => setNewName(renamedName)}
                     ref={inputCallbackRef}
                     defaultValue={name}
-                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>
     );
 }
-
-SavedSearchRenamePage.displayName = 'SavedSearchRenamePage';
 
 export default SavedSearchRenamePage;

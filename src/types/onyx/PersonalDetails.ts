@@ -1,5 +1,5 @@
 import type {TupleToUnion} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type TIMEZONES from '@src/TIMEZONES';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -93,6 +93,14 @@ type PersonalDetailsMetadata = {
 /** Record of user personal details, indexed by user id */
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
+/** Current user's personal details */
+type CurrentUserPersonalDetails = PersonalDetails & {
+    /**
+     * Current user's email address
+     */
+    email?: string;
+};
+
 export default PersonalDetails;
 
-export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata, CurrentUserPersonalDetails};

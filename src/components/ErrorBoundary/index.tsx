@@ -38,6 +38,4 @@ function ErrorBoundary({errorMessage, children}: Omit<BaseErrorBoundaryProps, 'l
     );
 }
 
-ErrorBoundary.displayName = 'ErrorBoundary';
-
 export default ErrorBoundary;

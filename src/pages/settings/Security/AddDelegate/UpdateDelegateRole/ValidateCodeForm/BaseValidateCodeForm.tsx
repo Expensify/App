@@ -1,9 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -13,12 +12,13 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Delegate from '@userActions/Delegate';
+import {getLatestError} from '@libs/ErrorUtils';
+import {isValidValidateCode} from '@libs/ValidationUtils';
+import {clearDelegateErrorsByField, requestValidationCode, updateDelegateRole} from '@userActions/Delegate';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +51,7 @@ type BaseValidateCodeFormProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => {}, delegate, role, wrapperStyle}: BaseValidateCodeFormProps) {
+function BaseValidateCodeForm({autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE, innerRef = () => {}, delegate, role, wrapperStyle}: BaseValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
@@ -67,7 +67,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === delegate);
     const errorFields = account?.delegatedAccess?.errorFields ?? {};
-    const validateLoginError = ErrorUtils.getLatestError(errorFields.updateDelegateRole?.[currentDelegate?.email ?? '']);
+    const validateLoginError = getLatestError(errorFields.updateDelegateRole?.[currentDelegate?.email ?? '']);
 
     const shouldDisableResendValidateCode = !!isOffline || currentDelegate?.isLoading;
 
@@ -88,25 +88,23 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
         },
     }));
 
-    useFocusEffect(
-        useCallback(() => {
-            if (!inputValidateCodeRef.current) {
+    useFocusEffect(() => {
+        if (!inputValidateCodeRef.current) {
+            return;
+        }
+        if (focusTimeoutRef.current) {
+            clearTimeout(focusTimeoutRef.current);
+        }
+        focusTimeoutRef.current = setTimeout(() => {
+            inputValidateCodeRef.current?.focusLastSelected();
+        }, CONST.ANIMATED_TRANSITION);
+        return () => {
+            if (!focusTimeoutRef.current) {
                 return;
             }
-            if (focusTimeoutRef.current) {
-                clearTimeout(focusTimeoutRef.current);
-            }
-            focusTimeoutRef.current = setTimeout(() => {
-                inputValidateCodeRef.current?.focusLastSelected();
-            }, CONST.ANIMATED_TRANSITION);
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, []),
-    );
+            clearTimeout(focusTimeoutRef.current);
+        };
+    });
 
     /**
      * Request a validate code / magic code be sent to verify this contact method
@@ -115,7 +113,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
         if (!login) {
             return;
         }
-        Delegate.requestValidationCode();
+        requestValidationCode();
 
         inputValidateCodeRef.current?.clear();
     };
@@ -123,35 +121,32 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     /**
      * Handle text input and clear formError upon text change
      */
-    const onTextInput = useCallback(
-        (text: string) => {
-            setValidateCode(text);
-            setFormError({});
-            if (validateLoginError) {
-                Delegate.clearDelegateErrorsByField(currentDelegate?.email ?? '', 'updateDelegateRole');
-            }
-        },
-        [currentDelegate?.email, validateLoginError],
-    );
+    const onTextInput = (text: string) => {
+        setValidateCode(text);
+        setFormError({});
+        if (validateLoginError) {
+            clearDelegateErrorsByField({email: currentDelegate?.email ?? '', fieldName: 'updateDelegateRole', delegatedAccess: account?.delegatedAccess});
+        }
+    };
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    const validateAndSubmitForm = useCallback(() => {
+    const validateAndSubmitForm = () => {
         if (!validateCode.trim()) {
             setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
             return;
         }
 
-        if (!ValidationUtils.isValidValidateCode(validateCode)) {
+        if (!isValidValidateCode(validateCode)) {
             setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
             return;
         }
 
         setFormError({});
 
-        Delegate.updateDelegateRole(delegate, role, validateCode);
-    }, [delegate, role, validateCode]);
+        updateDelegateRole({email: delegate, role, validateCode, delegatedAccess: account?.delegatedAccess});
+    };
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, wrapperStyle]}>
@@ -162,7 +157,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
                     name="validateCode"
                     value={validateCode}
                     onChangeText={onTextInput}
-                    errorText={formError?.validateCode ? translate(formError?.validateCode) : Object.values(validateLoginError ?? {}).at(0) ?? ''}
+                    errorText={formError?.validateCode ? translate(formError?.validateCode) : (Object.values(validateLoginError ?? {}).at(0) ?? '')}
                     hasError={!isEmptyObject(validateLoginError)}
                     onFulfill={validateAndSubmitForm}
                     autoFocus={false}
@@ -178,6 +173,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
                             pressDimmingValue={0.2}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                            sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}
                         >
                             <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{translate('validateCodeForm.magicCodeNotReceived')}</Text>
                         </PressableWithFeedback>
@@ -187,7 +183,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
             <FixedFooter>
                 <OfflineWithFeedback>
                     <Button
-                        isDisabled={isOffline}
+                        isDisabled={isOffline || !!account?.delegatedAccess}
                         text={translate('common.verify')}
                         onPress={validateAndSubmitForm}
                         style={[styles.mt4]}
@@ -201,8 +197,6 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
         </View>
     );
 }
-
-BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {BaseValidateCodeFormProps, ValidateCodeFormHandle};
 

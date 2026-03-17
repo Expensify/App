@@ -1,41 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {
-    ChangeFieldParams,
-    DelegateSubmitParams,
-    ExportedToIntegrationParams,
-    IntegrationsMessageParams,
-    MarkReimbursedFromIntegrationParams,
-    ShareParams,
-    UnshareParams,
-} from '@src/languages/params';
-
-/**
- *
- */
-type OldDotOriginalMessageActionName =
-    | 'CHANGEFIELD'
-    | 'CHANGEPOLICY'
-    | 'CHANGETYPE'
-    | 'DELEGATESUBMIT'
-    | 'EXPORTCSV'
-    | 'EXPORTINTEGRATION'
-    | 'INTEGRATIONSMESSAGE'
-    | 'MANAGERATTACHRECEIPT'
-    | 'MANAGERDETACHRECEIPT'
-    | 'MARKEDREIMBURSED'
-    | 'MARKREIMBURSEDFROMINTEGRATION'
-    | 'OUTDATEDBANKACCOUNT'
-    | 'REIMBURSEMENTACHBOUNCE'
-    | 'REIMBURSEMENTACHCANCELLED'
-    | 'REIMBURSEMENTACCOUNTCHANGED'
-    | 'REIMBURSEMENTDELAYED'
-    | 'SELECTEDFORRANDOMAUDIT'
-    | 'SHARE'
-    | 'STRIPEPAID'
-    | 'TAKECONTROL'
-    | 'UNAPPROVED'
-    | 'UNSHARE';
+import type {ChangeFieldParams, ExportedToIntegrationParams, IntegrationsMessageParams, MarkReimbursedFromIntegrationParams, ShareParams, UnshareParams} from '@src/languages/params';
 
 /**
  *
@@ -62,20 +27,6 @@ type OriginalMessageChangeField = {
 //      */
 //     originalMessage: ChangeTypeParams & Record<string, unknown>;
 // };
-
-/**
- *
- */
-type OriginalMessageDelegateSubmit = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT;
-    /**
-     *
-     */
-    originalMessage: DelegateSubmitParams & Record<string, unknown>;
-};
 
 /**
  *
@@ -208,7 +159,7 @@ type OriginalMessageReimbursementACHCancelled = {
     /**
      *
      */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED;
     /**
      *
      */
@@ -334,10 +285,6 @@ type OldDotOriginalMessageMap = {
     /**
      *
      */
-    [CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT]: OriginalMessageDelegateSubmit;
-    /**
-     *
-     */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: OriginalMessageExportedToCSV;
     /**
      *
@@ -370,7 +317,7 @@ type OldDotOriginalMessageMap = {
     /**
      *
      */
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: OriginalMessageReimbursementACHCancelled;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED]: OriginalMessageReimbursementACHCancelled;
     /**
      *
      */
@@ -427,25 +374,4 @@ type OldDotLegacyAction = {
 type OldDotAction = ValueOf<OldDotOriginalMessageMap>;
 
 export default OldDotAction;
-export type {
-    OriginalMessageChangeField,
-    OldDotOriginalMessageActionName,
-    OriginalMessageDelegateSubmit,
-    OriginalMessageExportedToCSV,
-    OriginalMessageExportedToIntegration,
-    OriginalMessageIntegrationsMessage,
-    OriginalMessageManagerAttachReceipt,
-    OriginalMessageManagerDetachReceipt,
-    OriginalMessageMarkReimbursedFromIntegration,
-    OriginalMessageOutdatedBankAccount,
-    OriginalMessageReimbursementACHBounce,
-    OriginalMessageReimbursementACHCancelled,
-    OriginalMessageReimbursementAccountChanged,
-    OriginalMessageReimbursementDelayed,
-    OriginalMessageSelectedForRandomAudit,
-    OriginalMessageShare,
-    OriginalMessageUnshare,
-    OriginalMessageTakeControl,
-    OldDotOriginalMessageMap,
-    OldDotLegacyAction,
-};
+export type {OldDotLegacyAction, OldDotOriginalMessageMap, OriginalMessageExportedToIntegration};

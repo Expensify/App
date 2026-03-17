@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,13 +10,19 @@ type ActionableItem = {
     isPrimary?: boolean;
     key: string;
     onPress: () => void;
-    text: TranslationPaths;
-    isMediumSized?: boolean;
+    text: string;
+    shouldUseLocalization?: boolean;
 };
 
 type ActionableItemButtonsProps = {
     items: ActionableItem[];
     layout?: 'horizontal' | 'vertical';
+    shouldUseLocalization?: boolean;
+    primaryTextNumberOfLines?: number;
+    styles?: {
+        text?: StyleProp<TextStyle>;
+        button?: StyleProp<ViewStyle>;
+    };
 };
 
 function ActionableItemButtons(props: ActionableItemButtonsProps) {
@@ -23,22 +30,22 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart], styles.gap2, styles.mt2]}>
+        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart]]}>
             {props.items?.map((item) => (
                 <Button
                     key={item.key}
                     onPress={item.onPress}
-                    text={translate(item.text)}
-                    small={!item.isMediumSized}
-                    medium={item.isMediumSized}
+                    text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
+                    medium
                     success={item.isPrimary}
+                    innerStyles={props.styles?.button}
+                    primaryTextNumberOfLines={props.primaryTextNumberOfLines}
+                    textStyles={props.styles?.text}
                 />
             ))}
         </View>
     );
 }
-
-ActionableItemButtons.displayName = 'ActionableItemButtton';
 
 export default ActionableItemButtons;
 export type {ActionableItem};

@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type colors from '@styles/theme/colors';
 import type variables from '@styles/variables';
 import type CONST from '@src/CONST';
+import type {Dimensions} from '@src/types/utils/Layout';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
@@ -22,16 +23,16 @@ type AvatarSizeValue = ValueOf<
         | 'avatarSizeXLarge'
         | 'avatarSizeLarge'
         | 'avatarSizeMedium'
+        | 'avatarSizeMediumLarge'
         | 'avatarSizeLargeBordered'
         | 'avatarSizeHeader'
         | 'avatarSizeMentionIcon'
         | 'avatarSizeSmallNormal'
+        | 'avatarSizeLargeNormal'
     >
 >;
 
-type AvatarStyle = {
-    width: number;
-    height: number;
+type AvatarStyle = Dimensions & {
     borderRadius: number;
     backgroundColor: string;
 };
@@ -41,7 +42,7 @@ type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
 type AvatarSize = {width: number};
 
 type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
-type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
+type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue; titleColor: ColorValue};
 type TextColorStyle = {color: string};
 
 export type {

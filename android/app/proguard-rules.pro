@@ -10,6 +10,7 @@
 # Add any project specific keep options here:
 -keep class com.expensify.chat.BuildConfig { *; }
 -keep class com.facebook.** { *; }
+-keep class com.margelo.nitro.** { *; }
 -keep, allowoptimization, allowobfuscation class expo.modules.** { *; }
 
 # Keep generic signature of Call, Response (R8 full mode strips signatures from non-kept items).
@@ -47,3 +48,6 @@
 -dontwarn org.jmrtd.protocol.PACEResult
 -dontwarn org.spongycastle.jce.provider.BouncyCastleProvider
 -dontwarn org.slf4j.impl.StaticLoggerBinder
+
+# https://shopify.github.io/react-native-skia/docs/getting-started/installation/#proguard
+-keep class com.shopify.reactnative.skia.** { *; }

@@ -1,5 +1,7 @@
 import type {
     DefaultNavigatorOptions,
+    EventMapBase,
+    NavigationListBase,
     NavigationProp,
     ParamListBase,
     RouteProp,
@@ -10,7 +12,6 @@ import type {
 } from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
-import type {StackNavigationConfig} from '@react-navigation/stack/lib/typescript/src/types';
 import type CommonProperties from '@src/types/utils/CommonProperties';
 import type {PlatformStackNavigationOptions} from './NavigationOptions';
 
@@ -62,13 +63,16 @@ type PlatformStackScreenProps<
 };
 
 // Props to configure the the PlatformStackNavigator
-type PlatformStackNavigatorProps<
-    ParamList extends ParamListBase,
-    RouteName extends keyof ParamList = keyof ParamList,
-    RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, RouteName> &
+type PlatformStackNavigatorProps<ParamList extends ParamListBase, RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = DefaultNavigatorOptions<
+    ParamList,
+    string | undefined,
+    PlatformStackNavigationState<ParamList>,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationEventMap & EventMapBase,
+    NavigationListBase<ParamList>
+> &
     RouterOptions &
-    StackNavigationConfig & {
+    StackNavigationOptions & {
         persistentScreens?: Array<Extract<keyof ParamList, string>>;
         defaultCentralScreen?: Extract<keyof ParamList, string>;
         sidebarScreen?: Extract<keyof ParamList, string>;
@@ -97,6 +101,9 @@ export type {
     PlatformStackNavigatorProps,
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-exports
 export * from './NavigationBuilder';
+// eslint-disable-next-line @typescript-eslint/consistent-type-exports
 export * from './NavigationOptions';
+// eslint-disable-next-line @typescript-eslint/consistent-type-exports
 export * from './NavigatorComponent';

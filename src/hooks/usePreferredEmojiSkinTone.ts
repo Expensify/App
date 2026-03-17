@@ -1,9 +1,11 @@
-import {useCallback, useContext} from 'react';
-import {PreferredEmojiSkinToneContext} from '@components/OnyxProvider';
-import * as User from '@userActions/User';
+import {useCallback} from 'react';
+import {updatePreferredSkinTone as updatePreferredSkinToneAction} from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 export default function usePreferredEmojiSkinTone() {
-    const preferredSkinTone = useContext(PreferredEmojiSkinToneContext);
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
     const updatePreferredSkinTone = useCallback(
         (skinTone: number) => {
@@ -11,7 +13,7 @@ export default function usePreferredEmojiSkinTone() {
                 return;
             }
 
-            User.updatePreferredSkinTone(skinTone);
+            updatePreferredSkinToneAction(skinTone);
         },
         [preferredSkinTone],
     );

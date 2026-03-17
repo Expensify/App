@@ -1,15 +1,14 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type OfflineIndicatorProps = {
@@ -23,16 +22,18 @@ type OfflineIndicatorProps = {
     addBottomSafeAreaPadding?: boolean;
 };
 
-function OfflineIndicator({style, containerStyles, addBottomSafeAreaPadding = false}: OfflineIndicatorProps) {
+function OfflineIndicator({style, containerStyles: containerStylesProp, addBottomSafeAreaPadding = false}: OfflineIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
 
-    const computedStyles = useBottomSafeSafeAreaPaddingStyle({
+    const fallbackStyle = useMemo(() => [styles.offlineIndicatorContainer, containerStylesProp], [styles.offlineIndicatorContainer, containerStylesProp]);
+    const containerStyles = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
-        style: containerStyles ?? (shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator),
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: fallbackStyle,
     });
 
     if (!isOffline) {
@@ -40,10 +41,10 @@ function OfflineIndicator({style, containerStyles, addBottomSafeAreaPadding = fa
     }
 
     return (
-        <View style={[computedStyles, styles.flexRow, styles.alignItemsCenter, style]}>
+        <View style={[containerStyles, styles.flexRow, styles.alignItemsCenter, style]}>
             <Icon
                 fill={theme.icon}
-                src={Expensicons.OfflineCloud}
+                src={icons.OfflineCloud}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
             />
@@ -51,7 +52,5 @@ function OfflineIndicator({style, containerStyles, addBottomSafeAreaPadding = fa
         </View>
     );
 }
-
-OfflineIndicator.displayName = 'OfflineIndicator';
 
 export default OfflineIndicator;

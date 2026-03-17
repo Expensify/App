@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import isObject from 'lodash/isObject';
 import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
 import Pusher from 'pusher-js/with-encryption';
@@ -12,7 +13,7 @@ import type {
     EventCallbackError,
     EventData,
     PusherEventName,
-    PusherSubscribtionErrorData,
+    PusherSubscriptionErrorData,
     PusherWithAuthParams,
     SocketEventCallback,
     SocketEventName,
@@ -21,7 +22,10 @@ import type {
 import type PusherModule from './types';
 
 let shouldForceOffline = false;
-Onyx.connect({
+
+// shouldForceOffline is only used to ignore pusher events when the client has been forced offline.
+// Since it's not connected to any UI, it's OK to use connectWithoutView.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
@@ -47,7 +51,9 @@ const eventsBoundToChannels = new Map<Channel, Set<PusherEventName>>();
  * Trigger each of the socket event callbacks with the event information
  */
 function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallbackError | States) {
-    socketEventCallbacks.forEach((cb) => cb(eventName, data));
+    for (const cb of socketEventCallbacks) {
+        cb(eventName, data);
+    }
 }
 
 /**
@@ -197,11 +203,26 @@ function subscribe<EventName extends PusherEventName>(
     return initPromise.then(
         () =>
             new Promise((resolve, reject) => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
                     if (!socket) {
-                        throw new Error(`[Pusher] instance not found. Pusher.subscribe()
-            most likely has been called before Pusher.init()`);
+                        const error = new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
+
+                        if (__DEV__) {
+                            throw error;
+                        }
+
+                        // In production, report to Sentry without crashing the app.
+                        // This can happen when disconnect() is called (e.g. during the "Upgrade Required"
+                        // teardown) before this deferred InteractionManager callback runs.
+                        Sentry.captureException(error, {
+                            tags: {source: 'Pusher.subscribe'},
+                            extra: {channelName, eventName},
+                        });
+                        Log.info('[Pusher] Socket disconnected before subscribe could complete, skipping subscription', false, {channelName, eventName});
+                        resolve();
+                        return;
                     }
 
                     Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
@@ -226,7 +247,7 @@ function subscribe<EventName extends PusherEventName>(
                             onResubscribe();
                         });
 
-                        channel.bind('pusher:subscription_error', (data: PusherSubscribtionErrorData = {}) => {
+                        channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
                             const {type, error, status} = data;
                             Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                                 channelName,
@@ -341,7 +362,7 @@ function registerCustomAuthorizer(authorizer: ChannelAuthorizerGenerator) {
  */
 function disconnect() {
     if (!socket) {
-        Log.info('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
+        Log.info('[Pusher] Attempting to disconnect from Pusher before initialization has occurred, ignoring.');
         return;
     }
 

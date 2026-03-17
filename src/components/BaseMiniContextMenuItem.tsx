@@ -1,4 +1,3 @@
-import type {ForwardedRef} from 'react';
 import React from 'react';
 import type {PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
@@ -9,10 +8,12 @@ import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
-type BaseMiniContextMenuItemProps = {
+type BaseMiniContextMenuItemProps = WithSentryLabel & {
     /**
      * Text to display when hovering the menu item
      */
@@ -36,16 +37,26 @@ type BaseMiniContextMenuItemProps = {
      * Can be used to control the click event, and for example whether or not to lose focus from the composer when pressing the item
      */
     shouldPreventDefaultFocusOnPress?: boolean;
+
+    /**
+     * Reference to the outer element
+     */
+    ref?: PressableRef;
 };
 
 /**
  * Component that renders a mini context menu item with a
  * pressable. Also renders a tooltip when hovering the item.
  */
-function BaseMiniContextMenuItem(
-    {tooltipText, onPress, children, isDelayButtonStateComplete = true, shouldPreventDefaultFocusOnPress = true}: BaseMiniContextMenuItemProps,
-    ref: ForwardedRef<View>,
-) {
+function BaseMiniContextMenuItem({
+    tooltipText,
+    onPress,
+    children,
+    isDelayButtonStateComplete = true,
+    shouldPreventDefaultFocusOnPress = true,
+    ref,
+    sentryLabel,
+}: BaseMiniContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
@@ -77,6 +88,7 @@ function BaseMiniContextMenuItem(
                 }}
                 accessibilityLabel={tooltipText}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={sentryLabel}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete), true),
@@ -93,6 +105,4 @@ function BaseMiniContextMenuItem(
     );
 }
 
-BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
-
-export default React.forwardRef(BaseMiniContextMenuItem);
+export default BaseMiniContextMenuItem;

@@ -32,6 +32,4 @@ function IconSection({icon, iconContainerStyles, width = variables.menuIconSize,
     );
 }
 
-IconSection.displayName = 'IconSection';
-
 export default IconSection;

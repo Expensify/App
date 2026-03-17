@@ -6,7 +6,7 @@ import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 /**
  * Names of Fields where violations can occur.
  */
-const validationFields = ['amount', 'billable', 'category', 'comment', 'date', 'merchant', 'receipt', 'tag', 'tax', 'customUnitRateID', 'none'] as const;
+const validationFields = ['amount', 'billable', 'category', 'comment', 'date', 'merchant', 'receipt', 'tag', 'tax', 'attendees', 'customUnitRateID', 'waypoints', 'none'] as const;
 
 type ViolationField = TupleToUnion<typeof validationFields>;
 
@@ -28,6 +28,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     maxAge: () => 'date',
     missingCategory: () => 'category',
     missingComment: () => 'comment',
+    missingAttendees: () => 'attendees',
     missingTag: () => 'tag',
     modifiedAmount: () => 'amount',
     modifiedDate: () => 'date',
@@ -35,10 +36,13 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     overAutoApprovalLimit: () => 'amount',
     overCategoryLimit: () => 'amount',
     overLimit: () => 'amount',
+    overTripLimit: () => 'amount',
     overLimitAttendee: () => 'amount',
     perDayLimit: () => 'amount',
+    prohibitedExpense: () => 'receipt',
     receiptNotSmartScanned: () => 'receipt',
     receiptRequired: () => 'receipt',
+    itemizedReceiptRequired: () => 'receipt',
     customRules: (violation) => {
         if (!violation?.data?.field) {
             return 'receipt';
@@ -56,6 +60,9 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     taxOutOfPolicy: () => 'tax',
     taxRequired: () => 'tax',
     hold: () => 'none',
+    receiptGeneratedWithAI: () => 'receipt',
+    companyCardRequired: () => 'none',
+    noRoute: () => 'waypoints',
 };
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
@@ -75,7 +82,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
 
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
         for (const violation of filteredViolations) {
-            const field = violationNameToField[violation.name](violation);
+            const field = violationNameToField[violation.name]?.(violation);
             const existingViolations = violationGroups.get(field) ?? [];
             violationGroups.set(field, [...existingViolations, violation]);
         }
@@ -87,7 +94,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
             const currentViolations = violationsByField.get(field) ?? [];
             const firstViolation = currentViolations.at(0);
 
-            // someTagLevelsRequired has special logic becase data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
+            // someTagLevelsRequired has special logic because data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
             // tagListIndex can be 0 so we compare with undefined
             if (firstViolation?.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && data?.tagListIndex !== undefined && Array.isArray(firstViolation?.data?.errorIndexes)) {
                 return currentViolations

@@ -1,8 +1,8 @@
 import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -13,6 +13,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {
     COMPANY_NAME,
+    COMPANY_WEBSITE,
     BUSINESS_REGISTRATION_INCORPORATION_NUMBER,
     TAX_ID_EIN_NUMBER,
     COMPANY_COUNTRY_CODE,
@@ -28,6 +29,7 @@ const {
     APPLICANT_TYPE_ID,
     TRADE_VOLUME,
     BUSINESS_CATEGORY,
+    BUSINESS_TYPE_ID,
 } = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
 const displayStringValue = (list: Array<{id: string; name: string; stringValue: string}>, matchingName: string) => {
@@ -54,6 +56,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
     const error = getLatestErrorMessage(reimbursementAccount);
 
     const values = useMemo(() => getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const isBusinessTypeRequired = values[COMPANY_COUNTRY_CODE] !== CONST.COUNTRY.CA;
 
     const paymentVolume = useMemo(
         () => displayStringValue(corpayOnboardingFields?.picklists.AnnualVolumeRange ?? [], values[ANNUAL_VOLUME]),
@@ -63,13 +66,17 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
         () => displayStringValue(corpayOnboardingFields?.picklists.NatureOfBusiness ?? [], values[BUSINESS_CATEGORY]),
         [corpayOnboardingFields?.picklists.NatureOfBusiness, values],
     );
-    const businessType = useMemo(
+    const incorporationType = useMemo(
         () => displayStringValue(corpayOnboardingFields?.picklists.ApplicantType ?? [], values[APPLICANT_TYPE_ID]),
         [corpayOnboardingFields?.picklists.ApplicantType, values],
     );
     const tradeVolumeRange = useMemo(
         () => displayStringValue(corpayOnboardingFields?.picklists.TradeVolumeRange ?? [], values[TRADE_VOLUME]),
         [corpayOnboardingFields?.picklists.TradeVolumeRange, values],
+    );
+    const businessType = useMemo(
+        () => displayStringValue(corpayOnboardingFields?.picklists.BusinessType ?? [], values[BUSINESS_TYPE_ID]),
+        [corpayOnboardingFields?.picklists.BusinessType, values],
     );
 
     const summaryItems = useMemo(
@@ -83,19 +90,27 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 },
             },
             {
+                title: values[COMPANY_WEBSITE],
+                description: translate('businessInfoStep.companyWebsite'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(1);
+                },
+            },
+            {
                 title: values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER],
                 description: translate('businessInfoStep.registrationNumber'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(3);
+                    onMove(4);
                 },
             },
             {
                 title: values[TAX_ID_EIN_NUMBER],
-                description: translate('businessInfoStep.taxIDEIN'),
+                description: translate('businessInfoStep.taxIDEIN', values[COMPANY_COUNTRY_CODE]),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(4);
+                    onMove(5);
                 },
             },
             {
@@ -103,7 +118,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.businessAddress'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(1);
+                    onMove(2);
                 },
             },
             {
@@ -111,7 +126,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('common.phoneNumber'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(2);
+                    onMove(3);
                 },
             },
             {
@@ -119,23 +134,35 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('common.email'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(2);
+                    onMove(3);
                 },
             },
             {
-                title: businessType,
-                description: translate('businessInfoStep.businessType'),
+                title: incorporationType,
+                description: translate('businessInfoStep.incorporationTypeName'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(6);
+                    onMove(7);
                 },
             },
+            ...(isBusinessTypeRequired
+                ? [
+                      {
+                          title: businessType,
+                          description: translate('businessInfoStep.businessType'),
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              onMove(7);
+                          },
+                      },
+                  ]
+                : []),
             {
                 title: displayIncorporationLocation(values[FORMATION_INCORPORATION_COUNTRY_CODE], values[FORMATION_INCORPORATION_STATE]),
                 description: translate('businessInfoStep.incorporation'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(5);
+                    onMove(6);
                 },
             },
             {
@@ -143,7 +170,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.businessCategory'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(6);
+                    onMove(7);
                 },
             },
             {
@@ -151,7 +178,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.annualPaymentVolume'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(7);
+                    onMove(8);
                 },
             },
             {
@@ -159,11 +186,11 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.averageReimbursementAmount'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(8);
+                    onMove(9);
                 },
             },
         ],
-        [businessCategory, businessType, onMove, paymentVolume, tradeVolumeRange, translate, values],
+        [businessCategory, businessType, incorporationType, isBusinessTypeRequired, onMove, paymentVolume, tradeVolumeRange, translate, values],
     );
 
     return (
@@ -179,7 +206,5 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

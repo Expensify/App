@@ -4,23 +4,21 @@ import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
-import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAccountIDsByLogins, getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getAccountIDsByLogins, getDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import asMutable from '@src/types/utils/asMutable';
@@ -31,47 +29,42 @@ type MentionUserRendererProps = WithCurrentUserPersonalDetailsProps & CustomRend
 function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersonalDetails, ...defaultRendererProps}: MentionUserRendererProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {formatPhoneNumber} = useLocalize();
     const htmlAttribAccountID = tnode.attributes.accountid;
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const personalDetails = usePersonalDetails();
     const htmlAttributeAccountID = tnode.attributes.accountid;
+    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 
     let accountID: number;
     let mentionDisplayText: string;
     let navigationRoute: Route;
-
-    const tnodeClone = cloneDeep(tnode);
-
-    const getShortMentionIfFound = (displayText: string, userAccountID: string, userLogin = '') => {
-        // If the userAccountID does not exist, this is an email-based mention so the displayText must be an email.
-        // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
-        if (userAccountID && userLogin !== displayText) {
-            return displayText;
-        }
-
-        // If the emails are not in the same private domain, we also return the displayText
-        if (!areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
-            return displayText;
-        }
-
-        // Otherwise, the emails must be of the same private domain, so we should remove the domain part
-        return displayText.split('@').at(0);
-    };
+    let tnodeClone: typeof tnode | undefined;
 
     if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
         mentionDisplayText = formatPhoneNumber(user?.login ?? '') || getDisplayNameOrDefault(user);
-        mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '') ?? '';
+        mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
-    } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
+    } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
+        tnodeClone = cloneDeep(tnode);
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
-        asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID) ?? ''));
+        asMutable(tnodeClone).data = tnodeClone.data.replace(
+            mentionDisplayText,
+            Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails) ?? ''),
+        );
 
         accountID = getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
+    } else if (!isEmpty(htmlAttribAccountID)) {
+        // accountID not found in personal details and mention data not provided
+        accountID = parseInt(htmlAttribAccountID, 10);
+        mentionDisplayText = getDisplayNameOrDefault();
+        navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
     } else {
         // If neither an account ID or email is provided, don't render anything
         return null;
@@ -83,50 +76,53 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const {color, ...styleWithoutColor} = flattenStyle;
 
     return (
-        <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+        <Text
+            suppressHighlighting
+            onLongPress={(event) => {
+                if (isDisabled || !shouldDisplayContextMenu) {
+                    return;
+                }
+                return onShowContextMenu(() =>
+                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
+                );
+            }}
+            onPress={(event) => {
+                event.preventDefault();
+                if (!isEmpty(htmlAttribAccountID)) {
+                    Navigation.navigate(ROUTES.PROFILE.getRoute(parseInt(htmlAttribAccountID, 10), Navigation.getReportRHPActiveRoute()));
+                    return;
+                }
+                Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText));
+            }}
+            role={CONST.ROLE.LINK}
+            accessibilityLabel={`/${navigationRoute}`}
+        >
+            <UserDetailsTooltip
+                accountID={accountID}
+                fallbackUserDetails={{
+                    displayName: mentionDisplayText,
+                }}
+            >
                 <Text
-                    suppressHighlighting
-                    onLongPress={(event) => {
-                        if (isDisabled) {
-                            return;
-                        }
-                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
-                    }}
-                    onPress={(event) => {
-                        event.preventDefault();
-                        if (!isEmpty(htmlAttribAccountID)) {
-                            Navigation.navigate(ROUTES.PROFILE.getRoute(parseInt(htmlAttribAccountID, 10), Navigation.getReportRHPActiveRoute()));
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText));
-                    }}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...defaultRendererProps}
+                    style={[
+                        styles.link,
+                        styleWithoutColor,
+                        StyleUtils.getMentionStyle(isOurMention),
+                        {color: StyleUtils.getMentionTextColor(isOurMention)},
+                        styles.breakWord,
+                        styles.textWrap,
+                    ]}
                     role={CONST.ROLE.LINK}
-                    accessibilityLabel={`/${navigationRoute}`}
+                    testID="mention-user"
+                    href={`/${navigationRoute}`}
                 >
-                    <UserDetailsTooltip
-                        accountID={accountID}
-                        fallbackUserDetails={{
-                            displayName: mentionDisplayText,
-                        }}
-                    >
-                        <Text
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...defaultRendererProps}
-                            style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
-                            role={CONST.ROLE.LINK}
-                            testID="mention-user"
-                            href={`/${navigationRoute}`}
-                        >
-                            {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone} />}
-                        </Text>
-                    </UserDetailsTooltip>
+                    {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone ?? tnode} />}
                 </Text>
-            )}
-        </ShowContextMenuContext.Consumer>
+            </UserDetailsTooltip>
+        </Text>
     );
 }
-
-MentionUserRenderer.displayName = 'MentionUserRenderer';
 
 export default withCurrentUserPersonalDetails(MentionUserRenderer);

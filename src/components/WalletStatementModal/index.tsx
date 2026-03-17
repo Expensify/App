@@ -1,44 +1,32 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {WalletStatementMessage, WalletStatementOnyxProps, WalletStatementProps} from './types';
+import type {WalletStatementMessage, WalletStatementProps} from './types';
+import handleWalletStatementNavigation from './walletNavigationUtils';
 
-function WalletStatementModal({statementPageURL, session}: WalletStatementProps) {
+function WalletStatementModal({statementPageURL}: WalletStatementProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const [isLoading, setIsLoading] = useState(true);
     const authToken = session?.authToken ?? null;
 
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     /**
      * Handles in-app navigation for iframe links
      */
     const navigate = (event: MessageEvent<WalletStatementMessage>) => {
-        if (!event.data?.type || (event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
-            return;
-        }
-
-        if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-            Report.navigateToConciergeChat(true);
-        }
-
-        if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.url) {
-            const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND];
-            const navigateToIOURoute = iouRoutes.find((iouRoute) => event.data.url.includes(iouRoute));
-            if (navigateToIOURoute) {
-                Navigation.navigate(navigateToIOURoute);
-            }
-        }
+        const {data} = event;
+        const {type, url} = data || {};
+        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, type, url);
     };
 
     return (
         <>
-            {isLoading && <FullScreenLoadingIndicator />}
+            {isLoading && <FullScreenLoadingIndicator reasonAttributes={{context: 'WalletStatementModal'}} />}
             <View style={[styles.flex1]}>
                 <iframe
                     src={`${statementPageURL}&authToken=${authToken}`}
@@ -46,6 +34,7 @@ function WalletStatementModal({statementPageURL, session}: WalletStatementProps)
                     height="100%"
                     width="100%"
                     seamless
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     frameBorder="0"
                     onLoad={() => {
                         setIsLoading(false);
@@ -60,10 +49,4 @@ function WalletStatementModal({statementPageURL, session}: WalletStatementProps)
     );
 }
 
-WalletStatementModal.displayName = 'WalletStatementModal';
-
-export default withOnyx<WalletStatementProps, WalletStatementOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(WalletStatementModal);
+export default WalletStatementModal;

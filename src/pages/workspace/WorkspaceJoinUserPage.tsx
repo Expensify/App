@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteMemberToWorkspace} from '@libs/actions/Policy/Member';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
@@ -32,7 +32,7 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
         }
         if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.goBack(undefined, {shouldPopToTop: true});
+                Navigation.goBack();
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
             });
             return;
@@ -44,7 +44,7 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
             }
             navigateAfterJoinRequest();
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want to run this once after the policy loads
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this once after the policy loads
     }, [isPolicyLoading]);
 
     useEffect(
@@ -55,11 +55,13 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
     );
 
     return (
-        <ScreenWrapper testID={WorkspaceJoinUserPage.displayName}>
-            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+        <ScreenWrapper testID="WorkspaceJoinUserPage">
+            <FullScreenLoadingIndicator
+                style={[styles.flex1, styles.pRelative]}
+                reasonAttributes={{context: 'WorkspaceJoinUserPage'}}
+            />
         </ScreenWrapper>
     );
 }
 
-WorkspaceJoinUserPage.displayName = 'WorkspaceJoinUserPage';
 export default WorkspaceJoinUserPage;

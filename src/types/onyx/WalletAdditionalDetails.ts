@@ -67,4 +67,4 @@ type WalletAdditionalDetails = {
 type WalletAdditionalDetailsRefactor = WalletAdditionalDetails & WalletPersonalDetails;
 
 export default WalletAdditionalDetails;
-export type {WalletAdditionalQuestionDetails, WalletPersonalDetails, WalletAdditionalDetailsRefactor};
+export type {WalletAdditionalQuestionDetails, WalletAdditionalDetailsRefactor};

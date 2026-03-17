@@ -5,7 +5,7 @@ import type FilePickerProps from './types';
 /**
  * This component renders a function as a child and
  * returns a "show file picker" method that takes
- * a callback. This is the web/mWeb/desktop version since
+ * a callback. This is the web/mWeb version since
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
  */
@@ -34,7 +34,6 @@ function FilePicker({children, acceptableFileTypes = ''}: FilePickerProps): Reac
 
                     // Cleanup after selecting a file to start from a fresh state
                     if (fileInput.current) {
-                        // eslint-disable-next-line react-compiler/react-compiler
                         fileInput.current.value = '';
                     }
                 }}
@@ -65,7 +64,6 @@ function FilePicker({children, acceptableFileTypes = ''}: FilePickerProps): Reac
                 }}
                 accept={acceptableFileTypes}
             />
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
                     onPicked.current = newOnPicked;
@@ -76,6 +74,5 @@ function FilePicker({children, acceptableFileTypes = ''}: FilePickerProps): Reac
         </>
     );
 }
-FilePicker.displayName = 'FilePicker';
 
 export default FilePicker;

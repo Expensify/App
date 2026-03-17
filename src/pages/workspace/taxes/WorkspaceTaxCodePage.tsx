@@ -14,6 +14,7 @@ import {setPolicyTaxCode, validateTaxCode} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +33,8 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const policy = usePolicy(policyID);
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
+
     const setTaxCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
             const newTaxCode = values.taxCode.trim();
@@ -40,10 +43,21 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                 return;
             }
 
-            setPolicyTaxCode(policyID, currentTaxCode, newTaxCode);
+            if (!policy?.taxRates?.taxes[currentTaxCode]) {
+                return;
+            }
+            setPolicyTaxCode(
+                policyID,
+                currentTaxCode,
+                newTaxCode,
+                policy?.taxRates?.taxes[currentTaxCode],
+                policy?.taxRates?.foreignTaxDefault,
+                policy?.taxRates?.defaultExternalID,
+                distanceRateCustomUnit,
+            );
             Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
         },
-        [currentTaxCode, policyID],
+        [currentTaxCode, policyID, policy?.taxRates, distanceRateCustomUnit],
     );
 
     const validate = useCallback(
@@ -56,9 +70,9 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                 return {};
             }
 
-            return validateTaxCode(policy, values);
+            return validateTaxCode(policy, values, translate);
         },
-        [currentTaxCode, policy],
+        [currentTaxCode, policy, translate],
     );
 
     return (
@@ -68,9 +82,9 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceTaxCodePage.displayName}
+                testID="WorkspaceTaxCodePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.taxes.taxCode')}
@@ -84,6 +98,8 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                     onSubmit={setTaxCode}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -101,7 +117,5 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxCodePage.displayName = 'WorkspaceTaxCodePage';
 
 export default WorkspaceTaxCodePage;

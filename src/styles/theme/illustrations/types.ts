@@ -4,7 +4,7 @@ import type {SvgProps} from 'react-native-svg';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type IllustrationsType = {
-    EmptyStateBackgroundImage: ImageSourcePropType;
+    EmptyStateBackgroundImage: FC<SvgProps>;
     ExampleCheckES: ImageSourcePropType;
     ExampleCheckEN: ImageSourcePropType;
     WorkspaceProfile: ImageSourcePropType;

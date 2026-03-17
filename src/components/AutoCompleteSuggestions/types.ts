@@ -1,10 +1,7 @@
 import type {ReactElement} from 'react';
+import type {Bounds} from '@src/types/utils/Layout';
 
-type MeasureParentContainerAndCursor = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+type MeasureParentContainerAndCursor = Bounds & {
     scrollValue: number;
     cursorCoordinates: {x: number; y: number};
 };

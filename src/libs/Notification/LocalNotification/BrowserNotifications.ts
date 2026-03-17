@@ -1,15 +1,17 @@
-// Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
+// Web implementation only. Do not import for direct use. Use LocalNotification.
 import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
-import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
+import {translateLocal} from '@libs/Localize';
+import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
-import focusApp from './focusApp';
-import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
+import SafeString from '@src/utils/SafeString';
+import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
 
@@ -64,7 +66,7 @@ function push(
         const notificationID = Str.guid();
         notificationCache[notificationID] = new Notification(title, {
             body,
-            icon: String(icon),
+            icon: SafeString(icon),
             data,
             silent: true,
             tag,
@@ -76,7 +78,6 @@ function push(
             onClick();
             window.parent.focus();
             window.focus();
-            focusApp();
             notificationCache[notificationID].close();
         };
         notificationCache[notificationID].onclose = () => {
@@ -95,12 +96,12 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, conciergeReportID: string | undefined, usesIcon = false) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
 
-        const isChatRoom = ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report);
+        const isRoomOrGroupChat = ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isGroupChat(report);
 
         const {person, message} = reportAction;
         const plainTextPerson = person?.map((f) => Str.removeSMSDomain(f.text ?? '')).join() ?? '';
@@ -113,8 +114,10 @@ export default {
             plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
         }
 
-        if (isChatRoom) {
-            const roomName = ReportUtils.getReportName(report);
+        if (isRoomOrGroupChat) {
+            // Will be fixed in https://github.com/Expensify/App/issues/76852
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const roomName = ReportUtils.getReportName({report, conciergeReportID});
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -129,9 +132,28 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushModifiedExpenseNotification({
+        report,
+        reportAction,
+        movedFromReport,
+        movedToReport,
+        onClick,
+        usesIcon = false,
+        policyTags,
+        policy,
+        currentUserLogin,
+    }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+        const body = getForReportActionTemp({
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
+            translate: translateLocal,
+            reportAction,
+            policy,
+            movedFromReport,
+            movedToReport,
+            policyTags,
+            currentUserLogin,
+        });
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,
@@ -162,8 +184,11 @@ export default {
      * @param shouldClearNotification a function that receives notification.data and returns true/false if the notification should be cleared
      */
     clearNotifications(shouldClearNotification: (notificationData: LocalNotificationData) => boolean) {
-        Object.values(notificationCache)
-            .filter((notification) => shouldClearNotification(notification.data as LocalNotificationData))
-            .forEach((notification) => notification.close());
+        for (const notification of Object.values(notificationCache)) {
+            if (!shouldClearNotification(notification.data as LocalNotificationData)) {
+                continue;
+            }
+            notification.close();
+        }
     },
 };

@@ -27,5 +27,4 @@ function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
     );
 }
 
-OnboardingPurpose.displayName = 'OnboardingPurpose';
 export default OnboardingPurpose;

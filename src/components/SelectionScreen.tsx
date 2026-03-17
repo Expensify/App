@@ -1,8 +1,8 @@
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -17,10 +17,10 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
-import type RadioListItem from './SelectionList/RadioListItem';
-import type TableListItem from './SelectionList/TableListItem';
-import type {ListItem, SectionListDataType} from './SelectionList/types';
-import type UserListItem from './SelectionList/UserListItem';
+import type RadioListItem from './SelectionList/ListItem/RadioListItem';
+import type TableListItem from './SelectionList/ListItem/TableListItem';
+import type UserListItem from './SelectionList/ListItem/UserListItem';
+import type {ListItem} from './SelectionList/types';
 
 type SelectorType<T = string> = ListItem & {
     value: T;
@@ -45,7 +45,7 @@ type SelectionScreenProps<T = string> = {
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
-    sections: Array<SectionListDataType<SelectorType<T>>>;
+    data: Array<SelectorType<T>>;
 
     /** Default renderer for every item in the list */
     listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
@@ -54,10 +54,10 @@ type SelectionScreenProps<T = string> = {
     listItemWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Item `keyForList` to focus initially */
-    initiallyFocusedOptionKey?: string | null | undefined;
+    initiallyFocusedOptionKey?: string | undefined;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (selection: SelectorType<T>) => void;
+    onSelectRow: (item: SelectorType<T>) => void;
 
     /** Callback to fire when back button is pressed */
     onBackButtonPress?: () => void;
@@ -101,14 +101,16 @@ type SelectionScreenProps<T = string> = {
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
-    /** Label for the text input */
-    textInputLabel?: string;
+    textInputOptions?: {
+        /** Label for the text input */
+        label?: string;
 
-    /** Value for the text input */
-    textInputValue?: string;
+        /** Value for the text input */
+        value?: string;
 
-    /** Callback to fire when the text input changes */
-    onChangeText?: (text: string) => void;
+        /** Callback to fire when the text input changes */
+        onChangeText?: (text: string) => void;
+    };
 };
 
 function SelectionScreen<T = string>({
@@ -117,7 +119,7 @@ function SelectionScreen<T = string>({
     headerContent,
     listEmptyContent,
     listFooterContent,
-    sections,
+    data,
     listItem,
     listItemWrapperStyle,
     initiallyFocusedOptionKey,
@@ -134,10 +136,8 @@ function SelectionScreen<T = string>({
     onClose,
     shouldSingleExecuteRowSelect,
     headerTitleAlreadyTranslated,
-    textInputLabel,
-    textInputValue,
-    onChangeText,
     shouldShowTextInput,
+    textInputOptions,
     shouldUpdateFocusedIndex = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
@@ -154,7 +154,7 @@ function SelectionScreen<T = string>({
             shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={!!errors && !isEmptyObject(errors)}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={displayName}
             >
                 <HeaderWithBackButton
@@ -166,31 +166,29 @@ function SelectionScreen<T = string>({
                     pendingAction={pendingAction}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
-                    shouldDisableOpacity={!sections.length}
+                    shouldDisableOpacity={!data.length}
                 >
                     <SelectionList
-                        onSelectRow={onSelectRow}
-                        sections={sections}
+                        data={data}
                         ListItem={listItem}
+                        onSelectRow={onSelectRow}
                         showScrollIndicator
-                        onChangeText={onChangeText}
                         shouldShowTooltips={false}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                        textInputOptions={textInputOptions}
                         listEmptyContent={listEmptyContent}
-                        textInputLabel={textInputLabel}
-                        textInputValue={textInputValue}
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
-                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
+                        style={{listItemWrapperStyle}}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
-                        isAlternateTextMultilineSupported
-                        listItemWrapperStyle={listItemWrapperStyle}
+                        alternateNumberOfSupportedLines={2}
+                        addBottomSafeAreaPadding={!errors || isEmptyObject(errors)}
                     >
                         <ErrorMessageRow
                             errors={errors}
                             errorRowStyles={errorRowStyles}
-                            onClose={onClose}
+                            onDismiss={onClose}
                         />
                     </SelectionList>
                 </OfflineWithFeedback>
@@ -201,5 +199,4 @@ function SelectionScreen<T = string>({
 
 export type {SelectorType};
 
-SelectionScreen.displayName = 'SelectionScreen';
 export default SelectionScreen;
