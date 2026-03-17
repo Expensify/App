@@ -92,7 +92,9 @@ function PhoneNumberPage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 {isLoadingApp ? (
-                    <View style={[styles.flex1, styles.pRelative, styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(theme.componentBG), {opacity: 0.8}]}>
+                    <View
+                        style={[styles.flex1, styles.pRelative, styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(theme.componentBG), {opacity: 0.8}]}
+                    >
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             reasonAttributes={{context: 'PhoneNumberPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
