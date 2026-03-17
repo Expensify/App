@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
+import getDraftValuesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForBeneficialOwners';
 import getOwnerDetailsAndOwnerFilesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getOwnerDetailsAndOwnerFilesForBeneficialOwners';
 import {clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners, saveCorpayOnboardingBeneficialOwners} from '@userActions/BankAccounts';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
@@ -42,7 +43,15 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
 
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const isAnyoneElseOwner = reimbursementAccount?.achData?.corpay?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? reimbursementAccountDraft?.[ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE] ?? false;
-    const ownerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
+    const beneficialOwnersDraftValues = getDraftValuesForBeneficialOwners(reimbursementAccount);
+    const ownerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? beneficialOwnersDraftValues.beneficialOwnerKeys;
+
+    useEffect(() => {
+        if (reimbursementAccountDraft?.beneficialOwnerKeys || beneficialOwnersDraftValues.beneficialOwnerKeys.length === 0) {
+            return;
+        }
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, beneficialOwnersDraftValues);
+    }, [reimbursementAccountDraft?.beneficialOwnerKeys, beneficialOwnersDraftValues]);
 
     const totalOwnedPercentageSum = ownerKeys.reduce((acc, key) => {
         const percentageKey = `${PREFIX}_${key}_${OWNERSHIP_PERCENTAGE}` as const;
@@ -219,6 +228,8 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
             onBackButtonPress();
         } else if (currentSubPage === SUB_PAGE_NAMES.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
             Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER, backTo}));
+        } else if (currentSubPage === SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST) {
+            Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.CONFIRMATION, backTo}));
         } else {
             Navigation.goBack();
         }

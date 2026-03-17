@@ -109,7 +109,7 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         }
 
         if (prevIndex < 0) {
-            Navigation.goBack();
+            Navigation.goBack(buildRoute(SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER));
         } else {
             prevPage();
         }
