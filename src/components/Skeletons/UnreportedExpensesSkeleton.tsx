@@ -1,7 +1,9 @@
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {Rect} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
+import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
@@ -31,41 +33,36 @@ function getExpenseAmountSkeletonWidth(index: number) {
     }
 }
 
-function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: number}) {
-    const containerRef = useRef<View>(null);
+type UnreportedExpensesSkeletonProps = {
+    fixedNumberOfItems?: number;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
+};
+
+function UnreportedExpensesSkeleton({fixedNumberOfItems, reasonAttributes}: UnreportedExpensesSkeletonProps) {
+    const {onLayout, containerWidth: pageWidth} = useContainerWidth(40);
     const styles = useThemeStyles();
-    const [pageWidth, setPageWidth] = React.useState(0);
-    useSkeletonSpan('UnreportedExpensesSkeleton');
-    useLayoutEffect(() => {
-        containerRef.current?.measure((x, y, width) => {
-            setPageWidth(width - 40);
-        });
-    }, []);
+    useSkeletonSpan('UnreportedExpensesSkeleton', reasonAttributes);
 
     const skeletonItem = useCallback(
         (args: {itemIndex: number}) => {
             return (
                 <>
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 12}, {translateY: 22}]}
                         width={20}
                         height={20}
-                        rx={4}
-                        ry={4}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 44}, {translateY: 12}]}
                         width={36}
                         height={40}
-                        rx={4}
-                        ry={4}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 92}, {translateY: 26}]}
                         width={getMessageSkeletonWidth(args.itemIndex)}
                         height={12}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: pageWidth - 12 - getExpenseAmountSkeletonWidth(args.itemIndex)}, {translateY: 26}]}
                         width={getExpenseAmountSkeletonWidth(args.itemIndex)}
                         height={12}
@@ -79,7 +76,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
     return (
         <View
             style={styles.flex1}
-            ref={containerRef}
+            onLayout={onLayout}
         >
             <ItemListSkeletonView
                 itemViewHeight={64}

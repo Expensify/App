@@ -16,7 +16,7 @@ const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY] as Array<FormOnyxKeys<keyof OnyxForm
 function DateOfBirthStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {canBeMissing: true});
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const dobDefaultValue = walletAdditionalDetails?.[PERSONAL_INFO_DOB_KEY] ?? walletAdditionalDetails?.[PERSONAL_INFO_DOB_KEY] ?? '';
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({

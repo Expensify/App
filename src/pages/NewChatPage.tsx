@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import reportsSelector from '@selectors/Attributes';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
@@ -23,6 +23,7 @@ import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +47,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import KeyboardUtils from '@src/utils/keyboard';
 
@@ -56,28 +58,28 @@ type SelectedOption = ListItem &
         reportID?: string;
     };
 
-function useOptions() {
+function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const currentUserEmail = personalData.email ?? '';
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const {
         options: listOptions,
         isLoading,
         loadMore,
         hasMore,
-        isLoadingMore,
     } = useFilteredOptions({
         maxRecentReports: 500,
         enabled: didScreenTransitionEnd,
@@ -88,8 +90,8 @@ function useOptions() {
         betas,
     });
 
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const reports = listOptions?.reports ?? [];
     const personalDetails = listOptions?.personalDetails ?? [];
@@ -110,15 +112,17 @@ function useOptions() {
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
             personalDetails: allPersonalDetails,
+            allPolicyTags,
+            countryCode,
+            reportAttributesDerived,
         },
-        countryCode,
     );
 
     const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
 
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -161,6 +165,7 @@ function useOptions() {
                       personalDetails.find((option) => option.accountID === participant.accountID) ??
                       getUserToInviteOption({
                           searchValue: participant?.login,
+                          personalDetails: allPersonalDetails,
                           loginList,
                           currentUserEmail: personalData.email ?? '',
                           currentUserAccountID: personalData.accountID,
@@ -180,6 +185,7 @@ function useOptions() {
             return;
         }
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedOptions((prevSelectedOptions) => {
             if (
                 prevSelectedOptions.length === draftSelectedOptions.length &&
@@ -199,7 +205,7 @@ function useOptions() {
     }, [draftSelectedOptions, setSelectedOptions]);
 
     const handleEndReached = () => {
-        if (!hasMore || isLoadingMore || !areOptionsInitialized) {
+        if (!hasMore || !areOptionsInitialized) {
             return;
         }
         loadMore();
@@ -215,7 +221,6 @@ function useOptions() {
         setSelectedOptions,
         headerMessage,
         handleEndReached,
-        isLoadingMore,
     };
 }
 
@@ -236,8 +241,13 @@ function NewChatPage({ref}: NewChatPageProps) {
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+
+    const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
     const allPersonalDetails = usePersonalDetails();
@@ -252,7 +262,6 @@ function NewChatPage({ref}: NewChatPageProps) {
         searchTerm,
         debouncedSearchTerm,
         handleEndReached,
-        isLoadingMore,
         setSearchTerm,
         selectedOptions,
         setSelectedOptions,
@@ -260,7 +269,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         userToInvite,
         areOptionsInitialized,
-    } = useOptions();
+    } = useOptions(reportAttributesDerived);
 
     const sections: Section[] = [];
     let firstKeyForList = '';
@@ -270,13 +279,16 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
+        privateIsArchivedMap,
         currentUserAccountID,
         allPersonalDetails,
         undefined,
         undefined,
         reportAttributesDerived,
     );
-    sections.push(formatResults.section);
+    // Just a temporary fix to satisfy the type checker
+    // Will be fixed when migrating to use new SelectionListWithSections
+    sections.push({...formatResults.section, title: undefined, shouldShow: true});
 
     if (!firstKeyForList) {
         firstKeyForList = getFirstKeyForList(formatResults.section.data);
@@ -322,7 +334,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (isOptionInList) {
             newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
         } else {
-            newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
+            newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
             selectionListRef?.current?.scrollToIndex(0, true);
         }
 
@@ -392,7 +404,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login]))();
+            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed))();
         });
     };
 
@@ -404,11 +416,11 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (item.isSelected) {
             return (
                 <PressableWithFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.SELECT_PARTICIPANT}
                     onPress={() => toggleOption(item)}
                     disabled={item.isDisabled}
                     role={CONST.ROLE.CHECKBOX}
-                    accessibilityLabel={item.text ?? ''}
-                    accessibilityState={{checked: item.isSelected}}
+                    accessibilityLabel={item.text ? translate('selectionList.userSelected', item.text) : ''}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
                 >
                     <SelectCircle
@@ -424,6 +436,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 onPress={() => toggleOption(item)}
                 style={[styles.pl2]}
                 text={translate('newChatPage.addToGroup')}
+                accessibilityLabel={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
                 innerStyles={buttonInnerStyles}
                 small
             />
@@ -490,9 +503,9 @@ function NewChatPage({ref}: NewChatPageProps) {
                 onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
-                showLoadingPlaceholder={!areOptionsInitialized}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                isLoadingNewOptions={!!isSearchingForReports || isLoadingMore}
+                isLoadingNewOptions={!!isSearchingForReports}
                 onEndReached={handleEndReached}
                 onEndReachedThreshold={0.75}
                 initiallyFocusedOptionKey={firstKeyForList}

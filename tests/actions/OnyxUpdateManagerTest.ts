@@ -7,7 +7,7 @@ import * as AppImport from '@libs/actions/App';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManagerExports from '@libs/actions/OnyxUpdateManager';
-import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+import type {AnyDeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManagerUtilsImport from '@libs/actions/OnyxUpdateManager/utils';
 import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__';
@@ -28,7 +28,7 @@ jest.mock('@userActions/OnyxUpdateManager/utils/applyUpdates', () => {
     const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@userActions/OnyxUpdateManager/utils/applyUpdates');
 
     return {
-        applyUpdates: jest.fn((updates: DeferredUpdatesDictionary) => ApplyUpdatesImplementation.applyUpdates(updates)),
+        applyUpdates: jest.fn((updates: AnyDeferredUpdatesDictionary) => ApplyUpdatesImplementation.applyUpdates(updates)),
     };
 });
 
@@ -42,13 +42,13 @@ jest.mock('@src/libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn().mockReturnValue({}),
 }));
 
-const App = AppImport as AppActionsMock;
-const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
-const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
-
 const TEST_USER_ACCOUNT_ID = 1;
 const REPORT_ID = 'testReport1';
 const ONYX_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
+
+const App = AppImport as AppActionsMock<typeof ONYX_KEY>;
+const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
+const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 
 const exampleReportAction = {
     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,

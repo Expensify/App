@@ -112,4 +112,30 @@ describe('Url', () => {
             expect(Url.getUrlWithParams(baseUrl, params)).toBe(expected);
         });
     });
+    describe('getSearchParamFromPath', () => {
+        it.each([
+            ['returns null when no query string', 'search/hold/search', 'q', null],
+            // cspell:disable-next-line
+            ['reads query param from path', 'search/hold/search?q=type%3aexpense&name=Expenses', 'q', 'type:expense'],
+            ['returns null for missing param', 'search/hold/search?name=Expenses', 'q', null],
+            // cspell:disable-next-line
+            ['handles hash fragments', 'search/hold/search?q=type%3aexpense#section', 'q', 'type:expense'],
+            ['decodes ampersand', 'search/hold/search?q=AT%26T', 'q', 'AT&T'],
+            // cspell:disable-next-line
+            ['decodes slash', 'search/hold/search?q=foo%2fbar', 'q', 'foo/bar'],
+            ['decodes encoded percent', 'search/hold/search?q=100%25', 'q', '100%'],
+            ['returns raw value when decoding fails', 'search/hold/search?q=100%', 'q', '100%'],
+            // cspell:disable-next-line
+            ['double decodes encoded percent', 'search/hold/search?q=foo%252fbar', 'q', 'foo/bar'],
+            [
+                'reads query from encoded backTo segment',
+                // cspell:disable-next-line
+                'create/split-expense/overview/4936432564974252/324399768798079300/0/search/%2Fsearch%3Fq=type%253Aexpense-report%2520sortBy%253Adate%2520sortOrder%253Adesc%2520action%253Asubmit%2520from%253A21227763/amount',
+                'q',
+                'type:expense-report sortBy:date sortOrder:desc action:submit from:21227763',
+            ],
+        ])('%s', (_, path, param, expected) => {
+            expect(Url.getSearchParamFromPath(path, param)).toBe(expected);
+        });
+    });
 });

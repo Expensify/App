@@ -7,7 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -15,6 +15,7 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {deleteTrackExpense} from '@libs/actions/IOU';
@@ -47,7 +48,7 @@ type PopoverReportActionContextMenuProps = {
 };
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -56,7 +57,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
-    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
+    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
@@ -85,7 +87,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const personalPolicy = usePersonalPolicy();
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -320,21 +324,20 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     }
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`, {
-        canBeMissing: true,
-    });
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const {currentSearchHash} = useSearchContext();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`);
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionRef.current?.childReportID}`);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const {currentSearchHash} = useSearchStateContext();
     const {deleteTransactions} = useDeleteTransactions({
         report,
         reportActions: reportActionRef.current ? [reportActionRef.current] : [],
         policy,
     });
 
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current)}`, {
-        canBeMissing: true,
-    });
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
     const ancestorsRef = useRef<typeof ancestors>([]);
     const ancestors = useAncestors(originalReport);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
@@ -369,11 +372,23 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList);
+            deleteAppReport({
+                report: childReport,
+                selfDMReport,
+                currentUserEmailParam: email ?? '',
+                currentUserAccountIDParam: currentUserAccountID,
+                reportTransactions,
+                allTransactionViolations,
+                bankAccountList,
+                personalPolicy,
+                translate,
+                toLocaleDigit,
+                hash: currentSearchHash,
+            });
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(report, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
+                deleteReportComment(report, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '', visibleReportActionsData ?? undefined);
             });
         }
 
@@ -381,20 +396,26 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(false);
     }, [
         report,
+        childReport,
+        selfDMReport,
         iouReport,
         chatReport,
         duplicateTransactions,
         duplicateTransactionViolations,
         isReportArchived,
         isChatIOUReportArchived,
+        allTransactionViolations,
+        currentUserAccountID,
         deleteTransactions,
         currentSearchHash,
         email,
         reportTransactions,
-        isOriginalReportArchived,
-        allTransactionViolations,
         bankAccountList,
-        currentUserAccountID,
+        personalPolicy,
+        isOriginalReportArchived,
+        translate,
+        toLocaleDigit,
+        visibleReportActionsData,
     ]);
 
     const hideDeleteModal = () => {

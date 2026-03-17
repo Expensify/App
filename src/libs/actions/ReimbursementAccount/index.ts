@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {ACHData, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -41,6 +41,10 @@ function clearReimbursementAccountDraft() {
     Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {});
 }
 
+function clearReimbursementAccount() {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+}
+
 /**
  * Triggers a modal to open allowing the user to reset their bank account
  */
@@ -70,6 +74,7 @@ export {
     updateReimbursementAccountDraft,
     requestResetBankAccount,
     cancelResetBankAccount,
+    clearReimbursementAccount,
     clearReimbursementAccountDraft,
     setBankAccountState,
     setReimbursementAccountOptionPressed,

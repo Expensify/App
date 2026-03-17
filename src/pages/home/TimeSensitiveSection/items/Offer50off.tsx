@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type Offer50offProps = {
+    /** The start date (yyyy-MM-dd HH:mm:ss) of the workspace owner’s free trial period. */
     firstDayFreeTrial: string | undefined;
 };
 
@@ -45,6 +46,7 @@ function Offer50off({firstDayFreeTrial}: Offer50offProps) {
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.cta')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(ROUTES.HOME))}
+            buttonProps={{success: true}}
         />
     );
 }

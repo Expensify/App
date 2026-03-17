@@ -5,10 +5,11 @@ import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
-type FormAlertWithSubmitButtonProps = {
+type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     /** Error message to display above button */
     message?: string;
 
@@ -102,6 +103,7 @@ function FormAlertWithSubmitButton({
     shouldBlendOpacity = false,
     addButtonBottomPadding = true,
     shouldPreventDefaultFocusOnPress = false,
+    sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
@@ -135,6 +137,7 @@ function FormAlertWithSubmitButton({
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}
                             onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
+                            sentryLabel={sentryLabel}
                         />
                     ) : (
                         <Button
@@ -152,6 +155,7 @@ function FormAlertWithSubmitButton({
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}
                             onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
+                            sentryLabel={sentryLabel}
                         />
                     )}
                     {!shouldRenderFooterAboveSubmit && footerContent}

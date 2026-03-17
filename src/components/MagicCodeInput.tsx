@@ -4,6 +4,7 @@ import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -56,7 +57,7 @@ const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, o
     }, [inputRef, onChangeText]);
 };
 
-type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
+type AutoCompleteVariant = ValueOf<typeof CONST.AUTO_COMPLETE_VARIANTS>;
 
 type MagicCodeInputProps = {
     /** Name attribute for the input */
@@ -106,6 +107,9 @@ type MagicCodeInputProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<MagicCodeInputHandle>;
+
+    /** Whether to mask the input characters (display as dots) */
+    secureTextEntry?: boolean;
 };
 
 type MagicCodeInputHandle = {
@@ -156,6 +160,7 @@ function MagicCodeInput({
     testID = '',
     accessibilityLabel,
     ref,
+    secureTextEntry = false,
 }: MagicCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -501,6 +506,7 @@ function MagicCodeInput({
                 </GestureDetector>
                 {getInputPlaceholderSlots(maxLength).map((index) => {
                     const char = decomposeString(value, maxLength).at(index)?.trim() ?? '';
+                    const displayChar = secureTextEntry && char ? '•' : char;
                     const cursorMargin = char ? {marginLeft: 2} : {};
                     const isFocused = focusedIndex === index;
 
@@ -520,7 +526,7 @@ function MagicCodeInput({
                                 ]}
                             >
                                 <View style={styles.magicCodeInputValueContainer}>
-                                    <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
+                                    <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{displayChar}</Text>
                                     {isFocused && !isDisableKeyboard && (
                                         <View
                                             style={[styles.magicCodeInputCursorContainer]}

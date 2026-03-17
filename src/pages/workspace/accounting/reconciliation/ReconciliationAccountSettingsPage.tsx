@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -41,14 +41,15 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const connectionName = getConnectionNameFromRouteParam(connection);
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const settings = getCardSettings(cardSettings);
+    const paymentBankAccountID = settings?.paymentBankAccountID;
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
     const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount?.accountData?.accountNumber]);
     const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
-    const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
+    const domainName = settings?.domainName ?? getDomainNameForPolicy(policyID);
     const {environmentURL} = useEnvironment();
 
     const options = useMemo(() => {
@@ -92,10 +93,11 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
             <View style={[styles.textNormal, styles.mb6, styles.ph5, styles.renderHTML, styles.flexRow]}>
                 <RenderHTML
-                    html={translate('workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation', {
-                        settlementAccountUrl: `${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())}`,
-                        lastFourPAN: settlementAccountEnding,
-                    })}
+                    html={translate(
+                        'workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation',
+                        `${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())}`,
+                        settlementAccountEnding,
+                    )}
                 />
             </View>
 

@@ -43,10 +43,10 @@ function TransferBalancePage() {
     const {paddingBottom} = useSafeAreaPaddings();
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
@@ -211,9 +211,7 @@ function TransferBalancePage() {
                 </ScrollView>
                 <View>
                     <FormAlertWithSubmitButton
-                        buttonText={translate('transferAmountPage.transfer', {
-                            amount: isTransferable ? convertToDisplayString(transferAmount) : '',
-                        })}
+                        buttonText={translate('transferAmountPage.transfer', isTransferable ? convertToDisplayString(transferAmount) : '')}
                         isLoading={walletTransfer?.loading}
                         onSubmit={() => selectedAccount && transferWalletBalance(selectedAccount)}
                         isDisabled={isButtonDisabled || isOffline}

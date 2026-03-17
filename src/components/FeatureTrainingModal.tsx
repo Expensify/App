@@ -127,6 +127,12 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether to call onHelp when modal is hidden completely */
     shouldCallOnHelpWhenModalHidden?: boolean;
+
+    /** Sentry label for the help/skip button */
+    helpSentryLabel?: string;
+
+    /** Sentry label for the confirm/submit button */
+    confirmSentryLabel?: string;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -193,6 +199,8 @@ function FeatureTrainingModal({
     canConfirmWhileOffline = true,
     shouldGoBack = true,
     shouldCallOnHelpWhenModalHidden = false,
+    helpSentryLabel,
+    confirmSentryLabel,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -473,6 +481,7 @@ function FeatureTrainingModal({
                                 onHelp();
                             }}
                             text={helpText}
+                            sentryLabel={helpSentryLabel}
                         />
                     )}
                     <FormAlertWithSubmitButton
@@ -480,6 +489,7 @@ function FeatureTrainingModal({
                         isLoading={shouldShowConfirmationLoader}
                         buttonText={confirmText}
                         enabledWhenOffline={canConfirmWhileOffline}
+                        sentryLabel={confirmSentryLabel}
                     />
                     {!canConfirmWhileOffline && <OfflineIndicator />}
                 </View>

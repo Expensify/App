@@ -43,12 +43,22 @@ function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
                     </Text>
                 </View>
                 {!shouldUseNarrowLayout && (
-                    <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
+                    <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.textMicroSupporting, styles.lh16]}
                         >
                             {translate('common.type')}
+                        </Text>
+                    </View>
+                )}
+                {!shouldUseNarrowLayout && (
+                    <View style={[styles.flexRow, styles.gap2, styles.flex2, styles.alignItemsCenter, styles.justifyContentStart]}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textMicroSupporting, styles.lh16]}
+                        >
+                            {translate('workspace.card.issueNewCard.limitType')}
                         </Text>
                     </View>
                 )}

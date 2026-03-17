@@ -11,10 +11,10 @@ type WorkspacesTabIndicatorStatusResult = {
 function useWorkspacesTabIndicatorStatus(): WorkspacesTabIndicatorStatusResult {
     const theme = useTheme();
 
-    const {policyStatus, policyIDWithErrors} = useNavigationTabBarIndicatorChecks();
+    const {policyStatus, domainStatus, policyIDWithErrors} = useNavigationTabBarIndicatorChecks();
 
-    const status = policyStatus;
-    const indicatorColor = policyStatus ? theme.danger : theme.success;
+    const status = policyStatus ?? domainStatus;
+    const indicatorColor = status ? theme.danger : theme.success;
 
     return {indicatorColor, status, policyIDWithErrors};
 }

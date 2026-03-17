@@ -54,25 +54,26 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const reportTransactions = useReportTransactions(reportID);
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
-    const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true, selector: changePolicyTrainingModalDismissedSelector});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
+    const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const reportOwnerAccountID = report?.ownerAccountID;
     const submitterEmailSelector = useCallback(
         (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[reportOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login,
         [reportOwnerAccountID],
     );
-    const [submitterEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false, selector: submitterEmailSelector}, [submitterEmailSelector]);
+    const [submitterEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: submitterEmailSelector}, [submitterEmailSelector]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isCustomReportNamesBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES);
     const session = useSession();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
@@ -80,16 +81,16 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             if (!policyID || !policy) {
                 return;
             }
-            if (shouldRestrictUserBillableActions(policy.id)) {
+            if (shouldRestrictUserBillableActions(policy.id, userBillingGracePeriods, undefined, ownerBillingGraceEndPeriod)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, reportTransactions);
                 if (!invite?.policyExpenseChatReportID) {
-                    moveIOUReportToPolicy(report, policy, false, reportTransactions, isCustomReportNamesBetaEnabled);
+                    moveIOUReportToPolicy(report, policy, false, reportTransactions);
                 }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -125,6 +126,8 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         },
         [
             policies,
+            userBillingGracePeriods,
+            ownerBillingGraceEndPeriod,
             route.params,
             reportID,
             report,
@@ -136,7 +139,6 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             session?.email,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            isCustomReportNamesBetaEnabled,
             reportNextStep,
             isChangePolicyTrainingModalDismissed,
         ],
@@ -189,7 +191,10 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={{context: 'ReportChangeWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                        />
                     ) : (
                         <SelectionList<WorkspaceListItemType>
                             ListItem={UserListItem}
@@ -197,7 +202,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                             onSelectRow={(option) => selectPolicy(option.policyID)}
                             textInputOptions={textInputOptions}
                             initiallyFocusedItemKey={report.policyID}
-                            showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                         />
                     )}

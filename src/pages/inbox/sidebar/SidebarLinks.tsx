@@ -5,14 +5,18 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp, setSidebarLoaded} from '@libs/actions/App';
+import {setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
@@ -23,9 +27,6 @@ type SidebarLinksProps = {
     /** List of options to display */
     optionListItems: Report[];
 
-    /** Whether the reports are loading. When false it means they are ready to be used. */
-    isLoading: OnyxEntry<boolean>;
-
     /** The chat priority mode */
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
 
@@ -33,14 +34,13 @@ type SidebarLinksProps = {
     isActiveReport: (reportID: string) => boolean;
 };
 
-function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
-    useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+    useConfirmReadyToOpenApp();
 
     useEffect(() => {
         ReportActionContextMenu.hideContextMenu(false);
@@ -77,6 +77,12 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
+    const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SidebarLinks',
+        isLoadingReportData,
+        optionListItemsCount: optionListItems?.length,
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
@@ -92,9 +98,12 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
                     optionMode={viewMode}
                     onFirstItemRendered={setSidebarLoaded}
                 />
-                {!!isLoading && optionListItems?.length === 0 && (
+                {isLoadingReportData && optionListItems?.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
-                        <OptionsListSkeletonView shouldAnimate />
+                        <OptionsListSkeletonView
+                            shouldAnimate
+                            reasonAttributes={sidebarSkeletonReasonAttributes}
+                        />
                     </View>
                 )}
             </View>

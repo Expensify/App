@@ -4,8 +4,6 @@ import type {ImageSourcePropType} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useSession} from '@components/OnyxListItemProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
@@ -32,7 +30,7 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'Download', 'FallbackAvatar'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -90,7 +88,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                             <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('workspace.common.shareNote.header')}</Text>
                         </View>
                         <View style={[styles.renderHTML, styles.mh5, styles.mb9]}>
-                            <RenderHTML html={translate('workspace.common.shareNote.content', {adminsRoomLink})} />
+                            <RenderHTML html={translate('workspace.common.shareNote.content', adminsRoomLink)} />
                         </View>
 
                         <View style={[styles.workspaceSectionMobile, styles.ph9]}>
@@ -110,8 +108,8 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                             <ContextMenuItem
                                 isAnonymousAction
                                 text={translate('qrCodes.copy')}
-                                icon={Expensicons.Copy}
-                                successIcon={Expensicons.Checkmark}
+                                icon={icons.Copy}
+                                successIcon={icons.Checkmark}
                                 successText={translate('qrCodes.copied')}
                                 onPress={() => Clipboard.setString(url)}
                                 shouldLimitWidth={false}

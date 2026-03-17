@@ -1,5 +1,5 @@
 import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -28,18 +28,15 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
 
     const [primaryContact] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: domainSettingsPrimaryContactSelector,
-        canBeMissing: true,
     });
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
 
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const adminPersonalDetailsSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID], [accountID]);
     const [adminPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
+        selector: adminPersonalDetailsSelector,
     });
 
     const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
@@ -51,7 +48,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const handleRevokeAdminAccess = async () => {
         const confirmResult = await showConfirmModal({
             title: translate('domain.admins.revokeAdminAccess'),
-            prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+            prompt: translate('workspace.people.removeMemberPrompt', displayName),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
 
@@ -90,7 +87,5 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         </BaseDomainMemberDetailsComponent>
     );
 }
-
-DomainAdminDetailsPage.displayName = 'DomainAdminDetailsPage';
 
 export default DomainAdminDetailsPage;

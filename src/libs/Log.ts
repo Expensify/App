@@ -4,31 +4,15 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Logger} from 'expensify-common';
 import AppLogs from 'react-native-app-logs';
-import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../package.json';
-import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
-import {shouldAttachLog} from './Console';
+import {getCurrentUserEmail} from './CurrentUserStore';
 import getPlatform from './getPlatform';
 import {post} from './Network';
 import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
 let timeout: NodeJS.Timeout;
-let shouldCollectLogs = false;
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SHOULD_STORE_LOGS,
-    callback: (val) => {
-        if (!val) {
-            shouldCollectLogs = false;
-        }
-
-        shouldCollectLogs = !!val;
-    },
-});
 
 type LogCommandParameters = {
     expensifyCashAppVersion: string;
@@ -46,24 +30,80 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
 
 // eslint-disable-next-line
 type ServerLoggingCallbackOptions = {api_setCookie: boolean; logPacket: string};
-type RequestParams = Merge<ServerLoggingCallbackOptions, {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters: string}>;
+type RequestParams = Merge<
+    ServerLoggingCallbackOptions,
+    {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters?: string; email?: string | null}
+>;
+
+type LogLine = {email?: string | null; [key: string]: unknown};
 
 /**
  * Network interface for logger.
+ * Splits log packets by email to ensure logs are attributed to the correct user,
+ * even when multiple users' logs are queued before flushing.
  */
 function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOptions): Promise<{requestID: string}> {
-    const requestParams = params as RequestParams;
-    requestParams.shouldProcessImmediately = false;
-    requestParams.shouldRetry = false;
-    requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${pkg.version}`;
-    if (requestParams.parameters) {
-        requestParams.parameters = JSON.stringify(requestParams.parameters);
+    const baseParams = {
+        shouldProcessImmediately: false,
+        shouldRetry: false,
+        expensifyCashAppVersion: `expensifyCash[${getPlatform()}]${pkg.version}`,
+    };
+
+    // Parse log lines and group by email to handle multi-user scenarios
+    // (e.g., user signs out and another signs in before logs flush)
+    const logLines = JSON.parse(params.logPacket) as LogLine[];
+    const logsByEmail = new Map<string | null, LogLine[]>();
+    for (const line of logLines) {
+        const email = line.email ?? null;
+        const existing = logsByEmail.get(email) ?? [];
+        existing.push(line);
+        logsByEmail.set(email, existing);
     }
+
+    // Create a request for each email group
+    const requests: Array<Promise<{requestID: string}>> = [];
+    for (const [email, lines] of logsByEmail) {
+        const requestParams: RequestParams = {
+            ...params,
+            ...baseParams,
+            logPacket: JSON.stringify(lines),
+            email,
+        };
+
+        if (requestParams.parameters) {
+            requestParams.parameters = JSON.stringify(requestParams.parameters);
+        }
+
+        requests.push(LogCommand(requestParams));
+    }
+
     // Mirror backend log payload into Telemetry logger for better context
-    forwardLogsToSentry(requestParams.logPacket);
+    forwardLogsToSentry(params.logPacket);
     clearTimeout(timeout);
     timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
-    return LogCommand(requestParams);
+
+    // Use allSettled to handle partial failures gracefully.
+    // If we used Promise.all, a single failed group would reject and cause the Logger
+    // to retry the entire original packet, duplicating already-uploaded groups.
+    // With allSettled: if ANY succeed we resolve (preventing duplicates), only rejecting
+    // if ALL fail (allowing the Logger to retry). This trades potential log loss on
+    // partial failure for guaranteed no duplicates.
+    return Promise.allSettled(requests).then((results) => {
+        const fulfilled = results.filter((r): r is PromiseFulfilledResult<{requestID: string}> => r.status === 'fulfilled');
+        const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+
+        if (fulfilled.length > 0) {
+            // At least one group succeeded - resolve to prevent retry/duplicates
+            if (rejected.length > 0) {
+                // Log warning about lost logs (rare: partial failure + multiple email groups)
+                console.error(`[Log] ${rejected.length} of ${results.length} log groups failed to upload and will not be retried`);
+            }
+            return fulfilled.at(0)?.value ?? {requestID: ''};
+        }
+
+        // All requests failed - reject so Logger can retry the whole batch
+        throw rejected.at(0)?.reason ?? new Error('All log requests failed');
+    });
 }
 
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
@@ -71,19 +111,11 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 const Log = new Logger({
     serverLoggingCallback,
     clientLoggingCallback: (message, extraData) => {
-        if (!shouldAttachLog(message)) {
-            return;
-        }
-
-        flushAllLogsOnAppLaunch().then(() => {
-            console.debug(message, extraData);
-            if (shouldCollectLogs) {
-                addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message, extraData});
-            }
-        });
+        console.debug(message, extraData);
     },
     maxLogLinesBeforeFlush: 150,
     isDebug: true,
+    getContextEmail: getCurrentUserEmail,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 

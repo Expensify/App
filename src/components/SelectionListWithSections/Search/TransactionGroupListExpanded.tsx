@@ -20,6 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -53,8 +54,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
-    const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+    const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
     const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 
@@ -94,7 +96,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         const navigateToTransactionThread = () => {
             if (!transactionItem?.reportAction?.childReportID) {
-                createAndOpenSearchTransactionThread(transactionItem, backTo, transactionItem?.reportAction?.childReportID);
+                createAndOpenSearchTransactionThread(
+                    transactionItem,
+                    introSelected,
+                    backTo,
+                    currentUserDetails.email ?? '',
+                    currentUserDetails.accountID,
+                    transactionItem?.reportAction?.childReportID,
+                );
                 return;
             }
             markReportIDAsExpense(reportID);
@@ -125,6 +134,11 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         } else if (!isOffline && transactionsQueryJSON) {
             searchTransactions(CONST.SEARCH.RESULTS_PAGE_SIZE);
         }
+    };
+
+    const transactionGroupLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TransactionGroupListExpanded',
+        isOffline: !!isOffline,
     };
 
     if (shouldDisplayEmptyView) {
@@ -178,6 +192,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 const transactionRow = (
                     <TransactionItemRow
                         report={transaction.report}
+                        policy={transaction.policy}
                         transactionItem={transaction}
                         violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, transaction.report, transaction.policy)}
                         isSelected={!!transaction.isSelected}
@@ -187,6 +202,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         shouldShowTooltip={showTooltip}
                         shouldUseNarrowLayout={!isLargeScreenWidth}
                         shouldShowCheckbox={!!canSelectMultiple}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         columns={currentColumns}
                         onButtonPress={() => {
@@ -217,6 +233,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                 hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                                 id={transaction.transactionID}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
                             >
                                 {transactionRow}
                             </PressableWithFeedback>
@@ -246,6 +263,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         color={theme.spinner}
                         size={25}
                         style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
+                        reasonAttributes={transactionGroupLoadingReasonAttributes}
                     />
                 </View>
             )}

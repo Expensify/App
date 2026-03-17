@@ -65,9 +65,9 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            return getFieldRequiredErrors(values, [inputID]);
+            return getFieldRequiredErrors(values, [inputID], translate);
         },
-        [inputID],
+        [inputID, translate],
     );
 
     const handleSelectFile = (files: FileObject[]) => {

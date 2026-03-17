@@ -4,8 +4,6 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
@@ -23,6 +21,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -41,7 +40,7 @@ type WorkspaceReceiptPartnersPageProps = PlatformStackScreenProps<WorkspaceSplit
 
 function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps) {
     const policyID = route.params.policyID;
-    const icons = useMemoizedLazyExpensifyIcons(['Key', 'NewWindow', 'Mail']);
+    const icons = useMemoizedLazyExpensifyIcons(['Key', 'Mail', 'NewWindow', 'Trashcan'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -49,6 +48,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const receiptPartnerIntegrations = Object.values(receiptPartnerNames);
     const threeDotsMenuContainerRef = useRef<View>(null);
     const policy = usePolicy(policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
     const isLoading = policy?.isLoading;
@@ -136,7 +136,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
 
                     return [
                         {
-                            icon: Expensicons.Trashcan,
+                            icon: icons.Trashcan,
                             text: translate('workspace.accounting.disconnect'),
                             onSelected: () => {
                                 setIsDisconnectModalOpen(true);
@@ -149,7 +149,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     return [];
             }
         },
-        [icons.Key, icons.NewWindow, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
+        [icons.Key, icons.NewWindow, icons.Trashcan, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
     );
 
     const onCloseModal = useCallback(() => {
@@ -200,7 +200,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                               }
                             : undefined,
                         badgeStyle: styles.mr3,
-                        badgeSuccess: isUber,
+                        isBadgeSuccess: isUber,
                         shouldShowBadgeInSeparateRow: shouldUseNarrowLayout,
                         numberOfLinesDescription: 5,
                         titleContainerStyle: [styles.pr2],
@@ -246,6 +246,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         isUberConnected,
         calculateAndSetThreeDotsMenuPosition,
         policy?.receiptPartners?.uber,
+        policy?.isLoadingReceiptPartners,
         isOffline,
         startIntegrationFlow,
     ]);
@@ -260,6 +261,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 <FullScreenLoadingIndicator
                     shouldUseGoBackButton
                     style={styles.flex1}
+                    reasonAttributes={{context: 'WorkspaceReceiptPartnersPage'}}
                 />
             ) : (
                 <ScreenWrapper
@@ -271,7 +273,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         shouldShowBackButton={shouldUseNarrowLayout}
                         icon={ReceiptPartners}
                         shouldUseHeadlineHeader
-                        onBackButtonPress={Navigation.popToSidebar}
+                        shouldDisplayHelpButton
+                        onBackButtonPress={Navigation.goBack}
                     />
                     <ScrollView
                         contentContainerStyle={styles.pt3}

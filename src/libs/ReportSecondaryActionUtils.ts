@@ -2,7 +2,18 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, ExportTemplate, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    ExportTemplate,
+    OutstandingReportsByPolicyIDDerivedValue,
+    Policy,
+    Report,
+    ReportAction,
+    ReportMetadata,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
@@ -35,9 +46,11 @@ import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionU
 import {
     canAddTransaction,
     canDeleteMoneyRequestReport,
+    canEditFieldOfMoneyRequest,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
     hasExportError as hasExportErrorUtils,
@@ -68,10 +81,11 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
+    hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
-    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
+    isOdometerDistanceRequest,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -105,6 +119,10 @@ function isSplitAction(
     const reportTransaction = reportTransactions.at(0);
     const {amount} = getTransactionDetails(reportTransaction) ?? {};
 
+    if (isOdometerDistanceRequest(reportTransaction)) {
+        return false;
+    }
+
     if (isPending(reportTransaction) || !!reportTransaction?.errors) {
         return false;
     }
@@ -115,11 +133,12 @@ function isSplitAction(
         return false;
     }
 
-    if (!amount) {
+    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
+
+    if (!amount && !isExpenseSplit) {
         return false;
     }
 
-    const {isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
     if (isBillSplit) {
         return false;
     }
@@ -133,6 +152,11 @@ function isSplitAction(
     }
 
     if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+        return false;
+    }
+
+    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    if (isProcessingReportUtils(report) && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && arePaymentsDisabled) {
         return false;
     }
 
@@ -188,15 +212,13 @@ function isSubmitAction({
         return false;
     }
 
-    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
-
-    if (!transactionAreComplete) {
-        return false;
-    }
-
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
         return false;
     }
 
@@ -550,8 +572,11 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
         return true;
     }
 
-    const isProcessingReport = isProcessingReportUtils(report);
+    if (isSubmitter) {
+        return isAwaitingFirstLevelApproval(report);
+    }
 
+    const isProcessingReport = isProcessingReportUtils(report);
     return isProcessingReport;
 }
 
@@ -569,13 +594,33 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     }
 
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy, report));
-    let hasAvailablePolicies = availablePolicies.length > 1;
-    if (!hasAvailablePolicies && availablePolicies.length === 1) {
-        hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
+
+    // Find available policies - stop early once we find 2 or after checking all
+    let firstAvailablePolicy: Policy | undefined;
+    let availablePoliciesCount = 0;
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || !isWorkspaceEligibleForReportChange(submitterEmail, policy, report)) {
+            continue;
+        }
+
+        if (availablePoliciesCount === 0) {
+            firstAvailablePolicy = policy;
+        }
+        availablePoliciesCount++;
+
+        // Short-circuit once we find 2 - we know we can change workspace
+        if (availablePoliciesCount > 1) {
+            break;
+        }
     }
+
+    let hasAvailablePolicies = availablePoliciesCount > 1;
+    if (!hasAvailablePolicies && availablePoliciesCount === 1) {
+        hasAvailablePolicies = !report.policyID || report.policyID !== firstAvailablePolicy?.id;
+    }
+
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions);
+    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions, report);
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
@@ -748,22 +793,16 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
     return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
 }
 
-/**
- * Checks if the report should show the "Report layout" option
- * Only shows for expense reports (not IOU reports) with 2 or more transactions
- */
-function isReportLayoutAction(report: Report, reportTransactions: Transaction[]): boolean {
+function isDuplicateReportAction(report: Report): boolean {
+    if (!isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
     if (!isExpenseReportUtils(report)) {
         return false;
     }
 
-    // Exclude IOU reports - only show for workspace expense reports
-    if (isIOUReportUtils(report)) {
-        return false;
-    }
-
-    // Only show if report has 2 or more transactions
-    return reportTransactions.length >= 2;
+    return true;
 }
 
 function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
@@ -774,8 +813,9 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
 
     const reportTransaction = reportTransactions.at(0);
 
-    // Per diem and distance requests will be handled separately in a follow-up
-    if (isPerDiemRequestTransactionUtils(reportTransaction) || isDistanceRequestTransactionUtils(reportTransaction)) {
+    // We can't duplicate per diem expenses that don't have start & end dates.
+    const dates = reportTransaction?.comment?.customUnit?.attributes?.dates;
+    if (isPerDiemRequestTransactionUtils(reportTransaction) && (!dates?.start || !dates?.end)) {
         return false;
     }
 
@@ -808,6 +848,7 @@ function getSecondaryReportActions({
     reportActions,
     reportMetadata,
     policies,
+    outstandingReportsByPolicyID,
     isChatReportArchived = false,
 }: {
     currentUserLogin: string;
@@ -823,12 +864,13 @@ function getSecondaryReportActions({
     reportActions?: ReportAction[];
     reportMetadata?: OnyxEntry<ReportMetadata>;
     policies?: OnyxCollection<Policy>;
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    const isExported = isExportedUtils(reportActions);
+    const isExported = isExportedUtils(reportActions, report);
     const hasExportError = hasExportErrorUtils(reportActions, report);
     const didExportFail = !isExported && hasExportError;
 
@@ -904,7 +946,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(currentUserLogin, report, policy)) {
+    if (canRejectReportAction(currentUserLogin, report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
@@ -920,12 +962,31 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
     }
 
+    if (isDuplicateReportAction(report)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
+
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
+    }
+
+    if (reportTransactions.length === 1 && reportActions) {
+        const transaction = reportTransactions.at(0);
+        if (transaction?.transactionID) {
+            const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
+            const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);
+
+            if (canMoveExpense && canUserPerformWriteAction) {
+                options.push(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+            }
+        }
     }
 
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -934,10 +995,6 @@ function getSecondaryReportActions({
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
-
-    if (isReportLayoutAction(report, reportTransactions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT);
-    }
 
     if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
@@ -982,6 +1039,8 @@ function getSecondaryTransactionThreadActions(
     originalTransaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
+    isChatReportArchived?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -993,7 +1052,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(currentUserLogin, parentReport, policy)) {
+    if (canRejectReportAction(currentUserLogin, parentReport)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
@@ -1009,6 +1068,15 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
+    if (
+        reportTransaction?.transactionID &&
+        reportAction &&
+        canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
+        canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
+    ) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
+    }
+
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
     if (isDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [])) {
@@ -1017,4 +1085,12 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, isMergeActionForSelectedTransactions, getSecondaryExportReportActions, isSplitAction};
+export {
+    getSecondaryReportActions,
+    getSecondaryTransactionThreadActions,
+    isMergeAction,
+    isMergeActionForSelectedTransactions,
+    getSecondaryExportReportActions,
+    isSplitAction,
+    isChangeWorkspaceAction,
+};

@@ -1,20 +1,22 @@
-import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
-import {privateIsArchivedMapSelector} from '@selectors/ReportNameValuePairs';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import useDeepCompareRef from './useDeepCompareRef';
 import useOnyx from './useOnyx';
+
+type PrivateIsArchivedMap = Record<string, string | undefined>;
 
 /**
  * Hook that returns a map of report IDs to their private_isArchived values
  */
 function usePrivateIsArchivedMap(): PrivateIsArchivedMap {
-    const [privateIsArchivedMap = getEmptyObject<PrivateIsArchivedMap>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: privateIsArchivedMapSelector,
-    });
+    const [allReportNVP] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
-    return useDeepCompareRef(privateIsArchivedMap) ?? {};
+    const map: PrivateIsArchivedMap = {};
+    if (allReportNVP) {
+        for (const [key, value] of Object.entries(allReportNVP)) {
+            map[key] = value?.private_isArchived;
+        }
+    }
+    return map;
 }
 
 export default usePrivateIsArchivedMap;
+export type {PrivateIsArchivedMap};

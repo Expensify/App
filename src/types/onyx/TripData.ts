@@ -231,6 +231,9 @@ type PnrData = {
     /** Reason for suspending the booking. */
     suspendReason: string;
 
+    /** Overall booking status of the PNR. */
+    bookingStatus?: string;
+
     /**
      * Fare Amount details for the PNR.
      */
@@ -1709,8 +1712,8 @@ type CarPnr = {
 
 /** Represents the structure of RailPnr. */
 type RailPnr = {
-    /** Details of the inward journey. */
-    inwardJourney: {
+    /** Details of the inward journey (undefined for one-way trips). */
+    inwardJourney?: {
         /** Status of the inward journey. */
         journeyStatus: string;
 

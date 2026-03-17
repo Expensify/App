@@ -181,6 +181,7 @@ describe('ExpensifyCardPage', () => {
                         isVirtual: false,
                         cardTitle: 'Test Card',
                         feedCountry: CONST.COUNTRY.US,
+                        currency: 'USD',
                     },
                     availableSpend: 50000,
                     fraud: null,
@@ -219,6 +220,7 @@ describe('ExpensifyCardPage', () => {
                         isVirtual: false,
                         cardTitle: 'Test Card',
                         feedCountry: CONST.COUNTRY.GB,
+                        currency: 'GBP',
                     },
                     availableSpend: 50000,
                     fraud: null,
@@ -234,6 +236,93 @@ describe('ExpensifyCardPage', () => {
         // Verify that the "PIN" option is displayed on the screen.
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('cardPage.physicalCardPin'))).toBeOnTheScreen();
+        });
+
+        // Unmount the component after assertions to clean up.
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should still show physical card details when opening a combo card page via the virtual card ID', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                1234: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    domainName: 'combo-domain',
+                    fundID: '12345',
+                    nameValuePairs: {
+                        isVirtual: false,
+                        cardTitle: 'Combo Physical Card',
+                        feedCountry: CONST.COUNTRY.GB,
+                        currency: 'GBP',
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                    lastFourPAN: '1234',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                5678: {
+                    cardID: 5678,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    domainName: 'combo-domain',
+                    fundID: '12345',
+                    nameValuePairs: {
+                        isVirtual: true,
+                        cardTitle: 'Combo Virtual Card',
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                    lastFourPAN: '5678',
+                },
+            });
+        });
+
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '5678'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.virtualCardNumber'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.physicalCardNumber'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the Get Physical Card button when card state is STATE_NOT_ISSUED', async () => {
+        // Sign in as a test user before running the test.
+        await TestHelper.signInWithTestUser();
+
+        // Add a mock card to Onyx storage with STATE_NOT_ISSUED state.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                [userCardID]: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                    domainName: 'xyz',
+                    fundID: '12345',
+                    nameValuePairs: {
+                        isVirtual: false,
+                        cardTitle: 'Test Physical Card',
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+            });
+        });
+
+        // Render the page with the specified card ID.
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.getPhysicalCard'))).toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.

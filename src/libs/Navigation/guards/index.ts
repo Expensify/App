@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
+import MigratedUserWelcomeModalGuard from './MigratedUserWelcomeModalGuard';
 import OnboardingGuard from './OnboardingGuard';
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
@@ -99,6 +100,7 @@ function clearGuards(): void {
 // IMPORTANT: Order matters! Guards evaluate in sequence and short-circuit on BLOCK/REDIRECT
 
 registerGuard(OnboardingGuard);
+registerGuard(MigratedUserWelcomeModalGuard);
 
 export {registerGuard, createGuardContext, evaluateGuards, getRegisteredGuards, clearGuards};
 export type {NavigationGuard, GuardResult, GuardContext};

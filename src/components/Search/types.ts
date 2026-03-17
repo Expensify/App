@@ -1,7 +1,23 @@
 import type {ValueOf} from 'type-fest';
+import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
+} from '@components/SelectionListWithSections/types';
+import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -10,7 +26,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
     /** The transaction itself */
-    transaction: Transaction;
+    transaction?: Transaction;
 
     /** Whether the transaction is selected */
     isSelected: boolean;
@@ -103,6 +119,11 @@ type PaymentData = {
     ownerEmail?: string;
     policyName?: string;
 };
+type BulkPaySelectionData = {
+    bankAccountID?: number;
+    payAsBusiness?: boolean;
+    paymentMethod?: string;
+};
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
@@ -115,8 +136,8 @@ type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | In
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
-// LineChart and PieChart are not implemented so we exclude them here to prevent TypeScript errors in `SearchChartView.tsx`.
-type ChartView = Exclude<SearchView, 'table' | 'line' | 'pie'>;
+// PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
+type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
@@ -138,23 +159,30 @@ type SearchCustomColumnIds =
 
 type SearchContextData = {
     currentSearchHash: number;
+    currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
     currentSearchResults: SearchResults | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
+    suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
 };
 
-type SearchContextProps = SearchContextData & {
+type SearchStateContextValue = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
-    setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
-    setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
+    shouldShowFiltersBarLoading: boolean;
+    lastSearchType: string | undefined;
+    shouldShowSelectAllMatchingItems: boolean;
+    areAllMatchingItemsSelected: boolean;
+};
+
+type SearchActionsContextValue = {
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
@@ -166,13 +194,9 @@ type SearchContextProps = SearchContextData & {
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    shouldShowFiltersBarLoading: boolean;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
-    lastSearchType: string | undefined;
-    showSelectAllMatchingItems: boolean;
-    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
-    areAllMatchingItemsSelected: boolean;
+    setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
@@ -307,6 +331,48 @@ type BankAccountMenuItem = {
     value: PaymentMethod;
 };
 
+/** Union type representing all possible grouped transaction item types used in chart views */
+type GroupedItem =
+    | TransactionMemberGroupListItemType
+    | TransactionCardGroupListItemType
+    | TransactionWithdrawalIDGroupListItemType
+    | TransactionCategoryGroupListItemType
+    | TransactionMerchantGroupListItemType
+    | TransactionTagGroupListItemType
+    | TransactionMonthGroupListItemType
+    | TransactionWeekGroupListItemType
+    | TransactionYearGroupListItemType
+    | TransactionQuarterGroupListItemType;
+
+type SearchChartProps = {
+    /** Grouped transaction data from search results */
+    data: GroupedItem[];
+
+    /** Chart title */
+    title: string;
+
+    /** Chart title icon */
+    titleIcon: IconAsset;
+
+    /** Function to extract label from grouped item */
+    getLabel: (item: GroupedItem) => string;
+
+    /** Function to build filter query from grouped item */
+    getFilterQuery: (item: GroupedItem) => string;
+
+    /** Callback when a chart item is pressed - receives the filter query to apply */
+    onItemPress?: (filterQuery: string) => void;
+
+    /** Whether data is loading */
+    isLoading?: boolean;
+
+    /** Currency unit with font fallback support */
+    unit?: UnitWithFallback;
+
+    /** Position of currency symbol relative to value */
+    unitPosition?: UnitPosition;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -322,7 +388,8 @@ export type {
     ReportFieldDateKey,
     ReportFieldNegatedKey,
     SortOrder,
-    SearchContextProps,
+    SearchStateContextValue,
+    SearchActionsContextValue,
     SearchContextData,
     ASTNode,
     QueryFilter,
@@ -337,6 +404,7 @@ export type {
     TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
+    BulkPaySelectionData,
     SearchAutocompleteQueryRange,
     SearchParams,
     TableColumnSize,
@@ -353,4 +421,6 @@ export type {
     SearchTextFilterKeys,
     BankAccountMenuItem,
     SearchCustomColumnIds,
+    GroupedItem,
+    SearchChartProps,
 };

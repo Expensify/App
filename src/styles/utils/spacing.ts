@@ -179,6 +179,10 @@ export default {
         marginRight: 40,
     },
 
+    mr13: {
+        marginRight: 52,
+    },
+
     mrn1: {
         marginRight: -4,
     },
@@ -875,8 +879,16 @@ export default {
         minHeight: 128,
     },
 
+    minHeight42: {
+        minHeight: 168,
+    },
+
     minHeight65: {
         minHeight: 260,
+    },
+
+    minHeight55: {
+        minHeight: 220,
     },
 
     minWidth18: {

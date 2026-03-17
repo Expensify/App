@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useRef} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useHandleBackButton from '@hooks/useHandleBackButton';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {openApp} from '@libs/actions/App';
@@ -24,10 +24,10 @@ function SignInModal() {
     // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
     const SignInPageBase = useMemo(() => (isMobileSafari() ? SignInPageWrapped : SignInPage), []);
 
-    // The SignInPage (child component of SignInModal) uses useHandleBackButton, which adds a hardwareBackPress listener that remains active in the SignInModal.
-    // Use of useHandleBackButton with a returning true callback disables the default SignInModal hardware Android button behaviour, leaving only SignInPage handling (https://github.com/Expensify/App/issues/69391).
+    // The SignInPage (child component of SignInModal) uses useAndroidBackButtonHandler, which adds a hardwareBackPress listener that remains active in the SignInModal.
+    // Use of useAndroidBackButtonHandler with a returning true callback disables the default SignInModal hardware Android button behaviour, leaving only SignInPage handling (https://github.com/Expensify/App/issues/69391).
     // The SignInPage Android back button behavior needs to remain because it is a fix for issue (https://github.com/Expensify/App/issues/67883) that occurs in the SignInModal.
-    useHandleBackButton(() => {
+    useAndroidBackButtonHandler(() => {
         return true;
     });
 

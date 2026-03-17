@@ -10,6 +10,7 @@ import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
@@ -64,11 +65,12 @@ type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
 export default function (shouldRequireReportID = true): <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) => ComponentType<TProps> {
     return function <TProps extends WithReportOrNotFoundProps>(WrappedComponent: ComponentType<TProps>) {
         function WithReportOrNotFound(props: TProps) {
-            const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-            const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
-            const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-            const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`, {canBeMissing: true});
-            const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+            const [betas] = useOnyx(ONYXKEYS.BETAS);
+            const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
+            const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+            const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
+            const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+            const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!props.route.params.reportID?.length;
@@ -85,7 +87,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport(props.route.params.reportID);
+                openReport({reportID: props.route.params.reportID, introSelected, betas});
                 // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 
@@ -100,7 +102,12 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 if (shouldShowFullScreenLoadingIndicator) {
-                    return <FullscreenLoadingIndicator />;
+                    const reasonAttributes: SkeletonSpanReasonAttributes = {
+                        context: 'withReportOrNotFound',
+                        isLoadingReportData: isLoadingReportData !== false,
+                        shouldFetchReport,
+                    };
+                    return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
                 }
 
                 if (shouldShowNotFoundPage) {
