@@ -1,14 +1,15 @@
 import Onyx from 'react-native-onyx';
-import * as BankAccounts from '@libs/actions/BankAccounts';
-import * as Policy from '@libs/actions/Policy/Policy';
-import * as API from '@libs/API';
+import {shareBankAccountAndSetPayer} from '@libs/actions/BankAccounts';
+import {setWorkspacePayer} from '@libs/actions/Policy/Policy';
+import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@libs/API');
-const mockAPI = API as jest.Mocked<typeof API>;
+jest.mock('@libs/API', () => ({
+    write: jest.fn(),
+}));
 
 describe('actions/ShareBankAccountAndWorkspacePayer', () => {
     beforeAll(() => {
@@ -32,10 +33,10 @@ describe('actions/ShareBankAccountAndWorkspacePayer', () => {
             const shareeAccountID = 456;
             const policyID = 'policy_789';
 
-            BankAccounts.shareBankAccountAndSetPayer(bankAccountID, shareeAccountID, policyID);
+            shareBankAccountAndSetPayer(bankAccountID, shareeAccountID, policyID);
             await waitForBatchedUpdates();
 
-            expect(mockAPI.write).toHaveBeenCalledWith(
+            expect(write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SHARE_BANK_ACCOUNT_AND_UPDATE_POLICY_REIMBURSER,
                 {
                     bankAccountID,
@@ -82,10 +83,10 @@ describe('actions/ShareBankAccountAndWorkspacePayer', () => {
             const policyID = 'policy_abc';
             const reimburserEmail = 'payer@example.com';
 
-            Policy.setWorkspacePayer(policyID, reimburserEmail);
+            setWorkspacePayer(policyID, reimburserEmail);
             await waitForBatchedUpdates();
 
-            expect(mockAPI.write).toHaveBeenCalledWith(
+            expect(write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_WORKSPACE_PAYER,
                 {
                     policyID,
