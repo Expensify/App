@@ -6430,6 +6430,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
+    // API.write is deferred by two animation frames so that Onyx optimistic updates
+    // don't block the JS thread during navigation to the search screen. The first frame
+    // lets React commit the navigation, the second lets the search list paint before
+    // Onyx processes the write and triggers collection-level re-renders.
+    // Only the SUBMIT and default (REQUEST_MONEY) branches are deferred because they are
+    // the paths that navigate to the search screen. CATEGORIZE and SHARE navigate
+    // elsewhere and don't benefit from this deferral.
+    let deferredAPIWrite: (() => void) | undefined;
+
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
@@ -6457,42 +6466,44 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       }
                     : undefined;
             const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
-            convertTrackedExpenseToRequest({
-                payerParams: {
-                    accountID: payerAccountID,
-                    email: payerEmail,
-                },
-                transactionParams: {
-                    amount,
-                    distance,
-                    currency,
-                    comment,
-                    merchant,
-                    created,
-                    attendees,
-                    transactionID: transaction.transactionID,
-                    actionableWhisperReportActionID,
-                    linkedTrackedExpenseReportAction,
-                    linkedTrackedExpenseReportID,
-                    transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
-                    isLinkedTrackedExpenseReportArchived,
-                    isDistance: isDistanceRequest,
-                    customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
-                    waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
-                },
-                chatParams: {
-                    reportID: chatReport.reportID,
-                    createdReportActionID: createdChatReportActionID,
-                    reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                },
-                iouParams: {
-                    reportID: iouReport.reportID,
-                    createdReportActionID: createdIOUReportActionID,
-                    reportActionID: iouAction.reportActionID,
-                },
-                onyxData,
-                workspaceParams,
-            });
+            deferredAPIWrite = () => {
+                convertTrackedExpenseToRequest({
+                    payerParams: {
+                        accountID: payerAccountID,
+                        email: payerEmail,
+                    },
+                    transactionParams: {
+                        amount,
+                        distance,
+                        currency,
+                        comment,
+                        merchant,
+                        created,
+                        attendees,
+                        transactionID: transaction.transactionID,
+                        actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID,
+                        transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                        isLinkedTrackedExpenseReportArchived,
+                        isDistance: isDistanceRequest,
+                        customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
+                        waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
+                    },
+                    chatParams: {
+                        reportID: chatReport.reportID,
+                        createdReportActionID: createdChatReportActionID,
+                        reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                    },
+                    iouParams: {
+                        reportID: iouReport.reportID,
+                        createdReportActionID: createdIOUReportActionID,
+                        reportActionID: iouAction.reportActionID,
+                    },
+                    onyxData,
+                    workspaceParams,
+                });
+            };
             break;
         }
         default: {
@@ -6550,7 +6561,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     : {}),
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            deferredAPIWrite = () => {
+                API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            };
         }
     }
 
@@ -6570,6 +6583,14 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             transactionID: transaction.transactionID,
             isFromGlobalCreate,
             shouldHandleNavigation,
+        });
+    }
+
+    if (deferredAPIWrite) {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                deferredAPIWrite?.();
+            });
         });
     }
 

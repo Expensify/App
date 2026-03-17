@@ -213,6 +213,10 @@ function Search({
     onDEWModalOpen,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
+    // When data is already cached, prevents useFocusEffect from re-enabling the skeleton
+    // on initial mount. DeferredSearch handles the one-frame skeleton; Search renders content immediately.
+    const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON));
+
     const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON));
 
     const {isOffline} = useNetwork();
@@ -426,6 +430,11 @@ function Search({
             const isPendingSearchNavigation = pendingSubmitFollowUpAction?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
 
             if (!doesSpanExist && !isPendingSearchNavigation) {
+                return;
+            }
+
+            if (skipDeferralOnFocusRef.current) {
+                skipDeferralOnFocusRef.current = false;
                 return;
             }
 

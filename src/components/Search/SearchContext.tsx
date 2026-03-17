@@ -8,8 +8,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useTodos from '@hooks/useTodos';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
@@ -80,21 +78,23 @@ const SearchStateContext = React.createContext<SearchStateContextValue>(defaultS
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
 
 function SearchContextProvider({children}: SearchContextProps) {
-    const focusedScreen = useNavigationState((state) => getDeepestFocusedScreen(state));
-    const focusedScreenName = focusedScreen?.name;
-    const focusedScreenParams = focusedScreen?.params;
-
-    // Get the params for the search page so that we can derive the search query JSON from it
-    const params = useMemo(() => {
-        if (focusedScreenName !== SCREENS.SEARCH.ROOT) {
+    // Extract only the primitive values we need from the focused screen to avoid
+    // re-renders from new object references returned by getDeepestFocusedScreen.
+    const queryParam = useNavigationState((state) => {
+        const focused = getDeepestFocusedScreen(state);
+        if (focused?.name !== SCREENS.SEARCH.ROOT) {
             return undefined;
         }
+        return focused.params?.q as string | undefined;
+    });
 
-        return focusedScreenParams as PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>['route']['params'];
-    }, [focusedScreenName, focusedScreenParams]);
-
-    const queryParam = params?.q;
-    const rawQueryParam = params?.rawQuery;
+    const rawQueryParam = useNavigationState((state) => {
+        const focused = getDeepestFocusedScreen(state);
+        if (focused?.name !== SCREENS.SEARCH.ROOT) {
+            return undefined;
+        }
+        return focused.params?.rawQuery as string | undefined;
+    });
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
     const currentSearchQueryJSON = useMemo(() => buildSearchQueryJSON(definedQueryParam, rawQueryParam), [definedQueryParam, rawQueryParam]);
 
@@ -105,9 +105,6 @@ function SearchContextProvider({children}: SearchContextProps) {
     const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [searchContextData, setSearchContextData] = useState({...defaultSearchContextData});
 
-    const selectedReports = searchContextData.selectedReports;
-    const selectedTransactions = searchContextData.selectedTransactions;
-    const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentRecentSearchHash = currentSearchQueryJSON?.recentSearchHash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
@@ -117,7 +114,8 @@ function SearchContextProvider({children}: SearchContextProps) {
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const {accountID} = useCurrentUserPersonalDetails();
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeed?.id);
+    const defaultCardFeedID = defaultCardFeed?.id;
+    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeedID), [accountID, defaultCardFeedID]);
 
     const currentSearchKey = useMemo(() => {
         return Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
@@ -148,7 +146,7 @@ function SearchContextProvider({children}: SearchContextProps) {
         return snapshotSearchResults ?? undefined;
     }, [currentSearchKey, shouldUseLiveData, snapshotSearchResults, todoSearchResultsData]);
 
-    const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (transactionIDs, data = []) => {
+    const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = useCallback((transactionIDs, data = []) => {
         if (transactionIDs instanceof Array) {
             if (!transactionIDs.length && areTransactionsEmpty.current) {
                 areTransactionsEmpty.current = true;
@@ -161,7 +159,8 @@ function SearchContextProvider({children}: SearchContextProps) {
             }));
         }
 
-        // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
+        // When selecting transactions, we also need to manage the reports to which these
+        // transactions belong. This is done to ensure proper exporting to CSV.
         let matchingReports: SearchStateContextValue['selectedReports'] = [];
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
@@ -209,7 +208,10 @@ function SearchContextProvider({children}: SearchContextProps) {
             selectedTransactions: transactionIDs,
             shouldTurnOffSelectionMode: false,
         }));
-    };
+    }, []);
+
+    const currentSearchHashRef = useRef(currentSearchHash);
+    currentSearchHashRef.current = currentSearchHash;
 
     const clearSelectedTransactions: SearchActionsContextValue['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
@@ -218,87 +220,110 @@ function SearchContextProvider({children}: SearchContextProps) {
                 return;
             }
 
-            if (searchHashOrClearIDsFlag === currentSearchHash) {
+            if (searchHashOrClearIDsFlag === currentSearchHashRef.current) {
                 return;
             }
 
-            if (selectedReports.length === 0 && isEmptyObject(selectedTransactions) && !searchContextData.shouldTurnOffSelectionMode) {
-                return;
-            }
-            setSearchContextData((prevState) => ({
-                ...prevState,
-                shouldTurnOffSelectionMode,
-                selectedTransactions: {},
-                selectedReports: [],
-            }));
+            setSearchContextData((prevState) => {
+                if (prevState.selectedReports.length === 0 && isEmptyObject(prevState.selectedTransactions) && !prevState.shouldTurnOffSelectionMode) {
+                    return prevState;
+                }
+                return {
+                    ...prevState,
+                    shouldTurnOffSelectionMode,
+                    selectedTransactions: {},
+                    selectedReports: [],
+                };
+            });
 
-            // Unselect all transactions and hide the "select all matching items" option
             setShouldShowSelectAllMatchingItems(false);
             selectAllMatchingItems(false);
         },
-        [currentSearchHash, searchContextData.shouldTurnOffSelectionMode, selectedReports.length, selectedTransactions],
+        [setSelectedTransactions],
     );
 
-    const removeTransaction: SearchActionsContextValue['removeTransaction'] = (transactionID) => {
+    const removeTransaction: SearchActionsContextValue['removeTransaction'] = useCallback((transactionID) => {
         if (!transactionID) {
             return;
         }
 
-        if (!isEmptyObject(selectedTransactions)) {
-            const newSelectedTransactions = Object.entries(selectedTransactions).reduce((acc, [key, value]) => {
-                if (key === transactionID) {
+        setSearchContextData((prevState) => {
+            const hasSelectedTransactions = !isEmptyObject(prevState.selectedTransactions);
+            const hasSelectedIDs = prevState.selectedTransactionIDs.length > 0;
+
+            if (!hasSelectedTransactions && !hasSelectedIDs) {
+                return prevState;
+            }
+
+            const newState = {...prevState};
+            if (hasSelectedTransactions) {
+                const newSelectedTransactions = Object.entries(prevState.selectedTransactions).reduce((acc, [key, value]) => {
+                    if (key === transactionID) {
+                        return acc;
+                    }
+                    acc[key] = value;
                     return acc;
-                }
-                acc[key] = value;
-                return acc;
-            }, {} as SelectedTransactions);
+                }, {} as SelectedTransactions);
+                newState.selectedTransactions = newSelectedTransactions;
+            }
+            if (hasSelectedIDs) {
+                newState.selectedTransactionIDs = prevState.selectedTransactionIDs.filter((ID) => transactionID !== ID);
+            }
+            return newState;
+        });
+    }, []);
 
-            setSearchContextData((prevState) => ({
-                ...prevState,
-                selectedTransactions: newSelectedTransactions,
-            }));
-        }
-
-        if (selectedTransactionIDs.length > 0) {
-            setSearchContextData((prevState) => ({
-                ...prevState,
-                selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
-            }));
-        }
-    };
-
-    const setShouldResetSearchQuery = (shouldReset: boolean) => {
+    const setShouldResetSearchQuery = useCallback((shouldReset: boolean) => {
         setSearchContextData((prevState) => ({
             ...prevState,
             shouldResetSearchQuery: shouldReset,
         }));
-    };
+    }, []);
 
-    const searchStateContextValue: SearchStateContextValue = {
-        ...searchContextData,
-        suggestedSearches,
-        currentSearchKey,
-        currentSearchHash,
-        currentSimilarSearchHash,
-        currentSearchResults,
-        shouldUseLiveData,
-        shouldShowFiltersBarLoading,
-        lastSearchType,
-        shouldShowSelectAllMatchingItems,
-        areAllMatchingItemsSelected,
-        currentSearchQueryJSON,
-    };
+    const searchStateContextValue: SearchStateContextValue = useMemo(
+        () => ({
+            ...searchContextData,
+            suggestedSearches,
+            currentSearchKey,
+            currentSearchHash,
+            currentSimilarSearchHash,
+            currentSearchResults,
+            shouldUseLiveData,
+            shouldShowFiltersBarLoading,
+            lastSearchType,
+            shouldShowSelectAllMatchingItems,
+            areAllMatchingItemsSelected,
+            currentSearchQueryJSON,
+        }),
+        [
+            searchContextData,
+            suggestedSearches,
+            currentSearchKey,
+            currentSearchHash,
+            currentSimilarSearchHash,
+            currentSearchResults,
+            shouldUseLiveData,
+            shouldShowFiltersBarLoading,
+            lastSearchType,
+            shouldShowSelectAllMatchingItems,
+            areAllMatchingItemsSelected,
+            currentSearchQueryJSON,
+        ],
+    );
 
-    const searchActionsContextValue: SearchActionsContextValue = {
-        removeTransaction,
-        setSelectedTransactions,
-        clearSelectedTransactions,
-        setShouldShowFiltersBarLoading,
-        setLastSearchType,
-        setShouldShowSelectAllMatchingItems,
-        selectAllMatchingItems,
-        setShouldResetSearchQuery,
-    };
+    const searchActionsContextValue: SearchActionsContextValue = useMemo(
+        () => ({
+            removeTransaction,
+            setSelectedTransactions,
+            clearSelectedTransactions,
+            setShouldShowFiltersBarLoading,
+            setLastSearchType,
+            setShouldShowSelectAllMatchingItems,
+            selectAllMatchingItems,
+            setShouldResetSearchQuery,
+        }),
+        [removeTransaction, setSelectedTransactions, clearSelectedTransactions, setShouldResetSearchQuery],
+    );
 
     return (
         <SearchStateContext value={searchStateContextValue}>
