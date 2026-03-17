@@ -49,6 +49,7 @@ function SearchTransactionsChangeReport() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -66,7 +67,7 @@ function SearchTransactionsChangeReport() {
     // Get the policyID from the selected transactions' report to pass to usePolicyForMovingExpenses
     // This ensures the "Create report" button shows the correct workspace instead of the user's default
     const selectedReportPolicyID = selectedReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`]?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, selectedReportPolicyID);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, selectedReportPolicyID);
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const areAllTransactionsUnreported =
         selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
@@ -123,7 +124,7 @@ function SearchTransactionsChangeReport() {
         Navigation.goBack();
     };
 
-    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
@@ -135,7 +136,7 @@ function SearchTransactionsChangeReport() {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
             return;
         }
-        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID)) {
+        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, undefined, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
@@ -189,21 +190,18 @@ function SearchTransactionsChangeReport() {
     };
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <IOURequestEditReportCommon
-                backTo={undefined}
-                transactionIDs={selectedTransactionsKeys}
-                selectedReportID={selectedReportID}
-                selectReport={selectReport}
-                removeFromReport={removeFromReport}
-                createReport={createReport}
-                isEditing
-                isUnreported={areAllTransactionsUnreported}
-                targetOwnerAccountID={targetOwnerAccountID}
-                isPerDiemRequest={hasPerDiemTransactions}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={undefined}
+            transactionIDs={selectedTransactionsKeys}
+            selectedReportID={selectedReportID}
+            selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            createReport={createReport}
+            isEditing
+            isUnreported={areAllTransactionsUnreported}
+            targetOwnerAccountID={targetOwnerAccountID}
+            isPerDiemRequest={hasPerDiemTransactions}
+        />
     );
 }
 

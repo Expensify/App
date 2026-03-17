@@ -10,7 +10,6 @@ import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
-import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
     approveMoneyRequest,
     calculateDiffAmount,
@@ -19,18 +18,16 @@ import {
     cancelPayment,
     canIOUBePaid,
     canUnapproveIOU,
-    clearBulkEditDraftTransaction,
     completePaymentOnboarding,
     convertBulkTrackedExpensesToIOU,
     createDistanceRequest,
     deleteMoneyRequest,
     getDeleteTrackExpenseInformation,
-    getIOUReportActionToApproveOrPay,
-    getPerDiemExpenseInformation,
+    getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
     getReportPreviewAction,
+    getTrackExpenseInformation,
     handleNavigateAfterExpenseCreate,
-    initBulkEditDraftTransaction,
     initMoneyRequest,
     markRejectViolationAsResolved,
     payMoneyRequest,
@@ -40,16 +37,13 @@ import {
     retractReport,
     setMoneyRequestCategory,
     shouldOptimisticallyUpdateSearch,
-    submitPerDiemExpense,
     submitReport,
     trackExpense,
-    updateBulkEditDraftTransaction,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestAttendees,
     updateMoneyRequestCategory,
     updateMoneyRequestDistance,
     updateMoneyRequestTag,
-    updateMultipleMoneyRequests,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
@@ -77,7 +71,14 @@ import {
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
-import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread, createDraftTransactionAndNavigateToParticipantSelector, isIOUReport} from '@libs/ReportUtils';
+import {
+    buildOptimisticIOUReport,
+    buildOptimisticIOUReportAction,
+    buildTransactionThread,
+    createDraftTransactionAndNavigateToParticipantSelector,
+    getReportOrDraftReport,
+    isIOUReport,
+} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -106,7 +107,6 @@ import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
-import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -152,6 +152,7 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
 const unapprovedCashSimilarSearchHash = 1832274510;
@@ -200,6 +201,27 @@ const VIT_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIF
 const TEST_INTRO_SELECTED: IntroSelected = {
     choice: CONST.ONBOARDING_CHOICES.SUBMIT,
     isInviteOnboardingComplete: false,
+};
+
+const getTransactionAndExpenseReports = (reportID: string) => {
+    const transactionReport = getReportOrDraftReport(reportID);
+    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+    return {transactionReport, expenseReport};
+};
+
+const getPolicyTags = async (expenseReportPolicyID: string | undefined) => {
+    let allPolicyTags: OnyxCollection<PolicyTagLists>;
+    await getOnyxData({
+        key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+        waitForCollectionCallback: true,
+        callback: (value) => {
+            allPolicyTags = value;
+        },
+    });
+
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReportPolicyID}`] ?? {};
+    return policyTags;
 };
 
 OnyxUpdateManager();
@@ -559,6 +581,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [fakeTransaction.transactionID],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -611,7 +635,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -661,6 +685,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -748,6 +774,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [transaction.transactionID],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -802,6 +830,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -884,6 +914,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [transaction.transactionID],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -938,6 +970,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -1003,6 +1037,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             };
         }
 
@@ -1172,7 +1208,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1220,7 +1256,9 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
+                draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -1311,6 +1349,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -1540,6 +1580,246 @@ describe('actions/IOU', () => {
             const createdTransaction = Object.values(transactions ?? {}).at(0);
             expect(createdTransaction?.merchant).toBe(specialMerchant);
         });
+
+        it('should pass isSelfTourViewed true to trackExpense and create transaction successfully', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-tour-1',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with isSelfTourViewed: true
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 12000, merchant: 'Tour Viewed Merchant'}),
+                isSelfTourViewed: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be created with correct values
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransactionResult = Object.values(transactions ?? {}).at(0);
+            expect(createdTransactionResult).toBeTruthy();
+            expect(Math.abs(createdTransactionResult?.amount ?? 0)).toBe(12000);
+            expect(createdTransactionResult?.merchant).toBe('Tour Viewed Merchant');
+        });
+
+        it('should pass isSelfTourViewed false to trackExpense and create transaction successfully', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-tour-2',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with isSelfTourViewed: false
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be created with correct values
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransactionResult = Object.values(transactions ?? {}).at(0);
+            expect(createdTransactionResult).toBeTruthy();
+            expect(Math.abs(createdTransactionResult?.amount ?? 0)).toBe(9000);
+            expect(createdTransactionResult?.merchant).toBe('Tour Not Viewed Merchant');
+        });
+
+        it('should return valid track expense information from getTrackExpenseInformation with isSelfTourViewed true', () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-info-1',
+            };
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: true
+            const result = getTrackExpenseInformation({
+                parentChatReport: selfDMReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                policyParams: {
+                    policy: undefined,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 5000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Info Test Merchant',
+                    comment: 'test comment',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: true,
+            });
+
+            // Then the result should contain valid track expense data
+            expect(result).toBeDefined();
+            expect(result.chatReport).toBeDefined();
+            expect(result.transaction).toBeDefined();
+            expect(result.iouAction).toBeDefined();
+            expect(result.onyxData).toBeDefined();
+        });
+
+        it('should return valid track expense information from getTrackExpenseInformation with isSelfTourViewed false', () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-info-2',
+            };
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: false
+            const result = getTrackExpenseInformation({
+                parentChatReport: selfDMReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                policyParams: {
+                    policy: undefined,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 7000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Info Test Merchant False',
+                    comment: 'test comment false',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+            });
+
+            // Then the result should contain valid track expense data
+            expect(result).toBeDefined();
+            expect(result.chatReport).toBeDefined();
+            expect(result.transaction).toBeDefined();
+            expect(result.iouAction).toBeDefined();
+            expect(result.onyxData).toBeDefined();
+        });
+
+        it('should return valid track expense information for policy expense chat with both isSelfTourViewed values', () => {
+            // Given a policy expense chat report
+            const policy = createRandomPolicy(1);
+            const policyExpenseChat: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: 'policy-chat-tour-test',
+                policyID: policy.id,
+            };
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: true
+            const resultWithTourViewed = getTrackExpenseInformation({
+                parentChatReport: policyExpenseChat,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 3000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Policy Chat Merchant',
+                    comment: '',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: true,
+            });
+
+            // Then result should be valid
+            expect(resultWithTourViewed).toBeDefined();
+            expect(resultWithTourViewed.chatReport).toBeDefined();
+            expect(resultWithTourViewed.transaction).toBeDefined();
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: false
+            const resultWithoutTourViewed = getTrackExpenseInformation({
+                parentChatReport: {
+                    ...policyExpenseChat,
+                    reportID: 'policy-chat-tour-test-2',
+                },
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 3000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Policy Chat Merchant',
+                    comment: '',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+            });
+
+            expect(resultWithoutTourViewed).toBeDefined();
+            expect(resultWithoutTourViewed.chatReport).toBeDefined();
+            expect(resultWithoutTourViewed.transaction).toBeDefined();
+        });
     });
 
     describe('createDraftTransactionAndNavigateToParticipantSelector', () => {
@@ -1584,7 +1864,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts,
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1632,7 +1912,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1669,7 +1949,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1701,7 +1981,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -2826,6 +3106,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
 
             mockFetch?.resume?.();
@@ -2893,6 +3175,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -3383,7 +3667,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -3416,6 +3700,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -5708,6 +5994,9 @@ describe('actions/IOU', () => {
                 },
             });
 
+            const reports = getTransactionAndExpenseReports(reportID);
+            const policyTags = await getPolicyTags(reports.expenseReport?.policyID);
+
             // When splitting the expense
             updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
@@ -5734,7 +6023,10 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                policyTags,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport: reports.transactionReport,
+                expenseReport: reports.expenseReport,
             });
 
             await waitForBatchedUpdates();
@@ -5884,13 +6176,16 @@ describe('actions/IOU', () => {
                     allReportNameValuePairs = value;
                 },
             });
+            const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+            const policyTags = await getPolicyTags(reportID);
+            const reports = getTransactionAndExpenseReports(reportID);
 
             updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
                 allReportsList: allReports,
                 allReportNameValuePairsList: allReportNameValuePairs,
                 transactionData: {
-                    reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    reportID,
                     originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                     splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                     splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -5910,7 +6205,10 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                policyTags,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport: reports.transactionReport,
+                expenseReport: reports.expenseReport,
             });
 
             await waitForBatchedUpdates();
@@ -5996,12 +6294,17 @@ describe('actions/IOU', () => {
                     allReportNameValuePairs = value;
                 },
             });
+
+            const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+            const policyTags = await getPolicyTags(reportID);
+            const reports = getTransactionAndExpenseReports(reportID);
+
             updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
                 allReportsList: allReports,
                 allReportNameValuePairsList: allReportNameValuePairs,
                 transactionData: {
-                    reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    reportID,
                     originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                     splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                     splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -6021,7 +6324,10 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                policyTags,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport: reports.transactionReport,
+                expenseReport: reports.expenseReport,
             });
 
             await waitForBatchedUpdates();
@@ -6120,12 +6426,16 @@ describe('actions/IOU', () => {
                 },
             });
 
+            const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+            const policyTags = await getPolicyTags(reportID);
+            const reports = getTransactionAndExpenseReports(reportID);
+
             updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
                 allReportsList: allReports,
                 allReportNameValuePairsList: allReportNameValuePairs,
                 transactionData: {
-                    reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    reportID,
                     originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                     splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                     splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -6145,7 +6455,10 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                policyTags,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport: reports.transactionReport,
+                expenseReport: reports.expenseReport,
             });
 
             await waitForBatchedUpdates();
@@ -6291,6 +6604,7 @@ describe('actions/IOU', () => {
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6496,6 +6810,7 @@ describe('actions/IOU', () => {
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6655,6 +6970,7 @@ describe('actions/IOU', () => {
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6706,6 +7022,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
             });
 
             await waitForBatchedUpdates();
@@ -6819,6 +7136,7 @@ describe('actions/IOU', () => {
                         betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGraceEndPeriods: undefined,
+                        amountOwed: 0,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6913,6 +7231,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
@@ -6946,6 +7265,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
             });
 
             await waitForBatchedUpdates();
@@ -6992,11 +7312,112 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
             });
 
             await waitForBatchedUpdates();
 
             // The IOU report should be settled with optimistic data regardless of isSelfTourViewed
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.hasOutstandingChildRequest).toBe(false);
+                        expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                        resolve();
+                    },
+                });
+            });
+
+            mockFetch?.resume?.();
+        });
+
+        it('should not pay when amountOwed triggers billing restriction', async () => {
+            const policyID = generatePolicyID();
+            const ownerAccountID = CARLOS_ACCOUNT_ID;
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                ownerAccountID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // Set the owner billing grace end period to the past
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastDate);
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+                policyID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+            (Navigation.navigate as jest.Mock).mockClear();
+
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 100,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+        });
+
+        it('should pay successfully when amountOwed is 0', async () => {
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+            };
+            mockFetch?.pause?.();
+            jest.advanceTimersByTime(10);
+
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+            });
+
+            await waitForBatchedUpdates();
+
+            // The IOU report should be settled optimistically since amountOwed is 0 (no restriction)
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -7108,6 +7529,7 @@ describe('actions/IOU', () => {
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -7171,7 +7593,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -8519,7 +8941,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -8556,6 +8978,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -9131,7 +9555,17 @@ describe('actions/IOU', () => {
                 .then(async () => {
                     if (expenseReport) {
                         const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined);
+                        submitReport({
+                            expenseReport,
+                            policy: {} as Policy,
+                            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                            currentUserEmailParam: CARLOS_EMAIL,
+                            hasViolations: true,
+                            isASAPSubmitBetaEnabled: true,
+                            expenseReportCurrentNextStepDeprecated: nextStep,
+                            userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -9415,7 +9849,17 @@ describe('actions/IOU', () => {
                     .then(async () => {
                         if (expenseReport) {
                             const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                            submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined);
+                            submitReport({
+                                expenseReport,
+                                policy,
+                                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                                currentUserEmailParam: CARLOS_EMAIL,
+                                hasViolations: true,
+                                isASAPSubmitBetaEnabled: true,
+                                expenseReportCurrentNextStepDeprecated: nextStep,
+                                userBillingGraceEndPeriods: undefined,
+                                amountOwed: 0,
+                            });
                         }
                         return waitForBatchedUpdates();
                     })
@@ -9461,7 +9905,6 @@ describe('actions/IOU', () => {
                                 reportsToArchive: reportToArchive,
                                 transactionViolations: undefined,
                                 reimbursementAccountError: undefined,
-                                bankAccountList: {},
                                 lastUsedPaymentMethods: undefined,
                                 localeCompare,
                             });
@@ -9670,7 +10113,17 @@ describe('actions/IOU', () => {
                         mockFetch?.fail?.();
                         if (expenseReport) {
                             const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                            submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined);
+                            submitReport({
+                                expenseReport,
+                                policy: {} as Policy,
+                                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                                currentUserEmailParam: CARLOS_EMAIL,
+                                hasViolations: true,
+                                isASAPSubmitBetaEnabled: true,
+                                expenseReportCurrentNextStepDeprecated: nextStep,
+                                userBillingGraceEndPeriods: undefined,
+                                amountOwed: 0,
+                            });
                         }
                         return waitForBatchedUpdates();
                     })
@@ -9825,7 +10278,17 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, undefined, undefined);
+                        submitReport({
+                            expenseReport,
+                            policy,
+                            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                            currentUserEmailParam: CARLOS_EMAIL,
+                            hasViolations: true,
+                            isASAPSubmitBetaEnabled: true,
+                            expenseReportCurrentNextStepDeprecated: undefined,
+                            userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -9849,6 +10312,165 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+
+        it('should not submit when amountOwed triggers billing restriction', async () => {
+            const policyID = generatePolicyID();
+            const ownerAccountID = CARLOS_ACCOUNT_ID;
+
+            // Set up a policy owned by the current user
+            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                ownerAccountID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // Set the owner billing grace end period to the past
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30; // 30 days ago
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastDate);
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+
+            const expenseReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            // Clear previous Navigation.navigate calls
+            (Navigation.navigate as jest.Mock).mockClear();
+
+            // Submit with amountOwed > 0 should trigger restriction
+            submitReport({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 100,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Verify Navigation.navigate was called with the restricted action route
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+        });
+
+        it('should submit successfully when amountOwed is 0', async () => {
+            const policyID = generatePolicyID();
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // Set the owner billing grace end period to the past
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastDate);
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
+
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+                policyID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                isSelfTourViewed: false,
+            });
+
+            setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+            await waitForBatchedUpdates();
+
+            let chatReport: OnyxEntry<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && report?.policyID === policyID);
+                },
+            });
+
+            if (chatReport) {
+                requestMoney({
+                    report: chatReport,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                    },
+                    transactionParams: {
+                        amount: 10000,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant: 'Test',
+                        comment: 'Test expense',
+                    },
+                    shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                    currentUserEmailParam: CARLOS_EMAIL,
+                    transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
+                    existingTransactionDraft: undefined,
+                    draftTransactionIDs: [],
+                    isSelfTourViewed: false,
+                    quickAction: undefined,
+                    betas: [CONST.BETAS.ALL],
+                    personalDetails: {},
+                });
+            }
+            await waitForBatchedUpdates();
+
+            let expenseReport: OnyxEntry<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.policyID === policyID);
+                },
+            });
+
+            if (expenseReport) {
+                await Onyx.merge(`report_${expenseReport.reportID}`, {statusNum: 0, stateNum: 0});
+                await waitForBatchedUpdates();
+
+                (Navigation.navigate as jest.Mock).mockClear();
+
+                const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+                submitReport({
+                    expenseReport,
+                    policy,
+                    currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                    currentUserEmailParam: CARLOS_EMAIL,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: true,
+                    expenseReportCurrentNextStepDeprecated: nextStep,
+                    userBillingGraceEndPeriods: undefined,
+                    amountOwed: 0,
+                });
+
+                await waitForBatchedUpdates();
+
+                // Should NOT navigate to restricted action
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            }
         });
     });
 
@@ -10462,6 +11084,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
 
             await waitForBatchedUpdates();
@@ -11399,520 +12023,6 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('updateMultipleMoneyRequests', () => {
-        it('applies expense report sign to amount updates', () => {
-            const transactionID = 'transaction-1';
-            const transactionThreadReportID = 'thread-1';
-            const iouReportID = 'iou-1';
-            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
-
-            const transactionThread: Report = {
-                ...createRandomReport(1, undefined),
-                reportID: transactionThreadReportID,
-                parentReportID: iouReportID,
-                policyID: policy.id,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(2, undefined),
-                reportID: iouReportID,
-                policyID: policy.id,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
-                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(1),
-                transactionID,
-                reportID: iouReportID,
-                transactionThreadReportID,
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-            };
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            };
-
-            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-            const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-
-            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
-
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number};
-            expect(updates.amount).toBe(1000);
-            expect(buildOptimisticSpy).toHaveBeenCalledWith(
-                transactionThread,
-                transaction,
-                expect.objectContaining({amount: 1000, currency: CONST.CURRENCY.USD}),
-                true,
-                policy,
-                expect.anything(),
-            );
-
-            writeSpy.mockRestore();
-            buildOptimisticSpy.mockRestore();
-            canEditFieldSpy.mockRestore();
-        });
-
-        it('skips updates when bulk edit value matches the current transaction field', () => {
-            const transactionID = 'transaction-1';
-            const transactionThreadReportID = 'thread-1';
-            const iouReportID = 'iou-1';
-            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
-
-            const transactionThread: Report = {
-                ...createRandomReport(1, undefined),
-                reportID: transactionThreadReportID,
-                parentReportID: iouReportID,
-                policyID: policy.id,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(2, undefined),
-                reportID: iouReportID,
-                policyID: policy.id,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
-                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(1),
-                transactionID,
-                reportID: iouReportID,
-                transactionThreadReportID,
-                amount: -1000,
-                currency: CONST.CURRENCY.USD,
-            };
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            };
-
-            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-
-            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
-
-            expect(writeSpy).not.toHaveBeenCalled();
-
-            writeSpy.mockRestore();
-            canEditFieldSpy.mockRestore();
-        });
-
-        it('updates report totals across multiple transactions in the same report', () => {
-            const firstTransactionID = 'transaction-4';
-            const secondTransactionID = 'transaction-5';
-            const iouReportID = 'iou-4';
-            const policy = createRandomPolicy(4, CONST.POLICY.TYPE.TEAM);
-
-            const iouReport: Report = {
-                ...createRandomReport(4, undefined),
-                reportID: iouReportID,
-                policyID: policy.id,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                total: -2600,
-                currency: CONST.CURRENCY.USD,
-            };
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-            };
-
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`]: {
-                    ...createRandomTransaction(4),
-                    transactionID: firstTransactionID,
-                    reportID: iouReportID,
-                    amount: -1300,
-                    currency: CONST.CURRENCY.USD,
-                },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`]: {
-                    ...createRandomTransaction(5),
-                    transactionID: secondTransactionID,
-                    reportID: iouReportID,
-                    amount: -1300,
-                    currency: CONST.CURRENCY.USD,
-                },
-            };
-
-            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-
-            updateMultipleMoneyRequests([firstTransactionID, secondTransactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
-
-            const getOptimisticTotal = (callIndex: number) => {
-                const onyxData = writeSpy.mock.calls.at(callIndex)?.[2] as {optimisticData: Array<{key: string; value?: {total?: number}}>};
-                const reportUpdate = onyxData.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-                return reportUpdate?.value?.total;
-            };
-
-            expect(getOptimisticTotal(0)).toBe(-2300);
-            expect(getOptimisticTotal(1)).toBe(-2000);
-
-            writeSpy.mockRestore();
-            canEditFieldSpy.mockRestore();
-        });
-
-        it('supports negative amount updates for expense reports', () => {
-            const transactionID = 'transaction-3';
-            const transactionThreadReportID = 'thread-3';
-            const iouReportID = 'iou-3';
-            const policy = createRandomPolicy(3, CONST.POLICY.TYPE.TEAM);
-
-            const transactionThread: Report = {
-                ...createRandomReport(3, undefined),
-                reportID: transactionThreadReportID,
-                parentReportID: iouReportID,
-                policyID: policy.id,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(4, undefined),
-                reportID: iouReportID,
-                policyID: policy.id,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
-                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(3),
-                transactionID,
-                reportID: iouReportID,
-                transactionThreadReportID,
-                // Expense reports store amounts with the opposite sign of what the UI displays.
-                amount: -1000,
-                currency: CONST.CURRENCY.USD,
-            };
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            };
-
-            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-            const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-
-            updateMultipleMoneyRequests([transactionID], {amount: -1000}, policy, reports, transactions, {}, undefined);
-
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number};
-            expect(updates.amount).toBe(-1000);
-            expect(buildOptimisticSpy).toHaveBeenCalledWith(
-                transactionThread,
-                transaction,
-                expect.objectContaining({amount: -1000, currency: CONST.CURRENCY.USD}),
-                true,
-                policy,
-                expect.anything(),
-            );
-
-            writeSpy.mockRestore();
-            buildOptimisticSpy.mockRestore();
-            canEditFieldSpy.mockRestore();
-        });
-
-        it('sends billable and reimbursable updates for bulk edit', () => {
-            const transactionID = 'transaction-7';
-            const transactionThreadReportID = 'thread-7';
-            const iouReportID = 'iou-7';
-            const policy = createRandomPolicy(7, CONST.POLICY.TYPE.TEAM);
-
-            const transactionThread: Report = {
-                ...createRandomReport(7, undefined),
-                reportID: transactionThreadReportID,
-                parentReportID: iouReportID,
-                policyID: policy.id,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(8, undefined),
-                reportID: iouReportID,
-                policyID: policy.id,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
-                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(7),
-                transactionID,
-                reportID: iouReportID,
-                transactionThreadReportID,
-                amount: 1000,
-                billable: false,
-                reimbursable: true,
-                currency: CONST.CURRENCY.USD,
-            };
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            };
-
-            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-
-            updateMultipleMoneyRequests([transactionID], {billable: true, reimbursable: false}, policy, reports, transactions, {}, undefined);
-
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {billable: boolean; reimbursable: boolean};
-            expect(updates.billable).toBe(true);
-            expect(updates.reimbursable).toBe(false);
-
-            writeSpy.mockRestore();
-            canEditFieldSpy.mockRestore();
-        });
-
-        it('keeps invoice amount updates positive', () => {
-            const transactionID = 'transaction-2';
-            const transactionThreadReportID = 'thread-2';
-            const iouReportID = 'iou-2';
-            const policy = createRandomPolicy(2, CONST.POLICY.TYPE.TEAM);
-
-            const transactionThread: Report = {
-                ...createRandomReport(3, undefined),
-                reportID: transactionThreadReportID,
-                parentReportID: iouReportID,
-                policyID: policy.id,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(4, undefined),
-                reportID: iouReportID,
-                policyID: policy.id,
-                type: CONST.REPORT.TYPE.INVOICE,
-            };
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
-                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(2),
-                transactionID,
-                reportID: iouReportID,
-                transactionThreadReportID,
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-            };
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            };
-
-            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-            const buildOptimisticSpy = jest.spyOn(require('@libs/ReportUtils'), 'buildOptimisticModifiedExpenseReportAction');
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-
-            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
-
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {amount: number};
-            expect(updates.amount).toBe(1000);
-            expect(buildOptimisticSpy).toHaveBeenCalledWith(
-                transactionThread,
-                transaction,
-                expect.objectContaining({amount: 1000, currency: CONST.CURRENCY.USD}),
-                false,
-                policy,
-                expect.anything(),
-            );
-
-            writeSpy.mockRestore();
-            buildOptimisticSpy.mockRestore();
-            canEditFieldSpy.mockRestore();
-        });
-
-        it('saves changes for unreported (track) expenses without a reportAction', () => {
-            const transactionID = 'transaction-unreported';
-            const transactionThreadReportID = 'thread-unreported';
-            const policy = createRandomPolicy(10, CONST.POLICY.TYPE.TEAM);
-
-            const transactionThread: Report = {
-                ...createRandomReport(10, undefined),
-                reportID: transactionThreadReportID,
-            };
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(10),
-                transactionID,
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-                transactionThreadReportID,
-                amount: 500,
-                currency: CONST.CURRENCY.USD,
-                merchant: 'Old merchant',
-            };
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            };
-
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-
-            // No canEditFieldOfMoneyRequest mock — unreported expenses must bypass that check
-            updateMultipleMoneyRequests([transactionID], {merchant: 'New merchant'}, policy, reports, transactions, {}, undefined);
-
-            expect(writeSpy).toHaveBeenCalled();
-            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
-            const updates = JSON.parse(params.updates) as {merchant: string};
-            expect(updates.merchant).toBe('New merchant');
-
-            writeSpy.mockRestore();
-        });
-
-        it('removes DUPLICATED_TRANSACTION violation optimistically when amount is changed', async () => {
-            const transactionID = 'transaction-1';
-            const transactionThreadReportID = 'thread-1';
-            const iouReportID = 'iou-1';
-            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
-
-            const iouReport: Report = {
-                ...createRandomReport(2, undefined),
-                reportID: iouReportID,
-                policyID: policy.id,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(1),
-                transactionID,
-                reportID: iouReportID,
-                transactionThreadReportID,
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-            };
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION}]);
-            await waitForBatchedUpdates();
-
-            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-
-            updateMultipleMoneyRequests([transactionID], {amount: 2000}, policy, reports, transactions, {}, undefined);
-            await waitForBatchedUpdates();
-
-            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-            const violationNames = updatedViolations?.map((v) => v.name) ?? [];
-            expect(violationNames).not.toContain(CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-
-            canEditFieldSpy.mockRestore();
-        });
-
-        it('removes CATEGORY_OUT_OF_POLICY violation optimistically when category is cleared', async () => {
-            const transactionID = 'transaction-1';
-            const transactionThreadReportID = 'thread-1';
-            const iouReportID = 'iou-1';
-            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
-
-            const iouReport: Report = {
-                ...createRandomReport(2, undefined),
-                reportID: iouReportID,
-                policyID: policy.id,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-
-            const reports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
-            };
-
-            const transaction: Transaction = {
-                ...createRandomTransaction(1),
-                transactionID,
-                reportID: iouReportID,
-                transactionThreadReportID,
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                category: 'OldCategory',
-            };
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [{name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
-            await waitForBatchedUpdates();
-
-            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
-
-            updateMultipleMoneyRequests([transactionID], {category: ''}, policy, reports, transactions, {}, undefined);
-            await waitForBatchedUpdates();
-
-            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-            const violationNames = updatedViolations?.map((v) => v.name) ?? [];
-            expect(violationNames).not.toContain(CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY);
-
-            canEditFieldSpy.mockRestore();
-        });
-    });
-
-    describe('bulk edit draft transaction', () => {
-        const draftKey = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}` as OnyxKey;
-
-        it('initializes the bulk edit draft transaction', async () => {
-            await Onyx.set(draftKey, {amount: 1000});
-            await waitForBatchedUpdates();
-
-            const testTransactionIDs = ['transaction1', 'transaction2', 'transaction3'];
-            initBulkEditDraftTransaction(testTransactionIDs);
-            await waitForBatchedUpdates();
-
-            const draftTransaction = await getOnyxValue(draftKey);
-            expect(draftTransaction).toMatchObject({
-                transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
-                selectedTransactionIDs: testTransactionIDs,
-            });
-        });
-
-        it('updates the bulk edit draft transaction', async () => {
-            await Onyx.set(draftKey, {transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID, merchant: 'Gym'});
-            await waitForBatchedUpdates();
-
-            updateBulkEditDraftTransaction({amount: 1000});
-            await waitForBatchedUpdates();
-
-            const draftTransaction = await getOnyxValue(draftKey);
-            expect(draftTransaction).toMatchObject({
-                transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
-                merchant: 'Gym',
-                amount: 1000,
-            });
-        });
-
-        it('clears the bulk edit draft transaction', async () => {
-            await Onyx.set(draftKey, {transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID, amount: 1000});
-            await waitForBatchedUpdates();
-
-            clearBulkEditDraftTransaction();
-            await waitForBatchedUpdates();
-
-            const draftTransaction = await getOnyxValue(draftKey);
-            expect(draftTransaction).toBeUndefined();
-        });
-    });
-
     describe('cancelPayment', () => {
         const amount = 10000;
         const comment = '💸💸💸💸';
@@ -12106,6 +12216,7 @@ describe('actions/IOU', () => {
                     betas: [CONST.BETAS.ALL],
                     isSelfTourViewed: false,
                     userBillingGraceEndPeriods: undefined,
+                    amountOwed: 0,
                 });
             }
             await waitForBatchedUpdates();
@@ -12359,6 +12470,8 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -12595,12 +12708,16 @@ describe('actions/IOU', () => {
                     },
                 });
 
+                const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+                const policyTags = await getPolicyTags(reportID);
+                const reports = getTransactionAndExpenseReports(reportID);
+
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
-                        reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        reportID,
                         originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                         splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                         splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -12620,7 +12737,10 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                    transactionReport: reports.transactionReport,
+                    expenseReport: reports.expenseReport,
                 });
                 await waitForBatchedUpdates();
 
@@ -12761,12 +12881,16 @@ describe('actions/IOU', () => {
                     },
                 });
 
+                const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+                const policyTags = await getPolicyTags(reportID);
+                const reports = getTransactionAndExpenseReports(reportID);
+
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
-                        reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        reportID,
                         originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                         splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                         splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -12786,7 +12910,10 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                    transactionReport: reports.transactionReport,
+                    expenseReport: reports.expenseReport,
                 });
                 await waitForBatchedUpdates();
 
@@ -12940,13 +13067,17 @@ describe('actions/IOU', () => {
                     },
                 });
 
+                const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+                const policyTags = await getPolicyTags(reportID);
+                const reports = getTransactionAndExpenseReports(reportID);
+
                 // it should use splitExpensesTotal in its calculation
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
-                        reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        reportID,
                         originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                         splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                         splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -12966,7 +13097,10 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                    transactionReport: reports.transactionReport,
+                    expenseReport: reports.expenseReport,
                 });
                 await waitForBatchedUpdates();
 
@@ -13143,13 +13277,17 @@ describe('actions/IOU', () => {
                     },
                 });
 
+                const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+                const policyTags = await getPolicyTags(reportID);
+                const reports = getTransactionAndExpenseReports(reportID);
+
                 // When splitting the held expense
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
-                        reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        reportID,
                         originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                         splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
                         splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
@@ -13169,7 +13307,10 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                    transactionReport: reports.transactionReport,
+                    expenseReport: reports.expenseReport,
                 });
 
                 await waitForBatchedUpdates();
@@ -13234,7 +13375,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('getIOUReportActionToApproveOrPay', () => {
+    describe('getIOUReportActionWithBadge', () => {
         it('should exclude deleted actions', async () => {
             const reportID = '1';
             const policyID = '2';
@@ -13308,457 +13449,253 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, MOCK_REPORT_ACTIONS);
 
-            expect(getIOUReportActionToApproveOrPay(fakeReport, undefined, {}, undefined)).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
-        });
-    });
-
-    describe('getPerDiemExpenseInformation', () => {
-        it('should include policyRecentlyUsedCurrencies when provided', () => {
-            const testCurrency = CONST.CURRENCY.GBP;
-            const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
-            const mockTransactionParams: PerDiemExpenseTransactionParams = {
-                comment: '',
-                currency: testCurrency,
-                created: '2024-02-02',
-                category: 'Meals',
-                tag: 'PerDiem',
-                customUnit: {
-                    customUnitID: 'per_diem_unit',
-                    customUnitRateID: 'rate_1',
-                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                    attributes: {
-                        dates: {
-                            start: '2024-02-02',
-                            end: '2024-02-02',
-                        },
-                    },
-                    subRates: [],
-                    quantity: 1,
-                },
-                billable: true,
-                attendees: [],
-                reimbursable: true,
-            };
-
-            const mockParticipantParams = {
-                payeeAccountID: 123,
-                payeeEmail: 'payee@example.com',
-                participant: {
-                    accountID: 123,
-                    login: 'payee@example.com',
-                },
-            };
-
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams,
-                participantParams: mockParticipantParams as unknown as RequestMoneyParticipantParams,
-                recentlyUsedParams: {},
-                isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'payee@example.com',
-                hasViolations: false,
-                policyRecentlyUsedCurrencies: initialCurrencies,
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
-            });
-
-            expect(result.onyxData).toBeDefined();
-            expect(result.onyxData.optimisticData).toBeDefined();
-
-            const optimisticData = result.onyxData?.optimisticData;
-            expect(optimisticData).toBeDefined();
-            const currencyUpdate = optimisticData?.find((update) => update.key === ONYXKEYS.RECENTLY_USED_CURRENCIES && update.onyxMethod === Onyx.METHOD.SET);
-            expect(currencyUpdate).toBeDefined();
-            expect(currencyUpdate?.value).toEqual([testCurrency, ...initialCurrencies]);
+            const result = getIOUReportActionWithBadge(fakeReport, fakePolicy, {}, undefined);
+            expect(result.reportAction).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
+            expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
 
-        it('should return correct per diem expense information with new chat report', () => {
-            // Given: Mock data for per diem expense
-            const mockCustomUnit = {
-                customUnitID: 'per_diem_123',
-                customUnitRateID: 'rate_456',
-                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                attributes: {
-                    dates: {
-                        start: '2024-01-15',
-                        end: '2024-01-15',
-                    },
-                },
-                subRates: [
-                    {
-                        id: 'breakfast_1',
-                        name: 'Breakfast',
-                        rate: 25,
-                        quantity: 1,
-                    },
-                    {
-                        id: 'lunch_1',
-                        name: 'Lunch',
-                        rate: 35,
-                        quantity: 1,
-                    },
-                ],
-                quantity: 1,
+        it('should return APPROVE actionBadge for submitted expense report when user is manager', async () => {
+            const chatReportID = '100';
+            const iouReportID = '101';
+            const policyID = '102';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
 
-            const mockParticipant = {
-                accountID: 123,
-                login: 'test@example.com',
-                displayName: 'Test User',
-                isPolicyExpenseChat: false,
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                role: CONST.REPORT.ROLE.MEMBER,
-            };
-
-            const mockTransactionParams = {
-                currency: 'USD',
-                created: '2024-01-15',
-                category: 'Travel',
-                tag: 'Project A',
-                customUnit: mockCustomUnit,
-                billable: true,
-                attendees: [],
-                reimbursable: true,
-                comment: 'Business trip per diem',
-            };
-
-            const mockParticipantParams = {
-                payeeAccountID: 456,
-                payeeEmail: 'payee@example.com',
-                participant: mockParticipant,
-            };
-
-            const mockPolicyParams = {
-                policy: createRandomPolicy(1),
-                policyCategories: createRandomPolicyCategories(3),
-                policyTagList: createRandomPolicyTags('tagList', 2),
-            };
-
-            // When: Call getPerDiemExpenseInformation
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams,
-                participantParams: mockParticipantParams,
-                policyParams: mockPolicyParams,
-                recentlyUsedParams: {},
-                moneyRequestReportID: '1',
-                isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                hasViolations: false,
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
-            });
-
-            // Then: Verify the result structure and key values
-            expect(result).toMatchObject({
-                payerAccountID: 123,
-                payerEmail: 'test@example.com',
-                billable: true,
-                reimbursable: true,
-            });
-
-            // Verify chat report was created
-            expect(result.chatReport).toBeDefined();
-            expect(result.chatReport.reportID).toBeDefined();
-
-            // Verify IOU report was created
-            expect(result.iouReport).toBeDefined();
-            expect(result.iouReport.reportID).toBeDefined();
-            expect(result.iouReport.type).toBe(CONST.REPORT.TYPE.IOU);
-
-            // Verify transaction was created with correct per diem data
-            expect(result.transaction).toBeDefined();
-            expect(result.transaction.transactionID).toBeDefined();
-            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
-            expect(result.transaction.hasEReceipt).toBe(true);
-            expect(result.transaction.currency).toBe('USD');
-            expect(result.transaction.category).toBe('Travel');
-            expect(result.transaction.tag).toBe('Project A');
-            expect(result.transaction.comment?.comment).toBe('Business trip per diem');
-
-            // Verify IOU action was created
-            expect(result.iouAction).toBeDefined();
-            expect(result.iouAction.reportActionID).toBeDefined();
-            expect(result.iouAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.IOU);
-
-            // Verify report preview action
-            expect(result.reportPreviewAction).toBeDefined();
-            expect(result.reportPreviewAction.reportActionID).toBeDefined();
-
-            // Verify Onyx data structure
-            expect(result.onyxData).toBeDefined();
-            expect(result.onyxData.optimisticData).toBeDefined();
-            expect(result.onyxData.successData).toBeDefined();
-            expect(result.onyxData.failureData).toBeDefined();
-
-            // Verify created action IDs for new reports
-            expect(result.createdChatReportActionID).toBeDefined();
-            expect(result.createdIOUReportActionID).toBeDefined();
-        });
-
-        it('should return correct per diem expense information with existing chat report', () => {
-            // Given: Existing chat report
-            const existingChatReport = {
-                reportID: 'chat_123',
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '123': {
-                        accountID: 123,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '456': {
-                        accountID: 456,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-                iouReportID: 'iou_456',
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-
-            const mockCustomUnit = {
-                customUnitID: 'per_diem_789',
-                customUnitRateID: 'rate_101',
-                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                attributes: {
-                    dates: {
-                        start: '2024-01-20',
-                        end: '2024-01-20',
-                    },
-                },
-                subRates: [
-                    {
-                        id: 'dinner_1',
-                        name: 'Dinner',
-                        rate: 45,
-                        quantity: 1,
-                    },
-                ],
-                quantity: 2,
-            };
-
-            const mockParticipant = {
-                accountID: 123,
-                login: 'existing@example.com',
-                displayName: 'Existing User',
-                isPolicyExpenseChat: false,
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                role: CONST.REPORT.ROLE.MEMBER,
-            };
-
-            const mockTransactionParams = {
-                comment: 'Conference per diem',
-                currency: 'USD',
-                created: '2024-01-20',
-                category: 'Meals',
-                tag: 'Conference',
-                customUnit: mockCustomUnit,
-                billable: false,
-                attendees: [],
-                reimbursable: true,
-            };
-
-            const mockParticipantParams = {
-                payeeAccountID: 456,
-                payeeEmail: 'payee@example.com',
-                participant: mockParticipant,
-            };
-
-            // When: Call getPerDiemExpenseInformation with existing chat report
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: existingChatReport as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
-                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
-                recentlyUsedParams: {},
-                isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                hasViolations: false,
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
-            });
-
-            // Then: Verify the result uses existing chat report
-            expect(result.chatReport.reportID).toBe('chat_123');
-            expect(result.chatReport.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
-
-            // Verify transaction has correct per diem data
-            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
-            expect(result.transaction.hasEReceipt).toBe(true);
-            expect(result.transaction.currency).toBe('USD');
-            expect(result.transaction.category).toBe('Meals');
-            expect(result.transaction.tag).toBe('Conference');
-            expect(result.transaction.comment?.comment).toBe('Conference per diem');
-
-            // Verify no new chat report action ID since using existing
-            expect(result.createdChatReportActionID).toBeUndefined();
-        });
-
-        it('should handle policy expense chat correctly', () => {
-            // Given: Policy expense chat participant
-            const mockParticipant = {
-                accountID: 123,
-                login: 'policy@example.com',
-                displayName: 'Policy User',
-                isPolicyExpenseChat: true,
-                reportID: 'policy_chat_123',
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                role: CONST.REPORT.ROLE.MEMBER,
-            };
-
-            const mockCustomUnit = {
-                customUnitID: 'per_diem_policy',
-                customUnitRateID: 'rate_policy',
-                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                attributes: {
-                    dates: {
-                        start: '2024-01-25',
-                        end: '2024-01-25',
-                    },
-                },
-                subRates: [
-                    {
-                        id: 'lodging_1',
-                        name: 'Lodging',
-                        rate: 150,
-                        quantity: 1,
-                    },
-                ],
-                quantity: 1,
-            };
-
-            const mockTransactionParams = {
-                comment: 'Policy per diem',
-                currency: 'USD',
-                created: '2024-01-25',
-                category: 'Lodging',
-                tag: 'Policy',
-                customUnit: mockCustomUnit,
-                billable: true,
-                attendees: [],
-                reimbursable: true,
-            };
-
-            const mockParticipantParams = {
-                payeeAccountID: 456,
-                payeeEmail: 'payee@example.com',
-                participant: mockParticipant,
-            };
-
-            const mockPolicyParams = {
-                policy: createRandomPolicy(2),
-            };
-
-            // When: Call getPerDiemExpenseInformation for policy expense chat
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
-                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
-                policyParams: mockPolicyParams,
-                recentlyUsedParams: {},
-                isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                hasViolations: false,
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
-            });
-
-            // Then: Verify policy expense chat handling
-            expect(result.payerAccountID).toBe(123);
-            expect(result.payerEmail).toBe('policy@example.com');
-            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
-            expect(result.transaction.hasEReceipt).toBe(true);
-            expect(result.billable).toBe(true);
-            expect(result.reimbursable).toBe(true);
-        });
-    });
-
-    describe('submitPerDiemExpense', () => {
-        it('should update policyRecentlyUsedTags when tag is provided', async () => {
-            // Given a transaction with a tag
-            const iouReportID = '2';
-            const policyID = 'A';
-            const transactionTag = 'new tag';
-            const tagName = 'Tag';
-            const policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags> = {
-                [tagName]: ['old tag'],
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
-                reportID: iouReportID,
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
                 policyID,
+            };
+
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
                 type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: currentUserPersonalDetails.accountID,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
-                [tagName]: {name: tagName},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: RORY_ACCOUNT_ID,
+            };
 
-            // When submitting a per diem expense
-            submitPerDiemExpense({
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                hasViolations: false,
-                isASAPSubmitBetaEnabled: false,
-                participantParams: {
-                    payeeEmail: currentUserPersonalDetails.login,
-                    payeeAccountID: currentUserPersonalDetails.accountID,
-                    participant: {},
-                },
-                report: {
-                    reportID: '1',
-                    iouReportID,
-                },
-                transactionParams: {
-                    created: DateUtils.getDBTime(),
-                    currency: CONST.CURRENCY.USD,
-                    tag: transactionTag,
-                    customUnit: {
-                        customUnitID: 'A',
-                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                        customUnitRateID: 'B',
-                        subRates: [{id: '1', name: 'rate_a', quantity: 1, rate: 2}],
-                        attributes: {dates: {end: '', start: ''}},
-                    },
-                },
-                policyRecentlyUsedCurrencies: [],
-                policyParams: {
-                    policy: {...createRandomPolicy(1)},
-                    policyRecentlyUsedTags,
-                },
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
-            });
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
 
-            waitForBatchedUpdates();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
 
-            // Then the transaction tag should be added to the recently used tags collection
-            const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
-                const connection = Onyx.connectWithoutView({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
-                    callback: (recentlyUsedTags) => {
-                        resolve(recentlyUsedTags ?? {});
-                        Onyx.disconnect(connection);
-                    },
-                });
+            const reportPreviewAction = {
+                reportActionID: iouReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                message: [{type: 'TEXT', text: 'Report preview'}],
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
             });
-            expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
-            expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
+            expect(result.reportAction).toMatchObject(reportPreviewAction);
+            expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+        });
+
+        it('should return PAY actionBadge for approved expense report when user is payer', async () => {
+            const chatReportID = '200';
+            const iouReportID = '201';
+            const policyID = '202';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+            };
+
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+                total: -10000,
+                nonReimbursableTotal: 0,
+                isWaitingOnBankAccount: false,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            const reportPreviewAction = {
+                reportActionID: iouReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                message: [{type: 'TEXT', text: 'Report preview'}],
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
+            expect(result.reportAction).toMatchObject(reportPreviewAction);
+            expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
+        });
+
+        it('should return SUBMIT actionBadge for open report waiting for submission', async () => {
+            const chatReportID = '300';
+            const iouReportID = '301';
+            const policyID = '302';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.USER,
+                harvesting: {enabled: false},
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+                isOwnPolicyExpenseChat: true,
+            };
+
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                merchant: 'TestMerchant',
+                modifiedMerchant: 'TestMerchant',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            const reportPreviewAction = {
+                reportActionID: iouReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                message: [{type: 'TEXT', text: 'Report preview'}],
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
+            expect(result.reportAction).toMatchObject(reportPreviewAction);
+            expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.SUBMIT);
+        });
+
+        it('should return undefined actionBadge when report is settled', async () => {
+            const chatReportID = '400';
+            const iouReportID = '401';
+            const policyID = '402';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+            };
+
+            // Settled (reimbursed) report — can't pay, can't approve, can't submit
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            const reportPreviewAction = {
+                reportActionID: iouReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                message: [{type: 'TEXT', text: 'Report preview'}],
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined);
+            expect(result.reportAction).toBeUndefined();
+            expect(result.actionBadge).toBeUndefined();
         });
     });
 
@@ -13808,148 +13745,6 @@ describe('actions/IOU', () => {
 
             // Then it should return undefined
             expect(result).toBeUndefined();
-        });
-    });
-
-    describe('getPerDiemExpenseInformation with personalDetails', () => {
-        it('should pass personalDetails through to buildOnyxDataForMoneyRequest', () => {
-            // Given personalDetails with the current user
-            const mockTransactionParams: PerDiemExpenseTransactionParams = {
-                comment: '',
-                currency: CONST.CURRENCY.USD,
-                created: '2024-02-02',
-                category: 'Meals',
-                tag: '',
-                customUnit: {
-                    customUnitID: 'per_diem_unit',
-                    customUnitRateID: 'rate_1',
-                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                    attributes: {
-                        dates: {
-                            start: '2024-02-02',
-                            end: '2024-02-02',
-                        },
-                    },
-                    subRates: [],
-                    quantity: 1,
-                },
-                billable: false,
-                attendees: [],
-                reimbursable: true,
-            };
-
-            const personalDetailsList: PersonalDetailsList = {
-                [RORY_ACCOUNT_ID]: {
-                    accountID: RORY_ACCOUNT_ID,
-                    login: RORY_EMAIL,
-                    displayName: 'Rory',
-                },
-            };
-
-            // When calling getPerDiemExpenseInformation with personalDetails
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams,
-                participantParams: {
-                    payeeAccountID: RORY_ACCOUNT_ID,
-                    payeeEmail: RORY_EMAIL,
-                    participant: {
-                        accountID: RORY_ACCOUNT_ID,
-                        login: RORY_EMAIL,
-                    },
-                } as unknown as RequestMoneyParticipantParams,
-                recentlyUsedParams: {},
-                isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
-                hasViolations: false,
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: personalDetailsList,
-            });
-
-            // Then the result should be valid (personalDetails is correctly passed through the chain)
-            expect(result).toBeDefined();
-            expect(result.onyxData).toBeDefined();
-            expect(result.transaction).toBeDefined();
-            expect(result.iouReport).toBeDefined();
-        });
-    });
-
-    describe('submitPerDiemExpense with personalDetails', () => {
-        it('should correctly submit per diem expense with personalDetails', async () => {
-            // Given a valid per diem expense setup with personalDetails
-            const iouReportID = '2';
-            const policyID = 'B';
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
-                reportID: iouReportID,
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: currentUserPersonalDetails.accountID,
-            });
-
-            const personalDetailsList: PersonalDetailsList = {
-                [RORY_ACCOUNT_ID]: {
-                    accountID: RORY_ACCOUNT_ID,
-                    login: RORY_EMAIL,
-                    displayName: 'Rory',
-                },
-            };
-
-            // When submitting a per diem expense with personalDetails
-            submitPerDiemExpense({
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                hasViolations: false,
-                isASAPSubmitBetaEnabled: false,
-                participantParams: {
-                    payeeEmail: currentUserPersonalDetails.login,
-                    payeeAccountID: currentUserPersonalDetails.accountID,
-                    participant: {},
-                },
-                report: {
-                    reportID: '1',
-                    iouReportID,
-                },
-                transactionParams: {
-                    created: DateUtils.getDBTime(),
-                    currency: CONST.CURRENCY.USD,
-                    customUnit: {
-                        customUnitID: 'A',
-                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                        customUnitRateID: 'B',
-                        subRates: [{id: '1', name: 'rate_a', quantity: 1, rate: 2}],
-                        attributes: {dates: {end: '', start: ''}},
-                    },
-                },
-                policyRecentlyUsedCurrencies: [],
-                policyParams: {
-                    policy: {...createRandomPolicy(1)},
-                },
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: personalDetailsList,
-            });
-
-            await waitForBatchedUpdates();
-
-            // Then the expense should be submitted successfully (no errors thrown)
-            // Verify that at least one transaction was created
-            const transactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
-            const perDiemTransactions = Object.values(transactions ?? {}).filter((tx) => tx?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM);
-            expect(perDiemTransactions.length).toBeGreaterThan(0);
         });
     });
 
@@ -15676,7 +15471,7 @@ describe('actions/IOU', () => {
             // Call should not throw when personalDetails is provided
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactionIDs: [transactionID],
+                    transactions: [transaction],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
@@ -15746,7 +15541,7 @@ describe('actions/IOU', () => {
             // Even if no transactions are provided, it should not throw
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactionIDs: [],
+                    transactions: [],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
@@ -15786,7 +15581,7 @@ describe('actions/IOU', () => {
             // Should not throw even with empty personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactionIDs: [],
+                    transactions: [],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
@@ -15826,7 +15621,7 @@ describe('actions/IOU', () => {
             // Should not throw even with undefined personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactionIDs: [],
+                    transactions: [],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
@@ -15864,7 +15659,7 @@ describe('actions/IOU', () => {
         });
 
         it('should not call completeOnboarding when introSelected is undefined', () => {
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, undefined, [CONST.BETAS.ALL]);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, undefined, false, [CONST.BETAS.ALL]);
             expect(completeOnboardingSpy).not.toHaveBeenCalled();
         });
 
@@ -15876,6 +15671,7 @@ describe('actions/IOU', () => {
                     inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                     isInviteOnboardingComplete: true,
                 },
+                false,
                 [CONST.BETAS.ALL],
             );
             expect(completeOnboardingSpy).not.toHaveBeenCalled();
@@ -15887,6 +15683,7 @@ describe('actions/IOU', () => {
                 {
                     inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                 },
+                false,
                 [CONST.BETAS.ALL],
             );
             expect(completeOnboardingSpy).not.toHaveBeenCalled();
@@ -15898,6 +15695,7 @@ describe('actions/IOU', () => {
                 {
                     choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 },
+                false,
                 [CONST.BETAS.ALL],
             );
             expect(completeOnboardingSpy).not.toHaveBeenCalled();
@@ -15909,16 +15707,16 @@ describe('actions/IOU', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, [CONST.BETAS.ALL]);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL]);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                     paymentSelected: CONST.PAYMENT_SELECTED.BBA,
                     wasInvited: true,
-                    shouldSkipTestDriveModal: true,
                     companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
                     introSelected,
+                    isSelfTourViewed: false,
                 }),
             );
         });
@@ -15929,16 +15727,16 @@ describe('actions/IOU', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, [CONST.BETAS.ALL]);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL]);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                     paymentSelected: CONST.PAYMENT_SELECTED.PBA,
                     wasInvited: true,
-                    shouldSkipTestDriveModal: true,
                     companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                     introSelected,
+                    isSelfTourViewed: false,
                 }),
             );
         });
@@ -15948,12 +15746,13 @@ describe('actions/IOU', () => {
                 choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, [CONST.BETAS.ALL]);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL]);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                     introSelected,
+                    isSelfTourViewed: false,
                 }),
             );
         });
@@ -15963,12 +15762,13 @@ describe('actions/IOU', () => {
                 choice: CONST.ONBOARDING_CHOICES.SUBMIT,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, [CONST.BETAS.ALL]);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL]);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     engagementChoice: CONST.ONBOARDING_CHOICES.SUBMIT,
                     introSelected,
+                    isSelfTourViewed: false,
                 }),
             );
         });
@@ -15979,13 +15779,30 @@ describe('actions/IOU', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, [CONST.BETAS.ALL], 'adminsChatReport123', 'policyID456');
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL], 'adminsChatReport123', 'policyID456');
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                     adminsChatReportID: 'adminsChatReport123',
                     onboardingPolicyID: 'policyID456',
+                    introSelected,
+                    isSelfTourViewed: false,
+                }),
+            );
+        });
+
+        it('should pass isSelfTourViewed=true through to completeOnboarding when tour was viewed', () => {
+            const introSelected: IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.SUBMIT,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            };
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, true, [CONST.BETAS.ALL]);
+
+            expect(completeOnboardingSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    isSelfTourViewed: true,
                     introSelected,
                 }),
             );
