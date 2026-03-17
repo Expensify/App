@@ -47,7 +47,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const {translate} = useLocalize();
     const insets = useSafeAreaInsets();
 
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'Rotate']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'CameraFlip']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
 
     const camera = useRef<Camera>(null);
@@ -234,7 +234,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         <Icon
                             height={32}
                             width={32}
-                            src={lazyIcons.Rotate}
+                            src={lazyIcons.CameraFlip}
                             fill={theme.textSupporting}
                         />
                     </PressableWithFeedback>
