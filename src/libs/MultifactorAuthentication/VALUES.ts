@@ -11,6 +11,11 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     ...SHARED_VALUES,
     ...NATIVE_BIOMETRICS_VALUES,
     ...PASSKEY_VALUES,
+
+    /**
+     * Feature flag to switch native biometrics from ED25519 (noble/JS) to EC256 (react-native-biometrics/native).
+     */
+    USE_NATIVE_EC256: false,
 } as const;
 
 export default MULTIFACTOR_AUTHENTICATION_VALUES;

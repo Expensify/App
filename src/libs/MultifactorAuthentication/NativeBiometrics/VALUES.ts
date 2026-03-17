@@ -32,6 +32,11 @@ const NATIVE_BIOMETRICS_VALUES = {
     ED25519_TYPE: 'biometric',
 
     /**
+     * Key alias suffix for EC256 keys managed by react-native-biometrics.
+     */
+    EC256_KEY_SUFFIX: 'EC256_KEY',
+
+    /**
      * Key alias identifiers for secure storage.
      */
     KEY_ALIASES: {
