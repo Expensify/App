@@ -101,7 +101,7 @@ function handleNavigationGuards(
 
         const finalRoutes =
             existingFullScreenRoutes.length > 0 && redirectModalRoutes.length > 0
-                ? ([...existingFullScreenRoutes, ...redirectModalRoutes] as typeof redirectState.routes)
+                ? [...(existingFullScreenRoutes as typeof redirectState.routes), ...redirectModalRoutes]
                 : redirectState.routes;
 
         const resetAction = CommonActions.reset({
