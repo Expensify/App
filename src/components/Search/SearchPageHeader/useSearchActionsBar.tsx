@@ -1,4 +1,3 @@
-import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -27,7 +26,6 @@ import {
     getGroupCurrencyOptions,
     getHasOptions,
     getStatusOptions,
-    getTypeOptions,
     getWithdrawalTypeOptions,
     mapFiltersFormToLabelValueList,
 } from '@libs/SearchUIUtils';
@@ -200,7 +198,7 @@ function makeDateFilterItem(
 
 function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEnabled: boolean): UseSearchActionsBarResult {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const {type: unsafeType} = queryJSON;
+    const type = queryJSON.type;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -208,17 +206,11 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, shouldShowActionsBarLoading, currentSearchResults} = useSearchStateContext();
 
-    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: typeOptionsPoliciesSelector});
-
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const hasSelectedItems = selectedTransactionsKeys.length > 0;
     const shouldShowSelectedDropdown = hasSelectedItems && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
-
-    const typeOptions = getTypeOptions(translate, allPolicies, email);
-    const type = typeOptions.find((option) => option.value === unsafeType) ?? {value: CONST.SEARCH.DATA_TYPES.EXPENSE};
 
     const updateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
         const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -265,7 +257,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
             case FILTER_KEYS.HAS: {
                 const hasFilterValues = searchAdvancedFiltersForm[filterKey];
-                const hasOptions = getHasOptions(translate, type?.value);
+                const hasOptions = getHasOptions(translate, type);
                 const has = hasFilterValues ? hasOptions.filter((option) => hasFilterValues.includes(option.value)) : [];
                 const updateHasFilterForm = (selectedItems: Array<MultiSelectItem<HasFilterValue>>) => {
                     updateFilterForm({has: selectedItems.map((item) => item.value)});
@@ -351,7 +343,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 );
             case FILTER_KEYS.STATUS: {
                 const status = searchAdvancedFiltersForm[filterKey];
-                const statusOptions = type ? getStatusOptions(translate, type.value) : [];
+                const statusOptions = type ? getStatusOptions(translate, type) : [];
                 const statusValue = statusOptions.filter((option) => status?.includes(option.value));
                 const updateStatusFilterForm = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
                     const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
