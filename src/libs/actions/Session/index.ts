@@ -68,6 +68,7 @@ import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 import pkg from '../../../../package.json';
+import {clearCachedAttachments} from '../Attachment';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
@@ -1007,6 +1008,7 @@ function cleanupSession() {
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
+    clearCachedAttachments();
     clearSoundAssetsCache();
 }
 
