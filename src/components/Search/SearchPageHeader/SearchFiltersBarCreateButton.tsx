@@ -4,30 +4,24 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
-import useConfirmModal from '@hooks/useConfirmModal';
-import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import useCreateReportAction from '@hooks/useCreateReportAction';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
-import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -47,7 +41,6 @@ function SearchFiltersBarCreateButton() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const groupPaidPoliciesWithChatEnabledSelector = useCallback((policies: OnyxCollection<OnyxTypes.Policy>) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, email), [email]);
@@ -58,37 +51,11 @@ function SearchFiltersBarCreateButton() {
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
-    const {showConfirmModal} = useConfirmModal();
-
-    const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
-    }, [allPolicies]);
 
     const defaultChatEnabledPolicy = useMemo(
         () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
         [activePolicy, groupPoliciesWithChatEnabled],
     );
-    const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
-
-    const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
-    const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
-
-    const showRedirectToExpensifyClassicModal = useCallback(async () => {
-        const {action} = await showConfirmModal({
-            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
-            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
-            confirmText: translate('exitSurvey.goToExpensifyClassic'),
-            cancelText: translate('common.cancel'),
-        });
-        if (action === ModalActions.CONFIRM) {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-        }
-    }, [showConfirmModal, translate]);
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -116,10 +83,9 @@ function SearchFiltersBarCreateButton() {
         [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
     );
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
-        policyID: defaultChatEnabledPolicyID,
-        policyName: defaultChatEnabledPolicy?.name ?? '',
-        onConfirm: handleCreateWorkspaceReport,
+    const {createReportAction, CreateReportConfirmationModal} = useCreateReportAction({
+        onCreateReport: handleCreateWorkspaceReport,
+        groupPoliciesWithChatEnabled,
     });
 
     const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
@@ -157,71 +123,10 @@ function SearchFiltersBarCreateButton() {
             {
                 icon: expensifyIcons.Document,
                 text: translate('report.newReport.createReport'),
-                onSelected: () =>
-                    interceptAnonymousUser(() => {
-                        if (shouldRedirectToExpensifyClassic) {
-                            showRedirectToExpensifyClassicModal();
-                            return;
-                        }
-
-                        // No valid policy at all → upgrade + create workspace flow
-                        if (shouldNavigateToUpgradePath) {
-                            const freshReportID = generateReportID();
-                            const freshTransactionID = generateReportID();
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                    action: CONST.IOU.ACTION.CREATE,
-                                    iouType: CONST.IOU.TYPE.CREATE,
-                                    transactionID: freshTransactionID,
-                                    reportID: freshReportID,
-                                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                }),
-                            );
-                            return;
-                        }
-
-                        const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
-
-                        // No default or restricted with multiple workspaces → workspace selector
-                        if (
-                            !workspaceIDForReportCreation ||
-                            (shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod) &&
-                                groupPoliciesWithChatEnabled.length > 1)
-                        ) {
-                            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-                            return;
-                        }
-
-                        // Default workspace is not restricted → create report directly
-                        if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
-                            // Check if empty report confirmation should be shown
-                            if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
-                                openCreateReportConfirmation();
-                            } else {
-                                handleCreateWorkspaceReport(false);
-                            }
-                            return;
-                        }
-
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                    }),
+                onSelected: createReportAction,
             },
         ],
-        [
-            translate,
-            expensifyIcons,
-            draftTransactionIDs,
-            shouldRedirectToExpensifyClassic,
-            showRedirectToExpensifyClassicModal,
-            shouldNavigateToUpgradePath,
-            groupPoliciesWithChatEnabled.length,
-            defaultChatEnabledPolicyID,
-            shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
-            ownerBillingGraceEndPeriod,
-            userBillingGraceEndPeriods,
-            openCreateReportConfirmation,
-            handleCreateWorkspaceReport,
-        ],
+        [translate, expensifyIcons, draftTransactionIDs, createReportAction],
     );
 
     return (

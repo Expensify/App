@@ -14,9 +14,8 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import useCreateReportAction from '@hooks/useCreateReportAction';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -222,19 +221,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
-    const shouldShowCreateReportOption = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
-
     const defaultChatEnabledPolicy = useMemo(
         () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
         [activePolicy, groupPoliciesWithChatEnabled],
     );
-
-    const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
-
-    const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
-
-    const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -267,10 +257,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isReportInSearch, allBetas],
     );
 
-    const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
-        policyID: defaultChatEnabledPolicyID,
-        policyName: defaultChatEnabledPolicy?.name ?? '',
-        onConfirm: handleCreateWorkspaceReport,
+    const {createReportAction, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateReportAction({
+        onCreateReport: handleCreateWorkspaceReport,
+        groupPoliciesWithChatEnabled,
     });
 
     const shouldShowNewWorkspaceButton =
@@ -606,48 +595,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             },
             sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.TRACK_DISTANCE,
         },
-        ...(shouldShowCreateReportOption
-            ? [
-                  {
-                      icon: icons.Document,
-                      text: translate('report.newReport.createReport'),
-                      shouldCallAfterModalHide: shouldUseNarrowLayout,
-                      onSelected: () => {
-                          interceptAnonymousUser(() => {
-                              if (shouldRedirectToExpensifyClassic) {
-                                  showRedirectToExpensifyClassicModal();
-                                  return;
-                              }
-
-                              const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
-
-                              if (
-                                  !workspaceIDForReportCreation ||
-                                  (shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod) &&
-                                      groupPoliciesWithChatEnabled.length > 1)
-                              ) {
-                                  // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
-                                  Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-                                  return;
-                              }
-
-                              if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod)) {
-                                  // Check if empty report confirmation should be shown
-                                  if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
-                                      openFabCreateReportConfirmation();
-                                  } else {
-                                      handleCreateWorkspaceReport(false);
-                                  }
-                                  return;
-                              }
-
-                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                          });
-                      },
-                      sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT,
-                  },
-              ]
-            : []),
+        {
+            icon: icons.Document,
+            text: translate('report.newReport.createReport'),
+            shouldCallAfterModalHide: shouldUseNarrowLayout,
+            onSelected: createReportAction,
+            sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT,
+        },
         {
             icon: icons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),
