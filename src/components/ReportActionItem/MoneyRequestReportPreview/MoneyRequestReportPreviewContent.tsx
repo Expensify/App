@@ -929,7 +929,7 @@ function MoneyRequestReportPreviewContent({
         carouselRef.current?.scrollToEnd();
     }, [carouselTransactions.length]);
 
-    const renderSeparator = () => <View style={styles.transactionsCarouselGap} />;
+    const renderSeparator = useCallback(() => <View style={styles.transactionsCarouselGap} />, [styles.transactionsCarouselGap]);
 
     const getItemType = (_item: Transaction, index: number) => {
         return index === MAX_PREVIEWS_NUMBER ? ITEM_LAYOUT_TYPE.SHOW_MORE : ITEM_LAYOUT_TYPE.PREVIEW;
