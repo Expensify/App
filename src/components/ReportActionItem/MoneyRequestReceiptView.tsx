@@ -477,7 +477,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                             onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
                             onMouseLeave={hoverBind.onMouseLeave}
                         >
-                            <View style={isReceiptOfflinePending && styles.offlineFeedbackPending}>
+                            <View style={[styles.flex1, isReceiptOfflinePending && styles.offlineFeedbackPending]}>
                                 <ReportActionItemImage
                                     shouldUseThumbnailImage={!fillSpace}
                                     shouldUseFullHeight={fillSpace}
