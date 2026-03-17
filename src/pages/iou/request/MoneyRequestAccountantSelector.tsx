@@ -59,7 +59,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -143,7 +143,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
 
-    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(chatOptions?.userToInvite);
+    const {userToInviteExpenseReport} = useUserToInviteReports(chatOptions?.userToInvite);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -196,15 +196,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              currentUserAccountID,
-                              personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteChatReport,
-                              reportAttributesDerived,
-                          )
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, userToInviteExpenseReport, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 3,
@@ -229,7 +221,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         debouncedSearchTerm,
         personalDetails,
         userToInviteExpenseReport,
-        userToInviteChatReport,
         reportAttributesDerived,
         translate,
         loginList,

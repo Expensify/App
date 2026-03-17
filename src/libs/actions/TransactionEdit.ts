@@ -117,8 +117,8 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTra
     Onyx.multiSet(getRemoveDraftTransactionsData(shouldExcludeInitialTransaction, allTransactionDrafts));
 }
 
-function removeDraftTransactionsByIDs(transactionIDs: string[]) {
-    if (!transactionIDs.length) {
+function removeDraftTransactionsByIDs(transactionIDs: string[] | undefined) {
+    if (!transactionIDs?.length) {
         return;
     }
 
