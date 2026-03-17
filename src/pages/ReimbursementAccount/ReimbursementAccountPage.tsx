@@ -352,11 +352,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }, [currentStep]);
 
     const continueNonUSDVBBASetup = () => {
-        const startPage = getStartPageForContinueSetup(achData, nonUSDCountryDraftValue, policyCurrency, reimbursementAccountDraft);
+        const {page: startPage, subPage: startSubPage} = getStartPageForContinueSetup(achData, nonUSDCountryDraftValue, policyCurrency, reimbursementAccountDraft);
         if (isComingFromExpensifyCard) {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: startPage, backTo}));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: startPage, subPage: startSubPage, backTo}));
     };
 
     const goBack = useCallback(() => {

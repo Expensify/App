@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearErrors} from '@userActions/FormActions';
+import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -62,6 +62,7 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
 
     const ownerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID ?? CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY;
     const isUserEnteringHisOwnData = ownerBeingModifiedID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY;
+    const isEditingCreatedOwner = reimbursementAccountDraft?.isEditingCreatedOwner ?? false;
     const ownerKeys = reimbursementAccountDraft?.beneficialOwnerKeys ?? [];
 
     const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
@@ -109,11 +110,16 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         }
 
         if (prevIndex < 0) {
-            Navigation.goBack(buildRoute(SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER));
+            if (isEditingCreatedOwner) {
+                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isEditingCreatedOwner: false});
+                Navigation.goBack(buildRoute(SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST));
+            } else {
+                Navigation.goBack(buildRoute(SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER));
+            }
         } else {
             prevPage();
         }
-    }, [buildRoute, isEditing, pageIndex, prevPage, skipPages]);
+    }, [buildRoute, isEditing, isEditingCreatedOwner, pageIndex, prevPage, skipPages]);
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;
