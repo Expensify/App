@@ -2453,6 +2453,16 @@ ${amount} per ${merchant} - ${date}`,
         admins: 'Amministratori',
         payer: 'Pagatore',
         paymentAccount: 'Conto di pagamento',
+        shareBankAccount: {
+            shareTitle: "Condividere l'accesso al conto bancario?",
+            shareDescription: ({admin}: {admin: string}) => `Dovrai condividere l'accesso al conto bancario con ${admin} per renderlo il pagatore.`,
+            validationTitle: 'Conto bancario in attesa di convalida',
+            validationDescription: ({admin}: {admin: string}) =>
+                `Devi <a href="#">convalidare questo conto bancario</a>. Una volta fatto, puoi condividere l'accesso al conto bancario con ${admin} per renderlo il pagatore.`,
+            errorTitle: 'Impossibile cambiare il pagatore',
+            errorDescription: ({admin, owner}: {admin: string; owner: string}) =>
+                `${admin} non ha accesso a questo conto bancario, quindi non puoi impostarlo come pagatore. <a href="#">Chatta con ${owner}</a> se il conto bancario deve essere condiviso.`,
+        },
     },
     reportFraudPage: {
         title: 'Segnala frode con carta virtuale',
@@ -5360,6 +5370,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 removeCardFeed: 'Rimuovi flusso carta',
                 removeCardFeedTitle: (feedName: string) => `Rimuovi feed ${feedName}`,
                 removeCardFeedDescription: 'Sei sicuro di voler rimuovere questo flusso di carte? Questo rimuoverà l’assegnazione di tutte le carte.',
+                assignNewCards: 'Assegna nuove carte',
+                assignNewCardsDescription: 'Ottieni le ultime carte da assegnare dalla tua banca',
+                refreshConnectionSuccess: 'Connessione aggiornata',
+                refreshConnectionSuccessDescription: 'La connessione bancaria è stata riautenticata con successo. Ora puoi assegnare nuove carte.',
                 error: {
                     feedNameRequired: 'Il nome del feed della carta è obbligatorio',
                     statementCloseDateRequired: 'Seleziona una data di chiusura dell’estratto conto.',

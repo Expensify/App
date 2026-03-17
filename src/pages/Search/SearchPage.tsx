@@ -30,6 +30,7 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
+
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);

@@ -91,9 +91,11 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                paymentBankAccountID: settlementBankAccountID,
-                previousPaymentBankAccountID,
-                monthlySettlementDate,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    paymentBankAccountID: settlementBankAccountID,
+                    previousPaymentBankAccountID,
+                    monthlySettlementDate,
+                },
                 isLoading: true,
                 pendingFields: {
                     paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -110,9 +112,11 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                paymentBankAccountID: settlementBankAccountID,
-                previousPaymentBankAccountID: null,
-                monthlySettlementDate,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    paymentBankAccountID: settlementBankAccountID,
+                    previousPaymentBankAccountID: null,
+                    monthlySettlementDate,
+                },
                 isLoading: false,
                 pendingFields: {
                     paymentBankAccountID: null,
@@ -129,10 +133,11 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                // Keep the attempted value visible (grayed out) until error is dismissed
-                paymentBankAccountID: settlementBankAccountID,
-                previousPaymentBankAccountID,
-                monthlySettlementDate,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    paymentBankAccountID: settlementBankAccountID,
+                    previousPaymentBankAccountID,
+                    monthlySettlementDate,
+                },
                 isLoading: false,
                 pendingFields: {
                     paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -158,8 +163,10 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
  */
 function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number, paymentBankAccountID: number | null) {
     Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
-        paymentBankAccountID,
-        previousPaymentBankAccountID: null,
+        [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+            paymentBankAccountID,
+            previousPaymentBankAccountID: null,
+        },
         pendingFields: {
             paymentBankAccountID: null,
         },
@@ -185,8 +192,10 @@ function updateTravelInvoiceSettlementFrequency(workspaceAccountID: number, freq
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                monthlySettlementDate,
-                previousMonthlySettlementDate: currentMonthlySettlementDate,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    monthlySettlementDate,
+                    previousMonthlySettlementDate: currentMonthlySettlementDate,
+                },
                 pendingFields: {
                     monthlySettlementDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -202,8 +211,10 @@ function updateTravelInvoiceSettlementFrequency(workspaceAccountID: number, freq
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                monthlySettlementDate,
-                previousMonthlySettlementDate: null,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    monthlySettlementDate,
+                    previousMonthlySettlementDate: null,
+                },
                 pendingFields: {
                     monthlySettlementDate: null,
                 },
@@ -219,8 +230,10 @@ function updateTravelInvoiceSettlementFrequency(workspaceAccountID: number, freq
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                monthlySettlementDate,
-                previousMonthlySettlementDate: currentMonthlySettlementDate ?? null,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    monthlySettlementDate,
+                    previousMonthlySettlementDate: currentMonthlySettlementDate ?? null,
+                },
                 pendingFields: {
                     monthlySettlementDate: null,
                 },
@@ -244,8 +257,10 @@ function updateTravelInvoiceSettlementFrequency(workspaceAccountID: number, freq
  */
 function clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID: number, monthlySettlementDate: Date | null | undefined) {
     Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
-        monthlySettlementDate: monthlySettlementDate ?? null,
-        previousMonthlySettlementDate: null,
+        [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+            monthlySettlementDate: monthlySettlementDate ?? null,
+            previousMonthlySettlementDate: null,
+        },
         pendingFields: {
             monthlySettlementDate: null,
         },
@@ -327,7 +342,6 @@ function deactivateTravelInvoicing(policyID: string, workspaceAccountID: number)
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                isEnabled: false,
                 [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
                     isEnabled: false,
                 },
@@ -342,10 +356,10 @@ function deactivateTravelInvoicing(policyID: string, workspaceAccountID: number)
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                pendingAction: null,
                 [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
                     isEnabled: false,
                 },
+                pendingAction: null,
             },
         },
     ];
@@ -355,7 +369,6 @@ function deactivateTravelInvoicing(policyID: string, workspaceAccountID: number)
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                isEnabled: true,
                 [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
                     isEnabled: true,
                 },
