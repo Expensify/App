@@ -30,6 +30,7 @@ const mockSearchStateContext = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
     shouldShowSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
@@ -40,6 +41,7 @@ const mockSearchStateContext = {
 const mockSearchActionsContext = {
     clearSelectedTransactions: jest.fn(),
     setLastSearchType: jest.fn(),
+    setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
     setShouldShowSelectAllMatchingItems: jest.fn(),
