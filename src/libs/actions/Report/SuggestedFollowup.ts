@@ -80,8 +80,10 @@ function resolveSuggestedFollowup(
     const optimisticConciergeAction = buildOptimisticAddCommentReportAction({
         text: selectedFollowup.response,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        createdOffset: 1,
         reportActionID: optimisticConciergeReportActionID,
         reportID,
+        isHTML: true,
     });
 
     addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction);
