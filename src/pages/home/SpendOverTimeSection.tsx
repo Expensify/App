@@ -37,11 +37,12 @@ function SpendOverTimeSection() {
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {accountID, login} = useCurrentUserPersonalDetails();
+    const [isAnyPolicyEligibleForSpendOverTime] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => Object.values(policies ?? {}).some((policy) => !!policy && isPolicyEligibleForSpendOverTime(policy, login)),
+    });
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${QUERY_JSON?.hash}`);
     const {isOffline} = useNetwork();
-    const isVisible = Object.values(policies ?? {}).some((policy) => !!policy && isPolicyEligibleForSpendOverTime(policy, login));
 
     // We need the snapshot's isLoading in the search effect without subscribing to it (which would cause an infinite loop).
     // useLayoutEffect syncs the ref before useEffect runs. TODO: Replace with useEffectEvent after upgrading to React 19.2.
@@ -52,7 +53,7 @@ function SpendOverTimeSection() {
     }, [searchResults?.search?.isLoading]);
 
     useEffect(() => {
-        if (!isVisible || isOffline || !QUERY_JSON || isSearchLoadingRef.current) {
+        if (!isAnyPolicyEligibleForSpendOverTime || isOffline || !QUERY_JSON || isSearchLoadingRef.current) {
             return;
         }
         search({
@@ -62,9 +63,9 @@ function SpendOverTimeSection() {
             isOffline: false,
             isLoading: false,
         });
-    }, [isVisible, isOffline]);
+    }, [isAnyPolicyEligibleForSpendOverTime, isOffline]);
 
-    if (!isVisible || !QUERY_JSON || !VIEW || !GROUP_BY || VIEW === CONST.SEARCH.VIEW.TABLE || !login) {
+    if (!isAnyPolicyEligibleForSpendOverTime || !QUERY_JSON || !VIEW || !GROUP_BY || VIEW === CONST.SEARCH.VIEW.TABLE || !login) {
         return null;
     }
 
