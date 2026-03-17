@@ -1,7 +1,7 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {AccessibilityInfo, Platform, StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
@@ -212,6 +212,25 @@ function MagicCodeInput({
         setFocusedIndex(index);
         editIndex.current = index;
     };
+
+    const [announcement, setAnnouncement] = useState('');
+    useEffect(() => {
+        if (focusedIndex === undefined) {
+            setAnnouncement('');
+            return;
+        }
+        const message = translate('common.enterDigitLabel', {digitIndex: focusedIndex + 1, totalDigits: maxLength});
+        if (Platform.OS === 'web') {
+            // Toggle invisible zero-width space to force aria-live to re-announce identical content
+            setAnnouncement((prev) => (prev === message ? `${message}\u200B` : message));
+        } else {
+            // accessibilityLiveRegion covers Android; iOS needs an explicit announcement
+            if (Platform.OS === 'ios') {
+                AccessibilityInfo.announceForAccessibility(message);
+            }
+            setAnnouncement(message);
+        }
+    }, [focusedIndex, maxLength, translate]);
 
     useImperativeHandle(ref, () => ({
         focus() {
@@ -512,6 +531,8 @@ function MagicCodeInput({
 
                     return (
                         <View
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
                             key={index}
                             style={maxLength === CONST.MAGIC_CODE_LENGTH ? [styles.w15] : [styles.flex1, index !== 0 && styles.ml3]}
                         >
@@ -533,6 +554,7 @@ function MagicCodeInput({
                                             accessibilityElementsHidden
                                             importantForAccessibility="no-hide-descendants"
                                             accessible={false}
+                                            aria-hidden
                                         >
                                             {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
                                             <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>
@@ -544,6 +566,13 @@ function MagicCodeInput({
                         </View>
                     );
                 })}
+                <Text
+                    style={styles.hiddenElementOutsideOfWindow}
+                    role={CONST.ROLE.ALERT}
+                    accessibilityLiveRegion="assertive"
+                >
+                    {announcement}
+                </Text>
             </View>
             {!!errorText && (
                 <FormHelpMessage

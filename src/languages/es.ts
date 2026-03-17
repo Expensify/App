@@ -430,6 +430,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Delegado de vacaciones',
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
+        enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
     },
     socials: {
         podcast: 'Síguenos en Podcast',
