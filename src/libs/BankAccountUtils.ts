@@ -58,11 +58,6 @@ function hasOwnerPhone(additionalData: AdditionalData): boolean {
  * Check if a US personal bank account in OPEN state is missing required personal information.
  */
 function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined): boolean {
-    // TODO: REMOVE MOCK - force missing info for testing
-    if (accountData?.bankAccountID === 8952303) {
-        return true;
-    }
-
     if (accountData?.type !== CONST.BANK_ACCOUNT.TYPE.PERSONAL) {
         return false;
     }
@@ -86,11 +81,6 @@ function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined):
  * Returns step numbers that already have data on the bank account and can be skipped in the update flow.
  */
 function getCompletedStepsForBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, bankAccountID: number): number[] {
-    // TODO: REMOVE MOCK - force all steps to show for testing
-    if (bankAccountID === 8952303) {
-        return [];
-    }
-
     const bankAccount = bankAccountList?.[String(bankAccountID)];
     if (!bankAccount) {
         return [];
