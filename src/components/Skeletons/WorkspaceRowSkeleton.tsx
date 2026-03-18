@@ -18,7 +18,7 @@ type WorkspaceRowSkeletonProps = {
     shouldAnimate?: boolean;
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function WorkspaceRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, reasonAttributes}: WorkspaceRowSkeletonProps) {
