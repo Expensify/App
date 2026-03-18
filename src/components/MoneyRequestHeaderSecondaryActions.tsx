@@ -21,7 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
-import useTransactionThreadData from '@hooks/useTransactionThreadData';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteTrackExpense} from '@libs/actions/IOU';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -32,7 +32,7 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
@@ -67,6 +67,7 @@ import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import {usePersonalDetails} from './OnyxListItemProvider';
 import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
+import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderSecondaryActionsProps = {
     /** The report ID for the current transaction thread */
@@ -74,13 +75,11 @@ type MoneyRequestHeaderSecondaryActionsProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: (prioritizeBackTo?: boolean) => void;
-
-    /** Whether this renders inline (narrow) or in a full-width container (wide) */
-    isNarrow: boolean;
 };
 
-function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress, isNarrow}: MoneyRequestHeaderSecondaryActionsProps) {
-    const {isInNarrowPaneModal} = useResponsiveLayout();
+function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: MoneyRequestHeaderSecondaryActionsProps) {
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isInNarrowPaneModal, shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute<
         PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT> | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
     >();
@@ -102,8 +101,21 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress, isNarr
         'Trashcan',
     ] as const);
 
-    const {report, parentReport, policy, parentReportAction, transaction, transactionViolations} = useTransactionThreadData(reportID);
+    const {wideRHPRouteKeys} = useWideRHPState();
+    const isNarrow = !shouldUseNarrowLayout || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
+
+    // Per-key Onyx subscriptions
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
+    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const transactionIDFromAction = isMoneyRequestAction(parentReportAction)
+        ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
+        : CONST.DEFAULT_NUMBER_ID;
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`, {});
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     // Collection Onyx subscriptions (isolated here to prevent parent header re-renders)
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);

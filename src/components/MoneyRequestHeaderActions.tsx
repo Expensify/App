@@ -1,12 +1,14 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import MoneyRequestHeaderPrimaryAction from './MoneyRequestHeaderPrimaryAction';
 import MoneyRequestHeaderSecondaryActions from './MoneyRequestHeaderSecondaryActions';
+import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderActionsProps = {
     /** The report ID for the current transaction thread */
@@ -14,19 +16,19 @@ type MoneyRequestHeaderActionsProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: (prioritizeBackTo?: boolean) => void;
-
-    /** Whether the actions render inline in HeaderWithBackButton (narrow) or below it (wide) */
-    isNarrow: boolean;
 };
 
-function MoneyRequestHeaderActions({reportID, onBackButtonPress, isNarrow}: MoneyRequestHeaderActionsProps) {
+function MoneyRequestHeaderActions({reportID, onBackButtonPress}: MoneyRequestHeaderActionsProps) {
     const styles = useThemeStyles();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys} = useWideRHPState();
     const route = useRoute<
         PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT> | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
     >();
 
+    const isNarrow = !shouldUseNarrowLayout || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
     const shouldDisplayTransactionNavigation = !!(reportID && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
-    const isFromReviewDuplicates = !!route.params.backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review');
 
     return (
         <View
@@ -36,15 +38,10 @@ function MoneyRequestHeaderActions({reportID, onBackButtonPress, isNarrow}: Mone
                     : [styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]
             }
         >
-            <MoneyRequestHeaderPrimaryAction
-                reportID={reportID}
-                isNarrow={isNarrow}
-                isFromReviewDuplicates={isFromReviewDuplicates}
-            />
+            <MoneyRequestHeaderPrimaryAction reportID={reportID} />
             <MoneyRequestHeaderSecondaryActions
                 reportID={reportID}
                 onBackButtonPress={onBackButtonPress}
-                isNarrow={isNarrow}
             />
         </View>
     );

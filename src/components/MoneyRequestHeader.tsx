@@ -176,7 +176,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     <MoneyRequestHeaderActions
                         reportID={reportID}
                         onBackButtonPress={onBackButtonPress}
-                        isNarrow
                     />
                 )}
                 {shouldDisplayTransactionNavigation && !!transaction && (
@@ -190,7 +189,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 <MoneyRequestHeaderActions
                     reportID={reportID}
                     onBackButtonPress={onBackButtonPress}
-                    isNarrow={false}
                 />
             )}
             {!!statusBarProps && (
