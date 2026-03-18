@@ -1,59 +1,67 @@
 ---
-title: View and Export Expensify Card Expenses
-description: Learn how to view, filter, and export Expensify Card transactions from the Search page in New Expensify.
-keywords: [Expensify Card, view card expenses, filter card transactions, export card transactions, card feed, posted date, Search]
-internalScope: Audience is Workspace Admins managing Expensify Card transactions. Covers viewing, filtering, and exporting card expenses from the Search page. Does not cover statement matching, bank reconciliation, or Expensify Card setup.
+title: View and Reconcile Expensify Card Expenses
+description: Learn how to reconcile Expensify Card transactions using the built-in withdrawal-based reconciliation tool in Expensify.
+keywords: [Expensify Card, reconciliation, withdrawal, card expenses, reconcile card, withdrawal ID]
+internalScope: Audience is Workspace Admins reconciling Expensify Card activity. Covers the withdrawal-based reconciliation workflow under Reconciliation > Expensify Card. Does not cover company card statement matching, reimbursement reconciliation, or manual export-based reconciliation.
 ---
 
-# View and Export Expensify Card Expenses
+# View and Reconcile Expensify Card Expenses
 
-You can view, filter, and export Expensify Card transactions from the **Search** page in New Expensify. Use card and date filters to narrow results, then export a selection for your records or accounting workflows.
+Expensify Card reconciliation is **withdrawal-based** — each settlement withdrawal from your bank account is matched to the individual card expenses that make up that withdrawal. The entire workflow happens inside Expensify under **Reports > Reconciliation > Expensify Card**, so there is no need to cross-reference external card statements.
 
-To match card transactions against your bank statement or card statement totals, see [Statement Matching and Reconciliation](/articles/new-expensify/reports-and-expenses/Statement-Matching-and-Reconciliation).
-
----
-
-## Who Can View and Export Expensify Card Expenses
-
-Any Workspace Admin with Expensify Card access can view and export card transactions from the **Search** page.
+For an overview of all reconciliation workflows, see [Statement Matching and Reconciliation](/articles/new-expensify/reports-and-expenses/Statement-Matching-and-Reconciliation).
 
 ---
 
-## How to View Expensify Card Expenses by Card Feed
+## Who Can Reconcile Expensify Card Expenses
 
-1. Click **Search** in the left-hand navigation (on web) or the bottom bar (on mobile).
-2. Select **Expenses** under the **Explore** section in the left-hand menu.
-3. Click **Filters**.
-4. Select **Card**.
-5. Choose a filter option:
-   - Select a feed under **Card feeds** to view expenses from all cards in that feed.
-   - Select a specific card under **Individual cards** to view expenses from one card.
+Workspace Admins whose workspace has the Expensify Card enabled can access the Expensify Card reconciliation workflow.
+
+---
+
+## How to View Expensify Card Withdrawals
+
+1. Go to **Reports > Reconciliation > Expensify Card**.
+2. Apply the **Withdrawn** filter to select a date range (for example, **Last month**).
+3. Review the list of withdrawals. Each row represents a single settlement withdrawal from your bank account and shows the total amount.
+
+---
+
+## How to View Expenses Within a Withdrawal
+
+1. From the Expensify Card reconciliation view, locate the withdrawal you want to review.
+2. Expand the withdrawal row to see the individual card expenses that make up that withdrawal.
+3. Review each expense to confirm it matches expected activity.
+
+---
+
+## How to Verify Expensify Card Withdrawal Totals
+
+1. Open your bank statement and locate the Expensify Card settlement charges for the period you are reconciling.
+2. In the Expensify Card reconciliation view, compare each withdrawal total to the corresponding charge on your bank statement.
+   - If the totals match, the withdrawal is verified.
+   - If a total does not match, expand the withdrawal to review the individual expenses and identify any discrepancies.
 
 ---
 
 ## How to Export Expensify Card Expenses
 
-1. Click **Search** in the left-hand navigation (on web) or the bottom bar (on mobile).
-2. Select **Expenses** under the **Explore** section in the left-hand menu.
-3. Click **Filters**.
-4. Select **Card** and choose the applicable card feed.
-5. Select **Posted** and set the date range for the period you want to export.
-6. Select the checkbox next to each expense you want to export. You can also select the checkbox at the top of the list to select all visible results.
-7. Click **Export** in the actions bar that appears above the results.
-8. Select **Basic export** to download the results as a CSV file.
+1. From the Expensify Card reconciliation view, select the expenses you want to export using the checkboxes.
+2. Click **Export** in the actions bar that appears above the results.
+3. Select **Basic export** to download the results as a CSV file.
 
 ---
 
 # FAQ
 
-## Why Don't I See the Export Option?
+## Why Don't I See Expensify Card Under Reconciliation?
 
-The **Export** option only appears after you select one or more expenses using the checkboxes. Select at least one expense to reveal the actions bar with export options.
+The **Expensify Card** option appears under **Reports > Reconciliation** only when your workspace has the Expensify Card enabled. If you do not see it, confirm that the Expensify Card is set up for your workspace.
 
-## Can I Export Expensify Card Expenses for a Custom Date Range?
+## What Does a Withdrawal Represent?
 
-Yes. Use the **Posted** filter to set a custom date range before selecting and exporting expenses.
+A withdrawal represents a single settlement charge from your bank account. It groups together all the individual Expensify Card expenses that were settled in that payment.
 
-## Where Do I Find the Card Filter on the Search Page?
+## How Is Expensify Card Reconciliation Different From Statement Matching?
 
-On the **Search** page, click **Filters**, then select **Card**. You can choose a specific card feed or an individual card to narrow your results.
+Expensify Card reconciliation is withdrawal-based — you match bank withdrawals to grouped expenses. Statement matching is used for company (non-Expensify) cards and compares transaction totals against an external card statement. See [Reconcile Company Cards](/articles/new-expensify/reports-and-expenses/Reconcile-Company-Cards) for details on statement-based reconciliation.
