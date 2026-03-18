@@ -2249,7 +2249,6 @@ type ReimbursementAccountNavigatorParamList = {
         subPage?: string;
         action?: 'edit';
         policyID?: string;
-        isComingFromExpensifyCard?: boolean;
         // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param will be removed after https://github.com/Expensify/App/issues/73825 is done
         backTo?: Routes;
     };
