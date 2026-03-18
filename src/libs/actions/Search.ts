@@ -911,11 +911,26 @@ function bulkDeleteReports({
         }
     }
 
+    // Group transaction IDs by IOU report so multi-delete totals and last-expense report removal are correct
+    const transactionsByReport = transactionIDList.reduce<Record<string, string[]>>((acc, transactionID) => {
+        const reportID = selectedTransactions[transactionID].report?.reportID;
+        if (!reportID) {
+            return acc;
+        }
+        if (!acc[reportID]) {
+            acc[reportID] = [];
+        }
+        acc[reportID].push(transactionID);
+        return acc;
+    }, {});
+
     for (const transactionID of transactionIDList) {
         const reportAction = selectedTransactions[transactionID].reportAction;
         if (!reportAction) {
             continue;
         }
+        const reportID = selectedTransactions[transactionID].report?.reportID;
+        const batchTransactionIDsForReport = reportID ? (transactionsByReport[reportID] ?? []) : [];
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransactions[transactionID].report?.chatReportID}`];
         const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
 
@@ -927,6 +942,8 @@ function bulkDeleteReports({
             iouReport: selectedTransactions[transactionID].report,
             chatReport,
             isChatIOUReportArchived: !!reportNameValuePair?.private_isArchived,
+            transactionIDsPendingDeletion: batchTransactionIDsForReport.filter((id) => id !== transactionID),
+            selectedTransactionIDs: batchTransactionIDsForReport.length > 0 ? batchTransactionIDsForReport : undefined,
             allTransactionViolationsParam: transactionsViolations,
             currentUserAccountID: currentUserAccountIDParam,
         });
