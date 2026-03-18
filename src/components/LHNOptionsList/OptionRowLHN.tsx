@@ -1,6 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import Badge from '@components/Badge';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -12,6 +13,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -55,6 +57,7 @@ function OptionRowLHN({
     testID,
     conciergeReportID,
 }: OptionRowLHNProps) {
+    const {isProduction} = useEnvironment();
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -158,6 +161,13 @@ function OptionRowLHN({
     }
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
+    const actionBadgeText = !isProduction && optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
+    let accessibilityLabelForBadge = '';
+    if (brickRoadIndicator) {
+        accessibilityLabelForBadge = `. ${translate('common.yourReviewIsRequired')}, ${actionBadgeText}`;
+    } else if (optionItem.isPinned) {
+        accessibilityLabelForBadge = `. ${translate('common.pinned')}`;
+    }
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0, style];
@@ -293,7 +303,7 @@ function OptionRowLHN({
                                         (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                                     ]}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                    accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${accessibilityLabelForBadge}`}
                                     onLayout={onLayout}
                                     needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                                     sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
@@ -376,25 +386,42 @@ function OptionRowLHN({
                                             ) : null}
                                             {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                                    <Icon
-                                                        testID="RBR Icon"
-                                                        src={expensifyIcons.DotIndicator}
-                                                        fill={theme.danger}
-                                                    />
+                                                    {actionBadgeText ? (
+                                                        <Badge
+                                                            text={actionBadgeText}
+                                                            error
+                                                            isCondensed
+                                                            isStrong
+                                                        />
+                                                    ) : (
+                                                        <Icon
+                                                            testID="RBR Icon"
+                                                            src={expensifyIcons.DotIndicator}
+                                                            fill={theme.danger}
+                                                        />
+                                                    )}
                                                 </View>
                                             )}
                                         </View>
                                     </View>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
-                                            <View style={styles.ml2}>
-                                                <Icon
-                                                    testID="GBR Icon"
-                                                    src={expensifyIcons.DotIndicator}
-                                                    fill={theme.success}
+                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO &&
+                                            (actionBadgeText ? (
+                                                <Badge
+                                                    text={actionBadgeText}
+                                                    success
+                                                    isCondensed
+                                                    isStrong
                                                 />
-                                            </View>
-                                        )}
+                                            ) : (
+                                                <View style={styles.ml2}>
+                                                    <Icon
+                                                        testID="GBR Icon"
+                                                        src={expensifyIcons.DotIndicator}
+                                                        fill={theme.success}
+                                                    />
+                                                </View>
+                                            ))}
                                         {hasDraftComment && !!optionItem.isAllowedToComment && (
                                             <View
                                                 style={styles.ml2}
@@ -407,18 +434,28 @@ function OptionRowLHN({
                                                 />
                                             </View>
                                         )}
-                                        {!brickRoadIndicator && !!optionItem.isPinned && (
-                                            <View
-                                                style={styles.ml2}
-                                                accessibilityLabel={translate('sidebarScreen.chatPinned')}
-                                            >
-                                                <Icon
-                                                    testID="Pin Icon"
-                                                    fill={theme.icon}
-                                                    src={expensifyIcons.Pin}
+                                        {!brickRoadIndicator &&
+                                            !!optionItem.isPinned &&
+                                            (isProduction ? (
+                                                <View
+                                                    style={styles.ml2}
+                                                    accessibilityLabel={translate('sidebarScreen.chatPinned')}
+                                                >
+                                                    <Icon
+                                                        testID="Pin Icon"
+                                                        fill={theme.icon}
+                                                        src={expensifyIcons.Pin}
+                                                    />
+                                                </View>
+                                            ) : (
+                                                <Badge
+                                                    icon={expensifyIcons.Pin}
+                                                    text=""
+                                                    badgeStyles={isOptionFocused && styles.badgeDefaultActive}
+                                                    isCondensed
+                                                    isStrong
                                                 />
-                                            </View>
-                                        )}
+                                            ))}
                                     </View>
                                 </PressableWithSecondaryInteraction>
                             );

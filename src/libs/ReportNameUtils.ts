@@ -263,7 +263,7 @@ function getGroupChatName(
             .concat(shouldAddEllipsis ? '...' : '');
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber})});
+    return translateLocal('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber}));
 }
 
 /**
@@ -749,7 +749,7 @@ function computeChatThreadReportName(
     if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
         const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        const modifiedMessage = getForReportAction({
+        const modifiedMessageWithHTML = getForReportAction({
             translate,
             reportAction: parentReportAction,
             movedFromReport,
@@ -758,6 +758,8 @@ function computeChatThreadReportName(
             policy,
             currentUserLogin,
         });
+        // Strip HTML tags for plain text display in report previews
+        const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);
         return formatReportLastMessageText(modifiedMessage);
     }
     if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {

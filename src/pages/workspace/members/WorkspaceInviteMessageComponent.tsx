@@ -151,8 +151,8 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))});
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)),
         });
     };
 
