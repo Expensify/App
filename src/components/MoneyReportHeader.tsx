@@ -1929,17 +1929,19 @@ function MoneyReportHeader({
                 temporarilyDisableDuplicateReportAction();
                 wasDuplicateReportTriggered.current = true;
 
-                const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
+                const targetPolicyForDuplicate = policy ?? defaultExpensePolicy;
+                const targetChatForDuplicate = policy ? chatReport : activePolicyExpenseChat;
+                const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     duplicateReportAction({
                         sourceReportTransactions: nonPendingDeleteTransactions,
                         sourceReportName: moneyRequestReport?.reportName ?? '',
-                        targetPolicy: defaultExpensePolicy ?? undefined,
+                        targetPolicy: targetPolicyForDuplicate ?? undefined,
                         targetPolicyCategories: activePolicyCategories,
-                        targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`] ?? {},
-                        parentChatReport: activePolicyExpenseChat,
+                        targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyForDuplicate?.id}`] ?? {},
+                        parentChatReport: targetChatForDuplicate,
                         ownerPersonalDetails: currentUserPersonalDetails,
                         isASAPSubmitBetaEnabled,
                         betas,
