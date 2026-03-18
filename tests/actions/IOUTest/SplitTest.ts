@@ -2384,8 +2384,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(Report.setDeleteTransactionNavigateBackUrl).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
 
-        // Then the backward navigation pattern should be used (dismissToSuperWideRHP + goBack)
-        // instead of dismissModalWithReport, matching navigateBackOnDeleteTransaction
+        // Then navigateBackOnDeleteTransaction should be used (which calls dismissToSuperWideRHP + goBack)
+        // instead of dismissModalWithReport
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(Navigation.dismissToSuperWideRHP).toHaveBeenCalled();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

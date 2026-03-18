@@ -38,6 +38,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    navigateBackOnDeleteTransaction,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
@@ -1745,13 +1746,10 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     // When the reverse split deletes the expense report, use the backward navigation pattern
     // (dismissToSuperWideRHP + goBack) instead of dismissModalWithReport. This naturally pops
-    // stale screens from the stack, matching the pattern in navigateBackOnDeleteTransaction.
+    // stale screens from the stack instead of leaving them behind.
     if (isLastTransactionInReport && fallbackReportID) {
         const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
-        Navigation.dismissToSuperWideRHP();
-        Navigation.isNavigationReady().then(() => {
-            Navigation.goBack(backRoute);
-        });
+        navigateBackOnDeleteTransaction(backRoute);
 
         // Remove the transaction thread report screen to avoid navigating back to a removed report
         requestAnimationFrame(() => {
