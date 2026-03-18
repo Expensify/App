@@ -442,11 +442,9 @@ function FeatureTrainingModal({
                 // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
-                {!isInLandscapeMode && (
-                    <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
-                        {renderIllustration()}
-                    </View>
-                )}
+                <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
+                    {renderIllustration()}
+                </View>
                 <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
                     {!!title && !!description && (
                         <View
