@@ -116,7 +116,7 @@ function SearchFiltersBarCreateButton() {
         [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
     );
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
@@ -226,7 +226,6 @@ function SearchFiltersBarCreateButton() {
 
     return (
         <View style={[styles.pr5, styles.searchFiltersBarCreateButton]}>
-            {CreateReportConfirmationModal}
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive}
