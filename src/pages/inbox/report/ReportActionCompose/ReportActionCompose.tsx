@@ -168,7 +168,19 @@ function ReportActionCompose({
 
     const {editingReportID, editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
 
-    const isEditingInComposer = shouldUseNarrowLayout && !!editingReportActionID;
+    const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
+    const isEditingInComposer = shouldUseNarrowLayout && !!editingReportActionID && !didResetComposerHeight;
+
+    console.log({didResetComposerHeight, isEditingInComposer, editingReportActionID});
+
+    useEffect(() => {
+        if (editingReportActionID || !didResetComposerHeight) {
+            return;
+        }
+
+        setDidResetComposerHeight(false);
+    }, [didResetComposerHeight, editingReportActionID]);
+
     const effectiveDraft = shouldUseNarrowLayout ? editingMessage : draftComment;
 
     const reportActionEntries = useMemo(() => (reportActions ? Object.entries(reportActions) : []), [reportActions]);
@@ -351,7 +363,8 @@ function ReportActionCompose({
         (draftMessage: string) => {
             const draftMessageTrimmed = draftMessage.trim();
 
-            if (isEditingInComposer && !attachmentFileRef.current) {
+            const isSubmittingEdit = isEditingInComposer || didResetComposerHeight;
+            if (isSubmittingEdit && !attachmentFileRef.current) {
                 publishDraft(draftMessageTrimmed);
                 return;
             }
@@ -398,9 +411,10 @@ function ReportActionCompose({
         },
         [
             isEditingInComposer,
-            publishDraft,
+            didResetComposerHeight,
             shouldShowConciergeIndicator,
             kickoffWaitingIndicator,
+            publishDraft,
             transactionThreadReport,
             report,
             reportID,
@@ -408,8 +422,8 @@ function ReportActionCompose({
             currentUserPersonalDetails.accountID,
             personalDetail.timezone,
             isInSidePanel,
-            onSubmit,
             scrollOffsetRef,
+            onSubmit,
         ],
     );
 
@@ -479,6 +493,9 @@ function ReportActionCompose({
         }
 
         composerRef.current?.resetHeight();
+        if (isEditingInComposer) {
+            setDidResetComposerHeight(true);
+        }
 
         scheduleOnUI(() => {
             const {clearWorklet} = composerRefShared.get();
