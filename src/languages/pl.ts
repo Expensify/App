@@ -1137,6 +1137,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Usuń paragon',
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
         addReceipt: 'Dodaj paragon',
+        addAdditionalReceipt: 'Dodaj dodatkowy paragon',
         scanFailed: 'Nie można było zeskanować paragonu, ponieważ brakuje na nim sprzedawcy, daty lub kwoty.',
         crop: 'Przytnij',
         addAReceipt: {

@@ -3627,6 +3627,8 @@ const staticStyles = (theme: ThemeColors) =>
             height: 40,
             alignItems: 'center',
             justifyContent: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
         },
 
         bgGreenSuccess: {
