@@ -10,8 +10,7 @@ function useFilterWorkspaceValues(value: SearchFilter['value']) {
             return null;
         }
         const workspaces = [];
-        for (let i = 0; i < value.length; i++) {
-            const policyID = value.at(i);
+        for (const policyID of value) {
             const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
             if (!policy) {
                 continue;

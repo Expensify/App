@@ -4015,9 +4015,8 @@ function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<
 
 function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate) {
     const sortableColumns: Array<SingleSelectItem<SearchColumnType>> = [];
-    for (let i = 0; i < columns.length; i++) {
-        const column = columns.at(i);
-        if (column && isColumnSortable(column)) {
+    for (const column of columns) {
+        if (isColumnSortable(column)) {
             sortableColumns.push({text: translate(getSearchColumnTranslationKey(column)), value: column});
         }
     }
