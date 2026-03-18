@@ -1675,7 +1675,7 @@ function shouldResetSortOrderForViewChange({newView, oldView, groupBy}: {newView
  */
 function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
-    previousState: {groupBy?: string; view?: string},
+    previousState: {view?: string; groupBy?: string},
     currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
 ): string | undefined {
     const resetSort = shouldResetSort({
