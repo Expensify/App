@@ -29,15 +29,12 @@ function Day({disabled, selected, pressed, hovered, children}: DayProps) {
     const StyleUtils = useStyleUtils();
     return (
         <View
-            // Prevent Android from flattening this View, which can cause
-            // background color changes (day selection) to not trigger a native repaint.
-            collapsable={false}
             style={[
                 themeStyles.calendarDayContainer,
                 // Always provide an explicit backgroundColor so Android (which
                 // does not reset a property when the style changes to {})
                 // correctly transitions the selection highlight on every render.
-                {backgroundColor: selected ? theme.success : 'transparent'},
+                {backgroundColor: selected ? theme.success : theme.transparent},
                 !disabled && !selected ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed), true) : {},
             ]}
         >

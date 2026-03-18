@@ -177,7 +177,10 @@ function DateFilterBase({
                     onBackButtonPress={goBack}
                 />
             )}
-            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[styles.flexGrow1]}
+            >
                 <DatePresetFilterBase
                     ref={searchDatePresetFilterBaseRef}
                     defaultDateValues={normalizedDefaultDateValues}

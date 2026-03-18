@@ -269,6 +269,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
             {!selectedDateModifier && <Text style={mobileLabelStyle}>{label}</Text>}
             <ScrollView
                 ref={scrollViewRef}
+                keyboardShouldPersistTaps="handled"
                 style={useRangeLayout ? [styles.flexGrow1] : undefined}
                 contentContainerStyle={useRangeLayout ? [!selectedDateModifier && styles.pt4, selectedDateModifier && styles.pt0] : undefined}
             >

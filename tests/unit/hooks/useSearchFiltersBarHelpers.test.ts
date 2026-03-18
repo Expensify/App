@@ -1,9 +1,10 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {createDateDisplayValue, hasDateFilterValue} from '@components/Search/SearchPageHeader/useSearchFiltersBar';
 import CONST from '@src/CONST';
 
 describe('useSearchFiltersBar helpers', () => {
     it('includes a readable range display value when range is set', () => {
-        const translate = (key: string) => key;
+        const translate = ((path: string) => path) as unknown as LocalizedTranslate;
 
         const [dateValues, displayValues] = createDateDisplayValue(
             {
