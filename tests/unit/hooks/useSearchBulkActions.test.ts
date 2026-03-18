@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention -- Mock data uses Onyx collection key patterns (e.g., `report_123`) that don't conform to standard naming conventions */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
