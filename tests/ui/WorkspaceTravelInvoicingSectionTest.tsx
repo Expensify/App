@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {payTravelInvoicingSpend} from '@libs/actions/TravelInvoicing';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTravelInvoicingSection';
+import {updateGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -68,6 +69,20 @@ jest.mock('@libs/actions/TravelInvoicing', () => {
         ...actual,
         payTravelInvoicingSpend: jest.fn().mockResolvedValue(undefined),
     };
+});
+
+jest.mock('@userActions/Policy/Policy', () => ({
+    updateGeneralSettings: jest.fn(),
+}));
+
+const mockShowConfirmModal = jest.fn().mockResolvedValue({action: 'CONFIRM'});
+const mockCloseModal = jest.fn();
+
+jest.mock('@hooks/useConfirmModal', () => {
+    return jest.fn().mockImplementation(() => ({
+        showConfirmModal: mockShowConfirmModal,
+        closeModal: mockCloseModal,
+    }));
 });
 
 const mockPolicy: Policy = {
@@ -457,6 +472,42 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             // Queued payment message should be visible with the original amount
             expect(screen.getByText('Payment of $50.00 is queued and will be processed soon.')).toBeTruthy();
+        });
+    });
+
+    describe('Currency Conversion Prompt', () => {
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
+
+        it('should prompt to update currency to USD if policy currency is not USD, and call updateGeneralSettings on confirm', async () => {
+            const mockPolicyGbp = {
+                ...mockPolicy,
+                outputCurrency: 'GBP',
+                name: 'GBP Workspace',
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicyGbp);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: false,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelInvoicingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // Fire toggle change to true
+            const toggleButton = screen.getByRole('switch');
+            fireEvent.press(toggleButton);
+            await waitForBatchedUpdatesWithAct();
+
+            // The confirm modal should be triggered
+            expect(mockShowConfirmModal).toHaveBeenCalled();
+
+            // The updateGeneralSettings function should be called
+            expect(updateGeneralSettings).toHaveBeenCalledWith(expect.objectContaining({outputCurrency: 'GBP', name: 'GBP Workspace'}), 'GBP Workspace', CONST.CURRENCY.USD);
         });
     });
 });
