@@ -743,6 +743,12 @@ function bulkDuplicateExpenses({
     const optimisticChatReportID = generateReportID();
     const optimisticIOUReportID = generateReportID();
 
+    // After the first iteration creates a new optimistic IOU report, subsequent
+    // iterations must know its ID so getMoneyRequestInformation can find and
+    // MERGE into it instead of SET-overwriting it.  We carry a local copy of
+    // targetReport whose iouReportID is patched after the first pass.
+    let currentTargetReport = targetReport;
+
     for (const item of transactionsToDuplicate) {
         const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -760,7 +766,7 @@ function bulkDuplicateExpenses({
             customUnitPolicyID: (isDistanceRequest(item) ? sourcePolicyIDMap[item.transactionID] : undefined) ?? targetPolicy?.id,
             targetPolicy: targetPolicy ?? undefined,
             targetPolicyCategories: targetPolicyCategories ?? {},
-            targetReport,
+            targetReport: currentTargetReport,
             existingTransactionDraft,
             draftTransactionIDs,
             betas,
@@ -768,6 +774,10 @@ function bulkDuplicateExpenses({
             recentWaypoints,
             targetPolicyTags,
         });
+
+        if (currentTargetReport && !currentTargetReport.iouReportID) {
+            currentTargetReport = {...currentTargetReport, iouReportID: optimisticIOUReportID};
+        }
     }
 }
 
