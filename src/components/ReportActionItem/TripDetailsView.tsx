@@ -44,9 +44,9 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong', 'Plane', 'PlaneCircleSlash', 'Bed', 'BedCircleSlash', 'CarWithKey', 'Train', 'Luggage']);
 
-    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
+    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
 
     const getFormattedDate = () => {
         switch (reservation.type) {
@@ -82,7 +82,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
         return StringUtils.removeDoubleQuotes(reservation.start.address) ?? reservation.start.location;
     }, [reservation]);
 
-    const titleTextStyle = isCancelled ? styles.textNormal : styles.textStrong;
+    const titleTextStyle = isCancelled ? [styles.textStrong, styles.textSupporting] : styles.textStrong;
 
     const titleComponent = () => {
         if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT || reservation.type === CONST.RESERVATION_TYPE.TRAIN) {

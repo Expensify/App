@@ -66,18 +66,20 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'PlaneCircleSlash', 'Bed', 'BedCircleSlash', 'CarWithKey', 'Train', 'Luggage']);
 
-    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
+    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
     const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '');
 
     const description = translate(`travel.${reservation.type}`);
+
+    const cancelledStyle = isCancelled ? styles.textSupporting : undefined;
 
     let titleComponent = (
         <Text
             numberOfLines={1}
             ellipsizeMode="tail"
-            style={isCancelled ? styles.colorMuted : undefined}
+            style={cancelledStyle}
         >
             {title}
         </Text>
@@ -91,7 +93,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
             <Text
                 numberOfLines={2}
                 ellipsizeMode="tail"
-                style={isCancelled ? styles.colorMuted : undefined}
+                style={cancelledStyle}
             >
                 {startName} {translate('common.to').toLowerCase()} {endName}
             </Text>

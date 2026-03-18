@@ -21,6 +21,7 @@ import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
 import Basket from '@assets/images/basket.svg';
+import BedCircleSlash from '@assets/images/bed-circle-slash.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
@@ -179,6 +180,7 @@ import Pencil from '@assets/images/pencil.svg';
 import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
+import PlaneCircleSlash from '@assets/images/plane-circle-slash.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
 import PlusMinus from '@assets/images/plus-minus.svg';
@@ -462,7 +464,9 @@ const Expensicons = {
     ChatBubbleCounter,
     Lightbulb,
     Plane,
+    PlaneCircleSlash,
     Bed,
+    BedCircleSlash,
     CarWithKey,
     Clear,
     CheckCircle,

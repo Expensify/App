@@ -8,14 +8,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import SafeString from '@src/utils/SafeString';
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
 
-type TripReservationIcons = Record<'Plane' | 'Bed' | 'CarWithKey' | 'Train' | 'Luggage', IconAsset>;
+type TripReservationIcons = Record<'Plane' | 'PlaneCircleSlash' | 'Bed' | 'BedCircleSlash' | 'CarWithKey' | 'Train' | 'Luggage', IconAsset>;
 
-function getTripReservationIcon(icons: TripReservationIcons, reservationType?: ReservationType): IconAsset {
+function getTripReservationIcon(icons: TripReservationIcons, reservationType?: ReservationType, isCancelled?: boolean): IconAsset {
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
-            return icons.Plane;
+            return isCancelled ? icons.PlaneCircleSlash : icons.Plane;
         case CONST.RESERVATION_TYPE.HOTEL:
-            return icons.Bed;
+            return isCancelled ? icons.BedCircleSlash : icons.Bed;
         case CONST.RESERVATION_TYPE.CAR:
             return icons.CarWithKey;
         case CONST.RESERVATION_TYPE.TRAIN:
@@ -535,7 +535,7 @@ function getReservationDetailsFromSequence(icons: TripReservationIcons, tripRese
     const reservation = reservationData?.reservation;
     const prevReservation = prevReservationData?.reservation;
     const reservationType = reservation?.type;
-    const reservationIcon = getTripReservationIcon(icons, reservation?.type);
+    const reservationIcon = getTripReservationIcon(icons, reservation?.type, reservationData?.isCancelled);
     return {
         reservation,
         prevReservation,

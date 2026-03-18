@@ -80,10 +80,10 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'ArrowRight']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'PlaneCircleSlash', 'Bed', 'BedCircleSlash', 'CarWithKey', 'Train', 'Luggage', 'ArrowRight']);
 
     const {reservation, reportID, transactionID, sequenceIndex, isCancelled} = upcomingReservation;
-    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
+    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
     const title = getTitle(translate, reservation);
     const relativeTime = getRelativeTime(translate, reservation.start.date);
     const typeId = getTypeIdentifier(reservation);
@@ -97,7 +97,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
         <MenuItemWithTopDescription
             description={formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)}
             title={title}
-            titleStyle={isCancelled ? styles.textNormal : styles.textBold}
+            titleStyle={isCancelled ? [styles.textBold, styles.textSupporting] : styles.textBold}
             accessibilityLabel={isCancelled ? `${formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)} ${title}` : undefined}
             onPress={handlePress}
             shouldShowRightIcon
