@@ -34,7 +34,6 @@ function OptionRowLHNData({
     preferredLocale = CONST.LOCALES.DEFAULT,
     policy,
     invoiceReceiverPolicy,
-    receiptTransactions,
     parentReportAction,
     iouReportReportActions,
     transaction,
@@ -127,7 +126,7 @@ function OptionRowLHNData({
         conciergeReportID,
         iouReportReportActions,
         transaction,
-        receiptTransactions,
+
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         card,
