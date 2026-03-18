@@ -61,7 +61,7 @@ import {
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
 import type {BaseTransactionParams, MoneyRequestInformation, RequestMoneyParticipantParams} from './index';
-import type BasePolicyParams from './parameters/BasePolicyParams';
+import type BasePolicyParams from './types/BasePolicyParams';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string

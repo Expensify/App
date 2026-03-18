@@ -41,7 +41,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
-import type BasePolicyParams from './parameters/BasePolicyParams';
+import type BasePolicyParams from './types/BasePolicyParams';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;

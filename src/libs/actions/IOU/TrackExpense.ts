@@ -84,7 +84,7 @@ import {buildPolicyData} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
-import {sanitizeRecentWaypoints} from '@userActions/Transaction';
+import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction} from '@src/CONST';
@@ -111,15 +111,15 @@ import {
     getSearchOnyxUpdate,
     handleNavigateAfterExpenseCreate,
 } from './index';
-import type BasePolicyParams from './parameters/BasePolicyParams';
-import type {CreateTrackExpenseParams} from './parameters/CreateTrackExpenseParams';
+import type BasePolicyParams from './types/BasePolicyParams';
+import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
 import type {
     BuildOnyxDataForTrackExpenseKeys,
     TrackedExpenseParams,
     TrackedExpensePolicyParams,
     TrackedExpenseReportInformation,
     TrackedExpenseTransactionParams,
-} from './parameters/TrackedExpenseParams';
+} from './types/TrackedExpenseParams';
 
 let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
@@ -1599,7 +1599,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
 
-    const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeRecentWaypoints(waypoints)) : undefined;
+    const sanitizedWaypoints = waypoints ? JSON.stringify(stringifyWaypointsForAPI(waypoints)) : undefined;
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -2100,7 +2100,7 @@ function convertBulkTrackedExpensesToIOU({
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
         const transactionWaypoints = getWaypoints(transaction);
-        const sanitizedWaypointsForBulk = transactionWaypoints ? JSON.stringify(sanitizeRecentWaypoints(transactionWaypoints)) : undefined;
+        const sanitizedWaypointsForBulk = transactionWaypoints ? JSON.stringify(stringifyWaypointsForAPI(transactionWaypoints)) : undefined;
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
             payerParams: {
@@ -2381,7 +2381,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN, name: 'receipt-generic.png'} : receipt;
-    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
+    const sanitizedWaypoints = validWaypoints ? JSON.stringify(stringifyWaypointsForAPI(validWaypoints)) : undefined;
 
     const retryParams: CreateTrackExpenseParams = {
         ...params,

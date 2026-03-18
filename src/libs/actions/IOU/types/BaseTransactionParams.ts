@@ -15,4 +15,4 @@ type BaseTransactionParams = {
     isFromGlobalCreate?: boolean;
 };
 
-export type {BaseTransactionParams};
+export default BaseTransactionParams;
