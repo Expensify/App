@@ -19,10 +19,11 @@ Workspace Admins can reconcile reimbursements when Payments is enabled on the Wo
 
 ## How to View Reimbursements 
 
-1. In the navigation tabs (on the left on Web, on the bottom on Mobile) go to **Reports**.
+1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Reports**.
 2. In the **Reconciliation** section, select **Reimbursements**.
 3. Choose the **Withdrawn** filter to select a date range (for example, **Last month**).
-4. Review the list of reimbursement. Each row represents a reimbursement for a single report and shows the total amount.
+4. Review the list of reimbursements. Each row represents a reimbursement for a single report and shows the total amount.
+
 ---
 
 ## How to Trace a Reimbursement Payment to Expense Reports
@@ -50,7 +51,7 @@ If you see a charge on your bank statement that you cannot identify, go to the R
 
 ## What Does a Reimbursement Payment Include?
 
-A single reimbursement payment may covers one expense report. Expanding the payment row shows all the expenses on the report that was reimbursed. 
+A single reimbursement payment may cover one expense report. Expanding the payment row shows all the expenses on the report that was reimbursed. 
 
 ## Why Don't I See Reimbursements Under Reconciliation?
 

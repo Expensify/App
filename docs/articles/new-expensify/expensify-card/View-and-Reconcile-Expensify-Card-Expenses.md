@@ -59,9 +59,9 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 
 The Expensify Card option only appears when the feature is enabled for your Workspace. If you don’t see it, confirm that the Expensify Card is enabled and active.
 
-## How Is Expensify Card reconciliation different From statement matching?
+## How is Expensify Card reconciliation different from statement matching?
 
-Expensify Card reconciliation uses withdrawal-based matching, where each bank withdrawal corresponds to grouped expenses.Company card reconciliation uses statement matching, where transactions are compared against an external card statement.
+Expensify Card reconciliation uses withdrawal-based matching, where each bank withdrawal corresponds to grouped expenses. Company card reconciliation uses statement matching, where transactions are compared against an external card statement.
 
 ## Why don't I see any withdrawals in the Expensify Card reconciliation view? 
 
