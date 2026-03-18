@@ -26,7 +26,7 @@ type TaxPickerProps = {
     transactionID?: string;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: (tax: TaxRatesOption) => void;
+    onSubmit: (tax: TaxRatesOption, shouldClearTax?: boolean) => void;
 
     /** The action to take */
     action?: IOUAction;
@@ -123,7 +123,8 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             onDismiss();
             return;
         }
-        onSubmit(newSelectedOption);
+
+        onSubmit(newSelectedOption, hasTaxBeenDeleted);
     };
 
     const textInputOptions = {
@@ -142,7 +143,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     return (
         <SelectionListWithSections
-            sections={sections}
+            sections={updatedSections}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={handleSelectRow}

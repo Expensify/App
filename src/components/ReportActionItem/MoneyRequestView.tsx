@@ -90,6 +90,7 @@ import {
     getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
+    getTaxValue,
     hasMissingSmartscanFields,
     hasMultipleSplitChildren,
     hasReservationList,
@@ -597,7 +598,7 @@ function MoneyRequestView({
     const decodedCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
-    const taxRateValue = transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateValue = hasTaxValueChanged ? taxValue : (transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle ?? '');
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
