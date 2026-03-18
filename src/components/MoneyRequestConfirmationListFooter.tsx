@@ -345,12 +345,12 @@ function MoneyRequestConfirmationListFooter({
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     // Track selected currency separately to allow changing it in the new manual flow
-    const currency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
+    const currency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD); // TO DO: Unify currency source once we remove the old flow
     const [selectedCurrency, setSelectedCurrency] = useState(currency);
-    const decimals = getCurrencyDecimals(currency);
+    const decimals = getCurrencyDecimals(selectedCurrency);
 
     // Local state for the new manual expense flow
-    const transactionAmountAsString = convertToFrontendAmountAsString(amount, currency);
+    const transactionAmountAsString = convertToFrontendAmountAsString(amount, selectedCurrency);
     const [transactionAmount, setTransactionAmount] = useState(transactionAmountAsString);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
@@ -720,7 +720,7 @@ function MoneyRequestConfirmationListFooter({
                     shouldShowRightIcon={isRateInteractive}
                     // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
                     // confirmation screen where a rate violation is not applicable yet.
-                    title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
+                    title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, distanceRateCurrency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
