@@ -160,6 +160,7 @@ function SearchAutocompleteList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = getAllTaxRates(policies);
 
@@ -310,6 +311,7 @@ function SearchAutocompleteList({
                       autoCompleteWithSpace: false,
                       translate,
                       feedKeysWithCards,
+                      conciergeReportID,
                   })
                 : query,
             singleIcon: expensifyIcons.History,

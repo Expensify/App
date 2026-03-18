@@ -5,7 +5,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
-    SetPersonalDetailsAndRevealExpensifyCardParams,
     SetPersonalDetailsAndShipExpensifyCardsParams,
     UpdateAutomaticTimezoneParams,
     UpdateDateOfBirthParams,
@@ -17,7 +16,7 @@ import type {
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -561,96 +560,6 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
     });
 }
 
-function setPersonalDetailsAndRevealExpensifyCard(
-    values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>,
-    validateCode: string,
-    countryCode: number,
-    cardID: number,
-): Promise<{pan: string; expiration: string; cvv: string}> {
-    return new Promise((resolve, reject) => {
-        const parameters: SetPersonalDetailsAndRevealExpensifyCardParams = {
-            ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
-            validateCode,
-            cardID,
-        };
-
-        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.ACCOUNT>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isLoading: true,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: true},
-            },
-        ];
-
-        const successData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CARD_LIST>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isLoading: false,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: false},
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {[cardID]: {errors: null}},
-            },
-        ];
-
-        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.ACCOUNT>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isLoading: false,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {isLoading: false},
-            },
-        ];
-
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, parameters, {
-            optimisticData,
-            successData,
-            failureData,
-        })
-            .then((response) => {
-                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
-                        // eslint-disable-next-line prefer-promise-reject-errors
-                        reject('validateCodeForm.error.incorrectMagicCode');
-                        return;
-                    }
-
-                    // eslint-disable-next-line prefer-promise-reject-errors
-                    reject('cardPage.unexpectedError');
-                    return;
-                }
-                resolve(response as {pan: string; expiration: string; cvv: string});
-            })
-            .catch(() => {
-                // eslint-disable-next-line prefer-promise-reject-errors
-                reject('cardPage.cardDetailsLoadingFailure');
-            });
-    });
-}
-
 export {
     clearAvatarErrors,
     deleteAvatar,
@@ -667,7 +576,6 @@ export {
     updatePronouns,
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCards,
-    setPersonalDetailsAndRevealExpensifyCard,
     clearPersonalDetailsErrors,
     buildSetPersonalDetailsAndShipExpensifyCardsParams,
 };
