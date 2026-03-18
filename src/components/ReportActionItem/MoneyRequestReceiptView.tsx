@@ -86,6 +86,9 @@ type MoneyRequestReceiptViewProps = {
 
     /** Whether it's displayed in Wide RHP */
     isDisplayedInWideRHP?: boolean;
+
+    /** Whether the parent component has a pending action */
+    hasParentPendingAction?: boolean;
 };
 
 const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
@@ -100,7 +103,15 @@ const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
 
 const receiptFieldViolationNames = new Set<OnyxTypes.ViolationName>([CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE]);
 
-function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, fillSpace = false, mergeTransactionID, isDisplayedInWideRHP = false}: MoneyRequestReceiptViewProps) {
+function MoneyRequestReceiptView({
+    report,
+    readonly = false,
+    updatedTransaction,
+    fillSpace = false,
+    mergeTransactionID,
+    isDisplayedInWideRHP = false,
+    hasParentPendingAction = false,
+}: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -177,7 +188,16 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     }
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => {
+        if (hasParentPendingAction) {
+            return undefined;
+        }
+        if (isDisplayedInWideRHP) {
+            return transaction?.pendingFields?.[fieldPath] ?? pendingAction;
+        }
+
+        return pendingAction ? undefined : transaction?.pendingFields?.[fieldPath];
+    };
 
     const transactionToCheck = updatedTransaction ?? transaction;
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
@@ -434,12 +454,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                 >
                     {hasReceipt && (
                         <View
-                            style={[
-                                styles.getMoneyRequestViewImage(showBorderlessLoading),
-                                receiptStyle,
-                                showBorderlessLoading && styles.flex1,
-                                fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
-                            ]}
+                            style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
                             onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
                             onMouseLeave={hoverBind.onMouseLeave}
                         >
