@@ -209,7 +209,6 @@ type MoneyReportHeaderProps = {
 };
 
 function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
-    // Self-subscribe to report, policy, metadata
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [reportMetadataInternal] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDProp}`);

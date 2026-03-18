@@ -104,7 +104,6 @@ type MoneyRequestHeaderProps = {
 };
 
 function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRequestHeaderProps) {
-    // Self-subscribe to report, policy, parentReportAction
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const parentReportAction = useParentReportAction(report);

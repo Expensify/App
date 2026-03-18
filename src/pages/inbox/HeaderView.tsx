@@ -93,7 +93,6 @@ type HeaderViewProps = {
 };
 
 function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) {
-    // Self-subscribe to report, parentReportAction
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const parentReportAction = useParentReportAction(report);
 
