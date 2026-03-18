@@ -9356,6 +9356,7 @@ describe('ReportUtils', () => {
         const reportAction1: ReportAction = {
             ...createRandomReportAction(1),
             reportID: report.reportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
         const parentReportAction1: ReportAction = {
             ...createRandomReportAction(2),

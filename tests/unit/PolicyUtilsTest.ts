@@ -274,7 +274,9 @@ describe('PolicyUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}2`, lastSelectedExpensifyCardFeed);
             await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`, {
-                paymentBankAccountID: 1234,
+                [CONST.COUNTRY.US]: {
+                    paymentBankAccountID: 1234,
+                },
             });
             const {result} = renderHook(() => useDefaultFundID(policy.id));
 
