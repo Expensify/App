@@ -51,7 +51,6 @@ TestHelper.setupGlobalFetchMock();
 const defaultReport = LHNTestUtils.getFakeReport();
 const defaultProps: ReportActionItemMessageEditProps = {
     action: LHNTestUtils.getFakeReportAction(),
-    draftMessage: '',
     reportID: defaultReport.reportID,
     originalReportID: defaultReport.reportID,
     index: 0,

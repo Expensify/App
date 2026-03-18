@@ -48,7 +48,6 @@ const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) =>
 
 const defaultReportActionItemMessageEditProps: ReportActionItemMessageEditProps = {
     action: LHNTestUtils.getFakeReportAction(),
-    draftMessage: '',
     reportID: defaultReport.reportID,
     originalReportID: defaultReport.reportID,
     index: 0,
