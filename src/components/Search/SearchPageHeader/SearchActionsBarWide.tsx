@@ -10,7 +10,8 @@ import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton'
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import FILTER_KEYS, {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchResults} from '@src/types/onyx';
 import SearchActionsBarCreateButton from './SearchActionsBarCreateButton';
 import SearchAdvanceFiltersButton from './SearchAdvanceFiltersButton';
