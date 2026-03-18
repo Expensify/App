@@ -77,6 +77,9 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
 
         /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
         onEntryTransitionEnd?: () => void;
+
+        /** Whether to wrap the children in ScrollView in landscape mode */
+        shouldUseScrollViewInLandscapeMode?: boolean;
     };
 
 function ScreenWrapper({
@@ -98,6 +101,7 @@ function ScreenWrapper({
     isOfflineIndicatorTranslucent,
     focusTrapSettings,
     ref,
+    shouldUseScrollViewInLandscapeMode = false,
     ...restContainerProps
 }: ScreenWrapperProps) {
     /**
@@ -286,7 +290,7 @@ function ScreenWrapper({
                 {isDevelopment && <CustomDevMenu />}
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                     <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-                        {isInLandscapeMode ? <ScrollView style={[styles.w100]}>{ChildrenContent}</ScrollView> : ChildrenContent}
+                        {shouldUseScrollViewInLandscapeMode && isInLandscapeMode ? <ScrollView style={styles.w100}>{ChildrenContent}</ScrollView> : ChildrenContent}
 
                         <ScreenWrapperOfflineIndicators
                             offlineIndicatorStyle={offlineIndicatorStyle}

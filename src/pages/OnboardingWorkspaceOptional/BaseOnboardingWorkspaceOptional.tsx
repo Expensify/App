@@ -200,6 +200,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             shouldEnableMaxHeight
             testID="BaseOnboardingWorkspaceOptional"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
+            shouldUseScrollViewInLandscapeMode
         >
             <HeaderWithBackButton
                 progressBarPercentage={100}
