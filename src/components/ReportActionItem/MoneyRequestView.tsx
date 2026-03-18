@@ -90,6 +90,7 @@ import {
     getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
+    getTaxValue,
     hasMissingSmartscanFields,
     hasMultipleSplitChildren,
     hasReservationList,
@@ -101,6 +102,7 @@ import {
     isDistanceTypeRequest,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
+    isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isMapDistanceRequest as isMapDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
@@ -293,9 +295,9 @@ function MoneyRequestView({
 
     const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
-    const isManagedCardTransaction = isCardTransactionTransactionUtils(transaction);
+    const isFromCardImport = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, nonPersonalAndWorkspaceCards);
-    const shouldShowCard = isManagedCardTransaction && cardProgramName;
+    const shouldShowCard = isFromCardImport && cardProgramName;
 
     const taxRates = policy?.taxRates;
     const formattedTaxAmount =
@@ -304,7 +306,12 @@ function MoneyRequestView({
             : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
 
     const taxRatesDescription = taxRates?.name;
-    const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction, isExpenseUnreported) : getTaxName(policy, transaction, isExpenseUnreported);
+
+    const baseTransaction = updatedTransaction ?? transaction;
+    const {taxCode, taxValue} = baseTransaction ?? {};
+
+    const taxRateTitle = taxCode ? getTaxName(policy, baseTransaction, isExpenseUnreported) : '';
+    const hasTaxValueChanged = taxCode ? getTaxValue(policy, baseTransaction, taxCode) !== baseTransaction?.taxValue : false;
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
@@ -401,7 +408,7 @@ function MoneyRequestView({
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!policy)) &&
         (policy?.disabledFields?.reimbursable !== true || isCurrentTransactionReimbursableDifferentFromPolicyDefault) &&
-        !isManagedCardTransaction &&
+        !isManagedCardTransactionTransactionUtils(transaction) &&
         !isInvoice;
     const canEditReimbursable =
         isEditable &&
@@ -444,7 +451,7 @@ function MoneyRequestView({
     const shouldShowConvertedAmount =
         transactionConvertedAmount &&
         currency !== moneyRequestReport?.currency &&
-        !isManagedCardTransaction &&
+        !isFromCardImport &&
         transaction?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID &&
         !isFromMergeTransaction &&
         !isFromReviewDuplicates &&
@@ -491,7 +498,7 @@ function MoneyRequestView({
         });
     };
 
-    if (isManagedCardTransaction) {
+    if (isFromCardImport) {
         if (transactionPostedDate) {
             dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
         }
@@ -591,7 +598,7 @@ function MoneyRequestView({
     const decodedCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
-    const taxRateValue = transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateValue = hasTaxValueChanged ? taxValue : (transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle ?? '');
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
