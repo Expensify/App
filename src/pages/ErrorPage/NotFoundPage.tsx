@@ -32,7 +32,7 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
         >
             <FullPageNotFoundView
                 shouldShow
-                onLinkPress={() => Navigation.navigate(ROUTES.HOME)}
+                onLinkPress={() => Navigation.goBack(ROUTES.HOME)}
                 onBackButtonPress={() => {
                     if (!isReportRelatedPage || !isSmallScreenWidth) {
                         onBackButtonPress();
