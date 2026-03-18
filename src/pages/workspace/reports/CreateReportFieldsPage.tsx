@@ -182,6 +182,7 @@ function WorkspaceCreateReportFieldsPage({
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
                     addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
@@ -198,6 +199,7 @@ function WorkspaceCreateReportFieldsPage({
                                 role={CONST.ROLE.PRESENTATION}
                                 required
                                 customValidate={validateName}
+                                shouldUseStrictHtmlTagValidation
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}
