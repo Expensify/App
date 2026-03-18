@@ -26,7 +26,7 @@ type TaxPickerProps = {
     transactionID?: string;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: (tax: TaxRatesOption) => void;
+    onSubmit: (tax: TaxRatesOption, shouldClearTax?: boolean) => void;
 
     /** The action to take */
     action?: IOUAction;
@@ -68,6 +68,22 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
+    const {taxCode, taxValue} = transaction ?? {};
+    const hasTaxBeenDeleted = !!taxCode && taxValue !== undefined && !taxRates?.taxes?.[taxCode];
+    const hasTaxValueChanged = !!taxCode && taxValue !== undefined && taxRates?.taxes?.[taxCode]?.value !== taxValue;
+
+    const deletedTaxOption = !hasTaxBeenDeleted
+        ? null
+        : {
+              code: undefined,
+              text: taxValue ?? '',
+              keyForList: taxCode ?? '',
+              searchText: taxValue ?? '',
+              tooltipText: taxValue ?? '',
+              isDisabled: true,
+              isSelected: true,
+          };
+
     const selectedOptions = selectedTaxRate
         ? [
               {
@@ -89,11 +105,17 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
     const selectedOptionKey = sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList;
 
     const handleSelectRow = (newSelectedOption: TaxRatesOption) => {
+        if (hasTaxValueChanged) {
+            onSubmit(newSelectedOption, !newSelectedOption.code);
+            return;
+        }
+
         if (selectedOptionKey === newSelectedOption.keyForList) {
             onDismiss();
             return;
         }
-        onSubmit(newSelectedOption);
+
+        onSubmit(newSelectedOption, hasTaxBeenDeleted);
     };
 
     const textInputOptions = {
@@ -103,9 +125,16 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
         headerMessage: getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue),
     };
 
+    const updatedSections = deletedTaxOption
+        ? sections.map((section) => ({
+              ...section,
+              data: [...section.data.map((item) => (item.code === deletedTaxOption.code ? {...item, isSelected: false} : item)), deletedTaxOption],
+          }))
+        : sections;
+
     return (
         <SelectionListWithSections
-            sections={sections}
+            sections={updatedSections}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={handleSelectRow}
