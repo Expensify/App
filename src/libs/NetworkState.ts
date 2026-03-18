@@ -9,6 +9,7 @@ import {pause, unpause} from './Network/SequentialQueue';
 let hasRadio = true;
 let sustainedFailuresActive = false;
 let shouldForceOffline = false;
+let appForegroundListenerRegistered = false;
 
 // Wire FailureTracker → NetworkState (avoids circular dependency)
 onSustainedFailureChange((active) => setSustainedFailures(active));
@@ -91,6 +92,11 @@ function onReachabilityRestored() {
  * - Always → reconnect to catch up on missed data
  */
 function initAppForegroundListener() {
+    if (appForegroundListenerRegistered) {
+        return;
+    }
+    appForegroundListenerRegistered = true;
+
     AppStateMonitor.addBecameActiveListener(() => {
         Log.info('[NetworkState] App became active');
         if (isInHardStop() && !shouldForceOffline) {
