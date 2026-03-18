@@ -13,10 +13,6 @@ function getContextMenuAccessibilityHint({translate}: GetContextMenuAccessibilit
         return translate('accessibilityHints.contextMenuAvailable');
     }
 
-    if (platform === CONST.PLATFORM.MOBILE_WEB) {
-        return translate('accessibilityHints.contextMenuAvailableMobileWeb');
-    }
-
     return translate('accessibilityHints.contextMenuAvailableNative');
 }
 
