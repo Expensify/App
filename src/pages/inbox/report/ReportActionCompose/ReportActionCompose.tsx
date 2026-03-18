@@ -567,6 +567,34 @@ function ReportActionCompose({
 
     const fsClass = FS.getChatFSClass(report);
 
+    const containerStyles = useMemo(
+        () => [
+            shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+            styles.flexRow,
+            styles.chatItemComposeBox,
+            isComposerFullSize && styles.chatItemFullComposeBox,
+            isExceedingMaxLength && styles.borderColorDanger,
+        ],
+        [
+            shouldUseFocusedColor,
+            styles.chatItemComposeBoxFocusedColor,
+            styles.chatItemComposeBoxColor,
+            styles.flexRow,
+            styles.chatItemComposeBox,
+            styles.chatItemFullComposeBox,
+            styles.borderColorDanger,
+            isComposerFullSize,
+            isExceedingMaxLength,
+        ],
+    );
+
+    const editingButtonsContainerStyles = useMemo(
+        () => [styles.dFlex, styles.alignItemsCenter, styles.flexWrap, styles.justifyContentCenter, {paddingVertical: styles.composerSizeButton.marginHorizontal}],
+        [styles.alignItemsCenter, styles.composerSizeButton.marginHorizontal, styles.dFlex, styles.flexWrap, styles.justifyContentCenter],
+    );
+
+    const expandCollapseComposerButtonStyles = useMemo(() => [styles.flexGrow1, styles.flexShrink0], [styles.flexGrow1, styles.flexShrink0]);
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -581,19 +609,11 @@ function ReportActionCompose({
                 >
                     <View
                         ref={containerRef}
-                        style={[
-                            shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
-                            styles.flexRow,
-                            styles.chatItemComposeBox,
-                            isComposerFullSize && styles.chatItemFullComposeBox,
-                            isExceedingMaxLength && styles.borderColorDanger,
-                        ]}
+                        style={containerStyles}
                     >
                         {PDFValidationComponent}
                         {isEditingInComposer ? (
-                            <View
-                                style={[styles.dFlex, styles.alignItemsCenter, styles.flexWrap, styles.justifyContentCenter, {paddingVertical: styles.composerSizeButton.marginHorizontal}]}
-                            >
+                            <View style={editingButtonsContainerStyles}>
                                 <ExpandCollapseComposerButton
                                     isFullComposerAvailable={isFullComposerAvailable}
                                     isComposerFullSize={isComposerFullSize}
@@ -601,7 +621,7 @@ function ReportActionCompose({
                                     disabled={isBlockedFromConcierge}
                                     raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
                                     setIsComposerFullSize={setIsComposerFullSize}
-                                    style={[styles.flexGrow1, styles.flexShrink0]}
+                                    style={expandCollapseComposerButtonStyles}
                                 />
                                 <MessageEditCancelButton onCancel={deleteDraft} />
                             </View>
