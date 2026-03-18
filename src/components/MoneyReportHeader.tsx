@@ -426,6 +426,10 @@ function MoneyReportHeader({
     const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
     const wasDuplicateReportTriggered = useRef(false);
 
+    const handleOptionsMenuHide = useCallback(() => {
+        wasDuplicateReportTriggered.current = false;
+    }, []);
+
     useEffect(() => {
         if (!isDuplicateReportActive || !wasDuplicateReportTriggered.current) {
             return;
@@ -2458,6 +2462,7 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 dropdownMenuRef={dropdownMenuRef}
+                                onOptionsMenuHide={handleOptionsMenuHide}
                                 ref={kycWallRef}
                             />
                         )}
@@ -2480,6 +2485,7 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 dropdownMenuRef={dropdownMenuRef}
+                                onOptionsMenuHide={handleOptionsMenuHide}
                                 ref={kycWallRef}
                             />
                         )}
