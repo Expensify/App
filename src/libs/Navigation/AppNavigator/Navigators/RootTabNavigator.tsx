@@ -9,8 +9,8 @@ import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {RootTabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
@@ -36,14 +36,14 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
  * floating buttons (FAB, GPS, Camera) rendered by NavigationTabBar can extend
  * above the tab bar area without being clipped.
  *
- * Performance: avoids useResponsiveLayout() which subscribes to NavigationContext
- * and NavigationContainerRefContext — both fire on every navigation action.
- * On native, shouldUseNarrowLayout is always true. On web, we read window.innerWidth
- * synchronously (parent re-renders on resize propagate here).
+ * The BottomTabView handles layout via flexDirection:
+ *   - tabBarPosition='bottom' → flexDirection='column' (screens above, tab bar below)
+ *   - tabBarPosition='left'   → flexDirection='row-reverse' (tab bar left, screens right)
+ * No manual margins needed — the navigator's flex layout sizes everything.
  */
 function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state']}) {
-    const isNarrow = Platform.OS !== 'web' || window.innerWidth <= variables.mobileResponsiveWidthBreakpoint;
-    const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
+    const {windowWidth} = useWindowDimensions();
+    const isNarrow = Platform.OS !== 'web' || windowWidth <= variables.mobileResponsiveWidthBreakpoint;
     const selectedRouteName = tabState.routes[tabState.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
 
@@ -52,26 +52,15 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     const isAtRoot = nestedStateIndex === undefined || nestedStateIndex === 0;
     const shouldHide = isNarrow && !isAtRoot;
 
-    if (isNarrow) {
-        return (
-            <View
-                style={{overflow: 'visible', marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom), paddingBottom: safeAreaPaddingBottom, opacity: shouldHide ? 0 : 1}}
-                pointerEvents={shouldHide ? 'none' : 'auto'}
-            >
-                <NavigationTabBar
-                    selectedTab={selectedTab}
-                    shouldShowFloatingButtons={!shouldHide}
-                />
-            </View>
-        );
-    }
-
-    // On wide layout, the bottom tab navigator uses tabBarPosition='left' to place
-    // the tab bar on the left side. NavigationTabBar renders as a normal flow element
-    // (no position:fixed) so the navigator's flex layout handles positioning.
     return (
-        <View style={{overflow: 'visible'}}>
-            <NavigationTabBar selectedTab={selectedTab} />
+        <View
+            style={{overflow: 'visible', opacity: shouldHide ? 0 : 1}}
+            pointerEvents={shouldHide ? 'none' : 'auto'}
+        >
+            <NavigationTabBar
+                selectedTab={selectedTab}
+                shouldShowFloatingButtons={!shouldHide}
+            />
         </View>
     );
 }
@@ -130,16 +119,14 @@ const TAB_SCREEN_OPTIONS_WIDE = {
 } as const;
 
 function RootTabNavigator() {
-    // No hooks — stable screenOptions reference prevents unnecessary descriptor rebuilds.
-    // On native: Platform.OS !== 'web' → always TAB_SCREEN_OPTIONS_NARROW (same ref every render).
-    // On web: reads window.innerWidth synchronously; parent re-renders on resize propagate here.
-    const isWideWeb = Platform.OS === 'web' && window.innerWidth > variables.mobileResponsiveWidthBreakpoint;
+    const {windowWidth} = useWindowDimensions();
+    const isNarrow = Platform.OS !== 'web' || windowWidth <= variables.mobileResponsiveWidthBreakpoint;
 
     return (
         <Tab.Navigator
             backBehavior="fullHistory"
             tabBar={renderTabBar}
-            screenOptions={isWideWeb ? TAB_SCREEN_OPTIONS_WIDE : TAB_SCREEN_OPTIONS_NARROW}
+            screenOptions={isNarrow ? TAB_SCREEN_OPTIONS_NARROW : TAB_SCREEN_OPTIONS_WIDE}
         >
             <Tab.Screen
                 name={SCREENS.HOME}

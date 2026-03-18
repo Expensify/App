@@ -5,13 +5,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
-import variables from '@styles/variables';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 const barHeight = 7;
 const longBarWidth = 120;
 const shortBarWidth = 60;
-const leftPaneWidth = variables.navigationTabBarSize;
+const leftPaneWidth = 0;
 const gapWidth = 12;
 
 type WorkspaceRowSkeletonProps = {

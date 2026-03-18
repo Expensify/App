@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -13,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTabBarBottomContent from '@hooks/useTabBarBottomContent';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
@@ -37,8 +35,6 @@ function HomePage() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
 
-    const tabBarContent = useTabBarBottomContent(NAVIGATION_TABS.HOME);
-
     // This hook signals that the app is ready to be opened after HomePage mounts
     // to make sure everything loads properly
     useConfirmReadyToOpenApp();
@@ -54,8 +50,6 @@ function HomePage() {
                 shouldShowOfflineIndicatorInWideScreen
                 testID="HomePage"
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
-                bottomContent={tabBarContent}
-                bottomContentStyle={{overflow: 'visible'}}
             >
                 <TopBar
                     breadcrumbLabel={translate('common.home')}

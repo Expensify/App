@@ -41,7 +41,7 @@ const useSplitNavigatorScreenOptions = () => {
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
                     width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
-                    marginLeft: shouldUseNarrowLayout ? 0 : -(variables.sideBarWithLHBWidth + variables.navigationTabBarSize),
+                    marginLeft: shouldUseNarrowLayout ? 0 : -variables.sideBarWithLHBWidth,
                     ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
                 },
             },
@@ -61,7 +61,7 @@ const useSplitNavigatorScreenOptions = () => {
                     ? StyleUtils.getNavigationModalCardStyle()
                     : {
                           ...themeStyles.h100,
-                          marginLeft: -variables.navigationTabBarSize,
+                          marginLeft: 0,
                       },
             },
         },

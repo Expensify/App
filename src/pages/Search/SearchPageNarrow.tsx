@@ -6,7 +6,6 @@ import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -23,7 +22,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTabBarBottomContent from '@hooks/useTabBarBottomContent';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -63,7 +61,6 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const {clearSelectedTransactions} = useSearchActionsContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
-    const tabBarContent = useTabBarBottomContent(NAVIGATION_TABS.SEARCH);
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
@@ -170,8 +167,6 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicator={!!searchResults}
-            bottomContent={tabBarContent}
-            bottomContentStyle={{overflow: 'visible'}}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
                 {!isMobileSelectionModeEnabled ? (
