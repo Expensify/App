@@ -3609,11 +3609,39 @@ describe('CardUtils', () => {
             expect(result).toBeUndefined();
         });
 
-        it('should auto-detect US program when no feedCountry is provided', () => {
+        it('should skip US auto-detect when TRAVEL_US exists and US lacks marqetaBusinessToken (setupInvoicing artifact)', () => {
             const result = getCardSettings(nestedSettings);
+            expect(result).toBeUndefined();
+        });
+
+        it('should auto-detect US program when TRAVEL_US exists but US has marqetaBusinessToken (real provisioning)', () => {
+            const realProvisionedSettings = {
+                ...nestedSettings,
+                US: {
+                    ...nestedSettings.US,
+                    marqetaBusinessToken: 123456,
+                },
+            } as ExpensifyCardSettings;
+            const result = getCardSettings(realProvisionedSettings);
             expect(result?.paymentBankAccountID).toBe(67890);
             expect(result?.limit).toBe(30000);
             expect(result?.currentBalance).toBe(500);
+            expect(result?.domainName).toBe('example.com');
+        });
+
+        it('should auto-detect US program when no TRAVEL_US exists', () => {
+            const usOnlySettings = {
+                domainName: 'example.com',
+                preferredPolicy: 'policyID',
+                US: {
+                    paymentBankAccountID: 67890,
+                    limit: 30000,
+                    currentBalance: 500,
+                },
+            } as ExpensifyCardSettings;
+            const result = getCardSettings(usOnlySettings);
+            expect(result?.paymentBankAccountID).toBe(67890);
+            expect(result?.limit).toBe(30000);
             expect(result?.domainName).toBe('example.com');
         });
 
