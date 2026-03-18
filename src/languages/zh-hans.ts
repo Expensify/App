@@ -1342,14 +1342,16 @@ const translations: TranslationDeepObject<typeof en> = {
             isCurrentUser,
             submitterLogin,
             creditBankAccount,
-            paymentMethod,
+            isCard,
         }: {
             isCurrentUser: boolean;
             submitterLogin: string;
             creditBankAccount: string;
-            paymentMethod: string;
-        }) =>
-            `。资金正在转入${isCurrentUser ? '您' : submitterLogin}${creditBankAccount ? `的尾号为${creditBankAccount}的银行账户` : '的账户'}（通过${paymentMethod}支付）。最多可能需要10个工作日。`,
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? '银行卡' : '银行账户';
+            return `。资金正在转入${isCurrentUser ? '您' : submitterLogin}${creditBankAccount ? `的尾号为${creditBankAccount}的银行账户` : '的账户'}（通过${paymentMethod}支付）。最多可能需要10个工作日。`;
+        },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` 通过直接存款（ACH）${creditBankAccount ? `转至尾号为${creditBankAccount}的银行账户。` : '。'}${expectedDate ? `预计报销将于${expectedDate}前完成。` : '通常需要4-5个工作日。'}`,
         noReimbursableExpenses: '此报表的金额无效',

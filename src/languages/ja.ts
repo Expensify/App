@@ -1365,14 +1365,16 @@ const translations: TranslationDeepObject<typeof en> = {
             isCurrentUser,
             submitterLogin,
             creditBankAccount,
-            paymentMethod,
+            isCard,
         }: {
             isCurrentUser: boolean;
             submitterLogin: string;
             creditBankAccount: string;
-            paymentMethod: string;
-        }) =>
-            `。${isCurrentUser ? 'あなた' : submitterLogin}${creditBankAccount ? `の末尾が${creditBankAccount}の銀行口座` : 'の口座'}へ送金中です（${paymentMethod}経由）。最大10営業日かかる場合があります。`,
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'カード' : '銀行口座';
+            return `。${isCurrentUser ? 'あなた' : submitterLogin}${creditBankAccount ? `の末尾が${creditBankAccount}の銀行口座` : 'の口座'}へ送金中です（${paymentMethod}経由）。最大10営業日かかる場合があります。`;
+        },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` 銀行振込（ACH）${creditBankAccount ? `で末尾が${creditBankAccount}の銀行口座へ。` : 'にて。'}${expectedDate ? `払い戻しは${expectedDate}までに完了する予定です。` : '通常4〜5営業日かかります。'}`,
         noReimbursableExpenses: 'このレポートには無効な金額が含まれています',

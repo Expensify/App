@@ -1378,16 +1378,18 @@ const translations: TranslationDeepObject<typeof en> = {
             isCurrentUser,
             submitterLogin,
             creditBankAccount,
-            paymentMethod,
+            isCard,
         }: {
             isCurrentUser: boolean;
             submitterLogin: string;
             creditBankAccount: string;
-            paymentMethod: string;
-        }) =>
-            isCurrentUser
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'Karte' : 'Bankkonto';
+            return isCurrentUser
                 ? `. Das Geld ist auf dem Weg zu Ihrem${creditBankAccount ? ` Bankkonto mit der Endung ${creditBankAccount}` : ' Konto'} (bezahlt per ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`
-                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''} (bezahlt per ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`,
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''} (bezahlt per ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`;
+        },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` per Direktüberweisung (ACH)${creditBankAccount ? ` auf das Bankkonto mit der Endung ${creditBankAccount}. ` : '. '}${expectedDate ? `Die Rückerstattung wird voraussichtlich bis ${expectedDate} abgeschlossen.` : 'Dies dauert in der Regel 4–5 Werktage.'}`,
         noReimbursableExpenses: 'Dieser Bericht enthält einen ungültigen Betrag',

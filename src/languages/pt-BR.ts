@@ -1372,16 +1372,18 @@ const translations: TranslationDeepObject<typeof en> = {
             isCurrentUser,
             submitterLogin,
             creditBankAccount,
-            paymentMethod,
+            isCard,
         }: {
             isCurrentUser: boolean;
             submitterLogin: string;
             creditBankAccount: string;
-            paymentMethod: string;
-        }) =>
-            isCurrentUser
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'cartão' : 'conta bancária';
+            return isCurrentUser
                 ? `. O dinheiro está a caminho de sua${creditBankAccount ? ` conta bancária terminada em ${creditBankAccount}` : ' conta'} (pago via ${paymentMethod}). Isso pode levar até 10 dias úteis.`
-                : `. O dinheiro está a caminho da conta bancária de ${submitterLogin}${creditBankAccount ? ` terminada em ${creditBankAccount}` : ''} (pago via ${paymentMethod}). Isso pode levar até 10 dias úteis.`,
+                : `. O dinheiro está a caminho da conta bancária de ${submitterLogin}${creditBankAccount ? ` terminada em ${creditBankAccount}` : ''} (pago via ${paymentMethod}). Isso pode levar até 10 dias úteis.`;
+        },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` por depósito direto (ACH)${creditBankAccount ? ` para a conta bancária terminada em ${creditBankAccount}. ` : '. '}${expectedDate ? `O reembolso deve ser concluído até ${expectedDate}.` : 'Geralmente leva 4 a 5 dias úteis.'}`,
         noReimbursableExpenses: 'Este relatório tem um valor inválido',

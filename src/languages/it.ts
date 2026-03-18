@@ -1376,16 +1376,18 @@ const translations: TranslationDeepObject<typeof en> = {
             isCurrentUser,
             submitterLogin,
             creditBankAccount,
-            paymentMethod,
+            isCard,
         }: {
             isCurrentUser: boolean;
             submitterLogin: string;
             creditBankAccount: string;
-            paymentMethod: string;
-        }) =>
-            isCurrentUser
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'carta' : 'conto bancario';
+            return isCurrentUser
                 ? `. Il denaro è in arrivo al tuo${creditBankAccount ? ` conto bancario che termina con ${creditBankAccount}` : ' conto'} (pagato tramite ${paymentMethod}). Potrebbe richiedere fino a 10 giorni lavorativi.`
-                : `. Il denaro è in arrivo al conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''} (pagato tramite ${paymentMethod}). Potrebbe richiedere fino a 10 giorni lavorativi.`,
+                : `. Il denaro è in arrivo al conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''} (pagato tramite ${paymentMethod}). Potrebbe richiedere fino a 10 giorni lavorativi.`;
+        },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` con deposito diretto (ACH)${creditBankAccount ? ` al conto bancario che termina con ${creditBankAccount}. ` : '. '}${expectedDate ? `Si stima che il rimborso sarà completato entro il ${expectedDate}.` : 'In genere richiede 4-5 giorni lavorativi.'}`,
         noReimbursableExpenses: 'Questo rendiconto contiene un importo non valido',

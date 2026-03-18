@@ -1374,16 +1374,18 @@ const translations: TranslationDeepObject<typeof en> = {
             isCurrentUser,
             submitterLogin,
             creditBankAccount,
-            paymentMethod,
+            isCard,
         }: {
             isCurrentUser: boolean;
             submitterLogin: string;
             creditBankAccount: string;
-            paymentMethod: string;
-        }) =>
-            isCurrentUser
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'karta' : 'konto bankowe';
+            return isCurrentUser
                 ? `. Pieniądze są w drodze na twoje${creditBankAccount ? ` konto bankowe kończące się na ${creditBankAccount}` : ' konto'} (płatność przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`
-                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''} (płatność przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`,
+                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''} (płatność przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`;
+        },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
             ` przelewem bezpośrednim (ACH)${creditBankAccount ? ` na konto bankowe kończące się na ${creditBankAccount}. ` : '. '}${expectedDate ? `Oczekuje się, że zwrot środków zostanie zrealizowany do ${expectedDate}.` : 'Zazwyczaj zajmuje to 4-5 dni roboczych.'}`,
         noReimbursableExpenses: 'Ten raport ma nieprawidłową kwotę',

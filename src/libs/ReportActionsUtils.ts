@@ -481,8 +481,7 @@ function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxI
     } else if (paymentMethod === 'Check') {
         paymentSuffix = translate('iou.reimbursedWithCheck');
     } else if (paymentMethod === 'StripeConnect') {
-        const pmType = stripePaymentType === 'card' ? 'card' : 'bank account';
-        paymentSuffix = translate('iou.reimbursedWithStripeConnect', {isCurrentUser, submitterLogin, creditBankAccount: creditBankAccountLast4 ?? '', paymentMethod: pmType});
+        paymentSuffix = translate('iou.reimbursedWithStripeConnect', {isCurrentUser, submitterLogin, creditBankAccount: creditBankAccountLast4 ?? '', isCard: stripePaymentType === 'card'});
     } else {
         let formattedDate: string | undefined;
         if (expectedDate) {
