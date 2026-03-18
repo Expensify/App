@@ -2831,6 +2831,7 @@ function editReportComment(
     );
 }
 
+/** Clears drafts for all comment report action in a report. */
 function clearReportActionDrafts(reportID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`, null);
 }
