@@ -16,6 +16,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -65,7 +66,15 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
                 continue;
             }
 
-            changeDomainSecurityGroup(domainAccountID, domainName, memberLogin, accountID, currentGroupData.key, currentGroupData.securityGroup, selectedGroupId);
+            changeDomainSecurityGroup(
+                domainAccountID,
+                domainName,
+                memberLogin,
+                accountID,
+                currentGroupData.key,
+                currentGroupData.securityGroup,
+                `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${selectedGroupId}`,
+            );
         }
 
         clearDomainMembersSelectedForMove();
