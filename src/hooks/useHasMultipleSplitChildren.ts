@@ -22,9 +22,6 @@ function selectChildTransactionInfo(transactions: OnyxCollection<Transaction>, o
         ) {
             result.push({reportID: t?.reportID, isSplitSource: t?.comment?.source === CONST.IOU.TYPE.SPLIT});
         }
-        if (result.length > 1) {
-            return result;
-        }
     }
     return result;
 }
