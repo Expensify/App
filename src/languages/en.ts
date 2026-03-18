@@ -7793,7 +7793,7 @@ const translations = {
         },
         switchAccountWarningTripInProgress: {
             title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to stop GPS tracking and switch account?',
+            prompt: 'Are you sure you want to stop GPS tracking and switch accounts?',
             confirm: 'Stop and switch',
         },
         locationServicesRequiredModal: {
