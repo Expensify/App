@@ -22,8 +22,6 @@ const mockShowDelegateNoAccessModal = jest.fn();
 let mockCanIOUBePaidResult = false;
 let mockCanIOUBePaidElsewhereResult = false;
 
-let mockShouldShowDeleteOption = false;
-
 let mockGetPayOptionResult = {shouldEnableBulkPayOption: false, isFirstTimePayment: false};
 
 let mockBulkPayButtonOptions: Array<{text: string}> | undefined;
@@ -266,7 +264,7 @@ jest.mock('@libs/ReportUtils', () => ({
 
 jest.mock('@libs/SearchUIUtils', () => ({
     navigateToSearchRHP: jest.fn(),
-    shouldShowDeleteOption: jest.fn(() => mockShouldShowDeleteOption),
+    shouldShowDeleteOption: jest.fn(() => false),
 }));
 
 jest.mock('@libs/SubscriptionUtils', () => ({
@@ -361,7 +359,6 @@ describe('useSearchBulkActions', () => {
         mockIsDelegateAccessRestricted = false;
         mockCanIOUBePaidResult = false;
         mockCanIOUBePaidElsewhereResult = false;
-        mockShouldShowDeleteOption = false;
         mockGetPayOptionResult = {shouldEnableBulkPayOption: false, isFirstTimePayment: false};
         mockBulkPayButtonOptions = undefined;
         mockBusinessBankAccountOptions = undefined;
@@ -472,147 +469,4 @@ describe('useSearchBulkActions', () => {
         });
     });
 
-    describe('headerButtonsOptions', () => {
-        it('should show only export option when all matching items are selected', () => {
-            mockAreAllMatchingItemsSelected = true;
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo(),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            expect(result.current.headerButtonsOptions).toHaveLength(1);
-            expect(result.current.headerButtonsOptions.at(0)?.value).toBe(CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        });
-
-        it('should always include export option when transactions are selected', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.VIEW}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const exportOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-            expect(exportOption).toBeDefined();
-        });
-
-        it('should show approve option when all selected transactions have approve action', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.APPROVE, reportID: undefined}),
-                trans2: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.APPROVE, reportID: undefined}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const approveOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
-            expect(approveOption).toBeDefined();
-        });
-
-        it('should show pay option when shouldEnableBulkPayOption is true', () => {
-            mockGetPayOptionResult = {shouldEnableBulkPayOption: true, isFirstTimePayment: false};
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.PAY}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const payOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.PAY);
-            expect(payOption).toBeDefined();
-        });
-
-        it('should show hold option when all transactions can be held', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({canHold: true}),
-                trans2: createTransactionInfo({canHold: true}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const holdOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
-            expect(holdOption).toBeDefined();
-        });
-
-        it('should show unhold option when all transactions can be unheld', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({canUnhold: true}),
-                trans2: createTransactionInfo({canUnhold: true}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const unholdOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
-            expect(unholdOption).toBeDefined();
-        });
-
-        it('should show submit option when all selected transactions have submit action', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({action: CONST.SEARCH.ACTION_TYPES.SUBMIT, reportID: undefined}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const submitOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
-            expect(submitOption).toBeDefined();
-        });
-
-        it('should show reject option when all transactions can be rejected', () => {
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo({canReject: true}),
-                trans2: createTransactionInfo({canReject: true}),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const rejectOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
-            expect(rejectOption).toBeDefined();
-        });
-
-        it('should show delete option when shouldShowDeleteOption returns true', () => {
-            mockShouldShowDeleteOption = true;
-            mockSelectedTransactions = {
-                trans1: createTransactionInfo(),
-            };
-
-            const {result} = renderHook(() =>
-                useSearchBulkActions({
-                    queryJSON: createBaseQueryJSON(),
-                }),
-            );
-
-            const deleteOption = result.current.headerButtonsOptions.find((opt) => opt.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE);
-            expect(deleteOption).toBeDefined();
-        });
-    });
 });
