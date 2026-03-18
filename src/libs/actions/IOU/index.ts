@@ -13356,8 +13356,10 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
         // Optimistically update violations so they disappear immediately when the edited field resolves them.
         // Skip for unreported expenses: they have no iouReport context so isSelfDM() returns false,
         // which would incorrectly trigger policy-required violations (e.g. missingCategory).
+        let optimisticViolationsData: ReturnType<typeof ViolationsUtils.getViolationsOnyxData> | undefined;
+        let currentTransactionViolations: OnyxTypes.TransactionViolation[] | undefined;
         if (transactionPolicy && !isUnreportedExpense) {
-            const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+            currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             let optimisticViolations =
                 transactionChanges.amount !== undefined || transactionChanges.created || transactionChanges.currency
                     ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
@@ -13367,20 +13369,19 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
                     ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
                     : optimisticViolations;
             const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
-            optimisticData.push(
-                ViolationsUtils.getViolationsOnyxData(
-                    updatedTransaction,
-                    optimisticViolations,
-                    transactionPolicy,
-                    policyTagList,
-                    policyCategories ?? {},
-                    hasDependentTags(transactionPolicy, policyTagList),
-                    isInvoiceReportReportUtils(iouReport),
-                    isSelfDM(iouReport),
-                    iouReport,
-                    isFromExpenseReport,
-                ),
+            optimisticViolationsData = ViolationsUtils.getViolationsOnyxData(
+                updatedTransaction,
+                optimisticViolations,
+                transactionPolicy,
+                policyTagList,
+                policyCategories ?? {},
+                hasDependentTags(transactionPolicy, policyTagList),
+                isInvoiceReportReportUtils(iouReport),
+                isSelfDM(iouReport),
+                iouReport,
+                isFromExpenseReport,
             );
+            optimisticData.push(optimisticViolationsData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -13411,6 +13412,7 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
                     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: updatedTransaction,
+                        ...(optimisticViolationsData && {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: optimisticViolationsData.value}),
                     },
                 },
             });
@@ -13421,6 +13423,7 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
                     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                        ...(currentTransactionViolations && {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations}),
                     },
                 },
             });
