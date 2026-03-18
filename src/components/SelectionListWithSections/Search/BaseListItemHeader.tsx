@@ -146,8 +146,11 @@ function BaseListItemHeader<TItem extends ListItem>({
                             onPress={() => onCheckboxPress?.(item as unknown as TItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
+                            containerStyle={[StyleUtils.getCheckboxContainerStyle(20)]}
                             disabled={!!isDisabled || item.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
+                            shouldStopMouseDownPropagation
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle()]}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_SELECT_ALL_CHECKBOX}
                         />
                     )}

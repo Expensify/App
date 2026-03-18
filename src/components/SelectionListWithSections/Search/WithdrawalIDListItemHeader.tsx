@@ -171,9 +171,12 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                         <Checkbox
                             onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
                             isChecked={isSelectAllChecked}
+                            containerStyle={[StyleUtils.getCheckboxContainerStyle(20)]}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                             isIndeterminate={isIndeterminate}
+                            shouldStopMouseDownPropagation
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle()]}
                         />
                     )}
                     {!isLargeScreenWidth && (

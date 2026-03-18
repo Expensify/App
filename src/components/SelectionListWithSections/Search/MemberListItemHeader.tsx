@@ -111,8 +111,11 @@ function MemberListItemHeader<TItem extends ListItem>({
                             onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
+                            containerStyle={[StyleUtils.getCheckboxContainerStyle(20)]}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
+                            shouldStopMouseDownPropagation
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle()]}
                         />
                     )}
                     {!isLargeScreenWidth && (
@@ -124,6 +127,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                                         type={CONST.ICON_TYPE_AVATAR}
                                         name={formattedDisplayName}
                                         avatarID={memberItem.accountID}
+                                        size={CONST.AVATAR_SIZE.SMALL}
                                     />
                                 </View>
                             </UserDetailsTooltip>
@@ -149,6 +153,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                                             type={CONST.ICON_TYPE_AVATAR}
                                             name={formattedDisplayName}
                                             avatarID={memberItem.accountID}
+                                            size={CONST.AVATAR_SIZE.SMALL}
                                         />
                                     </View>
                                 </UserDetailsTooltip>

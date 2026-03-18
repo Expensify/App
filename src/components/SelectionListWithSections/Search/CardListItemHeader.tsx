@@ -128,8 +128,11 @@ function CardListItemHeader<TItem extends ListItem>({
                             onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
+                            containerStyle={[StyleUtils.getCheckboxContainerStyle(20)]}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
+                            shouldStopMouseDownPropagation
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle()]}
                         />
                     )}
                     {!isLargeScreenWidth && (
@@ -139,6 +142,7 @@ function CardListItemHeader<TItem extends ListItem>({
                                 subscriptAvatarBorderColor={backgroundColor}
                                 noRightMarginOnSubscriptContainer
                                 accountIDs={[cardItem.accountID]}
+                                size={CONST.AVATAR_SIZE.SMALL}
                             />
                             <View style={[styles.gapHalf, styles.flexShrink1]}>
                                 <TextWithTooltip
@@ -163,6 +167,7 @@ function CardListItemHeader<TItem extends ListItem>({
                                             subscriptAvatarBorderColor={backgroundColor}
                                             noRightMarginOnSubscriptContainer
                                             accountIDs={[cardItem.accountID]}
+                                            size={CONST.AVATAR_SIZE.SMALL}
                                         />
                                     </View>
                                 </UserDetailsTooltip>
