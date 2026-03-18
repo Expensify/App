@@ -23,6 +23,7 @@ import {
     isCardHiddenFromSearch,
     isCustomFeed,
     isDirectFeed,
+    isPersonalCard,
 } from './CardUtils';
 import type {CompanyCardFeedIcons} from './CardUtils';
 import {getDescriptionForPolicyDomainCard} from './PolicyUtils';
@@ -93,14 +94,19 @@ function createCardFilterItem(
     selectedCards: string[],
     illustrations: IllustrationsType,
     companyCardIcons: CompanyCardFeedIcons,
+    customCardNames?: Record<string, string>,
 ): CardFilterItem {
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
     const icon = getCardFeedIcon(card?.bank, illustrations, companyCardIcons);
     const cardName = card?.nameValuePairs?.cardTitle;
-    const text = personalDetails?.displayName ?? cardName;
+    let text = personalDetails?.displayName ?? cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
     const isCSVImportCard = card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
+    const isPersonal = isPersonalCard(card);
+    if (isPersonal) {
+        text = customCardNames?.[card?.cardID] ?? card?.cardName;
+    }
 
     return {
         lastFourPAN: isCSVImportCard ? card?.cardName : card.lastFourPAN,
@@ -128,12 +134,13 @@ function buildCardsData(
     illustrations: IllustrationsType,
     companyCardIcons: CompanyCardFeedIcons,
     isClosedCards = false,
+    customCardNames?: Record<string, string>,
 ): ItemsGroupedBySelection {
     // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
     const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card) && isCard(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
         .filter((card) => filterCondition(card))
-        .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
+        .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons, customCardNames));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
@@ -141,7 +148,7 @@ function buildCardsData(
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as CardList)
                 .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
-                .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
+                .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons, customCardNames));
         });
 
     const allCardItems = [...userAssignedCards, ...allWorkspaceCards];

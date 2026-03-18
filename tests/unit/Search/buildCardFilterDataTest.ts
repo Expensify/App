@@ -442,6 +442,44 @@ describe('buildCardFeedsData', () => {
     });
 });
 
+describe('buildCardsData isPersonal with customCardNames', () => {
+    it('Uses customCardNames for personal cards when provided', () => {
+        // Card 11111111 has no fundID, so it is treated as personal (isPersonalCard returns true)
+        const customCardNames: Record<string, string> = {
+            '11111111': 'My Custom Card Label',
+        };
+        const result = buildCardsData(
+            workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>,
+            cardList as unknown as CardList,
+            {},
+            [],
+            illustrationsMock as IllustrationsType,
+            companyCardIconsMock,
+            false,
+            customCardNames,
+        );
+
+        const personalCard = result.unselected.find((card) => card.keyForList === '11111111') ?? result.selected.find((card) => card.keyForList === '11111111');
+        expect(personalCard).toBeDefined();
+        expect(personalCard?.text).toBe('My Custom Card Label');
+    });
+
+    it('Falls back to cardName for personal cards when customCardNames is not provided', () => {
+        const result = buildCardsData(
+            workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>,
+            cardList as unknown as CardList,
+            {},
+            [],
+            illustrationsMock as IllustrationsType,
+            companyCardIconsMock,
+        );
+
+        const personalCard = result.unselected.find((card) => card.keyForList === '11111111') ?? result.selected.find((card) => card.keyForList === '11111111');
+        expect(personalCard).toBeDefined();
+        expect(personalCard?.text).toBe('455594XXXXXX1138');
+    });
+});
+
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Return empty array when domainCardFeeds and workspaceCardFeeds are empty', () => {
         const result = buildCardFeedsData({}, {}, mockPolicies, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType, companyCardIconsMock);
