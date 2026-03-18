@@ -172,7 +172,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
-            hasActiveAdminPolicies: false,
+            hasActiveAdminPolicies: true,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
@@ -181,7 +181,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
-            hasActiveAdminPolicies: false,
+            hasActiveAdminPolicies: true,
         });
         await waitForBatchedUpdatesWithAct();
 
