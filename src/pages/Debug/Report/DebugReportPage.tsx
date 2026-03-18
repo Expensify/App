@@ -21,7 +21,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {hasReportViolations, isReportOwner, shouldDisplayViolationsRBRInLHN} from '@libs/ReportUtils';
+import {getViolatingReportIDForRBRInLHN, hasReportViolations, isReportOwner} from '@libs/ReportUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -59,6 +59,7 @@ function DebugReportPage({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`);
     const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID], [reportID]);
     const [reportAttributes] = useOnyx(
         ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
@@ -71,6 +72,7 @@ function DebugReportPage({
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
@@ -80,8 +82,8 @@ function DebugReportPage({
             return [];
         }
 
-        const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(reportID);
+        const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
+        const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(reportViolations);
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, isReportArchived) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
@@ -151,7 +153,20 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
+    }, [
+        report,
+        transactionViolations,
+        reportViolations,
+        isReportArchived,
+        chatReport,
+        reportActions,
+        transactions,
+        reportAttributes?.reportErrors,
+        betas,
+        priorityMode,
+        draftComment,
+        translate,
+    ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
 
@@ -164,7 +179,7 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, true, true);
+                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >
@@ -227,6 +242,7 @@ function DebugReportPage({
             icons.Eye,
             currentUserAccountID,
             conciergeReportID,
+            introSelected,
         ],
     );
 

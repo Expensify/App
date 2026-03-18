@@ -43,7 +43,7 @@ import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitN
 import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
+import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
@@ -63,6 +63,12 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
+
+// Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
+const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
+const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
+const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
+const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -337,7 +343,7 @@ const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'var
  * Computes and returns a numerical hash for a given queryJSON.
  * Sorts the query keys and values to ensure that hashes stay consistent.
  */
-function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSearchHash: number; similarSearchHash: number} {
+function getQueryHashes(query: SearchQueryJSON) {
     let orderedQuery = '';
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
@@ -826,6 +832,11 @@ function buildFilterFormValuesFromQuery(
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
     const policyID = queryJSON.policyID;
 
+    // Pre-compute dynamic validation Sets once (avoids recreating per filter iteration)
+    const validCurrencies = new Set(Object.keys(currencyList));
+    const allTaxRateKeys = new Set(Object.values(taxRates).flat());
+    const exportedToValues = new Set<string>(exportedToFilterOptions ?? []);
+
     for (const queryFilter of filters) {
         const filterList = queryFilter.filters;
         const filterKey = queryFilter.key as SearchAdvancedFiltersKey;
@@ -846,21 +857,17 @@ function buildFilterFormValuesFromQuery(
                 actionValue && Object.values(CONST.SEARCH.ACTION_FILTERS).includes(actionValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>) ? actionValue : undefined;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
-            const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
-            filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => VALID_EXPENSE_TYPES.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            const validHasTypes = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
-            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
-            const validIsTypes = new Set(Object.values(CONST.SEARCH.IS_VALUES));
-            filtersForm[key as typeof filterKey] = filterValues.filter((isType) => validIsTypes.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
-            const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
             filtersForm[key as typeof filterKey] = filterValues.find((withdrawalType): withdrawalType is SearchWithdrawalType =>
-                validWithdrawalTypes.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>),
+                VALID_WITHDRAWAL_TYPES.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>),
             );
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
@@ -870,8 +877,7 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.filter((feed) => feed);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            const allTaxRates = new Set(Object.values(taxRates).flat());
-            filtersForm[key as typeof filterKey] = filterValues.filter((tax) => allTaxRates.has(tax));
+            filtersForm[key as typeof filterKey] = filterValues.filter((tax) => allTaxRateKeys.has(tax));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
             filtersForm[key as typeof filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
@@ -889,43 +895,39 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
-            const allowedValues = new Set<string>(exportedToFilterOptions ?? []);
-            filtersForm[key as typeof filterKey] = filterValues.filter((value) => allowedValues.has(value));
+            filtersForm[key as typeof filterKey] = filterValues.filter((value) => exportedToValues.has(value));
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
             filtersForm[key as typeof filterKey] = filterValues.find((id) => personalDetails?.[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) {
-            const validCurrency = new Set(Object.keys(currencyList));
-            filtersForm[key as typeof filterKey] = filterValues.filter((currency) => validCurrency.has(currency));
+            filtersForm[key as typeof filterKey] = filterValues.filter((currency) => validCurrencies.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
-            const validCurrency = new Set(Object.keys(currencyList));
-            filtersForm[filterKey] = filterValues.find((currency) => validCurrency.has(currency));
+            filtersForm[filterKey] = filterValues.find((currency) => validCurrencies.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-            const tags = policyID
-                ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags)
-                      .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
-                      .flat()
-                : Object.values(policyTags ?? {})
-                      .filter((item) => !!item)
-                      .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
-                      .flat();
-            const uniqueTags = new Set(tags);
+            const uniqueTags = new Set<string>();
+            const tagLists = policyID ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags) : Object.values(policyTags ?? {}).filter((item) => !!item);
+            for (const tagList of tagLists) {
+                for (const policyTagList of Object.values(tagList ?? {})) {
+                    for (const tag of Object.values(policyTagList.tags ?? {})) {
+                        uniqueTags.add(tag.name);
+                    }
+                }
+            }
             uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
             filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueTags.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-            const categories = policyID
-                ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories)
-                      .map((item) => Object.values(item ?? {}).map((category) => category.name))
-                      .flat()
-                : Object.values(policyCategories ?? {})
-                      .map((item) => Object.values(item ?? {}).map((category) => category.name))
-                      .flat();
-            const uniqueCategories = new Set(categories);
+            const uniqueCategories = new Set<string>();
+            const categoryLists = policyID ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories) : Object.values(policyCategories ?? {});
+            for (const item of categoryLists) {
+                for (const category of Object.values(item ?? {})) {
+                    uniqueCategories.add(category.name);
+                }
+            }
             const hasEmptyCategoriesInFilter = filterValues.includes(CONST.SEARCH.CATEGORY_EMPTY_VALUE);
             // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
             filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
@@ -1096,21 +1098,36 @@ function getPolicyNameWithFallback(policyID: string, policies: OnyxCollection<On
     return reportWithPolicyName?.policyName ?? reportWithPolicyName?.oldPolicyName ?? policyID;
 }
 
+type GetFilterDisplayValueParams = {
+    filterName: string;
+    filterValue: string;
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    cardList: OnyxTypes.CardList | undefined;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    translate: LocalizedTranslate;
+    conciergeReportID: string | undefined;
+    feedKeysWithCards?: FeedKeysWithAssignedCards;
+};
+
 /**
  * Returns the human-readable "pretty" string for a specified filter value.
  */
-function getFilterDisplayValue(
-    filterName: string,
-    filterValue: string,
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    cardList: OnyxTypes.CardList | undefined,
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    currentUserAccountID: number,
-    translate: LocalizedTranslate,
-    feedKeysWithCards?: FeedKeysWithAssignedCards,
-) {
+function getFilterDisplayValue({
+    filterName,
+    filterValue,
+    personalDetails,
+    reports,
+    cardList,
+    cardFeeds,
+    policies,
+    currentUserAccountID,
+    translate,
+    conciergeReportID,
+    feedKeysWithCards,
+}: GetFilterDisplayValueParams) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
@@ -1130,7 +1147,7 @@ function getFilterDisplayValue(
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]}) || filterValue;
+        return getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], conciergeReportID}) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
@@ -1170,6 +1187,7 @@ function getDisplayQueryFiltersForKey(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    conciergeReportID: string | undefined,
     feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
@@ -1225,7 +1243,19 @@ function getDisplayQueryFiltersForKey(
 
     return queryFilter.map((filter) => ({
         operator: filter.operator,
-        value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, translate),
+        value: getFilterDisplayValue({
+            filterName: key,
+            filterValue: getUserFriendlyValue(filter.value.toString()),
+            personalDetails,
+            reports,
+            cardList,
+            cardFeeds,
+            policies,
+            currentUserAccountID,
+            translate,
+            conciergeReportID,
+            feedKeysWithCards,
+        }),
     }));
 }
 
@@ -1303,6 +1333,7 @@ function buildUserReadableQueryString({
     autoCompleteWithSpace = false,
     translate,
     feedKeysWithCards,
+    conciergeReportID,
 }: {
     queryJSON: SearchQueryJSON;
     PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
@@ -1315,6 +1346,7 @@ function buildUserReadableQueryString({
     autoCompleteWithSpace: boolean;
     translate: LocalizedTranslate;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
+    conciergeReportID: string | undefined;
 }) {
     const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
@@ -1358,6 +1390,7 @@ function buildUserReadableQueryString({
                 policies,
                 currentUserAccountID,
                 translate,
+                conciergeReportID,
                 feedKeysWithCards,
             );
 
@@ -1407,6 +1440,7 @@ function buildUserReadableQueryString({
             policies,
             currentUserAccountID,
             translate,
+            conciergeReportID,
             feedKeysWithCards,
         );
 
@@ -1684,6 +1718,7 @@ export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getPolicyNameWithFallback,
     buildQueryStringFromFilterFormValues,

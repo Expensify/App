@@ -1,4 +1,5 @@
 import {emailSelector} from '@selectors/Session';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -48,6 +49,7 @@ function SearchFiltersBarCreateButton() {
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const groupPaidPoliciesWithChatEnabledSelector = useCallback((policies: OnyxCollection<OnyxTypes.Policy>) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, email), [email]);
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabledSelector}, [email]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -56,6 +58,8 @@ function SearchFiltersBarCreateButton() {
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     const {showConfirmModal} = useConfirmModal();
@@ -112,7 +116,7 @@ function SearchFiltersBarCreateButton() {
         [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
     );
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
@@ -139,7 +143,7 @@ function SearchFiltersBarCreateButton() {
                 text: translate('iou.createExpense'),
                 onSelected: () =>
                     interceptAnonymousUser(() => {
-                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
+                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
                     }),
             },
             {
@@ -147,7 +151,7 @@ function SearchFiltersBarCreateButton() {
                 text: translate('iou.trackDistance'),
                 onSelected: () =>
                     interceptAnonymousUser(() => {
-                        startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID());
+                        startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
                     }),
             },
             {
@@ -179,13 +183,17 @@ function SearchFiltersBarCreateButton() {
                         const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
                         // No default or restricted with multiple workspaces → workspace selector
-                        if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                        if (
+                            !workspaceIDForReportCreation ||
+                            (shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod) &&
+                                groupPoliciesWithChatEnabled.length > 1)
+                        ) {
                             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                             return;
                         }
 
                         // Default workspace is not restricted → create report directly
-                        if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                        if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
                             // Check if empty report confirmation should be shown
                             if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                                 openCreateReportConfirmation();
@@ -202,12 +210,15 @@ function SearchFiltersBarCreateButton() {
         [
             translate,
             expensifyIcons,
+            draftTransactionIDs,
             shouldRedirectToExpensifyClassic,
             showRedirectToExpensifyClassicModal,
             shouldNavigateToUpgradePath,
             groupPoliciesWithChatEnabled.length,
             defaultChatEnabledPolicyID,
             shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
+            ownerBillingGraceEndPeriod,
+            userBillingGraceEndPeriods,
             openCreateReportConfirmation,
             handleCreateWorkspaceReport,
         ],
@@ -215,7 +226,6 @@ function SearchFiltersBarCreateButton() {
 
     return (
         <View style={[styles.pr5, styles.searchFiltersBarCreateButton]}>
-            {CreateReportConfirmationModal}
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive}

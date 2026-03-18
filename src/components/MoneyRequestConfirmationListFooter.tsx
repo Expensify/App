@@ -485,6 +485,8 @@ function MoneyRequestConfirmationListFooter({
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
 
+    const isRateInteractive = !!rate && !isReadOnly && (!isUnreported || isTrackExpense) && iouType !== CONST.IOU.TYPE.SPLIT;
+
     const getCategoryRightLabelIcon = useCallback(() => (willFieldBeAutomaticallyFilled(transaction, 'category') ? icons.Sparkles : undefined), [transaction, icons.Sparkles]);
     const getCategoryRightLabel = useCallback(() => {
         if (willFieldBeAutomaticallyFilled(transaction, 'category')) {
@@ -600,7 +602,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && !isUnreported && iouType !== CONST.IOU.TYPE.SPLIT}
+                    shouldShowRightIcon={isRateInteractive}
                     // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
                     // confirmation screen where a rate violation is not applicable yet.
                     title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
@@ -630,7 +632,7 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    interactive={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
+                    interactive={isRateInteractive}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
                 />
             ),
@@ -1151,6 +1153,7 @@ function MoneyRequestConfirmationListFooter({
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             shouldUseFullHeight={isCompactMode}
                             onLoad={handleReceiptLoad}
+                            resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
                         />
                     </PressableWithoutFocus>
                 )}
@@ -1181,6 +1184,7 @@ function MoneyRequestConfirmationListFooter({
         receiptThumbnail,
         fileExtension,
         isDistanceRequest,
+        isOdometerDistanceRequest,
         handleReceiptLoad,
         handleCompactReceiptContainerLayout,
     ]);

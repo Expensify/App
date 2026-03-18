@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -326,7 +327,13 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-    const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
+    const helpMessageTextID = `${helpMessageId}-text`;
+    const accessibilityLabel = [label, hint, errorText].filter(Boolean).join(', ');
+    const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BaseTextInput.isLoading',
+        isLoading: !!inputProps.isLoading,
+    };
+
     return (
         <>
             <View
@@ -490,7 +497,8 @@ function BaseTextInput({
                                 markdownStyle={markdownStyle}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
                                 keyboardType={inputProps.keyboardType}
-                                aria-describedby={inputHelpText ? helpMessageId : undefined}
+                                aria-describedby={inputHelpText ? helpMessageTextID : undefined}
+                                aria-invalid={errorText ? true : undefined}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -527,6 +535,7 @@ function BaseTextInput({
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
+                                    reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
@@ -563,7 +572,7 @@ function BaseTextInput({
                 </PressableWithoutFeedback>
                 {!!inputHelpText && (
                     <FormHelpMessage
-                        nativeID={helpMessageId}
+                        nativeID={helpMessageTextID}
                         isError={!!errorText}
                         message={inputHelpText}
                     />

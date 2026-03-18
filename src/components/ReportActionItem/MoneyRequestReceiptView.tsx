@@ -86,6 +86,9 @@ type MoneyRequestReceiptViewProps = {
 
     /** Whether it's displayed in Wide RHP */
     isDisplayedInWideRHP?: boolean;
+
+    /** Whether the parent component has a pending action */
+    hasParentPendingAction?: boolean;
 };
 
 const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
@@ -100,7 +103,15 @@ const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
 
 const receiptFieldViolationNames = new Set<OnyxTypes.ViolationName>([CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE]);
 
-function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, fillSpace = false, mergeTransactionID, isDisplayedInWideRHP = false}: MoneyRequestReceiptViewProps) {
+function MoneyRequestReceiptView({
+    report,
+    readonly = false,
+    updatedTransaction,
+    fillSpace = false,
+    mergeTransactionID,
+    isDisplayedInWideRHP = false,
+    hasParentPendingAction = false,
+}: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -113,6 +124,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
         canEvict: false,
     });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const [isLoading, setIsLoading] = useState(true);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -176,7 +188,16 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     }
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => {
+        if (hasParentPendingAction) {
+            return undefined;
+        }
+        if (isDisplayedInWideRHP) {
+            return transaction?.pendingFields?.[fieldPath] ?? pendingAction;
+        }
+
+        return pendingAction ? undefined : transaction?.pendingFields?.[fieldPath];
+    };
 
     const transactionToCheck = updatedTransaction ?? transaction;
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
@@ -281,7 +302,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, true, true);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, introSelected, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -318,7 +339,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, true, true);
+            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, introSelected, true, true);
         }
     };
 
@@ -433,12 +454,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                 >
                     {hasReceipt && (
                         <View
-                            style={[
-                                styles.getMoneyRequestViewImage(showBorderlessLoading),
-                                receiptStyle,
-                                showBorderlessLoading && styles.flex1,
-                                fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
-                            ]}
+                            style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
                             onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
                             onMouseLeave={hoverBind.onMouseLeave}
                         >

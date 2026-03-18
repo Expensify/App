@@ -1,16 +1,22 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     ConfigureTravelInvoicingForPolicyParams,
     DeactivateTravelInvoicingParams,
     OpenPolicyTravelPageParams,
+    PayTravelInvoicingSpendParams,
     SetTravelInvoicingSettlementAccountParams,
     UpdateTravelInvoicingSettlementFrequencyParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as ApiUtils from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import fileDownload from '@libs/fileDownload';
+import localFileDownload from '@libs/localFileDownload';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -85,9 +91,11 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                paymentBankAccountID: settlementBankAccountID,
-                previousPaymentBankAccountID,
-                monthlySettlementDate,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    paymentBankAccountID: settlementBankAccountID,
+                    previousPaymentBankAccountID,
+                    monthlySettlementDate,
+                },
                 isLoading: true,
                 pendingFields: {
                     paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -104,9 +112,11 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                paymentBankAccountID: settlementBankAccountID,
-                previousPaymentBankAccountID: null,
-                monthlySettlementDate,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    paymentBankAccountID: settlementBankAccountID,
+                    previousPaymentBankAccountID: null,
+                    monthlySettlementDate,
+                },
                 isLoading: false,
                 pendingFields: {
                     paymentBankAccountID: null,
@@ -123,10 +133,11 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                // Keep the attempted value visible (grayed out) until error is dismissed
-                paymentBankAccountID: settlementBankAccountID,
-                previousPaymentBankAccountID,
-                monthlySettlementDate,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    paymentBankAccountID: settlementBankAccountID,
+                    previousPaymentBankAccountID,
+                    monthlySettlementDate,
+                },
                 isLoading: false,
                 pendingFields: {
                     paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -152,8 +163,10 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
  */
 function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number, paymentBankAccountID: number | null) {
     Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
-        paymentBankAccountID,
-        previousPaymentBankAccountID: null,
+        [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+            paymentBankAccountID,
+            previousPaymentBankAccountID: null,
+        },
         pendingFields: {
             paymentBankAccountID: null,
         },
@@ -179,8 +192,10 @@ function updateTravelInvoiceSettlementFrequency(workspaceAccountID: number, freq
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                monthlySettlementDate,
-                previousMonthlySettlementDate: currentMonthlySettlementDate,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    monthlySettlementDate,
+                    previousMonthlySettlementDate: currentMonthlySettlementDate,
+                },
                 pendingFields: {
                     monthlySettlementDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -196,8 +211,10 @@ function updateTravelInvoiceSettlementFrequency(workspaceAccountID: number, freq
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                monthlySettlementDate,
-                previousMonthlySettlementDate: null,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    monthlySettlementDate,
+                    previousMonthlySettlementDate: null,
+                },
                 pendingFields: {
                     monthlySettlementDate: null,
                 },
@@ -213,8 +230,10 @@ function updateTravelInvoiceSettlementFrequency(workspaceAccountID: number, freq
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                monthlySettlementDate,
-                previousMonthlySettlementDate: currentMonthlySettlementDate ?? null,
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    monthlySettlementDate,
+                    previousMonthlySettlementDate: currentMonthlySettlementDate ?? null,
+                },
                 pendingFields: {
                     monthlySettlementDate: null,
                 },
@@ -238,8 +257,10 @@ function updateTravelInvoiceSettlementFrequency(workspaceAccountID: number, freq
  */
 function clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID: number, monthlySettlementDate: Date | null | undefined) {
     Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
-        monthlySettlementDate: monthlySettlementDate ?? null,
-        previousMonthlySettlementDate: null,
+        [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+            monthlySettlementDate: monthlySettlementDate ?? null,
+            previousMonthlySettlementDate: null,
+        },
         pendingFields: {
             monthlySettlementDate: null,
         },
@@ -321,7 +342,6 @@ function deactivateTravelInvoicing(policyID: string, workspaceAccountID: number)
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                isEnabled: false,
                 [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
                     isEnabled: false,
                 },
@@ -336,10 +356,10 @@ function deactivateTravelInvoicing(policyID: string, workspaceAccountID: number)
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                pendingAction: null,
                 [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
                     isEnabled: false,
                 },
+                pendingAction: null,
             },
         },
     ];
@@ -349,7 +369,6 @@ function deactivateTravelInvoicing(policyID: string, workspaceAccountID: number)
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                isEnabled: true,
                 [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
                     isEnabled: true,
                 },
@@ -376,12 +395,108 @@ function clearTravelInvoicingErrors(workspaceAccountID: number) {
     });
 }
 
+/**
+ * Pays the outstanding Travel Invoicing balance for a workspace.
+ * Optimistically sets the manual billing flag to true (payment queued state).
+ * The backend will send updates for private_expensifyCardManualBilling_ to clear it when billing runs.
+ */
+function payTravelInvoicingSpend(workspaceAccountID: number) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`,
+            value: true,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`,
+            value: false,
+        },
+    ];
+
+    const params: PayTravelInvoicingSpendParams = {
+        domainAccountID: workspaceAccountID,
+    };
+
+    return API.write(WRITE_COMMANDS.PAY_TRAVEL_INVOICING_SPEND, params, {optimisticData, failureData});
+}
+
+/**
+ * Generates the Travel Invoice Statement PDF for a policy and date range.
+ * Uses Onyx to track generation state and cache the filename.
+ */
+function getTravelInvoiceStatementPDF(policyID: string, startDate: string, endDate: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_INVOICE_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.TRAVEL_INVOICE_STATEMENT,
+            value: {
+                isGenerating: true,
+            },
+        },
+    ];
+    // Note: Backend returns onyxData with isGenerating: false AND the PDF filename,
+    // so we don't need successData here - the backend response handles it.
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_INVOICE_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.TRAVEL_INVOICE_STATEMENT,
+            value: {
+                isGenerating: false,
+            },
+        },
+    ];
+
+    API.read(
+        READ_COMMANDS.GET_TRAVEL_INVOICE_STATEMENT_PDF,
+        {policyID, startDate, endDate},
+        {
+            optimisticData,
+            failureData,
+        },
+    );
+}
+
+/**
+ * Exports the Travel Invoice Statement as CSV for a policy and date range.
+ * The backend returns a direct CSV file stream.
+ */
+function exportTravelInvoiceStatementCSV(policyID: string, startDate: string, endDate: string, translate: LocalizedTranslate) {
+    const finalParameters = enhanceParameters(READ_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV, {
+        policyID,
+        startDate,
+        endDate,
+    });
+
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(finalParameters)) {
+        formData.append(key, String(value));
+    }
+
+    const commandURL = ApiUtils.getCommandURL({command: READ_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV});
+    const filename = `Travel_Statement_${startDate}_${endDate}.csv`;
+
+    const onDownloadFailed = () => {
+        // When no data exists for the selected date range, the backend returns a JSON error.
+        // Download an empty CSV file in this case.
+        localFileDownload(filename, translate('common.noResultsFound'), translate, undefined, true);
+    };
+
+    fileDownload(translate, commandURL, filename, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+}
+
 export {
     openPolicyTravelPage,
     setTravelInvoicingSettlementAccount,
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
     updateTravelInvoiceSettlementFrequency,
+    payTravelInvoicingSpend,
+    getTravelInvoiceStatementPDF,
+    exportTravelInvoiceStatementCSV,
     configureTravelInvoicingForPolicy,
     deactivateTravelInvoicing,
     clearTravelInvoicingErrors,
