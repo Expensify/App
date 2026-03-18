@@ -143,7 +143,7 @@ const ROUTES = {
             if (!subPage || !filterKey) {
                 return baseRoute;
             }
-            return `${baseRoute}/${encodeURIComponent(subPage)}` as const;
+            return `${baseRoute}/${subPage}` as const;
         },
     },
     SEARCH_REPORT: {
