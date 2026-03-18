@@ -1102,7 +1102,7 @@ function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCol
  * Check if the Expensify Card is fully set up and a new card can be issued
  */
 function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): boolean {
-    return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
+    return !!(policy?.areExpensifyCardsEnabled && getCardSettings(cardSettings)?.paymentBankAccountID);
 }
 
 /**
@@ -1431,7 +1431,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
     }
 
     const activeCards = filterAllInactiveCards(cardList);
-    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
+    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
     const seenDomains = new Set<string>();
@@ -1454,6 +1454,41 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
         seenDomains.add(card.domainName);
         return true;
     });
+}
+
+function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
+    // If currency is set on the card itself, use it.
+    if (card?.nameValuePairs?.currency) {
+        return card.nameValuePairs.currency;
+    }
+
+    // If not, attempt to get currency from the card settings.
+    const programKey = card?.nameValuePairs?.feedCountry as CardProgramKey | undefined;
+    const settings = getCardSettings(cardSettings, programKey);
+    if (settings?.currency) {
+        return settings.currency;
+    }
+
+    // Fall back to the program and country to try to determine the correct currency.
+    // US programs are always USD
+    if (programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) {
+        return CONST.CURRENCY.USD;
+    }
+
+    // For UK/EU cards, determine currency by country
+    const country = card?.nameValuePairs?.country;
+    if (programKey === CONST.COUNTRY.GB) {
+        // Only Gibraltar and UK use GBP. If country is not set at all, also assume GBP.
+        if (!country || country === CONST.COUNTRY.GB || country === CONST.COUNTRY.GI) {
+            return CONST.CURRENCY.GBP;
+        }
+
+        // All other countries on this program use EUR
+        return CONST.CURRENCY.EUR;
+    }
+
+    // Finally if all else fails, default to USD
+    return CONST.CURRENCY.USD;
 }
 
 export {
@@ -1549,6 +1584,7 @@ export {
     isCardWithPotentialFraud,
     getDisplayableExpensifyCards,
     isExpiredCard,
+    getCardCurrency,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};
