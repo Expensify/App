@@ -98,6 +98,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             shouldDisplayRBR={!shouldShowCheckBox}
+            shouldDisableHoverStyle
             testID={item.text}
         >
             {(hovered?: boolean) => (

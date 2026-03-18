@@ -354,7 +354,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         singleExecution={singleExecution}
                         canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                         shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
-                        shouldHighlightSelectedItem={false}
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
