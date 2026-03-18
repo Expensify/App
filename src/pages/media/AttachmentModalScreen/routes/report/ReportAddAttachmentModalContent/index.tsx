@@ -4,7 +4,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
-import validateAttachmentFile from '@libs/AttachmentUtils';
+import {validateAttachmentFile} from '@libs/AttachmentUtils';
 import type {AttachmentValidationResult} from '@libs/AttachmentUtils';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';

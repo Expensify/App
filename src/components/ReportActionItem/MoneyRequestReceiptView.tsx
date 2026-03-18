@@ -434,12 +434,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                 >
                     {hasReceipt && (
                         <View
-                            style={[
-                                styles.getMoneyRequestViewImage(showBorderlessLoading),
-                                receiptStyle,
-                                showBorderlessLoading && styles.flex1,
-                                fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
-                            ]}
+                            style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
                             onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
                             onMouseLeave={hoverBind.onMouseLeave}
                         >

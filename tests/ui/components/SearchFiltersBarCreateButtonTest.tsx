@@ -48,7 +48,6 @@ jest.mock('@hooks/useHasEmptyReportsForPolicy', () => () => false);
 
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () => () => ({
     openCreateReportConfirmation: jest.fn(),
-    CreateReportConfirmationModal: null,
 }));
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => true);

@@ -880,6 +880,7 @@ function setNewOptimisticAssignee(currentUserAccountID: number, assigneePersonal
         avatar: assigneePersonalDetails?.avatar,
         displayName: assigneePersonalDetails?.displayName ?? assigneePersonalDetails?.login,
         login: assigneePersonalDetails?.login,
+        isOptimisticPersonalDetail: assigneePersonalDetails.isOptimisticPersonalDetail,
     };
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneePersonalDetails.accountID]: optimisticPersonalDetailsListAction});
     return {assignee: optimisticPersonalDetailsListAction, assigneeReport: report};

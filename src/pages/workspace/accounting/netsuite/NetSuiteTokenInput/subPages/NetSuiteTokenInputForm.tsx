@@ -10,7 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isAuthenticationError} from '@libs/actions/connections';
+import {isAuthenticationError, isConnectionUnverified} from '@libs/actions/connections';
 import {connectPolicyToNetSuite, updateNetSuiteTokens} from '@libs/actions/connections/NetSuiteCommands';
 import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -49,7 +49,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                 return;
             }
 
-            if (isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)) {
+            if (isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE) && !isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)) {
                 updateNetSuiteTokens(policyID, formValues);
             } else {
                 connectPolicyToNetSuite(policyID, formValues);

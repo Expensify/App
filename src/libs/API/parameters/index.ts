@@ -152,6 +152,7 @@ export type {default as AcceptWalletTermsParams} from './AcceptWalletTermsParams
 export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEventParams';
 export type {default as TransferWalletBalanceParams} from './TransferWalletBalanceParams';
 export type {default as DeleteWorkspaceParams} from './DeleteWorkspaceParams';
+export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';

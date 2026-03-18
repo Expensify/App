@@ -97,11 +97,11 @@ describe('actions/Tour', () => {
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
 
-            it.each(onboardingChoices.filter((choice) => !onboardingDemoChoices.has(choice)))('should show the Test Drive modal if user has "%s" onboarding choice', async (choice) => {
+            it.each(onboardingChoices.filter((choice) => !onboardingDemoChoices.has(choice)))('should show the Test Drive demo if user has "%s" onboarding choice', async (choice) => {
                 startTestDrive({choice}, false, false);
                 await waitForBatchedUpdates();
 
-                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_DEMO_ROOT);
             });
 
             it('should show the Test Drive demo if user is an invited employee', async () => {

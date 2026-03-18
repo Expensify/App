@@ -11,6 +11,7 @@ import type {Writable} from 'type-fest';
 import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
+import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -726,7 +727,7 @@ function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.g
  * see the NAVIGATION.md documentation.
  */
 const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; callback?: () => void} = {}) => {
-    clearSelectedText();
+    clearSelectedTextIfComposerBlurred();
     isNavigationReady().then(() => {
         if (callback) {
             const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
@@ -906,6 +907,41 @@ function dismissToSuperWideRHP() {
     navigateBackToLastSuperWideRHPScreen();
 }
 
+/**
+ * Reveals the destination fullscreen route under the currently open RHP before dismissing it.
+ * Wide-layout only. Used after expense submission so the user sees the target screen (e.g. Search)
+ * sliding in behind the closing RHP instead of a blank flash.
+ *
+ * Two-frame sequence:
+ *   Frame 1 - REPLACE_FULLSCREEN_UNDER_RHP inserts the target fullscreen route underneath
+ *             the modal: [Home, RHP] -> [Home, Search, RHP]. Browser history is NOT touched
+ *             (the custom history extension preserves the old history array).
+ *   Frame 2 - DISMISS_MODAL pops the RHP: [Home, Search, RHP] -> [Home, Search].
+ *             useLinking detects the stale Home+RHP entry and replaces it with a Search
+ *             push, yielding correct browser history [Home, Search].
+ */
+function revealRouteBeforeDismissingModal(route: Route) {
+    if (getIsNarrowLayout()) {
+        Log.warn('[Navigation] revealRouteBeforeDismissingModal should only be used on wide layouts.');
+        return;
+    }
+
+    if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {
+        Log.hmmm(`[Navigation] Unable to reveal route before dismissing modal. Can't navigate.`, {route});
+        return;
+    }
+
+    requestAnimationFrame(() => {
+        navigationRef.current?.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+            payload: {route},
+        });
+        requestAnimationFrame(() => {
+            dismissModal();
+        });
+    });
+}
+
 function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
     if (!state) {
         return undefined;
@@ -963,6 +999,7 @@ export default {
     isValidateLoginFlow,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
+    revealRouteBeforeDismissingModal,
     getTopmostSearchReportID,
     getTopmostSuperWideRHPReportParams,
     getTopmostSuperWideRHPReportID,
