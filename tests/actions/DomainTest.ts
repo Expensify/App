@@ -18,7 +18,6 @@ import {
     setDomainVacationDelegate,
     setTwoFactorAuthExemptEmailForDomain,
 } from '@libs/actions/Domain';
-import {write} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';

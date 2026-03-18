@@ -8665,6 +8665,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 removeMember: 'Impossible de supprimer cet utilisateur. Veuillez réessayer.',
                 addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',
                 vacationDelegate: 'Impossible de définir cet utilisateur comme délégué de vacances. Veuillez réessayer.',
+                moveMember: 'Impossible de déplacer ce membre. Veuillez réessayer.',
             },
             cannotSetVacationDelegateForMember: (email: string) =>
                 `Vous ne pouvez pas définir un délégué de vacances pour ${email}, car cette personne est actuellement le délégué des membres suivants :`,
@@ -8673,6 +8674,8 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             reportSuspiciousActivityConfirmationPrompt:
                 'Nous examinerons le compte pour vérifier qu’il est sûr de le déverrouiller et nous vous contacterons via Concierge si nous avons des questions.',
             emptyMembers: {title: 'Aucun membre dans ce groupe', subtitle: 'Ajoutez un membre ou essayez de modifier le filtre ci-dessus.'},
+            moveToGroup: 'Déplacer vers le groupe',
+            chooseWhereToMove: ({count}: {count: number}) => `Choisissez où déplacer ${count} ${count === 1 ? 'membre' : 'membres'}.`,
         },
         common: {
             settings: 'Paramètres',

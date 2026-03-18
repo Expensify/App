@@ -8618,7 +8618,6 @@ const translations = {
             }),
             moveToGroup: 'Move to group',
             chooseWhereToMove: ({count}: {count: number}) => `Choose where to move ${count} ${count === 1 ? 'member' : 'members'}.`,
-            move: 'Move',
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',
