@@ -1,5 +1,5 @@
 import type {CommonActions, NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import addSidebarRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addSidebarRouterExtension';
+import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension';
 import type {CustomHistoryEntry} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import CONST from '@src/CONST';
@@ -91,10 +91,10 @@ function asRouteEntry(entry: CustomHistoryEntry): NavigationRoute<ParamListBase,
     return entry as NavigationRoute<ParamListBase, string>;
 }
 
-describe('addSidebarRouterExtension', () => {
+describe('addRootHistoryRouterExtension', () => {
     it('getInitialState attaches a history array mirroring routes', () => {
         const factory = createMockRouterFactory();
-        const enhancedRouter = addSidebarRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
 
         const state = enhancedRouter.getInitialState(CONFIG_OPTIONS);
 
@@ -109,7 +109,7 @@ describe('addSidebarRouterExtension', () => {
 
     it('getRehydratedState attaches history from routes', () => {
         const factory = createMockRouterFactory();
-        const enhancedRouter = addSidebarRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
 
         const partialState = {
             routes: [
@@ -129,7 +129,7 @@ describe('addSidebarRouterExtension', () => {
 
     it('getRehydratedState preserves CUSTOM_HISTORY_ENTRY_SIDE_PANEL when present as last entry in partial state history', () => {
         const factory = createMockRouterFactory();
-        const enhancedRouter = addSidebarRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
 
         const partialState = {
             routes: [{name: 'ScreenA', key: 'a-1'}],
@@ -147,7 +147,7 @@ describe('addSidebarRouterExtension', () => {
 
     it('getRehydratedState does NOT add SIDE_PANEL when it is absent from partial state', () => {
         const factory = createMockRouterFactory();
-        const enhancedRouter = addSidebarRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
 
         const partialState = {
             routes: [{name: 'ScreenA', key: 'a-1'}],
@@ -162,7 +162,7 @@ describe('addSidebarRouterExtension', () => {
 
     it('getStateForAction re-attaches history after a generic NAVIGATE action (history rebuilt via getRehydratedState)', () => {
         const factory = createMockRouterFactory();
-        const enhancedRouter = addSidebarRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
 
         const initialState = enhancedRouter.getInitialState(CONFIG_OPTIONS);
 
@@ -180,5 +180,51 @@ describe('addSidebarRouterExtension', () => {
             const entry = asRouteEntry(newState?.history?.at(i) as CustomHistoryEntry);
             expect(entry.key).toBe(r.key);
         }
+    });
+
+    it('getStateForAction preserves original history for REPLACE_FULLSCREEN_UNDER_RHP so useLinking sees historyDelta=0', () => {
+        const routeA = makeRoute('ScreenA', 'a-1');
+        const routeB = makeRoute('ScreenB', 'b-1');
+        const routeC = makeRoute('ScreenC', 'c-1');
+
+        const replacedRoute = makeRoute('ScreenReplaced', 'replaced-1');
+
+        const factory = createMockRouterFactory((state) => {
+            return makeState([replacedRoute, ...state.routes.slice(1)]);
+        });
+
+        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+
+        const initialHistory = [
+            {key: 'a-1', name: 'ScreenA'},
+            {key: 'b-1', name: 'ScreenB'},
+            {key: 'c-1', name: 'ScreenC'},
+        ] as CustomHistoryEntry[];
+
+        const state = makeState([routeA, routeB, routeC], {history: initialHistory});
+
+        const replaceAction: StackRouterAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+        } as unknown as StackRouterAction;
+
+        const newState = enhancedRouter.getStateForAction(state, replaceAction, CONFIG_OPTIONS);
+
+        expect(newState).not.toBeNull();
+        expect(newState?.history).toBe(initialHistory);
+    });
+
+    it('getStateForAction returns null when the base router returns null', () => {
+        const factory = createMockRouterFactory(() => null);
+        const enhancedRouter = addRootHistoryRouterExtension(factory)({} as PlatformStackRouterOptions);
+
+        const initialState = enhancedRouter.getInitialState(CONFIG_OPTIONS);
+
+        const action: StackRouterAction = {
+            type: 'NAVIGATE',
+            payload: {name: 'ScreenB'},
+        };
+
+        const result = enhancedRouter.getStateForAction(initialState, action, CONFIG_OPTIONS);
+        expect(result).toBeNull();
     });
 });
