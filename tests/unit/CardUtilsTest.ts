@@ -65,6 +65,7 @@ import {
     splitMaskedCardNumber,
     supportsPINManagementFeatures,
 } from '@src/libs/CardUtils';
+import type {CardProgramKey} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import type {
     BankAccountList,
@@ -2571,6 +2572,47 @@ describe('CardUtils', () => {
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(18468850); // Physical card comes first even if virtual was added first
         });
+
+        it('should filter out expired Expensify cards based on validThru', () => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
+
+            const cardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Expired Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        validThru: '2026-02-24 23:59:59',
+                    },
+                },
+                2: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 2,
+                    cardName: 'Valid Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '5678',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        validThru: '2026-02-25 00:00:00',
+                    },
+                },
+            } as unknown as CardList;
+
+            const result = getDisplayableExpensifyCards(cardList);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(2);
+        });
     });
 
     describe('PersonalCard (isPersonalCard)', () => {
@@ -3571,14 +3613,16 @@ describe('CardUtils', () => {
             expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
         });
 
-        it('should return flat root when feedCountry is not provided and no nested keys exist', () => {
+        it('should fall back to flat root when no nested keys exist and feedCountry is not provided', () => {
             const result = getCardSettings(flatSettings);
-            expect(result).toBe(flatSettings);
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
         });
 
-        it('should return flat root when feedCountry is undefined and no nested keys exist', () => {
+        it('should fall back to flat root when no nested keys exist and feedCountry is undefined', () => {
             const result = getCardSettings(flatSettings, undefined);
-            expect(result).toBe(flatSettings);
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
         });
 
         it('should return merged root + nested when feedCountry matches a nested key', () => {
@@ -3589,9 +3633,9 @@ describe('CardUtils', () => {
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should fall back to root when feedCountry key does not exist', () => {
-            const result = getCardSettings(nestedSettings, 'CA');
-            expect(result).toBe(nestedSettings);
+        it('should return undefined when feedCountry key does not exist', () => {
+            const result = getCardSettings(nestedSettings, 'CA' as unknown as CardProgramKey);
+            expect(result).toBeUndefined();
         });
 
         it('should return merged root + TRAVEL_US when feedCountry is TRAVEL_US', () => {
@@ -3601,9 +3645,9 @@ describe('CardUtils', () => {
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should not return primitive values as nested settings', () => {
-            const result = getCardSettings(nestedSettings, 'limit');
-            expect(result).toBe(nestedSettings);
+        it('should return undefined for primitive values as feedCountry', () => {
+            const result = getCardSettings(nestedSettings, 'limit' as unknown as CardProgramKey);
+            expect(result).toBeUndefined();
         });
 
         it('should auto-detect US program when no feedCountry is provided', () => {
