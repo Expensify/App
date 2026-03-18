@@ -1,12 +1,16 @@
 import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
@@ -50,6 +54,10 @@ function TableListItem<TItem extends ListItem>({
         }
     };
 
+    const fallbackAccessibilityLabel = item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ');
+    const isIOSSplitAccessibilityMode = !!item.shouldSplitAccessibilityOnIOS && (getPlatform() === CONST.PLATFORM.IOS || Browser.isMobileIOS());
+    const shouldHideTextContainerFromAccessibility = !!item.accessibilityLabel && !isIOSSplitAccessibilityMode;
+
     return (
         <BaseListItem
             item={item}
@@ -79,6 +87,7 @@ function TableListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
+            accessible={isIOSSplitAccessibilityMode ? false : undefined}
             accessibilityRole={item.accessibilityRole}
             shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
             shouldShowRightCaret={shouldShowRightCaret}
@@ -98,43 +107,107 @@ function TableListItem<TItem extends ListItem>({
                             testID={`TableListItemCheckbox-${item.text}`}
                         />
                     )}
-                    {!!item.accountID && (
-                        <ReportActionAvatars
-                            accountIDs={[item.accountID]}
-                            fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                            shouldShowTooltip={showTooltip}
-                            secondaryAvatarContainerStyle={[
-                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                            ]}
-                        />
+                    {isIOSSplitAccessibilityMode ? (
+                        <PressableWithFeedback
+                            accessibilityLabel={fallbackAccessibilityLabel}
+                            role={item.accessibilityRole}
+                            accessibilityLanguage={item.lang}
+                            lang={item.lang}
+                            disabled={!!isDisabled && !item.isSelected}
+                            interactive={item.isInteractive}
+                            isNested
+                            hoverDimmingValue={1}
+                            pressDimmingValue={1}
+                            testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}-summary`}
+                            wrapperStyle={styles.flex1}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            onLongPress={() => onLongPressRow?.(item)}
+                            onPress={(event) => {
+                                event?.stopPropagation?.();
+                                onSelectRow(item);
+                            }}
+                        >
+                            <>
+                                {!!item.accountID && (
+                                    <ReportActionAvatars
+                                        accountIDs={[item.accountID]}
+                                        fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                        shouldShowTooltip={showTooltip}
+                                        secondaryAvatarContainerStyle={[
+                                            StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                            isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                            hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                        ]}
+                                    />
+                                )}
+                                <View
+                                    style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, titleContainerStyles]}
+                                    accessible={false}
+                                    aria-hidden
+                                >
+                                    <TextWithTooltip
+                                        shouldShowTooltip={showTooltip}
+                                        text={item.text ?? ''}
+                                        style={[
+                                            styles.optionDisplayName,
+                                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                            styles.sidebarLinkTextBold,
+                                            styles.pre,
+                                            !item.shouldHideAlternateText && item.alternateText ? styles.mb1 : null,
+                                            styles.justifyContentCenter,
+                                        ]}
+                                    />
+                                    {!item.shouldHideAlternateText && !!item.alternateText && (
+                                        <TextWithTooltip
+                                            shouldShowTooltip={showTooltip}
+                                            text={item.alternateText}
+                                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                        />
+                                    )}
+                                </View>
+                            </>
+                        </PressableWithFeedback>
+                    ) : (
+                        <>
+                            {!!item.accountID && (
+                                <ReportActionAvatars
+                                    accountIDs={[item.accountID]}
+                                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                    shouldShowTooltip={showTooltip}
+                                    secondaryAvatarContainerStyle={[
+                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                        hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                    ]}
+                                />
+                            )}
+                            <View
+                                style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, titleContainerStyles]}
+                                accessible={shouldHideTextContainerFromAccessibility ? false : undefined}
+                                aria-hidden={shouldHideTextContainerFromAccessibility ? true : undefined}
+                            >
+                                <TextWithTooltip
+                                    shouldShowTooltip={showTooltip}
+                                    text={item.text ?? ''}
+                                    style={[
+                                        styles.optionDisplayName,
+                                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                        styles.sidebarLinkTextBold,
+                                        styles.pre,
+                                        !item.shouldHideAlternateText && item.alternateText ? styles.mb1 : null,
+                                        styles.justifyContentCenter,
+                                    ]}
+                                />
+                                {!item.shouldHideAlternateText && !!item.alternateText && (
+                                    <TextWithTooltip
+                                        shouldShowTooltip={showTooltip}
+                                        text={item.alternateText}
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    />
+                                )}
+                            </View>
+                        </>
                     )}
-                    <View
-                        style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, titleContainerStyles]}
-                        accessible={item.accessibilityLabel ? false : undefined}
-                        aria-hidden={item.accessibilityLabel ? true : undefined}
-                    >
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={item.text ?? ''}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkTextBold,
-                                styles.pre,
-                                !item.shouldHideAlternateText && item.alternateText ? styles.mb1 : null,
-                                styles.justifyContentCenter,
-                            ]}
-                        />
-                        {!item.shouldHideAlternateText && !!item.alternateText && (
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={item.alternateText}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
-                        )}
-                    </View>
                     {!!item.rightElement && item.rightElement}
                 </>
             )}

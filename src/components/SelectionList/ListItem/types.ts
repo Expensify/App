@@ -40,6 +40,9 @@ type ListItem<K extends string | number = string> = {
     /** Accessibility role for the list item row */
     accessibilityRole?: Role;
 
+    /** Whether the row summary and nested control should be separate accessibility stops on iOS */
+    shouldSplitAccessibilityOnIOS?: boolean;
+
     /** Key used internally by React */
     keyForList: K;
 

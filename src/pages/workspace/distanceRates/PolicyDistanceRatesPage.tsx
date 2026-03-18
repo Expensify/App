@@ -232,6 +232,7 @@ function PolicyDistanceRatesPage({
                     alternateText,
                     accessibilityLabel: rowAccessibilityLabel,
                     accessibilityRole: CONST.ROLE.LISTITEM,
+                    shouldSplitAccessibilityOnIOS: true,
                     keyForList: value.customUnitRateID,
                     isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     pendingAction:
