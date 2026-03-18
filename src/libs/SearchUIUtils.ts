@@ -3946,6 +3946,10 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     return isDataLoaded;
 }
 
+function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
+    return groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>) ? (groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>) : undefined;
+}
+
 function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -4787,6 +4791,7 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    getValidGroupBy,
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
