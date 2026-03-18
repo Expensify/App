@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import {Keyboard} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -25,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
+import KeyboardUtils from '@src/utils/keyboard';
 
 type WorkspaceCreateTagPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>
@@ -71,8 +71,9 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             createPolicyTag(policyData, values.tagName.trim(), setupTagsTaskReport, setupCategoriesAndTagsTaskReport, policyHasCustomCategories);
-            Keyboard.dismiss();
-            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
+            KeyboardUtils.dismiss({
+                afterTransition: () => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined),
+            });
         },
         [policyID, policyData, isQuickSettingsFlow, backTo, setupTagsTaskReport, setupCategoriesAndTagsTaskReport, policyHasCustomCategories],
     );

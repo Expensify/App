@@ -54,6 +54,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -133,6 +134,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
+            userBillingGraceEndPeriods,
             currentSearchKey,
             onDEWModalOpen,
             isDEWBetaEnabled,
@@ -147,6 +149,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         snapshotReport,
         snapshotPolicy,
         lastPaymentMethod,
+        userBillingGraceEndPeriods,
         personalPolicyID,
         currentSearchKey,
         onDEWModalOpen,
