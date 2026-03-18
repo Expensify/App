@@ -505,6 +505,7 @@ describe('APITests', () => {
             [ONYXKEYS.CREDENTIALS]: {},
             [ONYXKEYS.SESSION]: null,
         })
+            .then(waitForBatchedUpdates)
             .then(() => {
                 expect(NetworkStore.isOffline()).toBe(true);
 
