@@ -468,5 +468,4 @@ describe('useSearchBulkActions', () => {
             expect(payOption).toBeDefined();
         });
     });
-
 });
