@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {changeDomainSecurityGroup, clearDomainMembersSelectedForMove} from '@libs/actions/Domain';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -37,7 +38,6 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [securityGroups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
     const [selectedMemberAccountIDs] = useOnyx(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const memberCount = selectedMemberAccountIDs?.length ?? 0;
 
@@ -59,7 +59,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
 
         for (const accountIDString of selectedMemberAccountIDs) {
             const accountID = Number(accountIDString);
-            const memberLogin = personalDetails?.[accountID]?.login ?? '';
+            const memberLogin = getLoginByAccountID(accountID) ?? '';
             const currentGroupData = selectSecurityGroupForAccount(accountID)(domain);
             const newSecurityGroupKey: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${selectedGroupId}`;
 

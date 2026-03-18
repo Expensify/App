@@ -66,6 +66,7 @@ function getMemberCustomRowProps(accountID: number, domainPendingActions: Domain
     const accountIDErrors = domainErrors?.memberErrors?.[accountID];
     const emailPendingActions = email ? domainPendingActions?.[email] : undefined;
     const accountIDPendingActions = domainPendingActions?.[accountID];
+    const accountEmailPendingActions = email ? domainPendingActions?.[email] : undefined;
 
     const mergedErrors: DomainMemberErrors = {
         errors: {
@@ -82,7 +83,7 @@ function getMemberCustomRowProps(accountID: number, domainPendingActions: Domain
     return {
         errors: getLatestError(mergedErrors.errors),
         pendingAction:
-            emailPendingActions?.pendingAction ?? accountIDPendingActions?.pendingAction ?? accountIDPendingActions?.lockAccount ?? accountIDPendingActions?.changeDomainSecurityGroup,
+            emailPendingActions?.pendingAction ?? accountIDPendingActions?.pendingAction ?? accountIDPendingActions?.lockAccount ?? accountEmailPendingActions?.changeDomainSecurityGroup,
         brickRoadIndicator: hasDomainMemberDetailsErrors(mergedErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
     };
 }

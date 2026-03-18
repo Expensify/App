@@ -1770,6 +1770,11 @@ function changeDomainSecurityGroup(
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
                 [currentSecurityGroupKey]: currentSecurityGroup,
+                [targetSecurityGroupKey]: {
+                    shared: {
+                        [accountIDStr]: null,
+                    },
+                },
             } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         },
         {
