@@ -34,12 +34,18 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     })),
 }));
 
-jest.mock('@components/OptionListContextProvider', () => ({
-    useOptionsList: jest.fn(() => ({
-        options: {},
-        areOptionsInitialized: true,
-    })),
-}));
+jest.mock('@components/OptionListContextProvider', () => {
+    const ActualReact = jest.requireActual<typeof React>('react');
+    return {
+        useOptionsList: jest.fn(() => ({
+            options: {},
+            areOptionsInitialized: true,
+        })),
+        OptionsListStateContext: ActualReact.createContext({
+            areOptionsInitialized: true,
+        }),
+    };
+});
 
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchOptions: jest.fn(() => ({
