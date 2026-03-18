@@ -32,6 +32,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
+            betas: undefined,
         });
 
         action.onSelected();
@@ -46,6 +47,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
+            betas: undefined,
         });
 
         action.onSelected();
@@ -59,6 +61,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected: undefined,
             isSelfTourViewed: undefined,
+            betas: undefined,
         });
 
         action.onSelected();
@@ -72,6 +75,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected: undefined,
             isSelfTourViewed: undefined,
+            betas: undefined,
         });
 
         action.onSelected();
@@ -88,6 +92,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
+            betas: undefined,
         });
 
         action.onSelected();
