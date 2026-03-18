@@ -13,7 +13,7 @@ type DraftValuesForBeneficialOwners = {
 
 function getDraftValuesForBeneficialOwners(reimbursementAccount: OnyxEntry<ReimbursementAccount>): DraftValuesForBeneficialOwners {
     const owners = reimbursementAccount?.achData?.corpay?.[INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS] ?? [];
-    const beneficialOwnerKeys = owners.map((o) => o.uid).filter(Boolean);
+    const beneficialOwnerKeys = owners.map((o) => o.uid).filter((uid): uid is string => !!uid);
 
     const result: DraftValuesForBeneficialOwners = {beneficialOwnerKeys};
 
