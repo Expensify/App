@@ -196,8 +196,10 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
 
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
-            updateRangeText();
-            setShouldShowRangeError(false);
+            const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+            clearSelection();
+            onChange(dateValues);
+            closeOverlay();
             return;
         }
 
@@ -206,7 +208,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         setShouldShowRangeError(false);
         onChange(searchDatePresetFilterBaseRef.current.getDateValues());
         closeOverlay();
-    }, [closeOverlay, onChange, selectedDateModifier, updateRangeText]);
+    }, [clearSelection, closeOverlay, onChange, selectedDateModifier]);
 
     const maxPopupHeight = Math.round(windowHeight * 0.875);
 

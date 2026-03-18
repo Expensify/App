@@ -136,13 +136,15 @@ function DateFilterBase({
 
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+            setSelectedDateModifier(null);
             setShouldShowRangeError(false);
+            onDateModifierChange?.(false);
             return;
         }
 
         searchDatePresetFilterBaseRef.current.clearDateValues();
         setShouldShowRangeError(false);
-    }, [selectedDateModifier]);
+    }, [onDateModifierChange, selectedDateModifier]);
 
     const save = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
