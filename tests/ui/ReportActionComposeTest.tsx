@@ -247,5 +247,23 @@ describe('ReportActionCompose Integration Tests', () => {
             // And the error should be displayed
             expect(screen.getByText('composer.commentExceededMaxLength')).toBeOnTheScreen();
         });
+
+        it('should not send when task title length exceeds the limit', async () => {
+            renderReportActionCompose();
+            const composer = screen.getByTestId('composer');
+
+            // Given a task title that exceeds the title character limit
+            const taskTitle = 'x'.repeat(CONST.TITLE_CHARACTER_LIMIT + 1);
+            fireEvent.changeText(composer, `[] ${taskTitle}`);
+
+            // When the message is submitted
+            act(onSubmitAction);
+
+            // Then the message should NOT be sent
+            expect(mockForceClearInput).toHaveBeenCalledTimes(0);
+
+            // And the task-title-specific error should be displayed
+            expect(screen.getByText('composer.taskTitleExceededMaxLength')).toBeOnTheScreen();
+        });
     });
 });
