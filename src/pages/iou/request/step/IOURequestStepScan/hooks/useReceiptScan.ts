@@ -1,18 +1,19 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSelfDMReport from '@hooks/useSelfDMReport';
-import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -96,6 +97,12 @@ function useReceiptScan({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
+    const participants = useMemo(
+        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, reportNameValuePairs?.private_isArchived, reportAttributesDerived),
+        [currentUserPersonalDetails.accountID, report, policy, personalDetails, reportNameValuePairs?.private_isArchived, reportAttributesDerived],
+    );
+
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
     function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) {
         startSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE, {
             name: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
@@ -103,12 +110,12 @@ function useReceiptScan({
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {[CONST.TELEMETRY.ATTRIBUTE_IS_MULTI_SCAN]: isMultiScanEnabled},
         });
+
         handleMoneyRequestStepScanParticipants({
             iouType,
             policy,
             report,
             reportID,
-            reportAttributesDerived,
             transactions,
             initialTransaction: {
                 transactionID: initialTransactionID,
@@ -135,7 +142,6 @@ function useReceiptScan({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            privateIsArchived: reportNameValuePairs?.private_isArchived,
             files,
             isTestTransaction,
             locationPermissionGranted,
@@ -145,6 +151,8 @@ function useReceiptScan({
             betas,
             recentWaypoints,
             allTransactionDrafts,
+            participants,
+            participantsPolicyTags,
             amountOwed,
         });
     }

@@ -10,6 +10,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +42,7 @@ function WorkspaceRestrictedActionPage({
     }, []);
 
     // Watch billing NVPs so the component re-renders when fresh data arrives from the server.
-    const [userBillingGracePeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
@@ -49,16 +50,21 @@ function WorkspaceRestrictedActionPage({
         if (isLoadingSubscriptionData !== false) {
             return;
         }
-        if (!shouldRestrictUserBillableActions(policyID, userBillingGracePeriodCollection, undefined, ownerBillingGraceEndPeriod)) {
+        if (!shouldRestrictUserBillableActions(policyID, userBillingGracePeriods, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.goBack();
         }
-    }, [policyID, isLoadingSubscriptionData, userBillingGracePeriodCollection, ownerBillingGraceEndPeriod]);
+    }, [policyID, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGraceEndPeriod]);
 
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.
     // Skip the loading indicator when offline since the API call won't go through.
     if (isLoadingSubscriptionData !== false && !isOffline) {
-        return <FullScreenLoadingIndicator style={styles.opacity1} />;
+        return (
+            <FullScreenLoadingIndicator
+                style={styles.opacity1}
+                reasonAttributes={{context: 'WorkspaceRestrictedActionPage', isLoadingSubscriptionData} satisfies SkeletonSpanReasonAttributes}
+            />
+        );
     }
 
     // Workspace Owner
