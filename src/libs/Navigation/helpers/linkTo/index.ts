@@ -61,14 +61,6 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
 
     const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
     const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-    const currentReportActionID = currentParams?.reportActionID;
-    const newReportActionID = newParams?.reportActionID;
-
-    // When moving from the report root to a specific action, push instead of replace
-    // so hardware/browser back can return to the root (#70498).
-    if (!currentReportActionID && !!newReportActionID) {
-        return false;
-    }
 
     return currentParams?.reportID === newParams?.reportID;
 }

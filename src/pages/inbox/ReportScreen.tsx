@@ -890,13 +890,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [reportMetadata?.isLoadingInitialReportActions]);
 
     const navigateToEndOfReport = useCallback(() => {
-        if (navigation.canGoBack()) {
-            Navigation.goBack();
-            return;
-        }
         Navigation.setParams({reportActionID: ''});
         fetchReport();
-    }, [navigation, fetchReport]);
+    }, [fetchReport]);
 
     useEffect(() => {
         // Only handle deletion cases when there's a deleted action

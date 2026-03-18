@@ -11,6 +11,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
+import shouldPreserveWideRHPReportOriginForInternalLink from '@libs/Navigation/helpers/shouldPreserveWideRHPReportOriginForInternalLink';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
@@ -188,10 +189,8 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isNarrowLayout = getIsNarrowLayout();
     const currentState = navigationRef.getRootState();
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-    let shouldCloseRHP = false;
-    if (!isNarrowLayout && isRHPOpen) {
-        shouldCloseRHP = !willRouteNavigateToRHP(internalNewExpensifyPath as Route);
-    }
+    const shouldCloseRHPForTargetRoute = (targetPath: Route) =>
+        !isNarrowLayout && isRHPOpen && !willRouteNavigateToRHP(targetPath) && !shouldPreserveWideRHPReportOriginForInternalLink({currentState, targetPath, isNarrowLayout});
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
     // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
@@ -201,7 +200,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
-        if (shouldCloseRHP) {
+        if (shouldCloseRHPForTargetRoute(reportRoute)) {
             Navigation.closeRHPFlow();
         }
         Navigation.navigate(reportRoute);
@@ -215,7 +214,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
             signOutAndRedirectToSignIn();
             return;
         }
-        if (shouldCloseRHP) {
+        if (shouldCloseRHPForTargetRoute(internalNewExpensifyPath as Route)) {
             Navigation.closeRHPFlow();
         }
         Navigation.navigate(internalNewExpensifyPath as Route);
