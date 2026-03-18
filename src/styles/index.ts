@@ -3757,6 +3757,15 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        quickCreationActionsBarButton: {
+            borderRadius: variables.buttonBorderRadius,
+        },
+
+        quickCreationActionsBarButtonText: {
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
+        },
+
         homePageContentContainer: {
             flexGrow: 1,
             paddingTop: 0,

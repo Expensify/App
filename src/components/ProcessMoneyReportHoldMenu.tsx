@@ -88,9 +88,6 @@ function ProcessMoneyReportHoldMenu({
             return;
         }
         if (chatReport && paymentType) {
-            if (startAnimation) {
-                startAnimation();
-            }
             payMoneyRequest({
                 paymentType,
                 chatReport,
@@ -106,6 +103,7 @@ function ProcessMoneyReportHoldMenu({
                 userBillingGraceEndPeriods,
                 amountOwed,
                 methodID,
+                onPaid: startAnimation,
             });
         }
         onClose();

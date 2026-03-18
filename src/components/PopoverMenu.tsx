@@ -139,6 +139,8 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether we want to show the popover on the right side of the screen */
     fromSidebarMediumScreen?: boolean;
 
+    shouldHandleNavigationBack?: boolean;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -280,6 +282,7 @@ function BasePopoverMenu({
     onModalHide,
     headerText,
     fromSidebarMediumScreen,
+    shouldHandleNavigationBack,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -642,6 +645,7 @@ function BasePopoverMenu({
             restoreFocusType={restoreFocusType}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             testID={testID}
         >
             <FocusTrapForModal

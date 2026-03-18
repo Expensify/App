@@ -436,7 +436,7 @@ describe('APITests', () => {
                 });
 
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-                expect(NetworkStore.isOffline()).toBe(false);
+                expect(NetworkStore.isOffline()).toBe(true);
                 expect(NetworkStore.isAuthenticating()).toBe(false);
                 return waitForBatchedUpdates();
             })
@@ -551,7 +551,7 @@ describe('APITests', () => {
                 API.write('MockCommandThree' as WriteCommand, {});
 
                 // THEN the retryable requests should immediately be added to the persisted requests
-                expect(PersistedRequests.getAll().length).toBe(2);
+                expect(PersistedRequests.getLength()).toBe(2);
 
                 // WHEN we wait for the queue to run and finish processing
                 return waitForBatchedUpdates();
@@ -874,8 +874,8 @@ describe('API.write() persistence guarantees', () => {
             // persisted-requests queue. This avoids spy-ordering issues that caused
             // false passes on CI.
             const updateMock = jest.spyOn(Onyx, 'update').mockImplementation((data) => {
-                // We use ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
-                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
+                // We use ONYXKEYS.IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
+                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
                 if (hasMarker) {
                     optimisticDataApplied = true;
                     // Note: getAll() checks the in-memory queue, not durable (disk) state.
@@ -892,7 +892,7 @@ describe('API.write() persistence guarantees', () => {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.SET,
-                            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
+                            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
                             value: true,
                         },
                     ],
