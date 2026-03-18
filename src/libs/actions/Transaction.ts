@@ -337,21 +337,45 @@ function getOnyxDataForRouteRequest(
 }
 
 /**
- * Sanitizes the waypoints by removing the pendingAction property.
+ * Sanitizes the waypoints data to only include allowed fields for API requests.
+ * Only keeps: name (optional), address, lat, lng
  *
  * @param waypoints - The collection of waypoints to sanitize.
- * @returns The sanitized collection of waypoints.
+ * @returns The sanitized collection of waypoints with only allowed fields.
  */
-function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollection {
+function sanitizeWaypointsForAPI(waypoints: WaypointCollection): WaypointCollection {
     return Object.entries(waypoints).reduce((acc: WaypointCollection, [key, waypoint]) => {
-        if ('pendingAction' in waypoint) {
-            const {pendingAction, ...rest} = waypoint;
-            acc[key] = rest;
-        } else {
-            acc[key] = waypoint;
+        if (!waypoint) {
+            return acc;
         }
+
+        const sanitizedWaypoint: Record<string, string | number> = {};
+
+        if (waypoint.name !== undefined) {
+            sanitizedWaypoint.name = waypoint.name;
+        }
+        if (waypoint.address !== undefined) {
+            sanitizedWaypoint.address = waypoint.address;
+        }
+        if (waypoint.lat !== undefined) {
+            sanitizedWaypoint.lat = waypoint.lat;
+        }
+        if (waypoint.lng !== undefined) {
+            sanitizedWaypoint.lng = waypoint.lng;
+        }
+
+        acc[key] = sanitizedWaypoint;
         return acc;
     }, {});
+}
+
+/**
+ * Sanitizes waypoints and serializes them to a JSON string for API params.
+ * Preserves keyForList and other Onyx-only fields by sanitizing at the serialization boundary
+ * rather than when building transactionChanges.
+ */
+function stringifyWaypointsForAPI(waypoints: WaypointCollection): string {
+    return JSON.stringify(sanitizeWaypointsForAPI(waypoints));
 }
 
 /**
@@ -362,7 +386,7 @@ function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollect
 function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
     const parameters: GetRouteParams = {
         transactionID,
-        waypoints: JSON.stringify(sanitizeRecentWaypoints(waypoints)),
+        waypoints: stringifyWaypointsForAPI(waypoints),
     };
 
     let command;
@@ -1727,7 +1751,8 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
-    sanitizeRecentWaypoints,
+    sanitizeWaypointsForAPI,
+    stringifyWaypointsForAPI,
     getLastModifiedExpense,
     revert,
     changeTransactionsReport,
