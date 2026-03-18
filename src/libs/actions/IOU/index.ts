@@ -1007,14 +1007,6 @@ Onyx.connect({
     callback: (value) => (personalDetailsList = value),
 });
 
-let introSelectedOnyx: OnyxEntry<OnyxTypes.IntroSelected>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelectedOnyx = value;
-    },
-});
-
 // Use connectWithoutView because this is created for non-UI task only
 let recentAttendees: OnyxEntry<Attendee[]>;
 Onyx.connectWithoutView({
@@ -13222,7 +13214,7 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
         // Ensure the thread exists before adding optimistic MODIFIED_EXPENSE actions so
         // bulk-edit comments are visible immediately while still offline.
         if (!transactionThreadReportID && iouReport?.reportID) {
-            const optimisticTransactionThread = createTransactionThreadReport(introSelectedOnyx, currentUserEmail, userAccountID, iouReport, reportAction, transaction);
+            const optimisticTransactionThread = createTransactionThreadReport(undefined, currentUserEmail, userAccountID, iouReport, reportAction, transaction);
             if (optimisticTransactionThread?.reportID) {
                 transactionThreadReportID = optimisticTransactionThread.reportID;
                 transactionThread = optimisticTransactionThread;
