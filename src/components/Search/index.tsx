@@ -1362,6 +1362,19 @@ function Search({
     // Reset before conditional returns. Only cancelNavigationSpans (error/empty paths) sets it to true.
     didBailToFallbackState.current = false;
 
+    // Component-level skeleton for the submit-expense->search path only.
+    // The page-level skeleton (useSearchLoadingState) can't cover this case because
+    // Search must mount for its onLayout to flush the deferred API write.
+    if (shouldShowLoadingState && hasPendingWriteOnMountRef.current) {
+        return (
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                reasonAttributes={{context: 'Search.DeferredWork'}}
+            />
+        );
+    }
+
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
         cancelNavigationSpans();
