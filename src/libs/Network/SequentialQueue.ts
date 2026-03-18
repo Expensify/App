@@ -407,22 +407,12 @@ function unpause() {
         flushOnyxUpdatesQueue();
     }
 
-    // Defer flush so that pending Onyx.set callbacks from save()/update() during
-    // offline push() calls settle first. Without this, stale callbacks overwrite
-    // in-memory persistedRequests during process(), causing duplicate API calls
-    // (see Issues 3c/4 in https://github.com/Expensify/App/issues/80759).
-    // A proper fix to PersistedRequests would make this deferral unnecessary.
-    //
-    // We use a microtask (Promise.resolve) rather than a macrotask (setTimeout)
-    // because waitForBatchedUpdates() drains microtasks before resolving,
-    // keeping test timing predictable.
-    //
     // We pass shouldResetPromise=false to preserve the existing isReadyPromise so that
     // pending READ requests (waiting via waitForIdle()) resolve correctly after WRITEs complete.
-    Log.info('[SequentialQueue] Deferring flush(false) to allow pending Onyx callbacks to settle', false, {
+    Log.info('[SequentialQueue] Calling flush(false) to start processing', false, {
         numberOfPersistedRequests,
     });
-    Promise.resolve().then(() => flush(false));
+    flush(false);
 }
 
 function isRunning(): boolean {
