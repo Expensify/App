@@ -243,6 +243,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -404,7 +405,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed))();
+            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected, isSelfTourViewed, betas))();
         });
     };
 
