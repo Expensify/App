@@ -374,15 +374,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         isThreadReportDeletedForReview,
     ]);
 
-    const prevShouldShowAccessErrorPage = usePrevious(shouldShowAccessErrorPage);
-    const participantCount = Object.keys(report?.participants ?? {}).length;
-
     useEffect(() => {
-        if (!shouldShowAccessErrorPage || prevShouldShowAccessErrorPage) {
+        if (!shouldShowAccessErrorPage) {
             return;
         }
 
-        Log.info('[SearchMoneyRequestReportPage] shouldShowAccessErrorPage changed to true', false, {
+        Log.info('[SearchMoneyRequestReportPage] Displaying NotFound Page', false, {
             reportIDFromRoute,
             reportID,
             doesReportIDLookValid,
@@ -392,7 +389,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             doesOwnerHavePersonalDetails,
             doesOwnerHaveAvatar,
             doesOwnerHaveDefaultAvatar,
-            participantCount,
+            participantCount: Object.keys(report?.participants ?? {}).length,
         });
     }, [
         doesOwnerHaveAvatar,
@@ -401,11 +398,10 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         doesReportIDLookValid,
         isLoadingApp,
         ownerAccountID,
-        participantCount,
-        prevShouldShowAccessErrorPage,
         reportID,
         reportIDFromRoute,
         reportMetadata?.isLoadingInitialReportActions,
+        report?.participants,
         shouldShowAccessErrorPage,
     ]);
 
