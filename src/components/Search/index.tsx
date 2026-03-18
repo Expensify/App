@@ -41,9 +41,10 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
     getColumnsToShow,
@@ -1113,7 +1114,12 @@ function Search({
             }
 
             if (isReportActionListItemType(item)) {
-                const reportActionID = reportActionItem.reportActionID;
+                // Keep deep-linking for persisted actions, but avoid anchoring to optimistic created-task actions that may not be resolvable offline.
+                const isOptimisticCreatedTaskAction = reportActionItem.isOptimisticAction ?? false;
+                const shouldSkipReportActionID =
+                    isCreatedTaskReportAction(reportActionItem) && (isOptimisticCreatedTaskAction || reportActionItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+                const reportActionID = shouldSkipReportActionID ? undefined : reportActionItem.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
                 return;
             }
@@ -1145,12 +1151,14 @@ function Search({
         ],
     );
 
+    const shouldUseStrictDefaultExpenseColumns = currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON);
+
     const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
             return [];
         }
-        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, validGroupBy);
-    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy]);
+        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, validGroupBy, false, false, false, shouldUseStrictDefaultExpenseColumns);
+    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy, shouldUseStrictDefaultExpenseColumns]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({

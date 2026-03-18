@@ -1861,7 +1861,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
-                columnWidth = {...getWidthStyle(variables.w92)};
+                columnWidth = {...getWidthStyle(variables.w80)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
                 columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
@@ -1911,7 +1911,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         switch (size) {
             case CONST.AVATAR_SIZE.SMALL:
-                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMargin];
                 break;
             case CONST.AVATAR_SIZE.SMALLER:
                 containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
