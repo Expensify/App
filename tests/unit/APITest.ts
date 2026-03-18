@@ -436,7 +436,7 @@ describe('APITests', () => {
                 });
 
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-                expect(NetworkStore.isOffline()).toBe(false);
+                expect(NetworkStore.isOffline()).toBe(true);
                 expect(NetworkStore.isAuthenticating()).toBe(false);
                 return waitForBatchedUpdates();
             })
@@ -551,7 +551,7 @@ describe('APITests', () => {
                 API.write('MockCommandThree' as WriteCommand, {});
 
                 // THEN the retryable requests should immediately be added to the persisted requests
-                expect(PersistedRequests.getAll().length).toBe(2);
+                expect(PersistedRequests.getLength()).toBe(2);
 
                 // WHEN we wait for the queue to run and finish processing
                 return waitForBatchedUpdates();
