@@ -6,7 +6,7 @@ import StringUtils from './StringUtils';
 
 const attachmentRegex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
 const attachmentElementRegex = new RegExp(
-    `<img[^>]* ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="[^"]*"[^>]*\/?>|<(?:a|video)[^>]* ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?<\/(?:a|video)>`,
+    `<img[^>]* ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="[^"]*"[^>]*/?>|<(?:a|video)[^>]* ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</(?:a|video)>`,
     'gi',
 );
 
