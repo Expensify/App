@@ -1143,6 +1143,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Supprimer le reçu',
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
         addReceipt: 'Ajouter un reçu',
+        addAdditionalReceipt: 'Ajouter un reçu supplémentaire',
         scanFailed: 'Le reçu n’a pas pu être scanné, car il lui manque un commerçant, une date ou un montant.',
         crop: 'Recadrer',
         addAReceipt: {
@@ -2088,6 +2089,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’authentification à deux facteurs.',
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: 'L’authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.',
+        replaceDevice: 'Remplacer l’appareil',
+        replaceDeviceTitle: 'Remplacer l’appareil d’authentification à deux facteurs',
+        verifyOldDeviceTitle: 'Vérifier l’ancien appareil',
+        verifyOldDeviceDescription: 'Saisissez le code à six chiffres de votre application d’authentification actuelle pour confirmer que vous y avez accès.',
+        verifyNewDeviceTitle: 'Configurer un nouvel appareil',
+        verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
     },
     recoveryCodeForm: {
         error: {
