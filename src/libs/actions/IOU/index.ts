@@ -1454,21 +1454,21 @@ function startDistanceRequest(
     }
 }
 
-function setMoneyRequestReceiptState(transactionID: string, isDraft: boolean) {
-    if (!isDraft) {
+function setMoneyRequestReceiptState(transactionID: string, isDraft: boolean, shouldStopSmartscan = false) {
+    if (!isDraft || !shouldStopSmartscan) {
         return;
     }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}});
 }
 
-function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false) {
+function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false, shouldStopSmartscan = false) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
-    setMoneyRequestReceiptState(transactionID, true);
+    setMoneyRequestReceiptState(transactionID, true, shouldStopSmartscan);
 }
 
-function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean) {
+function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean, shouldStopSmartscan = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
-    setMoneyRequestReceiptState(transactionID, isDraft);
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
 function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
@@ -1480,14 +1480,14 @@ function setMoneyRequestCurrency(transactionID: string, currency: string, isEdit
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency});
 }
 
-function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean) {
+function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean, shouldStopSmartscan = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
-    setMoneyRequestReceiptState(transactionID, isDraft);
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
-function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean) {
+function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean, shouldStopSmartscan = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
-    setMoneyRequestReceiptState(transactionID, isDraft);
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
 function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
