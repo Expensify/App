@@ -5916,7 +5916,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
 
             const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
             const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-            const modifiedMessage = getForReportAction({
+            const modifiedMessageWithHTML = getForReportAction({
                 reportAction: parentReportAction,
                 policyID,
                 movedFromReport,
@@ -5924,6 +5924,8 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
                 // Temporarily retrieves current user email from getCurrentUserEmail, since getReportName is deprecated and no longer requires this parameter to be passed explicitly.
                 currentUserLogin: getCurrentUserEmail() ?? '',
             });
+            // Strip HTML tags for plain text display in report last message
+            const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);
             return formatReportLastMessageText(modifiedMessage);
         }
         if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
