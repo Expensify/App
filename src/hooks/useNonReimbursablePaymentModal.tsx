@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DecisionModal from '@components/DecisionModal';
-import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {hasOnlyNonReimbursableTransactions, isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import useLocalize from './useLocalize';
+import useResponsiveLayout from './useResponsiveLayout';
 
 type UseNonReimbursablePaymentModalReturn = {
     showNonReimbursablePaymentErrorModal: () => void;
@@ -18,7 +18,7 @@ type UseNonReimbursablePaymentModalReturn = {
 function useNonReimbursablePaymentModal(iouReport: OnyxEntry<Report>): UseNonReimbursablePaymentModalReturn {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const showNonReimbursablePaymentErrorModal = () => setIsModalVisible(true);
 
@@ -29,7 +29,7 @@ function useNonReimbursablePaymentModal(iouReport: OnyxEntry<Report>): UseNonRei
         <DecisionModal
             title={translate('iou.error.nonReimbursablePayment')}
             prompt={translate('iou.error.nonReimbursablePaymentDescription')}
-            isSmallScreenWidth={isSmallScreenWidth}
+            isSmallScreenWidth={shouldUseNarrowLayout}
             onSecondOptionSubmit={() => setIsModalVisible(false)}
             secondOptionText={translate('common.buttonConfirm')}
             isVisible={isModalVisible}
