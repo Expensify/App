@@ -1,7 +1,7 @@
-import type {ListRenderItemInfo} from '@react-native/virtualized-lists';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
@@ -120,6 +120,8 @@ type ReportActionsListProps = {
     listID: number;
 
     /** Should enable auto scroll to top threshold */
+    // TODO: check if we still need it
+    // eslint-disable-next-line react/no-unused-prop-types
     shouldEnableAutoScrollToTopThreshold?: boolean;
 
     /** Whether the optimistic CREATED report action was added */
@@ -178,7 +180,7 @@ function ReportActionsList({
     onLayout,
     isComposerFullSize,
     listID,
-    shouldEnableAutoScrollToTopThreshold,
+    // shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
     isConciergeSidePanel,
@@ -907,6 +909,7 @@ function ReportActionsList({
                 {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
                 <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                    // @ts-expect-error TODO: correct the ref typing
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={[styles.overscrollBehaviorContain, shouldScrollToEndAfterLayout && styles.flex0]}
