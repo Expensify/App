@@ -8,10 +8,13 @@ import type {Policy, Report} from '@src/types/onyx';
 import {getForReportAction} from '../../src/libs/ModifiedExpenseMessage';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const CURRENT_USER_LOGIN = 'test@example.com';
 
 beforeAll(() => {
     IntlStore.load(CONST.LOCALES.EN);
@@ -42,6 +45,7 @@ const getMockedPolicies = (length = 500) =>
 
 const mockedReportsMap = getMockedReports(1000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
 const mockedPoliciesMap = getMockedPolicies(1000) as Record<`${typeof ONYXKEYS.COLLECTION.POLICY}`, Policy>;
+const mockedPolicyTags = createRandomPolicyTags('Department', 5);
 
 test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', async () => {
     const reportAction = {
@@ -61,5 +65,5 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => getForReportAction({translate: translateLocal, reportAction, policyTags: undefined, currentUserLogin: ''}));
+    await measureFunction(() => getForReportAction({translate: translateLocal, reportAction, policyTags: mockedPolicyTags, currentUserLogin: CURRENT_USER_LOGIN}));
 });
