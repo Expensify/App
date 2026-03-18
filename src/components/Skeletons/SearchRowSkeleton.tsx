@@ -17,7 +17,7 @@ type SearchRowSkeletonProps = {
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
-    reasonAttributes: SkeletonSpanReasonAttributes;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
 const barHeight = 8;
@@ -40,7 +40,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    useSkeletonSpan('SearchRowSkeleton', reasonAttributes);
+    useSkeletonSpan('SearchRowSkeleton', reasonAttributes ?? {context: 'SearchRowSkeleton'});
 
     if (shouldUseNarrowLayout) {
         return (
