@@ -9535,7 +9535,7 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
                 },
             },
         },
