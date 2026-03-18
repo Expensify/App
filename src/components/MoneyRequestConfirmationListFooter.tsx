@@ -599,7 +599,7 @@ function MoneyRequestConfirmationListFooter({
                         shouldShowCurrencyButton
                         shouldShowBigNumberPad={false}
                         onCurrencyButtonPress={showCurrencyPicker}
-                        disabled={didConfirm || isReadOnly || shouldShowTimeRequestFields}
+                        disabled={didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest}
                     />
                 </View>
             ) : (
