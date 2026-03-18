@@ -8,7 +8,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
+import {isMobileIOS} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
@@ -55,8 +55,8 @@ function TableListItem<TItem extends ListItem>({
     };
 
     const fallbackAccessibilityLabel = item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ');
-    const isIOSSplitAccessibilityMode = !!item.shouldSplitAccessibilityOnIOS && (getPlatform() === CONST.PLATFORM.IOS || Browser.isMobileIOS());
-    const shouldHideTextContainerFromAccessibility = !!item.accessibilityLabel && !isIOSSplitAccessibilityMode;
+    const isIOSSplitAccessibilityMode = !!item.shouldSplitAccessibilityOnIOS && (getPlatform() === CONST.PLATFORM.IOS || isMobileIOS());
+    const shouldHideTextContainerFromAccessibility = !isIOSSplitAccessibilityMode && item.accessibilityRole === CONST.ROLE.LISTITEM;
 
     return (
         <BaseListItem
@@ -118,6 +118,7 @@ function TableListItem<TItem extends ListItem>({
                             isNested
                             hoverDimmingValue={1}
                             pressDimmingValue={1}
+                            sentryLabel="TableListItemSummary"
                             testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}-summary`}
                             wrapperStyle={styles.flex1}
                             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
