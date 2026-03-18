@@ -8,11 +8,7 @@ import useResponsiveLayout from './useResponsiveLayout';
 
 const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
-/**
- * On native narrow layouts the tab bar must be rendered as ScreenWrapper.bottomContent
- * so it participates in swipe-back (push/pop) animations. On web, the navigator's
- * tabBar prop handles rendering instead.
- */
+/** Returns NavigationTabBar as bottomContent on native narrow (for swipe-back animations). */
 function useTabBarBottomContent(selectedTab: ValueOf<typeof NAVIGATION_TABS>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     if (isWeb || !shouldUseNarrowLayout) {

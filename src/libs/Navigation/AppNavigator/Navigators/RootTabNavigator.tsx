@@ -31,18 +31,9 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
 };
 
 /**
- * Only receives `state` (not the full BottomTabBarProps) so that React.memo
- * can effectively prevent re-renders. The `descriptors` object in BottomTabBarProps
- * is recreated on every render, which would defeat memoization.
- *
- * Wrapped in a View with overflow: 'visible' so that the absolutely-positioned
- * floating buttons (FAB, GPS, Camera) rendered by NavigationTabBar can extend
- * above the tab bar area without being clipped.
- *
- * The BottomTabView handles layout via flexDirection:
- *   - tabBarPosition='bottom' → flexDirection='column' (screens above, tab bar below)
- *   - tabBarPosition='left'   → flexDirection='row-reverse' (tab bar left, screens right)
- * No manual margins needed — the navigator's flex layout sizes everything.
+ * Custom tab bar rendered by the BottomTabNavigator. Only receives `state` (not the
+ * full BottomTabBarProps) to avoid `descriptors` thrashing memoization.
+ * Wrapped in overflow:'visible' so floating buttons (FAB, GPS, Camera) aren't clipped.
  */
 function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state']}) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -56,13 +47,9 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     const isAtRoot = nestedStateIndex === undefined || nestedStateIndex === 0;
     const shouldHide = shouldUseNarrowLayout && !isAtRoot;
 
-    // On native, tab screens render their own tab bar via ScreenWrapper.bottomContent
-    // so it participates in swipe-back animations. The navigator's tab bar must:
-    //   1. Stay visible during tab switches (e.g. inbox → home) because the new tab's
-    //      bottomContent may not have rendered yet.
-    //   2. Hide during back-navigation within a tab (e.g. settings/profile → back)
-    //      when coming from a screen where the tab bar was not visible, then appear
-    //      after the animation completes — the page's bottomContent handles the visual.
+    // On native, screens also render the tab bar via bottomContent for swipe-back animations.
+    // Delay showing this navigator's tab bar only when navigating back from a deeper screen
+    // (where the tab bar was hidden). Keep it visible during tab switches so it doesn't flash.
     const prevTabIndex = usePrevious(tabState.index);
     const prevShouldHide = usePrevious(shouldHide);
     const stateKey = `${tabState.index}-${nestedStateIndex}`;
@@ -81,9 +68,7 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);
 
     if (shouldUseNarrowLayout) {
-        // Negative marginTop makes the tab bar overlay the content above, taking zero space
-        // in the flex layout. This prevents layout shifts when toggling visibility and
-        // eliminates the gap between content and tab bar.
+        // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         return (
             <View
                 style={{
@@ -110,8 +95,6 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     );
 }
 
-// Stable reference: only passes `state` to avoid descriptors thrashing
-// eslint-disable-next-line react/jsx-props-no-spreading
 const renderTabBar = ({state}: BottomTabBarProps) => <RootTabNavigatorTabBar tabState={state} />;
 
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
@@ -145,8 +128,6 @@ const WorkspaceSplitNavigatorScreen = withSuspense(LazyWorkspaceSplitNavigator);
 
 const Tab = createBottomTabNavigator<RootTabNavigatorParamList>();
 
-// Hoisted to module level for stable references — prevents React Navigation from
-// rebuilding descriptors on every render.
 const SCENE_STYLE = {flex: 1} as const;
 
 const TAB_SCREEN_OPTIONS_NARROW = {
