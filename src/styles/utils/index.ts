@@ -1532,7 +1532,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getIconColorStyle: (isSuccess: boolean, isError: boolean, isStrong = false): string => {
         if (isStrong) {
-            return theme.white;
+            return theme.icon;
         }
         if (isSuccess) {
             return theme.badgeSuccessText;
@@ -1911,7 +1911,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         switch (size) {
             case CONST.AVATAR_SIZE.SMALL:
-                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMargin];
                 break;
             case CONST.AVATAR_SIZE.SMALLER:
                 containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];

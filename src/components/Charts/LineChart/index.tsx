@@ -3,10 +3,12 @@ import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {LineChartProps} from './LineChartContent';
 
 function LineChart(props: LineChartProps) {
     const styles = useThemeStyles();
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChart.SkiaWebLoading'};
 
     return (
         <WithSkiaWeb
@@ -15,7 +17,10 @@ function LineChart(props: LineChartProps) {
             componentProps={props}
             fallback={
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.highlightBG, styles.br4, styles.p5]}>
-                    <ActivityIndicator size="large" />
+                    <ActivityIndicator
+                        size="large"
+                        reasonAttributes={reasonAttributes}
+                    />
                 </View>
             }
         />
