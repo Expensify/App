@@ -140,6 +140,36 @@ jest.mock('@libs/actions/Welcome', () => ({
     onServerDataReady: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('react-native-fs', () => ({
+    DocumentDirectoryPath: '/mock/documents',
+    copyFile: jest.fn(() => Promise.resolve()),
+    exists: jest.fn(() => Promise.resolve(true)),
+    unlink: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('react-native-blob-util', () => ({
+    config: jest.fn((data: {path?: string} | undefined) => {
+        const filePath: string = data?.path ?? '/mock/documents/file';
+        return {
+            fetch: jest.fn(() =>
+                Promise.resolve({
+                    path: jest.fn((): string => filePath),
+                }),
+            ),
+        };
+    }),
+    fs: {
+        dirs: {
+            DocumentDir: '/mock/documents',
+        },
+    },
+    fetch: jest.fn(() =>
+        Promise.resolve({
+            path: jest.fn((): string => '/mock/documents/file'),
+        }),
+    ),
+}));
+
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
 
@@ -1489,6 +1519,8 @@ describe('actions/Report', () => {
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
 
+        await waitForBatchedUpdates();
+
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(1);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1591,7 +1623,12 @@ describe('actions/Report', () => {
     });
 
     it('should send not DeleteComment request and remove AddAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+        });
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -1661,7 +1698,12 @@ describe('actions/Report', () => {
     });
 
     it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+        });
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -1731,7 +1773,12 @@ describe('actions/Report', () => {
     });
 
     it('should post text + attachment as first action then attachment only for remaining attachments when adding multiple attachments with a comment', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+        });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
@@ -1775,7 +1822,12 @@ describe('actions/Report', () => {
     });
 
     it('should create attachment only actions when adding multiple attachments without a comment', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+        });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
@@ -1818,7 +1870,12 @@ describe('actions/Report', () => {
     });
 
     it('should create attachment only action & not play sound when adding attachment without a comment & shouldPlaySound not passed', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+        });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
@@ -1983,6 +2040,9 @@ describe('actions/Report', () => {
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
+
+        await waitForBatchedUpdates();
+
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         // wait for Onyx.connect execute the callback and start processing the queue
@@ -2176,6 +2236,7 @@ describe('actions/Report', () => {
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
@@ -2274,6 +2335,8 @@ describe('actions/Report', () => {
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
 
