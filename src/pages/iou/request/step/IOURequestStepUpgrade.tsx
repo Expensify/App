@@ -59,6 +59,7 @@ function IOURequestStepUpgrade({
     const isWeb = platform === CONST.PLATFORM.WEB;
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
@@ -101,7 +102,7 @@ function IOURequestStepUpgrade({
                 // /:action/submit/... when shouldSubmitExpense === true as transaction is not selfDM anymore
                 const backToRoute = shouldSubmitExpense ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID) : undefined;
 
-                Navigation.goBack(backToRoute);
+                Navigation.goBack(backToRoute, {compareParams: false});
 
                 setTransactionReport(transactionID, {reportID: expenseReportID}, true);
                 // Let the confirmation step decide the distance rate because policy data is not fully available at this step
@@ -164,6 +165,7 @@ function IOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
+            betas,
             isSelfTourViewed,
         });
         setIsUpgraded(true);
@@ -190,6 +192,7 @@ function IOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
+            betas,
             isSelfTourViewed,
         });
         policyDataRef.current = policyData;
