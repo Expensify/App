@@ -5,16 +5,16 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
-function useFilterFromValues(value: SearchFilter['value']) {
+function useFilterFromValues(fromAccountIDs: SearchFilter['value']): string {
     const filterFromSelector = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
-        if (!Array.isArray(value) || !personalDetails) {
+        if (!Array.isArray(fromAccountIDs) || !personalDetails) {
             return null;
         }
-        return value.map((currentAccountID) => getDisplayNameOrDefault(personalDetails[currentAccountID], currentAccountID, false));
+        return fromAccountIDs.map((currentAccountID) => getDisplayNameOrDefault(personalDetails[currentAccountID], currentAccountID, false));
     };
 
-    const [fromValue] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: filterFromSelector});
-    return fromValue;
+    const [fromDisplayNames] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: filterFromSelector});
+    return fromDisplayNames?.join(', ') ?? '';
 }
 
 export default useFilterFromValues;

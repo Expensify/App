@@ -5,19 +5,27 @@ import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function useFilterFeedValues(value: SearchFilter['value']) {
+function useFilterFeedValues(feedIDs: SearchFilter['value']): string {
     const {translate} = useLocalize();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(feedIDs)) {
         return '';
     }
 
     const feedsForDisplay = getCardFeedsForDisplay(allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards);
-    const feedValue = value.map((feed) => feedsForDisplay[feed]?.name).filter(Boolean);
-    return feedValue;
+    return feedIDs.reduce((acc, feedID) => {
+        const feedName = feedsForDisplay[feedID]?.name;
+        if (!feedName) {
+            return acc;
+        }
+        if (!acc) {
+            return feedName;
+        }
+        return `${acc}, ${feedName}`;
+    }, '');
 }
 
 export default useFilterFeedValues;

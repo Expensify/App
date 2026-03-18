@@ -4,13 +4,13 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
-function useFilterWorkspaceValues(value: SearchFilter['value']) {
+function useFilterWorkspaceValues(policyIDs: SearchFilter['value']): string {
     const filterWorkspaceSelector = (policies: OnyxCollection<Policy>) => {
-        if (!Array.isArray(value) || !policies) {
+        if (!Array.isArray(policyIDs) || !policies) {
             return null;
         }
         const workspaces = [];
-        for (const policyID of value) {
+        for (const policyID of policyIDs) {
             const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
             if (!policy) {
                 continue;
@@ -19,8 +19,8 @@ function useFilterWorkspaceValues(value: SearchFilter['value']) {
         }
         return workspaces;
     };
-    const [workspaceValue] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filterWorkspaceSelector});
-    return workspaceValue;
+    const [workspaceNames] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filterWorkspaceSelector});
+    return workspaceNames?.join(', ') ?? '';
 }
 
 export default useFilterWorkspaceValues;
