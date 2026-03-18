@@ -65,7 +65,7 @@ function ReportFieldsValueSettingsPage({
     if (!currentValueName && !oldValueName) {
         return <NotFoundPage />;
     }
-    const deleteListValueAndHideModal = async () => {
+    const confirmAndDeleteListValue = async () => {
         const result = await showConfirmModal({
             danger: true,
             title: translate('workspace.reportFields.deleteValue'),
@@ -150,7 +150,7 @@ function ReportFieldsValueSettingsPage({
                         <MenuItem
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={deleteListValueAndHideModal}
+                            onPress={confirmAndDeleteListValue}
                         />
                     )}
                 </View>

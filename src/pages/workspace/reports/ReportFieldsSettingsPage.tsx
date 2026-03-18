@@ -51,7 +51,7 @@ function ReportFieldsSettingsPage({
     const isListFieldEmpty = isListFieldType && reportField.disabledOptions.filter((disabledListValue) => !disabledListValue).length <= 0;
     const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.sort(localeCompare);
 
-    const deleteReportFieldAndHideModal = async () => {
+    const confirmAndDeleteReportField = async () => {
         const result = await showConfirmModal({
             danger: true,
             title: translate('workspace.reportFields.delete'),
@@ -126,7 +126,7 @@ function ReportFieldsSettingsPage({
                             <MenuItem
                                 icon={icons.Trashcan}
                                 title={translate('common.delete')}
-                                onPress={deleteReportFieldAndHideModal}
+                                onPress={confirmAndDeleteReportField}
                             />
                         </View>
                     )}
