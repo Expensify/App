@@ -6435,9 +6435,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     // lays out, so that Onyx optimistic updates don't block the JS thread while
     // the skeleton→content transition is in progress. The Search component flushes
     // the registered write from its content onLayout callback.
-    // Only the SUBMIT and default (REQUEST_MONEY) branches are deferred because they are
-    // the paths that navigate to the search screen. CATEGORIZE and SHARE navigate
-    // elsewhere and don't benefit from this deferral.
+    // Only the SUBMIT and default (REQUEST_MONEY) branches wrap the write; the actual
+    // deferral only activates when we navigate to Search (shouldHandleNavigation && !isRetry).
+    // CATEGORIZE and SHARE navigate elsewhere and don't benefit from this deferral.
     let deferredAPIWrite: (() => void) | undefined;
 
     switch (action) {
@@ -6588,7 +6588,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     }
 
     if (deferredAPIWrite) {
-        registerDeferredSearchWrite(deferredAPIWrite);
+        if (shouldHandleNavigation && !requestMoneyInformation.isRetry) {
+            registerDeferredSearchWrite(deferredAPIWrite);
+        } else {
+            deferredAPIWrite();
+        }
     }
 
     if (activeReportID && !isMoneyRequestReport) {
