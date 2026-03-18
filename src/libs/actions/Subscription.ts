@@ -15,23 +15,19 @@ import type {OnyxData} from '@src/types/onyx/Request';
  *                         will be optimistically cleared to handle stale cache when billing was resolved.
  */
 function openSubscriptionPage(ownerAccountID?: number) {
-    const optimisticData: OnyxUpdate[] = [
+    // Clear the owner's billing grace period optimistically. If the server still has it,
+    // it will be restored from the response. If it was deleted (billing resolved), it stays null.
+    if (ownerAccountID) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`, null);
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
             value: true,
         },
     ];
-
-    // Clear the owner's billing grace period optimistically. If the server still has it,
-    // it will be restored from the response. If it was deleted (billing resolved), it stays null.
-    if (ownerAccountID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`,
-            value: null,
-        });
-    }
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
