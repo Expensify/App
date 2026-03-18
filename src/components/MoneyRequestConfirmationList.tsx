@@ -1414,5 +1414,6 @@ export default memo(
         prevProps.isTimeRequest === nextProps.isTimeRequest &&
         prevProps.iouTimeCount === nextProps.iouTimeCount &&
         prevProps.iouTimeRate === nextProps.iouTimeRate &&
+        prevProps.shouldHideToSection === nextProps.shouldHideToSection &&
         prevProps.isLoadingReceipt === nextProps.isLoadingReceipt,
 );
