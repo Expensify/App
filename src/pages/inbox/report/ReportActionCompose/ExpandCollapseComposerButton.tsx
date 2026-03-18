@@ -37,60 +37,39 @@ function ExpandCollapseComposerButton({
         return null;
     }
 
+    const shouldCollapse = isComposerFullSize;
+    const tooltipText = shouldCollapse ? translate('reportActionCompose.collapse') : translate('reportActionCompose.expand');
+    const nextComposerFullSizeValue = !shouldCollapse;
+    const iconSrc = shouldCollapse ? icons.Collapse : icons.Expand;
+    const sentryLabel = shouldCollapse ? CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_COLLAPSE_BUTTON : CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_EXPAND_BUTTON;
+
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <View {...restProps}>
-            {isComposerFullSize ? (
-                <Tooltip
-                    text={translate('reportActionCompose.collapse')}
-                    key="composer-collapse"
+            <Tooltip
+                text={tooltipText}
+                key={shouldCollapse ? 'composer-collapse' : 'composer-expand'}
+            >
+                <PressableWithFeedback
+                    onPress={(e) => {
+                        e?.preventDefault();
+                        raiseIsScrollLikelyLayoutTriggered();
+                        setIsComposerFullSize(reportID, nextComposerFullSizeValue);
+                    }}
+                    // Keep focus on the composer when Collapse/Expand button is clicked.
+                    onMouseDown={(e) => e.preventDefault()}
+                    style={styles.composerSizeButton}
+                    disabled={disabled}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={tooltipText}
+                    sentryLabel={sentryLabel}
                 >
-                    <PressableWithFeedback
-                        onPress={(e) => {
-                            e?.preventDefault();
-                            raiseIsScrollLikelyLayoutTriggered();
-                            setIsComposerFullSize(reportID, false);
-                        }}
-                        // Keep focus on the composer when Collapse button is clicked.
-                        onMouseDown={(e) => e.preventDefault()}
-                        style={styles.composerSizeButton}
-                        disabled={disabled}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('reportActionCompose.collapse')}
-                        sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_COLLAPSE_BUTTON}
-                    >
-                        <Icon
-                            fill={theme.icon}
-                            src={icons.Collapse}
-                        />
-                    </PressableWithFeedback>
-                </Tooltip>
-            ) : (
-                <Tooltip
-                    text={translate('reportActionCompose.expand')}
-                    key="composer-expand"
-                >
-                    <PressableWithFeedback
-                        onPress={(e) => {
-                            e?.preventDefault();
-                            raiseIsScrollLikelyLayoutTriggered();
-                            setIsComposerFullSize(reportID, true);
-                        }}
-                        // Keep focus on the composer when Expand button is clicked.
-                        onMouseDown={(e) => e.preventDefault()}
-                        style={styles.composerSizeButton}
-                        disabled={disabled}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('reportActionCompose.expand')}
-                        sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_EXPAND_BUTTON}
-                    >
-                        <Icon
-                            fill={theme.icon}
-                            src={icons.Expand}
-                        />
-                    </PressableWithFeedback>
-                </Tooltip>
-            )}
+                    <Icon
+                        fill={theme.icon}
+                        src={iconSrc}
+                    />
+                </PressableWithFeedback>
+            </Tooltip>
         </View>
     );
 }
