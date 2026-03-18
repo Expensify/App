@@ -490,6 +490,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Let op!',
         submitTo: 'Indienen bij',
         forwardTo: 'Doorsturen naar',
+        approvalLimit: 'Goedkeuringslimiet',
+        overLimitForwardTo: 'Doorsturen bij overschrijding limiet',
         merge: 'Samenvoegen',
         none: 'Geen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
@@ -2078,6 +2080,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Je bedrijf vereist tweefactorauthenticatie.',
         twoFactorAuthCannotDisable: 'Kan 2FA niet uitschakelen',
         twoFactorAuthRequired: 'Tweestapsverificatie (2FA) is vereist voor je Xero-verbinding en kan niet worden uitgeschakeld.',
+        replaceDevice: 'Apparaat vervangen',
+        replaceDeviceTitle: 'Tweefactorauthenticatie-apparaat vervangen',
+        verifyOldDeviceTitle: 'Oud apparaat verifiëren',
+        verifyOldDeviceDescription: 'Voer de zescijferige code uit je huidige authenticator-app in om te bevestigen dat je daar toegang toe hebt.',
+        verifyNewDeviceTitle: 'Nieuw apparaat instellen',
+        verifyNewDeviceDescription: 'Scan de QR-code met je nieuwe apparaat en voer daarna de code in om de installatie te voltooien.',
     },
     recoveryCodeForm: {
         error: {

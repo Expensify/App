@@ -100,6 +100,8 @@ type SearchProps = {
     onDEWModalOpen?: () => void;
 };
 
+const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
+
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
@@ -516,9 +518,7 @@ function Search({
         if (!validGroupBy) {
             return [];
         }
-        return (baseFilteredData as TransactionGroupListItemType[])
-            .map((item) => (item.transactionsQueryJSON?.hash ? String(item.transactionsQueryJSON.hash) : undefined))
-            .filter((hashValue): hashValue is string => !!hashValue);
+        return (baseFilteredData as TransactionGroupListItemType[]).map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue);
     }, [validGroupBy, baseFilteredData]);
 
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
@@ -529,7 +529,7 @@ function Search({
         }
 
         const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
-            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            const snapshot = groupByTransactionSnapshots[hashToString(item.transactionsQueryJSON?.hash) ?? ''];
             if (!snapshot?.data) {
                 return item;
             }
