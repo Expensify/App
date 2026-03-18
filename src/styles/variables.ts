@@ -119,7 +119,7 @@ export default {
     tooltipZIndex: 10050,
     gutterWidth: 12,
     optionRowHeight: 64,
-    optionRowHeightCompact: 52,
+    optionRowHeightCompact: 56,
     sectionMenuItemHeight: 52,
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),

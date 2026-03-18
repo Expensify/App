@@ -73,7 +73,7 @@ function TableListItem<TItem extends ListItem>({
             pressableWrapperStyle={[
                 styles.mh5,
                 animatedHighlightStyle,
-                isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: theme.border},
+                isLargeScreenWidth && {borderRadius: 0, borderBottomWidth: isLastItem ? 0 : 1, borderColor: item.isSelected ? theme.buttonHoveredBG : theme.border},
                 isLargeScreenWidth && isLastItem && {borderBottomLeftRadius: 8, borderBottomRightRadius: 8},
             ]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
