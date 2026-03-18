@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
@@ -310,8 +310,8 @@ function MoneyRequestReportPreviewContent({
             } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
                 setIsHoldMenuVisible(true);
             } else if (chatReport && iouReport) {
-                startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
+                    startAnimation();
                     payInvoice({
                         paymentMethodType: type,
                         chatReport,
@@ -342,6 +342,7 @@ function MoneyRequestReportPreviewContent({
                         isSelfTourViewed,
                         userBillingGraceEndPeriods,
                         amountOwed,
+                        onPaid: startAnimation,
                     });
                 }
             }
@@ -391,7 +392,6 @@ function MoneyRequestReportPreviewContent({
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            startApprovedAnimation();
             approveMoneyRequest({
                 expenseReport: iouReport,
                 policy: activePolicy,
@@ -404,6 +404,7 @@ function MoneyRequestReportPreviewContent({
                 userBillingGraceEndPeriods,
                 amountOwed,
                 full: true,
+                onApproved: startApprovedAnimation,
             });
         }
     };
@@ -582,31 +583,40 @@ function MoneyRequestReportPreviewContent({
         carouselTransactionsRef.current = carouselTransactions;
     }, [carouselTransactions]);
 
-    useFocusEffect(
-        useCallback(() => {
-            const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
+    const isFocused = useIsFocused();
+    const isFocusedRef = useRef(isFocused);
 
-            if (index < 0) {
+    useEffect(() => {
+        isFocusedRef.current = isFocused;
+    }, [isFocused]);
+
+    useEffect(() => {
+        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
+
+        if (index < 0) {
+            return;
+        }
+        const newTransaction = carouselTransactions.at(index);
+        setTimeout(() => {
+            if (!isFocusedRef.current) {
                 return;
             }
-            const newTransaction = carouselTransactions.at(index);
-            setTimeout(() => {
-                // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
-                // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
-                if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
-                    return;
-                }
+            // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
+            // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
+            if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
+                return;
+            }
 
-                carouselRef.current?.scrollToIndex({
-                    index,
-                    viewOffset: -2 * styles.gap2.gap,
-                    animated: true,
-                });
-            }, CONST.ANIMATED_TRANSITION);
+            carouselRef.current?.scrollToIndex({
+                index,
+                viewOffset: -2 * styles.gap2.gap,
+                animated: true,
+            });
+        }, CONST.ANIMATED_TRANSITION);
 
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [newTransactionIDs]),
-    );
+        // We only want to scroll to a new transaction when the set of new transaction IDs changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newTransactionIDs]);
 
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
@@ -748,7 +758,7 @@ function MoneyRequestReportPreviewContent({
                 icons: expensifyIcons,
                 iouReportID: iouReport?.reportID,
                 policy,
-                userBillingGraceEndPeriodCollection: userBillingGraceEndPeriods,
+                userBillingGraceEndPeriods,
                 draftTransactionIDs,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
@@ -785,18 +795,18 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     confirmPendingRTERAndProceed(() => {
-                        startSubmittingAnimation();
-                        submitReport(
-                            iouReport,
+                        submitReport({
+                            expenseReport: iouReport,
                             policy,
-                            currentUserAccountID,
-                            currentUserEmail,
+                            currentUserAccountIDParam: currentUserAccountID,
+                            currentUserEmailParam: currentUserEmail,
                             hasViolations,
                             isASAPSubmitBetaEnabled,
-                            iouReportNextStep,
+                            expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                             userBillingGraceEndPeriods,
                             amountOwed,
-                        );
+                            onSubmitted: startSubmittingAnimation,
+                        });
                     });
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
