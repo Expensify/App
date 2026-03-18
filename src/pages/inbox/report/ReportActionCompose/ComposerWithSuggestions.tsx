@@ -256,8 +256,9 @@ function ComposerWithSuggestions({
     const {editingState, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();
     const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
 
+    const isEditingInComposer = shouldUseNarrowLayout && editingState !== null;
     const [value, setValue] = useState(() => {
-        const initialValue = shouldUseNarrowLayout ? (editingMessage ?? draftComment) : draftComment;
+        const initialValue = isEditingInComposer ? (editingMessage ?? draftComment) : draftComment;
 
         if (initialValue) {
             emojisPresentBefore.current = extractEmojis(initialValue);
@@ -383,7 +384,7 @@ function ComposerWithSuggestions({
         if (shouldUseNarrowLayout) {
             applyComposerValue(editingMessage ?? '', {isEditingInComposer: true});
         }
-    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, editingState, selection, shouldUseNarrowLayout, updateSelectionImperatively]);
+    }, [applyComposerValue, draftComment, editingMessage, editingState, selection, shouldUseNarrowLayout, updateSelectionImperatively]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -585,7 +586,7 @@ function ComposerWithSuggestions({
             const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
 
             /** Only update isCommentEmpty state if it's different from previous one */
-            if (isNewCommentEmpty !== isPrevCommentEmpty) {
+            if (!isEditingInComposer && isNewCommentEmpty !== isPrevCommentEmpty) {
                 setIsCommentEmpty(isNewCommentEmpty);
             }
             emojisPresentBefore.current = emojis;
@@ -639,6 +640,7 @@ function ComposerWithSuggestions({
             editingReportActionID,
             editingState,
             findNewlyAddedChars,
+            isEditingInComposer,
             preferredLocale,
             preferredSkinTone,
             raiseIsScrollLikelyLayoutTriggered,

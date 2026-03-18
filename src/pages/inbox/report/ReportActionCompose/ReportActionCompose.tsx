@@ -166,11 +166,12 @@ function ReportActionCompose({
         canEvict: false,
     });
 
-    const {editingReportID, editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
+    const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
 
     const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
-    const isEditingInComposer = shouldUseNarrowLayout && !!editingReportActionID && !didResetComposerHeight;
+    const isEditingInComposer = shouldUseNarrowLayout && editingState !== null && !didResetComposerHeight;
 
+    console.log({isEditingInComposer, editingState, editingReportActionID});
     useEffect(() => {
         if (editingReportActionID || !didResetComposerHeight) {
             return;
