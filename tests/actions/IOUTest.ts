@@ -7914,7 +7914,17 @@ describe('actions/IOU', () => {
                 .then(async () => {
                     if (expenseReport) {
                         const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined, 0);
+                        submitReport({
+                            expenseReport,
+                            policy: {} as Policy,
+                            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                            currentUserEmailParam: CARLOS_EMAIL,
+                            hasViolations: true,
+                            isASAPSubmitBetaEnabled: true,
+                            expenseReportCurrentNextStepDeprecated: nextStep,
+                            userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -8198,7 +8208,17 @@ describe('actions/IOU', () => {
                     .then(async () => {
                         if (expenseReport) {
                             const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                            submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined, 0);
+                            submitReport({
+                                expenseReport,
+                                policy,
+                                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                                currentUserEmailParam: CARLOS_EMAIL,
+                                hasViolations: true,
+                                isASAPSubmitBetaEnabled: true,
+                                expenseReportCurrentNextStepDeprecated: nextStep,
+                                userBillingGraceEndPeriods: undefined,
+                                amountOwed: 0,
+                            });
                         }
                         return waitForBatchedUpdates();
                     })
@@ -8452,7 +8472,17 @@ describe('actions/IOU', () => {
                         mockFetch?.fail?.();
                         if (expenseReport) {
                             const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                            submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined, 0);
+                            submitReport({
+                                expenseReport,
+                                policy: {} as Policy,
+                                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                                currentUserEmailParam: CARLOS_EMAIL,
+                                hasViolations: true,
+                                isASAPSubmitBetaEnabled: true,
+                                expenseReportCurrentNextStepDeprecated: nextStep,
+                                userBillingGraceEndPeriods: undefined,
+                                amountOwed: 0,
+                            });
                         }
                         return waitForBatchedUpdates();
                     })
@@ -8607,7 +8637,17 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, undefined, undefined, 0);
+                        submitReport({
+                            expenseReport,
+                            policy,
+                            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                            currentUserEmailParam: CARLOS_EMAIL,
+                            hasViolations: true,
+                            isASAPSubmitBetaEnabled: true,
+                            expenseReportCurrentNextStepDeprecated: undefined,
+                            userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
+                        });
                     }
                     return waitForBatchedUpdates();
                 })
@@ -8667,7 +8707,17 @@ describe('actions/IOU', () => {
             (Navigation.navigate as jest.Mock).mockClear();
 
             // Submit with amountOwed > 0 should trigger restriction
-            submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, true, undefined, undefined, 100);
+            submitReport({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 100,
+            });
 
             await waitForBatchedUpdates();
 
@@ -8763,7 +8813,17 @@ describe('actions/IOU', () => {
                 (Navigation.navigate as jest.Mock).mockClear();
 
                 const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, true, nextStep, undefined, 0);
+                submitReport({
+                    expenseReport,
+                    policy,
+                    currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                    currentUserEmailParam: CARLOS_EMAIL,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: true,
+                    expenseReportCurrentNextStepDeprecated: nextStep,
+                    userBillingGraceEndPeriods: undefined,
+                    amountOwed: 0,
+                });
 
                 await waitForBatchedUpdates();
 
