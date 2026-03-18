@@ -30,15 +30,15 @@ function WorkspaceRestrictedActionPage({
     const styles = useThemeStyles();
     const [isLoadingSubscriptionData] = useOnyx(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
     const {isOffline} = useNetwork({
-        onReconnect: () => openSubscriptionPage(),
+        onReconnect: () => openSubscriptionPage(policy?.ownerAccountID),
     });
 
     // Fetch fresh billing NVPs from the server on mount.
     // The cached billing data may be stale, causing the restriction to persist
     // even after the workspace owner has resolved their billing issue.
     useEffect(() => {
-        openSubscriptionPage();
-    }, []);
+        openSubscriptionPage(policy?.ownerAccountID);
+    }, [policy?.ownerAccountID]);
 
     // Watch billing NVPs so the component re-renders when fresh data arrives from the server.
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
