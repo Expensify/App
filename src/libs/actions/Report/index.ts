@@ -2163,6 +2163,7 @@ function explain(
     translate: LocalizedTranslate,
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
     timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
 ) {
     if (!originalReport?.reportID || !reportAction) {
@@ -2170,7 +2171,7 @@ function explain(
     }
 
     // Check if explanation thread report already exists
-    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected);
+    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
     // Schedule adding the explanation comment on the next animation frame

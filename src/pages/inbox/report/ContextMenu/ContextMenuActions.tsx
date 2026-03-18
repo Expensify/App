@@ -471,7 +471,7 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             return hasReasoning(reportAction);
         },
-        onPress: (closePopover, {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected}) => {
+        onPress: (closePopover, {reportAction, childReport, originalReport, translate, currentUserPersonalDetails, introSelected, betas}) => {
             if (!originalReport?.reportID) {
                 return;
             }
@@ -479,13 +479,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, introSelected, currentUserPersonalDetails?.timezone);
+                        explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, introSelected, betas, currentUserPersonalDetails?.timezone);
                     });
                 });
                 return;
             }
 
-            explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, introSelected, currentUserPersonalDetails?.timezone);
+            explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, introSelected, betas, currentUserPersonalDetails?.timezone);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,
