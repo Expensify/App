@@ -18,6 +18,7 @@ import {
     shouldRestrictUserBillableActions,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
+    shouldShowTrialEndedUI,
 } from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1164,6 +1165,59 @@ describe('SubscriptionUtils', () => {
 
         it('should return false when empty policies collection is passed', () => {
             expect(shouldCalculateBillNewDot(true, {})).toBeFalsy();
+        });
+    });
+
+    describe('shouldShowTrialEndedUI', () => {
+        const ownerAccountID = 345;
+        const policyID = '200012';
+        const lastDayFreeTrialEnded = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+        const lastDayFreeTrialActive = formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+
+        let policies: Record<string, ReturnType<typeof createRandomPolicy>>;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+            };
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: ownerAccountID});
+        });
+
+        it('should return true for a regular user whose trial ended, no card, with owned workspace', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, undefined)).toBeTruthy();
+        });
+
+        it('should return false if the user has no owned paid policies', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, {}, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is grandfathered free', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, true, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is from an internal domain', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, true, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is on invoiced billing', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, CONST.SUBSCRIPTION.TYPE.INVOICING)).toBeFalsy();
+        });
+
+        it('should return false if the user has a payment card added', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, 8010, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the trial has not ended yet', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialActive, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if lastDayFreeTrial is undefined', () => {
+            expect(shouldShowTrialEndedUI(undefined, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
         });
     });
 });

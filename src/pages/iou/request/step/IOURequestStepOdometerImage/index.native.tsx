@@ -31,10 +31,11 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
+import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
-import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/NavigationAwareCamera/Camera';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -255,6 +256,12 @@ function IOURequestStepOdometerImage({
             });
     };
 
+    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepOdometerImage',
+        cameraPermissionGranted: cameraPermissionStatus === RESULTS.GRANTED,
+        deviceAvailable: device != null,
+    };
+
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
         return null;
@@ -297,6 +304,7 @@ function IOURequestStepOdometerImage({
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
+                            reasonAttributes={cameraLoadingReasonAttributes}
                         />
                     </View>
                 )}
