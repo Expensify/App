@@ -177,13 +177,13 @@ function BaseTextInput({
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
     const onFocus = (event: FocusEvent) => {
-        inputProps.onFocus?.(event);
         setIsFocused(true);
+        inputProps.onFocus?.(event);
     };
 
     const onBlur = (event: BlurEvent) => {
-        inputProps.onBlur?.(event);
         setIsFocused(false);
+        inputProps.onBlur?.(event);
     };
 
     const onPress = (event?: GestureResponderEvent | KeyboardEvent) => {
