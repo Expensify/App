@@ -42,5 +42,5 @@ function reconnect() {
     flush();
 }
 
-// eslint-disable-next-line import/prefer-default-export
+// eslint-disable-next-line import/prefer-default-export -- single export is intentional; more reconnection helpers may be added here as the architecture evolves
 export {reconnect};
