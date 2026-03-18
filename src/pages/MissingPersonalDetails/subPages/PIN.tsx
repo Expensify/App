@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidPIN} from '@libs/ValidationUtils';
-import {usePIN} from '@pages/MissingPersonalDetails/PINContext';
+import {usePINActions, usePINState} from '@pages/MissingPersonalDetails/PINContext';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function PIN({onNext}: CustomSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {PIN: savedPIN, setPIN, isConfirmStep, setIsConfirmStep, isPINHidden, togglePINVisibility} = usePIN();
+    const {PIN: savedPIN, isConfirmStep, isPINHidden} = usePINState();
+    const {setPIN, setIsConfirmStep, togglePINVisibility} = usePINActions();
     const [enteredPIN, setEnteredPIN] = useState(savedPIN);
     const [confirmPIN, setConfirmPIN] = useState(savedPIN);
     const [error, setError] = useState('');
