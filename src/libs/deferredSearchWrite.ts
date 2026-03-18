@@ -11,6 +11,8 @@
  * the write always fires even if navigation goes elsewhere.
  */
 
+// Generous upper bound to guarantee the write fires even if the user navigates
+// away from Search or the screen never mounts.
 const SAFETY_TIMEOUT_MS = 5000;
 
 let deferredWrite: (() => void) | undefined;
