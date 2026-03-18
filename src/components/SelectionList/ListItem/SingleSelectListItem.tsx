@@ -23,7 +23,7 @@ function SingleSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
-    shouldHighlightSelectedItem = true,
+    shouldHighlightSelectedItem = false,
     rightHandSideComponent = undefined,
     accessibilityState,
 }: SingleSelectListItemProps<TItem>) {
@@ -56,7 +56,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[styles.optionRowCompact, wrapperStyle]}
+            wrapperStyle={[styles.optionRow, wrapperStyle]}
             titleStyles={titleStyles}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             accessibilityState={accessibilityState}

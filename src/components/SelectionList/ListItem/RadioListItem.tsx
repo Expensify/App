@@ -70,7 +70,6 @@ function RadioListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             accessibilityRole={accessibilityRole}
-            shouldDisableHoverStyle
         >
             <>
                 {!!item.leftElement && item.leftElement}
