@@ -9,7 +9,7 @@ import SCREENS from '@src/SCREENS';
 import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import getStateForDynamicRoute from './dynamicRoutesUtils/getStateForDynamicRoute';
-import {findFocusedRouteWithOnyxTabGuard} from './getAdaptedStateFromPath';
+import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getRedirectedPath from './getRedirectedPath';
 

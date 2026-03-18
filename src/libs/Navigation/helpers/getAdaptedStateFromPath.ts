@@ -1,7 +1,6 @@
-import type {findFocusedRoute, NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
+import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
 import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
@@ -15,6 +14,7 @@ import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicS
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
+import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getRedirectedPath from './getRedirectedPath';
 import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
@@ -27,26 +27,6 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPat
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
-
-/**
- * Works like React Navigation's {@link findFocusedRoute} but stops recursing when it reaches
- * a screen that hosts an OnyxTabNavigator. Without this guard the lookup would drill into the
- * tab navigator's internal state and return the individual tab name (e.g. "amount", "scan")
- * instead of the parent screen (e.g. "Money_Request_Split_Expense").
- */
-function findFocusedRouteWithOnyxTabGuard(state: PartialState<NavigationState>): ReturnType<typeof findFocusedRoute> {
-    const route = state.routes[state.index ?? state.routes.length - 1];
-    if (route === undefined) {
-        return undefined;
-    }
-    if (screensWithOnyxTabNavigator.has(route.name)) {
-        return route as ReturnType<typeof findFocusedRoute>;
-    }
-    if (route.state) {
-        return findFocusedRouteWithOnyxTabGuard(route.state);
-    }
-    return route as ReturnType<typeof findFocusedRoute>;
-}
 
 function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
     return route.params !== undefined && 'backTo' in route.params && typeof route.params.backTo === 'string';
@@ -359,4 +339,4 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 };
 
 export default getAdaptedStateFromPath;
-export {getMatchingFullScreenRoute, isFullScreenName, findFocusedRouteWithOnyxTabGuard};
+export {getMatchingFullScreenRoute, isFullScreenName};
