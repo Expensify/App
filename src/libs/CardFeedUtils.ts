@@ -99,13 +99,13 @@ function createCardFilterItem(
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
     const icon = getCardFeedIcon(card?.bank, illustrations, companyCardIcons);
-    const cardName = card?.nameValuePairs?.cardTitle;
-    let text = personalDetails?.displayName ?? cardName;
+    let cardName = card?.nameValuePairs?.cardTitle;
+    const text = personalDetails?.displayName ?? cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
     const isCSVImportCard = card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
     const isPersonal = isPersonalCard(card);
-    if (isPersonal) {
-        text = customCardNames?.[card?.cardID] ?? card?.cardName;
+    if (isPersonal && !isCSVImportCard) {
+        cardName = customCardNames?.[card?.cardID] ?? card?.cardName;
     }
 
     return {
