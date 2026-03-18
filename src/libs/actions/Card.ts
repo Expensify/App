@@ -22,6 +22,7 @@ import type {
     UpdateExpensifyCardTitleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type {CardProgramKey} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -645,16 +646,22 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
     });
 }
 
-function updateSettlementFrequency(workspaceAccountID: number, settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>, currentFrequency?: Date) {
+function updateSettlementFrequency(
+    workspaceAccountID: number,
+    programKey: CardProgramKey,
+    settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
+    currentFrequency?: Date,
+) {
     const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date();
+
+    const settlementValue = {[programKey]: {monthlySettlementDate}};
+    const failureValue = {[programKey]: {monthlySettlementDate: currentFrequency}};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                monthlySettlementDate,
-            },
+            value: settlementValue,
         },
     ];
 
@@ -662,9 +669,7 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                monthlySettlementDate,
-            },
+            value: settlementValue,
         },
     ];
 
@@ -672,9 +677,7 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                monthlySettlementDate: currentFrequency,
-            },
+            value: failureValue,
         },
     ];
 
@@ -686,19 +689,33 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
 }
 
-function updateSettlementAccount(domainName: string, workspaceAccountID: number, policyID: string, settlementBankAccountID?: number, currentSettlementBankAccountID?: number) {
+function updateSettlementAccount(
+    domainName: string,
+    workspaceAccountID: number,
+    policyID: string,
+    programKey: CardProgramKey,
+    settlementBankAccountID?: number,
+    currentSettlementBankAccountID?: number,
+) {
     if (!settlementBankAccountID) {
         return;
     }
+
+    const optimisticValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: true};
+
+    const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: false};
+
+    const failureValue = {
+        [programKey]: {paymentBankAccountID: currentSettlementBankAccountID},
+        isLoading: false,
+        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+    };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                paymentBankAccountID: settlementBankAccountID,
-                isLoading: true,
-            },
+            value: optimisticValue,
         },
     ];
 
@@ -706,10 +723,7 @@ function updateSettlementAccount(domainName: string, workspaceAccountID: number,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                paymentBankAccountID: settlementBankAccountID,
-                isLoading: false,
-            },
+            value: successValue,
         },
     ];
 
@@ -717,11 +731,7 @@ function updateSettlementAccount(domainName: string, workspaceAccountID: number,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                paymentBankAccountID: currentSettlementBankAccountID,
-                isLoading: false,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-            },
+            value: failureValue,
         },
     ];
 

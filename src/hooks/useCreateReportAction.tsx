@@ -1,4 +1,3 @@
-import type {ReactNode} from 'react';
 import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -33,9 +32,6 @@ type UseCreateReportActionParams = {
 type UseCreateReportActionResult = {
     /** The action to trigger when the user clicks "Create report" */
     createReportAction: () => void;
-
-    /** The confirmation modal React component to render */
-    CreateReportConfirmationModal: ReactNode;
 };
 
 /**
@@ -74,7 +70,7 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const shouldShowEmptyReportConfirmation = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: onCreateReport,
@@ -161,5 +157,5 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
         onCreateReport,
     ]);
 
-    return {createReportAction, CreateReportConfirmationModal};
+    return {createReportAction};
 }

@@ -83,7 +83,7 @@ function SearchFiltersBarCreateButton() {
         [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
     );
 
-    const {createReportAction, CreateReportConfirmationModal} = useCreateReportAction({
+    const {createReportAction} = useCreateReportAction({
         onCreateReport: handleCreateWorkspaceReport,
         groupPoliciesWithChatEnabled,
     });
@@ -131,7 +131,6 @@ function SearchFiltersBarCreateButton() {
 
     return (
         <View style={[styles.pr5, styles.searchFiltersBarCreateButton]}>
-            {CreateReportConfirmationModal}
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive}

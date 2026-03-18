@@ -2,7 +2,6 @@ import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding'
 import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
-import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -59,7 +58,6 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
     introSelected: OnyxEntry<IntroSelected>;
     hasSeenTour: boolean;
-    searchMenuCreateReportConfirmationModal: ReactNode;
 };
 
 type EmptySearchViewItem = {
@@ -75,7 +73,7 @@ type EmptySearchViewItem = {
 
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {typeMenuSections, CreateReportConfirmationModal: SearchMenuCreateReportConfirmationModal} = useSearchTypeMenuSections();
+    const {typeMenuSections} = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -105,7 +103,6 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: Empty
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
                 introSelected={introSelected}
                 hasSeenTour={hasSeenTour}
-                searchMenuCreateReportConfirmationModal={SearchMenuCreateReportConfirmationModal}
                 queryJSON={queryJSON}
             />
         </SearchScopeProvider>
@@ -130,7 +127,6 @@ function EmptySearchViewContent({
     groupPoliciesWithChatEnabled,
     introSelected,
     hasSeenTour,
-    searchMenuCreateReportConfirmationModal,
     queryJSON,
 }: EmptySearchViewContentProps) {
     const {translate} = useLocalize();
@@ -195,7 +191,7 @@ function EmptySearchViewContent({
         });
     };
 
-    const {createReportAction, CreateReportConfirmationModal} = useCreateReportAction({
+    const {createReportAction} = useCreateReportAction({
         onCreateReport: handleCreateWorkspaceReport,
         groupPoliciesWithChatEnabled,
     });
@@ -409,27 +405,23 @@ function EmptySearchViewContent({
     }
 
     return (
-        <>
-            {searchMenuCreateReportConfirmationModal}
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+        <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+        >
+            <GenericEmptyStateComponent
+                headerMedia={content.headerMedia}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                title={content.title}
+                titleStyles={content.titleStyles}
+                subtitle={content.subtitle}
+                subtitleText={content.subtitleText}
+                buttons={content.buttons}
+                headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles] as Array<ViewStyle & ImageStyle>}
             >
-                <GenericEmptyStateComponent
-                    headerMedia={content.headerMedia}
-                    headerStyles={styles.emptyStateCardIllustrationContainer}
-                    title={content.title}
-                    titleStyles={content.titleStyles}
-                    subtitle={content.subtitle}
-                    subtitleText={content.subtitleText}
-                    buttons={content.buttons}
-                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles] as Array<ViewStyle & ImageStyle>}
-                >
-                    {content.children}
-                </GenericEmptyStateComponent>
-            </ScrollView>
-            {CreateReportConfirmationModal}
-        </>
+                {content.children}
+            </GenericEmptyStateComponent>
+        </ScrollView>
     );
 }
 
