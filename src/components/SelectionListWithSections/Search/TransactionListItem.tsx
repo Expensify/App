@@ -64,6 +64,7 @@ function TransactionListItem<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
 
     // Use report's policyID as fallback when transaction doesn't have policyID directly
@@ -195,6 +196,7 @@ function TransactionListItem<TItem extends ListItem>({
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
+            userBillingGraceEndPeriods,
             currentSearchKey,
             onDEWModalOpen,
             isDEWBetaEnabled,
