@@ -2316,7 +2316,6 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'Vérifions que c’est bien vous',
         enterMagicCode: (contactMethod: string) =>
             `Veuillez saisir le code magique envoyé à ${contactMethod} pour afficher les détails de votre carte. Il devrait arriver d’ici une à deux minutes.`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Veuillez <a href="${missingDetailsLink}">ajouter vos informations personnelles</a>, puis réessayer.`,
         unexpectedError: 'Une erreur s’est produite lors de la récupération des détails de votre carte Expensify. Veuillez réessayer.',
         cardFraudAlert: {
             confirmButtonText: 'Oui, je veux bien',
