@@ -1,7 +1,8 @@
 ---
 title: Attach and edit receipts on expenses
 description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify for audits and accounting.
-keywords: [attach receipt, verify receipt, missing receipt, expense attachments, audit trail, New Expensify, receipt not showing, crop receipt, rotate receipt]
+keywords: [New Expensify,attach receipt, verify receipt, missing receipt, expense attachments, audit trail, New Expensify, receipt not showing, crop receipt, rotate receipt, trim receipt]
+internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses. Does not cover SmartScan configuration or receipt forwarding via email.
 ---
 
 <div id="new-expensify" markdown="1">
