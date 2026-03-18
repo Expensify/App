@@ -11,7 +11,7 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
             if (document.activeElement && document.activeElement !== document.body) {
                 return;
             }
-            (ref.current as unknown as HTMLElement)?.focus();
+            (ref.current as unknown as HTMLElement)?.focus({preventScroll: true});
         });
         return () => cancelAnimationFrame(frameId);
     }, [isReady, ref, claimInitialFocus]);

@@ -195,7 +195,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     )}
                     {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                     {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
-                    {/* Small screens already get dialog semantics from createModalStackNavigator. */}
                     <Animated.View
                         ref={containerRef}
                         role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
