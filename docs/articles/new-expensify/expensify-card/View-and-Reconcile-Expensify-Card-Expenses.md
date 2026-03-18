@@ -9,8 +9,6 @@ internalScope: Audience is Workspace Admins reconciling Expensify Card activity.
 
 Expensify Card reconciliation helps you match each bank withdrawal (also known as a settlement) to the group of card expenses it covers. You can review and verify these withdrawals directly in Expensify. 
 
-For an overview of all reconciliation workflows, see [Statement Matching and Reconciliation](/articles/new-expensify/reports-and-expenses/Statement-Matching-and-Reconciliation).
-
 ---
 
 ## Who Can Reconcile Expensify Card Expenses
@@ -38,7 +36,7 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 
 ## How to Verify Expensify Card Withdrawal Totals Against Your Bank Statement
 
-1. Open your bank statement and locate Expensify Card settlement charges.
+1. On your bank statement, locate Expensify Card settlement charges.
 2. From the reconciliation view, find the matching withdrawal.
 3. Compare the withdrawal total to the bank charge.
 
@@ -59,7 +57,7 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 
 ## Why is Expensify Card not showing under Reconciliation
 
-The Expensify Card option only appears when the feature is enabled for your Workspace. If you don’t see it, confirm that the Expensify Card is set up and active.
+The Expensify Card option only appears when the feature is enabled for your Workspace. If you don’t see it, confirm that the Expensify Card is enabled and active.
 
 ## How Is Expensify Card reconciliation different From statement matching?
 
