@@ -8650,6 +8650,7 @@ const translations = {
             error: {
                 settings: '<rbr>Couldn’t save this change. Please try again or <concierge-link>contact Concierge</concierge-link> for more support.</rbr>',
             },
+            createNewGroupButton: 'New group'
         },
     },
 };

@@ -3,6 +3,7 @@ import {defaultSecurityGroupIDSelector, groupsSelector} from '@selectors/Domain'
 import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -10,7 +11,7 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -33,7 +34,7 @@ type DomainGroupsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamL
 
 function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const {domainAccountID} = route.params;
-
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Members']);
@@ -72,6 +73,19 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
         );
     };
 
+    const createGroupHeaderButton = (
+        <Button
+            accessibilityLabel={translate('domain.groups.createNewGroupButton')}
+            text={translate('domain.groups.createNewGroupButton')}
+            // sentryLabel={}
+            // onPress={() => Navigation.navigate()}
+            icon={icons.Plus}
+            innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+            style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+            success
+        />
+    );
+
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
@@ -86,7 +100,11 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                     icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
-                />
+                >
+                    {!shouldUseNarrowLayout && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
+                </HeaderWithBackButton>
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
+
                 <SelectionList
                     data={data}
                     ListItem={TableListItem}

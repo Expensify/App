@@ -8905,6 +8905,7 @@ ${amount} para ${merchant} - ${date}`,
             error: {
                 settings: '<rbr>No se pudo guardar este cambio. Inténtalo de nuevo o <concierge-link>contacta con Concierge</concierge-link> para obtener más ayuda.</rbr>',
             },
+            createNewGroupButton: 'Crear nuevo grupo',
         },
     },
     gps: {
