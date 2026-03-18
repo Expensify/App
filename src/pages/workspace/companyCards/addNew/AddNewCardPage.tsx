@@ -91,8 +91,11 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                     step: CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE,
                 });
             } else {
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+                Navigation.dismissModal({
+                    afterTransition: () => {
+                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+                    },
+                });
             }
         },
         [addNewCardFeed?.data?.publicToken, policyID],
