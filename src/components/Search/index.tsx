@@ -1327,6 +1327,8 @@ function Search({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const didBailToFallbackState = useRef(false);
+
     const cancelNavigationSpans = useCallback(() => {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
@@ -1335,7 +1337,20 @@ function Search({
             cancelSubmitFollowUpActionSpan();
         }
         spanExistedOnMount.current = false;
+        // Signal the post-commit effect that the list won't render, so onLayout won't flush.
+        didBailToFallbackState.current = true;
     }, []);
+
+    // When the render bails to an error/empty state, the SelectionList never mounts
+    // so its onLayout callback (the primary flush site) never fires. This effect
+    // catches that case and flushes immediately after commit.
+    useEffect(() => {
+        if (!didBailToFallbackState.current || !hasDeferredSearchWrite()) {
+            return;
+        }
+        didBailToFallbackState.current = false;
+        flushDeferredSearchWrite();
+    });
 
     const onLayoutSkeleton = useCallback(() => {
         hasHadFirstLayout.current = true;
@@ -1363,8 +1378,13 @@ function Search({
             });
             markNavigateAfterExpenseCreateEnd();
             spanExistedOnMount.current = false;
+            // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
+            flushDeferredSearchWrite();
         }, [shouldShowLoadingState]),
     );
+
+    // Reset before conditional returns. Only cancelNavigationSpans (error/empty paths) sets it to true.
+    didBailToFallbackState.current = false;
 
     if (shouldShowLoadingState) {
         const isSubmitExpensePath = hasPendingWriteOnMountRef.current;
