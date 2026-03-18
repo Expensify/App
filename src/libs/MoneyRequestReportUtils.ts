@@ -82,6 +82,11 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType, IOU
 
 /**
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
+ *
+ * For IOU actions specifically, the transaction object is treated as the primary source of truth.
+ * If a transaction still exists in Onyx without pendingAction DELETE, it should be displayed even
+ * if its IOU action was marked as deleted server-side (which can happen due to data inconsistencies
+ * from operations like ScrapeCard merges).
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
@@ -100,7 +105,20 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
             return true;
         }
-        return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
+
+        if (isDeletedParentAction(action)) {
+            return false;
+        }
+
+        // For IOU actions, trust the transaction object over the action's deleted flag.
+        // Server-side operations (e.g. ScrapeCard merges) can mark an IOU action as deleted
+        // without removing the transaction from Onyx, causing a data inconsistency where the
+        // transaction is invisible but still counted in the report total.
+        if (reportActions.length > 0 && isDeletedAction(action) && isMoneyRequestAction(action)) {
+            return true;
+        }
+
+        return reportActions.length === 0 || !isDeletedAction(action);
     });
 }
 
