@@ -550,6 +550,41 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         isDeletedTransactionThread,
     ]);
 
+    useEffect(() => {
+        if (!shouldShowNotFoundPage) {
+            return;
+        }
+
+        Log.info('[ReportScreen] Displaying NotFound Page', false, {
+            shouldShowNotFoundLinkedAction,
+            isLoadingApp,
+            isLoadingReportData,
+            isOffline,
+            isLoadingInitialReportActions: reportMetadata?.isLoadingInitialReportActions,
+            reportID,
+            isOptimisticDelete,
+            userLeavingStatus,
+            currentReportIDFormRoute,
+            firstRender,
+            deleteTransactionNavigateBackUrl,
+            isDeletedTransactionThread,
+        });
+    }, [
+        shouldShowNotFoundPage,
+        shouldShowNotFoundLinkedAction,
+        isLoadingApp,
+        isLoadingReportData,
+        isOffline,
+        reportMetadata?.isLoadingInitialReportActions,
+        reportID,
+        isOptimisticDelete,
+        userLeavingStatus,
+        currentReportIDFormRoute,
+        firstRender,
+        deleteTransactionNavigateBackUrl,
+        isDeletedTransactionThread,
+    ]);
+
     const createOneTransactionThreadReport = useCallback(() => {
         const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
