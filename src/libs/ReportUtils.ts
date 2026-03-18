@@ -11634,30 +11634,29 @@ function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined
     // escapes HTML entities before parsing, so raw HTML tags would render as literal text.
     const welcomeHeader = "# Your free trial has started! Let's get you set up.\n👋 Hey there! I'm your Expensify setup specialist. ";
 
-    let messageTail: string;
+    let message = welcomeHeader;
     switch (companySize) {
         case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM:
         case CONST.ONBOARDING_COMPANY_SIZE.LARGE:
-            messageTail =
+            message +=
                 'For an organization your size, the fastest path to value is setting up approval workflows, ' +
                 'connecting your accounting software, and rolling out the Expensify Card to your team. ' +
                 "I'm here to walk you through each step — just ask!";
             break;
         case CONST.ONBOARDING_COMPANY_SIZE.SMALL:
         case CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL:
-            messageTail =
+            message +=
                 'For a growing team like yours, the fastest way to get value is to set up expense categories, ' +
                 'configure approval workflows, and invite your team members. ' +
                 "I'm here to walk you through each step — just ask!";
             break;
         default:
-            messageTail =
+            message +=
                 'For a small team like yours, the fastest way to get value is to set up a few expense categories, ' +
                 'invite your team members, and have them start snapping receipts right away. ' +
                 "I'm here to walk you through each step — just ask!";
             break;
     }
-    let message = welcomeHeader + messageTail;
 
     if (userReportedIntegration && userReportedIntegration !== 'other') {
         const friendlyName = CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING];
