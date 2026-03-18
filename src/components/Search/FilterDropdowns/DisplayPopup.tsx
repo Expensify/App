@@ -4,9 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import type {SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,18 +12,17 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildFilterQueryWithSortDefaults, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getGroupBySections, getSearchColumnTranslationKey, getSortByOptions, getViewOptions} from '@libs/SearchUIUtils';
+import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
+import {getGroupBySections, getSearchColumnTranslationKey, getViewOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import GroupByPopup from './GroupByPopup';
 import SingleSelectPopup from './SingleSelectPopup';
-import type {SingleSelectItem} from './SingleSelectPopup';
+import SortByPopup from './SortByPopup';
 import TextInputPopup from './TextInputPopup';
 
 type DisplayPopupProps = {
@@ -34,59 +31,6 @@ type DisplayPopupProps = {
     closeOverlay: () => void;
     onSort: () => void;
 };
-
-type SortByPopupProps = {
-    searchResults: OnyxEntry<SearchResults>;
-    queryJSON: SearchQueryJSON;
-    groupBy: SingleSelectItem<SearchGroupBy> | null;
-    onSort: () => void;
-    closeOverlay: () => void;
-};
-
-function SortByPopup({searchResults, queryJSON, groupBy, onSort, closeOverlay}: SortByPopupProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {accountID} = useCurrentUserPersonalDetails();
-    const {shouldUseLiveData} = useSearchStateContext();
-    const {clearSelectedTransactions} = useSearchActionsContext();
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
-    const currentColumns = !searchResults?.data ? [] : getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, groupBy?.value);
-    const sortableColumns = getSortByOptions(currentColumns, translate);
-    const sortBy = {text: translate(getSearchColumnTranslationKey(queryJSON.sortBy)), value: queryJSON.sortBy};
-
-    const onSortChange = (column: SearchColumnType) => {
-        clearSelectedTransactions();
-        const newQuery = buildSearchQueryString({
-            ...queryJSON,
-            sortBy: column,
-            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-        });
-        onSort();
-        // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
-        close(() => {
-            Navigation.setParams({q: newQuery, rawQuery: undefined});
-        });
-    };
-
-    return (
-        <SingleSelectPopup
-            style={styles.p0}
-            label={shouldUseNarrowLayout ? undefined : translate('search.display.sortBy')}
-            items={sortableColumns}
-            value={sortBy}
-            closeOverlay={closeOverlay}
-            defaultValue={sortableColumns.at(0)?.value}
-            onChange={(item) => {
-                if (!item) {
-                    return;
-                }
-                onSortChange(item.value);
-            }}
-        />
-    );
-}
 
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
     const {translate} = useLocalize();
