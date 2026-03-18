@@ -43,6 +43,7 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
             accessibilityLabel={translate(title)}
             disabled={isDisabled}
             wrapperStyle={[styles.flex1, style]}
+            sentryLabel={CONST.SENTRY_LABEL.OPTIONS_PICKER.OPTION_ITEM}
         >
             <View style={[styles.borderedContentCard, isSelected && styles.borderColorFocus, styles.p5]}>
                 <View>

@@ -8460,6 +8460,9 @@ const CONST = {
             CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
             CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
         },
+        OPTIONS_PICKER: {
+            OPTION_ITEM: 'OptionsPicker-OptionItem',
+        },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
             NEXT_BUTTON: 'AttachmentCarousel-NextButton',
