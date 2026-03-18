@@ -1,18 +1,29 @@
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import React, {useLayoutEffect} from 'react';
+import React, {useEffect, useLayoutEffect} from 'react';
 import CONST from '@src/CONST';
 import type {SortableItemProps} from './types';
 
 const PRESSABLE_SELECTOR = '[data-tag="pressable"]';
 
-function SortableItem({id, children, disabled = false}: SortableItemProps) {
+function SortableItem({id, children, disabled = false, isFocused = false}: SortableItemProps) {
     const {attributes, listeners, setNodeRef, transform, transition, isDragging, node} = useSortable({id, disabled});
+
+    useEffect(() => {
+        if (!isFocused || !node.current) {
+            return;
+        }
+        if (!node.current.contains(document.activeElement)) {
+            node.current.focus();
+        }
+        node.current.scrollIntoView({block: 'nearest'});
+    }, [isFocused, node]);
 
     const style = {
         touchAction: 'none',
         transform: CSS.Transform.toString(transform),
         transition,
+        outline: 'none',
     };
 
     // The sortable wrapper is the single Tab stop (tabIndex: 0 via dnd-kit attributes).

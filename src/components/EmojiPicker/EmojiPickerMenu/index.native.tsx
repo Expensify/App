@@ -1,6 +1,6 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
@@ -42,6 +42,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         emojiListRef,
     } = useEmojiPickerMenu();
     const StyleUtils = useStyleUtils();
+    const [searchText, setSearchText] = useState('');
 
     const updateEmojiList = (emojiData: EmojiPickerList | Emoji[], headerData: number[] = []) => {
         setFilteredEmojis(emojiData);
@@ -55,10 +56,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         });
     };
 
-    /**
-     * Filter the entire list of emojis to only emojis that have the search term in their keywords
-     */
-    const filterEmojis = lodashDebounce((searchTerm: string) => {
+    const filterCallbackRef = useRef<(searchTerm: string) => void>(undefined);
+    filterCallbackRef.current = (searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
         if (normalizedSearchTerm === '') {
@@ -66,7 +65,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         } else {
             updateEmojiList(newFilteredEmojiList ?? [], []);
         }
-    }, 300);
+    };
+
+    // Stable debounced function that delegates to the latest callback via ref,
+    // preventing re-renders from recreating the debounce timer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const filterEmojis = useMemo(() => lodashDebounce((text: string) => filterCallbackRef.current?.(text), 300), []);
 
     const scrollToHeader = useCallback(
         (headerIndex: number) => {
@@ -124,7 +128,10 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
-                    onChangeText={filterEmojis}
+                    onChangeText={(text: string) => {
+                        setSearchText(text);
+                        filterEmojis(text);
+                    }}
                     submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
                     sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />
@@ -145,6 +152,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                 extraData={[filteredEmojis, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
                 alwaysBounceVertical={filteredEmojis.length !== 0}
+                searchValue={searchText}
             />
         </View>
     );
