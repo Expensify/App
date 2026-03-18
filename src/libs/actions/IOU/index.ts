@@ -13264,7 +13264,8 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
             transactionChanges.taxCode = changes.taxCode;
             const taxValue = getTaxValue(transactionPolicy, transaction, changes.taxCode);
             const decimals = getCurrencyDecimals(getCurrency(transaction));
-            const taxAmount = calculateTaxAmount(taxValue, Math.abs(getAmount(transaction)), decimals);
+            const effectiveAmount = transactionChanges.amount !== undefined ? Math.abs(transactionChanges.amount) : Math.abs(getAmount(transaction));
+            const taxAmount = calculateTaxAmount(taxValue, effectiveAmount, decimals);
             transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
         }
         if (changes.billable !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.BILLABLE)) {
