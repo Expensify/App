@@ -1567,18 +1567,18 @@ function Search({
                     customCardNames={customCardNames}
                     onHoldMenuOpen={handleHoldMenuOpen}
                 />
-                {isHoldMenuVisible && !!holdMenuParams && (
+                {isHoldMenuVisible && !!holdMenuParams.current && (
                     <ProcessMoneyReportHoldMenu
                         isVisible={isHoldMenuVisible}
                         onClose={() => setIsHoldMenuVisible(false)}
-                        chatReport={holdMenuParams.chatReport}
-                        fullAmount={holdMenuParams.fullAmount}
-                        moneyRequestReport={holdMenuParams.moneyRequestReport}
-                        transactionCount={holdMenuParams.transactionCount}
-                        hasNonHeldExpenses={holdMenuParams?.hasNoneHeldExpenses}
-                        nonHeldAmount={holdMenuParams.hasNoneHeldExpenses && holdMenuParams.hasValidNonHeldAmount ? holdMenuParams.nonHeldAmount : undefined}
-                        requestType={holdMenuParams.requestType}
-                        paymentType={holdMenuParams.paymentType}
+                        chatReport={holdMenuParams.current.chatReport}
+                        fullAmount={holdMenuParams.current.fullAmount}
+                        moneyRequestReport={holdMenuParams.current.moneyRequestReport}
+                        transactionCount={holdMenuParams.current.transactionCount}
+                        hasNonHeldExpenses={holdMenuParams.current?.hasNoneHeldExpenses}
+                        nonHeldAmount={holdMenuParams.current.hasNoneHeldExpenses && holdMenuParams.current.hasValidNonHeldAmount ? holdMenuParams.current.nonHeldAmount : undefined}
+                        requestType={holdMenuParams.current.requestType}
+                        paymentType={holdMenuParams.current.paymentType}
                     />
                 )}
             </Animated.View>
