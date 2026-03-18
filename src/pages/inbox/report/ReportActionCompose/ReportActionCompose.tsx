@@ -179,8 +179,6 @@ function ReportActionCompose({
         setDidResetComposerHeight(false);
     }, [didResetComposerHeight, editingReportActionID]);
 
-    const effectiveDraft = shouldUseNarrowLayout ? editingMessage : draftComment;
-
     const reportActionEntries = useMemo(() => (reportActions ? Object.entries(reportActions) : []), [reportActions]);
     const isEditingLastReportAction = useMemo(() => editingReportActionID === reportActionEntries.at(-1)?.[0], [editingReportActionID, reportActionEntries]);
 
@@ -201,6 +199,7 @@ function ReportActionCompose({
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
+    const effectiveDraft = isEditingInComposer ? editingMessage : draftComment;
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         return !effectiveDraft || !!effectiveDraft.match(CONST.REGEX.EMPTY_COMMENT);
     });
@@ -354,10 +353,17 @@ function ReportActionCompose({
         composerRef,
     });
 
+    const isSubmittingDraftCommentDisabled = isBlockedFromConcierge || isExceedingMaxLength || isCommentEmpty;
+    const isSendDisabled = !isEditingInComposer && isSubmittingDraftCommentDisabled;
+
+    // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
+    // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
+    const composerRefShared = useSharedValue<Partial<ComposerWithSuggestionsRef>>({});
+
     /**
      * Add or edit a comment in the composer
      */
-    const submitForm = useCallback(
+    const validateAndSubmitDraft = useCallback(
         (draftMessage: string) => {
             const draftMessageTrimmed = draftMessage.trim();
 
@@ -425,6 +431,39 @@ function ReportActionCompose({
         ],
     );
 
+    const submitDraftAndClearComposer = useCallback(() => {
+        if (isSendDisabled || !debouncedCommentMaxLengthValidation.flush()) {
+            return;
+        }
+
+        if (isComposerFullSize) {
+            setIsComposerFullSize(reportID, false);
+        }
+
+        // If there is a draft comment and we are submitting an edit, we don't want to clear the composer height and the draft comment.
+        // Therefore, we directly trigger the validation and submission of the draft comment.
+        if (isEditingInComposer && editingMessage !== null && draftComment) {
+            validateAndSubmitDraft(editingMessage);
+            return;
+        }
+
+        composerRef.current?.resetHeight();
+        if (isEditingInComposer) {
+            setDidResetComposerHeight(true);
+        }
+
+        scheduleOnUI(() => {
+            const {clearWorklet} = composerRefShared.get();
+
+            if (!clearWorklet) {
+                throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
+            }
+
+            clearWorklet?.();
+        });
+    }, [isSendDisabled, debouncedCommentMaxLengthValidation, isEditingInComposer, editingMessage, draftComment, isComposerFullSize, validateAndSubmitDraft, reportID, composerRefShared]);
+    onSubmitAction = submitDraftAndClearComposer;
+
     const onTriggerAttachmentPicker = useCallback(() => {
         isNextModalWillOpenRef.current = true;
         isKeyboardVisibleWhenShowingModalRef.current = true;
@@ -469,43 +508,6 @@ function ReportActionCompose({
     const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
-
-    const isSendDisabled = !isEditingInComposer && (isBlockedFromConcierge || isExceedingMaxLength || isCommentEmpty);
-
-    // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
-    // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
-    const composerRefShared = useSharedValue<Partial<ComposerWithSuggestionsRef>>({});
-
-    const submitDraft = useCallback(() => {
-        if (isSendDisabled || !debouncedCommentMaxLengthValidation.flush()) {
-            return;
-        }
-
-        if (isComposerFullSize) {
-            setIsComposerFullSize(reportID, false);
-        }
-
-        if (isEditingInComposer && effectiveDraft && draftComment) {
-            submitForm(effectiveDraft);
-            return;
-        }
-
-        composerRef.current?.resetHeight();
-        if (isEditingInComposer) {
-            setDidResetComposerHeight(true);
-        }
-
-        scheduleOnUI(() => {
-            const {clearWorklet} = composerRefShared.get();
-
-            if (!clearWorklet) {
-                throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
-            }
-
-            clearWorklet?.();
-        });
-    }, [isSendDisabled, debouncedCommentMaxLengthValidation, isComposerFullSize, isEditingInComposer, effectiveDraft, draftComment, reportID, submitForm, composerRefShared]);
-    onSubmitAction = submitDraft;
 
     const emojiPositionValues = useMemo(
         () => ({
@@ -650,10 +652,10 @@ function ReportActionCompose({
                             isComposerFullSize={isComposerFullSize}
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                             onPasteFile={(files) => validateAttachments({files})}
-                            onClear={submitForm}
+                            onClear={validateAndSubmitDraft}
                             disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                             setIsCommentEmpty={setIsCommentEmpty}
-                            onEnterKeyPress={submitDraft}
+                            onEnterKeyPress={submitDraftAndClearComposer}
                             onFocus={onFocus}
                             onBlur={onBlur}
                             measureParentContainer={measureContainer}
@@ -700,7 +702,7 @@ function ReportActionCompose({
                         <ReportActionComposeSendButton
                             isEditing={isEditingInComposer}
                             isDisabled={isSendDisabled}
-                            onSend={submitDraft}
+                            onSend={submitDraftAndClearComposer}
                         />
                     </View>
                     {ErrorModal}
