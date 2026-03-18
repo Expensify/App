@@ -199,6 +199,8 @@ describe('Session', () => {
         NetworkState.setHasRadio(true);
         await waitForBatchedUpdates();
 
+        await waitForBatchedUpdates();
+
         expect(getAllPersistedRequests().length).toBe(0);
     });
 
@@ -238,6 +240,8 @@ describe('Session', () => {
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
         NetworkState.setHasRadio(true);
+        await waitForBatchedUpdates();
+
         await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
