@@ -9,19 +9,25 @@ import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
+import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import {createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
-import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID, setOnboardingPurposeSelected} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,7 +61,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         }),
         [illustrations.Abacus, illustrations.Binoculars, illustrations.ReceiptUpload, illustrations.PiggyBank, illustrations.SplitBill],
     );
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {onboardingMessages} = useOnboardingMessages();
 
@@ -70,6 +78,15 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const {isBetaEnabled} = usePermissions();
+    const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
     const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
@@ -99,7 +116,53 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 
                 if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
                     if (choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
-                        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
+                        const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+                        const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
+
+                        const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
+                            ? createWorkspace({
+                                  policyOwnerEmail: undefined,
+                                  makeMeAdmin: true,
+                                  policyName: `${personalDetailsForm.firstName}'s Workspace`,
+                                  policyID: generatePolicyID(),
+                                  engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                                  currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                                  file: undefined,
+                                  shouldAddOnboardingTasks: false,
+                                  introSelected,
+                                  activePolicyID,
+                                  currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                                  currentUserEmailParam: session?.email ?? '',
+                                  shouldAddGuideWelcomeMessage: false,
+                                  onboardingPurposeSelected: choice,
+                                  isSelfTourViewed,
+                              })
+                            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+
+                        completeOnboarding({
+                            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
+                            firstName: personalDetailsForm.firstName,
+                            lastName: personalDetailsForm.lastName,
+                            adminsChatReportID: newAdminsChatReportID,
+                            onboardingPolicyID: newPolicyID,
+                            introSelected,
+                            isSelfTourViewed,
+                            betas,
+                        });
+
+                        setOnboardingAdminsChatReportID();
+                        setOnboardingPolicyID();
+
+                        navigateAfterOnboardingWithMicrotaskQueue(
+                            isSmallScreenWidth,
+                            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                            conciergeChatReportID,
+                            archivedReportsIdSet,
+                            newPolicyID,
+                            mergedAccountConciergeReportID,
+                            false,
+                        );
                         return;
                     }
                     completeOnboarding({
