@@ -43,7 +43,7 @@ import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarU
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
-import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
+import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, hydrateReportCurrencyFromSnapshot, openReport, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -138,14 +138,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`] ?? {}) as typeof report;
     }, [snapshot, reportIDFromRoute]);
 
-    // Use snapshot report currency if main collection doesn't have it (for offline mode)
-    const reportToUse = useMemo(() => {
-        if (!report) {
-            return report;
-        }
-        return {...report, currency: report.currency ?? snapshotReport?.currency};
-    }, [report, snapshotReport?.currency]);
-
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -235,6 +227,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // Reset flag when reportID changes (screen stays mounted but navigates to different report)
         if (prevReportIDFromRoute !== reportIDFromRoute) {
             isInitialMountRef.current = true;
+        }
+
+        // Hydrate currency from snapshot if Onyx lacks it (offline)
+        if (report?.reportID && !report.currency && snapshotReport?.currency) {
+            hydrateReportCurrencyFromSnapshot(report.reportID, snapshotReport.currency);
         }
 
         // Guard prevents calling openReport for multi-transaction reports
@@ -428,7 +425,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         >
                             <DragAndDropProvider isDisabled={isEditingDisabled}>
                                 <MoneyRequestReportView
-                                    report={reportToUse}
+                                    report={report}
                                     reportMetadata={reportMetadata}
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
