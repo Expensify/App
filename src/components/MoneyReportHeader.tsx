@@ -2019,8 +2019,8 @@ function MoneyReportHeader({
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                const backToRoute = route.params?.backTo;
-                const deleteNavigateBackUrl = backToRoute ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined) ?? Navigation.getActiveRoute();
+                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+                const deleteNavigateBackUrl = backToRoute ?? Navigation.getActiveRoute();
                 setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
