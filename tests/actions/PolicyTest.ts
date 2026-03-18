@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import GoogleTagManager from '@libs/GoogleTagManager';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 // eslint-disable-next-line no-restricted-syntax -- this is needed to allow mocking
@@ -35,6 +36,8 @@ const TEST_PHONE_NUMBER = '1234567890';
 const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
 const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
 
+jest.mock('@libs/GoogleTagManager');
+
 OnyxUpdateManager();
 describe('actions/Policy', () => {
     beforeAll(() => {
@@ -48,6 +51,7 @@ describe('actions/Policy', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
         IntlStore.load(CONST.LOCALES.EN);
+        jest.clearAllMocks();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -81,6 +85,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -524,6 +529,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -553,6 +559,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
                 betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
             });
             await waitForBatchedUpdates();
@@ -585,6 +592,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -619,6 +627,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -649,6 +658,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -676,6 +686,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -704,6 +715,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -730,6 +742,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -756,6 +769,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -782,6 +796,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -808,6 +823,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -846,6 +862,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -879,6 +896,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: true,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -912,6 +930,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -947,6 +966,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: true,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -987,6 +1007,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -1028,6 +1049,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
                 adminParticipant: {login: adminEmail, accountID: adminAccountID},
             });
             await waitForBatchedUpdates();
@@ -1065,6 +1087,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -1078,6 +1101,41 @@ describe('actions/Policy', () => {
             );
 
             apiWriteSpy.mockRestore();
+        });
+
+        it('should publish a workspace created event if this is their first policy', () => {
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID: '1',
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+            });
+
+            expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
+            expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, ESH_ACCOUNT_ID);
+        });
+
+        it('should not publish a workspace created event if this is not their first policy', () => {
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID: '1',
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: true,
+            });
+
+            expect(GoogleTagManager.publishEvent).not.toHaveBeenCalled();
         });
     });
 

@@ -2065,6 +2065,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
@@ -2101,6 +2102,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             personalDetails: {},
@@ -2535,6 +2537,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -2572,6 +2575,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
         });
@@ -2708,6 +2712,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -2745,6 +2750,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
         });
@@ -2885,6 +2891,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
 
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -2923,6 +2930,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
         });
@@ -3071,6 +3079,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -3111,6 +3120,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
         });
@@ -3334,6 +3344,7 @@ describe('updateSplitTransactions', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
@@ -3362,6 +3373,7 @@ describe('updateSplitTransactions', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
@@ -3461,6 +3473,7 @@ describe('updateSplitTransactions', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
@@ -3489,6 +3502,7 @@ describe('updateSplitTransactions', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,

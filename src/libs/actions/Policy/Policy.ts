@@ -194,6 +194,7 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
+    hasActiveAdminPolicies: boolean;
     type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
@@ -2904,7 +2905,7 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     // Publish a workspace created event if this is their first policy
-    if (getAdminPolicies().length === 0) {
+    if (!options.hasActiveAdminPolicies) {
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, options.currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID);
     }
 
@@ -7155,7 +7156,6 @@ export {
     updateMemberCustomField,
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
-    getAdminPolicies,
     hasInvoicingDetails,
     clearAllPolicies,
     enablePolicyRules,
