@@ -1094,10 +1094,11 @@ function MoneyRequestConfirmationListFooter({
 
         return (
             <View
-                style={[styles.moneyRequestImage, receiptContainerStyle]}
+                style={[styles.moneyRequestImage, receiptContainerStyle, isLoadingReceipt && [styles.justifyContentCenter, styles.alignItemsCenter]]}
                 onLayout={isCompactMode ? handleCompactReceiptContainerLayout : undefined}
             >
-                {isLocalFile && Str.isPDF(receiptFilename) ? (
+                {isLoadingReceipt && <ActivityIndicator />}
+                {!isLoadingReceipt && (isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
                             if (!transactionID) {
@@ -1161,24 +1162,23 @@ function MoneyRequestConfirmationListFooter({
                             resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
                         />
                     </PressableWithoutFocus>
-                )}
+                ))}
             </View>
         );
     }, [
         isCompactMode,
         compactReceiptContainerStyle,
         styles.expenseViewImageSmall,
-        styles.moneyRequestImage,
-        styles.flex1,
         styles.h100,
+        styles.flex1,
+        styles.moneyRequestImage,
+        styles.justifyContentCenter,
+        styles.alignItemsCenter,
         styles.cursorDefault,
+        isLoadingReceipt,
+        handleCompactReceiptContainerLayout,
         isLocalFile,
         receiptFilename,
-        transactionID,
-        isReceiptEditable,
-        reportID,
-        action,
-        iouType,
         translate,
         shouldDisplayReceipt,
         resolvedReceiptImage,
@@ -1189,9 +1189,13 @@ function MoneyRequestConfirmationListFooter({
         receiptThumbnail,
         fileExtension,
         isDistanceRequest,
-        isOdometerDistanceRequest,
         handleReceiptLoad,
-        handleCompactReceiptContainerLayout,
+        isOdometerDistanceRequest,
+        transactionID,
+        isReceiptEditable,
+        reportID,
+        action,
+        iouType,
     ]);
 
     const visibleFields = fields.filter((field) => field.shouldShow);
@@ -1274,22 +1278,8 @@ function MoneyRequestConfirmationListFooter({
                     </>
                 )}
             </View>
-            {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && !hasReceiptImageOrThumbnail && isLoadingReceipt && (
-                <View
-                    style={[
-                        styles.moneyRequestImage,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                        isCompactMode && compactReceiptContainerStyle ? compactReceiptContainerStyle : styles.expenseViewImageSmall,
-                    ]}
-                    onLayout={isCompactMode ? handleCompactReceiptContainerLayout : undefined}
-                >
-                    <ActivityIndicator />
-                </View>
-            )}
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) &&
-                !isLoadingReceipt &&
-                (hasReceiptImageOrThumbnail
+                (hasReceiptImageOrThumbnail || isLoadingReceipt
                     ? receiptThumbnailContent
                     : showReceiptEmptyState && (
                           <ReceiptEmptyState
@@ -1383,5 +1373,5 @@ export default memo(
         prevProps.showMoreFields === nextProps.showMoreFields &&
         prevProps.isTimeRequest === nextProps.isTimeRequest &&
         prevProps.iouTimeCount === nextProps.iouTimeCount &&
-        prevProps.iouTimeRate === nextProps.iouTimeRate,
+        prevProps.isLoadingReceipt === nextProps.isLoadingReceipt,
 );
