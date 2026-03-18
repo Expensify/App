@@ -1,10 +1,13 @@
 import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
+import React, {createRef} from 'react';
 import type {PropsWithChildren} from 'react';
+import type {View} from 'react-native';
 import {DialogLabelProvider, useDialogLabelActions, useDialogLabelData} from '@components/DialogLabelContext';
 
+const testContainerRef = createRef<View>();
+
 function wrapper({children}: PropsWithChildren) {
-    return <DialogLabelProvider>{children}</DialogLabelProvider>;
+    return <DialogLabelProvider containerRef={testContainerRef}>{children}</DialogLabelProvider>;
 }
 
 describe('DialogLabelContext', () => {

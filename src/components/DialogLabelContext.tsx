@@ -25,8 +25,12 @@ const DialogLabelActionsContext = createContext<DialogLabelActions>({
     claimInitialFocus: () => false,
 });
 
-function DialogLabelProvider({children}: {children: React.ReactNode}) {
-    const containerRef = useRef<View>(null);
+type DialogLabelProviderProps = {
+    children: React.ReactNode;
+    containerRef: React.RefObject<View | null>;
+};
+
+function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps) {
     const nextIdRef = useRef(0);
     const labelStackRef = useRef<LabelEntry[]>([]);
     const initialFocusClaimedRef = useRef(false);
