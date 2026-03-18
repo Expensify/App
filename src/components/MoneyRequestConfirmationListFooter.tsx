@@ -581,9 +581,13 @@ function MoneyRequestConfirmationListFooter({
         return formError === 'common.error.invalidAmount';
     }, [formError]);
 
+    const isAmountFieldDisabled = useMemo(() => {
+        return didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
+    }, [didConfirm, isReadOnly, shouldShowTimeRequestFields, isDistanceRequest]);
+
     const fields: ConfirmationField[] = [
         {
-            item: isNewManualExpenseFlowEnabled ? (
+            item: isNewManualExpenseFlowEnabled && !isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mb2]}>
                     <NumberWithSymbolForm
                         displayAsTextInput
@@ -599,7 +603,7 @@ function MoneyRequestConfirmationListFooter({
                         shouldShowCurrencyButton
                         shouldShowBigNumberPad={false}
                         onCurrencyButtonPress={showCurrencyPicker}
-                        disabled={didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest}
+                        disabled={isAmountFieldDisabled}
                     />
                 </View>
             ) : (
