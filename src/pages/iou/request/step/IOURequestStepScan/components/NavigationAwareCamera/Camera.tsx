@@ -13,6 +13,10 @@ function Camera({cameraTabIndex, ref, forceInactive = false, ...props}: Navigati
             ref={ref}
             photoQualityBalance="speed"
             enableBufferCompression
+            photoHdr={false}
+            videoStabilizationMode="off"
+            enableDepthData={false}
+            enablePortraitEffectsMatteDelivery={false}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isActive={isCameraActive}
