@@ -602,8 +602,7 @@ function MenuItem({
         context: 'MenuItem',
     };
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
-    const shouldDimIconRight = iconRight === icons.ArrowRight;
-
+    const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
             styles.flexShrink1,
@@ -1080,14 +1079,18 @@ function MenuItem({
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.pl6,
-                                                            shouldDimIconRight && styles.opacitySemiTransparent,
+                                                            !isHovered && shouldDimIconRight && styles.opacitySemiTransparent,
                                                             styles.alignItemsEnd,
                                                             rightIconWrapperStyle,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight ?? icons.ArrowRight}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
+                                                            fill={
+                                                                shouldDimIconRight
+                                                                    ? theme.icon
+                                                                    : StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))
+                                                            }
                                                             width={variables.iconSizeNormal}
                                                             height={variables.iconSizeNormal}
                                                         />

@@ -86,7 +86,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                     <Icon
                         src={icons.ArrowRight}
                         fill={theme.icon}
-                        additionalStyles={styles.alignSelfCenter}
+                        additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />

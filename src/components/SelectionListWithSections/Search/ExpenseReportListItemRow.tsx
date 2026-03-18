@@ -352,6 +352,7 @@ function ExpenseReportListItemRow({
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
                     fill={theme.icon}
+                    additionalStyles={!isHovered && styles.opacitySemiTransparent}
                 />
             </View>
         </View>
