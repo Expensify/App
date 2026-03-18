@@ -760,6 +760,7 @@ function duplicateExpenseTransaction({
 }
 
 type DuplicateReportParams = {
+    sourceReport: OnyxEntry<OnyxTypes.Report>;
     sourceReportTransactions: OnyxTypes.Transaction[];
     sourceReportName: string;
     targetPolicy: OnyxEntry<OnyxTypes.Policy>;
@@ -780,6 +781,7 @@ type DuplicateReportParams = {
 };
 
 function duplicateReport({
+    sourceReport,
     sourceReportTransactions,
     sourceReportName,
     targetPolicy,
@@ -808,8 +810,6 @@ function duplicateReport({
     const newReportName = translate('common.copyOfReportName', sourceReportName);
     const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
 
-    const sourceReportID = sourceReportTransactions.at(0)?.reportID;
-    const sourceReport = sourceReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] : undefined;
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 
     const eligibleTransactions = sourceReportTransactions.filter((transaction) => {

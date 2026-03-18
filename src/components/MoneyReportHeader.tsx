@@ -1936,6 +1936,7 @@ function MoneyReportHeader({
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     duplicateReportAction({
+                        sourceReport: moneyRequestReport,
                         sourceReportTransactions: nonPendingDeleteTransactions,
                         sourceReportName: moneyRequestReport?.reportName ?? '',
                         targetPolicy: targetPolicyForDuplicate ?? undefined,
