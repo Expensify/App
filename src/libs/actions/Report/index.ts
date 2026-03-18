@@ -1988,7 +1988,7 @@ function createTransactionThreadReport(
 function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
-            afterTransition: () => {
+            callback: () => {
                 if (!reportID) {
                     return;
                 }
