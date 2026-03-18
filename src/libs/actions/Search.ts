@@ -429,6 +429,11 @@ function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParam
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
 }
 
+// Tracks in-flight search requests by hash+offset to prevent duplicate API calls
+// when both page-level (useSearchPageSetup) and Search-internal (handleSearch) effects
+// fire for the same query. Cleared when the request completes.
+const inFlightSearchRequests = new Set<string>();
+
 let shouldPreventSearchAPI = false;
 function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
@@ -472,6 +477,12 @@ function search({
         return;
     }
 
+    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    if (inFlightSearchRequests.has(dedupeKey)) {
+        return;
+    }
+    inFlightSearchRequests.add(dedupeKey);
+
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
@@ -493,36 +504,40 @@ function search({
 
     return waitForWrites(READ_COMMANDS.SEARCH).then(() => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
-            const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
-            const reports = Object.keys(response?.data ?? {})
-                .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-                .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
-            if (response?.search?.offset) {
-                // Indicates that search results are extended from the Report view (with navigation between reports),
-                // using previous results to enable correct counter behavior.
-                if (prevReportsLength) {
+        return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
+            .then((result) => {
+                const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+                const reports = Object.keys(response?.data ?? {})
+                    .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                    .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
+                if (response?.search?.offset) {
+                    // Indicates that search results are extended from the Report view (with navigation between reports),
+                    // using previous results to enable correct counter behavior.
+                    if (prevReportsLength) {
+                        saveLastSearchParams({
+                            queryJSON,
+                            offset,
+                            hasMoreResults: !!response?.search?.hasMoreResults,
+                            previousLengthOfResults: prevReportsLength,
+                            allowPostSearchRecount: false,
+                        });
+                    }
+                } else {
+                    // Applies to all searches from the Search View
                     saveLastSearchParams({
                         queryJSON,
                         offset,
                         hasMoreResults: !!response?.search?.hasMoreResults,
-                        previousLengthOfResults: prevReportsLength,
-                        allowPostSearchRecount: false,
+                        previousLengthOfResults: reports.length,
+                        allowPostSearchRecount: true,
                     });
                 }
-            } else {
-                // Applies to all searches from the Search View
-                saveLastSearchParams({
-                    queryJSON,
-                    offset,
-                    hasMoreResults: !!response?.search?.hasMoreResults,
-                    previousLengthOfResults: reports.length,
-                    allowPostSearchRecount: true,
-                });
-            }
 
-            return result?.jsonCode;
-        });
+                return result?.jsonCode;
+            })
+            .finally(() => {
+                inFlightSearchRequests.delete(dedupeKey);
+            });
     });
 }
 
