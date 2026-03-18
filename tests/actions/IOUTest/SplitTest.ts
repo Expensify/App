@@ -3849,7 +3849,7 @@ describe('updateSplitTransactions', () => {
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
     });
 
-    it('should copy remaining split comments back to the reverted transaction thread and update the preview action in a reverse split', async () => {
+    it('should move remaining split comments and hold state back to the reverted transaction thread and update the preview action in a reverse split', async () => {
         const {expenseReport, chatReport, transactionThreadReportID, originalTransactionID} = await createBaseExpense();
 
         if (!originalTransactionID || !expenseReport?.reportID || !transactionThreadReportID) {
@@ -3862,21 +3862,33 @@ describe('updateSplitTransactions', () => {
         const {allReports: allReports1, allReportActions: allReportActions1} = await getCollections();
         const split1ThreadReportID = getIOUActionForReportID(expenseReport.reportID, splitTransactionID1)?.childReportID;
         const split1ThreadReport = allReports1?.[`${ONYXKEYS.COLLECTION.REPORT}${split1ThreadReportID}`];
-        const ancestors = getAncestors(split1ThreadReport, allReports1, {}, allReportActions1);
+        const ancestors1 = getAncestors(split1ThreadReport, allReports1, {}, allReportActions1);
         addComment({
             report: split1ThreadReport,
             notifyReportID: split1ThreadReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-            ancestors,
+            ancestors: ancestors1,
             text: 'Testing a comment',
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
         });
         await waitForBatchedUpdates();
 
+        // Put the split transaction 1 on hold before reverting it
+        const {allReports: allReports2, allReportActions: allReportActions2} = await getCollections();
+        const ancestors2 = getAncestors(split1ThreadReport, allReports2, {}, allReportActions2);
+        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, ancestors2);
+        await waitForBatchedUpdates();
+
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1);
         const iouPreview = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
-        expect(iouAction?.childVisibleActionCount).toEqual(1);
-        expect(iouPreview?.childVisibleActionCount).toEqual(1);
+        expect(iouAction?.childVisibleActionCount).toEqual(2);
+        expect(iouPreview?.childVisibleActionCount).toEqual(2);
+
+        const remainingTransactionThreadReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction?.childReportID}`);
+        const remainingTransactionCommentAction = Object.values(remainingTransactionThreadReportActions ?? {}).find((action) => isAddCommentAction(action));
+        const remainingTransactionHoldAction = Object.values(remainingTransactionThreadReportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.HOLD));
+        expect(remainingTransactionCommentAction?.reportActionID).toBeDefined();
+        expect(remainingTransactionHoldAction?.reportActionID).toBeDefined();
 
         const remainingSplitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
         const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
@@ -3912,12 +3924,17 @@ describe('updateSplitTransactions', () => {
         });
         await waitForBatchedUpdates();
 
+        // The reverted transaction should include the comments and hold state from the remaining transaction.
         const revertedThreadReportID = getIOUActionForReportID(expenseReport.reportID, originalTransactionID)?.childReportID;
         const revertedThreadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${revertedThreadReportID}`);
         expect(JSON.stringify(revertedThreadActions)).toContain('Testing a comment');
+        expect(Object.values(revertedThreadActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.HOLD))?.reportActionID).toEqual(
+            remainingTransactionHoldAction?.reportActionID,
+        );
 
+        // The report preview must reflect these changes.
         const updatedReportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
-        expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(1);
+        expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
     });
 
     it('should update the report preview action when deleting a split transaction without reverting', async () => {
