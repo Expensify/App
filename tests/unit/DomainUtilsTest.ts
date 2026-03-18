@@ -237,6 +237,8 @@ describe('DomainUtils', () => {
     describe('getMemberCustomRowProps', () => {
         const accountID = 42;
         const email = 'user@example.com';
+        const EARLY_TIMESTAMP = 1742000000000000;
+        const LATE_TIMESTAMP = 1742000001000000;
 
         it('should return empty errors and no pendingAction when both are undefined', () => {
             const result = getMemberCustomRowProps(accountID, undefined, undefined);
@@ -282,22 +284,22 @@ describe('DomainUtils', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
-                    [accountID]: {errors: {ts1: 'Account error'}, changeDomainSecurityGroupErrors: {}},
+                    [accountID]: {errors: {[EARLY_TIMESTAMP]: 'Account error'}, changeDomainSecurityGroupErrors: {}},
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
-            expect(result.errors).toEqual({ts1: 'Account error'});
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Account error'});
         });
 
         it('should return errors from email memberErrors', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
-                    [email]: {errors: {ts1: 'Email error'}, changeDomainSecurityGroupErrors: {}},
+                    [email]: {errors: {[EARLY_TIMESTAMP]: 'Email error'}, changeDomainSecurityGroupErrors: {}},
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
-            expect(result.errors).toEqual({ts1: 'Email error'});
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Email error'});
         });
 
         it('should return the latest error key after merging accountID and email errors', () => {
@@ -305,31 +307,31 @@ describe('DomainUtils', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
-                    [accountID]: {errors: {ts1: 'Account error'}, changeDomainSecurityGroupErrors: {}},
-                    [email]: {errors: {ts2: 'Email error'}, changeDomainSecurityGroupErrors: {}},
+                    [accountID]: {errors: {[EARLY_TIMESTAMP]: 'Account error'}, changeDomainSecurityGroupErrors: {}},
+                    [email]: {errors: {[LATE_TIMESTAMP]: 'Email error'}, changeDomainSecurityGroupErrors: {}},
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
-            // ts2 > ts1, so email error wins
-            expect(result.errors).toEqual({ts2: 'Email error'});
+            // LATE_TIMESTAMP > EARLY_TIMESTAMP, so email error wins
+            expect(result.errors).toEqual({[LATE_TIMESTAMP]: 'Email error'});
         });
 
         it('should include lockAccountErrors in merged errors', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
-                    [accountID]: {errors: {}, lockAccountErrors: {ts1: 'Lock error'}, changeDomainSecurityGroupErrors: {}},
+                    [accountID]: {errors: {}, lockAccountErrors: {[EARLY_TIMESTAMP]: 'Lock error'}, changeDomainSecurityGroupErrors: {}},
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
-            expect(result.errors).toEqual({ts1: 'Lock error'});
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Lock error'});
         });
 
         it('should set brickRoadIndicator to ERROR when vacationDelegateErrors exist', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
-                    [email]: {errors: {}, vacationDelegateErrors: {ts1: 'Delegate error'}, changeDomainSecurityGroupErrors: {}},
+                    [email]: {errors: {}, vacationDelegateErrors: {[EARLY_TIMESTAMP]: 'Delegate error'}, changeDomainSecurityGroupErrors: {}},
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
@@ -340,7 +342,7 @@ describe('DomainUtils', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
-                    [email]: {errors: {}, twoFactorAuthExemptEmailsError: {ts1: '2FA error'}, changeDomainSecurityGroupErrors: {}},
+                    [email]: {errors: {}, twoFactorAuthExemptEmailsError: {[EARLY_TIMESTAMP]: '2FA error'}, changeDomainSecurityGroupErrors: {}},
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
@@ -352,11 +354,11 @@ describe('DomainUtils', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
-                    [accountID]: {errors: {}, changeDomainSecurityGroupErrors: {ts1: 'Group error'}},
+                    [accountID]: {errors: {}, changeDomainSecurityGroupErrors: {[EARLY_TIMESTAMP]: 'Group error'}},
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
-            expect(result.errors).toEqual({ts1: 'Group error'});
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Group error'});
             expect(result.brickRoadIndicator).toBeUndefined();
         });
 
@@ -364,7 +366,7 @@ describe('DomainUtils', () => {
             const domainErrors: DomainErrors = {
                 errors: {},
                 memberErrors: {
-                    [accountID]: {errors: {ts1: 'Some error'}, changeDomainSecurityGroupErrors: {}},
+                    [accountID]: {errors: {[EARLY_TIMESTAMP]: 'Some error'}, changeDomainSecurityGroupErrors: {}},
                 },
             };
             const result = getMemberCustomRowProps(accountID, undefined, domainErrors);

@@ -52,33 +52,38 @@ function hasDomainMembersSettingsErrors(domainErrors?: DomainErrors): boolean {
     return !isEmptyObject(domainErrors?.setTwoFactorAuthRequiredError);
 }
 
+/**
+ * Computes display props for a domain member row by merging errors and pending actions
+ * keyed by both accountID and email, since the backend may store them under either key.
+ * @param accountID - The numeric account ID of the member.
+ * @param domainPendingActions - Pending actions map for all domain members.
+ * @param domainErrors - All domain-level errors from Onyx.
+ * @param email - Optional email of the member; used to look up email-keyed errors and pending actions.
+ * @returns The latest merged error, the active pending action, and a brick road indicator if detail errors exist.
+ */
 function getMemberCustomRowProps(accountID: number, domainPendingActions: DomainPendingAction['member'], domainErrors: DomainErrors | undefined, email?: string) {
-    const emailPendingAction = email ? domainPendingActions?.[email]?.pendingAction : undefined;
-    const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction ?? domainPendingActions?.[accountID]?.lockAccount;
-
     const emailErrors = email ? domainErrors?.memberErrors?.[email] : undefined;
     const accountIDErrors = domainErrors?.memberErrors?.[accountID];
-    const emailError = email ? getLatestError(emailErrors?.errors) : undefined;
-    const vacationDelegatesEmailError = email ? getLatestError(emailErrors?.vacationDelegateErrors) : undefined;
-    const twoFactorAuthExemptEmailsError = email ? getLatestError(emailErrors?.twoFactorAuthExemptEmailsError) : undefined;
-    const changeDomainSecurityGroupEmailsError = email ? emailErrors?.changeDomainSecurityGroupErrors : undefined;
-    const changeDomainSecurityGroupErrors = {...accountIDErrors?.changeDomainSecurityGroupErrors, ...changeDomainSecurityGroupEmailsError};
+    const emailPendingActions = email ? domainPendingActions?.[email] : undefined;
+    const accountIDPendingActions = domainPendingActions?.[accountID];
 
     const mergedErrors: DomainMemberErrors = {
         errors: {
             ...getLatestError(accountIDErrors?.errors),
             ...getLatestError(accountIDErrors?.lockAccountErrors),
-            ...getLatestError(changeDomainSecurityGroupErrors),
-            ...emailError,
+            ...getLatestError({...accountIDErrors?.changeDomainSecurityGroupErrors, ...emailErrors?.changeDomainSecurityGroupErrors}),
+            ...getLatestError(emailErrors?.errors),
         },
-        vacationDelegateErrors: {...getLatestError(accountIDErrors?.vacationDelegateErrors), ...vacationDelegatesEmailError},
-        twoFactorAuthExemptEmailsError: {...getLatestError(accountIDErrors?.twoFactorAuthExemptEmailsError), ...twoFactorAuthExemptEmailsError},
+        // vacationDelegateErrors and twoFactorAuthExemptEmailsError appear on detail. Here used to set brickRoadIndicator to inform user about action to be taken on detail.
+        vacationDelegateErrors: {...getLatestError(accountIDErrors?.vacationDelegateErrors), ...getLatestError(emailErrors?.vacationDelegateErrors)},
+        twoFactorAuthExemptEmailsError: {...getLatestError(accountIDErrors?.twoFactorAuthExemptEmailsError), ...getLatestError(emailErrors?.twoFactorAuthExemptEmailsError)},
     };
-    const brickRoadIndicator = hasDomainMemberDetailsErrors(mergedErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+
     return {
-        errors: getLatestError(mergedErrors?.errors),
-        pendingAction: emailPendingAction ?? accountIDPendingAction,
-        brickRoadIndicator,
+        errors: getLatestError(mergedErrors.errors),
+        pendingAction:
+            emailPendingActions?.pendingAction ?? accountIDPendingActions?.pendingAction ?? accountIDPendingActions?.lockAccount ?? accountIDPendingActions?.changeDomainSecurityGroup,
+        brickRoadIndicator: hasDomainMemberDetailsErrors(mergedErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
     };
 }
 
