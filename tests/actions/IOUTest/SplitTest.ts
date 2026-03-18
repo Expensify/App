@@ -9,8 +9,10 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
+import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {rand64} from '@libs/NumberUtils';
-import {getIOUActionForReportID, getOriginalMessage, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getOriginalMessage, isActionOfType, isAddCommentAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
 import {
     addSplitExpenseField,
@@ -3799,7 +3801,7 @@ describe('updateSplitTransactions', () => {
         const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
         addComment({
             report: transactionThreadReport,
-            notifyReportID: transactionThreadReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+            notifyReportID: transactionThreadReportID,
             ancestors,
             text: 'Testing a comment',
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
@@ -3812,6 +3814,13 @@ describe('updateSplitTransactions', () => {
         expect(iouAction?.childVisibleActionCount).toEqual(1);
         expect(iouPreview?.childVisibleActionCount).toEqual(1);
 
+        const originalThreadReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+        const originalCommentAction = Object.values(originalThreadReportActions ?? {}).find((action) => isAddCommentAction(action));
+        expect(originalCommentAction?.reportActionID).toBeDefined();
+
+        const originalAPIWrite = API.write;
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        const writeSpy = jest.spyOn(API, 'write').mockImplementation((...args) => originalAPIWrite(...args));
         // Split a transaction that already has thread comments.
         const {splitTransactionID1, splitTransactionID2} = await splitToTwo(expenseReport, originalTransactionID, iouAction);
         const split1ThreadReportID = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1)?.childReportID;
@@ -3823,6 +3832,16 @@ describe('updateSplitTransactions', () => {
         // Both split transaction threads should now contain the copied comment.
         expect(JSON.stringify(splitThread1Comments)).toContain('Testing a comment');
         expect(JSON.stringify(splitThread2Comments)).toContain('Testing a comment');
+
+        // The copiedComments param must also be included for each split transaction
+        const splitTransactionCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.SPLIT_TRANSACTION);
+        expect(splitTransactionCall).toBeDefined();
+        const [, params] = splitTransactionCall ?? [];
+        const copiedComments1: Record<string, string> = JSON.parse((params as Record<string, string>)['splits[0][copiedComments]']);
+        const copiedComments2: Record<string, string> = JSON.parse((params as Record<string, string>)['splits[1][copiedComments]']);
+        expect(copiedComments1).toHaveProperty(String(originalCommentAction?.reportActionID));
+        expect(copiedComments2).toHaveProperty(String(originalCommentAction?.reportActionID));
+        writeSpy.mockRestore();
 
         // The report preview should reflect both held child threads.
         const updatedReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
