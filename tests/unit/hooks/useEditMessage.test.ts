@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import * as Report from '@libs/actions/Report';
-import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import {editReportComment} from '@libs/actions/Report';
+import {showDeleteModal} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import useEditMessage from '@pages/inbox/report/ReportActionCompose/useEditMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../../utils/LHNTestUtils';
@@ -68,8 +68,8 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
-const mockEditReportComment = jest.mocked(Report.editReportComment);
-const mockShowDeleteModal = jest.mocked(ReportActionContextMenu.showDeleteModal);
+const mockEditReportComment = jest.mocked(editReportComment);
+const mockShowDeleteModal = jest.mocked(showDeleteModal);
 
 type HookProps = Parameters<typeof useEditMessage>[0];
 

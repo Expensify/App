@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import Parser from '@libs/Parser';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import useDraftMessageVideoAttributeCache, {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
@@ -8,7 +8,7 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     isDeletedAction: jest.fn(() => false),
 }));
 
-const mockGetReportActionHtml = jest.mocked(ReportActionsUtils.getReportActionHtml);
+const mockGetReportActionHtml = jest.mocked(getReportActionHtml);
 
 describe('useDraftMessageVideoAttributeCache', () => {
     let htmlToMarkdownSpy: jest.SpiedFunction<typeof Parser.htmlToMarkdown>;
