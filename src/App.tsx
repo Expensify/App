@@ -68,6 +68,7 @@ LogBox.ignoreLogs([
 ]);
 
 // Comment 
+// comment 2
 
 const fill = {flex: 1};
 
