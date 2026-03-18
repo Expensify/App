@@ -756,6 +756,7 @@ describe('actions/Report', () => {
                     `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const,
                     {
                         lastMessageText: 'Current User Comment 2',
+                        lastReadTime: DateUtils.getDBTime(),
                     } as Partial<OnyxTypes.Report>,
                 );
             })
