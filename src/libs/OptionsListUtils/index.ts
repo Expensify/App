@@ -130,6 +130,7 @@ import {
     getReportSubtitlePrefix,
     getReportTransactions,
     getUnreportedTransactionMessage,
+    getViolatingReportIDForRBRInLHN,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
     isChatThread,
@@ -151,7 +152,6 @@ import {
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
     isTaskReport as reportUtilsIsTaskReport,
-    shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -2110,7 +2110,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         isTimeRequest = false,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
-    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(option.item, transactionViolations);
+    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations);
 
     const shouldBeInOptionList = shouldReportBeInOptionList({
         report: option.item,
@@ -2856,35 +2856,6 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 }
 
 /**
- * Build the options for the Workspace Member Invite view
- * This method will be removed. See https://github.com/Expensify/App/issues/66615 for more information.
- */
-function getMemberInviteOptions(
-    personalDetails: Array<SearchOption<PersonalDetails>>,
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
-    loginList: OnyxEntry<Login>,
-    currentUserAccountID: number,
-    currentUserEmail: string,
-    personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
-    betas: Beta[] = [],
-    excludeLogins: Record<string, boolean> = {},
-    includeSelectedOptions = false,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-): Options {
-    return getValidOptions({personalDetails, reports: []}, undefined, undefined, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
-        betas,
-        includeP2P: true,
-        excludeLogins,
-        includeSelectedOptions,
-        includeRecentReports: false,
-        searchString: '',
-        maxElements: undefined,
-        personalDetails: personalDetailsCollection,
-        countryCode,
-    });
-}
-
-/**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
 function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
@@ -3427,7 +3398,6 @@ export {
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getManagerMcTestParticipant,
-    getMemberInviteOptions,
     getParticipantsOption,
     getPersonalDetailSearchTerms,
     getPersonalDetailsForAccountIDs,

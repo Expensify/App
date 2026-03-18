@@ -2254,7 +2254,6 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: '加载卡片详情时出错。请检查您的网络连接，然后重试。',
         validateCardTitle: '让我们确认一下是你本人',
         enterMagicCode: (contactMethod: string) => `请输入发送到 ${contactMethod} 的魔法验证码以查看您的卡片详情。验证码应会在一两分钟内送达。`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `请<a href="${missingDetailsLink}">添加您的个人信息</a>，然后重试。`,
         unexpectedError: '尝试获取您的 Expensify 卡片详情时出错。请重试。',
         cardFraudAlert: {
             confirmButtonText: '是的，我愿意',

@@ -421,9 +421,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditNamePage').default,
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditTransactionStartDatePage').default,
-    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardMissingDetailsPage').default,
-    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE]: () =>
-        require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardMissingDetailsMagicCodePage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudVerifyAccountPage').default,
