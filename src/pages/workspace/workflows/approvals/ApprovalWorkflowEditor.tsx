@@ -115,8 +115,13 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     );
 
     const handleExpensesFromPress = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID));
-    }, [policyID]);
+        const firstApproverEmail = approvalWorkflow.approvers?.[0]?.email ?? '';
+        const backTo =
+            approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
+                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail)
+                : undefined;
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
+    }, [approvalWorkflow.action, approvalWorkflow.approvers, policyID]);
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {

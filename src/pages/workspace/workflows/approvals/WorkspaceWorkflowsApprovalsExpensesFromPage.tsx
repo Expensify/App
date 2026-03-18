@@ -23,7 +23,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {type Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Member} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -295,6 +295,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
+        } else if (route.params.backTo) {
+            Navigation.navigate(route.params.backTo as Route);
         } else {
             goBack();
         }
@@ -317,7 +319,22 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         );
     }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles]);
 
-    const toggleMember = useCallback((members: SelectionListApprover[]) => setSelectedMembers(members), []);
+    const toggleMember = useCallback(
+        (members: SelectionListApprover[]) => {
+            setSelectedMembers((prevSelected) => {
+                // When editing an existing workflow, policy members (e.g. User C after invite) must remain in the list (Test 6).
+                // When creating a new workflow, any member including Owner can be deselected (Test 5).
+                if (approvalWorkflow?.action !== CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
+                    return members;
+                }
+                const policyMembers = prevSelected.filter((m) => policy?.employeeList?.[m.login]);
+                const alreadyInNewSelection = new Set(members.map((m) => m.login));
+                const policyMembersToKeep = policyMembers.filter((pm) => !alreadyInNewSelection.has(pm.login));
+                return [...members, ...policyMembersToKeep];
+            });
+        },
+        [approvalWorkflow?.action, policy?.employeeList],
+    );
 
     // Clean up invite draft when leaving the expenses-from page to prevent
     // stale non-member data from persisting in the approval workflow.
