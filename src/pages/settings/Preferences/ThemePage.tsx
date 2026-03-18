@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getBaseTheme, getContrastTheme, isHighContrastTheme} from '@styles/theme/utils';
-import {updateThemeInPlace, updateTheme as updateThemeUserAction} from '@userActions/User';
+import {updateTheme as updateThemeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -51,7 +51,7 @@ function ThemePage() {
 
     const onToggleHighContrast = (enabled: boolean) => {
         const newTheme = enabled ? getContrastTheme(currentBaseTheme) : currentBaseTheme;
-        updateThemeInPlace(newTheme);
+        updateThemeUserAction(newTheme, false);
     };
 
     return (
