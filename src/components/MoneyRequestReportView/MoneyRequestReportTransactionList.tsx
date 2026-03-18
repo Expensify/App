@@ -1,4 +1,5 @@
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -188,31 +189,31 @@ function MoneyRequestReportTransactionList({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
     const addExpenseDropdownOptions = useMemo(
         () =>
-            getAddExpenseDropdownOptions(
+            getAddExpenseDropdownOptions({
                 translate,
-                expensifyIcons,
-                report?.reportID,
+                icons: expensifyIcons,
+                iouReportID: report?.reportID,
                 policy,
-                userBillingGraceEndPeriodCollection,
+                userBillingGraceEndPeriods,
+                draftTransactionIDs,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
-                undefined,
-                undefined,
                 lastDistanceExpenseType,
-            ),
-        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, amountOwed, lastDistanceExpenseType, ownerBillingGraceEndPeriod],
+            }),
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriods, amountOwed, lastDistanceExpenseType, ownerBillingGraceEndPeriod, draftTransactionIDs],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -684,7 +685,7 @@ function MoneyRequestReportTransactionList({
                     style={styles.flex1}
                     contentContainerStyle={{width: minTableWidth}}
                     onScroll={handleHorizontalScroll}
-                    scrollEventThrottle={16}
+                    scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                     onLayout={onLayout}
                 >
                     <View style={[styles.flex1]}>
@@ -729,8 +730,8 @@ function MoneyRequestReportTransactionList({
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
-                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: shouldShowExpenseReportBreakDown},
-                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, shouldShow: shouldShowExpenseReportBreakDown},
+                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: !!nonReimbursableSpend},
+                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, shouldShow: !!nonReimbursableSpend},
                                 {text: 'common.billable', value: formattedBillableAmount, shouldShow: !!billableTotal},
                                 {text: 'common.tax', value: formattedTaxAmount, shouldShow: !!taxTotal && isTaxEnabled},
                             ]

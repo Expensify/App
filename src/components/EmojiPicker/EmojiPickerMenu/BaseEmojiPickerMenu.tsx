@@ -8,6 +8,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {EmojiPickerList, EmojiPickerListItem, HeaderIndices} from '@libs/EmojiUtils';
@@ -47,6 +48,9 @@ type BaseEmojiPickerMenuProps = {
     /** Callback fired when scroll momentum ends */
     onMomentumScrollEnd?: () => void;
 
+    /** The current search input value, used for accessibility re-announcements */
+    searchValue?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FlashListRef<EmojiPickerListItem>>;
 };
@@ -79,11 +83,21 @@ const keyExtractor = (item: EmojiPickerListItem, index: number): string => `emoj
 /**
  * Renders the list empty component
  */
-function ListEmptyComponent() {
+function ListEmptyComponent({searchValue}: {searchValue?: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const noResultsFoundText = translate('common.noResultsFound');
 
-    return <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>;
+    useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue ?? '');
+
+    return (
+        <Text
+            style={[styles.textLabel, styles.colorMuted]}
+            aria-hidden
+        >
+            {noResultsFoundText}
+        </Text>
+    );
 }
 
 function BaseEmojiPickerMenu({
@@ -98,6 +112,7 @@ function BaseEmojiPickerMenu({
     extraData = [],
     alwaysBounceVertical = false,
     onMomentumScrollEnd,
+    searchValue,
     ref,
 }: BaseEmojiPickerMenuProps) {
     const styles = useThemeStyles();
@@ -120,7 +135,7 @@ function BaseEmojiPickerMenu({
                     keyExtractor={keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
                     stickyHeaderIndices={stickyHeaderIndices}
-                    ListEmptyComponent={ListEmptyComponent}
+                    ListEmptyComponent={<ListEmptyComponent searchValue={searchValue} />}
                     alwaysBounceVertical={alwaysBounceVertical}
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}

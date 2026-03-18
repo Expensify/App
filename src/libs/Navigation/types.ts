@@ -98,10 +98,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
         country?: Country | '';
     };
-    [SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        country: string;
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: {
+        country?: string;
     };
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -170,14 +168,6 @@ type SettingsNavigatorParamList = {
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
-        /** cardID of selected card */
-        cardID: string;
-    };
-    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: {
-        /** cardID of selected card */
-        cardID: string;
-    };
-    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE]: {
         /** cardID of selected card */
         cardID: string;
     };
@@ -1304,6 +1294,10 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
@@ -1781,6 +1775,7 @@ type MoneyRequestNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
         shouldTurnOffSelectionMode?: boolean;
+        transactionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;
@@ -2525,6 +2520,7 @@ type TravelNavigatorParamList = {
         policyID?: string;
     };
     [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
+        policyID?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2873,6 +2869,7 @@ type AttachmentModalScreensParamList = {
     [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
         reportID?: string;
+        reportActionID?: string;
         accountID?: number;
         attachmentID?: string;
         type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
@@ -2888,6 +2885,7 @@ type AttachmentModalScreensParamList = {
     };
     [SCREENS.REPORT_ADD_ATTACHMENT]: AttachmentModalContainerModalProps & {
         reportID?: string;
+        reportActionID?: string;
         accountID?: number;
         attachmentID?: string;
         source?: AvatarSource;
@@ -3051,10 +3049,13 @@ type RestrictedActionParamList = {
 
 type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS]: {
+        cardID: string;
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
+    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
+        cardID: string;
+    };
 };
 
 type SplitExpenseParamList = {
