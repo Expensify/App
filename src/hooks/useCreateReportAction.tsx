@@ -53,7 +53,8 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
 
-    const [shouldRedirectToExpensifyClassic] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldRedirectToExpensifyClassicSelector});
+    const [shouldRedirectToExpensifyClassic, policiesMeta] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldRedirectToExpensifyClassicSelector});
+    const arePoliciesLoaded = policiesMeta.status === 'loaded';
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -98,6 +99,11 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
 
     const createReportAction = useCallback(() => {
         interceptAnonymousUser(() => {
+            // Wait for Onyx to hydrate policy data before making routing decisions
+            if (!arePoliciesLoaded) {
+                return;
+            }
+
             if (shouldRedirectToExpensifyClassic) {
                 showRedirectToExpensifyClassicModal();
                 return;
@@ -142,6 +148,7 @@ export default function useCreateReportAction({onCreateReport, groupPoliciesWith
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
         });
     }, [
+        arePoliciesLoaded,
         shouldRedirectToExpensifyClassic,
         showRedirectToExpensifyClassicModal,
         shouldNavigateToUpgradePath,

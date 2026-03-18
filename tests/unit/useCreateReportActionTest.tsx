@@ -77,11 +77,10 @@ function makePaidPolicy(id = POLICY_ID): OnyxEntry<Policy> {
 }
 
 function setupUseOnyx(overrides: Record<string, unknown> = {}) {
-    const impl = ((key: string) => {
-        if (key in overrides) {
-            return [overrides[key], {status: 'loaded'}];
-        }
-        return [undefined, {status: 'loaded'}];
+    const impl = ((key: string, options?: {selector?: (value: unknown) => unknown}) => {
+        const rawValue = key in overrides ? overrides[key] : undefined;
+        const value = options?.selector ? options.selector(rawValue) : rawValue;
+        return [value, {status: 'loaded'}];
     }) as typeof useOnyx;
     mockUseOnyx.mockImplementation(impl);
 }
@@ -118,6 +117,32 @@ describe('useCreateReportAction', () => {
             expect(navigateArg).toContain('upgrade');
             expect(navigateArg).toContain(CONST.UPGRADE_PATHS.REPORTS);
             expect(onCreateReport).not.toHaveBeenCalled();
+        });
+
+        it('does not navigate to upgrade path before policies have loaded', () => {
+            // Simulate Onyx not yet loaded by returning status: 'loading'
+            const impl = ((_key: string, options?: {selector?: (value: unknown) => unknown}) => {
+                const rawValue = undefined;
+                const value = options?.selector ? options.selector(rawValue) : rawValue;
+                return [value, {status: 'loading'}];
+            }) as typeof useOnyx;
+            mockUseOnyx.mockImplementation(impl);
+
+            const onCreateReport = jest.fn();
+
+            const {result} = renderHook(() =>
+                useCreateReportAction({
+                    onCreateReport,
+                    groupPoliciesWithChatEnabled: [],
+                }),
+            );
+
+            act(() => {
+                result.current.createReportAction();
+            });
+
+            // Should not navigate to upgrade — policies haven't loaded yet
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
     });
 
