@@ -26,6 +26,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -288,6 +289,11 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
+    const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BaseTextInput.isLoading',
+        isLoading: !!inputProps.isLoading,
+    };
 
     return (
         <>
@@ -413,7 +419,7 @@ function BaseTextInput({
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
                                 keyboardType={inputProps.keyboardType}
-                                inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
+                                inputMode={!disableKeyboard ? isKeyboardType : CONST.INPUT_MODE.NONE}
                                 value={uncontrolled ? undefined : value}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
@@ -443,6 +449,7 @@ function BaseTextInput({
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
+                                    reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (

@@ -5,20 +5,16 @@ import type {Payload as AuthorizeTransactionPayload} from './AuthorizeTransactio
 import AuthorizeTransaction from './AuthorizeTransaction';
 import BiometricsTest from './BiometricsTest';
 import {customConfig} from './DefaultUserInterface';
+import type {Payload as SetPinOrderCardPayload} from './SetPinOrderCard';
+import SetPinOrderCard from './SetPinOrderCard';
 
 /**
  * Payload types for multifactor authentication scenarios.
- * Since the BiometricsTest does not require any payload, it is an empty object for now.
- * The AuthorizeTransaction Scenario will change it, as it needs the transactionID to be provided as well.
- *
- * {
- *     "AUTHORIZE-TRANSACTION": {
- *         transactionID: string;
- *     }
- * }
+ * Each scenario that requires additional parameters should have its payload type defined here.
  */
 type Payloads = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: EmptyObject;
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: SetPinOrderCardPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: AuthorizeTransactionPayload;
 };
 
@@ -27,6 +23,7 @@ type Payloads = {
  */
 const Configs = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: customConfig(BiometricsTest),
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: customConfig(SetPinOrderCard),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: customConfig(AuthorizeTransaction),
 } as const satisfies MultifactorAuthenticationScenarioConfigRecord;
 
