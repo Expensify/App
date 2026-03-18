@@ -165,6 +165,9 @@ type FeatureTrainingModalSVGProps = {
 // This page requires either an icon or a video/animation, but not both
 type FeatureTrainingModalProps = BaseFeatureTrainingModalProps & MergeExclusive<FeatureTrainingModalVideoProps, FeatureTrainingModalSVGProps>;
 
+const LANDSCAPE_MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.75;
+const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
+
 function FeatureTrainingModal({
     animation,
     animationStyle,
@@ -266,7 +269,7 @@ function FeatureTrainingModal({
         return (
             <View
                 style={[
-                    styles.w100,
+                    isInLandscapeMode ? styles.h100 : styles.w100,
                     // Prevent layout jumps by reserving height
                     // for the video until it loads. Also, when
                     // videoStatus === 'animation' it will
@@ -338,6 +341,7 @@ function FeatureTrainingModal({
         animationStyle,
         animation,
         shouldUseNarrowLayout,
+        isInLandscapeMode,
     ]);
 
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
@@ -432,7 +436,11 @@ function FeatureTrainingModal({
         >
             <Wrapper
                 scrollsToTop={false}
-                style={[onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), wrapperStyles.style, isInLandscapeMode ? {maxHeight: windowHeight * 0.75} : styles.mh100]}
+                style={[
+                    onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
+                    wrapperStyles.style,
+                    isInLandscapeMode ? {maxHeight: windowHeight * LANDSCAPE_MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO} : styles.mh100,
+                ]}
                 contentContainerStyle={wrapperStyles.containerStyle}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
@@ -442,7 +450,13 @@ function FeatureTrainingModal({
                 // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
+                <View
+                    style={[
+                        onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING},
+                        illustrationOuterContainerStyle,
+                        isInLandscapeMode ? [{maxHeight: windowHeight * LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO}, styles.alignSelfCenter] : undefined,
+                    ]}
+                >
                     {renderIllustration()}
                 </View>
                 <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
