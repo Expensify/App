@@ -21,29 +21,31 @@ function openSubscriptionPage(ownerAccountID?: number) {
         Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`, null);
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
-            value: true,
-        },
-    ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
-            value: false,
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
-            value: false,
-        },
-    ];
+    const onyxData: OnyxData<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+                value: false,
+            },
+        ],
+    };
 
-    API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null, onyxData);
 }
 
 function updateSubscriptionType(type: SubscriptionType) {
