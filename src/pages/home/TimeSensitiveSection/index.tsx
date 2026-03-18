@@ -11,6 +11,8 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
+import {isCurrentUserValidated} from '@libs/UserUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
@@ -73,6 +75,8 @@ function TimeSensitiveSection() {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -139,7 +143,9 @@ function TimeSensitiveSection() {
     const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
     const hasBrokenPersonalCards = brokenPersonalCardConnections.length > 0;
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
-    const shouldShowValidateAccount = isUserValidated === false;
+    const isAnonymous = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+    const isCurrentLoginValidated = isCurrentUserValidated(loginList, session?.email ?? login);
+    const shouldShowValidateAccount = isUserValidated === false && !isAnonymous && !isCurrentLoginValidated;
     // This guard must exactly match the conditions used to render each widget below.
     // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
     // must be reflected here to avoid showing an empty "Time sensitive" section.
