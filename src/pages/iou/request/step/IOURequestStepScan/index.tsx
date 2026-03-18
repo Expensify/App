@@ -95,7 +95,7 @@ function IOURequestStepScan({
 
     const hasValidatedInitialScanFiles = useRef(false);
 
-    // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, make the user star scanning flow from scratch.
+    // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, make the user start scanning flow from scratch.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     useEffect(() => {
