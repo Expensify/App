@@ -57,9 +57,10 @@ describe('getStateFromPath', () => {
     it('should generate dynamic state when authorized screen is focused', () => {
         const fullPath = '/settings/wallet/verify-account';
         const baseRouteState = {routes: [{name: 'Wallet'}]};
+        const focusedRouteParams = {walletID: '456'};
 
         mockRNGetStateFromPath.mockReturnValue(baseRouteState);
-        mockFindFocusedRoute.mockReturnValue({name: 'Wallet'});
+        mockFindFocusedRoute.mockReturnValue({name: 'Wallet', params: focusedRouteParams});
 
         const expectedDynamicState = {routes: [{name: 'DynamicRoot'}]};
         mockGetStateForDynamicRoute.mockReturnValue(expectedDynamicState);
@@ -67,7 +68,7 @@ describe('getStateFromPath', () => {
         const result = getStateFromPath(fullPath as unknown as Route);
 
         expect(result).toBe(expectedDynamicState);
-        expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'VERIFY_ACCOUNT');
+        expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'VERIFY_ACCOUNT', focusedRouteParams);
     });
 
     it('should fallback to standard RN parsing if focused screen is NOT authorized for dynamic route', () => {
