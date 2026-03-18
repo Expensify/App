@@ -3772,7 +3772,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             const callsWithLogin = mockedIsPolicyAdmin.mock.calls.filter(
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                (call: unknown[]) => call[1] === testLogin,
+                (call: unknown[]) => call.at(1) === testLogin,
             );
             expect(callsWithLogin.length).toBeGreaterThan(0);
         });
