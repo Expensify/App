@@ -350,7 +350,7 @@ function SearchAutocompleteList({
             ...option,
             keyForList,
             pressableStyle: styles.br2,
-            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML && shouldParseAlternateText ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
             alternateText: shouldParseAlternateText ? option.alternateText : StringUtils.lineBreaksToSpaces(getReportSubtitlePrefix(report) + (option.lastMessageText ?? '')),
             wrapperStyle: [styles.pr3, styles.pl3],
         } as AutocompleteListItem;
