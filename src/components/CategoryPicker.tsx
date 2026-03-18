@@ -86,6 +86,9 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             style={{listItemTitleStyles: styles.w100}}
+            isRowMultilineSupported
+            titleNumberOfLines={3}
+            shouldUseDefaultRightHandSideComponent
         />
     );
 }

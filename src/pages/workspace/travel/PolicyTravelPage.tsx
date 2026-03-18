@@ -15,6 +15,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {openPolicyTravelPage} from '@libs/actions/TravelInvoicing';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -42,6 +43,7 @@ function WorkspaceTravelPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.travel');
     const icons = useMemoizedLazyExpensifyIcons(['Exit'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Luggage'] as const);
     const workspaceAccountID = useWorkspaceAccountID(policyID);

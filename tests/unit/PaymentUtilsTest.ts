@@ -3,7 +3,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
 import {approveMoneyRequest} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePaymentType, handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
+import {getActivePaymentType, getBusinessBankAccountOptions, handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -11,6 +11,8 @@ import {calculateWalletTransferBalanceFee} from '@src/libs/PaymentUtils';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import createMockPaymentMethod from '../utils/collections/paymentMethods';
 import createRandomPolicy from '../utils/collections/policies';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -125,7 +127,7 @@ describe('PaymentUtils', () => {
             expect(result.policyFromPaymentMethod).toBeUndefined();
         });
 
-        it('should set shouldSelectPaymentMethod to true when latestBankItems is not empty', () => {
+        it('should set shouldSelectPaymentMethod to true when businessBankAccountOptions is not empty', () => {
             const result = getActivePaymentType(undefined, [], [bankItem]);
 
             expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
@@ -234,7 +236,7 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockTriggerKYCFlow).toHaveBeenCalledWith({event: undefined, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY});
+            expect(mockTriggerKYCFlow).toHaveBeenCalledWith({event: undefined, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, policy: testPolicy});
             expect(setPersonalBankAccountContinueKYCOnSuccess).toHaveBeenCalledWith(ROUTES.ENABLE_PAYMENTS);
         });
 
@@ -321,6 +323,86 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, undefined);
+        });
+    });
+
+    describe('getBusinessBankAccountOptions', () => {
+        it('returns empty array when no payment methods passed', () => {
+            expect(getBusinessBankAccountOptions([])).toEqual([]);
+        });
+
+        it('drops methods without valid accountData', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({accountData: undefined}),
+                createMockPaymentMethod({accountData: null}),
+                createMockPaymentMethod({accountData: {}}),
+                createMockPaymentMethod({accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}}),
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS}}),
+            ];
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
+        });
+
+        it('drops PERSONAL account type (only BUSINESS included)', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.OPEN}})];
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
+        });
+
+        it('drops partially setup accounts', () => {
+            expect(getBusinessBankAccountOptions([createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.SETUP}})])).toHaveLength(0);
+            expect(getBusinessBankAccountOptions([createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.VERIFYING}})])).toHaveLength(
+                0,
+            );
+            expect(getBusinessBankAccountOptions([createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.PENDING}})])).toHaveLength(
+                0,
+            );
+        });
+
+        it('drops non-OPEN state', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED}})];
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
+        });
+
+        it('drops methods with null or undefined methodID', () => {
+            expect(getBusinessBankAccountOptions([createMockPaymentMethod({methodID: null})])).toHaveLength(0);
+            expect(getBusinessBankAccountOptions([createMockPaymentMethod({methodID: undefined})])).toHaveLength(0);
+        });
+
+        it('returns properly constructed BusinessBankAccountOption for valid BUSINESS OPEN account with methodID', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'Acme Corp', description: 'USD • 1234', methodID: 456})];
+            const result = getBusinessBankAccountOptions(methods);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)).toEqual({
+                text: 'Acme Corp',
+                description: 'USD • 1234',
+                icon: undefined,
+                iconStyles: [],
+                iconSize: 40,
+                methodID: 456,
+            });
+        });
+
+        it('returns multiple options when multiple valid business bank accounts passed', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'Account A', methodID: 1}), createMockPaymentMethod({title: 'Account B', methodID: 2})];
+            const result = getBusinessBankAccountOptions(methods);
+
+            expect(result).toHaveLength(2);
+            expect(result.at(0)?.text).toBe('Account A');
+            expect(result.at(0)?.methodID).toBe(1);
+            expect(result.at(1)?.text).toBe('Account B');
+            expect(result.at(1)?.methodID).toBe(2);
+        });
+
+        it('filters to only valid BUSINESS OPEN with methodID and maps rest correctly', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.OPEN}, title: 'Personal'}),
+                createMockPaymentMethod({title: 'Valid Business'}),
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.SETUP}, title: 'Setup'}),
+            ];
+            const result = getBusinessBankAccountOptions(methods);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.text).toBe('Valid Business');
         });
     });
 });

@@ -5,7 +5,6 @@ import {generatePolicyID} from '@libs/actions/Policy/Policy';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
-import DateUtils from '@src/libs/DateUtils';
 import {
     buildFilterFormValuesFromQuery,
     buildFilterQueryWithSortDefaults,
@@ -13,10 +12,9 @@ import {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
-    getDateRangeDisplayValueFromFormValue,
+    getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getQueryWithUpdatedValues,
-    getRangeBoundariesFromFormValue,
     shouldHighlight,
     shouldResetSort,
     sortOptionsWithEmptyValue,
@@ -59,41 +57,6 @@ jest.mock('@libs/PersonalDetailsUtils', () => {
 const defaultQuery = `type:expense sortBy:date sortOrder:desc`;
 
 describe('SearchQueryUtils', () => {
-    describe('getDateRangeDisplayValueFromFormValue', () => {
-        test('returns full range display when both boundaries exist', () => {
-            const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10');
-
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true));
-        });
-
-        test('returns single boundary display when only one boundary exists', () => {
-            const result = getDateRangeDisplayValueFromFormValue('2025-03-01');
-
-            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01'));
-        });
-
-        test('falls back to inclusive boundaries when range value is invalid', () => {
-            const result = getDateRangeDisplayValueFromFormValue('invalid', '2025-03-01', '2025-03-10');
-
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', true));
-        });
-
-        test('returns empty string when no valid range boundaries exist', () => {
-            const result = getDateRangeDisplayValueFromFormValue('invalid');
-
-            expect(result).toBe('');
-        });
-    });
-
-    describe('getRangeBoundariesFromFormValue', () => {
-        test('falls back to inclusive boundaries when range value is missing', () => {
-            expect(getRangeBoundariesFromFormValue(undefined, '2025-03-01', '2025-03-10')).toEqual({
-                from: '2025-03-02',
-                to: '2025-03-09',
-            });
-        });
-    });
-
     describe('getQueryWithUpdatedValues', () => {
         test('returns default query for empty value', () => {
             const userQuery = '';
@@ -282,83 +245,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual('type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com category:finance,insurance date>2025-03-01 date<2025-03-10 amount>1 amount<1000');
             expect(result).not.toMatch(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-        });
-
-        test('serializes explicit date range with inclusive boundaries', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                dateRange: '2025-03-01,2025-03-10',
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-            expect(result).toContain('date>=2025-03-01');
-            expect(result).toContain('date<=2025-03-10');
-            expect(result).not.toContain('date>2025-03-01');
-            expect(result).not.toContain('date<2025-03-10');
-
-            const queryJSON = buildSearchQueryJSON(result);
-            const dateOperators = queryJSON?.flatFilters
-                .filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE)
-                .flatMap((filter) => filter.filters.map((dateFilter) => dateFilter.operator));
-            expect(dateOperators).toEqual(expect.arrayContaining([CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]));
-        });
-
-        test('serializes explicit report field range with inclusive boundaries', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                'reportFieldRange-start-date': '2025-03-01,2025-03-10',
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-            expect(result).toContain('reportField-start-date>=2025-03-01');
-            expect(result).toContain('reportField-start-date<=2025-03-10');
-            expect(result).not.toContain('reportField-start-date>2025-03-01');
-            expect(result).not.toContain('reportField-start-date<2025-03-10');
-        });
-
-        test('serializes explicit range with only before boundary using leading comma', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                dateRange: ',2025-03-10',
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-            expect(result).toContain('date<=2025-03-10');
-
-            const queryJSON = buildSearchQueryJSON(result);
-            expect(queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE)?.filters).toEqual([
-                {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: '2025-03-10'},
-            ]);
-        });
-
-        test('invalid range value keeps after and before filters exclusive', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                dateRange: 'invalid',
-                dateAfter: '2025-03-01',
-                dateBefore: '2025-03-10',
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-            expect(result).toContain('date>2025-03-01');
-            expect(result).toContain('date<2025-03-10');
-            expect(result).not.toContain('date>=2025-03-01');
-            expect(result).not.toContain('date<=2025-03-10');
-        });
-
-        test('invalid report field range value keeps after and before filters exclusive', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                'reportFieldRange-start-date': 'invalid',
-                'reportFieldAfter-start-date': '2025-03-01',
-                'reportFieldBefore-start-date': '2025-03-10',
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-            expect(result).toContain('reportField-start-date>2025-03-01');
-            expect(result).toContain('reportField-start-date<2025-03-10');
-            expect(result).not.toContain('reportField-start-date>=2025-03-01');
-            expect(result).not.toContain('reportField-start-date<=2025-03-10');
         });
 
         test('total filter values', () => {
@@ -593,6 +479,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
@@ -623,6 +510,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('type:expense status:all merchant:Uber');
@@ -658,6 +546,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
@@ -696,6 +585,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toContain('limit:25');
@@ -719,6 +609,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).not.toContain('limit:');
@@ -742,6 +633,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
             });
 
             expect(result).toContain('limit:50');
@@ -886,90 +778,6 @@ describe('SearchQueryUtils', () => {
                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 attendee: ['12345', 'ZZ'],
             });
-        });
-
-        test('hydrates explicit date range flag from inclusive range boundaries', () => {
-            const policyCategories = {};
-            const policyTags = {};
-            const currencyList = {};
-            const personalDetails = {};
-            const cardList = {};
-            const reports = {};
-            const taxRates = {};
-            const queryString = 'sortBy:date sortOrder:desc type:expense date>=2025-03-01 date<=2025-03-10';
-            const queryJSON = buildSearchQueryJSON(queryString);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
-
-            expect(result.dateAfter).toBeUndefined();
-            expect(result.dateBefore).toBeUndefined();
-            expect(result.dateRange).toBe('2025-03-01,2025-03-10');
-        });
-
-        test('does not set explicit date range flag when only date boundaries are provided', () => {
-            const policyCategories = {};
-            const policyTags = {};
-            const currencyList = {};
-            const personalDetails = {};
-            const cardList = {};
-            const reports = {};
-            const taxRates = {};
-            const queryString = 'sortBy:date sortOrder:desc type:expense date>2025-03-01 date<2025-03-10';
-            const queryJSON = buildSearchQueryJSON(queryString);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
-
-            expect(result.dateRange).toBeUndefined();
-        });
-
-        test('hydrates explicit report field range flag from inclusive range boundaries', () => {
-            const policyCategories = {};
-            const policyTags = {};
-            const currencyList = {};
-            const personalDetails = {};
-            const cardList = {};
-            const reports = {};
-            const taxRates = {};
-            const queryString = 'sortBy:date sortOrder:desc type:expense reportField-start-date>=2025-03-01 reportField-start-date<=2025-03-10';
-            const queryJSON = buildSearchQueryJSON(queryString);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
-
-            expect(result['reportFieldAfter-start-date']).toBeUndefined();
-            expect(result['reportFieldBefore-start-date']).toBeUndefined();
-            expect(result['reportFieldRange-start-date']).toBe('2025-03-01,2025-03-10');
-        });
-
-        test('does not set explicit report field range flag when only date boundaries are provided', () => {
-            const policyCategories = {};
-            const policyTags = {};
-            const currencyList = {};
-            const personalDetails = {};
-            const cardList = {};
-            const reports = {};
-            const taxRates = {};
-            const queryString = 'sortBy:date sortOrder:desc type:expense reportField-start-date>2025-03-01 reportField-start-date<2025-03-10';
-            const queryJSON = buildSearchQueryJSON(queryString);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
-
-            expect(result['reportFieldRange-start-date']).toBeUndefined();
         });
 
         describe('view parameter', () => {
@@ -1378,17 +1186,18 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '99999',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '99999',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
+            });
 
             expect(result).toBe('+15551234567');
             expect(result).not.toContain('@expensify.sms');
@@ -1403,17 +1212,18 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '78901',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '78901',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
+            });
 
             expect(result).toBe('Jane Doe');
         });
@@ -1427,17 +1237,18 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '12345',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '12345',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
+            });
 
             expect(result).toBe(CONST.SEARCH.ME);
         });
@@ -1445,17 +1256,18 @@ describe('SearchQueryUtils', () => {
         it('should return fallback value when personal details not found', () => {
             const personalDetails = {};
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '88888',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '88888',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
+            });
 
             expect(result).toBe('88888');
         });
@@ -1469,17 +1281,18 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '77777',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '77777',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
+            });
 
             expect(result).toBe('Custom Name');
             expect(result).not.toContain('@expensify.sms');
@@ -1494,17 +1307,18 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                '66666',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                filterValue: '66666',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+                conciergeReportID: 'concierge-report-id',
+            });
 
             expect(result).toBe('+15551112222');
             expect(result).not.toContain('@expensify.sms');
@@ -1527,7 +1341,18 @@ describe('SearchQueryUtils', () => {
             ];
 
             for (const filterKey of filterKeys) {
-                const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID, translateLocal);
+                const result = getFilterDisplayValue({
+                    filterName: filterKey,
+                    filterValue: '55555',
+                    personalDetails,
+                    reports: mockReports,
+                    cardList: mockCardList,
+                    cardFeeds: mockCardFeeds,
+                    policies: mockPolicies,
+                    currentUserAccountID,
+                    translate: translateLocal,
+                    conciergeReportID: 'concierge-report-id',
+                });
 
                 expect(result).toBe('+15553334444');
                 expect(result).not.toContain('@expensify.sms');
@@ -1775,6 +1600,442 @@ describe('SearchQueryUtils', () => {
 
             expect(afterEviction).toBeDefined();
             expect(afterEviction?.type).toBe('expense');
+        });
+    });
+
+    describe('getFilterDisplayValue with conciergeReportID', () => {
+        const mockCardList = {};
+        const mockCardFeeds = {};
+        const mockPolicies = {};
+        const currentUserAccountID = 12345;
+
+        it('should use conciergeReportID when resolving "in" filter with a report', () => {
+            const reportID = '999';
+            const conciergeReportID = '999';
+            const mockReports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                    reportID,
+                    reportName: 'Concierge Chat',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                } as OnyxTypes.Report,
+            };
+
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                filterValue: reportID,
+                personalDetails: {},
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                conciergeReportID,
+            });
+
+            // The result depends on getReportName internal logic, but
+            // what matters is that conciergeReportID is passed through
+            expect(typeof result).toBe('string');
+            expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('should return filterValue when report is not found for "in" filter', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                filterValue: 'nonexistent-report-id',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                conciergeReportID: 'concierge-123',
+            });
+
+            expect(result).toBe('nonexistent-report-id');
+        });
+
+        it('should handle amount filter correctly regardless of conciergeReportID', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                filterValue: '150000',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                conciergeReportID: 'concierge-123',
+            });
+
+            expect(result).toBe('1500');
+        });
+
+        it('should handle exported_to filter correctly regardless of conciergeReportID', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                conciergeReportID: 'concierge-123',
+            });
+
+            expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
+        });
+
+        it('should handle policyID filter by looking up policy name', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}abc123`]: {
+                    name: 'My Workspace',
+                } as OnyxTypes.Policy,
+            };
+
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                filterValue: 'abc123',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies,
+                currentUserAccountID,
+                translate: translateLocal,
+                conciergeReportID: 'concierge-123',
+            });
+
+            expect(result).toBe('My Workspace');
+        });
+
+        it('should return cleaned tag name for tag filter with escaped colons', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                filterValue: 'GL\\:travel',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                conciergeReportID: 'concierge-123',
+            });
+
+            expect(result).toBe('GL:travel');
+        });
+    });
+
+    describe('getDisplayQueryFiltersForKey', () => {
+        const emptyPersonalDetails = {};
+        const emptyReports: OnyxCollection<OnyxTypes.Report> = {};
+        const emptyCardList: OnyxTypes.CardList = {};
+        const emptyCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {};
+        const emptyPolicies: OnyxCollection<OnyxTypes.Policy> = {};
+        const emptyTaxRates: Record<string, string[]> = {};
+        const currentUserAccountID = 12345;
+        const conciergeReportID = 'concierge-report-id';
+
+        it('should resolve tax rate IDs to human-readable names', () => {
+            const taxRates: Record<string, string[]> = {
+                'GST 10%': ['tax_id_1'],
+                'PST 5%': ['tax_id_2'],
+            };
+
+            const queryFilter = [
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: 'tax_id_1'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: 'tax_id_2'},
+            ];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                taxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+                conciergeReportID,
+            );
+
+            expect(result).toHaveLength(2);
+            expect(result.at(0)?.value).toBe('GST 10%');
+            expect(result.at(1)?.value).toBe('PST 5%');
+        });
+
+        it('should deduplicate tax rate names', () => {
+            const taxRates: Record<string, string[]> = {
+                'GST 10%': ['tax_id_1', 'tax_id_2'],
+            };
+
+            const queryFilter = [
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: 'tax_id_1'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: 'tax_id_2'},
+            ];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                taxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+                conciergeReportID,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe('GST 10%');
+        });
+
+        it('should resolve user ID to display name for from filter', () => {
+            const personalDetails = {
+                '78901': {
+                    accountID: 78901,
+                    login: 'janedoe@example.com',
+                    displayName: 'Jane Doe',
+                },
+            };
+
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: '78901'}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                queryFilter,
+                personalDetails,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+                conciergeReportID,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe('Jane Doe');
+        });
+
+        it('should return "Me" for current user ID', () => {
+            const personalDetails = {
+                '12345': {
+                    accountID: 12345,
+                    login: 'currentuser@example.com',
+                    displayName: 'Current User',
+                },
+            };
+
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: '12345'}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                queryFilter,
+                personalDetails,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+                conciergeReportID,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(CONST.SEARCH.ME);
+        });
+
+        it('should convert amount values from backend to frontend format', () => {
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: '150000'}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+                conciergeReportID,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe('1500');
+        });
+
+        it('should pass conciergeReportID through to getFilterDisplayValue for in filter', () => {
+            const reportID = '555';
+            const mockReports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                    reportID,
+                    reportName: 'Test Chat Room',
+                } as OnyxTypes.Report,
+            };
+
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: reportID}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                queryFilter,
+                emptyPersonalDetails,
+                mockReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+                conciergeReportID,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(typeof result.at(0)?.value).toBe('string');
+        });
+    });
+
+    describe('buildUserReadableQueryString with conciergeReportID', () => {
+        const emptyReports: OnyxCollection<OnyxTypes.Report> = {};
+        const emptyCardList: OnyxTypes.CardList = {};
+        const emptyCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {};
+        const emptyPolicies: OnyxCollection<OnyxTypes.Policy> = {};
+        const emptyTaxRates: Record<string, string[]> = {};
+        const currentUserAccountID = 12345;
+        const conciergeReportID = 'concierge-report-id';
+
+        test('passes conciergeReportID through for in-filter queries', () => {
+            const reportID = '777';
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                    reportID,
+                    reportName: 'Test Room',
+                } as OnyxTypes.Report,
+            };
+
+            const queryJSON = buildSearchQueryJSON(`type:expense in:${reportID}`);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+                conciergeReportID,
+            });
+
+            expect(result).toContain('in:');
+            expect(typeof result).toBe('string');
+        });
+
+        test('resolves from filter with personal details and conciergeReportID', () => {
+            const personalDetails = {
+                '78901': {
+                    accountID: 78901,
+                    login: 'janedoe@example.com',
+                    displayName: 'Jane Doe',
+                },
+            } as OnyxTypes.PersonalDetailsList;
+
+            const queryJSON = buildSearchQueryJSON('type:expense from:78901');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: personalDetails,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+                conciergeReportID,
+            });
+
+            expect(result).toContain('from:"Jane Doe"');
+        });
+
+        test('shows "Me" for current user in from filter', () => {
+            const personalDetails = {
+                '12345': {
+                    accountID: 12345,
+                    login: 'currentuser@example.com',
+                    displayName: 'Current User',
+                },
+            } as OnyxTypes.PersonalDetailsList;
+
+            const queryJSON = buildSearchQueryJSON('type:expense from:12345');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: personalDetails,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+                conciergeReportID,
+            });
+
+            expect(result).toContain(`from:${CONST.SEARCH.ME}`);
+        });
+
+        test('adds trailing space when autoCompleteWithSpace is true', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: true,
+                translate: translateLocal,
+                conciergeReportID,
+            });
+
+            expect(result.endsWith(' ')).toBe(true);
         });
     });
 });

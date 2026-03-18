@@ -40,6 +40,13 @@ function ReplaceDeviceVerifyNewPage() {
         clearAccountMessages();
     };
 
+    useEffect(() => {
+        clearAccountMessages();
+        return () => {
+            clearAccountMessages();
+        };
+    }, []);
+
     // Navigate back to 2FA settings after successful device replacement
     useEffect(() => {
         if (!account || account.twoFactorAuthSecretKey) {

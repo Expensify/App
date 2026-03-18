@@ -13,6 +13,7 @@ import type {
     EventCallbackError,
     EventData,
     PusherEventName,
+    PusherSubscription,
     PusherSubscriptionErrorData,
     PusherWithAuthParams,
     SocketEventCallback,
@@ -45,7 +46,10 @@ let initPromise = new Promise<void>((resolve) => {
     resolveInitPromise = resolve;
 });
 
-const eventsBoundToChannels = new Map<Channel, Set<PusherEventName>>();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Pusher callbacks have varying signatures due to chunking wrapper
+type BoundCallback = (eventData: any) => void;
+
+const eventsBoundToChannels = new Map<Channel, Map<PusherEventName, Set<BoundCallback>>>();
 
 /**
  * Trigger each of the socket event callbacks with the event information
@@ -118,11 +122,16 @@ function getChannel(channelName: string): Channel | undefined {
 }
 
 /**
- * Binds an event callback to a channel + eventName
+ * Binds an event callback to a channel + eventName.
+ * Returns the wrapped callback so it can be individually unbound later.
  */
-function bindEventToChannel<EventName extends PusherEventName>(channel: Channel | undefined, eventName?: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}) {
+function bindEventToChannel<EventName extends PusherEventName>(
+    channel: Channel | undefined,
+    eventName?: EventName,
+    eventCallback: (data: EventData<EventName>) => void = () => {},
+): BoundCallback | undefined {
     if (!eventName || !channel) {
-        return;
+        return undefined;
     }
 
     const chunkedDataEvents: Record<string, ChunkedDataEvents> = {};
@@ -184,14 +193,23 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
     };
 
     channel.bind(eventName, callback);
+
     if (!eventsBoundToChannels.has(channel)) {
-        eventsBoundToChannels.set(channel, new Set());
+        eventsBoundToChannels.set(channel, new Map());
     }
-    eventsBoundToChannels.get(channel)?.add(eventName);
+    const eventMap = eventsBoundToChannels.get(channel);
+    if (!eventMap?.has(eventName)) {
+        eventMap?.set(eventName, new Set());
+    }
+    eventMap?.get(eventName)?.add(callback);
+
+    return callback;
 }
 
 /**
- * Subscribe to a channel and an event
+ * Subscribe to a channel and an event.
+ * Returns a PusherSubscription — a Promise (for backward-compatible .catch()/.then())
+ * with an .unsubscribe() method that removes only this specific callback.
  * @param [onResubscribe] Callback to be called when reconnection happen
  */
 function subscribe<EventName extends PusherEventName>(
@@ -199,12 +217,21 @@ function subscribe<EventName extends PusherEventName>(
     eventName?: EventName,
     eventCallback: (data: EventData<EventName>) => void = () => {},
     onResubscribe = () => {},
-): Promise<void> {
-    return initPromise.then(
+): PusherSubscription {
+    let wrappedCb: BoundCallback | undefined;
+    let resolvedChannel: Channel | undefined;
+    let disposed = false;
+
+    const promise = initPromise.then(
         () =>
-            new Promise((resolve, reject) => {
+            new Promise<void>((resolve, reject) => {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
+                    if (disposed) {
+                        resolve();
+                        return;
+                    }
+
                     // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
                     if (!socket) {
                         const error = new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
@@ -234,7 +261,18 @@ function subscribe<EventName extends PusherEventName>(
                         channel.bind('pusher:subscription_succeeded', () => {
                             // Check so that we do not bind another event with each reconnect attempt
                             if (!isBound) {
-                                bindEventToChannel(channel, eventName, eventCallback);
+                                if (!disposed) {
+                                    wrappedCb = bindEventToChannel(channel, eventName, eventCallback);
+                                    resolvedChannel = channel ?? undefined;
+                                } else if (channel) {
+                                    // Handle was disposed mid-handshake — clean up the channel
+                                    // if no other subscribers have bound callbacks to it
+                                    const eventMap = eventsBoundToChannels.get(channel);
+                                    if (!eventMap || eventMap.size === 0) {
+                                        eventsBoundToChannels.delete(channel);
+                                        socket?.unsubscribe(channelName);
+                                    }
+                                }
                                 resolve();
                                 isBound = true;
                                 return;
@@ -258,16 +296,52 @@ function subscribe<EventName extends PusherEventName>(
                             reject(error);
                         });
                     } else {
-                        bindEventToChannel(channel, eventName, eventCallback);
+                        if (!disposed) {
+                            wrappedCb = bindEventToChannel(channel, eventName, eventCallback);
+                            resolvedChannel = channel;
+                        }
                         resolve();
                     }
                 });
             }),
     );
+
+    return Object.assign(promise, {
+        unsubscribe: () => {
+            disposed = true;
+            if (!wrappedCb || !resolvedChannel || !eventName) {
+                return;
+            }
+
+            // 1. Unbind this specific callback from pusher-js
+            resolvedChannel.unbind(eventName, wrappedCb);
+
+            // 2. Remove from tracking
+            const eventMap = eventsBoundToChannels.get(resolvedChannel);
+            const callbacks = eventMap?.get(eventName);
+            callbacks?.delete(wrappedCb);
+
+            // 3. If last callback for this event, remove the event
+            if (callbacks?.size === 0) {
+                eventMap?.delete(eventName);
+            }
+
+            // 4. If last event on this channel, unsubscribe entirely
+            if (eventMap?.size === 0) {
+                eventsBoundToChannels.delete(resolvedChannel);
+                socket?.unsubscribe(channelName);
+            }
+
+            wrappedCb = undefined;
+            resolvedChannel = undefined;
+        },
+    });
 }
 
 /**
- * Unsubscribe from a channel and optionally a specific event
+ * Unsubscribe from a channel and optionally a specific event.
+ * This removes ALL callbacks for the given event (or all events on the channel).
+ * For per-callback removal, use the .unsubscribe() method on the PusherSubscription handle.
  */
 function unsubscribe(channelName: string, eventName: PusherEventName = '') {
     const channel = getChannel(channelName);
@@ -294,6 +368,7 @@ function unsubscribe(channelName: string, eventName: PusherEventName = '') {
         Log.info('[Pusher] Unsubscribing from channel', false, {channelName});
 
         channel.unbind();
+        eventsBoundToChannels.delete(channel);
         socket?.unsubscribe(channelName);
     }
 }
@@ -369,6 +444,7 @@ function disconnect() {
     socket.disconnect();
     socket = null;
     pusherSocketID = '';
+    eventsBoundToChannels.clear();
     initPromise = new Promise((resolve) => {
         resolveInitPromise = resolve;
     });
