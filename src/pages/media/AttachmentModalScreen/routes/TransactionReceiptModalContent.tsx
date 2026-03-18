@@ -329,7 +329,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         () =>
             shouldShowReplaceReceiptButton &&
             transaction &&
-            (hasReceiptSource(transaction) || (isOdometerImage ? hasOdometerImageSource(transaction, imageType) : false)) &&
+            (hasReceiptSource(transaction) || (isOdometerImage && hasOdometerImageSource(transaction, imageType))) &&
             !isEReceipt &&
             !transaction?.receipt?.isTestDriveReceipt &&
             isImage,
