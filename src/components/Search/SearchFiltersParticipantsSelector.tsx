@@ -11,7 +11,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSearchSelector from '@hooks/useSearchSelector';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatSectionsFromSearchTerm, getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
-import type {SelectionListSections} from '@libs/OptionsListUtils/types';
+import type {OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -277,8 +277,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);
 
     const handleParticipantSelection = useCallback(
-        (option: OptionData) => {
-            toggleSelection(option);
+        (option: OptionWithKey) => {
+            toggleSelection(option as OptionData);
         },
         [toggleSelection],
     );
@@ -294,7 +294,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialAccountIDs || !personalDetails;
+    const shouldShowLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialAccountIDs || !personalDetails;
 
     const textInputOptions = useMemo(
         () => ({
@@ -316,7 +316,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
-            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             canSelectMultiple
             onEndReached={onListEndReached}
         />
