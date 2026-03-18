@@ -6512,6 +6512,38 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
+        test('Should hide To for strict default expense columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'strict-default-columns',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                comment: {comment: 'Has description'},
+                category: '',
+                tag: 'Project A',
+                reportID: reportID2,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                [`reportActions_${reportID2}`]: searchResults.data[`reportActions_${reportID2}`],
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
+            const nonStrictColumns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false, undefined, undefined, false, false, false, false);
+            expect(nonStrictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+            expect(nonStrictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+            expect(nonStrictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
+
+            const strictColumns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false, undefined, undefined, false, false, false, true);
+            expect(strictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+            expect(strictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+            expect(strictColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
+        });
+
         test('Should only show columns when at least one transaction has a value for them', () => {
             // Use the existing transaction as a base and modify only the fields we need to test
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];

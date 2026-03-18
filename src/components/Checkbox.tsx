@@ -68,6 +68,9 @@ type CheckboxProps = Partial<ChildrenProps> &
 
         /** Whether this Checkbox should be focusable with a non-touch input device, eg. receive focus with a hardware keyboard. */
         focusable?: boolean;
+
+        /** Tab index for the checkbox */
+        tabIndex?: 0 | -1;
     };
 
 function Checkbox({
@@ -91,6 +94,7 @@ function Checkbox({
     ref,
     focusable = true,
     sentryLabel,
+    tabIndex,
 }: CheckboxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -135,6 +139,7 @@ function Checkbox({
             ref={ref as PressableRef}
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceOrEnterKey}
+            tabIndex={tabIndex}
             role={CONST.ROLE.CHECKBOX}
             accessibilityState={{
                 checked: isIndeterminate ? 'mixed' : isChecked,

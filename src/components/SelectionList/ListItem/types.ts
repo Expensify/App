@@ -142,6 +142,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Used to initiate payment from search page */
     hash?: number;
+
+    /** BCP 47 language tag for screen reader pronunciation (maps to HTML lang attribute on web) */
+    lang?: string;
 };
 
 type CommonListItemProps<TItem extends ListItem> = {
@@ -192,6 +195,12 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Number of lines to show for alternate text */
     alternateTextNumberOfLines?: number;
+
+    /** Number of lines to show for title text when multiline is supported */
+    titleNumberOfLines?: number;
+
+    /** Whether to show the default right hand side component */
+    shouldUseDefaultRightHandSideComponent?: boolean;
 
     /** Handles what to do when the item is focused */
     onFocus?: ListItemFocusEventHandler;
