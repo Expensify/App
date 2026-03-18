@@ -45,16 +45,14 @@ Workspace Admins can reconcile reimbursements when Payments is enabled on the Wo
 
 # FAQ
 
-## How Do I Identify an Unknown Bank Charge?
+## How do I identify an unknown bank charge?
 
 If you see a charge on your bank statement that you cannot identify, go to the Reimbursements reconciliation view and filter to the date range when the charge occurred. Match the charge amount to a payment in the list, then expand it to see which report(s) were reimbursed.
 
-## What Does a Reimbursement Payment Include?
+## What does a reimbursement payment include?
 
 A single reimbursement payment may cover one expense report. Expanding the payment row shows all the expenses on the report that was reimbursed. 
 
-## Why Don't I See Reimbursements Under Reconciliation?
+## Why don't I see Reimbursements under Reconciliation?
 
-The Reimbursements option appears only when your workspace has reimbursements enabled with a verified business bank account. If you do not see it, confirm your workspace settings under **Settings > Workspaces > [Workspace Name] > Reimbursement**.
-
-The Expensify Card option only appears when your workspace has Payments enabled with a verified business bank account. If you don’t see it, confirm that the Payments is enabled and a verified business bank account is connected. 
+The Payments option only appears when your workspace has Payments enabled with a verified business bank account. If you don’t see it, confirm that the Payments is enabled and a verified business bank account is connected. 
