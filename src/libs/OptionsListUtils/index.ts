@@ -725,7 +725,7 @@ function getLastMessageTextForReport({
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translate('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = policyTags
+        const properSchemaForModifiedExpenseMessageWithHTML = policyTags
             ? getForReportActionTemp({
                   translate,
                   reportAction: lastReportAction,
@@ -743,6 +743,8 @@ function getLastMessageTextForReport({
                   policyForMovingExpensesID,
                   currentUserLogin,
               });
+        // Strip HTML tags for plain text display in options list
+        const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction));
