@@ -17,7 +17,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
-import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -115,7 +115,11 @@ function IOURequestEditReportCommon({
     }, [transactionIDs, selectedReport, reportTransactions]);
 
     const shouldShowRemoveFromReport =
-        !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport) && isEditing && isOwner && !isReportIOU && !isCardTransaction;
+        !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport && !isSelfDM(selectedReport)) &&
+        isEditing &&
+        isOwner &&
+        !isReportIOU &&
+        !isCardTransaction;
 
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
 

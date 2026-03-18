@@ -37,6 +37,8 @@ function MultiSelectListItem<TItem extends ListItem>({
                 isIndeterminate={item.isIndeterminate}
                 style={[isMultilineSupported ? styles.ml3 : null]}
                 disabled={isDisabled ?? false}
+                // Prevent checkbox from being a separate Tab stop; the parent row already handles focus
+                tabIndex={-1}
             />
         );
     }, [isDisabled, isMultilineSupported, isSelected, item, onSelectRow, styles.ml3]);
