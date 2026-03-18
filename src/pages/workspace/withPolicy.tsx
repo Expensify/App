@@ -1,5 +1,5 @@
 import type {ComponentType} from 'react';
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -53,6 +53,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.RULES
     | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW
     | typeof SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION
+    | typeof SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION
     | typeof SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER
     | typeof SCREENS.WORKSPACE.TIME_TRACKING;
 
@@ -84,15 +85,18 @@ const policyDefaultProps: WithPolicyOnyxProps = {
 export default function <TProps extends WithPolicyProps>(WrappedComponent: ComponentType<TProps>): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
-        const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
-        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
+        const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
         /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
-        const isLoadingPolicy = !hasLoadedApp || isLoadingOnyxValue(policyResults, policyDraftResults);
+        const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
 
-        if (policyID && policyID.length > 0) {
+        useEffect(() => {
+            if (!policyID) {
+                return;
+            }
             updateLastAccessedWorkspace(policyID);
-        }
+        }, [policyID]);
 
         return (
             <WrappedComponent

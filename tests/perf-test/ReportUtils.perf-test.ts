@@ -157,7 +157,7 @@ describe('ReportUtils', () => {
         await waitForBatchedUpdates();
         // Will be fixed in https://github.com/Expensify/App/issues/76852
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        await measureFunction(() => getReportName(report, policy));
+        await measureFunction(() => getReportName({report, policy}));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {

@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CurrencyList, Locale} from '@src/types/onyx';
+import type {Locale} from '@src/types/onyx';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
@@ -137,6 +137,14 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     });
 }
 
+/** Same intended use as convertToDisplayString, but purposely omit currency symbol if not provided */
+function convertToDisplayStringWithExplicitCurrency(amountInCents: number, currency: string | undefined): string {
+    if (!currency) {
+        return convertToDisplayStringWithoutCurrency(amountInCents);
+    }
+    return convertToDisplayString(amountInCents, currency);
+}
+
 /**
  * Given the amount in the "cents", convert it to a short string (no decimals) for display in the UI.
  * The backend always handle things in "cents" (subunit equal to 1/100)
@@ -202,30 +210,18 @@ function isValidCurrencyCode(currencyCode: string): boolean {
     return !!currency;
 }
 
-function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
-    if (!currencies || !countryCode) {
-        return CONST.CURRENCY.USD;
-    }
-    for (const [key, value] of Object.entries(currencies)) {
-        if (value?.countries?.includes(countryCode)) {
-            return key;
-        }
-    }
-    return CONST.CURRENCY.USD;
-}
-
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
-    getCurrencyKeyByCountryCode,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
     convertToDisplayString,
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    convertToDisplayStringWithExplicitCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
 };

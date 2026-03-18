@@ -22,7 +22,7 @@ type InviteeNewMemberStepProps = Omit<WithPolicyAndFullscreenLoadingProps, 'rout
 function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: InviteeNewMemberStepProps) {
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const isEditing = issueNewCard?.isEditing;
     const handleBackButtonPress = () => {

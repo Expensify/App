@@ -1,5 +1,4 @@
 import {useCallback, useMemo} from 'react';
-import type {ReactNode} from 'react';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useHasEmptyReportsForPolicy from './useHasEmptyReportsForPolicy';
@@ -23,8 +22,6 @@ type UseConditionalCreateEmptyReportConfirmationResult = {
     handleCreateReport: () => void;
     /** Whether an empty report already exists for the provided policy */
     hasEmptyReport: boolean;
-    /** The confirmation modal React component to render */
-    CreateReportConfirmationModal: ReactNode;
 };
 
 /**
@@ -39,7 +36,7 @@ export default function useConditionalCreateEmptyReportConfirmation({
     shouldBypassConfirmation = false,
 }: UseConditionalCreateEmptyReportConfirmationParams): UseConditionalCreateEmptyReportConfirmationResult {
     const hasEmptyReport = useHasEmptyReportsForPolicy(policyID);
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const shouldSkipConfirmation = useMemo(() => shouldBypassConfirmation || hasDismissedEmptyReportsConfirmation === true, [hasDismissedEmptyReportsConfirmation, shouldBypassConfirmation]);
 
     const handleReportCreationConfirmed = useCallback(
@@ -49,7 +46,7 @@ export default function useConditionalCreateEmptyReportConfirmation({
         [onCreateReport],
     );
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID,
         policyName,
         onConfirm: handleReportCreationConfirmed,
@@ -68,6 +65,5 @@ export default function useConditionalCreateEmptyReportConfirmation({
     return {
         handleCreateReport,
         hasEmptyReport,
-        CreateReportConfirmationModal,
     };
 }

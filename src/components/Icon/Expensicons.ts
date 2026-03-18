@@ -37,8 +37,11 @@ import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
+import CreditCardLock from '@assets/images/credit-card-lock.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import Crop from '@assets/images/crop.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
+import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -50,6 +53,7 @@ import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import ExpenseCopy from '@assets/images/expense-copy.svg';
+import ExpensifyCardHourglass from '@assets/images/expensify-card-hourglass.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -141,6 +145,7 @@ import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
+import Sparkles from '@assets/images/sparkles.svg';
 import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
 import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
@@ -196,9 +201,13 @@ export {
     CreditCard,
     CreditCardHourglass,
     CreditCardExclamation,
+    CreditCardLock,
+    ExpensifyCardHourglass,
+    Crop,
     CircleSlash,
     Document,
     DocumentMerge,
+    DocumentPlus,
     DotIndicator,
     DotIndicatorUnfilled,
     Download,
@@ -271,6 +280,7 @@ export {
     Scan,
     Send,
     Shield,
+    Sparkles,
     Stopwatch,
     Sync,
     Task,

@@ -6,11 +6,14 @@ import Log from './Log';
 
 const accountIDToNameMap: Record<string, string> = {};
 
-const reportIDToNameMap: Record<string, string> = {};
+let reportIDToNameMap: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
+        // Clear the map so removed reports don’t linger
+        reportIDToNameMap = {};
+
         if (!value) {
             return;
         }
@@ -59,6 +62,10 @@ class ExpensiMarkWithContext extends ExpensiMark {
             accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
             cacheVideoAttributes: extras?.cacheVideoAttributes,
         });
+    }
+
+    isHTML(text: string): boolean {
+        return /<[^>]+>/.test(text) || /&[#\w]+;/.test(text);
     }
 
     truncateHTML(htmlString: string, limit: number, extras?: {ellipsis: string | undefined}): string {

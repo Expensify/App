@@ -2,6 +2,7 @@
 /*
  * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
  */
+import {execFileSync} from 'child_process';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
@@ -9,6 +10,7 @@ import get from 'lodash/get';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
+import GitHubUtils from '@github/libs/GithubUtils';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
@@ -19,6 +21,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import CLI from './utils/CLI';
 import COLORS from './utils/COLORS';
 import Git from './utils/Git';
+import type {DiffResult} from './utils/Git';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
@@ -65,6 +68,23 @@ class TranslationGenerator {
      * Regex to match context annotations.
      */
     private static readonly CONTEXT_REGEX = /^\s*(?:\/{2}|\*|\/\*)?\s*@context\s+([^\n*/]+)/;
+
+    /**
+     * Regex to validate a full 40-character git SHA hash.
+     */
+    private static readonly GIT_SHA_REGEX = /^[a-fA-F0-9]{40}$/;
+
+    /**
+     * HTTP 406 Not Acceptable - returned by GitHub API when diff is too large.
+     */
+    private static readonly HTTP_STATUS_DIFF_TOO_LARGE = 406;
+
+    /**
+     * Extracts a readable error message from an unknown error type.
+     */
+    private static getErrorMessage(error: unknown): string {
+        return error instanceof Error ? error.message : String(error);
+    }
 
     /**
      * The languages to generate translations for.
@@ -117,6 +137,26 @@ class TranslationGenerator {
     private readonly isIncremental: boolean;
 
     /**
+     * PR number for GitHub API diff (CI mode).
+     * When provided, uses GitHub API for accurate PR-specific diff instead of git diff.
+     * Requires GITHUB_TOKEN environment variable to be set.
+     */
+    private readonly prNumber: number;
+
+    /**
+     * The git ref (SHA or branch) that the diff was computed against.
+     * Used by extractRemovedPaths to get the old version of en.ts at the correct commit.
+     * Set in buildPathsFromGitDiff: merge-base SHA (local or CI).
+     */
+    private diffBase: string;
+
+    /**
+     * Whether the GitHub API was successfully used for the diff.
+     * When false (fallback to git diff or local mode), extractRemovedPaths uses Git.show instead of the GitHub API.
+     */
+    private useGitHubAPI: boolean;
+
+    /**
      * CLI instance for user prompts.
      */
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -128,6 +168,7 @@ class TranslationGenerator {
         namedArgs: {
             locales: {description: string; default: TranslationTargetLocale[]; parse: (val: string) => TranslationTargetLocale[]};
             'compare-ref': {description: string; default: string; parse: (val: string) => string};
+            'pr-number': {description: string; default: number; parse: (val: string) => number};
             paths: {description: string; parse: (val: string) => Set<TranslationPaths>; supersedes: string[]; required: false};
         };
     }>;
@@ -190,6 +231,17 @@ class TranslationGenerator {
                         return val;
                     },
                 },
+                'pr-number': {
+                    description: 'PR number to get diff from GitHub API (CI only, requires GITHUB_TOKEN). When provided, uses GitHub API for accurate PR-specific diff instead of git diff.',
+                    default: 0,
+                    parse: (val: string): number => {
+                        const parsed = parseInt(val, 10);
+                        if (Number.isNaN(parsed) || parsed <= 0) {
+                            throw new Error(`Invalid PR number: "${val}". Please provide a valid positive integer.`);
+                        }
+                        return parsed;
+                    },
+                },
                 paths: {
                     description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
                     parse: (val: string): Set<TranslationPaths> => {
@@ -217,11 +269,18 @@ class TranslationGenerator {
 
         this.targetLanguages = this.cli.namedArgs.locales;
         this.compareRef = this.cli.namedArgs['compare-ref'];
+        this.prNumber = this.cli.namedArgs['pr-number'];
+        this.diffBase = this.compareRef;
+        this.useGitHubAPI = false;
         this.pathsToAdd = new Set<TranslationPaths>();
         this.pathsToModify = this.cli.namedArgs.paths ?? new Set<TranslationPaths>();
         this.pathsToRemove = new Set<TranslationPaths>();
         this.verbose = this.cli.flags.verbose;
-        this.isIncremental = this.pathsToModify.size > 0 || !!this.compareRef;
+        this.isIncremental = this.pathsToModify.size > 0 || !!this.compareRef || !!this.prNumber;
+
+        if (this.prNumber && !process.env.GITHUB_TOKEN) {
+            throw new Error('GITHUB_TOKEN environment variable is required when using --pr-number');
+        }
 
         const sourceCode = fs.readFileSync(enSourceFile, 'utf8');
         this.sourceFile = ts.createSourceFile(enSourceFile, sourceCode, ts.ScriptTarget.Latest, true);
@@ -245,8 +304,7 @@ class TranslationGenerator {
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
         if (this.isIncremental && this.pathsToModify.size === 0) {
-            // If compareRef is provided (and no specific paths), use git diff to find changed lines and build dot-notation paths
-            this.buildPathsFromGitDiff();
+            await this.buildPathsFromGitDiff();
         }
 
         if (this.verbose) {
@@ -834,18 +892,91 @@ class TranslationGenerator {
 
     /**
      * Build dot-notation paths from git diff by analyzing changed lines.
+     * Uses GitHub API diff when --pr-number is provided (CI mode), falls back to git diff otherwise.
      */
-    private buildPathsFromGitDiff(): void {
+    private async buildPathsFromGitDiff(): Promise<void> {
         try {
             // Get the relative path from the git repo root
             const relativePath = path.relative(process.cwd(), path.join(this.languagesDir, 'en.ts'));
 
-            // Run git diff to find changed lines
-            const diffResult = Git.diff(this.compareRef, undefined, relativePath);
+            let diffResult: DiffResult;
+
+            if (this.prNumber) {
+                // CI mode: Use GitHub API for accurate PR-specific diff
+                try {
+                    if (this.verbose) {
+                        console.log(`🌐 Using GitHub API diff for PR #${this.prNumber}`);
+                    }
+
+                    // GitHub's PR diff is a three-dot diff (merge-base...head), so we need the
+                    // actual merge-base commit, not the tip of the base branch.
+                    this.diffBase = await GitHubUtils.getPullRequestMergeBaseSHA(this.prNumber);
+                    this.useGitHubAPI = true;
+
+                    if (this.verbose) {
+                        console.log(`📌 PR merge-base SHA: ${this.diffBase.slice(0, 8)}`);
+                    }
+
+                    const prDiff = await GitHubUtils.getPullRequestDiff(this.prNumber);
+                    const parsedDiff = Git.parseDiff(prDiff);
+
+                    // Filter to only en.ts
+                    const enTsFile = parsedDiff.files.find((f) => f.filePath === relativePath);
+                    diffResult = {
+                        files: enTsFile ? [enTsFile] : [],
+                        hasChanges: !!enTsFile,
+                    };
+
+                    if (this.verbose) {
+                        const enTsMatchCount = diffResult.hasChanges ? 1 : 0;
+                        console.log(`📄 GitHub API diff: ${parsedDiff.files.length} files total, ${enTsMatchCount} matching en.ts`);
+                    }
+                } catch (apiError: unknown) {
+                    // Fallback to git diff if GitHub API fails (e.g., 406 for large diffs >20K lines)
+                    const isLargeDiff = apiError !== null && typeof apiError === 'object' && 'status' in apiError && apiError.status === TranslationGenerator.HTTP_STATUS_DIFF_TOO_LARGE;
+
+                    if (isLargeDiff) {
+                        console.warn('⚠️ GitHub API diff too large (>20K lines or >1MB). Falling back to git diff.');
+                    } else {
+                        console.warn(`⚠️ GitHub API failed: ${TranslationGenerator.getErrorMessage(apiError)}. Falling back to git diff.`);
+                    }
+
+                    this.useGitHubAPI = false;
+                    if (this.compareRef) {
+                        this.diffBase = this.compareRef;
+                        diffResult = Git.diff(this.compareRef, undefined, relativePath);
+                    } else {
+                        throw new Error('GitHub API failed and no --compare-ref provided for fallback');
+                    }
+                }
+            } else {
+                // Local mode: Use git merge-base for accurate diff
+                if (!this.compareRef) {
+                    throw new Error('--compare-ref is required when --pr-number is not provided for incremental translation');
+                }
+
+                this.diffBase = this.compareRef;
+                try {
+                    const mergeBaseResult = execFileSync('git', ['merge-base', this.compareRef, 'HEAD'], {encoding: 'utf8'});
+                    const mergeBase = mergeBaseResult.trim();
+                    if (mergeBase && TranslationGenerator.GIT_SHA_REGEX.test(mergeBase)) {
+                        this.diffBase = mergeBase;
+                        if (this.verbose) {
+                            console.log(`🔀 Using merge-base ${mergeBase.slice(0, 8)} (common ancestor of ${this.compareRef} and HEAD)`);
+                        }
+                    }
+                } catch (mergeBaseError: unknown) {
+                    // If merge-base fails (e.g., shallow clone), fall back to direct diff
+                    if (this.verbose) {
+                        console.log(`⚠️ Could not calculate merge-base (${TranslationGenerator.getErrorMessage(mergeBaseError)}), using ${this.compareRef} directly`);
+                    }
+                }
+                diffResult = Git.diff(this.diffBase, undefined, relativePath);
+            }
 
             if (!diffResult.hasChanges) {
                 if (this.verbose) {
-                    console.log('🔍 No changes detected in git diff');
+                    console.log('🔍 No changes detected in diff');
                 }
                 return;
             }
@@ -868,7 +999,7 @@ class TranslationGenerator {
 
             // For removed paths, we need to traverse the old version of en.ts
             if (changedLines.removedLines.size > 0) {
-                this.extractRemovedPaths(changedLines.removedLines);
+                await this.extractRemovedPaths(changedLines.removedLines, relativePath);
             }
 
             // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
@@ -911,8 +1042,8 @@ class TranslationGenerator {
                 console.log(`➕ Paths to add: ${Array.from(this.pathsToAdd).join(', ')}`);
                 console.log(`🗑️ Paths to remove: ${Array.from(this.pathsToRemove).join(', ')}`);
             }
-        } catch (error) {
-            throw new Error('Error building paths from git diff, giving up on --compare-ref incremental translation');
+        } catch (error: unknown) {
+            throw new Error(`Error building paths from diff, giving up on incremental translation: ${TranslationGenerator.getErrorMessage(error)}`);
         }
     }
 
@@ -1066,12 +1197,17 @@ class TranslationGenerator {
 
     /**
      * Extract removed paths by traversing the old version of en.ts.
+     * Uses diffBase (merge-base SHA or PR base SHA) to get the file at the correct commit
+     * that the diff was computed against, ensuring line numbers align.
      */
-    private extractRemovedPaths(removedLines: Set<number>): void {
+    private async extractRemovedPaths(removedLines: Set<number>, relativePath: string): Promise<void> {
         try {
-            // Get the old version of en.ts from the compare ref
-            const relativePath = path.relative(process.cwd(), this.sourceFile.fileName);
-            const oldEnContent = Git.show(this.compareRef, relativePath);
+            let oldEnContent: string;
+            if (this.useGitHubAPI) {
+                oldEnContent = await GitHubUtils.getFileContents(relativePath, this.diffBase);
+            } else {
+                oldEnContent = Git.show(this.diffBase, relativePath);
+            }
 
             const oldSourceFile = ts.createSourceFile(this.sourceFile.fileName, oldEnContent, ts.ScriptTarget.Latest, true);
             const oldTranslationsNode = this.findTranslationsNode(oldSourceFile);

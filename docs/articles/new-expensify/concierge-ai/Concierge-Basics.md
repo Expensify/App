@@ -50,6 +50,7 @@ Concierge can help you:
 - Create or edit expenses  
 - Submit, approve, reimburse, or export reports  
 - Schedule a call with a human (when available)
+- Proactively notify you in the #admins room of your New Expensify Workspace if a company card, business bank account, or accounting integration becomes disconnected.
 
 New features are added regularly.
 

@@ -21,7 +21,7 @@ type ThemeEntry = ListItem & {
 function ThemePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
+    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
     const isOptionSelected = useRef(false);
     const {DEFAULT, FALLBACK, ...themes} = CONST.THEME;
     const localesToThemes = Object.values(themes).map((theme) => ({
