@@ -16,10 +16,25 @@ on:
         type: string
         default: ''
 
+    outputs:
+      TAR_FILENAME:
+        description: Filename of the .tar.gz web build artifact
+        value: ${{ jobs.build.outputs.TAR_FILENAME }}
+      ZIP_FILENAME:
+        description: Filename of the .zip web build artifact
+        value: ${{ jobs.build.outputs.ZIP_FILENAME }}
+      SOURCEMAP_FILENAME:
+        description: Filename of the web sourcemap artifact
+        value: ${{ jobs.build.outputs.SOURCEMAP_FILENAME }}
+
 jobs:
   build:
     name: Build Web
     runs-on: blacksmith-32vcpu-ubuntu-2404
+    outputs:
+      TAR_FILENAME: webBuild.tar.gz
+      ZIP_FILENAME: webBuild.zip
+      SOURCEMAP_FILENAME: merged-source-map.js.map
     env:
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
     steps:

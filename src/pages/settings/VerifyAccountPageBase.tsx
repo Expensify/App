@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
@@ -10,6 +11,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -42,9 +45,9 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            validateSecondaryLogin(currentUserPersonalDetails, loginList, contactMethod, validateCode, formatPhoneNumber, true);
+            validateSecondaryLogin(contactMethod, validateCode, formatPhoneNumber, true);
         },
-        [currentUserPersonalDetails, loginList, contactMethod, formatPhoneNumber],
+        [contactMethod, formatPhoneNumber],
     );
 
     const handleCloseWithFallback = useCallback(() => {
@@ -81,7 +84,12 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
                     title={translate('contacts.validateAccount')}
                     onBackButtonPress={handleCloseWithFallback}
                 />
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'VerifyAccountPageBase', isUserValidated} satisfies SkeletonSpanReasonAttributes}
+                    />
+                </View>
             </ScreenWrapper>
         );
     }

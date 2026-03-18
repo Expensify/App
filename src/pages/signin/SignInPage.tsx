@@ -7,7 +7,7 @@ import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackgrou
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -245,8 +245,8 @@ function SignInPage({ref}: SignInPageProps) {
         } else {
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = shouldUseNarrowLayout
-                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
-                : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
+                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', userLoginToDisplay)}`
+                : translate('welcomeText.welcomeEnterMagicCode', userLoginToDisplay);
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode || shouldShowSMSDeliveryFailurePage) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');

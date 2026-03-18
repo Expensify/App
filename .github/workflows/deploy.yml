@@ -121,7 +121,13 @@ jobs:
           path: ./
 
       - name: Set aabPath for Fastlane
-        run: echo "aabPath=$(find "$(pwd)" -name '*.aab' | head -1)" >> "$GITHUB_ENV"
+        run: |
+          AAB_PATH="$(pwd)/${{ needs.androidBuild.outputs.AAB_FILENAME }}"
+          if [ ! -f "$AAB_PATH" ]; then
+            echo "::error::Expected AAB not found at $AAB_PATH"
+            exit 1
+          fi
+          echo "aabPath=$AAB_PATH" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
         # v1.229.0
@@ -234,7 +240,13 @@ jobs:
 
       - name: Find APK path
         id: find-apk
-        run: echo "APK_PATH=$(find "$(pwd)" -name '*.apk' | head -1)" >> "$GITHUB_OUTPUT"
+        run: |
+          APK_PATH="$(pwd)/${{ needs.androidBuild.outputs.APK_FILENAME }}"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "::error::Expected APK not found at $APK_PATH"
+            exit 1
+          fi
+          echo "APK_PATH=$APK_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload Android build to BrowserStack
         if: ${{ fromJSON(env.IS_APP_REPO) }}
@@ -274,7 +286,13 @@ jobs:
 
       - name: Find APK path
         id: find-apk
-        run: echo "APK_PATH=$(find "$(pwd)" -name '*.apk' | head -1)" >> "$GITHUB_OUTPUT"
+        run: |
+          APK_PATH="$(pwd)/${{ needs.androidBuild.outputs.APK_FILENAME }}"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "::error::Expected APK not found at $APK_PATH"
+            exit 1
+          fi
+          echo "APK_PATH=$APK_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload Android build to Applause
         if: ${{ fromJSON(env.IS_APP_REPO) }}
@@ -331,8 +349,18 @@ jobs:
 
       - name: Set artifact paths for Fastlane
         run: |
-          echo "ipaPath=$(find "$(pwd)" -name '*.ipa' | head -1)" >> "$GITHUB_ENV"
-          echo "dsymPath=$(find "$(pwd)" -name '*.dSYM.zip' | head -1)" >> "$GITHUB_ENV"
+          IPA_PATH="$(pwd)/${{ needs.iosBuild.outputs.IPA_FILENAME }}"
+          if [ ! -f "$IPA_PATH" ]; then
+            echo "::error::Expected IPA not found at $IPA_PATH"
+            exit 1
+          fi
+          echo "ipaPath=$IPA_PATH" >> "$GITHUB_ENV"
+
+          DSYM_PATH="$(pwd)/${{ needs.iosBuild.outputs.DSYM_FILENAME }}"
+          if [ ! -f "$DSYM_PATH" ]; then
+            echo "::warning::Expected dSYM not found at $DSYM_PATH"
+          fi
+          echo "dsymPath=$DSYM_PATH" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
         # v1.229.0
@@ -442,7 +470,13 @@ jobs:
 
       - name: Find IPA path
         id: find-ipa
-        run: echo "IPA_PATH=$(find "$(pwd)" -name '*.ipa' | head -1)" >> "$GITHUB_OUTPUT"
+        run: |
+          IPA_PATH="$(pwd)/${{ needs.iosBuild.outputs.IPA_FILENAME }}"
+          if [ ! -f "$IPA_PATH" ]; then
+            echo "::error::Expected IPA not found at $IPA_PATH"
+            exit 1
+          fi
+          echo "IPA_PATH=$IPA_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload iOS build to BrowserStack
         if: ${{ fromJSON(env.IS_APP_REPO) }}
@@ -482,7 +516,13 @@ jobs:
 
       - name: Find IPA path
         id: find-ipa
-        run: echo "IPA_PATH=$(find "$(pwd)" -name '*.ipa' | head -1)" >> "$GITHUB_OUTPUT"
+        run: |
+          IPA_PATH="$(pwd)/${{ needs.iosBuild.outputs.IPA_FILENAME }}"
+          if [ ! -f "$IPA_PATH" ]; then
+            echo "::error::Expected IPA not found at $IPA_PATH"
+            exit 1
+          fi
+          echo "IPA_PATH=$IPA_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload iOS build to Applause
         if: ${{ fromJSON(env.IS_APP_REPO) }}
@@ -521,7 +561,7 @@ jobs:
           path: ./
 
       - name: Extract web build
-        run: tar -xzvf webBuild.tar.gz
+        run: tar -xzvf "${{ needs.webBuild.outputs.TAR_FILENAME }}"
 
       - name: Download storybook docs artifact
         continue-on-error: true

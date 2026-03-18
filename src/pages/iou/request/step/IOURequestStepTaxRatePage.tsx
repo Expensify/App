@@ -6,14 +6,16 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
-import {calculateTaxAmount, getAmount, getCurrency, getTaxName, getTaxValue} from '@libs/TransactionUtils';
-import {setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestTaxRate} from '@userActions/IOU';
+import {calculateTaxAmount, getAmount, getCurrency, getTaxRateTitle, getTaxValue} from '@libs/TransactionUtils';
+import {setMoneyRequestTaxRateValues, updateMoneyRequestTaxRate} from '@userActions/IOU';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,6 +64,7 @@ function IOURequestStepTaxRatePage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -69,11 +72,32 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(backTo);
     };
 
-    const taxRateTitle = getTaxName(policy, currentTransaction);
+    const taxRateTitle = getTaxRateTitle(policy, currentTransaction, isMovingTransactionFromTrackExpense(action), policyForMovingExpenses);
     const currency = getCurrency(currentTransaction);
     const decimals = getCurrencyDecimals(currency);
 
-    const updateTaxRates = (taxes: TaxRatesOption) => {
+    const updateTaxRates = (taxes: TaxRatesOption, shouldClearTax?: boolean) => {
+        const updateTaxRateParams = {
+            transactionID: currentTransaction?.transactionID,
+            transactionThreadReport: report,
+            parentReport,
+            taxCode: '',
+            taxValue: '',
+            taxAmount: 0,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            parentReportNextStep,
+        };
+
+        if (shouldClearTax && isEditing) {
+            updateMoneyRequestTaxRate(updateTaxRateParams);
+            navigateBack();
+            return;
+        }
         if (!currentTransaction || !taxes.code || !taxRates) {
             Navigation.goBack();
             return;
@@ -86,6 +110,7 @@ function IOURequestStepTaxRatePage({
             setDraftSplitTransaction(currentTransaction.transactionID, splitDraftTransaction, {
                 taxAmount: convertToBackendAmount(taxAmount ?? 0),
                 taxCode: taxes.code,
+                taxValue,
             });
             navigateBack();
             return;
@@ -93,21 +118,7 @@ function IOURequestStepTaxRatePage({
 
         if (isEditing) {
             const newTaxCode = taxes.code;
-            updateMoneyRequestTaxRate({
-                transactionID: currentTransaction?.transactionID,
-                transactionThreadReport: report,
-                parentReport,
-                taxCode: newTaxCode,
-                taxValue,
-                taxAmount: convertToBackendAmount(taxAmount ?? 0),
-                policy,
-                policyTagList: policyTags,
-                policyCategories,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
-                isASAPSubmitBetaEnabled,
-                parentReportNextStep,
-            });
+            updateMoneyRequestTaxRate({...updateTaxRateParams, taxCode: newTaxCode, taxValue, taxAmount: convertToBackendAmount(taxAmount ?? 0)});
             navigateBack();
             return;
         }
@@ -117,8 +128,8 @@ function IOURequestStepTaxRatePage({
             return;
         }
         const amountInSmallestCurrencyUnits = convertToBackendAmount(taxAmount);
-        setMoneyRequestTaxRate(currentTransaction?.transactionID, taxes?.code ?? '');
-        setMoneyRequestTaxAmount(currentTransaction.transactionID, amountInSmallestCurrencyUnits);
+
+        setMoneyRequestTaxRateValues(currentTransaction.transactionID, {taxCode: taxes?.code ?? '', taxAmount: amountInSmallestCurrencyUnits, taxValue});
 
         navigateBack();
     };

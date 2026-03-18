@@ -9,11 +9,23 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * We save this value in onyx, so that we can correctly display navigation UI in transaction thread RHP.
  */
 
+let lastSetIDs: string[] | null = null;
+
+/**
+ * Idempotent: skips the Onyx write when the IDs haven't changed.
+ * This lets callers (e.g. useEffect in MoneyRequestReportTransactionList) fire
+ * freely without worrying about referential equality of the input array.
+ */
 function setActiveTransactionIDs(ids: string[]) {
+    if (lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i))) {
+        return Promise.resolve();
+    }
+    lastSetIDs = ids;
     return Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids);
 }
 
 function clearActiveTransactionIDs() {
+    lastSetIDs = null;
     return Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, null);
 }
 
