@@ -71,6 +71,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         setDuplicateHandler,
         allTransactions,
         allReports,
+        searchData,
     } = useSearchBulkActions({queryJSON, deleteTransactionsOnSearch});
 
     const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
@@ -112,6 +113,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     selectedTransactionsKeys={selectedTransactionsKeys}
                     allTransactions={allTransactions}
                     allReports={allReports}
+                    searchData={searchData}
                     onHandlerReady={setDuplicateHandler}
                 />
             )}

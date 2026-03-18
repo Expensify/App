@@ -1,6 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import {useCallback} from 'react';
+import {useCallback, useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
@@ -17,6 +17,7 @@ type UseBulkDuplicateActionParams = {
     selectedTransactionsKeys: string[];
     allTransactions: OnyxCollection<Transaction>;
     allReports: OnyxCollection<Report> | undefined;
+    searchData: Record<string, unknown> | undefined;
 };
 
 /**
@@ -24,7 +25,7 @@ type UseBulkDuplicateActionParams = {
  * Designed to be called inside a component that only mounts when the duplicate option is visible,
  * so these subscriptions don't exist for users who aren't actively duplicating.
  */
-function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports}: UseBulkDuplicateActionParams) {
+function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData}: UseBulkDuplicateActionParams) {
     const {accountID} = useCurrentUserPersonalDetails();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -44,13 +45,27 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
     const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`);
 
+    const sourcePolicyIDMap = useMemo(() => {
+        const map: Record<string, string | undefined> = {};
+        for (const transactionID of selectedTransactionsKeys) {
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const reportID = transaction?.reportID;
+            if (!reportID) {
+                continue;
+            }
+            const report = (searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as Report | undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            map[transactionID] = report?.policyID;
+        }
+        return map;
+    }, [selectedTransactionsKeys, allTransactions, searchData, allReports]);
+
     const handleDuplicate = useCallback(() => {
         const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
 
         bulkDuplicateExpenses({
             transactionIDs: selectedTransactionsKeys,
             allTransactions: allTransactions ?? {},
-            allReports: allReports ?? {},
+            sourcePolicyIDMap,
             targetPolicy: (defaultExpensePolicy ?? undefined) as OnyxEntry<Policy>,
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetPolicyTags: targetPolicyTags ?? {},
@@ -74,7 +89,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
         accountID,
         defaultExpensePolicy,
         allTransactions,
-        allReports,
+        sourcePolicyIDMap,
         targetPolicyCategories,
         targetPolicyTags,
         personalDetails,

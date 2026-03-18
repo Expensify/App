@@ -187,11 +187,12 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
  */
 function useSearchBulkActionsWithDuplicate({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const actions = useSearchBulkActions({queryJSON});
-    const {setDuplicateHandler, allTransactions, allReports} = actions;
+    const {setDuplicateHandler, allTransactions, allReports, searchData} = actions;
     const handleDuplicate = useBulkDuplicateAction({
         selectedTransactionsKeys: Object.keys(mockSelectedTransactions),
         allTransactions,
         allReports,
+        searchData,
     });
     useEffect(() => {
         setDuplicateHandler(handleDuplicate);

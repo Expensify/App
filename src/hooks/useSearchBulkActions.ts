@@ -153,7 +153,9 @@ function shouldShowBulkDuplicateOption({
 
         if (isDistanceRequest(transaction) && reportID) {
             const chatReportID = report?.chatReportID ?? report?.parentReportID;
-            const chatReport = chatReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+            const chatReport = chatReportID
+                ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] as Report | undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`])
+                : undefined;
             const reportNVP = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const chatReportNVP = chatReportID ? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportID}`] : undefined;
             if (isArchivedReport(reportNVP) || isArchivedReport(chatReportNVP) || (activePolicyExpenseChat && chatReport && (isDM(chatReport) || isSelfDM(chatReport)))) {
@@ -1406,6 +1408,7 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
         setDuplicateHandler,
         allTransactions,
         allReports,
+        searchData: currentSearchResults?.data,
     };
 }
 
