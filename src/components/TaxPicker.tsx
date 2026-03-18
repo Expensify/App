@@ -128,7 +128,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
     const updatedSections = deletedTaxOption
         ? sections.map((section) => ({
               ...section,
-              data: [...section.data.map((item) => (item.code === deletedTaxOption.code ? {...item, isSelected: false} : item)), deletedTaxOption],
+              data: [...section.data.filter((item) => item.code !== deletedTaxOption.code), deletedTaxOption],
           }))
         : sections;
 
