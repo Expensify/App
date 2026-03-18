@@ -1098,71 +1098,72 @@ function MoneyRequestConfirmationListFooter({
                 onLayout={isCompactMode ? handleCompactReceiptContainerLayout : undefined}
             >
                 {isLoadingReceipt && <ActivityIndicator />}
-                {!isLoadingReceipt && (isLocalFile && Str.isPDF(receiptFilename) ? (
-                    <PressableWithoutFocus
-                        onPress={() => {
-                            if (!transactionID) {
-                                return;
-                            }
+                {!isLoadingReceipt &&
+                    (isLocalFile && Str.isPDF(receiptFilename) ? (
+                        <PressableWithoutFocus
+                            onPress={() => {
+                                if (!transactionID) {
+                                    return;
+                                }
 
-                            Navigation.navigate(
-                                isReceiptEditable
-                                    ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
-                                    : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
-                            );
-                        }}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.PDF_RECEIPT_THUMBNAIL}
-                        disabled={!shouldDisplayReceipt}
-                        disabledStyle={styles.cursorDefault}
-                        style={styles.h100}
-                    >
-                        <PDFThumbnail
-                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                            previewSourceURL={resolvedReceiptImage as string}
+                                Navigation.navigate(
+                                    isReceiptEditable
+                                        ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
+                                        : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
+                                );
+                            }}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.PDF_RECEIPT_THUMBNAIL}
+                            disabled={!shouldDisplayReceipt}
+                            disabledStyle={styles.cursorDefault}
                             style={styles.h100}
-                            onLoadError={onPDFLoadError}
-                            onPassword={onPDFPassword}
-                        />
-                    </PressableWithoutFocus>
-                ) : (
-                    <PressableWithoutFocus
-                        onPress={() => {
-                            if (!transactionID) {
-                                return;
-                            }
+                        >
+                            <PDFThumbnail
+                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                                previewSourceURL={resolvedReceiptImage as string}
+                                style={styles.h100}
+                                onLoadError={onPDFLoadError}
+                                onPassword={onPDFPassword}
+                            />
+                        </PressableWithoutFocus>
+                    ) : (
+                        <PressableWithoutFocus
+                            onPress={() => {
+                                if (!transactionID) {
+                                    return;
+                                }
 
-                            Navigation.navigate(
-                                isReceiptEditable
-                                    ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
-                                    : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
-                            );
-                        }}
-                        disabled={!shouldDisplayReceipt || isThumbnail}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RECEIPT_THUMBNAIL}
-                        disabledStyle={styles.cursorDefault}
-                        style={receiptThumbnailStyle}
-                    >
-                        <ReceiptImage
-                            isThumbnail={isThumbnail}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            source={resolvedThumbnail || resolvedReceiptImage || ''}
-                            // AuthToken is required when retrieving the image from the server
-                            // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                            // So if we have a thumbnail, it means we're retrieving the image from the server
-                            isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
-                            fileExtension={fileExtension}
-                            shouldUseThumbnailImage
-                            shouldUseInitialObjectPosition={isDistanceRequest}
-                            shouldUseFullHeight={isCompactMode}
-                            onLoad={handleReceiptLoad}
-                            resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
-                        />
-                    </PressableWithoutFocus>
-                ))}
+                                Navigation.navigate(
+                                    isReceiptEditable
+                                        ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
+                                        : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
+                                );
+                            }}
+                            disabled={!shouldDisplayReceipt || isThumbnail}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RECEIPT_THUMBNAIL}
+                            disabledStyle={styles.cursorDefault}
+                            style={receiptThumbnailStyle}
+                        >
+                            <ReceiptImage
+                                isThumbnail={isThumbnail}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                source={resolvedThumbnail || resolvedReceiptImage || ''}
+                                // AuthToken is required when retrieving the image from the server
+                                // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                                // So if we have a thumbnail, it means we're retrieving the image from the server
+                                isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
+                                fileExtension={fileExtension}
+                                shouldUseThumbnailImage
+                                shouldUseInitialObjectPosition={isDistanceRequest}
+                                shouldUseFullHeight={isCompactMode}
+                                onLoad={handleReceiptLoad}
+                                resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
+                            />
+                        </PressableWithoutFocus>
+                    ))}
             </View>
         );
     }, [
