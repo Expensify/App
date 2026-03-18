@@ -5,7 +5,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 400}));
-jest.mock('react-native-render-html', () => {
+jest.mock('@native-html/render', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
     const {View: MockView} = require('react-native');
     return {

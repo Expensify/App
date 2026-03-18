@@ -1,7 +1,7 @@
+import type {CustomRendererProps, TPhrasing, TText} from '@native-html/render';
 import React, {useContext, useMemo} from 'react';
 import type {TextStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import Text from '@components/Text';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';

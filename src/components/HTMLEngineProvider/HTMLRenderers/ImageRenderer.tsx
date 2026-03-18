@@ -1,5 +1,5 @@
+import type {CustomRendererProps, TBlock} from '@native-html/render';
 import React, {memo} from 'react';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
 import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';

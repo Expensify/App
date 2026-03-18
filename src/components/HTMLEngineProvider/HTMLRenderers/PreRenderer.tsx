@@ -1,7 +1,7 @@
+import type {CustomRendererProps, TBlock} from '@native-html/render';
 import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';

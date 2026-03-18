@@ -1,5 +1,5 @@
+import type {CustomRendererProps, TBlock} from '@native-html/render';
 import React from 'react';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import {useShowContextMenuState} from '@components/ShowContextMenuContext';

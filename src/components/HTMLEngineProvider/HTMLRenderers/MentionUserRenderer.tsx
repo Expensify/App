@@ -1,11 +1,11 @@
+import type {CustomRendererProps, TPhrasing, TText} from '@native-html/render';
+import {TNodeChildrenRenderer} from '@native-html/render';
 import {Str} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';

@@ -1,6 +1,6 @@
+import type {CustomRendererProps, TPhrasing, TText} from '@native-html/render';
 import React from 'react';
 import type {TextStyle} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 

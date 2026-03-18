@@ -1,8 +1,8 @@
+import type {CustomRendererProps, TPhrasing, TText} from '@native-html/render';
+import {TNodeChildrenRenderer} from '@native-html/render';
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';

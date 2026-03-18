@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import type {TText} from '@native-html/render';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import type {ComponentType, ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
-import type {TText} from 'react-native-render-html';
 import MentionUserRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionUserRenderer';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
@@ -23,7 +23,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 // Simplify react-native-render-html children renderer to just echo the provided data
-jest.mock('react-native-render-html', () => {
+jest.mock('@native-html/render', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Text: TextComponent} = jest.requireActual<{Text: React.ComponentType}>('react-native');
     return {
