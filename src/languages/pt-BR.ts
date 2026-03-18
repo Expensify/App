@@ -4927,7 +4927,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             addCards: 'Adicionar cartões',
             selectCards: 'Selecionar cartões',
             fromOtherWorkspaces: 'De outros workspaces',
-            addWorkEmail: 'Adicionar e-mail de trabalho',
+            addWorkEmail: 'Adicione seu e-mail de trabalho',
             addWorkEmailDescription: 'Adicione seu e-mail de trabalho para usar os feeds existentes de outros workspaces.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Não foi possível carregar os feeds do cartão',

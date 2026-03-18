@@ -4928,7 +4928,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             addCards: 'Dodaj karty',
             selectCards: 'Wybierz karty',
             fromOtherWorkspaces: 'Z innych przestrzeni roboczych',
-            addWorkEmail: 'Dodaj służbowy e‑mail',
+            addWorkEmail: 'Dodaj swój służbowy e-mail',
             addWorkEmailDescription: 'Dodaj swój służbowy e-mail, aby korzystać z istniejących kanałów z innych przestrzeni roboczych.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Nie można wczytać kanałów kart',

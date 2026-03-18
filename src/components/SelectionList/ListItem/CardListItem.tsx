@@ -65,6 +65,9 @@ function CardListItem<TItem extends ListItem>({
         fallbackIcon: item.cardOwnerPersonalDetails?.fallbackIcon,
     };
 
+    console.log('item');
+    console.log(item);
+
     const subtitleText =
         `${item.lastFourPAN ? `${item.lastFourPAN}` : ''}` +
         `${item.cardName ? ` ${CONST.DOT_SEPARATOR} ${item.cardName}` : ''}` +

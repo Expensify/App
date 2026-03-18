@@ -4830,7 +4830,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             addCards: '添加卡片',
             selectCards: '选择卡片',
             fromOtherWorkspaces: '来自其他工作区',
-            addWorkEmail: '添加工作邮箱',
+            addWorkEmail: '添加您的工作邮箱',
             addWorkEmailDescription: '请添加您的工作邮箱以使用其他工作区的现有流水。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片流水',

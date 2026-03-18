@@ -146,6 +146,37 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         setFeedWithError(undefined);
     };
 
+    const otherMenuItemFeeds = (
+        <>
+            <MenuItem
+                title={translate('workspace.companyCards.addCards')}
+                icon={icons.Plus}
+                onPress={onAddCardsPress}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_SECTION_ADD_BUTTON}
+            />
+            {otherFeeds.length > 0 && (
+                <>
+                    <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
+                    {otherFeeds.map((feed) => {
+                        const isFeedWithError = feedWithError?.feed === feed.value;
+                        const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
+                        return (
+                            <RadioListItem
+                                isDisabled={isOffline}
+                                onDismissError={onDismissError}
+                                key={feed.value}
+                                keyForList={feed.value}
+                                showTooltip={false}
+                                item={itemWithError}
+                                onSelectRow={selectOtherFeed}
+                            />
+                        );
+                    })}
+                </>
+            )}
+        </>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -161,44 +192,19 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
-                <SelectionList
-                    ListItem={RadioListItem}
-                    onSelectRow={selectFeed}
-                    data={feeds}
-                    alternateNumberOfSupportedLines={2}
-                    initiallyFocusedItemKey={selectedFeedName}
-                    addBottomSafeAreaPadding
-                    listFooterContent={
-                        <>
-                            <MenuItem
-                                title={translate('workspace.companyCards.addCards')}
-                                icon={icons.Plus}
-                                onPress={onAddCardsPress}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_SECTION_ADD_BUTTON}
-                            />
-                            {otherFeeds.length > 0 && (
-                                <>
-                                    <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
-                                    {otherFeeds.map((feed) => {
-                                        const isFeedWithError = feedWithError?.feed === feed.value;
-                                        const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
-                                        return (
-                                            <RadioListItem
-                                                isDisabled={isOffline}
-                                                onDismissError={onDismissError}
-                                                key={feed.value}
-                                                keyForList={feed.value}
-                                                showTooltip={false}
-                                                item={itemWithError}
-                                                onSelectRow={selectOtherFeed}
-                                            />
-                                        );
-                                    })}
-                                </>
-                            )}
-                        </>
-                    }
-                />
+                {feeds.length ? (
+                    <SelectionList
+                        ListItem={RadioListItem}
+                        onSelectRow={selectFeed}
+                        data={feeds}
+                        alternateNumberOfSupportedLines={2}
+                        initiallyFocusedItemKey={selectedFeedName}
+                        addBottomSafeAreaPadding
+                        listFooterContent={otherMenuItemFeeds}
+                    />
+                ) : (
+                    otherMenuItemFeeds
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -83,7 +83,7 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
             isLoading={loading || getAccessiblePoliciesAction?.loading}
             validateError={feedWithError?.error ? feedWithError?.error : getAccessiblePoliciesAction?.errors}
             title={translate('onboarding.workEmailValidation.title')}
-            descriptionPrimary={translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}
+            descriptionPrimary={translate('onboarding.workEmailValidation.magicCodeSent', workEmail)}
             onClose={() => {
                 Navigation.goBack();
             }}
