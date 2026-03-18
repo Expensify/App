@@ -6,6 +6,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -24,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -142,6 +142,22 @@ function IOURequestStepMerchant({
         shouldNavigateAfterSaveRef.current = true;
     };
 
+    useDiscardChangesConfirmation({
+        onCancel: () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                inputRef.current?.focus();
+            });
+        },
+        getHasUnsavedChanges: () => {
+            if (isSaved) {
+                return false;
+            }
+            return currentMerchant !== initialMerchant;
+        },
+        onVisibilityChange: setIsDiscardModalVisible,
+    });
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.merchant')}
@@ -176,21 +192,6 @@ function IOURequestStepMerchant({
                     />
                 </View>
             </FormProvider>
-            <DiscardChangesConfirmation
-                onVisibilityChange={setIsDiscardModalVisible}
-                onCancel={() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => {
-                        inputRef.current?.focus();
-                    });
-                }}
-                getHasUnsavedChanges={() => {
-                    if (isSaved) {
-                        return false;
-                    }
-                    return currentMerchant !== initialMerchant;
-                }}
-            />
         </StepScreenWrapper>
     );
 }

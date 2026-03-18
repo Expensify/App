@@ -12,7 +12,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Beta, BillingGraceEndPeriod, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -20,6 +20,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts';
 import {approveMoneyRequest} from './actions/IOU';
+import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
@@ -45,6 +46,15 @@ type SelectPaymentTypeParams = {
     betas: OnyxEntry<Beta[]>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
+};
+
+type BusinessBankAccountOption = {
+    text: string;
+    description: string;
+    icon: PaymentMethod['icon'];
+    iconStyles: PaymentMethod['iconStyles'];
+    iconSize: PaymentMethod['iconSize'];
+    methodID: number | undefined;
 };
 
 /**
@@ -132,6 +142,37 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
     return combinedPaymentMethods;
 }
 
+/**
+ * Ensures data has the shape of AccountData so we can safely read values from it without type casting.
+ */
+function isAccountData(data: unknown): data is AccountData {
+    return typeof data === 'object' && data !== null && 'type' in data && 'state' in data;
+}
+
+/**
+ * Returns all valid business bank accounts for the pay menu.
+ * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
+ */
+function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[]): BusinessBankAccountOption[] {
+    return formattedPaymentMethods
+        .filter((method) => {
+            if (!isAccountData(method?.accountData)) {
+                return false;
+            }
+            const accountData = method.accountData;
+            const isPartiallySetup = isBankAccountPartiallySetup(accountData.state);
+            return accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN && method?.methodID != null && !isPartiallySetup;
+        })
+        .map((formattedPaymentMethod) => ({
+            text: formattedPaymentMethod?.title ?? '',
+            description: formattedPaymentMethod?.description ?? '',
+            icon: formattedPaymentMethod?.icon,
+            iconStyles: formattedPaymentMethod?.iconStyles,
+            iconSize: formattedPaymentMethod?.iconSize,
+            methodID: formattedPaymentMethod?.methodID,
+        }));
+}
+
 function calculateWalletTransferBalanceFee(currentBalance: number, methodType: string): number {
     const transferMethodTypeFeeStructure =
         methodType === CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT ? CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT : CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.ACH;
@@ -155,6 +196,8 @@ const handleUnvalidatedAccount = (iouReport: OnyxEntry<Report>) => {
         Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
     } else if (activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
         Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    } else if (activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}))) {
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
     } else {
         Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID));
     }
@@ -193,7 +236,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (!isUserValidated) {
             return handleUnvalidatedAccount(iouReport);
         }
-        triggerKYCFlow({event, iouPaymentType});
+        triggerKYCFlow({event, iouPaymentType, policy});
         setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
         return;
     }
@@ -238,9 +281,14 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
 
 /**
  * Get the appropriate payment type, policy from context (policy related to payment type), policy from payment method, and whether a payment method should be selected
- * based on the provided payment method, active admin policies, and latest bank items.
+ * based on the provided payment method, active admin policies, and valid business bank account options.
  */
-function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined, policyID?: string | undefined) {
+function getActivePaymentType(
+    paymentMethod: string | undefined,
+    activeAdminPolicies: Policy[],
+    businessBankAccountOptions: BankAccountMenuItem[] | undefined,
+    policyID?: string | undefined,
+) {
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
 
     let paymentType;
@@ -263,7 +311,7 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
     const policyFromPaymentMethod = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
 
     // When user explicitly selects "Pay Elsewhere" / "Mark as Paid", don't require payment method selection since payment happens outside of Expensify
-    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(latestBankItems));
+    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(businessBankAccountOptions));
 
     return {
         paymentType,
@@ -273,14 +321,33 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
     };
 }
 
+/**
+ * Get the last 4 digits of a bank account used for payment.
+ */
+function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policy: OnyxEntry<Policy>): string {
+    const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
+
+    if (bankAccount?.accountData?.accountNumber) {
+        return bankAccount.accountData.accountNumber.slice(-4);
+    }
+
+    // If bankAccountID is provided but not found in bankAccountList, return '' to avoid showing policy account digits for multi-VBBA payments.
+    if (bankAccountID != null) {
+        return '';
+    }
+    return policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+}
+
 export {
     hasExpensifyPaymentMethod,
     getPaymentMethodDescription,
     formatPaymentMethods,
+    getBusinessBankAccountOptions,
     calculateWalletTransferBalanceFee,
     handleUnvalidatedAccount,
     selectPaymentType,
     isSecondaryActionAPaymentOption,
     getActivePaymentType,
+    getBankAccountLastFourDigits,
 };
-export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams};
+export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams, BusinessBankAccountOption};

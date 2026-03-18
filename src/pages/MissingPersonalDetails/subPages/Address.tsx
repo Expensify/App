@@ -115,7 +115,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
 
     const zipSampleFormat = (currentCountry && (CONST.COUNTRY_ZIP_REGEX_DATA[currentCountry] as CountryZipRegex)?.samples) ?? '';
 
-    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
+    const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
 
     return (
         <FormProvider

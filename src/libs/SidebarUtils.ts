@@ -56,6 +56,7 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getIOUReportIDFromReportActionPreview,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -151,6 +152,7 @@ import {
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
     getUnreportedTransactionMessage,
+    getViolatingReportIDForRBRInLHN,
     getWorkspaceNameUpdatedMessage,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
@@ -182,7 +184,6 @@ import {
     isUnread,
     isUnreadWithMention,
     isWorkspaceTaskReport,
-    shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -246,7 +247,7 @@ function shouldDisplayReportInLHN(
 
     // Get report metadata and status
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
     const isHidden = isHiddenForCurrentUser(report);
     const isFocused = report.reportID === currentReportId;
     const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -627,19 +628,22 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
-    const errors = reportErrors;
-    const hasErrors = Object.keys(errors).length !== 0;
-
     if (isReportArchived) {
         return null;
     }
 
-    if (shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
+    const violatingReportID = getViolatingReportIDForRBRInLHN(report, transactionViolations);
+    if (violatingReportID) {
+        const reportPreviewAction = Object.values(reportActions ?? {}).find((action) => getIOUReportIDFromReportActionPreview(action) === violatingReportID);
         return {
             reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
+            reportAction: reportPreviewAction,
         };
     }
+
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
+    const errors = reportErrors;
+    const hasErrors = Object.keys(errors).length !== 0;
 
     if (hasErrors) {
         return {
@@ -655,19 +659,6 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     }
 
     return getReceiptUploadErrorReason(report, chatReport, reportActions, transactions);
-}
-
-function shouldShowRedBrickRoad(
-    report: Report,
-    chatReport: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    hasViolations: boolean,
-    reportErrors: Errors,
-    transactions: OnyxCollection<Transaction>,
-    transactionViolations?: OnyxCollection<TransactionViolation[]>,
-    isReportArchived = false,
-) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isReportArchived);
 }
 
 /**
@@ -791,6 +782,8 @@ function getOptionData({
     result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
+    result.actionBadge = reportAttributes?.actionBadge;
+    result.actionTargetReportActionID = reportAttributes?.actionTargetReportActionID;
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
@@ -1114,7 +1107,15 @@ function getOptionData({
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             const displayName =
                 (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
+                    getLastActorDisplayNameFromLastVisibleActions(
+                        report,
+                        lastActorDetails,
+                        currentUserAccountID,
+                        personalDetails,
+                        reportNameValuePairs?.private_isArchived,
+                        visibleReportActionsData,
+                        lastAction,
+                    )) ||
                 lastActorDisplayName;
             result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else {
@@ -1158,7 +1159,15 @@ function getOptionData({
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
             const displayName =
                 (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
+                    getLastActorDisplayNameFromLastVisibleActions(
+                        report,
+                        lastActorDetails,
+                        currentUserAccountID,
+                        personalDetails,
+                        reportNameValuePairs?.private_isArchived,
+                        visibleReportActionsData,
+                        lastAction,
+                    )) ||
                 lastActorDisplayName;
             result.alternateText = `${displayName}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {
@@ -1278,7 +1287,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
 
     // Append additional text for plus button or Concierge
     if (shouldShowUsePlusButtonText) {
-        messageHtml += translate('reportActionsView.usePlusButton', {additionalText});
+        messageHtml += translate('reportActionsView.usePlusButton', additionalText);
     }
     if (isConciergeChatReport(report, conciergeReportID)) {
         messageHtml = translate('reportActionsView.askConcierge');
@@ -1343,7 +1352,6 @@ export default {
     combineReportCategories,
     getWelcomeMessage,
     getReasonAndReportActionThatHasRedBrickRoad,
-    shouldShowRedBrickRoad,
     getReportsToDisplayInLHN,
     updateReportsToDisplayInLHN,
     shouldDisplayReportInLHN,

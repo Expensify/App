@@ -5,16 +5,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDateFilterKeys} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import DateFilterBase from './FilterComponents/DateFilterBase';
-import type {SearchDateFilterKeys} from './types';
+import type {ReportFieldDateKey, SearchDateFilterKeys} from './types';
 
 type SearchDatePresetFilterBasePageProps = {
     /** Key used for the date filter */
@@ -31,26 +29,27 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const isSearchAdvancedFiltersFormLoading = isLoadingOnyxValue(searchAdvancedFiltersFormMetadata);
 
-    const {dateOnKey, dateBeforeKey, dateAfterKey, dateRangeKey} = getDateFilterKeys(dateKey) as {
-        dateOnKey: SearchAdvancedFiltersKey;
-        dateBeforeKey: SearchAdvancedFiltersKey;
-        dateAfterKey: SearchAdvancedFiltersKey;
-        dateRangeKey: SearchAdvancedFiltersKey;
-    };
+    const dateOnKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
+        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.ON_PREFIX) as ReportFieldDateKey)
+        : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as const);
 
-    // Dynamic key lookup requires narrowing the form to string-valued fields.
-    const dateFormValues = searchAdvancedFiltersForm as Record<string, string | undefined> | undefined;
-    const dateOnValue = dateFormValues?.[dateOnKey];
-    const dateBeforeValue = dateFormValues?.[dateBeforeKey];
-    const dateAfterValue = dateFormValues?.[dateAfterKey];
-    const dateRangeValue = dateFormValues?.[dateRangeKey];
+    const dateBeforeKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
+        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX) as ReportFieldDateKey)
+        : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as const);
+
+    const dateAfterKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
+        ? (dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX) as ReportFieldDateKey)
+        : (`${dateKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as const);
+
+    const dateOnValue = searchAdvancedFiltersForm?.[dateOnKey];
+    const dateBeforeValue = searchAdvancedFiltersForm?.[dateBeforeKey];
+    const dateAfterValue = searchAdvancedFiltersForm?.[dateAfterKey];
 
     function getDefaultDateValues() {
         return {
             [CONST.SEARCH.DATE_MODIFIERS.ON]: dateOnValue,
             [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBeforeValue,
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: dateAfterValue,
-            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: dateRangeValue,
         };
     }
 
@@ -85,7 +84,6 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
                         [dateOnKey]: values[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
                         [dateBeforeKey]: values[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
                         [dateAfterKey]: values[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
-                        [dateRangeKey]: values[CONST.SEARCH.DATE_MODIFIERS.RANGE] ?? null,
                     });
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}

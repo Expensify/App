@@ -14,6 +14,7 @@ import type {
     OpenReimbursementAccountPageParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
     SendReminderForCorpaySignerInformationParams,
+    ShareBankAccountAndSetPayerParams,
     ShareBankAccountParams,
     UnshareBankAccountParams,
     ValidateBankAccountWithTransactionsParams,
@@ -24,7 +25,7 @@ import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/Save
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getFormattedStreet} from '@libs/PersonalDetailsUtils';
@@ -1453,6 +1454,51 @@ function shareBankAccount(bankAccountID: number, emailList: string[]) {
     API.write(WRITE_COMMANDS.SHARE_BANK_ACCOUNT, parameters, onyxData);
 }
 
+function shareBankAccountAndSetPayer(bankAccountID: number, shareeAccountID: number, policyID: string) {
+    const parameters: ShareBankAccountAndSetPayerParams = {
+        bankAccountID,
+        shareeAccountID,
+        policyID,
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.SHARE_BANK_ACCOUNT> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                    admins: null,
+                    shouldShowSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.shareBankAccountFailure'),
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.SHARE_BANK_ACCOUNT_AND_UPDATE_POLICY_REIMBURSER, parameters, onyxData);
+}
+
 /**
  * Get bank account from bankAccountID
  */
@@ -1538,6 +1584,7 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
     finishCorpayBankAccountOnboarding,
+    shareBankAccountAndSetPayer,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
     enableGlobalReimbursementsForUSDBankAccount,
     clearEnableGlobalReimbursementsForUSDBankAccount,
