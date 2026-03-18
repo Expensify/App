@@ -1,5 +1,5 @@
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -11,6 +11,7 @@ import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
+import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
@@ -117,16 +118,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             />
         );
     };
-    const [membersSelectedForMove] = useOnyx(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE);
-
-    useEffect(() => {
-        if (!membersSelectedForMove || membersSelectedForMove.length > 0) {
-            return;
-        }
-        // State change syncs onyx to local state after the move members request has been submitted in MoveUsersBetweenGroupsPage
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        clearSelectedMembers();
-    }, [membersSelectedForMove]);
+    useClearSelectedDomainMembersOnMoveComplete(clearSelectedMembers);
 
     useSearchBackPress({
         onClearSelection: clearSelectedMembers,
