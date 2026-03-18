@@ -26,9 +26,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const {orderedReports, currentReportID} = useSidebarOrderedReportsState('SidebarLinksData');
 
     const currentReportIDRef = useRef(currentReportID);
-    useEffect(() => {
-        currentReportIDRef.current = currentReportID;
-    }, [currentReportID]);
+    currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
 
     const hasHadFirstLayout = useRef(false);
