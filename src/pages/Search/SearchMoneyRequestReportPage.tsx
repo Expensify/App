@@ -389,6 +389,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             deleteTransactionNavigateBackUrl,
             wasParentActionDeleted,
             isThreadReportDeletedForReview,
+            shouldUseSnapshotTransaction,
         });
     }, [
         shouldShowAccessErrorPage,
@@ -401,6 +402,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         deleteTransactionNavigateBackUrl,
         wasParentActionDeleted,
         isThreadReportDeletedForReview,
+        shouldUseSnapshotTransaction,
     ]);
 
     return (

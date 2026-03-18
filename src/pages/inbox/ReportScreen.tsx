@@ -568,6 +568,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             firstRender,
             deleteTransactionNavigateBackUrl,
             isDeletedTransactionThread,
+            isParentActionDeleted,
+            isParentActionMissingAfterLoad,
+            isNavigatingToDeletedAction,
+            isLinkedActionInaccessibleWhisper,
+            isLinkedActionDeleted,
+            isLinkingToMessage,
         });
     }, [
         shouldShowNotFoundPage,
@@ -583,6 +589,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         firstRender,
         deleteTransactionNavigateBackUrl,
         isDeletedTransactionThread,
+        isParentActionDeleted,
+        isParentActionMissingAfterLoad,
+        isNavigatingToDeletedAction,
+        isLinkedActionInaccessibleWhisper,
+        isLinkedActionDeleted,
+        isLinkingToMessage,
     ]);
 
     const createOneTransactionThreadReport = useCallback(() => {
