@@ -16,13 +16,19 @@ type ProgressBarProps = {
 
     /** Function to seek to a specific position in the video. */
     seekPosition: (newPosition: number) => void;
+
+    /** Callback when user starts dragging the slider. */
+    onSeekStart?: () => void;
+
+    /** Callback when user finishes dragging the slider. */
+    onSeekEnd?: (shouldResumeAfterSeek: boolean) => void;
 };
 
 function getProgress(currentPosition: number, maxPosition: number): number {
     return Math.min(Math.max((currentPosition / maxPosition) * 100, 0), 100);
 }
 
-function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
+function ProgressBar({duration, position, seekPosition, onSeekStart, onSeekEnd}: ProgressBarProps) {
     const styles = useThemeStyles();
     const {pauseVideo, playVideo, checkIfVideoIsPlaying} = usePlaybackActionsContext();
     const [sliderWidth, setSliderWidth] = useState(1);
@@ -52,6 +58,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         .onBegin((event) => {
             setIsSliderPressed(true);
             checkIfVideoIsPlaying(onCheckIfVideoIsPlaying);
+            onSeekStart?.();
             pauseVideo();
             progressBarInteraction(event);
         })
@@ -60,7 +67,9 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         })
         .onFinalize(() => {
             setIsSliderPressed(false);
-            if (!wasVideoPlayingOnCheck.get()) {
+            const shouldResumeAfterSeek = wasVideoPlayingOnCheck.get();
+            onSeekEnd?.(shouldResumeAfterSeek);
+            if (onSeekEnd || !shouldResumeAfterSeek) {
                 return;
             }
             playVideo();
