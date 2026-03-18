@@ -123,15 +123,19 @@ function buildOptimisticCompanyCardCSVTransactions(
             continue;
         }
 
+        const category = categoryColumnIndex >= 0 ? (row.at(categoryColumnIndex)?.trim() ?? '') : '';
+        const tag = tagColumnIndex >= 0 ? (row.at(tagColumnIndex)?.trim() ?? '') : '';
+        const comment = commentColumnIndex >= 0 ? (row.at(commentColumnIndex)?.trim() ?? '') : '';
+
         transactions.push({
             transactionID,
             amount,
             created,
             currency,
             merchant,
-            category: row.at(categoryColumnIndex)?.trim() ?? '',
-            tag: row.at(tagColumnIndex)?.trim() ?? '',
-            comment: {comment: row.at(commentColumnIndex)?.trim() ?? ''},
+            category,
+            tag,
+            comment: {comment},
             cardName,
             bank: feedName,
             reportID: '0',

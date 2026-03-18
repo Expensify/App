@@ -1,15 +1,16 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isExpensifyCard, isPersonalCard, supportsPINManagementFeatures} from '@libs/CardUtils';
+import {isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard, supportsPINManagementFeatures} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
 
 /**
- * Builds a lightweight map of "${domainID}_${feedName}" keys that have at least one card entry.
- * A feed counts as having cards if it has at least one assigned card object OR at least one
- * unassigned card in `cardList` (used by CSV and other assignment-first flows).
+ * Builds a lightweight map of "${domainID}_${feedName}" keys that have card entries.
+ * A feed counts as having cards when:
+ * - it has at least one assigned card object, OR
+ * - it is a CSV feed and has at least one entry in `cardList`.
  *
  * Input key format: "cards_${domainID}_${feedName}" (e.g., "cards_12345_oauth.chase.com")
  * Output key format: "${domainID}_${feedName}" (e.g., "12345_oauth.chase.com")
@@ -22,10 +23,12 @@ const buildFeedKeysWithAssignedCards = (allWorkspaceCards: OnyxCollection<Worksp
             continue;
         }
 
+        const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
+        const cardFeedName = feedKey.split('_').slice(1).join('_');
         const hasAssignedCards = Object.keys(cards).some((k) => k !== 'cardList');
-        const hasCardsToAssign = Object.keys(cards.cardList ?? {}).length > 0;
+        const isCSVFeed = isCSVFeedOrExpensifyCard(cardFeedName);
+        const hasCardsToAssign = isCSVFeed && Object.keys(cards.cardList ?? {}).length > 0;
         if (hasAssignedCards || hasCardsToAssign) {
-            const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
             result[feedKey] = true;
         }
     }
