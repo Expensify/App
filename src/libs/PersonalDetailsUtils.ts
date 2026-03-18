@@ -358,6 +358,7 @@ function createDisplayName(
  */
 function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
     // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (firstName || lastName) {
         return {firstName: firstName ?? '', lastName: lastName ?? ''};
     }
@@ -455,17 +456,6 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
     return !privatePersonalDetails?.legalFirstName || !privatePersonalDetails?.legalLastName;
 }
 
-/**
- * Determines if the user should be redirected to the missing details page
- * before revealing their card details (for UK/EU cards only).
- */
-function shouldShowMissingDetailsPage(card: {nameValuePairs?: {feedCountry?: string}} | null | undefined, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
-    const isUKOrEUCard = card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
-    const hasMissingDetails = arePersonalDetailsMissing(privatePersonalDetails);
-
-    return hasMissingDetails && isUKOrEUCard;
-}
-
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
@@ -487,6 +477,5 @@ export {
     getPhoneNumber,
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
-    shouldShowMissingDetailsPage,
     createPersonalDetailsLookupByAccountID,
 };

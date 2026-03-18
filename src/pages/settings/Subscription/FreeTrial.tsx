@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
@@ -34,12 +34,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Star'] as const);
 
-    const freeTrialText = useMemo(() => {
-        if (!privateSubscription && !isOffline) {
-            return;
-        }
-        return getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
-    }, [isOffline, privateSubscription, translate, policies, firstDayFreeTrial, lastDayFreeTrial, introSelected]);
+    const freeTrialText = privateSubscription || isOffline ? getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial) : undefined;
 
     if (!freeTrialText) {
         return null;

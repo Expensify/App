@@ -13,10 +13,12 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
     // compare the session email to both the decoded and raw email from the transition link.
     const params = new URLSearchParams(transitionURL);
     const paramsEmail = params.get('email');
+    const delegatorEmail = params.get('delegatorEmail');
 
     // If the email param matches what is stored in the session then we are
-    // definitely not logging in as a new user
-    if (paramsEmail === sessionEmail) {
+    // definitely not logging in as a new user. If delegator email matches session email
+    // it means that we are login in to another account as supportal user.
+    if (paramsEmail === sessionEmail || delegatorEmail === sessionEmail) {
         return false;
     }
 
@@ -25,7 +27,42 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
     const emailParamRegex = /[?&]email=([^&]*)/g;
     const matches = emailParamRegex.exec(transitionURL ?? '');
     const linkedEmail = matches?.[1] ?? null;
-    return linkedEmail !== sessionEmail;
+
+    if (linkedEmail === sessionEmail) {
+        return false;
+    }
+
+    // If URLSearchParams didn't find it (e.g. transitionURL is a full URL which
+    // mangles the first query-param key), fall back to regex
+    const linkedDelegatorEmail = getDelegatorEmailFromURL(transitionURL) ?? null;
+
+    return linkedEmail !== sessionEmail && linkedDelegatorEmail !== sessionEmail;
+}
+
+/**
+ * Determine if the transitioning user is logging in as a delegate
+ */
+function isLoggingInAsDelegate(transitionURL?: string): boolean {
+    const params = new URLSearchParams(transitionURL);
+    const delegatorEmail = params.get('delegatorEmail');
+
+    if (delegatorEmail) {
+        return true;
+    }
+
+    // If URLSearchParams didn't find it (e.g. transitionURL is a full URL which
+    // mangles the first query-param key), fall back to regex
+    const linkedDelegatorEmail = getDelegatorEmailFromURL(transitionURL);
+    return !!linkedDelegatorEmail;
+}
+
+/**
+ * Looks for *delegatorEmail* param in given URL using regex
+ */
+function getDelegatorEmailFromURL(url?: string): string | undefined {
+    const delegatorEmailParamRegex = /[?&]delegatorEmail=([^&]*)/g;
+    const delegatorMatches = delegatorEmailParamRegex.exec(url ?? '');
+    return delegatorMatches?.[1];
 }
 
 let loggedInDuringSession: boolean | undefined;
@@ -70,4 +107,4 @@ function checkIfShouldUseNewPartnerName(partnerUserID?: string): boolean {
     return false;
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, checkIfShouldUseNewPartnerName};
+export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, checkIfShouldUseNewPartnerName, isLoggingInAsDelegate};

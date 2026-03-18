@@ -44,6 +44,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         // We can't store the response in Onyx for security reasons.
         // That is why this action is handled manually and the response is stored in a local state.
         // Hence eslint disable here.
+        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         revealVirtualCardDetails(Number.parseInt(cardID, 10), validateCode)
             .then((value) => {
                 setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [cardID]: value}));
@@ -54,14 +55,6 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
                 navigateBack();
             })
             .catch((error: TranslationPaths) => {
-                if (error === 'cardPage.missingPrivateDetails') {
-                    setCardsDetailsErrors((prevState) => ({
-                        ...prevState,
-                        [cardID]: error,
-                    }));
-                    navigateBack();
-                    return;
-                }
                 setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error));
             })
             .finally(() => {

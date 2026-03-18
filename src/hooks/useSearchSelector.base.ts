@@ -177,6 +177,7 @@ function useSearchSelectorBase({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const onListEndReached = useDebounce(
         useCallback(() => {
@@ -231,6 +232,7 @@ function useSearchSelectorBase({
                     personalDetails,
                     countryCode,
                     reportAttributesDerived: reportAttributesDerived?.reports,
+                    allPolicyTags,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
@@ -246,6 +248,7 @@ function useSearchSelectorBase({
                     personalDetails,
                     countryCode,
                     reportAttributesDerived: reportAttributesDerived?.reports,
+                    allPolicyTags,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
@@ -268,6 +271,7 @@ function useSearchSelectorBase({
                     personalDetails,
                     countryCode,
                     reportAttributesDerived: reportAttributesDerived?.reports,
+                    allPolicyTags,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
@@ -289,6 +293,7 @@ function useSearchSelectorBase({
                     personalDetails,
                     countryCode,
                     reportAttributesDerived: reportAttributesDerived?.reports,
+                    allPolicyTags,
                 });
             default:
                 return getEmptyOptions();
@@ -319,6 +324,7 @@ function useSearchSelectorBase({
         personalDetails,
         reportAttributesDerived?.reports,
         trimmedSearchInput,
+        allPolicyTags,
     ]);
 
     const isOptionSelected = useMemo(() => {
@@ -326,7 +332,7 @@ function useSearchSelectorBase({
             selectedOptions.some(
                 (selected) =>
                     (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.reportID && selected.reportID === option.reportID) ||
+                    (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                     (selected.login && selected.login === option.login),
             );
     }, [selectedOptions]);
@@ -379,7 +385,7 @@ function useSearchSelectorBase({
             const isSelected = selectedOptions.some(
                 (selected) =>
                     (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.reportID && selected.reportID === option.reportID) ||
+                    (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                     (selected.login && selected.login === option.login),
             );
 
@@ -388,7 +394,7 @@ function useSearchSelectorBase({
                       (selected) =>
                           !(
                               (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                              (selected.reportID && selected.reportID === option.reportID) ||
+                              (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                               (selected.login && selected.login === option.login)
                           ),
                   )

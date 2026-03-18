@@ -1,4 +1,3 @@
-import {filterCardsHiddenFromSearch} from '@selectors/Card';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
@@ -25,11 +24,11 @@ import {getCardDescription} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
-import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
+import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     buildCannedSearchQuery,
-    buildQueryStringFromFilterFormValues,
+    buildFilterQueryWithSortDefaults,
     buildSearchQueryJSON,
     getCurrentSearchQueryJSON,
     isCannedSearchQuery,
@@ -584,24 +583,20 @@ function AdvancedSearchFilters() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const [allSearchCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
-    const searchCards = filterCardsHiddenFromSearch(allSearchCards);
     const personalDetails = usePersonalDetails();
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
-    const taxRates = getAllTaxRates(policies);
-
-    const {currentType, typeFiltersKeys, workspaces} = useAdvancedSearchFilters();
+    const {currentType, typeFiltersKeys, workspaces, taxRates, searchCards, policies} = useAdvancedSearchFilters();
 
     const queryString = useMemo(() => {
         const currentQueryJSON = getCurrentSearchQueryJSON();
-        return buildQueryStringFromFilterFormValues(searchAdvancedFilters, {
-            sortBy: currentQueryJSON?.sortBy,
-            sortOrder: currentQueryJSON?.sortOrder,
-            limit: currentQueryJSON?.limit,
-        });
+        return (
+            buildFilterQueryWithSortDefaults(
+                searchAdvancedFilters,
+                {view: currentQueryJSON?.view, groupBy: currentQueryJSON?.groupBy},
+                {sortBy: currentQueryJSON?.sortBy, sortOrder: currentQueryJSON?.sortOrder, limit: currentQueryJSON?.limit},
+            ) ?? ''
+        );
     }, [searchAdvancedFilters]);
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 

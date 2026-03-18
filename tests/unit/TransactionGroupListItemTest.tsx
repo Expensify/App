@@ -25,6 +25,21 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn(() => ({})),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useNavigationState: () => true,
+    useIsFocused: () => true,
+    useNavigation: () => ({
+        navigate: jest.fn(),
+        addListener: jest.fn(),
+    }),
+    useFocusEffect: jest.fn((callback: () => void) => callback()),
+    useRoute: () => ({
+        params: {},
+    }),
+    usePreventRemove: jest.fn(),
+}));
+
 const mockEmptyReport: TransactionReportGroupListItemType = {
     accountID: 1,
     chatReportID: '4735435600700077',

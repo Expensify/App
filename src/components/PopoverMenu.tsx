@@ -66,6 +66,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     key?: string;
 
+    /** Whether to ignore key and use a fallback key for React rendering instead. */
+    shouldIgnoreKeyForRendering?: boolean;
+
     /** Whether to keep the modal open after clicking on the menu item */
     shouldKeepModalOpen?: boolean;
 
@@ -130,6 +133,8 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether we want to show the popover on the right side of the screen */
     fromSidebarMediumScreen?: boolean;
 
+    shouldHandleNavigationBack?: boolean;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -183,6 +188,7 @@ const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentConta
     if (shouldUseScrollView) {
         return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
     }
+    // eslint-disable-next-line react/jsx-no-useless-fragment
     return <View style={contentContainerStyle}>{children}</View>;
 };
 
@@ -267,6 +273,7 @@ function BasePopoverMenu({
     onModalHide,
     headerText,
     fromSidebarMediumScreen,
+    shouldHandleNavigationBack,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -381,15 +388,28 @@ function BasePopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, badgeText, ...menuItemProps} = item;
+        const {
+            text,
+            onSelected,
+            subMenuItems,
+            shouldCallAfterModalHide,
+            key,
+            shouldIgnoreKeyForRendering,
+            testID: menuItemTestID,
+            shouldShowLoadingSpinnerIcon,
+            badgeText,
+            ...menuItemProps
+        } = item;
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
+        // eslint-disable-next-line react/no-array-index-key
+        const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
         return (
             <OfflineWithFeedback
-                key={key ?? `${item.text}_${menuIndex}`}
+                key={reactKey}
                 pendingAction={item.pendingAction}
             >
                 <FocusableMenuItem
-                    key={key ?? `${item.text}_${menuIndex}`}
+                    key={reactKey}
                     pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={(event) => selectItem(menuIndex, event)}
@@ -593,6 +613,7 @@ function BasePopoverMenu({
             restoreFocusType={restoreFocusType}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             testID={testID}
         >
             <FocusTrapForModal

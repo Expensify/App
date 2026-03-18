@@ -91,8 +91,7 @@ export default function useArrowKeyFocusManager({
         }
         const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
         setHasKeyBeenPressed?.();
-        setFocusedIndex((actualIndexParam) => {
-            const actualIndex = actualIndexParam;
+        setFocusedIndex((actualIndex) => {
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - (itemsPerRow ?? 1) : nextIndex;
             let newFocusedIndex = currentFocusedIndex;
 
@@ -127,9 +126,8 @@ export default function useArrowKeyFocusManager({
 
         const nextIndex = disableCyclicTraversal ? maxIndex : 0;
 
-        setFocusedIndex((actualIndexParam) => {
+        setFocusedIndex((actualIndex) => {
             let currentFocusedIndex = -1;
-            const actualIndex = actualIndexParam;
 
             if (actualIndex === -1) {
                 currentFocusedIndex = 0;

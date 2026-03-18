@@ -2,30 +2,43 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {Fragment, useEffect, useId, useRef} from 'react';
+import React, {useEffect, useId, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
+import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
 
 const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
 
 /**
- * Draggable (vertical) list using dnd-kit. Dragging is restricted to the vertical axis only
+ * Draggable (vertical) list using dnd-kit. Dragging is restricted to the vertical axis only.
  *
+ * Supports two modes:
+ * - **Uncontrolled** (default): manages its own keyboard navigation internally
+ * - **Controlled**: when `focusedIndex` prop is provided, skips internal keyboard nav
+ *   and uses the external value. The parent is responsible for arrow keys, Enter/Space, and focus tracking.
  */
 function DraggableList<T>({
     data = [],
     renderItem,
     keyExtractor,
     onDragEnd: onDragEndCallback,
+    onSelectRow,
+    isItemDragDisabled,
+    isItemDisabled,
     ListFooterComponent,
     disableScroll,
+    focusedIndex: controlledFocusedIndex,
     ref,
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
+    const isControlled = controlledFocusedIndex !== undefined;
+    const hasKeyboardNav = !isControlled && !!onSelectRow;
+    const containerRef = useRef<HTMLDivElement>(null);
 
     // Unique ID per mount to ensure DndContext state resets when component remounts
     const instanceId = useId();
@@ -39,13 +52,26 @@ function DraggableList<T>({
             if (typeof document === 'undefined' || !isDraggingRef.current) {
                 return;
             }
-            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', code: 'Escape', bubbles: true, cancelable: true}));
+            document.dispatchEvent(
+                new KeyboardEvent('keydown', {key: CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey, code: CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey, bubbles: true, cancelable: true}),
+            );
         };
     }, []);
 
     const items = data.map((item, index) => {
         return keyExtractor(item, index);
     });
+
+    const disabledArrowKeyIndexes = isItemDisabled ? data.flatMap((item, index) => (isItemDisabled(item) ? [index] : [])) : [];
+
+    const {focusedIndex: internalFocusedIndex, setFocusedIndex: setInternalFocusedIndex} = useListKeyboardNav({
+        containerRef,
+        isActive: hasKeyboardNav,
+        itemKeys: items,
+        disabledIndexes: disabledArrowKeyIndexes,
+    });
+
+    const activeFocusedIndex = isControlled ? controlledFocusedIndex : internalFocusedIndex;
 
     const onDragStart = () => {
         isDraggingRef.current = true;
@@ -66,6 +92,9 @@ function DraggableList<T>({
 
             const reorderedItems = arrayMove(data, oldIndex, newIndex);
             onDragEndCallback?.({data: reorderedItems});
+            if (!isControlled) {
+                setInternalFocusedIndex(-1);
+            }
         }
     };
 
@@ -75,20 +104,26 @@ function DraggableList<T>({
 
     const sortableItems = data.map((item, index) => {
         const key = keyExtractor(item, index);
-        // Check if item has a disabled property for dragging
-        const isDisabled = typeof item === 'object' && item !== null && 'isDragDisabled' in item ? !!(item as {isDragDisabled?: boolean}).isDragDisabled : false;
+        const isDragDisabled = isItemDragDisabled?.(item) ?? false;
+        const isDisabled = isItemDisabled?.(item) ?? false;
+        const isItemFocused = index === activeFocusedIndex && !isDisabled;
+
+        const renderedItem = renderItem({
+            item,
+            getIndex: () => index,
+            isActive: false,
+            drag: () => {},
+            isFocused: isItemFocused,
+        });
+
         return (
             <SortableItem
                 id={key}
                 key={key}
-                disabled={isDisabled}
+                disabled={isDragDisabled}
+                isFocused={isItemFocused}
             >
-                {renderItem({
-                    item,
-                    getIndex: () => index,
-                    isActive: false,
-                    drag: () => {},
-                })}
+                {renderedItem}
             </SortableItem>
         );
     });
@@ -102,22 +137,16 @@ function DraggableList<T>({
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
             keyboardCodes: {
-                start: ['Space'],
-                cancel: ['Escape'],
-                end: ['Space'],
+                start: [CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey],
+                cancel: [CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey],
+                end: [CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey],
             },
         }),
     );
 
-    const Container = disableScroll ? Fragment : ScrollView;
-
-    return (
-        <Container
-            ref={ref}
-            style={styles.flex1}
-            contentContainerStyle={styles.flex1}
-        >
-            <div>
+    const content = (
+        <>
+            <div ref={isControlled ? undefined : containerRef}>
                 <DndContext
                     key={instanceId}
                     onDragStart={onDragStart}
@@ -136,7 +165,21 @@ function DraggableList<T>({
                 </DndContext>
             </div>
             {ListFooterComponent}
-        </Container>
+        </>
+    );
+
+    if (disableScroll) {
+        return content;
+    }
+
+    return (
+        <ScrollView
+            ref={ref}
+            style={styles.flex1}
+            contentContainerStyle={styles.flex1}
+        >
+            {content}
+        </ScrollView>
     );
 }
 

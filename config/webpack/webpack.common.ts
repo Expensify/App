@@ -209,6 +209,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             ...(isDevelopment
                 ? []
                 : ([
+                      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                       sentryWebpackPlugin({
                           authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
                           org: 'expensify',

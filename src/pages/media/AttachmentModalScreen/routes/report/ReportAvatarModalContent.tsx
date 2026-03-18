@@ -1,7 +1,9 @@
 import React, {useMemo} from 'react';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
-import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import useReportAttributes from '@hooks/useReportAttributes';
+import {getReportName} from '@libs/ReportNameUtils';
+import {getDefaultGroupAvatar, getPolicyName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
@@ -17,29 +19,20 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const reportAttributes = useReportAttributes();
 
     const attachment: AttachmentModalBaseContentProps = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}) : getDefaultGroupAvatar(report?.reportID),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                headerTitle: getReportName({report}),
+                headerTitle: getReportName(report, reportAttributes),
                 isWorkspaceAvatar: false,
             };
         }
         if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
             return {
                 source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                headerTitle: getReportName({report}),
-                isWorkspaceAvatar: false,
-            };
-        }
-        if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
-            return {
-                source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                headerTitle: getReportName({report}),
+                headerTitle: getReportName(report, reportAttributes),
                 isWorkspaceAvatar: false,
             };
         }
@@ -51,7 +44,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [policy, report, defaultAvatars]);
+    }, [policy, report, defaultAvatars, reportAttributes]);
 
     const onDownloadAttachment = useDownloadAttachment();
 

@@ -294,6 +294,7 @@ describe('BaseSelectionList', () => {
 
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toHaveStyle({backgroundColor: colors.productDark400});
 
+        // eslint-disable-next-line testing-library/no-unnecessary-act
         act(() => {
             arrowDownCallback();
         });

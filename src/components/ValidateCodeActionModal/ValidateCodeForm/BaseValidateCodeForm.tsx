@@ -125,6 +125,7 @@ function BaseValidateCodeForm({
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT);
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [canShowError, setCanShowError] = useState<boolean>(false);

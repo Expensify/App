@@ -6,6 +6,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -44,10 +45,13 @@ function getSelectedOptionData(option: Option): OptionData {
 function getOptionDataFromAttendee(attendee: Attendee): OptionData {
     return {
         text: attendee.displayName,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string email
         alternateText: attendee.email || attendee.displayName,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string email
         login: attendee.email || attendee.displayName,
         displayName: attendee.displayName,
         accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        // eslint-disable-next-line rulesdir/no-default-id-values
         reportID: '-1',
         keyForList: `${attendee.accountID ?? attendee.email}`,
         selected: true,
@@ -93,6 +97,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
     const recentAttendeeLists = useMemo(
@@ -200,6 +205,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
             true,
@@ -257,7 +263,18 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID]);
+    }, [
+        areOptionsInitialized,
+        cleanSearchTerm,
+        selectedOptions,
+        chatOptions,
+        personalDetails,
+        reportAttributesDerived,
+        translate,
+        formatPhoneNumber,
+        currentUserAccountID,
+        privateIsArchivedMap,
+    ]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
@@ -319,6 +336,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                         login: identifier,
                         displayName: identifier,
                         accountID: CONST.DEFAULT_NUMBER_ID,
+                        // eslint-disable-next-line rulesdir/no-default-id-values
                         reportID: '-1',
                         selected: true,
                         icons: [],
@@ -339,6 +357,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         setSelectedOptions(preSelectedOptions);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);
 
     const handleParticipantSelection = useCallback(

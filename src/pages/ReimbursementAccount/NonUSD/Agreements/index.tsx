@@ -59,6 +59,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isFinishingCorpayBankAccountOnboarding || !reimbursementAccount?.isSuccess) {
             return;
         }

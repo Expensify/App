@@ -98,6 +98,7 @@ function useVideoPlayer(..._args: unknown[]): VideoPlayer {
 type VideoViewProps = ViewProps & {player?: VideoPlayer};
 
 const VideoView = forwardRef((props: VideoViewProps, ref: ForwardedRef<View>) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
     <View
         ref={ref}
         accessibilityLabel="MockVideoView"

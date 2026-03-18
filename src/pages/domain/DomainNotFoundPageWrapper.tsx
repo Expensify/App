@@ -5,6 +5,7 @@ import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPage
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,6 +38,7 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     const shouldShowNotFoundPage = !domain || !isAdmin || shouldBeBlocked;
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (shouldShowFullScreenLoadingIndicator || (domain && isAdmin)) {
             return;
         }
@@ -45,7 +47,11 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DomainNotFoundPageWrapper',
+            shouldShowFullScreenLoadingIndicator,
+        };
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (shouldShowNotFoundPage) {

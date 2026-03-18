@@ -15501,6 +15501,7 @@ function detectReactComponent(code, filename) {
             }
             if (path.isFunctionDeclaration() || path.isArrowFunctionExpression() || path.isFunctionExpression()) {
                 path.traverse({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     JSXElement() {
                         isReactComponent = true;
                         path.stop();
@@ -15508,6 +15509,7 @@ function detectReactComponent(code, filename) {
                 });
             }
         },
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         ClassDeclaration(path) {
             const { superClass } = path.node;
             if (superClass &&
@@ -15677,7 +15679,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);

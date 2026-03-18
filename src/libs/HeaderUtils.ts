@@ -24,4 +24,8 @@ function getShareMenuItem(report: OnyxReport, backTo?: string): ThreeDotsMenuIte
     };
 }
 
-export {getPinMenuItem, getShareMenuItem};
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    getPinMenuItem,
+    getShareMenuItem,
+};

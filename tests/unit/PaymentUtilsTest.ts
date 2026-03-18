@@ -1,15 +1,35 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {BankAccountMenuItem} from '@components/Search/types';
+import {setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
+import {approveMoneyRequest} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePaymentType, handleUnvalidatedAccount} from '@libs/PaymentUtils';
+import {getActivePaymentType, getBusinessBankAccountOptions, handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
+import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import {calculateWalletTransferBalanceFee} from '@src/libs/PaymentUtils';
+import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import createMockPaymentMethod from '../utils/collections/paymentMethods';
 import createRandomPolicy from '../utils/collections/policies';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     getActiveRoute: jest.fn(),
+}));
+
+jest.mock('@libs/SubscriptionUtils', () => ({
+    shouldRestrictUserBillableActions: jest.fn(),
+}));
+
+jest.mock('@libs/actions/BankAccounts', () => ({
+    setPersonalBankAccountContinueKYCOnSuccess: jest.fn(),
+}));
+
+jest.mock('@libs/actions/IOU', () => ({
+    approveMoneyRequest: jest.fn(),
 }));
 
 describe('PaymentUtils', () => {
@@ -107,7 +127,7 @@ describe('PaymentUtils', () => {
             expect(result.policyFromPaymentMethod).toBeUndefined();
         });
 
-        it('should set shouldSelectPaymentMethod to true when latestBankItems is not empty', () => {
+        it('should set shouldSelectPaymentMethod to true when businessBankAccountOptions is not empty', () => {
             const result = getActivePaymentType(undefined, [], [bankItem]);
 
             expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
@@ -149,6 +169,240 @@ describe('PaymentUtils', () => {
 
             expect(result.policyFromContext).toBeUndefined();
             expect(result.policyFromPaymentMethod).toBeUndefined();
+        });
+    });
+
+    describe('selectPaymentType', () => {
+        const mockNavigate = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
+        const mockShouldRestrict = shouldRestrictUserBillableActions as jest.MockedFunction<typeof shouldRestrictUserBillableActions>;
+        const mockOnPress = jest.fn();
+        const mockTriggerKYCFlow = jest.fn();
+        const mockConfirmApproval = jest.fn();
+        const testPolicy = createRandomPolicy(1);
+        const testPolicyID = testPolicy.id;
+
+        const baseParams: SelectPaymentTypeParams = {
+            event: undefined,
+            iouPaymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            triggerKYCFlow: mockTriggerKYCFlow,
+            policy: testPolicy,
+            onPress: mockOnPress,
+            currentAccountID: 1,
+            currentEmail: 'test@test.com',
+            hasViolations: false,
+            isASAPSubmitBetaEnabled: false,
+            isUserValidated: true,
+            iouReport: {reportID: '1'} as Report,
+            iouReportNextStep: undefined,
+            betas: [],
+            userBillingGraceEndPeriods: undefined,
+            amountOwed: 0,
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            mockShouldRestrict.mockReturnValue(false);
+        });
+
+        it('should navigate to restricted action page when billable actions are restricted and amountOwed > 0', () => {
+            mockShouldRestrict.mockReturnValue(true);
+            const params = {...baseParams, amountOwed: 100};
+
+            selectPaymentType(params);
+
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(testPolicyID));
+            expect(mockOnPress).not.toHaveBeenCalled();
+        });
+
+        it('should not navigate to restricted action page when amountOwed is 0', () => {
+            mockShouldRestrict.mockReturnValue(false);
+            const params = {...baseParams, amountOwed: 0};
+
+            selectPaymentType(params);
+
+            expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
+        });
+
+        it('should pass amountOwed to shouldRestrictUserBillableActions', () => {
+            const params = {...baseParams, amountOwed: 42};
+
+            selectPaymentType(params);
+
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, 42);
+        });
+
+        it('should trigger KYC flow for EXPENSIFY payment type when user is validated', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY as PaymentMethodType};
+
+            selectPaymentType(params);
+
+            expect(mockTriggerKYCFlow).toHaveBeenCalledWith({event: undefined, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, policy: testPolicy});
+            expect(setPersonalBankAccountContinueKYCOnSuccess).toHaveBeenCalledWith(ROUTES.ENABLE_PAYMENTS);
+        });
+
+        it('should navigate to unvalidated account page for EXPENSIFY payment type when user is not validated', () => {
+            const mockGetActiveRoute = Navigation.getActiveRoute as jest.MockedFunction<typeof Navigation.getActiveRoute>;
+            mockGetActiveRoute.mockReturnValue('r/1');
+            const params = {...baseParams, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY as PaymentMethodType, isUserValidated: false};
+
+            selectPaymentType(params);
+
+            expect(mockTriggerKYCFlow).not.toHaveBeenCalled();
+            expect(mockNavigate).toHaveBeenCalled();
+        });
+
+        it('should call confirmApproval when payment type is APPROVE and confirmApproval is provided', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, confirmApproval: mockConfirmApproval};
+
+            selectPaymentType(params);
+
+            expect(mockConfirmApproval).toHaveBeenCalled();
+            expect(approveMoneyRequest).not.toHaveBeenCalled();
+        });
+
+        it('should call approveMoneyRequest with amountOwed when payment type is APPROVE and no confirmApproval', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: 42};
+
+            selectPaymentType(params);
+
+            expect(approveMoneyRequest).toHaveBeenCalledWith({
+                expenseReport: params.iouReport,
+                policy: params.policy,
+                currentUserAccountIDParam: params.currentAccountID,
+                currentUserEmailParam: params.currentEmail,
+                hasViolations: params.hasViolations,
+                isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
+                betas: params.betas,
+                userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
+                amountOwed: 42,
+                full: true,
+            });
+        });
+
+        it('should pass amountOwed as undefined to approveMoneyRequest when amountOwed is undefined', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: undefined};
+
+            selectPaymentType(params);
+
+            expect(approveMoneyRequest).toHaveBeenCalledWith({
+                expenseReport: params.iouReport,
+                policy: params.policy,
+                currentUserAccountIDParam: params.currentAccountID,
+                currentUserEmailParam: params.currentEmail,
+                hasViolations: params.hasViolations,
+                isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
+                betas: params.betas,
+                userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
+                amountOwed: undefined,
+                full: true,
+            });
+        });
+
+        it('should call onPress with payment type for other payment types', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE as PaymentMethodType};
+
+            selectPaymentType(params);
+
+            expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
+        });
+
+        it('should not restrict when policy is undefined', () => {
+            const params = {...baseParams, policy: undefined, amountOwed: 100};
+
+            selectPaymentType(params);
+
+            expect(mockShouldRestrict).not.toHaveBeenCalled();
+            expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
+        });
+
+        it('should pass amountOwed as undefined when it is undefined', () => {
+            const params = {...baseParams, amountOwed: undefined};
+
+            selectPaymentType(params);
+
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, undefined);
+        });
+    });
+
+    describe('getBusinessBankAccountOptions', () => {
+        it('returns empty array when no payment methods passed', () => {
+            expect(getBusinessBankAccountOptions([])).toEqual([]);
+        });
+
+        it('drops methods without valid accountData', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({accountData: undefined}),
+                createMockPaymentMethod({accountData: null}),
+                createMockPaymentMethod({accountData: {}}),
+                createMockPaymentMethod({accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN}}),
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS}}),
+            ];
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
+        });
+
+        it('drops PERSONAL account type (only BUSINESS included)', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.OPEN}})];
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
+        });
+
+        it('drops partially setup accounts', () => {
+            expect(getBusinessBankAccountOptions([createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.SETUP}})])).toHaveLength(0);
+            expect(getBusinessBankAccountOptions([createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.VERIFYING}})])).toHaveLength(
+                0,
+            );
+            expect(getBusinessBankAccountOptions([createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.PENDING}})])).toHaveLength(
+                0,
+            );
+        });
+
+        it('drops non-OPEN state', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED}})];
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
+        });
+
+        it('drops methods with null or undefined methodID', () => {
+            expect(getBusinessBankAccountOptions([createMockPaymentMethod({methodID: null})])).toHaveLength(0);
+            expect(getBusinessBankAccountOptions([createMockPaymentMethod({methodID: undefined})])).toHaveLength(0);
+        });
+
+        it('returns properly constructed BusinessBankAccountOption for valid BUSINESS OPEN account with methodID', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'Acme Corp', description: 'USD • 1234', methodID: 456})];
+            const result = getBusinessBankAccountOptions(methods);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)).toEqual({
+                text: 'Acme Corp',
+                description: 'USD • 1234',
+                icon: undefined,
+                iconStyles: [],
+                iconSize: 40,
+                methodID: 456,
+            });
+        });
+
+        it('returns multiple options when multiple valid business bank accounts passed', () => {
+            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'Account A', methodID: 1}), createMockPaymentMethod({title: 'Account B', methodID: 2})];
+            const result = getBusinessBankAccountOptions(methods);
+
+            expect(result).toHaveLength(2);
+            expect(result.at(0)?.text).toBe('Account A');
+            expect(result.at(0)?.methodID).toBe(1);
+            expect(result.at(1)?.text).toBe('Account B');
+            expect(result.at(1)?.methodID).toBe(2);
+        });
+
+        it('filters to only valid BUSINESS OPEN with methodID and maps rest correctly', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.OPEN}, title: 'Personal'}),
+                createMockPaymentMethod({title: 'Valid Business'}),
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.SETUP}, title: 'Setup'}),
+            ];
+            const result = getBusinessBankAccountOptions(methods);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.text).toBe('Valid Business');
         });
     });
 });

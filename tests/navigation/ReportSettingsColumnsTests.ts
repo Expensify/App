@@ -58,6 +58,7 @@ describe('ReportSettingsColumns route and navigation', () => {
 
     describe('ModalStackNavigator registration', () => {
         it('should have ReportSettingsModalStackNavigator exported', () => {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const navigators = require<Record<string, unknown>>('@libs/Navigation/AppNavigator/ModalStackNavigators/index');
 
             expect(navigators.ReportSettingsModalStackNavigator).toBeDefined();

@@ -1,0 +1,129 @@
+# Reusable workflow that checks whether a PR author is authorized to contribute.
+# Used by expensive PR workflows to skip CI for unauthorized contributors.
+# The actual close/lock/comment logic lives in validateContributorPR.yml.
+
+name: Contributor Validation Gate
+
+on:
+  workflow_call:
+    inputs:
+      PR_NUMBER:
+        description: Pull request number
+        required: true
+        type: number
+      PR_AUTHOR:
+        description: Pull request author login
+        required: true
+        type: string
+      AUTHOR_ASSOCIATION:
+        description: "Author's association with the repository (MEMBER, OWNER, CONTRIBUTOR, etc.)"
+        required: true
+        type: string
+    outputs:
+      IS_AUTHORIZED:
+        description: "'true' if the contributor is authorized, 'false' otherwise"
+        value: ${{ jobs.check.outputs.IS_AUTHORIZED }}
+
+jobs:
+  check:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    outputs:
+      IS_AUTHORIZED: ${{ steps.gate.outputs.IS_AUTHORIZED }}
+    steps:
+      - name: Check contributor authorization
+        id: gate
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: |
+            const prNumber = ${{ inputs.PR_NUMBER }};
+            const prAuthor = '${{ inputs.PR_AUTHOR }}';
+            const authorAssociation = '${{ inputs.AUTHOR_ASSOCIATION }}';
+
+            if (['MEMBER', 'OWNER', 'CONTRIBUTOR'].includes(authorAssociation)) {
+              console.log(`${prAuthor} is ${authorAssociation}. Authorized.`);
+              core.setOutput('IS_AUTHORIZED', 'true');
+              return;
+            }
+
+            console.log(`${prAuthor} has association "${authorAssociation}". Checking linked issues/PRs...`);
+
+            const {data: pr} = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            const prBody = pr.body || '';
+            const cleanBody = prBody.replace(/<!--[\s\S]*?-->/g, '');
+
+            const issuePattern = /https:\/\/github\.com\/(Expensify\/[^/]+)\/issues\/(\d+)/g;
+            let match;
+            while ((match = issuePattern.exec(cleanBody)) !== null) {
+              const [, repo, num] = match;
+              const issueNumber = parseInt(num);
+              try {
+                const [owner, repoName] = repo.split('/');
+                const {data: issue} = await github.rest.issues.get({
+                  owner,
+                  repo: repoName,
+                  issue_number: issueNumber,
+                });
+                if (issue.assignees.some(a => a.login.toLowerCase() === prAuthor.toLowerCase())) {
+                  console.log(`${prAuthor} is assigned to ${repo}#${issueNumber}. Authorized.`);
+                  core.setOutput('IS_AUTHORIZED', 'true');
+                  return;
+                }
+                console.log(`${prAuthor} is NOT assigned to ${repo}#${issueNumber}.`);
+              } catch (e) {
+                console.log(`Could not verify ${repo}#${issueNumber}: ${e.message}`);
+              }
+            }
+
+            const prUrlPattern = /https:\/\/github\.com\/(Expensify\/[^/]+)\/pull\/(\d+)/g;
+            while ((match = prUrlPattern.exec(cleanBody)) !== null) {
+              const [, repo, num] = match;
+              const linkedPRNumber = parseInt(num);
+              try {
+                const [owner, repoName] = repo.split('/');
+
+                const {data: linkedPR} = await github.rest.pulls.get({
+                  owner,
+                  repo: repoName,
+                  pull_number: linkedPRNumber,
+                });
+                if (linkedPR.user.login.toLowerCase() === prAuthor.toLowerCase()) {
+                  console.log(`${prAuthor} is the author of ${repo}#${linkedPRNumber}. Authorized.`);
+                  core.setOutput('IS_AUTHORIZED', 'true');
+                  return;
+                }
+
+                const {data: reviews} = await github.rest.pulls.listReviews({
+                  owner,
+                  repo: repoName,
+                  pull_number: linkedPRNumber,
+                });
+                if (reviews.some(r => r.user?.login?.toLowerCase() === prAuthor.toLowerCase())) {
+                  console.log(`${prAuthor} is a reviewer of ${repo}#${linkedPRNumber}. Authorized.`);
+                  core.setOutput('IS_AUTHORIZED', 'true');
+                  return;
+                }
+
+                const {data: requestedReviewers} = await github.rest.pulls.listRequestedReviewers({
+                  owner,
+                  repo: repoName,
+                  pull_number: linkedPRNumber,
+                });
+                if (requestedReviewers.users.some(u => u.login.toLowerCase() === prAuthor.toLowerCase())) {
+                  console.log(`${prAuthor} is a requested reviewer of ${repo}#${linkedPRNumber}. Authorized.`);
+                  core.setOutput('IS_AUTHORIZED', 'true');
+                  return;
+                }
+
+                console.log(`${prAuthor} is not author or reviewer of ${repo}#${linkedPRNumber}.`);
+              } catch (e) {
+                console.log(`Could not verify ${repo}#${linkedPRNumber}: ${e.message}`);
+              }
+            }
+
+            console.log(`No valid authorization found for ${prAuthor}.`);
+            core.setOutput('IS_AUTHORIZED', 'false');

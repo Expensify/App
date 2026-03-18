@@ -137,6 +137,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
         Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData', false, {
             lastUpdateID,
             lastUpdateIDAppliedToClient,
+            command: request?.command,
         });
 
         // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.
@@ -183,6 +184,7 @@ function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFr
         modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as AnyOnyxUpdatesFromServer);
 }
 
@@ -218,5 +220,6 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
     return false;
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export {apply, doesClientNeedToBeUpdated, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
 export type {DoesClientNeedToBeUpdatedParams as ManualOnyxUpdateCheckIds};
