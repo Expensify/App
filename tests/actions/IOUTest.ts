@@ -12409,6 +12409,60 @@ describe('actions/IOU', () => {
                 getCurrentSearchQueryJSONSpy.mockRestore();
             }
         });
+
+        it('should update lastReadTime on the transaction thread report so it is not marked unread', async () => {
+            const transactionID = rand64().toString();
+            const reportID = rand64().toString();
+            const transactionThreadReportID = rand64().toString();
+            const iouActionReportActionID = rand64().toString();
+            const file = new File([new Blob(['test'])], 'receipt.jpg', {type: 'image/jpeg'});
+            file.source = 'receipt-source';
+            const source = 'receipt-source';
+
+            const transaction = {
+                transactionID,
+                reportID,
+                amount: 1000,
+                currency: 'USD',
+                comment: {comment: ''},
+            };
+
+            const iouAction = {
+                reportActionID: iouActionReportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: RORY_ACCOUNT_ID,
+                created: DateUtils.getDBTime(),
+                childReportID: transactionThreadReportID,
+                originalMessage: {
+                    IOUReportID: reportID,
+                    IOUTransactionID: transactionID,
+                    amount: 1000,
+                    currency: 'USD',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            const oldLastReadTime = '2023-01-01 00:00:00.000';
+
+            // Given a transaction on a report with a transaction thread
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[iouActionReportActionID]: iouAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {
+                reportID: transactionThreadReportID,
+                parentReportID: reportID,
+                parentReportActionID: iouActionReportActionID,
+                lastReadTime: oldLastReadTime,
+            });
+            await waitForBatchedUpdates();
+
+            // When the receipt is replaced
+            replaceReceipt({transactionID, file, source, transactionPolicy: undefined});
+            await waitForBatchedUpdates();
+
+            // Then lastReadTime on the transaction thread should be updated
+            const updatedThreadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}` as OnyxKey);
+            expect((updatedThreadReport as OnyxEntry<Report>)?.lastReadTime).not.toBe(oldLastReadTime);
+        });
     });
 
     describe('changeTransactionsReport', () => {
