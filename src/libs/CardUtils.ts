@@ -1159,8 +1159,7 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
     // Root-level fallback is for legacy flat domains only. If TRAVEL_US
     // exists, the root-level paymentBankAccountID is a billing artifact
     // from setupInvoicing, not actual e-card provisioning.
-    const travelUS = cardSettings[CONST.TRAVEL.PROGRAM_TRAVEL_US as keyof typeof cardSettings];
-    if (travelUS && typeof travelUS === 'object' && !Array.isArray(travelUS)) {
+    if (getMergedProgramSettings(CONST.TRAVEL.PROGRAM_TRAVEL_US)) {
         return undefined;
     }
 
