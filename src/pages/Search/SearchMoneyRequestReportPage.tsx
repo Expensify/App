@@ -380,29 +380,27 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         }
 
         Log.info('[SearchMoneyRequestReportPage] Displaying NotFound Page', false, {
-            reportIDFromRoute,
             reportID,
+            hasLoadedReportActionsForAccessError,
             doesReportIDLookValid,
-            isLoadingApp,
-            isLoadingInitialReportActions: reportMetadata?.isLoadingInitialReportActions,
-            ownerAccountID,
-            doesOwnerHavePersonalDetails,
-            doesOwnerHaveAvatar,
-            doesOwnerHaveDefaultAvatar,
-            participantCount: Object.keys(report?.participants ?? {}).length,
+            isReportPendingDeletion,
+            wereAllTransactionsDeleted,
+            hasAnyTransactions,
+            deleteTransactionNavigateBackUrl,
+            wasParentActionDeleted,
+            isThreadReportDeletedForReview,
         });
     }, [
-        doesOwnerHaveAvatar,
-        doesOwnerHaveDefaultAvatar,
-        doesOwnerHavePersonalDetails,
-        doesReportIDLookValid,
-        isLoadingApp,
-        ownerAccountID,
-        reportID,
-        reportIDFromRoute,
-        reportMetadata?.isLoadingInitialReportActions,
-        report?.participants,
         shouldShowAccessErrorPage,
+        reportID,
+        hasLoadedReportActionsForAccessError,
+        doesReportIDLookValid,
+        isReportPendingDeletion,
+        wereAllTransactionsDeleted,
+        hasAnyTransactions,
+        deleteTransactionNavigateBackUrl,
+        wasParentActionDeleted,
+        isThreadReportDeletedForReview,
     ]);
 
     return (
