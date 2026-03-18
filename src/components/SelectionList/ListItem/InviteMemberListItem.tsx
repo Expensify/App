@@ -3,7 +3,6 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectCircle from '@components/SelectCircle';
 import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
@@ -156,21 +155,14 @@ function InviteMemberListItem<TItem extends ListItem>({
                             )}
                         </View>
                         {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
-                        {!!shouldShowCheckBox &&
-                            (
-                                <SelectionCheckbox
-                                    item={item}
-                                    onSelectRow={handleCheckboxPress}
-                                    disabled={!!isDisabled}
-                                    style={[styles.ml2, styles.optionSelectCircle]}
-                                />
-                            ) >
-                                (
-                                    <SelectCircle
-                                        isChecked={item.isSelected ?? false}
-                                        selectCircleStyles={styles.ml0}
-                                    />
-                                )}
+                        {!!shouldShowCheckBox && (
+                            <SelectionCheckbox
+                                item={item}
+                                onSelectRow={handleCheckboxPress}
+                                disabled={!!isDisabled}
+                                style={[styles.ml2, styles.optionSelectCircle]}
+                            />
+                        )}
                     </View>
                 </EducationalTooltip>
             )}
