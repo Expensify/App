@@ -8,6 +8,7 @@ import type {
     Login,
     PersonalDetails,
     PersonalDetailsList,
+    PolicyTagLists,
     Report,
     ReportActions,
     ReportAttributesDerivedValue,
@@ -166,6 +167,7 @@ type GetValidReportsConfig = {
     shouldSeparateSelfDMChat?: boolean;
     excludeNonAdminWorkspaces?: boolean;
     isPerDiemRequest?: boolean;
+    isTimeRequest?: boolean;
     showRBR?: boolean;
     shouldShowGBR?: boolean;
     isRestrictedToPreferredPolicy?: boolean;
@@ -173,6 +175,7 @@ type GetValidReportsConfig = {
     shouldUnreadBeBold?: boolean;
     shouldAlwaysIncludeDM?: boolean;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
+    allPolicyTags?: OnyxCollection<PolicyTagLists>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -195,6 +198,7 @@ type IsValidReportsConfig = Pick<
     | 'isRestrictedToPreferredPolicy'
     | 'preferredPolicyID'
     | 'shouldAlwaysIncludeDM'
+    | 'isTimeRequest'
 > & {
     currentUserAccountID: number;
 };

@@ -142,7 +142,7 @@ const SCREENS = {
             PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
             AVATAR: 'Settings_Avatar',
-            ADDRESS_COUNTRY: 'Settings_Address_Country',
+            DYNAMIC_ADDRESS_COUNTRY: 'Dynamic_Address_Country',
             ADDRESS_STATE: 'Settings_Address_State',
         },
 
@@ -636,6 +636,7 @@ const SCREENS = {
         PROFILE: 'Workspace_Overview',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
+        COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
         COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: 'Workspace_CompanyCards_AssignCard_Assignee',
         COMPANY_CARDS_ASSIGN_CARD_BANK_CONNECTION: 'Workspace_CompanyCards_AssignCard_Bank_Connection',
         COMPANY_CARDS_ASSIGN_CARD_PLAID_CONNECTION: 'Workspace_CompanyCards_AssignCard_Plaid_Connection',

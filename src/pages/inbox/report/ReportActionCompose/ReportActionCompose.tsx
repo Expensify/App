@@ -21,6 +21,7 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -47,6 +48,7 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
+    isAdminRoom,
     isChatRoom,
     isConciergeChatReport,
     isGroupChat,
@@ -112,9 +114,8 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 
-    /** Whether the report screen is being displayed in the side panel */
-    isInSidePanel?: boolean;
-
+    /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
+    shouldHideStatusIndicators?: boolean;
     /** Function to trigger optimistic waiting indicator for Concierge */
     kickoffWaitingIndicator?: () => void;
 };
@@ -140,7 +141,7 @@ function ReportActionCompose({
     didHideComposerInput,
     reportTransactions,
     transactionThreadReportID,
-    isInSidePanel = false,
+    shouldHideStatusIndicators = false,
     kickoffWaitingIndicator,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
@@ -149,6 +150,7 @@ function ReportActionCompose({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+    const isInSidePanel = useIsInSidePanel();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -219,6 +221,7 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
+    const shouldShowConciergeIndicator = isConciergeChat || isAdminRoom(report);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
@@ -333,7 +336,7 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
-            if (isConciergeChat && kickoffWaitingIndicator) {
+            if (shouldShowConciergeIndicator && kickoffWaitingIndicator) {
                 kickoffWaitingIndicator();
             }
 
@@ -370,7 +373,7 @@ function ReportActionCompose({
             }
         },
         [
-            isConciergeChat,
+            shouldShowConciergeIndicator,
             kickoffWaitingIndicator,
             transactionThreadReport,
             report,
@@ -674,7 +677,7 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <ReportTypingIndicator reportID={reportID} />
+                        {!shouldHideStatusIndicators && <ReportTypingIndicator reportID={reportID} />}
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}

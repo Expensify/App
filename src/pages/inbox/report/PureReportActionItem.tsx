@@ -69,6 +69,7 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
+import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
@@ -467,7 +468,7 @@ type PureReportActionItemProps = {
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
     /** The billing grace end period's shared NVP collection */
-    userBillingGraceEndPeriodCollection: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -536,8 +537,11 @@ function PureReportActionItem({
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
-    userBillingGraceEndPeriodCollection,
+    userBillingGraceEndPeriods,
 }: PureReportActionItemProps) {
+    const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
+    const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
+
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
@@ -593,7 +597,7 @@ function PureReportActionItem({
         (isHiddenValue: boolean) => {
             setIsHidden(isHiddenValue);
             const message = Array.isArray(action.message) ? action.message?.at(-1) : action.message;
-            const isAttachment = CONST.ATTACHMENT_REGEX.test(message?.html ?? '') || isReportMessageAttachment(message);
+            const isAttachment = (message?.html ?? '').search(CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX) !== -1 || isReportMessageAttachment(message);
             if (!isAttachment) {
                 return;
             }
@@ -764,7 +768,7 @@ function PureReportActionItem({
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
             // Block menu on the message being Edited or if the report action item has errors
-            if (draftMessage !== undefined || !isEmptyValueObject(action.errors) || !shouldDisplayContextMenu) {
+            if (draftMessage !== undefined || !isEmptyValueObject(action.errors) || !shouldDisplayContextMenuValue) {
                 return;
             }
 
@@ -803,7 +807,7 @@ function PureReportActionItem({
             reportID,
             toggleContextMenuFromActiveReportAction,
             originalReportID,
-            shouldDisplayContextMenu,
+            shouldDisplayContextMenuValue,
             disabledActions,
             isArchivedRoom,
             isChronosReport,
@@ -827,9 +831,9 @@ function PureReportActionItem({
             action,
             transactionThreadReport,
             isDisabled: false,
-            shouldDisplayContextMenu,
+            shouldDisplayContextMenu: shouldDisplayContextMenuValue,
         }),
-        [report, action, transactionThreadReport, shouldDisplayContextMenu, isReportArchived],
+        [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived],
     );
 
     const contextMenuActionsValue = useMemo(
@@ -943,7 +947,7 @@ function PureReportActionItem({
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            userBillingGraceEndPeriodCollection,
+                            userBillingGraceEndPeriods,
                             amountOwed,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
@@ -966,7 +970,7 @@ function PureReportActionItem({
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
-                                userBillingGraceEndPeriodCollection,
+                                userBillingGraceEndPeriods,
                                 amountOwed,
                             });
                         },
@@ -983,7 +987,7 @@ function PureReportActionItem({
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
-                                userBillingGraceEndPeriodCollection,
+                                userBillingGraceEndPeriods,
                                 amountOwed,
                             });
                         },
@@ -1129,7 +1133,7 @@ function PureReportActionItem({
         report,
         originalReport,
         personalPolicyID,
-        userBillingGraceEndPeriodCollection,
+        userBillingGraceEndPeriods,
         amountOwed,
     ]);
 
@@ -1164,7 +1168,7 @@ function PureReportActionItem({
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    shouldDisplayContextMenu={shouldDisplayContextMenuValue}
                 />
             );
 
@@ -1179,7 +1183,7 @@ function PureReportActionItem({
                                 chatReportID={reportID}
                                 reportID={reportID}
                                 action={action}
-                                shouldDisplayContextMenu={shouldDisplayContextMenu}
+                                shouldDisplayContextMenu={shouldDisplayContextMenuValue}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
                                 transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
                                 containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, styles.mt1]}
@@ -1226,7 +1230,7 @@ function PureReportActionItem({
                     contextMenuAnchor={popoverAnchorRef.current}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    shouldDisplayContextMenu={shouldDisplayContextMenuValue}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -1244,7 +1248,7 @@ function PureReportActionItem({
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    shouldDisplayContextMenu={shouldDisplayContextMenuValue}
                     shouldShowBorder={shouldShowBorder}
                 />
             );
@@ -1264,7 +1268,7 @@ function PureReportActionItem({
                             contextMenuAnchor={popoverAnchorRef.current}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             policyID={report?.policyID}
-                            shouldDisplayContextMenu={shouldDisplayContextMenu}
+                            shouldDisplayContextMenu={shouldDisplayContextMenuValue}
                         />
                     </ShowContextMenuActionsContext.Provider>
                 </ShowContextMenuStateContext.Provider>
@@ -1276,7 +1280,7 @@ function PureReportActionItem({
 
             children = (
                 <ReportActionItemBasicMessage
-                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
+                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', submitterDisplayName)}
                 >
                     <>
                         {missingPaymentMethod === 'bankAccount' && (
@@ -1356,9 +1360,12 @@ function PureReportActionItem({
 
             if (wasAutoApproved) {
                 children = (
-                    <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyApproved')}</muted-text></comment>`} />
-                    </ReportActionItemBasicMessage>
+                    <ReportActionItemMessageWithExplain
+                        message={translate('iou.automaticallyApproved')}
+                        action={action}
+                        childReport={childReport}
+                        originalReport={originalReport}
+                    />
                 );
             } else if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToApproveViaDEW')} />;
@@ -1372,8 +1379,8 @@ function PureReportActionItem({
             if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
             } else if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                const last4Digits = policy?.achAccount?.accountNumber?.slice(-4) ?? '';
-
+                const originalMessage = getOriginalMessage(action);
+                const last4Digits = getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policy);
                 if (wasAutoPaid) {
                     const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
@@ -2069,7 +2076,7 @@ function PureReportActionItem({
                     {(hovered) => (
                         <View style={highlightedBackgroundColorIfNeeded}>
                             {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                            {shouldDisplayContextMenu && (
+                            {shouldDisplayContextMenuValue && (
                                 <MiniReportActionContextMenu
                                     reportID={reportID}
                                     reportActionID={action.reportActionID}
