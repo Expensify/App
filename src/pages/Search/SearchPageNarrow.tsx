@@ -12,7 +12,7 @@ import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import DeferredSearch from '@components/Search/DeferredSearch';
+import Search from '@components/Search';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
@@ -244,7 +244,8 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                     )}
                     {!searchRouterListVisible && (
                         <View style={[styles.flex1]}>
-                            <DeferredSearch
+                            <Search
+                                key={queryJSON.hash}
                                 searchResults={searchResults}
                                 queryJSON={queryJSON}
                                 onSearchListScroll={scrollHandler}

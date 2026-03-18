@@ -39,6 +39,7 @@ import type {
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {registerDeferredSearchWrite} from '@libs/deferredSearchWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -6430,10 +6431,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
-    // API.write is deferred by two animation frames so that Onyx optimistic updates
-    // don't block the JS thread during navigation to the search screen. The first frame
-    // lets React commit the navigation, the second lets the search list paint before
-    // Onyx processes the write and triggers collection-level re-renders.
+    // API.write is deferred until the Search screen's actual content (not skeleton)
+    // lays out, so that Onyx optimistic updates don't block the JS thread while
+    // the skeleton→content transition is in progress. The Search component flushes
+    // the registered write from its content onLayout callback.
     // Only the SUBMIT and default (REQUEST_MONEY) branches are deferred because they are
     // the paths that navigate to the search screen. CATEGORIZE and SHARE navigate
     // elsewhere and don't benefit from this deferral.
@@ -6587,11 +6588,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     }
 
     if (deferredAPIWrite) {
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                deferredAPIWrite?.();
-            });
-        });
+        registerDeferredSearchWrite(deferredAPIWrite);
     }
 
     if (activeReportID && !isMoneyRequestReport) {

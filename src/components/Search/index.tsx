@@ -37,6 +37,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {flushDeferredSearchWrite, hasDeferredSearchWrite} from '@libs/deferredSearchWrite';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -213,11 +214,12 @@ function Search({
     onDEWModalOpen,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
-    // When data is already cached, prevents useFocusEffect from re-enabling the skeleton
-    // on initial mount. DeferredSearch handles the one-frame skeleton; Search renders content immediately.
-    const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON));
+    // On the submit-expense→search path a deferred API write is pending.
+    // Force the skeleton so the user gets instant first paint while heavy work defers.
+    const hasPendingWriteOnMountRef = useRef(hasDeferredSearchWrite());
+    const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON) && !hasPendingWriteOnMountRef.current);
 
-    const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON));
+    const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON) || hasPendingWriteOnMountRef.current);
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -1311,6 +1313,7 @@ function Search({
         // Reset the ref after the span is ended so future render-time cancelSpan calls are no longer guarded.
         spanExistedOnMount.current = false;
         handleSelectionListScroll(sortedData, searchListRef.current);
+        flushDeferredSearchWrite();
     }, [handleSelectionListScroll, sortedData]);
 
     useEffect(() => {
@@ -1364,10 +1367,11 @@ function Search({
     );
 
     if (shouldShowLoadingState) {
+        const isSubmitExpensePath = hasPendingWriteOnMountRef.current;
         return (
             <Animated.View
-                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                entering={isSubmitExpensePath ? undefined : FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                exiting={isSubmitExpensePath ? undefined : FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 style={[styles.flex1]}
                 onLayout={onLayoutSkeleton}
             >
