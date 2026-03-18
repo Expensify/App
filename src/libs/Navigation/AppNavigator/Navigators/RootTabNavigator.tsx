@@ -9,6 +9,8 @@ import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {RootTabNavigatorParamList} from '@libs/Navigation/types';
@@ -44,6 +46,8 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
 function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state']}) {
     const {windowWidth} = useWindowDimensions();
     const isNarrow = Platform.OS !== 'web' || windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
+    const theme = useTheme();
     const selectedRouteName = tabState.routes[tabState.index]?.name;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[selectedRouteName ?? ''] ?? NAVIGATION_TABS.HOME;
 
@@ -52,15 +56,32 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     const isAtRoot = nestedStateIndex === undefined || nestedStateIndex === 0;
     const shouldHide = isNarrow && !isAtRoot;
 
+    if (isNarrow) {
+        // Negative marginTop makes the tab bar overlay the content above, taking zero space
+        // in the flex layout. This prevents layout shifts when toggling visibility and
+        // eliminates the gap between content and tab bar.
+        return (
+            <View
+                style={{
+                    overflow: 'visible',
+                    marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
+                    paddingBottom: safeAreaPaddingBottom,
+                    backgroundColor: theme.appBG,
+                    opacity: shouldHide ? 0 : 1,
+                }}
+                pointerEvents={shouldHide ? 'none' : 'auto'}
+            >
+                <NavigationTabBar
+                    selectedTab={selectedTab}
+                    shouldShowFloatingButtons={!shouldHide}
+                />
+            </View>
+        );
+    }
+
     return (
-        <View
-            style={{overflow: 'visible', opacity: shouldHide ? 0 : 1}}
-            pointerEvents={shouldHide ? 'none' : 'auto'}
-        >
-            <NavigationTabBar
-                selectedTab={selectedTab}
-                shouldShowFloatingButtons={!shouldHide}
-            />
+        <View style={{overflow: 'visible'}}>
+            <NavigationTabBar selectedTab={selectedTab} />
         </View>
     );
 }
