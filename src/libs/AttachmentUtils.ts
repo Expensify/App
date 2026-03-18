@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {cleanFileName, validateImageForCorruption} from './fileDownload/FileUtils';
@@ -75,7 +76,7 @@ function isFileCorrupted(fileObject: FileObject): Promise<AttachmentCorruptionVa
                 } satisfies AttachmentCorruptionValidationResult;
             }
 
-            if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            if (Str.isImage(fileObject.name ?? '') && fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                 return {
                     isValid: false,
                     error: 'tooSmall',
