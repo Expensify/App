@@ -171,8 +171,6 @@ function ReportActionCompose({
     const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
     const isEditingInComposer = shouldUseNarrowLayout && !!editingReportActionID && !didResetComposerHeight;
 
-    console.log({didResetComposerHeight, isEditingInComposer, editingReportActionID});
-
     useEffect(() => {
         if (editingReportActionID || !didResetComposerHeight) {
             return;
