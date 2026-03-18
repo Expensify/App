@@ -1151,7 +1151,14 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
 
     // Auto-detect: try known card programs in priority order.
     // Newer domains nest settings under US/GB, legacy ones under CURRENT.
-    const result = getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
+    // When TRAVEL_US exists, the US key may be a setupInvoicing artifact
+    // (written via raw SQL without Marqeta integration). Real card provisioning
+    // via ConfigureExpensifyCardsForPolicy always sets marqetaBusinessToken.
+    const hasTravelUS = !!getMergedProgramSettings(CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    const usSettings = getMergedProgramSettings(CONST.COUNTRY.US);
+    const realUS = usSettings && (!hasTravelUS || usSettings.marqetaBusinessToken) ? usSettings : undefined;
+
+    const result = realUS ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
     if (result) {
         return result;
     }
@@ -1159,7 +1166,7 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
     // Root-level fallback is for legacy flat domains only. If TRAVEL_US
     // exists, the root-level paymentBankAccountID is a billing artifact
     // from setupInvoicing, not actual e-card provisioning.
-    if (getMergedProgramSettings(CONST.TRAVEL.PROGRAM_TRAVEL_US)) {
+    if (hasTravelUS) {
         return undefined;
     }
 
