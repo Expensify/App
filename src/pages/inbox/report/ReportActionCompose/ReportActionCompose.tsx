@@ -59,7 +59,7 @@ import {
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
+import {useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -113,6 +113,14 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 };
+
+function AgentZeroAwareTypingIndicator({reportID}: {reportID: string}) {
+    const {shouldSuppressIndicators} = useAgentZeroStatus();
+    if (shouldSuppressIndicators) {
+        return null;
+    }
+    return <ReportTypingIndicator reportID={reportID} />;
+}
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device
@@ -664,7 +672,7 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <ReportTypingIndicator reportID={reportID} />
+                        <AgentZeroAwareTypingIndicator reportID={reportID} />
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}
