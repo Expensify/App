@@ -7818,7 +7818,6 @@ const CONST = {
             BEFORE: 'Before',
         },
         DATE_FILTER_SUB_PAGE: {
-            MAIN: 'main',
             ON: 'on',
             AFTER: 'after',
             BEFORE: 'before',

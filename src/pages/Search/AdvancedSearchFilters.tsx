@@ -81,27 +81,27 @@ const baseFilterConfig = {
     date: {
         getTitle: getFilterDisplayTitle,
         description: 'common.date' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, CONST.SEARCH.DATE_FILTER_SUB_PAGE.MAIN),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
     },
     submitted: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.submitted' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED, CONST.SEARCH.DATE_FILTER_SUB_PAGE.MAIN),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED),
     },
     approved: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.approved' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED, CONST.SEARCH.DATE_FILTER_SUB_PAGE.MAIN),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED),
     },
     paid: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.paid' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID, CONST.SEARCH.DATE_FILTER_SUB_PAGE.MAIN),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID),
     },
     exported: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.exported' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED, CONST.SEARCH.DATE_FILTER_SUB_PAGE.MAIN),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED),
     },
     exportedTo: {
         getTitle: getFilterDisplayTitle,
@@ -111,12 +111,12 @@ const baseFilterConfig = {
     posted: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.posted' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED, CONST.SEARCH.DATE_FILTER_SUB_PAGE.MAIN),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED),
     },
     withdrawn: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.withdrawn' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN, CONST.SEARCH.DATE_FILTER_SUB_PAGE.MAIN),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN),
     },
     currency: {
         getTitle: getFilterDisplayTitle,
