@@ -6,18 +6,7 @@ import type {BankAccountList, Card, CardList} from '@src/types/onyx';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
-import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
 import fileDownload from './fileDownload';
-
-/**
- * Feature flag to enable Travel CVV testing on Dev and Staging environments.
- * When enabled, it allows using any card for CVV reveal testing if no specific Travel Card is found.
- *
- * TODO: Remove this function and associated logic when Travel Invoicing is fully released
- */
-function isTravelCVVTestingEnabled(): boolean {
-    return isDevelopment() || isStaging() || isInternalTestBuild();
-}
 
 /**
  * Checks whether Travel Invoicing is enabled based on the card settings.
@@ -171,13 +160,7 @@ function getTravelInvoicingCard(cardList: OnyxEntry<CardList>) {
     }
 
     const allCards = Object.values(cardList).filter((card): card is Card => !!card && typeof card?.cardID === 'number');
-    const travelCard = allCards.find((card) => card.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    // If no travel card is found and testing is enabled, return the first available card
-    if (!travelCard && isTravelCVVTestingEnabled()) {
-        return allCards.find((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
-    }
-
-    return travelCard;
+    return allCards.find((card) => card.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US);
 }
 
 /**
@@ -201,7 +184,6 @@ export {
     downloadTravelInvoiceStatementPDF,
     getTravelInvoicingCard,
     isTravelCVVEligible,
-    isTravelCVVTestingEnabled,
 };
 
 export type {TravelSettlementAccountInfo};
