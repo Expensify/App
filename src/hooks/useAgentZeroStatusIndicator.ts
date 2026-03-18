@@ -1,8 +1,10 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 import {subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportNameValuePairs} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -33,10 +35,41 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     const lastUpdateTimeRef = useRef<number>(0);
     const {isOffline} = useNetwork();
 
+    // Tracks whether the NVP has been updated since the last kickoff.
+    // Onyx batches merges within a single tick, so when the client catches up on missed
+    // updates (e.g., via GetMissingOnyxMessages), a SET followed by CLEAR can be coalesced
+    // into a single notification with the final (empty) value. The hook would never see
+    // the intermediate non-empty server label, leaving optimisticStartTime stuck.
+    // This counter increments on every NVP write, letting us detect that the server
+    // processed the request even when the rendered value jumps directly to empty.
+    const nvpVersionRef = useRef<number>(0);
+    const kickoffNvpVersionRef = useRef<number>(0);
+
     // Minimum time to display a label before allowing change (prevents rapid flicker)
     const MIN_DISPLAY_TIME = 300; // ms
     // Debounce delay for server label updates
     const DEBOUNCE_DELAY = 150; // ms
+
+    // Subscribe to raw Onyx updates to count NVP writes.
+    // Onyx.connect fires its callback for each merge (before Onyx's internal batching
+    // coalesces them for React subscribers via useSyncExternalStore). This lets us
+    // detect changes that useOnyx's rendered value might skip.
+    useEffect(() => {
+        const connection = Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            callback: (value: ReportNameValuePairs | null) => {
+                const indicatorValue = value?.agentZeroProcessingRequestIndicator;
+                // Only count updates where the indicator field is explicitly present
+                // (set to a string, including empty string), not when the NVP object
+                // is updated for unrelated fields.
+                if (indicatorValue !== undefined) {
+                    nvpVersionRef.current += 1;
+                }
+            },
+        });
+
+        return () => Onyx.disconnect(connection);
+    }, [reportID]);
 
     useEffect(() => {
         setReasoningHistory(ConciergeReasoningStore.getReasoningHistory(reportID));
@@ -70,6 +103,11 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     useEffect(() => {
         const hadServerLabel = !!prevServerLabelRef.current;
         const hasServerLabel = !!serverLabel;
+
+        // Detect if the server has processed the request since kickoff.
+        // The NVP version counter increments on every Onyx write to the indicator field,
+        // including batched writes where intermediate values are coalesced.
+        const serverProcessedSinceKickoff = nvpVersionRef.current > kickoffNvpVersionRef.current;
 
         // Helper function to update label with timing control
         const updateLabel = (newLabel: string) => {
@@ -110,14 +148,24 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             }
         }
         // When optimistic state is active but no server label, show "Concierge is thinking..."
-        else if (optimisticStartTime) {
+        // Only persist optimistic state when the server has NOT yet processed the request.
+        // If the server already set and cleared the indicator (detected via version counter),
+        // the optimistic state is stale and should be cleared immediately.
+        else if (optimisticStartTime && !serverProcessedSinceKickoff) {
             const thinkingLabel = translate('common.thinking');
             updateLabel(thinkingLabel);
         }
-        // Clear everything when processing ends
-        else if (hadServerLabel && !hasServerLabel) {
-            updateLabel('');
-            if (reasoningHistory.length > 0) {
+        // Clear everything when processing ends — either via the normal transition
+        // (server label went from non-empty to empty), or when the optimistic state
+        // is stale (server responded and cleared but Onyx batching coalesced the updates).
+        else {
+            if (displayedLabel !== '') {
+                updateLabel('');
+            }
+            if (optimisticStartTime) {
+                setOptimisticStartTime(null);
+            }
+            if ((hadServerLabel || serverProcessedSinceKickoff) && reasoningHistory.length > 0) {
                 ConciergeReasoningStore.clearReasoning(reportID);
             }
         }
@@ -144,6 +192,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         if (!isAgentZeroChat) {
             return;
         }
+        kickoffNvpVersionRef.current = nvpVersionRef.current;
         setOptimisticStartTime(Date.now());
     }, [isAgentZeroChat]);
 

@@ -369,6 +369,78 @@ describe('useAgentZeroStatusIndicator', () => {
         });
     });
 
+    describe('batched Onyx updates (stuck indicator fix)', () => {
+        it('should clear optimistic state when server SET and CLEAR arrive in the same Onyx batch', async () => {
+            // Given a Concierge chat where the user triggered optimistic waiting
+            const isConciergeChat = true;
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
+            await waitForBatchedUpdates();
+
+            // User sends message → optimistic waiting state
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe('Thinking...');
+
+            // When the client missed the real-time Pusher events (e.g., tab was backgrounded)
+            // and catches up via GetMissingOnyxMessages, both the SET and CLEAR arrive
+            // in the same Onyx batch. The final merged state is empty string.
+            // Simulate this by setting the server label and then immediately clearing it.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: 'Concierge is looking up categories...',
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: '',
+            });
+
+            // Then the indicator should be fully cleared and not stuck showing "Thinking..."
+            await waitForBatchedUpdates();
+            await waitFor(() => {
+                expect(result.current.isProcessing).toBe(false);
+            });
+            expect(result.current.statusLabel).toBe('');
+        });
+
+        it('should clear optimistic state when server CLEAR arrives without a preceding SET being seen', async () => {
+            // Given a Concierge chat where the user triggered optimistic waiting
+            const isConciergeChat = true;
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
+            await waitForBatchedUpdates();
+
+            // User sends message → optimistic waiting state
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe('Thinking...');
+
+            // When the server sets a label (processing started)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: 'Processing...',
+            });
+            await waitForBatchedUpdates();
+
+            await waitFor(() => {
+                expect(result.current.statusLabel).toBe('Processing...');
+            });
+
+            // And then clears it (processing complete)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: '',
+            });
+
+            // Then the indicator should be fully cleared
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(false);
+            expect(result.current.statusLabel).toBe('');
+        });
+    });
+
     describe('final response handling', () => {
         it('should clear optimistic state and reasoning history when final response arrives', async () => {
             // Given a Concierge chat with reasoning history in the store
