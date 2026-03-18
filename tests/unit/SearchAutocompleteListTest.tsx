@@ -181,7 +181,7 @@ describe('SearchAutocompleteList', () => {
             ...mockedReports,
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
             [ONYXKEYS.BETAS]: mockedBetas,
-            [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
+            [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
         });
 

@@ -149,7 +149,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {currentSearchHash} = useSearchStateContext();
-    const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
+    const {removeTransaction} = useSearchActionsContext();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
 
     // State
@@ -472,8 +472,9 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     );
                     return;
                 }
-                setSelectedTransactions([transaction.transactionID]);
-                Navigation.navigate(ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, Navigation.getActiveRoute()));
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, Navigation.getActiveRoute(), transaction.transactionID),
+                );
             },
         },
     };
