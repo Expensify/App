@@ -1736,6 +1736,17 @@ const CONST = {
             FAB_OUT: 200,
         },
     },
+    FAB_MENU_ITEM_IDS: {
+        QUICK_ACTION: 'quick-action',
+        EXPENSE: 'expense',
+        TRACK_DISTANCE: 'track-distance',
+        CREATE_REPORT: 'create-report',
+        NEW_CHAT: 'new-chat',
+        INVOICE: 'invoice',
+        TRAVEL: 'travel',
+        TEST_DRIVE: 'test-drive',
+        NEW_WORKSPACE: 'new-workspace',
+    },
     TIMING: {
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
@@ -1743,6 +1754,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME: 1000,
         SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
@@ -1755,7 +1767,6 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
-        GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
     TELEMETRY: {
@@ -2182,6 +2193,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
+        PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
         NUMBERS_AND_PUNCTUATION: 'numbers-and-punctuation',
