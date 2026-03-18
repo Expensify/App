@@ -37,6 +37,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const rhpRoutes = useNavigationState((state) => state.routes);
     const defaultApprover = getDefaultApprover(policy);
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
+    // Keep the removed approver visible until navigation finishes.
+    // Without this temporary state, clearing the approver immediately causes the empty state to flash
+    // while this screen is still mounted during the dismiss animation.
     const [removingApproverEmail, setRemovingApproverEmail] = useState<string>();
 
     const isChangeApproverRoute = route.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE;
