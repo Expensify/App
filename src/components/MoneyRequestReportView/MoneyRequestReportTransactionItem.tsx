@@ -133,7 +133,7 @@ function MoneyRequestReportTransactionItem({
                 id={transaction.transactionID}
                 style={[
                     styles.transactionListItemStyle,
-                    isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
+                    isLargeScreenWidth && {minHeight: variables.tableRowHeight, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
                 ]}
                 hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

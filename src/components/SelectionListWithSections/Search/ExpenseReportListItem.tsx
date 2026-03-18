@@ -164,7 +164,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.selectionListPressableItemWrapper,
             isLargeScreenWidth ? styles.pv2 : styles.pv3,
             styles.ph3,
-            isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
+            isLargeScreenWidth && {minHeight: variables.tableRowHeight, borderRadius: 0, ...(isLastItem ? {borderBottomLeftRadius: 8, borderBottomRightRadius: 8} : {})},
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
