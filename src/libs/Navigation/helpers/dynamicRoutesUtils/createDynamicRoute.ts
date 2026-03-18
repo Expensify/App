@@ -44,7 +44,7 @@ const combinePathAndSuffix = (basePath: string, suffixWithQuery: string): Route 
     const [suffixPath, suffixQuery] = splitPathAndQuery(suffixWithQuery);
 
     if (!normalizedBasePath) {
-        Log.hmmm('[createDynamicRoute.ts] Path is undefined or empty, returning suffix only', {basePath, suffixWithQuery});
+        Log.warn('[createDynamicRoute.ts] Path is undefined or empty, returning suffix only', {basePath, suffixWithQuery});
         return suffixWithQuery as Route;
     }
 
