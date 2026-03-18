@@ -46,9 +46,6 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
     const getOtherFeeds = () => {
         const otherPolicyFeeds: CardFeedListItem[] = [];
         for (const [feedPolicyID, cardFeeds] of Object.entries(cardFeedsByPolicy ?? {})) {
-            if (feedPolicyID === policyID) {
-                continue;
-            }
             for (const feed of cardFeeds) {
                 if (feed?.linkedPolicyIDs?.includes(policyID)) {
                     continue;
@@ -56,7 +53,7 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
                 const feedName = feed.feed;
                 const plaidUrl = getPlaidInstitutionIconUrl(feedName);
                 const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feed.fundID}`];
-                const feedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${feedPolicyID}`];
+                const feedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${feed?.linkedPolicyIDs?.[0] ?? feedPolicyID}`];
                 const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
                 const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feed.id];
 

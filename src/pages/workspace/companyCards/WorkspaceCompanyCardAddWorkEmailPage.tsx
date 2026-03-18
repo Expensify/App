@@ -1,5 +1,5 @@
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -8,6 +8,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -15,6 +16,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setContactMethodAsDefault} from '@libs/actions/User';
+import {getFeedInfo} from '@libs/CardFeedUtils';
+import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,12 +25,17 @@ import {isValidEmail} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {updateSelectedFeed} from '@userActions/Card';
+import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import {AddWorkEmail} from '@userActions/Session';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddWorkEmailForm';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceCompanyCardAddWorkEmailPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL>;
@@ -40,19 +48,42 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [loading, setLoading] = useState(false);
+    const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
+    const feedInfo = getFeedInfo(feed, cardFeedsByPolicy);
 
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [email, setEmail] = React.useState('');
+    const isWorkEmailValidated = email ? !!loginList?.[email]?.validatedDate : false;
 
     const emailInputRef = useRef<AnimatedTextInputRef>(null);
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>) => {
         const submittedEmail = values[INPUT_IDS.EMAIL].trim();
         const existingLoginKey = Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === submittedEmail.toLowerCase());
+        const isEmailAlreadyUsed = !!loginList?.[submittedEmail]?.validatedDate;
 
         if (existingLoginKey) {
             setContactMethodAsDefault(currentUserPersonalDetails, allPolicies, existingLoginKey, formatPhoneNumber, undefined, true);
+            if (!feedInfo) {
+                return;
+            }
+            if (isEmailAlreadyUsed) {
+                setLoading(true);
+                const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
+                linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber)
+                    .then(() => {
+                        updateSelectedFeed(feedValue, policyID);
+                        Navigation.closeRHPFlow();
+                    })
+                    .catch((error: TranslationPaths) => {
+                        addErrorMessage({}, INPUT_IDS.EMAIL, translate(error));
+                    })
+                    .finally(() => {
+                        setLoading(false);
+                    });
+            }
         } else {
             AddWorkEmail(submittedEmail);
         }
@@ -60,11 +91,11 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     };
 
     useEffect(() => {
-        if (!email || !primaryContactMethod || primaryContactMethod.toLowerCase() !== email.toLowerCase()) {
+        if (!email || !primaryContactMethod || primaryContactMethod.toLowerCase() !== email.toLowerCase() || isWorkEmailValidated) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
-    }, [primaryContactMethod, email, policyID, feed]);
+    }, [primaryContactMethod, email, policyID, feed, isWorkEmailValidated]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>): Errors => {
         const errors = {};
@@ -73,9 +104,9 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
         const domain = emailParts.at(1) ?? '';
 
         if (!values.email) {
-            addErrorMessage(errors, 'email', translate('common.error.fieldRequired'));
+            addErrorMessage(errors, INPUT_IDS.EMAIL, translate('common.error.fieldRequired'));
         } else if (values.email.length > CONST.LOGIN_CHARACTER_LIMIT) {
-            addErrorMessage(errors, 'email', translate('common.error.characterLimitExceedCounter', values.email.length, CONST.LOGIN_CHARACTER_LIMIT));
+            addErrorMessage(errors, INPUT_IDS.EMAIL, translate('common.error.characterLimitExceedCounter', values.email.length, CONST.LOGIN_CHARACTER_LIMIT));
         } else if (session?.email && userEmail.toLowerCase() === session.email.toLowerCase() && !isOffline) {
             addErrorMessage(errors, INPUT_IDS.EMAIL, translate('onboarding.workEmailValidationError.sameAsSignupEmail'));
         } else if ((!Str.isValidEmail(userEmail) || PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) && !isOffline) {
@@ -90,7 +121,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
         const isEmailInvalid = !!values.email && !isValidEmail(values.email);
 
         if (isEmailInvalid) {
-            addErrorMessage(errors, 'email', translate('messages.errorMessageInvalidEmail'));
+            addErrorMessage(errors, INPUT_IDS.EMAIL, translate('messages.errorMessageInvalidEmail'));
         }
         return errors;
     };
@@ -112,6 +143,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                     formID={ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM}
                     validate={validate}
                     onSubmit={handleSubmit}
+                    isLoading={loading}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.ph5, styles.pb3]}
                 >
