@@ -1693,6 +1693,16 @@ function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => voi
     fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_DOMAIN_MEMBERS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+/**
+ * Moves a domain member from one security group to another with optimistic updates.
+ * @param domainAccountID - The account ID of the domain
+ * @param domainName - The name of the domain
+ * @param employeeEmail - The email of the member being moved
+ * @param accountID - The account ID of the member being moved
+ * @param currentSecurityGroupKey - The Onyx key of the member's current security group
+ * @param currentSecurityGroup - The current security group data
+ * @param targetSecurityGroupKey - The Onyx key of the target security group
+ */
 function changeDomainSecurityGroup(
     domainAccountID: number,
     domainName: string,

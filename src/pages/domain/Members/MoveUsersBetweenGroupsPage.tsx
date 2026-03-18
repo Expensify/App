@@ -61,20 +61,13 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
             const accountID = Number(accountIDString);
             const memberLogin = personalDetails?.[accountID]?.login ?? '';
             const currentGroupData = selectSecurityGroupForAccount(accountID)(domain);
+            const newSecurityGroupKey: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${selectedGroupId}`;
 
-            if (!currentGroupData) {
+            if (!currentGroupData || newSecurityGroupKey === currentGroupData.key) {
                 continue;
             }
 
-            changeDomainSecurityGroup(
-                domainAccountID,
-                domainName,
-                memberLogin,
-                accountID,
-                currentGroupData.key,
-                currentGroupData.securityGroup,
-                `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${selectedGroupId}`,
-            );
+            changeDomainSecurityGroup(domainAccountID, domainName, memberLogin, accountID, currentGroupData.key, currentGroupData.securityGroup, newSecurityGroupKey);
         }
 
         clearDomainMembersSelectedForMove();
