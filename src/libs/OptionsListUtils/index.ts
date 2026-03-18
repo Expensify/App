@@ -130,6 +130,7 @@ import {
     getReportSubtitlePrefix,
     getReportTransactions,
     getUnreportedTransactionMessage,
+    getViolatingReportIDForRBRInLHN,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
     isChatThread,
@@ -151,7 +152,6 @@ import {
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
     isTaskReport as reportUtilsIsTaskReport,
-    shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -2106,7 +2106,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         isTimeRequest = false,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
-    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(option.item, transactionViolations);
+    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations);
 
     const shouldBeInOptionList = shouldReportBeInOptionList({
         report: option.item,
