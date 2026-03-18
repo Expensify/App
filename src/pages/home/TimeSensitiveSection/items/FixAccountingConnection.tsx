@@ -23,7 +23,7 @@ function FixAccountingConnection({connectionName, policyID, policyName}: FixAcco
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
 
-    const integrationName = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+    const integrationName = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'accounting';
     const subtitle = policyName
         ? translate('homePage.timeSensitiveSection.fixAccountingConnection.subtitle', {policyName})
         : translate('homePage.timeSensitiveSection.fixAccountingConnection.defaultSubtitle');
