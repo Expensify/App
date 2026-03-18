@@ -587,49 +587,58 @@ function MoneyRequestConfirmationListFooter({
 
     const fields: ConfirmationField[] = [
         {
-            item: isNewManualExpenseFlowEnabled && !isAmountFieldDisabled ? (
-                <View style={[styles.mh4, styles.mb2]}>
-                    <NumberWithSymbolForm
-                        displayAsTextInput
-                        value={transactionAmount}
-                        decimals={decimals}
-                        currency={selectedCurrency}
-                        symbol={getLocalizedCurrencySymbol(preferredLocale, selectedCurrency) ?? ''}
-                        label={translate('iou.amount')}
-                        errorText={shouldShowAmountRequiredError ? translate('common.error.fieldRequired') : ''}
-                        onInputChange={handleAmountChange}
-                        allowNegativeInput={allowNegative}
-                        shouldShowFlipButton
-                        shouldShowCurrencyButton
-                        shouldShowBigNumberPad={false}
-                        onCurrencyButtonPress={showCurrencyPicker}
-                        disabled={isAmountFieldDisabled}
-                    />
-                </View>
-            ) : (
-                <MenuItemWithTopDescription
-                    key={translate('iou.amount')}
-                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields}
-                    title={formattedAmount}
-                    description={translate('iou.amount')}
-                    interactive={!isReadOnly && !shouldShowTimeRequestFields}
-                    onPress={() => {
-                        if (isDistanceRequest || shouldShowTimeRequestFields || !transactionID) {
-                            return;
-                        }
+            item:
+                isNewManualExpenseFlowEnabled && !isAmountFieldDisabled ? (
+                    <View style={[styles.mh4, styles.mb2]}>
+                        <NumberWithSymbolForm
+                            displayAsTextInput
+                            value={transactionAmount}
+                            decimals={decimals}
+                            currency={selectedCurrency}
+                            symbol={getLocalizedCurrencySymbol(preferredLocale, selectedCurrency) ?? ''}
+                            label={translate('iou.amount')}
+                            errorText={shouldShowAmountRequiredError ? translate('common.error.fieldRequired') : ''}
+                            onInputChange={handleAmountChange}
+                            allowNegativeInput={allowNegative}
+                            shouldShowFlipButton
+                            shouldShowCurrencyButton
+                            shouldShowBigNumberPad={false}
+                            onCurrencyButtonPress={showCurrencyPicker}
+                            disabled={isAmountFieldDisabled}
+                        />
+                    </View>
+                ) : (
+                    <MenuItemWithTopDescription
+                        key={translate('iou.amount')}
+                        shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields}
+                        title={formattedAmount}
+                        description={translate('iou.amount')}
+                        interactive={!isReadOnly && !shouldShowTimeRequestFields}
+                        onPress={() => {
+                            if (isDistanceRequest || shouldShowTimeRequestFields || !transactionID) {
+                                return;
+                            }
 
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, reportActionID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute()),
-                        );
-                    }}
-                    style={[styles.moneyRequestMenuItem, styles.mt2]}
-                    titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayFieldError && isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
-                />
-            ),
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(
+                                    action,
+                                    iouType,
+                                    transactionID,
+                                    reportID,
+                                    reportActionID,
+                                    CONST.IOU.PAGE_INDEX.CONFIRM,
+                                    Navigation.getActiveRoute(),
+                                ),
+                            );
+                        }}
+                        style={[styles.moneyRequestMenuItem, styles.mt2]}
+                        titleStyle={styles.moneyRequestConfirmationAmount}
+                        disabled={didConfirm}
+                        brickRoadIndicator={shouldDisplayFieldError && isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={shouldDisplayFieldError && isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
+                    />
+                ),
             shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
             shouldShowAboveShowMore: false,
         },
