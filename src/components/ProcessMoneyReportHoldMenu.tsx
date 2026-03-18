@@ -103,7 +103,7 @@ function ProcessMoneyReportHoldMenu({
             return;
         }
 
-        if (chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             onClose();
             onNonReimbursablePaymentError?.();
             return;
