@@ -91,24 +91,6 @@
             display: none;
         }
 
-        /* Thin scrollbars to prevent layout shift on systems with persistent scrollbars (e.g. macOS with mouse) */
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
-        }
-        *::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-            background: transparent;
-        }
-        *::-webkit-scrollbar-thumb {
-            background: rgba(128, 128, 128, 0.4);
-            border-radius: 3px;
-        }
-        *::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
         /* Customize Plaid iframe */
         [id^="plaid-link-iframe"] {
             color-scheme: dark !important;
