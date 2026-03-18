@@ -55,7 +55,7 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 
 # FAQ
 
-## Why is Expensify Card not showing under Reconciliation
+## Why is Expensify Card not showing under Reconciliation?
 
 The Expensify Card option only appears when the feature is enabled for your Workspace. If you don’t see it, confirm that the Expensify Card is enabled and active.
 
