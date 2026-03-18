@@ -4937,6 +4937,7 @@ function canEditFieldOfMoneyRequest(
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         return (
+            !isClosedReport(moneyRequestReport) &&
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&

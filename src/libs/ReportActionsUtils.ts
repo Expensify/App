@@ -2110,7 +2110,9 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT:
             return translate('report.actions.type.outdatedBankAccount');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE:
-            return translate('report.actions.type.reimbursementACHBounce');
+            return originalMessage?.returnReason
+                ? translate('report.actions.type.reimbursementACHBounceWithReason', {returnReason: originalMessage.returnReason})
+                : translate('report.actions.type.reimbursementACHBounceDefault');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED:
             return translate('report.actions.type.reimbursementACHCancelled');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
