@@ -37,7 +37,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLines']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLinesPlus']);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -257,8 +257,8 @@ function QuickCreationActionsBar() {
             {shouldShowBookTravel && (
                 <Button
                     small
-                    icon={icons.LuggageWithLines}
-                    text={translate('travel.bookTravel')}
+                    icon={icons.LuggageWithLinesPlus}
+                    text={translate('workspace.common.travel')}
                     onPress={handleBookTravel}
                     style={styles.quickCreationActionsBarButton}
                     textStyles={styles.quickCreationActionsBarButtonText}
