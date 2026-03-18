@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useTableContext} from './TableContext';
@@ -62,9 +63,16 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
 
     const message = getEmptyMessage();
 
+    useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
+
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{message}</Text>
+            <Text
+                style={[styles.textNormal, styles.colorMuted]}
+                aria-hidden
+            >
+                {message}
+            </Text>
         </View>
     );
 
