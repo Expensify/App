@@ -2488,10 +2488,7 @@ function compareDuplicateTransactionFields(
 
                 if (!areAllFieldsEqualForKey && validTaxes.length > 1) {
                     change[fieldName] = validTaxes;
-                } else if (areAllFieldsEqualForKey) {
-                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 } else {
-                    // Preserve the first transaction's taxCode (even if disabled) to avoid blanking it during duplicate resolution
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'category') {
@@ -2502,10 +2499,7 @@ function compareDuplicateTransactionFields(
 
                 if (!areAllFieldsEqualForKey && policy?.areCategoriesEnabled && (availableCategories.length > 1 || (availableCategories.length === 1 && differentValues.includes('')))) {
                     change[fieldName] = [...availableCategories, ...(differentValues.includes('') ? [''] : [])];
-                } else if (areAllFieldsEqualForKey) {
-                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 } else {
-                    // Preserve the first transaction's category (even if disabled) to avoid blanking it during duplicate resolution
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'tag') {
@@ -2524,10 +2518,7 @@ function compareDuplicateTransactionFields(
                         .map((e) => e.name);
                     if (!areAllFieldsEqualForKey && policy?.areTagsEnabled && (availableTags.length > 1 || (availableTags.length === 1 && differentValues.includes('')))) {
                         change[fieldName] = [...availableTags, ...(differentValues.includes('') ? [''] : [])];
-                    } else if (areAllFieldsEqualForKey) {
-                        keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                     } else {
-                        // Preserve the first transaction's tag (even if disabled) to avoid blanking it during duplicate resolution
                         keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                     }
                 }
