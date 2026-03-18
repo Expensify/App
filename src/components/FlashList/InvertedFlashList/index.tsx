@@ -1,14 +1,29 @@
 import type {FlashListProps} from '@shopify/flash-list';
 import React from 'react';
+import useFlashListScrollKey from '@components/FlashList/useFlashListScrollKey';
 import FlashList from '..';
 import CellRendererComponent from './CellRendererComponent';
 
-function InvertedFlashList<T>(props: FlashListProps<T>) {
+type InvertedFlashListProps<T> = FlashListProps<T> & {
+    initialScrollKey?: string | null;
+    data: T[];
+    keyExtractor: (item: T, index: number) => string;
+};
+
+function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, ...restProps}: InvertedFlashListProps<T>) {
+    const {displayedData} = useFlashListScrollKey<T>({
+        data,
+        keyExtractor,
+        initialScrollKey,
+    });
+
     return (
         <FlashList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...restProps}
             inverted
+            data={displayedData}
+            keyExtractor={keyExtractor}
             CellRendererComponent={CellRendererComponent}
         />
     );
