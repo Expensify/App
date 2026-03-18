@@ -79,6 +79,7 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
             title: `${translate('report.newReport.emptyReportConfirmationTitle')} `,
             confirmText: translate('report.newReport.createReport'),
             cancelText: translate('common.cancel'),
+            shouldHandleNavigationBack: false,
             prompt: (
                 <ConfirmationPrompt
                     workspaceName={workspaceDisplayName}
