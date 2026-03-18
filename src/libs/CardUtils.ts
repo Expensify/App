@@ -1151,10 +1151,7 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
 
     // Auto-detect: try known card programs in priority order.
     // Newer domains nest settings under US/GB, legacy ones under CURRENT.
-    const result =
-        getMergedProgramSettings(CONST.COUNTRY.US) ??
-        getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ??
-        getMergedProgramSettings(CONST.COUNTRY.GB);
+    const result = getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
     if (result) {
         return result;
     }
@@ -1170,7 +1167,7 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
     // The flat root fallback supports domains that the backend still sends without nesting
     // (e.g. older accounts that haven't been migrated). Writes always go to the nested key
     // (via getCardProgramKey), so this flat path is read-only display fallback only.
-    return (cardSettings as ExpensifyCardSettingsBase);
+    return cardSettings as ExpensifyCardSettingsBase;
 }
 
 function isCardPendingIssue(card?: Card) {
