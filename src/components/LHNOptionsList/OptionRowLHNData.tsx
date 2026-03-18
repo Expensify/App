@@ -113,6 +113,8 @@ function OptionRowLHNData({
     }, [
         fullReport,
         reportAttributes?.brickRoadStatus,
+        reportAttributes?.actionBadge,
+        reportAttributes?.actionTargetReportActionID,
         reportAttributes?.reportName,
         areReportErrorsEqual,
         oneTransactionThreadReport,

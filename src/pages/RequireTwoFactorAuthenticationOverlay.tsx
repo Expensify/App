@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,8 +38,8 @@ const is2FARequiredBecauseOfXeroSelector = (email?: string) => {
 function RequireTwoFactorAuthenticationOverlay() {
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
     const isIn2FASetupFlow = useNavigationState((state) => {
-        const focusedScreenName = getDeepestFocusedScreenName(state);
-        return isTwoFactorSetupScreen(focusedScreenName);
+        const focusedScreen = getDeepestFocusedScreen(state);
+        return isTwoFactorSetupScreen(focusedScreen?.name);
     });
 
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);

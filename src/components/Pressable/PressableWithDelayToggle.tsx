@@ -67,6 +67,9 @@ type PressableWithDelayToggleProps = PressableProps & {
 
     /** Icon height */
     iconHeight?: number;
+
+    /** Custom accessibility label that overrides the tooltipText-based label for both states */
+    accessibilityLabel?: string;
 };
 
 function PressableWithDelayToggle({
@@ -83,11 +86,12 @@ function PressableWithDelayToggle({
     icon,
     ref,
     accessibilityRole = CONST.ROLE.BUTTON,
+    sentryLabel,
     shouldHaveActiveBackground,
     iconWidth = variables.iconSizeSmall,
     iconHeight = variables.iconSizeSmall,
     shouldUseButtonBackground = false,
-    sentryLabel,
+    accessibilityLabel: accessibilityLabelProp,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -108,8 +112,8 @@ function PressableWithDelayToggle({
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Fallback to visible text when tooltip is empty for screen readers
-    const processedAccessibilityLabel = tooltipTexts || (!isActive && textChecked ? textChecked : text) || '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
+    const accessibilityLabel = accessibilityLabelProp || (!isActive ? tooltipTextChecked || textChecked : tooltipText || text) || text || '';
     const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
     const labelText =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -133,7 +137,7 @@ function PressableWithDelayToggle({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
             ref={ref as any}
             onPress={updatePressState}
-            accessibilityLabel={processedAccessibilityLabel}
+            accessibilityLabel={accessibilityLabel}
             suppressHighlighting={inline ? true : undefined}
             accessibilityRole={accessibilityRole}
         >

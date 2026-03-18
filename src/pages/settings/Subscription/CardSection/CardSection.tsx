@@ -28,6 +28,7 @@ import {
     isUserOnFreeTrial,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
+    shouldShowTrialEndedUI,
 } from '@libs/SubscriptionUtils';
 import {verifySetupIntent} from '@userActions/PaymentMethods';
 import {clearOutstandingBalance} from '@userActions/Subscription';
@@ -82,6 +83,7 @@ function CardSection() {
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [isGrandfatheredFree] = useOnyx(ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE);
     const requestRefund = useCallback(() => {
         requestRefundByUser();
         Navigation.goBackToHome();
@@ -200,7 +202,7 @@ function CardSection() {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
         BillingBanner = <TrialStartedBillingBanner />;
-    } else if (hasUserFreeTrialEnded(lastDayFreeTrial)) {
+    } else if (shouldShowTrialEndedUI(lastDayFreeTrial, userBillingFundID, allPolicies, isGrandfatheredFree, account?.isFromInternalDomain, privateSubscription?.type)) {
         BillingBanner = <TrialEndedBillingBanner />;
     }
     if (billingStatus) {
