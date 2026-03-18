@@ -158,11 +158,14 @@ import {
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
+    getPerDiemCustomUnit,
+    getPolicyByCustomUnitID,
     getPolicyNameByID,
     getPolicyRole,
     getRuleApprovers,
     getSubmitToAccountID,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    hasDynamicExternalWorkflow,
     isExpensifyTeam,
     isInstantSubmitEnabled,
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
@@ -844,6 +847,7 @@ type OptionData = {
     allReportErrors?: Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    actionTargetReportActionID?: string;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
@@ -3013,7 +3017,7 @@ type GetAddExpenseDropdownOptionsParams = {
     icons: Record<'Location' | 'ReceiptPlus', IconAsset>;
     iouReportID: string | undefined;
     policy: OnyxEntry<Policy>;
-    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     draftTransactionIDs: string[] | undefined;
     amountOwed: OnyxEntry<number>;
     ownerBillingGraceEndPeriod: OnyxEntry<number>;
@@ -3027,7 +3031,7 @@ function getAddExpenseDropdownOptions({
     icons,
     iouReportID,
     policy,
-    userBillingGraceEndPeriodCollection,
+    userBillingGraceEndPeriods,
     draftTransactionIDs,
     amountOwed,
     ownerBillingGraceEndPeriod,
@@ -3048,7 +3052,7 @@ function getAddExpenseDropdownOptions({
                 if (
                     policy &&
                     policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                    shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, amountOwed, ownerBillingGraceEndPeriod)
+                    shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)
                 ) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
@@ -3065,7 +3069,7 @@ function getAddExpenseDropdownOptions({
                 if (!iouReportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, amountOwed, ownerBillingGraceEndPeriod)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -3078,7 +3082,7 @@ function getAddExpenseDropdownOptions({
             icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, amountOwed, ownerBillingGraceEndPeriod)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -4778,6 +4782,11 @@ function canEditMoneyRequest(
         return true;
     }
 
+    // On policies with Dynamic External Workflow, non-admin/managers should only be able to submit their expenses on open reports
+    if (!isOpenReport(moneyRequestReport) && hasDynamicExternalWorkflow(reportPolicy)) {
+        return false;
+    }
+
     if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
         const isForwarded = getSubmitToAccountID(reportPolicy, moneyRequestReport) !== moneyRequestReport.managerID;
         return !isForwarded;
@@ -4935,6 +4944,7 @@ function canEditFieldOfMoneyRequest(
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         return (
+            !isClosedReport(moneyRequestReport) &&
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
@@ -4954,6 +4964,14 @@ function canEditFieldOfMoneyRequest(
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
         if (isUnreportedExpense) {
+            if (isPerDiemRequest(transaction)) {
+                // For unreported per diem expenses, check if there's a valid policy with rates.
+                const perDiemPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
+                const perDiemCustomUnit = getPerDiemCustomUnit(perDiemPolicy);
+                if (!perDiemPolicy?.arePerDiemRatesEnabled || isEmptyObject(perDiemCustomUnit?.rates)) {
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -5666,7 +5684,7 @@ function getAdminRoomInvitedParticipants(translate: LocalizedTranslate, parentRe
 /**
  * Parse html of reportAction into text
  */
-function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined, childReportID?: string): string {
+function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined, conciergeReportID: string | undefined, childReportID?: string): string {
     if (!reportAction) {
         return '';
     }
@@ -5690,7 +5708,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
         if (match[1] !== childReportID) {
             // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
             // eslint-disable-next-line @typescript-eslint/no-use-before-define, @typescript-eslint/no-deprecated
-            reportIDToName[match[1]] = getReportName({report: getReportOrDraftReport(match[1])}) ?? '';
+            reportIDToName[match[1]] = getReportName({report: getReportOrDraftReport(match[1]), conciergeReportID}) ?? '';
         }
     }
 
@@ -5722,6 +5740,7 @@ function getReportActionMessage({
     childReportID,
     reports,
     personalDetails,
+    conciergeReportID,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     translate: LocalizedTranslate;
@@ -5730,6 +5749,7 @@ function getReportActionMessage({
     childReportID?: string;
     reports?: Report[];
     personalDetails?: Partial<PersonalDetailsList>;
+    conciergeReportID: string | undefined;
 }) {
     if (isEmptyObject(reportAction)) {
         return '';
@@ -5775,7 +5795,7 @@ function getReportActionMessage({
         return getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, getReportOrDraftReport(reportID, reports));
     }
 
-    return parseReportActionHtmlToText(reportAction, reportID, childReportID);
+    return parseReportActionHtmlToText(reportAction, reportID, conciergeReportID, childReportID);
 }
 
 /**
@@ -5869,6 +5889,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
             childReportID: report?.reportID,
             reports,
             personalDetails,
+            conciergeReportID,
         }).replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
         if (isAttachment && reportActionMessage) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -5895,7 +5916,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
 
             const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
             const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-            const modifiedMessage = getForReportAction({
+            const modifiedMessageWithHTML = getForReportAction({
                 reportAction: parentReportAction,
                 policyID,
                 movedFromReport,
@@ -5903,6 +5924,8 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
                 // Temporarily retrieves current user email from getCurrentUserEmail, since getReportName is deprecated and no longer requires this parameter to be passed explicitly.
                 currentUserLogin: getCurrentUserEmail() ?? '',
             });
+            // Strip HTML tags for plain text display in report last message
+            const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);
             return formatReportLastMessageText(modifiedMessage);
         }
         if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
@@ -6137,7 +6160,12 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(
+    report: OnyxEntry<Report>,
+    conciergeReportID: string | undefined,
+    isParentReportArchived = false,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 
     if (isEmptyObject(parentReport)) {
@@ -6176,7 +6204,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
     return {
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        reportName: getReportName({report: parentReport, reportAttributes}),
+        reportName: getReportName({report: parentReport, reportAttributes, conciergeReportID}),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
 }
@@ -7857,6 +7885,7 @@ function buildOptimisticChatReport({
         reportParticipants[accountID] = participant;
         return reportParticipants;
     }, {} as Participants);
+
     const currentTime = DateUtils.getDBTime();
     const optimisticChatReport: OptimisticChatReport = {
         type: CONST.REPORT.TYPE.CHAT,
@@ -9081,57 +9110,51 @@ function shouldHideReport(
 }
 
 /**
- * Should we display a RBR on the LHN on this report due to violations?
+ * Returns the reportID of the first child expense report that has violations under the same policy,
+ * or undefined if none found. Used to find the REPORT_PREVIEW action to deep-link to.
  */
-function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>): string | null {
     // We only show the RBR in the highest level, which is the expense chat
     if (!report || !isPolicyExpenseChat(report)) {
-        return false;
+        return null;
     }
 
     // We only show the RBR to the submitter
     if (!isCurrentUserSubmitter(report)) {
-        return false;
+        return null;
     }
     if (!report.policyID || !reportsByPolicyID) {
-        return false;
+        return null;
     }
 
     // If any report has a violation, then it should have a RBR
     const potentialReports = Object.values(reportsByPolicyID[report.policyID] ?? {}) ?? [];
-    return potentialReports.some((potentialReport) => {
-        if (!potentialReport) {
-            return false;
-        }
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
-        const transactions = getReportTransactions(potentialReport.reportID);
+    const violatingReport = potentialReports
+        // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
+        .sort((a, b) => (a?.created ?? '').localeCompare(b?.created ?? ''))
+        .find((potentialReport) => {
+            if (!potentialReport) {
+                return false;
+            }
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
+            const transactions = getReportTransactions(potentialReport.reportID);
 
-        // Allow both open and processing reports to show RBR for violations
-        if (!isOpenOrProcessingReport(potentialReport)) {
-            return false;
-        }
+            // Allow both open and processing reports to show RBR for violations
+            if (!isOpenOrProcessingReport(potentialReport)) {
+                return false;
+            }
 
-        return (
-            !isInvoiceReport(potentialReport) &&
-            ViolationsUtils.hasVisibleViolationsForUser(
-                potentialReport,
-                transactionViolations,
-                currentUserEmail ?? '',
-                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                policy,
-                transactions,
-            ) &&
-            (hasViolations(
-                potentialReport.reportID,
-                transactionViolations,
-                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                currentUserEmail ?? '',
-                true,
-                transactions,
-                potentialReport,
-                policy,
-            ) ||
-                hasWarningTypeViolations(
+            return (
+                !isInvoiceReport(potentialReport) &&
+                ViolationsUtils.hasVisibleViolationsForUser(
+                    potentialReport,
+                    transactionViolations,
+                    currentUserEmail ?? '',
+                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    policy,
+                    transactions,
+                ) &&
+                (hasViolations(
                     potentialReport.reportID,
                     transactionViolations,
                     currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -9141,18 +9164,29 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
                     potentialReport,
                     policy,
                 ) ||
-                hasNoticeTypeViolations(
-                    potentialReport.reportID,
-                    transactionViolations,
-                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                    currentUserEmail ?? '',
-                    true,
-                    transactions,
-                    potentialReport,
-                    policy,
-                ))
-        );
-    });
+                    hasWarningTypeViolations(
+                        potentialReport.reportID,
+                        transactionViolations,
+                        currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserEmail ?? '',
+                        true,
+                        transactions,
+                        potentialReport,
+                        policy,
+                    ) ||
+                    hasNoticeTypeViolations(
+                        potentialReport.reportID,
+                        transactionViolations,
+                        currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserEmail ?? '',
+                        true,
+                        transactions,
+                        potentialReport,
+                        policy,
+                    ))
+            );
+        });
+    return violatingReport ? violatingReport.reportID : null;
 }
 
 /**
@@ -9383,7 +9417,7 @@ function hasReportErrorsOtherThanFailedReceipt(
     let doesTransactionThreadReportHasViolations = false;
     if (oneTransactionThreadReportID) {
         const transactionReport = getReport(oneTransactionThreadReportID, allReports);
-        doesTransactionThreadReportHasViolations = !!transactionReport && shouldDisplayViolationsRBRInLHN(transactionReport, transactionViolations);
+        doesTransactionThreadReportHasViolations = !!transactionReport && !!getViolatingReportIDForRBRInLHN(transactionReport, transactionViolations);
     }
     return (
         doesTransactionThreadReportHasViolations ||
@@ -10380,8 +10414,6 @@ function getTaskAssigneeChatOnyxData(
                     pendingFields: {
                         createChat: null,
                     },
-                    // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
-                    participants: {[assigneeAccountID]: null},
                 },
             },
             {
@@ -10402,13 +10434,23 @@ function getTaskAssigneeChatOnyxData(
 
         // If assignee is created optimistically, we need to clear the optimistic personal details to prevent duplication with real data sent from BE.
         if (isOptimisticPersonalDetail(assigneeAccountID)) {
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [assigneeAccountID]: null,
+            successData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [assigneeAccountID]: null,
+                    },
                 },
-            });
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                    value: {
+                        // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
+                        participants: {[assigneeAccountID]: null},
+                    },
+                },
+            );
         }
 
         failureData.push(
@@ -11245,7 +11287,7 @@ type CreateDraftTransactionParams = {
     introSelected: OnyxEntry<IntroSelected>;
     allTransactionDrafts: OnyxCollection<Transaction>;
     activePolicy: OnyxEntry<Policy>;
-    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
@@ -11259,7 +11301,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     introSelected,
     allTransactionDrafts,
     activePolicy,
-    userBillingGraceEndPeriodCollection,
+    userBillingGraceEndPeriods,
     amountOwed,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID,
@@ -11326,7 +11368,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriodCollection, amountOwed)) {
+        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriods, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
             return;
         }
@@ -12731,16 +12773,17 @@ function generateReportAttributes({
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     isReportArchived: boolean;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    actionTargetReportActionID?: string;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
-    const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+    const hasViolationsToDisplayInLHN = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN;
     const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
-    const {reason, actionBadge} = getReasonAndReportActionThatRequiresAttention(report, parentReportAction, isReportArchived) ?? {};
+    const {reason, actionBadge, reportAction} = getReasonAndReportActionThatRequiresAttention(report, parentReportAction, isReportArchived) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,
@@ -12751,6 +12794,7 @@ function generateReportAttributes({
         parentReportAction,
         requiresAttention: !!reason,
         actionBadge,
+        actionTargetReportActionID: reportAction?.reportActionID,
     };
 }
 
@@ -13263,6 +13307,7 @@ export {
     getDisplayedReportID,
     getTransactionsWithReceipts,
     getUserDetailTooltipText,
+    getViolatingReportIDForRBRInLHN,
     getWhisperDisplayNames,
     getWorkspaceChats,
     getWorkspaceIcon,
@@ -13403,7 +13448,6 @@ export {
     shouldDisableRename,
     shouldDisableThread,
     shouldDisplayThreadReplies,
-    shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
