@@ -3592,6 +3592,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             isWorkspaceEligibleForReportChange: MockFunction;
             canEditReportPolicy: boolean;
             isExported: boolean;
+            isSettled: boolean;
         }>;
 
         const setupMocks = (mocks: MockConfig = {}) => {
@@ -3603,6 +3604,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 isWorkspaceEligibleForReportChange: true,
                 canEditReportPolicy: true,
                 isExported: false,
+                isSettled: false,
             };
 
             for (const [method, value] of Object.entries({...defaults, ...mocks})) {
@@ -3705,6 +3707,74 @@ describe('getSecondaryTransactionThreadActions', () => {
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
             expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
+        });
+
+        it('should return true when report is settled and currentUserLogin is admin of available policies', () => {
+            setupMocks({isSettled: true});
+            const mockedIsPolicyAdmin = jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin as jest.Mock;
+            mockedIsPolicyAdmin.mockReturnValue(true);
+
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies, ADMIN_EMAIL)).toBe(true);
+        });
+
+        it('should return false when report is settled and currentUserLogin is not admin of any policy', () => {
+            setupMocks({isSettled: true});
+            const mockedIsPolicyAdmin = jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin as jest.Mock;
+            mockedIsPolicyAdmin.mockReturnValue(false);
+
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
+        });
+
+        it('should filter policies by admin role using currentUserLogin when report is settled', () => {
+            setupMocks({isSettled: true});
+            const mockedIsPolicyAdmin = jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin as jest.Mock;
+            mockedIsPolicyAdmin.mockImplementation((policy: Policy, login?: string) => {
+                return login === ADMIN_EMAIL && policy?.id === POLICY_ID;
+            });
+
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            // Admin user sees the one eligible policy (POLICY_ID) which differs from report's OLD_POLICY_ID
+            expect(isChangeWorkspaceAction(report, policies, ADMIN_EMAIL)).toBe(true);
+            // Non-admin user has all policies filtered out
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(false);
+        });
+
+        it('should not filter policies by admin role when report is not settled', () => {
+            setupMocks({isSettled: false});
+            const mockedIsPolicyAdmin = jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin as jest.Mock;
+            mockedIsPolicyAdmin.mockReturnValue(false);
+
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            // Even though isPolicyAdmin returns false, non-settled reports skip the admin check
+            expect(isChangeWorkspaceAction(report, policies, EMPLOYEE_EMAIL)).toBe(true);
+        });
+
+        it('should pass currentUserLogin to isPolicyAdmin for each candidate policy when settled', () => {
+            setupMocks({isSettled: true});
+            const mockedIsPolicyAdmin = jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin as jest.Mock;
+            mockedIsPolicyAdmin.mockReturnValue(true);
+
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+            const testLogin = 'specific-user@mail.com';
+
+            isChangeWorkspaceAction(report, policies, testLogin);
+
+            const callsWithLogin = mockedIsPolicyAdmin.mock.calls.filter(
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                (call: unknown[]) => call[1] === testLogin,
+            );
+            expect(callsWithLogin.length).toBeGreaterThan(0);
         });
     });
 });
