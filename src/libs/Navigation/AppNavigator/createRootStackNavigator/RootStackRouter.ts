@@ -1,4 +1,4 @@
-import {CommonActions, StackRouter} from '@react-navigation/native';
+import {CommonActions, StackActions, StackRouter} from '@react-navigation/native';
 import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
@@ -94,19 +94,31 @@ function handleNavigationGuards(
             return null;
         }
 
-        // When the redirect adds a modal (e.g., OnboardingModalNavigator), preserve the existing
-        // fullscreen routes (e.g., a deep-linked report) instead of replacing them with Home.
-        const redirectModalRoutes = redirectState.routes.filter((route) => !isFullScreenName(route.name));
-        const existingFullScreenRoutes = state.routes.filter((route) => isFullScreenName(route.name));
+        // When the redirect adds a modal (e.g., OnboardingModalNavigator), push it on top of the
+        // existing stack instead of resetting. This preserves deep-linked routes (e.g., a report)
+        // so the user returns to them after dismissing the modal.
+        const modalRoute = redirectState.routes.find((route) => !isFullScreenName(route.name));
+        const hasExistingFullScreenRoute = state.routes.some((route) => isFullScreenName(route.name));
 
-        const finalRoutes =
-            existingFullScreenRoutes.length > 0 && redirectModalRoutes.length > 0
-                ? [...(existingFullScreenRoutes as typeof redirectState.routes), ...redirectModalRoutes]
-                : redirectState.routes;
+        if (modalRoute && hasExistingFullScreenRoute) {
+            // getAdaptedStateFromPath returns nested state format, but StackActions.push expects {screen, params}.
+            let pushParams = modalRoute.params as Record<string, unknown> | undefined;
+            const nestedRoute = modalRoute.state?.routes?.at(-1);
+            if (nestedRoute) {
+                pushParams = {
+                    ...pushParams,
+                    screen: nestedRoute.name,
+                    params: nestedRoute.params,
+                };
+            }
+
+            const pushAction = StackActions.push(modalRoute.name, pushParams);
+            return stackRouter.getStateForAction(state, pushAction, configOptions);
+        }
 
         const resetAction = CommonActions.reset({
-            index: finalRoutes.length - 1,
-            routes: finalRoutes,
+            index: redirectState.routes.length - 1,
+            routes: redirectState.routes,
         });
 
         return stackRouter.getStateForAction(state, resetAction, configOptions);
