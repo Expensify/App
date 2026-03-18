@@ -594,6 +594,16 @@ const CONST = {
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
+        PAGE_NAMES: {
+            COUNTRY: 'country',
+            BANK_ACCOUNT: 'bank-account',
+            REQUESTOR: 'requestor',
+            COMPANY: 'company',
+            BENEFICIAL_OWNERS: 'beneficial-owners',
+            ACH_CONTRACT: 'ach-contract',
+            VALIDATION: 'validation',
+            ENABLE: 'enable',
+        },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         SUBSTEP: {
             MANUAL: 'manual',

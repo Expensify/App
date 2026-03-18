@@ -18,7 +18,7 @@ import Country from './Country';
 import RequestorStep from './Requestor/RequestorStep';
 import type USDPageProps from './types';
 
-const STEP = CONST.BANK_ACCOUNT.STEP;
+const PAGE_NAMES = CONST.BANK_ACCOUNT.PAGE_NAMES;
 
 type PageEntry = {
     pageName: string;
@@ -26,13 +26,13 @@ type PageEntry = {
 };
 
 const pages: PageEntry[] = [
-    {pageName: STEP.COUNTRY, component: Country as React.ComponentType<USDPageProps>},
-    {pageName: STEP.BANK_ACCOUNT, component: BankInfo as React.ComponentType<USDPageProps>},
-    {pageName: STEP.REQUESTOR, component: RequestorStep as React.ComponentType<USDPageProps>},
-    {pageName: STEP.COMPANY, component: BusinessInfo as React.ComponentType<USDPageProps>},
-    {pageName: STEP.BENEFICIAL_OWNERS, component: BeneficialOwnersStep as React.ComponentType<USDPageProps>},
-    {pageName: STEP.ACH_CONTRACT, component: CompleteVerification as React.ComponentType<USDPageProps>},
-    {pageName: STEP.VALIDATION, component: ConnectBankAccount as React.ComponentType<USDPageProps>},
+    {pageName: PAGE_NAMES.COUNTRY, component: Country as React.ComponentType<USDPageProps>},
+    {pageName: PAGE_NAMES.BANK_ACCOUNT, component: BankInfo as React.ComponentType<USDPageProps>},
+    {pageName: PAGE_NAMES.REQUESTOR, component: RequestorStep as React.ComponentType<USDPageProps>},
+    {pageName: PAGE_NAMES.COMPANY, component: BusinessInfo as React.ComponentType<USDPageProps>},
+    {pageName: PAGE_NAMES.BENEFICIAL_OWNERS, component: BeneficialOwnersStep as React.ComponentType<USDPageProps>},
+    {pageName: PAGE_NAMES.ACH_CONTRACT, component: CompleteVerification as React.ComponentType<USDPageProps>},
+    {pageName: PAGE_NAMES.VALIDATION, component: ConnectBankAccount as React.ComponentType<USDPageProps>},
 ];
 
 type USDVerifiedBankAccountFlowPageProps = PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_USD>;
@@ -77,7 +77,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     }, [currentPageIndex, policyID]);
 
     const shouldShowOnfido = !!(onfidoToken && !reimbursementAccount?.achData?.isOnfidoSetupComplete);
-    const isRequestorStep = currentEntry?.pageName === STEP.REQUESTOR;
+    const isRequestorStep = currentEntry?.pageName === PAGE_NAMES.REQUESTOR;
 
     return (
         <View style={styles.flex1}>
