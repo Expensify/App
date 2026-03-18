@@ -172,6 +172,7 @@ function SubmitDetailsPage({
                 quickAction,
                 recentWaypoints,
                 betas,
+                draftTransactionIDs,
                 isSelfTourViewed,
             });
         } else {

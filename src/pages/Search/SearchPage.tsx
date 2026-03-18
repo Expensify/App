@@ -1,26 +1,20 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Animated from 'react-native-reanimated';
-import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZone/DropZoneUI';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
-import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
@@ -31,14 +25,13 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
+    useDocumentTitle(translate('common.search'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
-    const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
+    const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
 
@@ -57,7 +50,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
-    const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
     const [isSorting, setIsSorting] = useState(false);
@@ -117,7 +109,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
-        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
+        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
         const numberOfExpense = shouldUseClientTotal
             ? selectedTransactionsKeys.reduce((count, key) => {
                   const item = selectedTransactions[key];
@@ -127,7 +119,7 @@ function SearchPage({route}: SearchPageProps) {
                   return count + 1;
               }, 0)
             : metadata?.count;
-        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
+        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0) : metadata?.total;
 
         return {count: numberOfExpense, total, currency};
     }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
@@ -139,28 +131,14 @@ function SearchPage({route}: SearchPageProps) {
     return (
         <Animated.View style={[styles.flex1]}>
             {shouldUseNarrowLayout ? (
-                <DragAndDropProvider isDisabled={isDragDisabled}>
-                    {PDFValidationComponent}
-                    <SearchPageNarrow
-                        queryJSON={currentSearchQueryJSON}
-                        metadata={metadata}
-                        searchResults={searchResults}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        footerData={footerData}
-                        shouldShowFooter={shouldShowFooter}
-                    />
-                    <DragAndDropConsumer onDrop={initScanRequest}>
-                        <DropZoneUI
-                            icon={expensifyIcons.SmartScan}
-                            dropTitle={translate('dropzone.scanReceipts')}
-                            dropStyles={styles.receiptDropOverlay(true)}
-                            dropTextStyles={styles.receiptDropText}
-                            dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                        />
-                    </DragAndDropConsumer>
-                    {ErrorModal}
-                </DragAndDropProvider>
+                <SearchPageNarrow
+                    queryJSON={currentSearchQueryJSON}
+                    metadata={metadata}
+                    searchResults={searchResults}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    footerData={footerData}
+                    shouldShowFooter={shouldShowFooter}
+                />
             ) : (
                 <SearchPageWide
                     queryJSON={currentSearchQueryJSON}
@@ -171,10 +149,6 @@ function SearchPage({route}: SearchPageProps) {
                     handleSearchAction={handleSearchAction}
                     onSortPressedCallback={onSortPressedCallback}
                     route={route}
-                    initScanRequest={initScanRequest}
-                    isDragDisabled={isDragDisabled}
-                    PDFValidationComponent={PDFValidationComponent}
-                    ErrorModal={ErrorModal}
                     shouldShowFooter={shouldShowFooter}
                 />
             )}

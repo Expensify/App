@@ -127,7 +127,6 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
-            shouldSkipTestDriveModal: !!onboardingPolicyID && !onboardingAdminsChatReportID,
             isInvitedAccountant,
             onboardingPurposeSelected,
             introSelected,
