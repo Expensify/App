@@ -199,7 +199,6 @@ function BaseListItem<TItem extends ListItem>({
                 accessibilityState={accessibilityState}
                 onMouseLeave={handleMouseLeave}
                 wrapperStyle={pressableWrapperStyle}
-                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
