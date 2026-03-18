@@ -1,7 +1,6 @@
 import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
-import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
 type ActiveSpanEntry = {
@@ -25,7 +24,7 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     }
     // End any existing span for this name
     cancelSpan(spanId);
-    Log.info(`[Sentry][${spanId}] Starting span`, undefined, {
+    console.debug(`[Sentry][${spanId}] Starting span`, {
         spanId,
         spanOptions: options,
         spanExtraOptions: extraOptions,
@@ -45,13 +44,13 @@ function endSpan(spanId: string) {
     const entry = activeSpans.get(spanId);
 
     if (!entry) {
-        Log.info(`[Sentry][${spanId}] Trying to end span but it does not exist`, undefined, {spanId, timestamp: Date.now()});
+        console.debug(`[Sentry][${spanId}] Trying to end span but it does not exist`, {spanId, timestamp: Date.now()});
         return;
     }
     const {span, startTime} = entry;
     const now = performance.now();
     const durationMs = Math.round(now - startTime);
-    Log.info(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, undefined, {spanId, durationMs, timestamp: now});
+    console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now});
     span.setStatus({code: 1});
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
     span.end();
@@ -63,7 +62,7 @@ function cancelSpan(spanId: string) {
     if (!entry) {
         return;
     }
-    Log.info(`[Sentry][${spanId}] Canceling span`, undefined, {spanId, timestamp: Date.now()});
+    console.debug(`[Sentry][${spanId}] Canceling span`, {spanId, timestamp: Date.now()});
     entry.span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
     // In Sentry there are only OK or ERROR status codes.
     // We treat canceled spans as OK, so we can properly track spans that are not finished at all (their status would be different)
@@ -85,19 +84,6 @@ function cancelSpansByPrefix(prefix: string) {
     }
 }
 
-/**
- * Ends a span only if it's currently active. Unlike `endSpan`, this silently no-ops
- * when the span doesn't exist, making it safe for render paths where the span
- * may or may not have been started.
- */
-function tryEndSpan(spanId: string): boolean {
-    if (!activeSpans.has(spanId)) {
-        return false;
-    }
-    endSpan(spanId);
-    return true;
-}
-
 function getSpan(spanId: string) {
     return activeSpans.get(spanId)?.span;
 }
@@ -108,4 +94,4 @@ function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAt
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, tryEndSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};

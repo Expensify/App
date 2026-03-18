@@ -333,6 +333,7 @@ function IOURequestStepDistanceManual({
                 ref={textInput}
                 numberFormRef={numberFormRef}
                 value={distance?.toString()}
+                shouldUseDynamicFontSize
                 onInputChange={() => {
                     if (!formError) {
                         return;

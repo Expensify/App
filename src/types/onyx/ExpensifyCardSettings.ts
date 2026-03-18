@@ -62,6 +62,9 @@ type ExpensifyCardSettingsBase = {
     /** Credit limit for the card program */
     limit?: number;
 
+    /** Currency for the card program (e.g. USD, GBP, EUR) */
+    currency?: string;
+
     /** Owner email for the card program */
     ownerEmail?: string;
 };
