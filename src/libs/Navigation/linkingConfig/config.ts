@@ -1342,6 +1342,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.GROUP_EDIT_NAME]: {
                             path: ROUTES.DOMAIN_GROUP_EDIT_NAME.route,
                         },
+                        [SCREENS.DOMAIN.GROUP_CREATE]: {
+                            path: ROUTES.DOMAIN_GROUP_CREATE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {

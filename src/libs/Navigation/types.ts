@@ -1577,6 +1577,9 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
         groupID: string;
     };
+    [SCREENS.DOMAIN.GROUP_CREATE]: {
+        domainAccountID: number;
+    }
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {

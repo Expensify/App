@@ -963,6 +963,7 @@ const SCREENS = {
         MEMBER_LOCK_ACCOUNT: 'Member_Lock_Account',
         GROUP_DETAILS: 'Domain_Group_Details',
         GROUP_EDIT_NAME: 'Domain_Group_Edit_Name',
+        GROUP_CREATE: 'Domain_Group_Create',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

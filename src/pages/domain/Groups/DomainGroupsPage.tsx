@@ -78,7 +78,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             accessibilityLabel={translate('domain.groups.createNewGroupButton')}
             text={translate('domain.groups.createNewGroupButton')}
             // sentryLabel={}
-            // onPress={() => Navigation.navigate()}
+            onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
             icon={icons.Plus}
             innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
             style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
