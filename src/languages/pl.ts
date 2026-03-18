@@ -1350,11 +1350,11 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}zapłacono z portfela`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}zapłacono przez Expensify za pomocą <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reguł przestrzeni roboczej</a>`,
-        reimbursedThisReport: 'zwrócił środki za ten raport',
-        paidThisBill: 'opłacił ten rachunek',
+        reimbursedThisReport: 'zwrócił(-a) koszty z tego raportu',
+        paidThisBill: 'zapłacił(a) ten rachunek',
         reimbursedOnBehalfOf: (actor: string) => `w imieniu ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `z konta bankowego kończącego się na ${debitBankAccount}`,
-        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} dodał konto bankowe, usuwając raport z zawieszenia. Zwrot środków został zainicjowany`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} dodał konto bankowe, zdejmując raport z wstrzymania. Zwrot został zainicjowany`,
         reimbursedWithFastACH: ({
             isCurrentUser,
             submitterLogin,
@@ -1367,9 +1367,9 @@ const translations: TranslationDeepObject<typeof en> = {
             expectedDate: string;
         }) =>
             isCurrentUser
-                ? `. Pieniądze są w drodze na twoje${creditBankAccount ? ` konto bankowe kończące się na ${creditBankAccount}` : ' konto'}. Zwrot środków powinien zostać zrealizowany do ${expectedDate}.`
-                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''}. Zwrot środków powinien zostać zrealizowany do ${expectedDate}.`,
-        reimbursedWithCheck: ' czekiem.',
+                ? `. Pieniądze są w drodze na twój${creditBankAccount ? `konto bankowe kończące się na ${creditBankAccount}` : 'konto'}. Zwrot kosztów powinien zostać zrealizowany do ${expectedDate}.`
+                : `. Przelew jest w drodze do ${submitterLogin}${creditBankAccount ? `konto bankowe kończące się na ${creditBankAccount}` : 'konto'}. Zwrot kosztów powinien zostać zrealizowany do ${expectedDate}.`,
+        reimbursedWithCheck: 'czekiem.',
         reimbursedWithStripeConnect: ({
             isCurrentUser,
             submitterLogin,
@@ -1383,11 +1383,11 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'karta' : 'konto bankowe';
             return isCurrentUser
-                ? `. Pieniądze są w drodze na twoje${creditBankAccount ? ` konto bankowe kończące się na ${creditBankAccount}` : ' konto'} (płatność przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`
-                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''} (płatność przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`;
+                ? `. Pieniądze są w drodze na twoje${creditBankAccount ? `konto bankowe kończące się na ${creditBankAccount}` : 'konto'} (zapłacono przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`
+                : `. Pieniądze są w drodze na ${creditBankAccount ? `konto bankowe kończące się na ${creditBankAccount}` : 'konto'} użytkownika ${submitterLogin} (zapłacono przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
-            ` przelewem bezpośrednim (ACH)${creditBankAccount ? ` na konto bankowe kończące się na ${creditBankAccount}. ` : '. '}${expectedDate ? `Oczekuje się, że zwrot środków zostanie zrealizowany do ${expectedDate}.` : 'Zazwyczaj zajmuje to 4-5 dni roboczych.'}`,
+            `z wpłatą bezpośrednią (ACH)${creditBankAccount ? `na konto bankowe kończące się na ${creditBankAccount}.` : '. '}${expectedDate ? `Zwrot kosztów powinien zostać zrealizowany do ${expectedDate}.` : 'To zazwyczaj zajmuje 4–5 dni roboczych.'}`,
         noReimbursableExpenses: 'Ten raport ma nieprawidłową kwotę',
         pendingConversionMessage: 'Suma zaktualizuje się, gdy wrócisz do trybu online',
         changedTheExpense: 'zmienił(a) wydatek',

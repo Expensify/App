@@ -1359,8 +1359,8 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursedThisReport: 'a remboursé cette note de frais',
         paidThisBill: 'a payé cette facture',
         reimbursedOnBehalfOf: (actor: string) => `au nom de ${actor}`,
-        reimbursedFromBankAccount: (debitBankAccount: string) => `depuis le compte bancaire se terminant par ${debitBankAccount}`,
-        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} a ajouté un compte bancaire, libérant le rapport de l’attente. Le remboursement est lancé`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `à partir du compte bancaire se terminant par ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} a ajouté un compte bancaire, retirant la note de frais de la mise en attente. Le remboursement est lancé`,
         reimbursedWithFastACH: ({
             isCurrentUser,
             submitterLogin,
@@ -1373,9 +1373,9 @@ const translations: TranslationDeepObject<typeof en> = {
             expectedDate: string;
         }) =>
             isCurrentUser
-                ? `. L’argent est en route vers votre${creditBankAccount ? ` compte bancaire se terminant par ${creditBankAccount}` : ' compte'}. Le remboursement devrait être terminé le ${expectedDate}.`
-                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''}. Le remboursement devrait être terminé le ${expectedDate}.`,
-        reimbursedWithCheck: ' par chèque.',
+                ? `. L'argent est en route vers votre${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'}. Remboursement estimé pour être terminé le ${expectedDate}.`
+                : `. L’argent est en route vers le compte de ${submitterLogin}${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'}. Remboursement estimé pour le ${expectedDate}.`,
+        reimbursedWithCheck: 'par chèque.',
         reimbursedWithStripeConnect: ({
             isCurrentUser,
             submitterLogin,
@@ -1389,11 +1389,11 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'carte' : 'compte bancaire';
             return isCurrentUser
-                ? `. L’argent est en route vers votre${creditBankAccount ? ` compte bancaire se terminant par ${creditBankAccount}` : ' compte'} (payé par ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`
-                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''} (payé par ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`;
+                ? `. L’argent est en route vers votre${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'} (payé via ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`
+                : `. L’argent est en route vers le/la ${submitterLogin}${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'} (payé via ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrés.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
-            ` par dépôt direct (ACH)${creditBankAccount ? ` vers le compte bancaire se terminant par ${creditBankAccount}. ` : '. '}${expectedDate ? `Le remboursement devrait être terminé d’ici le ${expectedDate}.` : 'Cela prend généralement 4 à 5 jours ouvrables.'}`,
+            `par dépôt direct (ACH)${creditBankAccount ? `vers le compte bancaire se terminant par ${creditBankAccount}.` : '. '}${expectedDate ? `Le remboursement devrait être terminé d’ici le ${expectedDate}.` : 'Cela prend généralement 4 à 5 jours ouvrables.'}`,
         noReimbursableExpenses: 'Cette note de frais a un montant non valide',
         pendingConversionMessage: 'Le total sera mis à jour quand vous serez de nouveau en ligne',
         changedTheExpense: 'a modifié la dépense',

@@ -1352,11 +1352,11 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pagato con portafoglio`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}pagato con Expensify tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
-        reimbursedThisReport: 'ha rimborsato questo rapporto',
+        reimbursedThisReport: 'ha rimborsato questo resoconto',
         paidThisBill: 'ha pagato questa fattura',
         reimbursedOnBehalfOf: (actor: string) => `per conto di ${actor}`,
         reimbursedFromBankAccount: (debitBankAccount: string) => `dal conto bancario che termina con ${debitBankAccount}`,
-        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} ha aggiunto un conto bancario, rimuovendo il rapporto dalla sospensione. Il rimborso è stato avviato`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} ha aggiunto un conto bancario, rimuovendo il blocco sul resoconto. Il rimborso è stato avviato`,
         reimbursedWithFastACH: ({
             isCurrentUser,
             submitterLogin,
@@ -1369,9 +1369,9 @@ const translations: TranslationDeepObject<typeof en> = {
             expectedDate: string;
         }) =>
             isCurrentUser
-                ? `. Il denaro è in arrivo al tuo${creditBankAccount ? ` conto bancario che termina con ${creditBankAccount}` : ' conto'}. Si stima che il rimborso sarà completato il ${expectedDate}.`
-                : `. Il denaro è in arrivo al conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''}. Si stima che il rimborso sarà completato il ${expectedDate}.`,
-        reimbursedWithCheck: ' tramite assegno.',
+                ? `. Il denaro è in arrivo sul tuo${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'account'}. Rimborso previsto per il ${expectedDate}.`
+                : `. Il denaro è in arrivo sul conto di ${submitterLogin}${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'account'}. Rimborso previsto per il ${expectedDate}.`,
+        reimbursedWithCheck: 'tramite assegno.',
         reimbursedWithStripeConnect: ({
             isCurrentUser,
             submitterLogin,
@@ -1385,11 +1385,11 @@ const translations: TranslationDeepObject<typeof en> = {
         }) => {
             const paymentMethod = isCard ? 'carta' : 'conto bancario';
             return isCurrentUser
-                ? `. Il denaro è in arrivo al tuo${creditBankAccount ? ` conto bancario che termina con ${creditBankAccount}` : ' conto'} (pagato tramite ${paymentMethod}). Potrebbe richiedere fino a 10 giorni lavorativi.`
-                : `. Il denaro è in arrivo al conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''} (pagato tramite ${paymentMethod}). Potrebbe richiedere fino a 10 giorni lavorativi.`;
+                ? `. Il denaro è in arrivo sul tuo${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'account'} (pagato tramite ${paymentMethod}). Questo potrebbe richiedere fino a 10 giorni lavorativi.`
+                : `. Il denaro è in arrivo sul/sulla ${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'account'} di ${submitterLogin} (pagato tramite ${paymentMethod}). Potrebbero volerci fino a 10 giorni lavorativi.`;
         },
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
-            ` con deposito diretto (ACH)${creditBankAccount ? ` al conto bancario che termina con ${creditBankAccount}. ` : '. '}${expectedDate ? `Si stima che il rimborso sarà completato entro il ${expectedDate}.` : 'In genere richiede 4-5 giorni lavorativi.'}`,
+            `con accredito diretto (ACH)${creditBankAccount ? `al conto bancario che termina con ${creditBankAccount}.` : '. '}${expectedDate ? `Il rimborso dovrebbe essere completato entro il ${expectedDate}.` : 'In genere richiede 4-5 giorni lavorativi.'}`,
         noReimbursableExpenses: 'Questo rendiconto contiene un importo non valido',
         pendingConversionMessage: 'Il totale verrà aggiornato quando torni online',
         changedTheExpense: 'ha modificato la spesa',
