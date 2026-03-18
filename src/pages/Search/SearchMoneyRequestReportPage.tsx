@@ -1,6 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -39,7 +39,6 @@ import {
 import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
-import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -47,7 +46,7 @@ import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, op
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SearchMoneyRequestPageProps =
@@ -183,22 +182,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         parentReportMetadata,
         isOffline,
     });
-    const ownerAccountID = report?.ownerAccountID;
-    const ownerPersonalDetailsSelector = useCallback(
-        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
-            if (!ownerAccountID) {
-                return undefined;
-            }
-
-            return personalDetailsList?.[ownerAccountID];
-        },
-        [ownerAccountID],
-    );
-    const [ownerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerPersonalDetailsSelector}, [ownerAccountID]);
-    const doesOwnerHavePersonalDetails = !!ownerPersonalDetails;
-    const doesOwnerHaveAvatar = !!ownerPersonalDetails?.avatar;
-    const doesOwnerHaveDefaultAvatar =
-        isDefaultAvatar(ownerPersonalDetails?.avatar) || isPresetAvatar(ownerPersonalDetails?.avatar) || isLetterAvatar(ownerPersonalDetails?.originalFileName);
 
     // Prevents creating duplicate transaction threads for legacy transactions
     const hasCreatedLegacyThreadRef = useRef(false);
