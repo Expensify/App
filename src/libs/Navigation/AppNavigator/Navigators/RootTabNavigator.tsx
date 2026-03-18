@@ -3,16 +3,17 @@
  */
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import React, {lazy, Suspense} from 'react';
-import {Platform, View} from 'react-native';
+import React, {lazy, Suspense, useEffect, useState} from 'react';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {RootTabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
@@ -44,8 +45,7 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
  * No manual margins needed — the navigator's flex layout sizes everything.
  */
 function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state']}) {
-    const {windowWidth} = useWindowDimensions();
-    const isNarrow = Platform.OS !== 'web' || windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const theme = useTheme();
     const selectedRouteName = tabState.routes[tabState.index]?.name;
@@ -54,9 +54,33 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
     const activeRoute = tabState.routes[tabState.index];
     const nestedStateIndex = activeRoute?.state?.index;
     const isAtRoot = nestedStateIndex === undefined || nestedStateIndex === 0;
-    const shouldHide = isNarrow && !isAtRoot;
+    const shouldHide = shouldUseNarrowLayout && !isAtRoot;
 
-    if (isNarrow) {
+    // On native, tab screens render their own tab bar via ScreenWrapper.bottomContent
+    // so it participates in swipe-back animations. The navigator's tab bar must:
+    //   1. Stay visible during tab switches (e.g. inbox → home) because the new tab's
+    //      bottomContent may not have rendered yet.
+    //   2. Hide during back-navigation within a tab (e.g. settings/profile → back)
+    //      when coming from a screen where the tab bar was not visible, then appear
+    //      after the animation completes — the page's bottomContent handles the visual.
+    const prevTabIndex = usePrevious(tabState.index);
+    const prevShouldHide = usePrevious(shouldHide);
+    const stateKey = `${tabState.index}-${nestedStateIndex}`;
+    const [animationDoneKey, setAnimationDoneKey] = useState(stateKey);
+
+    const tabChanged = prevTabIndex !== tabState.index;
+    const shouldApplyDelay = shouldUseNarrowLayout && !tabChanged && prevShouldHide && !shouldHide;
+
+    useEffect(() => {
+        const frameId = requestAnimationFrame(() => {
+            setAnimationDoneKey(stateKey);
+        });
+        return () => cancelAnimationFrame(frameId);
+    }, [stateKey]);
+
+    const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);
+
+    if (shouldUseNarrowLayout) {
         // Negative marginTop makes the tab bar overlay the content above, taking zero space
         // in the flex layout. This prevents layout shifts when toggling visibility and
         // eliminates the gap between content and tab bar.
@@ -67,13 +91,13 @@ function RootTabNavigatorTabBar({tabState}: {tabState: BottomTabBarProps['state'
                     marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
                     paddingBottom: safeAreaPaddingBottom,
                     backgroundColor: theme.appBG,
-                    opacity: shouldHide ? 0 : 1,
+                    opacity: isHidden ? 0 : 1,
                 }}
-                pointerEvents={shouldHide ? 'none' : 'auto'}
+                pointerEvents={isHidden ? 'none' : 'auto'}
             >
                 <NavigationTabBar
                     selectedTab={selectedTab}
-                    shouldShowFloatingButtons={!shouldHide}
+                    shouldShowFloatingButtons={!isHidden}
                 />
             </View>
         );
@@ -140,14 +164,13 @@ const TAB_SCREEN_OPTIONS_WIDE = {
 } as const;
 
 function RootTabNavigator() {
-    const {windowWidth} = useWindowDimensions();
-    const isNarrow = Platform.OS !== 'web' || windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <Tab.Navigator
             backBehavior="fullHistory"
             tabBar={renderTabBar}
-            screenOptions={isNarrow ? TAB_SCREEN_OPTIONS_NARROW : TAB_SCREEN_OPTIONS_WIDE}
+            screenOptions={shouldUseNarrowLayout ? TAB_SCREEN_OPTIONS_NARROW : TAB_SCREEN_OPTIONS_WIDE}
         >
             <Tab.Screen
                 name={SCREENS.HOME}
