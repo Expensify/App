@@ -271,7 +271,7 @@ function ComposerWithSuggestions({
 
     useDraftMessageVideoAttributeCache({
         draftMessage: value,
-        isEditing: !!editingReportActionID,
+        isEditing: editingState !== null,
         editingReportAction,
         updateDraftMessage: setValue,
         isEditInProgressRef: isDraftPendingSaved,
@@ -326,7 +326,7 @@ function ComposerWithSuggestions({
         [currentEditMessageSelection, updateSelectionImperatively],
     );
 
-    const wasEditing = useRef(!!editingReportActionID);
+    const wasEditing = useRef(editingState !== null);
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     const previousDraftSelectionRef = useRef<TextSelection | null>(null);
 

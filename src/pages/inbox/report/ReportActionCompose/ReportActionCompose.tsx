@@ -173,12 +173,12 @@ function ReportActionCompose({
 
     console.log({isEditingInComposer, editingState, editingReportActionID});
     useEffect(() => {
-        if (editingReportActionID || !didResetComposerHeight) {
+        if (editingState !== null || !didResetComposerHeight) {
             return;
         }
 
         setDidResetComposerHeight(false);
-    }, [didResetComposerHeight, editingReportActionID]);
+    }, [didResetComposerHeight, editingState]);
 
     const reportActionEntries = useMemo(() => (reportActions ? Object.entries(reportActions) : []), [reportActions]);
     const isEditingLastReportAction = useMemo(() => editingReportActionID === reportActionEntries.at(-1)?.[0], [editingReportActionID, reportActionEntries]);
