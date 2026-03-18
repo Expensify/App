@@ -137,10 +137,10 @@ function useBulkPayOptions({
                     bulkPayButtonOptions.push({
                         text: account.text,
                         description: account.description,
-                        icon: account.icon,
+                        icon: typeof account.icon === 'number' ? icons.Bank : account.icon,
                         iconStyles: account.iconStyles,
-                        iconHeight: account.iconSize,
-                        iconWidth: account.iconSize,
+                        iconWidth: typeof account.icon === 'number' ? undefined : account.iconSize,
+                        iconHeight: typeof account.icon === 'number' ? undefined : account.iconSize,
                         key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         shouldIgnoreKeyForRendering: true,
                         additionalData: {
