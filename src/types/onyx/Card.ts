@@ -149,6 +149,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Issued card country */
         country?: string;
 
+        /** Program currency of the card (USD, GBP, or EUR) */
+        currency?: string;
+
         /** Is a virtual card */
         isVirtual?: boolean;
 
