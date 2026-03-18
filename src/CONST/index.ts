@@ -231,6 +231,7 @@ const CONST = {
     ANIMATED_PROGRESS_BAR_DURATION: 750,
     ANIMATION_IN_TIMING: 100,
     COMPOSER_FOCUS_DELAY: 150,
+    MAX_TRANSITION_DURATION_MS: 1000,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -1737,6 +1738,17 @@ const CONST = {
             FAB_OUT: 200,
         },
     },
+    FAB_MENU_ITEM_IDS: {
+        QUICK_ACTION: 'quick-action',
+        EXPENSE: 'expense',
+        TRACK_DISTANCE: 'track-distance',
+        CREATE_REPORT: 'create-report',
+        NEW_CHAT: 'new-chat',
+        INVOICE: 'invoice',
+        TRAVEL: 'travel',
+        TEST_DRIVE: 'test-drive',
+        NEW_WORKSPACE: 'new-workspace',
+    },
     TIMING: {
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
@@ -1744,6 +1756,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME: 1000,
         SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
@@ -1756,7 +1769,6 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
-        GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
     TELEMETRY: {
@@ -2183,6 +2195,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
+        PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
         NUMBERS_AND_PUNCTUATION: 'numbers-and-punctuation',
@@ -2347,16 +2360,16 @@ const CONST = {
     },
 
     FILE_VALIDATION_ERRORS: {
+        FILE_INVALID: 'fileInvalid',
         WRONG_FILE_TYPE: 'wrongFileType',
-        WRONG_FILE_TYPE_MULTIPLE: 'wrongFileTypeMultiple',
         FILE_TOO_LARGE: 'fileTooLarge',
-        FILE_TOO_LARGE_MULTIPLE: 'fileTooLargeMultiple',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
-        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
-        MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
         PROTECTED_FILE: 'protectedFile',
+        HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
+        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
+        MAX_FILE_LIMIT_EXCEEDED: 'maxFileLimitExceeded',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
@@ -6406,6 +6419,7 @@ const CONST = {
     ONBOARDING_RHP_VARIANT: {
         RHP_CONCIERGE_DM: 'rhpConciergeDm',
         RHP_ADMINS_ROOM: 'rhpAdminsRoom',
+        RHP_HOME_PAGE: 'rhpHomePage',
         CONTROL: 'control',
     },
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
@@ -7320,6 +7334,7 @@ const CONST = {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
                     DATE: this.TABLE_COLUMNS.DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     POSTED: this.TABLE_COLUMNS.POSTED,
@@ -7340,7 +7355,6 @@ const CONST = {
                     BILLABLE: this.TABLE_COLUMNS.BILLABLE,
                     TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
                     TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
-                    STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
@@ -7451,13 +7465,12 @@ const CONST = {
                 EXPENSE: [
                     this.TABLE_COLUMNS.RECEIPT,
                     this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.STATUS,
                     this.TABLE_COLUMNS.MERCHANT,
                     this.TABLE_COLUMNS.FROM,
-                    this.TABLE_COLUMNS.TO,
                     this.TABLE_COLUMNS.CATEGORY,
                     this.TABLE_COLUMNS.TAG,
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
-                    this.TABLE_COLUMNS.ACTION,
                 ],
                 EXPENSE_REPORT: [
                     this.TABLE_COLUMNS.DATE,
@@ -8448,10 +8461,6 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
-    },
-
-    MODAL_EVENTS: {
-        CLOSED: 'modalClosed',
     },
 
     LIST_BEHAVIOR: {

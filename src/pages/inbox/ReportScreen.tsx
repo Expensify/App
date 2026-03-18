@@ -360,12 +360,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
     const isConciergeChat = isConciergeChatReport(report);
+    const shouldShowConciergeIndicator = isConciergeChat || isAdminRoom(report);
     const {
         isProcessing: isConciergeProcessing,
         reasoningHistory: conciergeReasoningHistory,
         statusLabel: conciergeStatusLabel,
         kickoffWaitingIndicator,
-    } = useAgentZeroStatusIndicator(String(report?.reportID ?? CONST.DEFAULT_NUMBER_ID), isConciergeChat);
+    } = useAgentZeroStatusIndicator(String(report?.reportID ?? CONST.DEFAULT_NUMBER_ID), shouldShowConciergeIndicator);
 
     const {closeSidePanel} = useSidePanelActions();
 

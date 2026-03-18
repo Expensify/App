@@ -1,4 +1,5 @@
 import type {SimplifiedKeyboardEvent} from '@src/utils/keyboard';
+import type {DismissKeyboardOptions} from '@src/utils/keyboard/types';
 
 const mockKeyboardListeners: Record<string, Array<(e: SimplifiedKeyboardEvent) => void>> = {};
 const mockKeyboardControllerListeners: Record<string, Array<(e: SimplifiedKeyboardEvent) => void>> = {};
@@ -17,6 +18,7 @@ jest.mock('react-native', () => ({
             };
         }),
     },
+    PixelRatio: {getFontScale: () => 1},
 }));
 
 // Mock react-native-keyboard-controller
@@ -51,7 +53,7 @@ const clearListeners = () => {
 
 describe('Keyboard utils: general native', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let utils: {dismiss: () => Promise<void>; dismissKeyboardAndExecute: (cb: () => void) => Promise<void>};
+    let utils: {dismiss: (options?: DismissKeyboardOptions) => Promise<void>; dismissKeyboardAndExecute: (cb: () => void) => Promise<void>};
 
     beforeEach(() => {
         // Clear all mocks
@@ -61,7 +63,10 @@ describe('Keyboard utils: general native', () => {
         jest.resetModules();
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        utils = require('@src/utils/keyboard').default as {dismiss: () => Promise<void>; dismissKeyboardAndExecute: (cb: () => void) => Promise<void>};
+        utils = require('@src/utils/keyboard').default as {
+            dismiss: (options?: DismissKeyboardOptions) => Promise<void>;
+            dismissKeyboardAndExecute: (cb: () => void) => Promise<void>;
+        };
     });
 
     describe('dismiss', () => {
@@ -113,6 +118,20 @@ describe('Keyboard utils: general native', () => {
             triggerKeyboardEvent('keyboardDidHide');
 
             await expect(Promise.all([promise1, promise2])).resolves.toEqual([undefined, undefined]);
+        });
+
+        it('schedules afterTransition with TransitionTracker when keyboard is visible and runs it after keyboardDidHide', async () => {
+            triggerKeyboardEvent('keyboardDidShow');
+
+            const afterTransition = jest.fn();
+            const dismissPromise = utils.dismiss({afterTransition});
+
+            expect(afterTransition).not.toHaveBeenCalled();
+
+            triggerKeyboardEvent('keyboardDidHide');
+            await dismissPromise;
+
+            expect(afterTransition).toHaveBeenCalledTimes(1);
         });
     });
 
