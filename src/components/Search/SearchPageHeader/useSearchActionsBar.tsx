@@ -20,15 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
-import {
-    filterValidHasValues,
-    getFeedOptions,
-    getGroupCurrencyOptions,
-    getHasOptions,
-    getStatusOptions,
-    getWithdrawalTypeOptions,
-    mapFiltersFormToLabelValueList,
-} from '@libs/SearchUIUtils';
+import {filterValidHasValues, getFeedOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getWithdrawalTypeOptions, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
