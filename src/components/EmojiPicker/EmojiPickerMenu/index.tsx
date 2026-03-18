@@ -59,6 +59,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     // prevent auto focus when open picker for mobile device
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
+    const [searchText, setSearchText] = useState('');
     const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
@@ -110,7 +111,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         allowNegativeIndexes: true,
     });
 
-    const filterEmojis = throttle((searchTerm: string) => {
+    const filterCallbackRef = useRef<(searchTerm: string) => void>(undefined);
+    filterCallbackRef.current = (searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
         emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
@@ -128,7 +130,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         setHeaderIndices([]);
         setHighlightFirstEmoji(true);
         setIsUsingKeyboardMovement(false);
-    }, throttleTime);
+    };
+
+    // Stable throttled function that delegates to the latest callback via ref,
+    // preventing re-renders from recreating the throttle timer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const filterEmojis = useMemo(() => throttle((text: string) => filterCallbackRef.current?.(text), throttleTime), []);
 
     const keyDownHandler = useCallback(
         (keyBoardEvent: KeyboardEvent) => {
@@ -330,7 +337,10 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
-                    onChangeText={filterEmojis}
+                    onChangeText={(text: string) => {
+                        setSearchText(text);
+                        filterEmojis(text);
+                    }}
                     defaultValue=""
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
@@ -355,6 +365,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                 renderItem={renderItem}
                 extraData={[focusedIndex, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
+                searchValue={searchText}
             />
         </View>
     );
