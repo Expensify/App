@@ -58,6 +58,9 @@ type AddressFormProps = {
 
     /** Whether to hide the country selector (e.g. when country cannot be changed) */
     shouldHideCountrySelector?: boolean;
+
+    /** Whether the form submit button should be enabled when offline */
+    enabledWhenOffline?: boolean;
 };
 
 function AddressForm({
@@ -73,6 +76,7 @@ function AddressForm({
     submitButtonText = '',
     zip = '',
     shouldHideCountrySelector = false,
+    enabledWhenOffline: enabledWhenOfflineProp = true,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -162,7 +166,7 @@ function AddressForm({
             validate={validator}
             onSubmit={onSubmit}
             submitButtonText={submitButtonText}
-            enabledWhenOffline
+            enabledWhenOffline={enabledWhenOfflineProp}
             addBottomSafeAreaPadding
         >
             <View>

@@ -30,6 +30,18 @@ const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 
 const PAGE_NAMES: string[] = [PAGE_NAME.LEGAL_NAME, PAGE_NAME.ADDRESS, PAGE_NAME.PHONE_NUMBER];
 
+function UpdateLegalName({isEditing, onNext, onMove}: SubStepProps) {
+    return (
+        <LegalName
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
+            enabledWhenOffline={false}
+        />
+    );
+}
+UpdateLegalName.displayName = 'UpdateLegalName';
+
 function AddressWithDraft({isEditing, onNext, onMove}: SubStepProps) {
     return (
         <Address
@@ -38,6 +50,7 @@ function AddressWithDraft({isEditing, onNext, onMove}: SubStepProps) {
             onMove={onMove}
             shouldSaveDraft
             shouldHideCountrySelector
+            enabledWhenOffline={false}
         />
     );
 }
@@ -50,13 +63,14 @@ function DelayedPhoneNumber({isEditing, onNext, onMove}: SubStepProps) {
             onNext={onNext}
             onMove={onMove}
             shouldDelayAutoFocus
+            enabledWhenOffline={false}
         />
     );
 }
 DelayedPhoneNumber.displayName = 'DelayedPhoneNumber';
 
 const formPages = [
-    {pageName: PAGE_NAME.LEGAL_NAME, component: LegalName},
+    {pageName: PAGE_NAME.LEGAL_NAME, component: UpdateLegalName},
     {pageName: PAGE_NAME.ADDRESS, component: AddressWithDraft},
     {pageName: PAGE_NAME.PHONE_NUMBER, component: DelayedPhoneNumber},
 ];

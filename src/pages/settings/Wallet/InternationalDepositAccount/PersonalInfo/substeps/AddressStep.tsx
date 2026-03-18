@@ -22,9 +22,12 @@ type AddressStepProps = SubStepProps & {
 
     /** Whether to hide the country selector (e.g. when country cannot be changed) */
     shouldHideCountrySelector?: boolean;
+
+    /** Whether the form submit button should be enabled when offline */
+    enabledWhenOffline?: boolean;
 };
 
-function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCountrySelector = false}: AddressStepProps) {
+function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCountrySelector = false, enabledWhenOffline}: AddressStepProps) {
     const styles = useThemeStyles();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -134,6 +137,7 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
                 zip={zipcode}
                 shouldSaveDraft={shouldSaveDraft}
                 shouldHideCountrySelector={shouldHideCountrySelector}
+                enabledWhenOffline={enabledWhenOffline}
             />
         </>
     );
