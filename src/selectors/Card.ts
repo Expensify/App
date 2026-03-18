@@ -7,8 +7,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
 
 /**
- * Builds a lightweight map of "${domainID}_${feedName}" keys that have at least one assigned card.
- * Used for O(1) lookup when filtering stale direct feeds, instead of passing the full WORKSPACE_CARDS_LIST collection.
+ * Builds a lightweight map of "${domainID}_${feedName}" keys that have at least one card entry.
+ * A feed counts as having cards if it has at least one assigned card object OR at least one
+ * unassigned card in `cardList` (used by CSV and other assignment-first flows).
  *
  * Input key format: "cards_${domainID}_${feedName}" (e.g., "cards_12345_oauth.chase.com")
  * Output key format: "${domainID}_${feedName}" (e.g., "12345_oauth.chase.com")
@@ -21,7 +22,9 @@ const buildFeedKeysWithAssignedCards = (allWorkspaceCards: OnyxCollection<Worksp
             continue;
         }
 
-        if (Object.keys(cards).some((k) => k !== 'cardList')) {
+        const hasAssignedCards = Object.keys(cards).some((k) => k !== 'cardList');
+        const hasCardsToAssign = Object.keys(cards.cardList ?? {}).length > 0;
+        if (hasAssignedCards || hasCardsToAssign) {
             const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
             result[feedKey] = true;
         }
