@@ -111,7 +111,7 @@ import {
     getSearchOnyxUpdate,
     handleNavigateAfterExpenseCreate,
 } from './index';
-import type {BasePolicyParams} from './parameters/BasePolicyParams';
+import type BasePolicyParams from './parameters/BasePolicyParams';
 import type {CreateTrackExpenseParams} from './parameters/CreateTrackExpenseParams';
 import type {
     BuildOnyxDataForTrackExpenseKeys,

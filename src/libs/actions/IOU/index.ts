@@ -227,10 +227,10 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {BasePolicyParams} from './parameters/BasePolicyParams';
+import type BasePolicyParams from './parameters/BasePolicyParams';
 import type {BaseTransactionParams} from './parameters/BaseTransactionParams';
 import type {CreateTrackExpenseParams} from './parameters/CreateTrackExpenseParams';
-import type {RequestMoneyParticipantParams} from './parameters/RequestMoneyParticipantParams';
+import type RequestMoneyParticipantParams from './parameters/RequestMoneyParticipantParams';
 import type {GPSPoint} from './parameters/TrackExpenseTransactionParams';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;

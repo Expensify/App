@@ -6,4 +6,4 @@ type RequestMoneyParticipantParams = {
     participant: Participant;
 };
 
-export type {RequestMoneyParticipantParams};
+export default RequestMoneyParticipantParams;

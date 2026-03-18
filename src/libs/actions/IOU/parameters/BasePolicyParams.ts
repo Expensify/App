@@ -10,4 +10,4 @@ type BasePolicyParams = {
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
 };
 
-export type {BasePolicyParams};
+export default BasePolicyParams;
