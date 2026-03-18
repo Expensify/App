@@ -3486,7 +3486,7 @@ const staticStyles = (theme: ThemeColors) =>
             ...userSelect.userSelectNone,
             minHeight: 40,
             paddingTop: 8,
-            paddingBottom: 16,
+            paddingBottom: 8,
             backgroundColor: theme.highlightBG,
             justifyContent: 'flex-start',
             borderTopLeftRadius: 8,
