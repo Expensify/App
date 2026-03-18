@@ -2,13 +2,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
+import getInitialSubPageForSignerInfoStep from './getInitialSubPageForSignerInfoStep';
 import requiresDocusignStep from './requiresDocusignStep';
 
 const PAGE_NAME = CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME;
 const BANK_INFO_SUB_PAGES = CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP.SUB_PAGE_NAMES;
 const BUSINESS_INFO_SUB_PAGES = CONST.NON_USD_BANK_ACCOUNT.BUSINESS_INFO_STEP.SUB_PAGE_NAMES;
 const BENEFICIAL_OWNER_INFO_SUB_PAGES = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUB_PAGE_NAMES;
-const SIGNER_INFO_SUB_PAGES = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUB_PAGE_NAMES;
 
 type StartPageResult = {
     page: string;
@@ -58,7 +58,8 @@ function getStartPageForContinueSetup(
     }
 
     if (!isPastSignerStep()) {
-        return {page: PAGE_NAME.SIGNER_INFO, subPage: SIGNER_INFO_SUB_PAGES.IS_DIRECTOR};
+        const signerSubPage = getInitialSubPageForSignerInfoStep(achData?.corpay?.signerEmail, achData?.corpay?.signerFullName, achData?.corpay?.secondSignerEmail, policyCurrency ?? '');
+        return {page: PAGE_NAME.SIGNER_INFO, subPage: signerSubPage};
     }
 
     if (isPastSignerStep() && !allAgreementsChecked) {

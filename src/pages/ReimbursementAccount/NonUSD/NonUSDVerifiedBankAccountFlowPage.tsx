@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import Agreements from './Agreements';
 import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
@@ -18,6 +19,7 @@ import Docusign from './Docusign';
 import Finish from './Finish';
 import SignerInfo from './SignerInfo';
 import type NonUSDPageProps from './types';
+import getInitialSubPageForSignerInfoStep from './utils/getInitialSubPageForSignerInfoStep';
 import requiresDocusignStep from './utils/requiresDocusignStep';
 
 const PAGE_NAME = CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME;
@@ -49,6 +51,8 @@ const allPages: PageEntry[] = [
     {pageName: PAGE_NAME.FINISH, component: Finish},
 ];
 
+const {SIGNER_EMAIL, SIGNER_FULL_NAME, SECOND_SIGNER_EMAIL} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+
 type NonUSDVerifiedBankAccountFlowPageProps = PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD>;
 
 function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlowPageProps) {
@@ -67,14 +71,26 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     const isDocusignStepRequired = requiresDocusignStep(currency);
     const stepNames = isDocusignStepRequired ? CONST.NON_USD_BANK_ACCOUNT.DOCUSIGN_REQUIRED_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
 
+    const savedSignerEmail = reimbursementAccount?.achData?.corpay?.[SIGNER_EMAIL];
+    const savedSignerFullName = reimbursementAccount?.achData?.corpay?.[SIGNER_FULL_NAME];
+    const savedSecondSignerEmail = reimbursementAccount?.achData?.corpay?.[SECOND_SIGNER_EMAIL];
+
+    const initialSignerSubPage = getInitialSubPageForSignerInfoStep(savedSignerEmail, savedSignerFullName, savedSecondSignerEmail, currency);
+
     const isAUD = currency === CONST.CURRENCY.AUD;
     const pages = useMemo(() => {
         const filtered = isDocusignStepRequired ? allPages : allPages.filter((p) => p.pageName !== PAGE_NAME.DOCUSIGN);
-        if (!isAUD) {
-            return filtered;
-        }
-        return filtered.map((p) => (p.pageName === PAGE_NAME.SIGNER_INFO ? {...p, lastSubPage: SIGNER_INFO_SUB_PAGES.HANG_TIGHT} : p));
-    }, [isDocusignStepRequired, isAUD]);
+        return filtered.map((p) => {
+            if (p.pageName !== PAGE_NAME.SIGNER_INFO) {
+                return p;
+            }
+            return {
+                ...p,
+                firstSubPage: initialSignerSubPage,
+                ...(isAUD ? {lastSubPage: SIGNER_INFO_SUB_PAGES.HANG_TIGHT} : {}),
+            };
+        });
+    }, [isDocusignStepRequired, isAUD, initialSignerSubPage]);
 
     const currentPageIndex = useMemo(() => {
         const index = pages.findIndex((p) => p.pageName === currentPage);

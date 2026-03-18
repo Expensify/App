@@ -33,7 +33,7 @@ const pages = [
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
 ];
 
-function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
+function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: NonUSDPageProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -45,16 +45,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubP
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
     const startFrom = useMemo(() => getInitialSubStepForBankInfoStep(values, corpayFields), [corpayFields, values]);
-    const initialTargetSubPage = pages.at(startFrom)?.pageName ?? SUB_PAGE_NAMES.BANK_ACCOUNT_DETAILS;
-    const shouldRedirect = !currentSubPage;
     const isSubmittingRef = useRef(false);
-
-    useEffect(() => {
-        if (!shouldRedirect) {
-            return;
-        }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BANK_INFO, subPage: initialTargetSubPage, backTo}), {forceReplace: true});
-    }, [shouldRedirect, policyID, initialTargetSubPage, backTo]);
 
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
@@ -107,7 +98,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubP
         [policyID, backTo],
     );
 
-    const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage<BankInfoSubStepProps>({
+    const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<BankInfoSubStepProps>({
         pages,
         startFrom,
         onFinished: submit,
@@ -132,7 +123,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubP
         return <NotFoundPage />;
     }
 
-    if (shouldRedirect) {
+    if (isRedirecting) {
         return <FullScreenLoadingIndicator />;
     }
 

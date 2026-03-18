@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
@@ -61,17 +60,6 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
     const canAddMoreOwners = totalOwnedPercentageSum <= 75;
 
     const isSubmittingRef = useRef(false);
-
-    const shouldRedirect = !currentSubPage;
-
-    useEffect(() => {
-        if (!shouldRedirect) {
-            return;
-        }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER, backTo}), {
-            forceReplace: true,
-        });
-    }, [shouldRedirect, policyID, backTo]);
 
     const submit = useCallback(
         ({anyIndividualOwn25PercentOrMore}: {anyIndividualOwn25PercentOrMore?: boolean} = {}) => {
@@ -237,10 +225,6 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames, currentSub
             Navigation.goBack();
         }
     }, [backTo, currentSubPage, onBackButtonPress, policyID]);
-
-    if (shouldRedirect) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     if (currentSubPage && !OUTER_SUB_PAGES.has(currentSubPage)) {
         return (
