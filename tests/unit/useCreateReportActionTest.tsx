@@ -312,7 +312,7 @@ describe('useCreateReportAction', () => {
     });
 
     describe('returns', () => {
-        it('returns createReportAction function and CreateReportConfirmationModal', () => {
+        it('returns createReportAction function', () => {
             const onCreateReport = jest.fn();
 
             const {result} = renderHook(() =>
@@ -323,7 +323,6 @@ describe('useCreateReportAction', () => {
             );
 
             expect(typeof result.current.createReportAction).toBe('function');
-            expect(result.current).toHaveProperty('CreateReportConfirmationModal');
         });
     });
 });
