@@ -90,6 +90,7 @@ function SortableTableHeader({
                                     postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     shouldRemoveTotalColumnFlex,
+                                    isActive,
                                 ),
                             ]}
                             isSortable={isSortable}
