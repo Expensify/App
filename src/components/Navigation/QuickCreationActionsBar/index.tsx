@@ -37,7 +37,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLines']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLinesPlus']);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -129,7 +129,7 @@ function QuickCreationActionsBar() {
         [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
     );
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
@@ -229,45 +229,42 @@ function QuickCreationActionsBar() {
     );
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
+        <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
+            <Button
+                small
+                icon={icons.ReceiptPlus}
+                text={translate('common.expense')}
+                onPress={handleExpense}
+                style={styles.quickCreationActionsBarButton}
+                textStyles={styles.quickCreationActionsBarButtonText}
+            />
+            <Button
+                small
+                icon={icons.DocumentPlus}
+                text={translate('common.report')}
+                onPress={handleReport}
+                style={styles.quickCreationActionsBarButton}
+                textStyles={styles.quickCreationActionsBarButtonText}
+            />
+            <Button
+                small
+                icon={icons.CarPlus}
+                text={translate('common.distance')}
+                onPress={handleDistance}
+                style={styles.quickCreationActionsBarButton}
+                textStyles={styles.quickCreationActionsBarButtonText}
+            />
+            {shouldShowBookTravel && (
                 <Button
                     small
-                    icon={icons.ReceiptPlus}
-                    text={translate('common.expense')}
-                    onPress={handleExpense}
+                    icon={icons.LuggageWithLinesPlus}
+                    text={translate('workspace.common.travel')}
+                    onPress={handleBookTravel}
                     style={styles.quickCreationActionsBarButton}
                     textStyles={styles.quickCreationActionsBarButtonText}
                 />
-                <Button
-                    small
-                    icon={icons.DocumentPlus}
-                    text={translate('common.report')}
-                    onPress={handleReport}
-                    style={styles.quickCreationActionsBarButton}
-                    textStyles={styles.quickCreationActionsBarButtonText}
-                />
-                <Button
-                    small
-                    icon={icons.CarPlus}
-                    text={translate('common.distance')}
-                    onPress={handleDistance}
-                    style={styles.quickCreationActionsBarButton}
-                    textStyles={styles.quickCreationActionsBarButtonText}
-                />
-                {shouldShowBookTravel && (
-                    <Button
-                        small
-                        icon={icons.LuggageWithLines}
-                        text={translate('travel.bookTravel')}
-                        onPress={handleBookTravel}
-                        style={styles.quickCreationActionsBarButton}
-                        textStyles={styles.quickCreationActionsBarButtonText}
-                    />
-                )}
-            </View>
-        </>
+            )}
+        </View>
     );
 }
 

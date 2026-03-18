@@ -2304,7 +2304,6 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'We willen zeker weten dat jij het bent',
         enterMagicCode: (contactMethod: string) =>
             `Voer de magische code in die naar ${contactMethod} is gestuurd om je kaartgegevens te bekijken. Deze zou binnen één à twee minuten moeten aankomen.`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">Voeg je persoonlijke gegevens toe</a> en probeer het daarna opnieuw.`,
         unexpectedError: 'Er is een fout opgetreden bij het ophalen van de gegevens van je Expensify-kaart. Probeer het opnieuw.',
         cardFraudAlert: {
             confirmButtonText: 'Ja, dat doe ik',
@@ -5351,6 +5350,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 removeCardFeed: 'Kaartfeed verwijderen',
                 removeCardFeedTitle: (feedName: string) => `Feed ${feedName} verwijderen`,
                 removeCardFeedDescription: 'Weet je zeker dat je deze kaartfeed wilt verwijderen? Hierdoor worden alle kaarten losgekoppeld.',
+                assignNewCards: 'Nieuwe kaarten toewijzen',
+                assignNewCardsDescription: 'Haal de nieuwste kaarten op van je bank om toe te wijzen',
+                refreshConnectionSuccess: 'Verbinding vernieuwd',
+                refreshConnectionSuccessDescription: 'Je bankverbinding is succesvol opnieuw geverifieerd. Je kunt nu nieuwe kaarten toewijzen.',
                 error: {
                     feedNameRequired: 'Naam van kaartfeed is vereist',
                     statementCloseDateRequired: 'Selecteer een afsluitdatum voor het afschrift.',
@@ -7467,7 +7470,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 markedReimbursed: (amount: string, currency: string) => `elders ${currency}${amount} betaald`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `heeft ${currency}${amount} betaald via integratie`,
                 outdatedBankAccount: `kon de betaling niet verwerken vanwege een probleem met de bankrekening van de betaler`,
-                reimbursementACHBounce: `kon de betaling niet verwerken vanwege een probleem met de bankrekening`,
+                reimbursementACHBounceDefault: `kon de betaling niet verwerken vanwege een verkeerd bank-/rekeningnummer of een gesloten rekening`,
+                reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `kon de betaling niet verwerken: ${returnReason}`,
                 reimbursementACHCancelled: `heeft de betaling geannuleerd`,
                 reimbursementAccountChanged: `kon de betaling niet verwerken omdat de betaler van bankrekening is veranderd`,
                 reimbursementDelayed: `heeft de betaling verwerkt, maar deze is nog 1-2 extra werkdagen vertraagd`,

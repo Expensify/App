@@ -2291,7 +2291,6 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: 'カード詳細の読み込み中にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'ご本人確認を行います',
         enterMagicCode: (contactMethod: string) => `カード情報を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試しください。`,
         unexpectedError: 'Expensifyカードの詳細を取得中にエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです',
@@ -5314,6 +5313,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 removeCardFeed: 'カードフィードを削除',
                 removeCardFeedTitle: (feedName: string) => `${feedName}フィードを削除`,
                 removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？すべてのカードの割り当てが解除されます。',
+                assignNewCards: '新しいカードを割り当てる',
+                assignNewCardsDescription: '銀行から最新のカードを取得して割り当てます',
+                refreshConnectionSuccess: '接続が更新されました',
+                refreshConnectionSuccessDescription: '銀行接続の再認証が正常に完了しました。新しいカードを割り当てることができます。',
                 error: {
                     feedNameRequired: 'カードフィード名は必須です',
                     statementCloseDateRequired: '明細書の締め日を選択してください。',
@@ -7405,7 +7408,8 @@ ${reportName}
                 markedReimbursed: (amount: string, currency: string) => `他の場所で${currency}${amount}を支払いました`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `連携経由で${currency}${amount}を支払いました`,
                 outdatedBankAccount: `支払元の銀行口座に問題があるため、支払いを処理できませんでした`,
-                reimbursementACHBounce: `銀行口座の問題により支払いを処理できませんでした`,
+                reimbursementACHBounceDefault: `ルーティング番号または口座番号の誤り、もしくは口座が閉鎖されているため、支払いを処理できませんでした`,
+                reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `支払いを処理できませんでした：${returnReason}`,
                 reimbursementACHCancelled: `支払いをキャンセルしました`,
                 reimbursementAccountChanged: `支払元が銀行口座を変更したため、支払いを処理できませんでした`,
                 reimbursementDelayed: `支払いは処理されましたが、あと1～2営業日遅れています`,

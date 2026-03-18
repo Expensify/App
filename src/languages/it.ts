@@ -2306,7 +2306,6 @@ const translations: TranslationDeepObject<typeof en> = {
         validateCardTitle: 'Verifichiamo che sia davvero tu',
         enterMagicCode: (contactMethod: string) =>
             `Inserisci il codice magico inviato a ${contactMethod} per visualizzare i dettagli della tua carta. Dovrebbe arrivare entro uno o due minuti.`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Per favore <a href="${missingDetailsLink}">aggiungi i tuoi dati personali</a>, quindi riprova.`,
         unexpectedError: 'Si è verificato un errore durante il recupero dei dettagli della tua carta Expensify. Riprova.',
         cardFraudAlert: {
             confirmButtonText: 'Sì, lo voglio',
@@ -5370,6 +5369,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 removeCardFeed: 'Rimuovi flusso carta',
                 removeCardFeedTitle: (feedName: string) => `Rimuovi feed ${feedName}`,
                 removeCardFeedDescription: 'Sei sicuro di voler rimuovere questo flusso di carte? Questo rimuoverà l’assegnazione di tutte le carte.',
+                assignNewCards: 'Assegna nuove carte',
+                assignNewCardsDescription: 'Ottieni le ultime carte da assegnare dalla tua banca',
+                refreshConnectionSuccess: 'Connessione aggiornata',
+                refreshConnectionSuccessDescription: 'La connessione bancaria è stata riautenticata con successo. Ora puoi assegnare nuove carte.',
                 error: {
                     feedNameRequired: 'Il nome del feed della carta è obbligatorio',
                     statementCloseDateRequired: 'Seleziona una data di chiusura dell’estratto conto.',
@@ -7489,7 +7492,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 markedReimbursed: (amount: string, currency: string) => `pagato ${currency}${amount} altrove`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `pagato ${currency}${amount} tramite integrazione`,
                 outdatedBankAccount: `impossibile elaborare il pagamento a causa di un problema con il conto bancario del pagatore`,
-                reimbursementACHBounce: `impossibile elaborare il pagamento a causa di un problema con il conto bancario`,
+                reimbursementACHBounceDefault: `impossibile elaborare il pagamento a causa di un numero di instradamento/conto errato o di un conto chiuso`,
+                reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `impossibile elaborare il pagamento: ${returnReason}`,
                 reimbursementACHCancelled: `ha annullato il pagamento`,
                 reimbursementAccountChanged: `impossibile elaborare il pagamento, poiché il pagatore ha cambiato conto bancario`,
                 reimbursementDelayed: `ha elaborato il pagamento ma è in ritardo di 1-2 giorni lavorativi in più`,

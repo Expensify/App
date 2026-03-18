@@ -209,6 +209,7 @@ export default createOnyxDerivedValueConfig({
                 reportErrors,
                 oneTransactionThreadReportID,
                 actionBadge: actionGreenBadge,
+                actionTargetReportActionID: actionGreenTargetReportActionID,
             } = generateReportAttributes({
                 report,
                 chatReport,
@@ -219,15 +220,28 @@ export default createOnyxDerivedValueConfig({
 
             let brickRoadStatus;
             let actionBadge;
+            let actionTargetReportActionID;
+            const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                report,
+                chatReport,
+                reportActionsList,
+                hasAnyViolations,
+                reportErrors,
+                transactions,
+                transactionViolations,
+                !!isReportArchived,
+            );
             // if report has errors or violations, show red dot
-            if (SidebarUtils.shouldShowRedBrickRoad(report, chatReport, reportActionsList, hasAnyViolations, reportErrors, transactions, transactionViolations, !!isReportArchived)) {
+            if (reasonAndReportAction) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
+                actionTargetReportActionID = reasonAndReportAction.reportAction?.reportActionID;
             }
             // if report does not have error, check if it should show green dot
             if (brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttention) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
                 actionBadge = actionGreenBadge;
+                actionTargetReportActionID = actionGreenTargetReportActionID;
             }
 
             acc[report.reportID] = {
@@ -249,6 +263,7 @@ export default createOnyxDerivedValueConfig({
                 brickRoadStatus,
                 requiresAttention,
                 actionBadge,
+                actionTargetReportActionID,
                 reportErrors,
                 oneTransactionThreadReportID,
             };

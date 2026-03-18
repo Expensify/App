@@ -450,7 +450,7 @@ function OptionRowLHN({
                                             ) : (
                                                 <Badge
                                                     icon={expensifyIcons.Pin}
-                                                    text={translate('common.pinned')}
+                                                    text=""
                                                     badgeStyles={isOptionFocused && styles.badgeDefaultActive}
                                                     isCondensed
                                                     isStrong

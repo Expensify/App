@@ -2298,7 +2298,6 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: 'Ocorreu um erro ao carregar os detalhes do cartão. Verifique sua conexão com a internet e tente novamente.',
         validateCardTitle: 'Vamos garantir que é você',
         enterMagicCode: (contactMethod: string) => `Insira o código mágico enviado para ${contactMethod} para visualizar os detalhes do seu cartão. Ele deve chegar em um ou dois minutos.`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `Por favor, <a href="${missingDetailsLink}">adicione seus dados pessoais</a> e tente novamente.`,
         unexpectedError: 'Ocorreu um erro ao tentar obter os detalhes do seu cartão Expensify. Tente novamente.',
         cardFraudAlert: {
             confirmButtonText: 'Sim, eu quero',
@@ -5351,6 +5350,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 removeCardFeed: 'Remover feed do cartão',
                 removeCardFeedTitle: (feedName: string) => `Remover feed ${feedName}`,
                 removeCardFeedDescription: 'Tem certeza de que deseja remover este feed de cartão? Isso removerá a atribuição de todos os cartões.',
+                assignNewCards: 'Atribuir novos cartões',
+                assignNewCardsDescription: 'Obtenha os cartões mais recentes do seu banco para atribuir',
+                refreshConnectionSuccess: 'Conexão atualizada',
+                refreshConnectionSuccessDescription: 'Sua conexão bancária foi reautenticada com sucesso. Agora você pode atribuir novos cartões.',
                 error: {
                     feedNameRequired: 'O nome do feed do cartão é obrigatório',
                     statementCloseDateRequired: 'Selecione uma data de fechamento do extrato.',
@@ -7459,7 +7462,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 markedReimbursed: (amount: string, currency: string) => `pagou ${currency}${amount} em outro lugar`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `pagou ${currency}${amount} via integração`,
                 outdatedBankAccount: `não foi possível processar o pagamento devido a um problema com a conta bancária do pagador`,
-                reimbursementACHBounce: `não foi possível processar o pagamento devido a um problema com a conta bancária`,
+                reimbursementACHBounceDefault: `não foi possível processar o pagamento devido a um número de roteamento/conta incorreto ou conta encerrada`,
+                reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `não foi possível processar o pagamento: ${returnReason}`,
                 reimbursementACHCancelled: `cancelou o pagamento`,
                 reimbursementAccountChanged: `não foi possível processar o pagamento, pois o pagador alterou a conta bancária`,
                 reimbursementDelayed: `processou o pagamento, mas ele será atrasado em mais 1–2 dias úteis`,
