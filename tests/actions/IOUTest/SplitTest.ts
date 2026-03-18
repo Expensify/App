@@ -9,7 +9,6 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
-import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getOriginalMessage, isActionOfType, isAddCommentAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -3818,9 +3817,9 @@ describe('updateSplitTransactions', () => {
         const originalCommentAction = Object.values(originalThreadReportActions ?? {}).find((action) => isAddCommentAction(action));
         expect(originalCommentAction?.reportActionID).toBeDefined();
 
-        const originalAPIWrite = API.write;
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        const writeSpy = jest.spyOn(API, 'write').mockImplementation((...args) => originalAPIWrite(...args));
+        const APIlib = require('@libs/API') as {write: (...args: unknown[]) => Promise<void>};
+        const originalWrite = APIlib.write;
+        const writeSpy = jest.spyOn(APIlib, 'write').mockImplementation((...args) => originalWrite(...args));
         // Split a transaction that already has thread comments.
         const {splitTransactionID1, splitTransactionID2} = await splitToTwo(expenseReport, originalTransactionID, iouAction);
         const split1ThreadReportID = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1)?.childReportID;
