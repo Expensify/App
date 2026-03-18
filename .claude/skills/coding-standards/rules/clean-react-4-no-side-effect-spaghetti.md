@@ -9,6 +9,15 @@ title: Avoid side-effect spaghetti
 
 When multiple unrelated responsibilities are grouped into a single component, hook, or utility, if any one concern changes, then unrelated logic must be touched as well, increasing coupling, regression risk, and cognitive load. This is the single responsibility principle for React: extract small units that do very little, very well. A component with several unrelated effects is a code smell - even a single effect can benefit from extraction to something with a good name, proper description, and isolated tests.
 
+### useEffect Smell Tests
+
+Quick checks to catch common useEffect misuse — each points to a better pattern:
+
+- **"About to write `useEffect(() => setX(f(y)), [y])`?"** → Derive `x` inline instead ([PERF-6](perf-6-derive-state-from-props.md))
+- **"State used as a flag so an effect can do the real action?"** → Do the work in the event handler directly ([PERF-8](perf-8-events-in-handlers.md))
+- **"Effect's only job is to reset state when an ID/prop changes?"** → Use `key` prop to force remount ([PERF-7](perf-7-reset-via-key-prop.md))
+- **"Effect wraps all logic in a readiness guard (`if (!ready) return`)?"** → Conditional mounting — render the child only when preconditions are met ([CLEAN-REACT-PATTERNS-6](clean-react-6-conditional-mounting.md))
+
 **Bucketing questions for refactoring:**
 1. Does this logic need the React render loop? YES -> Extract to a focused custom hook. NO -> Extract out of React entirely (e.g., Onyx migration, global initialization).
 2. Does this logic need to be in this component? YES -> Keep it, but use a focused hook. NO -> Extract to a separate component that owns this concern.
