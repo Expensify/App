@@ -2078,6 +2078,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Twoetapowe uwierzytelnianie jest wymagane przez Twoją firmę.',
         twoFactorAuthCannotDisable: 'Nie można wyłączyć 2FA',
         twoFactorAuthRequired: 'Dla połączenia z Xero wymagana jest weryfikacja dwuetapowa (2FA) i nie można jej wyłączyć.',
+        replaceDevice: 'Zastąp urządzenie',
+        replaceDeviceTitle: 'Zastąp urządzenie dwuetapowej weryfikacji',
+        verifyOldDeviceTitle: 'Zweryfikuj stare urządzenie',
+        verifyOldDeviceDescription: 'Wpisz sześciocyfrowy kod z bieżącej aplikacji uwierzytelniającej, żeby potwierdzić, że masz do niej dostęp.',
+        verifyNewDeviceTitle: 'Skonfiguruj nowe urządzenie',
+        verifyNewDeviceDescription: 'Zeskanuj kod QR nowym urządzeniem, a następnie wpisz ten kod, aby zakończyć konfigurację.',
     },
     recoveryCodeForm: {
         error: {
