@@ -1,5 +1,6 @@
 import {agentZeroProcessingIndicatorSelector} from '@selectors/ReportNameValuePairs';
 import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -40,14 +41,18 @@ const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defa
 
 /**
  * Cheap outer guard — only subscribes to the scalar CONCIERGE_REPORT_ID.
- * For non-Concierge reports (the common case), returns children directly
+ * For non-AgentZero reports (the common case), returns children directly
  * without mounting any Pusher subscriptions or heavy state logic.
+ *
+ * AgentZero chats include Concierge DMs and policy #admins rooms.
  */
-function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
+function AgentZeroStatusProvider({reportID, chatType, children}: React.PropsWithChildren<{reportID: string | undefined; chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined}>) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = reportID === conciergeReportID;
+    const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+    const isAgentZeroChat = isConciergeChat || isAdmin;
 
-    if (!reportID || !isConciergeChat) {
+    if (!reportID || !isAgentZeroChat) {
         return children;
     }
 

@@ -1066,7 +1066,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             </ScrollView>
                                         </Animated.View>
                                     )}
-                                    <AgentZeroStatusProvider reportID={reportIDFromRoute}>
+                                    <AgentZeroStatusProvider
+                                        reportID={reportIDFromRoute}
+                                        chatType={report?.chatType}
+                                    >
                                         <View
                                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                             testID="report-actions-view-wrapper"
