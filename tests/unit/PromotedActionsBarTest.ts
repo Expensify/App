@@ -32,11 +32,12 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
+            betas: undefined,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], 1, introSelected, false, false);
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], 1, introSelected, false, undefined, false);
     });
 
     it('should pass introSelected to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
@@ -46,6 +47,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
+            betas: undefined,
         });
 
         action.onSelected();
@@ -59,6 +61,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected: undefined,
             isSelfTourViewed: undefined,
+            betas: undefined,
         });
 
         action.onSelected();
@@ -72,6 +75,7 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected: undefined,
             isSelfTourViewed: undefined,
+            betas: undefined,
         });
 
         action.onSelected();
@@ -88,11 +92,12 @@ describe('PromotedActions.message', () => {
             currentUserAccountID: 1,
             introSelected,
             isSelfTourViewed: false,
+            betas: undefined,
         });
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], 1, introSelected, false, false);
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], 1, introSelected, false, undefined, false);
         expect(mockNavigateToAndOpenReportWithAccountIDs).not.toHaveBeenCalled();
     });
 });
