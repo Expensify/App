@@ -1,4 +1,4 @@
-import {domainNameSelector, groupsSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import {domainNameSelector, groupsSelector} from '@selectors/Domain';
 import React, {useState} from 'react';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -34,7 +34,6 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
     const styles = useThemeStyles();
 
     const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [securityGroups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
     const [selectedMemberAccountIDs] = useOnyx(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE);
@@ -53,14 +52,15 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
     };
 
     const handleSave = () => {
-        if (!selectedGroupId || !selectedMemberAccountIDs?.length || !domain || !domainName) {
+        if (!selectedGroupId || !selectedMemberAccountIDs?.length || !domainName) {
             return;
         }
 
         for (const accountIDString of selectedMemberAccountIDs) {
             const accountID = Number(accountIDString);
             const memberLogin = getLoginByAccountID(accountID) ?? '';
-            const currentGroupData = selectSecurityGroupForAccount(accountID)(domain);
+            const currentGroup = securityGroups?.find((g) => accountIDString in (g.details.shared ?? {}));
+            const currentGroupData = currentGroup ? {key: `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${currentGroup.id}` as const, securityGroup: currentGroup.details} : undefined;
             const newSecurityGroupKey: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${selectedGroupId}`;
 
             if (!currentGroupData || newSecurityGroupKey === currentGroupData.key) {
