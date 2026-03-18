@@ -136,6 +136,8 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     if (editingReportID == null && editingState !== null) {
         setEditingState(null);
         setEditingMessage(null);
+        setPrevEditingReportActionID(null);
+        setCurrentEditMessageSelectionState(null);
     }
 
     const setCurrentEditMessageSelection = (setSelectionStateAction: SetStateAction<TextSelection | null>) => {
