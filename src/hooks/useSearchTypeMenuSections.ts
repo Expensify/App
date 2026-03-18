@@ -1,14 +1,14 @@
 import {defaultExpensifyCardSelector} from '@selectors/Card';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {NonPersonalAndWorkspaceCardListDerivedValue, Policy, Session} from '@src/types/onyx';
+import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
-import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -54,9 +54,7 @@ type UseSearchTypeMenuSectionsParams = {
  */
 const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams) => {
     const {hash, similarSearchHash} = queryParams ?? {};
-    const {translate} = useLocalize();
-    const cardSelector = useCallback((allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => defaultExpensifyCardSelector(allCards, translate), [translate]);
-    const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: cardSelector}, [cardSelector]);
+    const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
@@ -66,6 +64,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -82,7 +81,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         setPendingReportCreation(null);
     }, [setPendingReportCreation]);
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: pendingReportCreation?.policyID,
         policyName: pendingReportCreation?.policyName ?? '',
         onConfirm: handlePendingConfirm,
@@ -102,18 +101,19 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
 
     const typeMenuSections = useMemo(
         () =>
-            createTypeMenuSections(
+            createTypeMenuSections({
                 icons,
-                currentUserLoginAndAccountID?.email,
-                currentUserLoginAndAccountID?.accountID,
+                currentUserEmail: currentUserLoginAndAccountID?.email,
+                currentUserAccountID: currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,
-                defaultCardFeed ?? defaultExpensifyCard,
-                allPolicies,
+                defaultCardFeed: defaultCardFeed ?? defaultExpensifyCard,
+                policies: allPolicies,
                 savedSearches,
                 isOffline,
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
-            ),
+                draftTransactionIDs,
+            }),
         [
             currentUserLoginAndAccountID?.email,
             currentUserLoginAndAccountID?.accountID,
@@ -125,6 +125,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             isOffline,
             shouldRedirectToExpensifyClassic,
             icons,
+            draftTransactionIDs,
         ],
     );
 
@@ -148,7 +149,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
 
     return {
         typeMenuSections,
-        CreateReportConfirmationModal,
         shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
         activeItemIndex,
     };
