@@ -1157,12 +1157,10 @@ function updateSplitTransactions({
 
     let updatedReportPreviewAction: Partial<OnyxTypes.ReportAction> | undefined;
     const originalReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
-    const addCommentActionsFilter = (reportActions?: OnyxTypes.ReportActions) =>
-        Object.values(reportActions ?? {})
+    const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
+    const allCommentActionsFromOriginalTransactionThread = Object.values(transactionReportActions ?? {})
             .filter((action) => isAddCommentAction(action) && !isDeletedAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .sort((a, b) => (a.created > b.created ? 1 : -1));
-    const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
-    const allCommentActionsFromOriginalTransactionThread = addCommentActionsFilter(transactionReportActions);
     const expenseReportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(expenseReportNameValuePairs);
     const canUserPerformWriteAction = chatReport ? !!canUserPerformWriteActionReportUtils(chatReport, isArchivedExpenseReport) : true;
@@ -1417,12 +1415,17 @@ function updateSplitTransactions({
         }
 
         // Copy comments to the transaction report thread of the split expense
-        const optimisticDataComments: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-        const successDataComments: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-        const failureDataComments: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+        const optimisticDataComments: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
+        const successDataComments: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
+        const failureDataComments: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
         const addCommentToSplitTransactionThread = (commentAction: OnyxTypes.ReportAction) => {
             const newReportActionID = NumberUtils.rand64();
-            const reportComment = buildOptimisticAddCommentReportAction('', undefined, commentAction.actorAccountID, undefined, transactionThreadReportID, newReportActionID);
+            const reportComment = buildOptimisticAddCommentReportAction({
+                text: '',
+                actorAccountID: commentAction.actorAccountID,
+                reportID: transactionThreadReportID,
+                reportActionID: newReportActionID,
+            });
             const reportActionComment = {
                 ...reportComment.reportAction,
                 created: DateUtils.getDBTime(),
@@ -1437,20 +1440,49 @@ function updateSplitTransactions({
             });
 
             failureDataComments.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, value: {[newReportActionID]: null}});
+
+            if (currentSplit) {
+                currentSplit.copiedComments ??= {};
+                currentSplit.copiedComments[commentAction.reportActionID] = newReportActionID;
+            }
         };
 
-        let updatedIOUAction: Partial<OnyxTypes.ReportAction> | undefined;
-        if (isCreationOfSplits && transactionThreadReportID && firstIOU?.childReportID) {
-            const isTransactionOnHold = isOnHold(originalTransaction);
-            const holdReportAction = getReportAction(firstIOU.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
+        // An internal helper to find transaction violations within onyxUpdates.
+        // If one exists, it modifies the value for the update instead of adding a new one.
+        const updateTransactionViolationsOnyxData = (
+            targetTransactionID: string,
+            onyxUpdates: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys>> | undefined,
+            fallbackViolations: OnyxTypes.TransactionViolation[],
+        ) => {
+            const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${targetTransactionID}` as typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS;
+            const latestViolationUpdate = onyxUpdates?.findLast((update) => update.key === transactionViolationsKey) as OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>;
+            const baseViolations = latestViolationUpdate && 'value' in latestViolationUpdate && Array.isArray(latestViolationUpdate.value) ? latestViolationUpdate.value : fallbackViolations;
+            const nextViolations = [
+                ...baseViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD),
+                {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+            ];
 
-            for (const commentAction of allCommentActionsFromOriginalTransactionThread) {
-                if (isTransactionOnHold && holdReportAction && commentAction.timestamp === holdReportAction.timestamp) {
+            if (latestViolationUpdate && 'value' in latestViolationUpdate) {
+                latestViolationUpdate.value = nextViolations;
+                return;
+            }
+
+            optimisticDataComments.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: transactionViolationsKey,
+                value: nextViolations,
+            });
+
+            failureDataComments.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: transactionViolationsKey,
+                value: fallbackViolations,
+            });
+        };
+        const addHoldToTransactionThread = (holdReportAction: OnyxTypes.ReportAction, commentAction: OnyxTypes.ReportAction | undefined) => {
                     // Generate new IDs and timestamps for each split
                     const newHoldReportActionID = NumberUtils.rand64();
-                    const newHoldReportActionCommentID = NumberUtils.rand64();
                     const timestamp = DateUtils.getDBTime();
-                    const reportActionTimestamp = DateUtils.addMillisecondsFromDateTime(timestamp, 1);
 
                     // Create new optimistic hold report action with new ID and timestamp, keeping other information
                     const newHoldReportAction = {
@@ -1458,15 +1490,20 @@ function updateSplitTransactions({
                         reportActionID: newHoldReportActionID,
                         created: timestamp,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                timestamp: undefined,
                     };
 
-                    // Create new optimistic hold report action comment with new ID and timestamp, keeping other information
-                    const newHoldReportActionComment = {
+            const newHoldReportActionCommentID = commentAction ? NumberUtils.rand64() : undefined;
+            const newHoldReportActionComment =
+                commentAction && newHoldReportActionCommentID
+                    ? {
                         ...commentAction,
                         reportActionID: newHoldReportActionCommentID,
-                        created: reportActionTimestamp,
+                          created: DateUtils.addMillisecondsFromDateTime(timestamp, 1),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    };
+                          timestamp: undefined,
+                      }
+                    : undefined;
 
                     // Add to optimisticData for this split's reportActions
                     optimisticDataComments.push({
@@ -1474,7 +1511,17 @@ function updateSplitTransactions({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                         value: {
                             [newHoldReportActionID]: newHoldReportAction,
-                            [newHoldReportActionCommentID]: newHoldReportActionComment,
+                    ...(newHoldReportActionCommentID && newHoldReportAction ? {[newHoldReportActionCommentID]: newHoldReportActionComment} : {}),
+                },
+            });
+
+            optimisticDataComments.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`,
+                value: {
+                    comment: {
+                        hold: newHoldReportActionID,
+                    },
                         },
                     });
 
@@ -1484,7 +1531,7 @@ function updateSplitTransactions({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                         value: {
                             [newHoldReportActionID]: {pendingAction: null},
-                            [newHoldReportActionCommentID]: {pendingAction: null},
+                    ...(newHoldReportActionCommentID ? {[newHoldReportActionCommentID]: {pendingAction: null}} : {}),
                         },
                     });
 
@@ -1494,23 +1541,88 @@ function updateSplitTransactions({
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                         value: {
                             [newHoldReportActionID]: null,
-                            [newHoldReportActionCommentID]: null,
+                    ...(newHoldReportActionCommentID ? {[newHoldReportActionCommentID]: null} : {}),
+                },
+            });
+            failureDataComments.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`,
+                value: {
+                    comment: {
+                        hold: splitTransaction?.comment?.hold ?? null,
+                    },
                         },
                     });
 
+            // Add hold transaction violation to optimisticData
+            updateTransactionViolationsOnyxData(
+                existingTransactionID,
+                updateMoneyRequestParamsOnyxData.optimisticData ?? moneyRequestInformationOnyxData.optimisticData,
+                transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${existingTransactionID}`] ?? [],
+            );
+
                     if (currentSplit) {
-                        (currentSplit as unknown as {holdReportActionID: string}).holdReportActionID = newHoldReportActionID;
-                        (currentSplit as unknown as {holdReportActionCommentID: string}).holdReportActionCommentID = newHoldReportActionCommentID;
-                    }
-                } else {
-                    addCommentToSplitTransactionThread(commentAction);
+                currentSplit.holdReportActionID = newHoldReportActionID;
+                currentSplit.holdReportActionCommentID = newHoldReportActionCommentID;
+            }
+        };
+
+        let updatedIOUAction: Partial<OnyxTypes.ReportAction> | undefined;
+        const copyCommentsAndHoldState = ({
+            commentActions,
+            isSourceTransactionOnHold,
+            holdReportAction,
+        }: {
+            commentActions: OnyxTypes.ReportAction[];
+            isSourceTransactionOnHold: boolean;
+            holdReportAction: OnyxTypes.ReportAction | undefined;
+        }) => {
+            let hasInsertedHoldState = !isSourceTransactionOnHold || !holdReportAction;
+
+            const insertHoldState = (holdCommentAction?: OnyxTypes.ReportAction) => {
+                if (!holdReportAction || hasInsertedHoldState) {
+                    return;
                 }
 
+                addHoldToTransactionThread(holdReportAction, holdCommentAction);
+                updatedIOUAction = updateParentActions(iouAction, updatedIOUAction).nextUpdatedIOUAction;
+                hasInsertedHoldState = true;
+            };
+            // Since timestamp is only returned from the backend, we will fallback to comparing the created field of both actions if it doesn't exist
+            const isHoldComment = (holdCommentAction: OnyxTypes.ReportAction, commentAction: OnyxTypes.ReportAction) => {
+                if (holdCommentAction.timestamp !== undefined) {
+                    return holdCommentAction.timestamp === commentAction.timestamp;
+                }
+                return DateUtils.subtractMillisecondsFromDateTime(commentAction.created, 1) === holdCommentAction.created;
+            };
+
+            for (const commentAction of commentActions) {
+                if (!hasInsertedHoldState && holdReportAction && isHoldComment(holdReportAction, commentAction)) {
+                    insertHoldState(commentAction);
+                    continue;
+                }
+
+                addCommentToSplitTransactionThread(commentAction);
                 updatedIOUAction = updateParentActions(iouAction, updatedIOUAction).nextUpdatedIOUAction;
             }
+
+            // If the commentAction is not found, it means the action has been deleted.
+            // We call insertHoldState here to ensure the hold state is always added.
+            if (!hasInsertedHoldState) {
+                insertHoldState();
+            }
+        };
+
+        if (isCreationOfSplits && transactionThreadReportID && firstIOU?.childReportID) {
+            const isTransactionOnHold = isOnHold(originalTransaction);
+            const holdReportAction = getReportAction(firstIOU.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
+            copyCommentsAndHoldState({
+                commentActions: allCommentActionsFromOriginalTransactionThread,
+                isSourceTransactionOnHold: isTransactionOnHold,
+                holdReportAction,
+            });
         }
 
-        // When isReverseSplitOperation is true, we copy all comments from the remaining transaction to the original transaction
         if (isReverseSplitOperation && transactionThreadReportID) {
             const remainTransactionThreadReportAction = getIOUActionForReportID(splitExpense.reportID, splitExpense.transactionID);
             const allReportActions = getAllReportActions(remainTransactionThreadReportAction?.childReportID);
