@@ -192,9 +192,9 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         shouldShowCancelButton: true,
+                        onModalHide: resetSelectedPaymentMethodData,
                     }).then((result) => {
                         if (result.action !== ModalActions.CONFIRM) {
-                            resetSelectedPaymentMethodData();
                             return;
                         }
 
