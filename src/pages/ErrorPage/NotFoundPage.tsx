@@ -25,7 +25,7 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
     const topmostReportId = Navigation.getTopmostReportId();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`);
     const route = useRoute();
-    const isNotFoundScreen = route.name === SCREENS.NOT_FOUND;
+    const isOnGenericErrorScreen = route.name === SCREENS.NOT_FOUND;
 
     useAbsentPageSpan();
 
@@ -51,7 +51,7 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
                 }}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...fullPageNotFoundViewProps}
-                onLinkPress={isNotFoundScreen ? () => Navigation.goBack(ROUTES.HOME) : fullPageNotFoundViewProps.onLinkPress}
+                onLinkPress={isOnGenericErrorScreen ? () => Navigation.goBack(ROUTES.HOME) : fullPageNotFoundViewProps.onLinkPress}
             />
         </ScreenWrapper>
     );
