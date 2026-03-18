@@ -41,7 +41,7 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         surface.flush();
 
         snapshot = surface.makeImageSnapshot();
-        const base64 = snapshot.encodeToBase64(ImageFormat.JPEG);
+        const base64 = snapshot.encodeToBase64(ImageFormat.JPEG, 100);
 
         // Delete any previously stitched files before creating a new one
         try {

@@ -397,7 +397,8 @@ function IOURequestStepDistanceOdometer({
             const type =
                 stitchedImage?.type ??
                 (typeof odometerStartImage !== 'string' ? odometerStartImage?.type : undefined) ??
-                (typeof odometerEndImage !== 'string' ? odometerEndImage?.type : undefined);
+                (typeof odometerEndImage !== 'string' ? odometerEndImage?.type : undefined) ??
+                'image/jpeg';
             setMoneyRequestReceipt(transactionID, uri, name, isTransactionDraft, type);
         }
 
