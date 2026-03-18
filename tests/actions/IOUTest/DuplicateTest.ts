@@ -1792,6 +1792,7 @@ describe('actions/Duplicate', () => {
         const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
+            sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
             targetPolicy: mockPolicy,
