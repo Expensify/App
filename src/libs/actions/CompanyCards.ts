@@ -19,6 +19,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {rand64} from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -37,6 +38,7 @@ import type {
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type Transaction from '@src/types/onyx/Transaction';
 
 type AddNewCompanyCardFlowData = {
     /** Step to be set in Onyx */
@@ -60,6 +62,85 @@ type ImportCSVCompanyCardsData = {
     lastSelectedFeed?: CompanyCardFeedWithDomainID;
     workspaceCardFeeds?: OnyxEntry<CardFeeds>;
 };
+
+type OptimisticCompanyCardCSVTransaction = Pick<Transaction, 'transactionID' | 'amount' | 'created' | 'currency' | 'merchant' | 'category' | 'tag' | 'comment' | 'cardName' | 'bank'> & {
+    reportID: '0';
+    pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+};
+
+function getColumnIndex(columnMappings: string[], columnName: string): number {
+    return columnMappings.findIndex((column) => column === columnName);
+}
+
+function parseCSVAmount(value: string): number | undefined {
+    const parsedAmount = Math.round(Number(String(value).replaceAll(/[^\d.-]/g, '')) * 100);
+    if (Number.isNaN(parsedAmount)) {
+        return undefined;
+    }
+    return parsedAmount;
+}
+
+function buildOptimisticCompanyCardCSVTransactions(
+    csvData: string[][],
+    columnMappings: string[],
+    feedName: CompanyCardFeed,
+): {
+    csvDataWithGeneratedIDs: string[][];
+    normalizedColumnMappings: string[];
+    transactions: OptimisticCompanyCardCSVTransaction[];
+} {
+    const normalizedColumnMappings = [...columnMappings];
+    const csvDataWithGeneratedIDs = csvData.map((row) => [...row]);
+
+    let uniqueIDColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.UNIQUE_ID);
+    if (uniqueIDColumnIndex === -1) {
+        normalizedColumnMappings.push(CONST.CSV_IMPORT_COLUMNS.UNIQUE_ID);
+        uniqueIDColumnIndex = normalizedColumnMappings.length - 1;
+    }
+
+    const cardNumberColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
+    const postedDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.POSTED_DATE);
+    const merchantColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.MERCHANT);
+    const amountColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.AMOUNT);
+    const currencyColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CURRENCY);
+    const categoryColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CATEGORY);
+    const tagColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.TAG);
+    const commentColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.COMMENT);
+
+    const transactions: OptimisticCompanyCardCSVTransaction[] = [];
+    for (const row of csvDataWithGeneratedIDs) {
+        const transactionID = rand64();
+        row[uniqueIDColumnIndex] = transactionID;
+
+        const cardName = row.at(cardNumberColumnIndex)?.trim();
+        const created = row.at(postedDateColumnIndex)?.trim();
+        const merchant = row.at(merchantColumnIndex)?.trim() ?? '';
+        const currency = row.at(currencyColumnIndex)?.trim();
+        const amountValue = row.at(amountColumnIndex) ?? '';
+        const amount = parseCSVAmount(amountValue);
+
+        if (!cardName || !created || !currency || amount === undefined) {
+            continue;
+        }
+
+        transactions.push({
+            transactionID,
+            amount,
+            created,
+            currency,
+            merchant,
+            category: row.at(categoryColumnIndex)?.trim() ?? '',
+            tag: row.at(tagColumnIndex)?.trim() ?? '',
+            comment: {comment: row.at(commentColumnIndex)?.trim() ?? ''},
+            cardName,
+            bank: feedName,
+            reportID: '0',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        });
+    }
+
+    return {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions};
+}
 
 function setAssignCardStepAndData({cardToAssign, isEditing, currentStep}: Partial<AssignCard>) {
     Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign, isEditing, currentStep});
@@ -1065,27 +1146,31 @@ function importCSVCompanyCards({
     lastSelectedFeed,
     workspaceCardFeeds,
 }: ImportCSVCompanyCardsData) {
+    const feedName = layoutType as CompanyCardFeed;
+    const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions: optimisticTransactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName);
+    const instanceID = Date.now().toString();
+
     const parameters: ImportCSVCompanyCardsParams = {
         policyID,
         settings: JSON.stringify({
-            columnMappings,
+            columnMappings: normalizedColumnMappings,
+            instanceID,
             layoutName,
             layoutType,
         }),
-        csvData: JSON.stringify(csvData),
+        csvData: JSON.stringify(csvDataWithGeneratedIDs),
     };
 
-    const feedName = layoutType as CompanyCardFeed;
     const feedNameWithDomainID = getCardFeedWithDomainID(feedName, workspaceAccountID);
     const existingCompanyCards = workspaceCardFeeds?.settings?.companyCards ?? {};
     const existingNicknames = workspaceCardFeeds?.settings?.companyCardNicknames ?? {};
     const shouldCreateFeed = !existingCompanyCards?.[feedName];
     const shouldSetNickname = !existingNicknames?.[feedName] && !!layoutName;
 
-    const cardNumberColumnIndex = columnMappings.indexOf(CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
+    const cardNumberColumnIndex = normalizedColumnMappings.indexOf(CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
     const cardNumbersFromCSV = new Set<string>();
-    if (cardNumberColumnIndex !== -1) {
-        for (const row of csvData) {
+    if (cardNumberColumnIndex !== -1 && optimisticTransactions.length > 0) {
+        for (const row of csvDataWithGeneratedIDs) {
             const cardNumber = row?.at(cardNumberColumnIndex)?.trim();
             if (cardNumber) {
                 cardNumbersFromCSV.add(cardNumber);
@@ -1108,10 +1193,15 @@ function importCSVCompanyCards({
     const newCardEntries = Object.fromEntries([...cardNumbersFromCSV].filter((cardName) => !existingCardNames.has(cardName)).map((cardName) => [cardName, cardName]));
     const mergedCardList = {...existingCardList, ...newCardEntries};
     const newCardEntriesCount = Object.keys(newCardEntries).length;
-    const transactionsCount = csvData.length;
+    const transactionsCount = optimisticTransactions.length;
 
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+            | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
+            | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1143,6 +1233,7 @@ function importCSVCompanyCards({
             | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
             | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
             | typeof ONYXKEYS.IMPORTED_SPREADSHEET
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
         >
     > = [
         {
@@ -1162,6 +1253,19 @@ function importCSVCompanyCards({
             },
         },
     ];
+
+    for (const transaction of optimisticTransactions) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: transaction as Transaction,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: null,
+        });
+    }
 
     if (shouldCreateFeed || shouldSetNickname) {
         optimisticData.push({
