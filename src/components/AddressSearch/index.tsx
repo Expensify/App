@@ -8,6 +8,7 @@ import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -47,6 +48,23 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
 // react-native-google-places-autocomplete repo and replace the
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+
+function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const noResultsFoundText = translate('common.noResultsFound');
+
+    useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue);
+
+    return (
+        <Text
+            style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
+            aria-hidden
+        >
+            {noResultsFoundText}
+        </Text>
+    );
+}
 
 function AddressSearch({
     canUseCurrentLocation = false,
@@ -327,10 +345,7 @@ function AddressSearch({
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const listEmptyComponent = useMemo(
-        () => (!isTyping ? undefined : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
-        [isTyping, styles, translate],
-    );
+    const listEmptyComponent = isTyping ? <AddressSearchListEmptyComponent searchValue={searchValue} /> : undefined;
 
     const listLoader = useMemo(() => {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
