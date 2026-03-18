@@ -60,7 +60,10 @@ type HorizontalStacking = Partial<{
     pressedBorderColor?: string;
 
     /** Inner text style */
-    textStyle?: TextStyle;
+    textStyle?: StyleProp<TextStyle>;
+
+    /** Style for the overlay */
+    overlayStyle?: StyleProp<ViewStyle>;
 }>;
 
 type AvatarStyles = {
@@ -316,6 +319,7 @@ function ReportActionAvatarMultipleHorizontal({
     reportID,
     pressedBorderColor,
     textStyle,
+    overlayStyle,
 }: HorizontalStacking & {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShowTooltip: boolean;
@@ -441,6 +445,7 @@ function ReportActionAvatarMultipleHorizontal({
                             StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                             StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
                             icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
+                            overlayStyle,
                         ]}
                     >
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getHeight(oneAvatarSize.height), StyleUtils.getWidthStyle(oneAvatarSize.width)]}>

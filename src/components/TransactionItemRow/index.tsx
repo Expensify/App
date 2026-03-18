@@ -53,6 +53,8 @@ import {
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import {getDefaultAvatar} from '@libs/UserAvatarUtils';
+import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
@@ -546,7 +548,8 @@ function TransactionItemRow({
                                     isHovered: isHover,
                                     isPressed: isSelected,
                                     pressedBorderColor: theme.activeComponentBG,
-                                    textStyle: styles.textMicroBold,
+                                    textStyle: [styles.textMicroBold, styles.buttonSuccessText],
+                                    overlayStyle: StyleUtils.getBackgroundColorWithOpacityStyle(colors.productDark400, variables.overlayOpacity),
                                 }}
                                 size={CONST.AVATAR_SIZE.SUBSCRIPT}
                                 isInReportAction
