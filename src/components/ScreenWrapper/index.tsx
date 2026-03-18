@@ -9,9 +9,11 @@ import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
+import ScrollView from '@components/ScrollView';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -179,6 +181,8 @@ function ScreenWrapper({
     const {initialURL} = useInitialURLState();
     const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
 
+    const isInLandscapeMode = useIsInLandscapeMode();
+
     usePreventRemove(isSingleNewDotEntry && !!initialURL?.endsWith(Navigation.getActiveRouteWithoutParams()), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
@@ -282,7 +286,7 @@ function ScreenWrapper({
                 {isDevelopment && <CustomDevMenu />}
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                     <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-                        {ChildrenContent}
+                        {isInLandscapeMode ? <ScrollView style={[styles.w100]}>{ChildrenContent}</ScrollView> : ChildrenContent}
 
                         <ScreenWrapperOfflineIndicators
                             offlineIndicatorStyle={offlineIndicatorStyle}
