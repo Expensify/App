@@ -9,7 +9,6 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import {isSafari} from '@libs/Browser';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -25,6 +24,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
+import isNumericKeyboard from './isNumericKeyboard';
 import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
@@ -130,14 +130,13 @@ function FormProvider({
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const isLoadingDraftValues = isLoadingOnyxValue(draftValuesMetadata);
-    const prevIsLoadingDraftValues = usePrevious(isLoadingDraftValues);
+    const previousDraftValues = useRef(draftValues);
 
-    useEffect(() => {
-        if (isLoadingDraftValues || !prevIsLoadingDraftValues) {
-            return;
-        }
-        setInputValues({...draftValues});
-    }, [isLoadingDraftValues, draftValues, prevIsLoadingDraftValues]);
+    if (!isLoadingDraftValues && draftValues !== previousDraftValues.current) {
+        previousDraftValues.current = draftValues;
+        setInputValues({...inputValues, ...draftValues});
+    }
+
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurActions();
@@ -353,6 +352,8 @@ function FormProvider({
 
             const inputRef = inputProps.ref;
 
+            const hasNumericKeyboard = isNumericKeyboard(inputProps);
+
             return {
                 ...inputProps,
                 ...(shouldSubmitForm && {
@@ -361,7 +362,7 @@ function FormProvider({
 
                         inputProps.onSubmitEditing?.(event);
                     },
-                    returnKeyType: 'go',
+                    ...(!hasNumericKeyboard && {returnKeyType: 'go' as const}),
                 }),
                 ref:
                     typeof inputRef === 'function'

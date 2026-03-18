@@ -164,7 +164,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
     const backTo = route.params.backTo;
 
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
@@ -328,13 +328,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const leaveChat = useCallback(() => {
         if (isRootGroupChat) {
-            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID);
+            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID, introSelected);
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, isWorkspaceMemberLeavingWorkspaceRoom);
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID]);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isWorkspaceMemberLeavingWorkspaceRoom);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -460,7 +460,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         introSelected,
                         allTransactionDrafts,
                         activePolicy,
-                        userBillingGraceEndPeriodCollection,
+                        userBillingGraceEndPeriods,
                         amountOwed,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
@@ -483,7 +483,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            userBillingGraceEndPeriodCollection,
+                            userBillingGraceEndPeriods,
                             amountOwed,
                         });
                     },
@@ -503,7 +503,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            userBillingGraceEndPeriodCollection,
+                            userBillingGraceEndPeriods,
                             amountOwed,
                         });
                     },
@@ -631,7 +631,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         activePolicy,
         parentReport,
         reportActionsForOriginalReportID,
-        userBillingGraceEndPeriodCollection,
+        userBillingGraceEndPeriods,
         amountOwed,
     ]);
 
