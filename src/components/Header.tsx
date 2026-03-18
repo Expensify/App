@@ -34,11 +34,24 @@ type HeaderProps = {
 
     /** Line number for the title */
     numberOfTitleLines?: number;
+
+    /** Whether this is the screen-level header (registers dialog label and focus). Only HeaderWithBackButton should set this. */
+    isScreenHeader?: boolean;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = '', numberOfTitleLines = 2}: HeaderProps) {
+function Header({
+    title = '',
+    subtitle = '',
+    textStyles = [],
+    style,
+    containerStyles = [],
+    shouldShowEnvironmentBadge = false,
+    subTitleLink = '',
+    numberOfTitleLines = 2,
+    isScreenHeader = false,
+}: HeaderProps) {
     const styles = useThemeStyles();
-    const {isInsideDialog, isTransitionReady, claimInitialFocus} = useDialogLabelRegistration(title);
+    const {isInsideDialog, isTransitionReady, claimInitialFocus} = useDialogLabelRegistration(isScreenHeader ? title : '');
     const titleRef = useRef<React.ComponentRef<typeof Text>>(null);
 
     useDialogContainerFocus(titleRef, isTransitionReady, claimInitialFocus);

@@ -140,6 +140,7 @@ function HeaderWithBackButton({
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
+                isScreenHeader
             />
         );
     }, [
