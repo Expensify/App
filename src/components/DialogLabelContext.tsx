@@ -3,20 +3,26 @@ import type {View} from 'react-native';
 
 type LabelEntry = {id: number; text: string};
 
+type DialogLabelData = {
+    containerRef: React.RefObject<View | null>;
+    isInsideDialog: boolean;
+};
+
 type DialogLabelActions = {
     pushLabel: (text: string) => number;
     popLabel: (id: number) => void;
     claimInitialFocus: () => boolean;
-    containerRef: React.RefObject<View | null>;
-    isInsideDialog: boolean;
 };
+
+const DialogLabelDataContext = createContext<DialogLabelData>({
+    containerRef: {current: null},
+    isInsideDialog: false,
+});
 
 const DialogLabelActionsContext = createContext<DialogLabelActions>({
     pushLabel: () => 0,
     popLabel: () => {},
     claimInitialFocus: () => false,
-    containerRef: {current: null},
-    isInsideDialog: false,
 });
 
 function DialogLabelProvider({children}: {children: React.ReactNode}) {
@@ -59,19 +65,30 @@ function DialogLabelProvider({children}: {children: React.ReactNode}) {
         return true;
     };
 
-    const actions: DialogLabelActions = {
-        pushLabel,
-        popLabel,
-        claimInitialFocus,
+    const data: DialogLabelData = {
         containerRef,
         isInsideDialog: true,
     };
 
-    return <DialogLabelActionsContext.Provider value={actions}>{children}</DialogLabelActionsContext.Provider>;
+    const actions: DialogLabelActions = {
+        pushLabel,
+        popLabel,
+        claimInitialFocus,
+    };
+
+    return (
+        <DialogLabelDataContext.Provider value={data}>
+            <DialogLabelActionsContext.Provider value={actions}>{children}</DialogLabelActionsContext.Provider>
+        </DialogLabelDataContext.Provider>
+    );
+}
+
+function useDialogLabelData(): DialogLabelData {
+    return useContext(DialogLabelDataContext);
 }
 
 function useDialogLabelActions(): DialogLabelActions {
     return useContext(DialogLabelActionsContext);
 }
 
-export {DialogLabelProvider, useDialogLabelActions};
+export {DialogLabelProvider, useDialogLabelData, useDialogLabelActions};

@@ -1,11 +1,12 @@
 import type {ReactNode} from 'react';
 import {useContext, useEffect} from 'react';
-import {useDialogLabelActions} from '@components/DialogLabelContext';
+import {useDialogLabelActions, useDialogLabelData} from '@components/DialogLabelContext';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 /** Registers and manages a dialog label in the DialogLabelContext for the lifetime of the calling component. */
 function useDialogLabelRegistration(title: ReactNode) {
-    const {isInsideDialog, pushLabel, popLabel, claimInitialFocus} = useDialogLabelActions();
+    const {isInsideDialog} = useDialogLabelData();
+    const {pushLabel, popLabel, claimInitialFocus} = useDialogLabelActions();
     const screenWrapperStatus = useContext(ScreenWrapperStatusContext);
 
     useEffect(() => {

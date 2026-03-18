@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import type {PropsWithChildren} from 'react';
-import {DialogLabelProvider, useDialogLabelActions} from '@components/DialogLabelContext';
+import {DialogLabelProvider, useDialogLabelActions, useDialogLabelData} from '@components/DialogLabelContext';
 
 function wrapper({children}: PropsWithChildren) {
     return <DialogLabelProvider>{children}</DialogLabelProvider>;
@@ -10,7 +10,7 @@ function wrapper({children}: PropsWithChildren) {
 describe('DialogLabelContext', () => {
     describe('outside provider', () => {
         it('returns defaults when used outside provider', () => {
-            const {result} = renderHook(() => useDialogLabelActions());
+            const {result} = renderHook(() => useDialogLabelData());
 
             expect(result.current.isInsideDialog).toBe(false);
         });
@@ -24,13 +24,13 @@ describe('DialogLabelContext', () => {
 
     describe('inside provider', () => {
         it('reports isInsideDialog as true', () => {
-            const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
+            const {result} = renderHook(() => useDialogLabelData(), {wrapper});
 
             expect(result.current.isInsideDialog).toBe(true);
         });
 
         it('pushLabel sets aria-label on the container element', () => {
-            const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
+            const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
             const mockElement = document.createElement('div');
             (result.current.containerRef as {current: unknown}).current = mockElement;
 
@@ -53,7 +53,7 @@ describe('DialogLabelContext', () => {
         });
 
         it('popLabel removes the label and restores the previous one', () => {
-            const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
+            const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
             const mockElement = document.createElement('div');
             (result.current.containerRef as {current: unknown}).current = mockElement;
 
@@ -83,7 +83,7 @@ describe('DialogLabelContext', () => {
         });
 
         it('popLabel removes by ID, not by stack position', () => {
-            const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
+            const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
             const mockElement = document.createElement('div');
             (result.current.containerRef as {current: unknown}).current = mockElement;
 

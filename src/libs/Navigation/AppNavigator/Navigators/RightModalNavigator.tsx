@@ -3,7 +3,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
-import {DialogLabelProvider, useDialogLabelActions} from '@components/DialogLabelContext';
+import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import {
@@ -106,7 +106,7 @@ function RHPDialogContainer({children}: {children: React.ReactNode}) {
     // Must match createModalStackNavigator which uses isSmallScreenWidth (not shouldUseNarrowLayout).
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {containerRef} = useDialogLabelActions();
+    const {containerRef} = useDialogLabelData();
 
     // Small screens already get dialog semantics from createModalStackNavigator.
     return (
