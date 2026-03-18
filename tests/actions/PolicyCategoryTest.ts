@@ -1,6 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
@@ -8,7 +7,6 @@ import {
     createPolicyCategory,
     deleteWorkspaceCategories,
     enablePolicyCategories,
-    importPolicyCategories,
     renamePolicyCategory,
     setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyCategoryTax,
@@ -18,14 +16,13 @@ import {
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyCategory} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 OnyxUpdateManager();
 describe('actions/PolicyCategory', () => {
