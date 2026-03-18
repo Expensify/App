@@ -14,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithExplicitCurrency} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {formatLastFourPAN} from '@libs/TransactionPreviewUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -45,7 +46,12 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
     if (shouldShowSkeleton) {
         return (
             <View style={containerStyle}>
-                <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
+                <TransactionPreviewSkeletonView
+                    transactionPreviewWidth={transactionPreviewWidth}
+                    reasonAttributes={
+                        {context: 'AuthorizeCardTransactionPreview', isCreatedUndefined: !created, isTransactionIDUndefined: !transactionID} satisfies SkeletonSpanReasonAttributes
+                    }
+                />
             </View>
         );
     }
