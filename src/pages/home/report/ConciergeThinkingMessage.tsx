@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import type {ReasoningEntry} from '@pages/inbox/AgentZeroStatusContext';
 import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
 import variables from '@styles/variables';
@@ -57,7 +58,7 @@ function ConciergeThinkingMessageContent({
 }: {
     report: OnyxEntry<Report>;
     action?: OnyxEntry<ReportAction>;
-    reasoningHistory: Array<{reasoning: string; loopCount: number; timestamp: number}>;
+    reasoningHistory: ReasoningEntry[];
     statusLabel: string;
 }) {
     const styles = useThemeStyles();
