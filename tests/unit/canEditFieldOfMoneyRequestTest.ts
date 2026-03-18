@@ -396,4 +396,107 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
         });
     });
+
+    describe('receipt field', () => {
+        const RECEIPT_IOU_REPORT_ID = '5001';
+        const RECEIPT_IOU_TRANSACTION_ID = '5002';
+        const RECEIPT_AMOUNT = 100;
+        const receiptPolicyID = '5003';
+
+        const randomReportAction = createRandomReportAction(501);
+        const adminPolicy = {...createRandomPolicy(Number(receiptPolicyID), CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
+
+        const reportAction = {
+            ...randomReportAction,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+            childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            originalMessage: {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                ...randomReportAction.originalMessage,
+                IOUReportID: RECEIPT_IOU_REPORT_ID,
+                IOUTransactionID: RECEIPT_IOU_TRANSACTION_ID,
+                type: CONST.IOU.ACTION.CREATE,
+                amount: RECEIPT_AMOUNT,
+                currency: CONST.CURRENCY.USD,
+            },
+        };
+
+        const moneyRequestTransaction = {
+            ...createRandomTransaction(Number(RECEIPT_IOU_TRANSACTION_ID)),
+            reportID: RECEIPT_IOU_REPORT_ID,
+            transactionID: RECEIPT_IOU_TRANSACTION_ID,
+            amount: RECEIPT_AMOUNT,
+            managedCard: false,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+        };
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+
+            Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+            });
+            initOnyxDerivedValues();
+
+            return waitForBatchedUpdates();
+        });
+
+        beforeEach(() => {
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [adminPolicy], (current) => current.id);
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${RECEIPT_IOU_TRANSACTION_ID}`]: moneyRequestTransaction,
+                ...policyCollectionDataSet,
+            });
+            return waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            Onyx.clear();
+            return waitForBatchedUpdates();
+        });
+
+        it('should return false for receipt field when the expense report is closed', async () => {
+            // Given a closed expense report where the current user is an admin
+            const closedExpenseReport = {
+                ...createExpenseReport(Number(RECEIPT_IOU_REPORT_ID)),
+                policyID: receiptPolicyID,
+                ownerAccountID: currentUserAccountID,
+                managerID: secondUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${RECEIPT_IOU_REPORT_ID}`, closedExpenseReport);
+            await waitForBatchedUpdates();
+
+            // When the admin tries to edit the receipt field
+            const canEditReceipt = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+
+            // Then they should not be able to edit the receipt on a closed report
+            expect(canEditReceipt).toBe(false);
+        });
+
+        it('should return true for receipt field when the expense report is open', async () => {
+            // Given an open expense report where the current user is an admin
+            const openExpenseReport = {
+                ...createExpenseReport(Number(RECEIPT_IOU_REPORT_ID)),
+                policyID: receiptPolicyID,
+                ownerAccountID: currentUserAccountID,
+                managerID: secondUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${RECEIPT_IOU_REPORT_ID}`, openExpenseReport);
+            await waitForBatchedUpdates();
+
+            // When the admin tries to edit the receipt field
+            const canEditReceipt = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+
+            // Then they should be able to edit the receipt on an open report
+            expect(canEditReceipt).toBe(true);
+        });
+    });
 });
