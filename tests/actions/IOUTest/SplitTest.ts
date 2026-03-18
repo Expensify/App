@@ -2102,7 +2102,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
-            hasActiveAdminPolicies: false,
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             personalDetails: {},
@@ -2575,7 +2574,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             isSelfTourViewed: false,
-            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
         });
@@ -2750,7 +2748,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             isSelfTourViewed: false,
-            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
         });
@@ -2930,7 +2927,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             isSelfTourViewed: false,
-            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
         });
@@ -3120,7 +3116,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             isSelfTourViewed: false,
-            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
         });
@@ -3373,7 +3368,6 @@ describe('updateSplitTransactions', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
-            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
@@ -3502,7 +3496,6 @@ describe('updateSplitTransactions', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
-            hasActiveAdminPolicies: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
             existingTransactionDraft: undefined,
