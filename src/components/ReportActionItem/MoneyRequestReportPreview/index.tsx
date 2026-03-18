@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {ListRenderItem} from '@shopify/flash-list';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
