@@ -5,6 +5,7 @@ import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '
 import React, {useMemo} from 'react';
 import {addCustomHistoryRouterExtension} from '@libs/Navigation/AppNavigator/customHistory';
 import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
+import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,
@@ -60,6 +61,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 sidebarScreen,
                 defaultCentralScreen,
                 parentRoute,
+                screenLayout,
             },
             convertToNativeNavigationOptions,
         );
