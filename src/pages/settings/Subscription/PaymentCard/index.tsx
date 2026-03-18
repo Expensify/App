@@ -47,7 +47,7 @@ function AddPaymentCard() {
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const subscriptionPricingInfo =
         hasTeam2025Pricing && isCollect
-            ? translate('subscription.yourPlan.pricePerMemberPerMonth', {price: convertToShortDisplayString(subscriptionPrice, preferredCurrency)})
+            ? translate('subscription.yourPlan.pricePerMemberPerMonth', convertToShortDisplayString(subscriptionPrice, preferredCurrency))
             : translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
                   lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
                   upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),

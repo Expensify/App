@@ -171,14 +171,6 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: {
-        /** cardID of selected card */
-        cardID: string;
-    };
-    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE]: {
-        /** cardID of selected card */
-        cardID: string;
-    };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */
         cardID: string;
@@ -1302,6 +1294,10 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
@@ -1787,6 +1783,7 @@ type MoneyRequestNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
         shouldTurnOffSelectionMode?: boolean;
+        transactionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;
@@ -2880,6 +2877,7 @@ type AttachmentModalScreensParamList = {
     [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
         reportID?: string;
+        reportActionID?: string;
         accountID?: number;
         attachmentID?: string;
         type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
@@ -2895,6 +2893,7 @@ type AttachmentModalScreensParamList = {
     };
     [SCREENS.REPORT_ADD_ATTACHMENT]: AttachmentModalContainerModalProps & {
         reportID?: string;
+        reportActionID?: string;
         accountID?: number;
         attachmentID?: string;
         source?: AvatarSource;

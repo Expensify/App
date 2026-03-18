@@ -158,12 +158,14 @@ function MoneyRequestReportActionsList({
 
     const parentReportAction = useParentReportAction(report);
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {
+        selector: tierNameSelector,
+    });
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: isUserValidatedSelector,
+    });
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const personalDetails = usePersonalDetails();
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`);
-    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -246,8 +248,12 @@ function MoneyRequestReportActionsList({
     const onDeleteSelected = useCallback(
         (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
             showConfirmModal({
-                title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
-                prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
+                title: translate('iou.deleteExpense', {
+                    count: selectedTransactionIDs.length,
+                }),
+                prompt: translate('iou.deleteConfirmation', {
+                    count: selectedTransactionIDs.length,
+                }),
                 confirmText: translate('common.delete'),
                 cancelText: translate('common.cancel'),
                 danger: true,
@@ -311,7 +317,11 @@ function MoneyRequestReportActionsList({
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
             if (report?.reportID) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
+                Navigation.navigate(
+                    ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
+                        reportID: report.reportID,
+                    }),
+                );
             }
         }
         setRejectModalAction(null);
@@ -404,7 +414,9 @@ function MoneyRequestReportActionsList({
 
     const visibleActionsMap = useMemo(() => {
         return visibleReportActions.reduce((actionsMap, reportAction) => {
-            Object.assign(actionsMap, {[reportAction.reportActionID]: reportAction});
+            Object.assign(actionsMap, {
+                [reportAction.reportActionID]: reportAction,
+            });
             return actionsMap;
         }, {} as OnyxTypes.ReportActions);
     }, [visibleReportActions]);
@@ -672,11 +684,7 @@ function MoneyRequestReportActionsList({
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
                 hasNextActionMadeBySameActor(visibleReportActions, index);
 
-            const actionEmojiReactions = emojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`];
             const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsObject);
-            const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
-            const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
-            const matchingDraftMessageString = matchingDraftMessage?.message;
 
             return (
                 <ReportActionsListItemRenderer
@@ -697,9 +705,8 @@ function MoneyRequestReportActionsList({
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetails}
                     userBillingFundID={userBillingFundID}
-                    emojiReactions={actionEmojiReactions}
+                    originalReportID={originalReportID}
                     isReportArchived={isReportArchived}
-                    draftMessage={matchingDraftMessageString}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                     reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
@@ -720,8 +727,6 @@ function MoneyRequestReportActionsList({
             isUserValidated,
             personalDetails,
             userBillingFundID,
-            emojiReactions,
-            draftMessage,
             isTryNewDotNVPDismissed,
             isReportArchived,
             reportNameValuePairs?.origin,
@@ -798,7 +803,9 @@ function MoneyRequestReportActionsList({
                     <ButtonWithDropdownMenu
                         onPress={() => null}
                         options={selectedTransactionsOptions}
-                        customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                        customText={translate('workspace.common.selected', {
+                            count: selectedTransactionIDs.length,
+                        })}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
                         wrapperStyle={[styles.w100, styles.ph5]}
