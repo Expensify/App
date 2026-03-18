@@ -24,6 +24,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
+import isNumericKeyboard from './isNumericKeyboard';
 import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
@@ -351,6 +352,8 @@ function FormProvider({
 
             const inputRef = inputProps.ref;
 
+            const hasNumericKeyboard = isNumericKeyboard(inputProps);
+
             return {
                 ...inputProps,
                 ...(shouldSubmitForm && {
@@ -359,7 +362,7 @@ function FormProvider({
 
                         inputProps.onSubmitEditing?.(event);
                     },
-                    returnKeyType: 'go',
+                    ...(!hasNumericKeyboard && {returnKeyType: 'go' as const}),
                 }),
                 ref:
                     typeof inputRef === 'function'

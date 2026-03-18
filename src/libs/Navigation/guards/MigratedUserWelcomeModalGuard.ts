@@ -89,7 +89,7 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
 
             return {
                 type: 'REDIRECT',
-                route: ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(ROUTES.SEARCH_ROOT.route),
+                route: ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(),
             };
         }
 
