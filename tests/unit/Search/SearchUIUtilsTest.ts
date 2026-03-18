@@ -2,6 +2,7 @@
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {SelectedTransactionInfo} from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
@@ -60,6 +61,7 @@ jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
     setOptimisticDataForTransactionThreadPreview: jest.fn(),
 }));
+jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -306,6 +308,29 @@ const policy = {
         },
     },
 } as OnyxTypes.Policy;
+
+const adminAvatarIcon = {
+    id: adminAccountID,
+    source: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+    type: CONST.ICON_TYPE_AVATAR,
+    name: 'Admin',
+    fallbackIcon: undefined,
+};
+
+const approverAvatarIcon = {
+    source: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+    id: approverAccountID,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: 'Approver',
+    fallbackIcon: undefined,
+};
+
+const policyWorkspaceIcon = {
+    source: defaultWorkspaceAvatars.WorkspaceU,
+    type: CONST.ICON_TYPE_WORKSPACE,
+    name: 'Unavailable workspace',
+    id: policyID,
+};
 
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
@@ -1100,6 +1125,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
             {
@@ -1210,6 +1238,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
             {
@@ -1319,6 +1350,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 4400,
         isAllScanning: false,
+        primaryAvatar: approverAvatarIcon,
+        secondaryAvatar: adminAvatarIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
@@ -1503,6 +1537,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 0,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 0,
         transactions: [],
         type: 'expense',
@@ -2535,6 +2572,242 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
+        });
+
+        it('should use custom avatar from onyxPersonalDetailsList when search API personalDetailsList is absent', () => {
+            // Reproduce the bug: the search API response does not include the report owner in
+            // personalDetailsList (data.personalDetailsList is empty/undefined), so without the
+            // Onyx fallback the avatar resolves to FallbackAvatar instead of the user's custom avatar.
+            const customAvatarUrl = 'https://example.com/custom-avatar.png';
+
+            // Simulate the API returning an empty personalDetailsList (owner details not included)
+            const dataWithoutPersonalDetails: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                personalDetailsList: {},
+            };
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    avatar: customAvatarUrl,
+                    displayName: 'Admin',
+                    login: adminEmail,
+                },
+            };
+
+            // Without onyxPersonalDetailsList, the report owner avatar is not found — not the custom URL
+            const [resultWithoutOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutPersonalDetails,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+            }) as [TransactionReportGroupListItemType[], number];
+
+            expect(resultWithoutOnyx.at(0)?.primaryAvatar?.source).not.toBe(customAvatarUrl);
+
+            // With onyxPersonalDetailsList, the custom avatar from Onyx fills the gap
+            const [resultWithOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutPersonalDetails,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            expect(resultWithOnyx.at(0)?.primaryAvatar?.source).toBe(customAvatarUrl);
+        });
+
+        it('should prefer API personalDetailsList avatar over onyxPersonalDetailsList when both have an avatar', () => {
+            const onyxAvatarUrl = 'https://example.com/onyx-avatar.png';
+            const apiAvatarUrl = 'https://example.com/api-avatar.png';
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    avatar: onyxAvatarUrl,
+                    displayName: 'Admin',
+                    login: adminEmail,
+                },
+            };
+
+            // API response provides its own avatar — should take precedence over Onyx
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: {
+                    ...searchResults.data,
+                    personalDetailsList: {
+                        [adminAccountID]: {
+                            accountID: adminAccountID,
+                            avatar: apiAvatarUrl,
+                            displayName: 'Admin',
+                            login: adminEmail,
+                        },
+                    },
+                },
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            expect(result?.at(0)?.primaryAvatar?.source).toBe(apiAvatarUrl);
+        });
+
+        it('should use onyxPersonalDetailsList for report manager (toDetails) when API personalDetailsList is absent', () => {
+            const managerDisplayName = 'Manager From Onyx';
+
+            const submittedReportWithDistinctManager = {
+                ...report2,
+                managerID: approverAccountID,
+                ownerAccountID: adminAccountID,
+            };
+
+            const dataWithoutManager: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`report_${reportID2}`]: submittedReportWithDistinctManager,
+            };
+            const personalDetails = searchResults.data.personalDetailsList?.[adminAccountID];
+            if (personalDetails) {
+                dataWithoutManager.personalDetailsList = {[adminAccountID]: personalDetails};
+            }
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [approverAccountID]: {
+                    accountID: approverAccountID,
+                    avatar: 'https://example.com/manager-avatar.png',
+                    displayName: managerDisplayName,
+                    login: approverEmail,
+                },
+            };
+
+            const [resultWithoutOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutManager,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+            }) as [TransactionReportGroupListItemType[], number];
+
+            const reportWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID2);
+            expect(reportWithoutOnyx?.to?.displayName).not.toBe(managerDisplayName);
+
+            const [resultWithOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutManager,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            const reportWithOnyx = resultWithOnyx.find((item) => item.reportID === reportID2);
+            expect(reportWithOnyx?.to?.displayName).toBe(managerDisplayName);
+        });
+
+        it('should use onyxPersonalDetailsList for transaction from field (within report group) when API personalDetailsList is absent', () => {
+            const actorDisplayName = 'Actor From Onyx';
+
+            const dataWithoutActor: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                personalDetailsList: {}, // actor intentionally absent
+            };
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    avatar: 'https://example.com/actor-avatar.png',
+                    displayName: actorDisplayName,
+                    login: adminEmail,
+                },
+            };
+
+            const [resultWithoutOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutActor,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+            }) as [TransactionReportGroupListItemType[], number];
+
+            const reportGroupWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID);
+            const txWithoutOnyx = reportGroupWithoutOnyx?.transactions?.find((t) => t.transactionID === transactionID);
+            expect(txWithoutOnyx?.from?.displayName).not.toBe(actorDisplayName);
+
+            const [resultWithOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutActor,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            const reportGroupWithOnyx = resultWithOnyx.find((item) => item.reportID === reportID);
+            const txWithOnyx = reportGroupWithOnyx?.transactions?.find((t) => t.transactionID === transactionID);
+            expect(txWithOnyx?.from?.displayName).toBe(actorDisplayName);
+        });
+
+        it('should prefer API personalDetailsList for transaction from field over onyxPersonalDetailsList', () => {
+            const onyxDisplayName = 'Actor From Onyx';
+            const apiDisplayName = 'Actor From API';
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    avatar: 'https://example.com/onyx-actor.png',
+                    displayName: onyxDisplayName,
+                    login: adminEmail,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: {
+                    ...searchResults.data,
+                    personalDetailsList: {
+                        [adminAccountID]: {
+                            accountID: adminAccountID,
+                            avatar: 'https://example.com/api-actor.png',
+                            displayName: apiDisplayName,
+                            login: adminEmail,
+                        },
+                    },
+                },
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            const reportGroup = result.find((item) => item.reportID === reportID);
+            const tx = reportGroup?.transactions?.find((t) => t.transactionID === transactionID);
+            expect(tx?.from?.displayName).toBe(apiDisplayName);
         });
 
         it('should handle data where transaction keys appear before report keys in getReportSections', () => {
@@ -4378,6 +4651,108 @@ describe('SearchUIUtils', () => {
                 expect(fields.isAllScanning).toBe(false);
             });
         });
+
+        describe('getReportSections pre-computed avatar fields (primaryAvatar, secondaryAvatar, avatarType)', () => {
+            const avatarTestReportID = 'avatar-test-report';
+            const avatarTestTxID = 'avatar-tx-1';
+
+            function makeAvatarTestData(reportOverrides: Partial<OnyxTypes.Report> = {}) {
+                return {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${avatarTestReportID}`]: {
+                        ...report1,
+                        reportID: avatarTestReportID,
+                        ownerAccountID: adminAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        policyID,
+                        ...reportOverrides,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${avatarTestReportID}`]: {},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${avatarTestTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                        transactionID: avatarTestTxID,
+                        reportID: avatarTestReportID,
+                    },
+                };
+            }
+
+            function getAvatarFields(data: typeof searchResults.data) {
+                const sections = SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    allReportMetadata: {},
+                })[0] as TransactionReportGroupListItemType[];
+
+                const item = sections.find((s) => s.keyForList === avatarTestReportID);
+                expect(item).toBeDefined();
+                return {
+                    primaryAvatar: item?.primaryAvatar,
+                    secondaryAvatar: item?.secondaryAvatar,
+                    avatarType: item?.avatarType,
+                };
+            }
+
+            it('should pre-compute primaryAvatar from the report owner personal details', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar).toBeDefined();
+                expect(fields.primaryAvatar?.id).toBe(adminAccountID);
+                expect(fields.primaryAvatar?.type).toBe(CONST.ICON_TYPE_AVATAR);
+            });
+
+            it('should pre-compute secondaryAvatar as workspace icon', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.secondaryAvatar).toBeDefined();
+                expect(fields.secondaryAvatar?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+                expect(fields.secondaryAvatar?.id).toBe(policyID);
+            });
+
+            it('should set avatarType=SUBSCRIPT for expense reports with a named workspace icon', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
+            });
+
+            it('should set avatarType for IOU reports', () => {
+                const data = makeAvatarTestData({type: CONST.REPORT.TYPE.IOU, managerID: adminAccountID});
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar).toBeDefined();
+                expect(fields.secondaryAvatar).toBeDefined();
+                expect(fields.avatarType).toBeDefined();
+            });
+
+            it('should use owner avatar from personalDetailsList when available', () => {
+                const data = makeAvatarTestData({ownerAccountID: receiverAccountID});
+                // Add receiver to personalDetailsList
+                data.personalDetailsList = {
+                    ...data.personalDetailsList,
+                    [receiverAccountID]: {
+                        accountID: receiverAccountID,
+                        avatar: 'https://example.com/receiver-avatar.png',
+                        displayName: 'Receiver',
+                        login: receiverEmail,
+                    },
+                };
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar?.id).toBe(receiverAccountID);
+                expect(fields.primaryAvatar?.source).toBe('https://example.com/receiver-avatar.png');
+            });
+
+            it('should produce stable avatar structure across identical calls', () => {
+                const data = makeAvatarTestData();
+                const fields1 = getAvatarFields(data);
+                const fields2 = getAvatarFields(data);
+                expect(fields1.primaryAvatar?.id).toBe(fields2.primaryAvatar?.id);
+                expect(fields1.secondaryAvatar?.id).toBe(fields2.secondaryAvatar?.id);
+                expect(fields1.avatarType).toBe(fields2.avatarType);
+            });
+        });
     });
 
     describe('Test getSortedSections', () => {
@@ -4883,7 +5258,19 @@ describe('SearchUIUtils', () => {
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: undefined,
+                currentUserAccountID: undefined,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            })
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -4962,18 +5349,19 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                mockSavedSearches,
-                false,
-                undefined,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: mockSavedSearches,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -5024,18 +5412,19 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                mockSavedSearches,
-                false,
-                undefined,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: mockSavedSearches,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
             expect(monthlyAccrualSection).toBeDefined();
@@ -5072,7 +5461,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: mockSavedSearches,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -5082,7 +5483,19 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: mockSavedSearches,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -5099,18 +5512,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                {},
-                undefined,
-                {},
-                mockSavedSearches,
-                false, // not offline
-                undefined,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: mockSavedSearches,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -5127,18 +5541,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                {},
-                undefined,
-                {},
-                mockSavedSearches,
-                true, // offline
-                undefined,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: mockSavedSearches,
+                isOffline: true,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -5159,7 +5574,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -5180,18 +5607,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                {}, // no card feeds
-                undefined,
-                mockPolicies,
-                {},
-                false,
-                undefined,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
@@ -5224,7 +5652,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
             expect(reconciliationSection).toBeDefined();
@@ -5251,7 +5691,19 @@ describe('SearchUIUtils', () => {
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
             expect(reconciliationSection).toBeDefined();
 
@@ -5263,7 +5715,19 @@ describe('SearchUIUtils', () => {
 
         it('should generate correct routes', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: undefined,
+                currentUserAccountID: undefined,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            })
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -5326,7 +5790,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
 
@@ -5888,6 +6364,66 @@ describe('SearchUIUtils', () => {
 
             expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.PIE}`);
         });
+
+        test('Should show Top Spenders for workflow approver (submitsTo) in paid policy', () => {
+            const workflowApproverEmail = 'workflow-approver@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: workflowApproverEmail, forwardsTo: ''},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
+            expect(response.visibility.topSpenders).toBe(true);
+        });
+
+        test('Should show Spend Over Time for workflow approver (forwardsTo) in paid policy', () => {
+            const workflowApproverEmail = 'workflow-approver@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: '', forwardsTo: workflowApproverEmail},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
+            expect(response.visibility.spendOverTime).toBe(true);
+        });
+
+        test('Should hide Top Spenders for regular member who is not a workflow approver', () => {
+            const regularEmail = 'regular@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
+                        [regularEmail]: {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
+            expect(response.visibility.topSpenders).toBe(false);
+        });
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {
@@ -5931,6 +6467,38 @@ describe('SearchUIUtils', () => {
                 CONST.SEARCH.TABLE_COLUMNS.TITLE,
                 CONST.SEARCH.TABLE_COLUMNS.TOTAL,
             ]);
+        });
+
+        test('Should hide To for strict default expense columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'strict-default-columns',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                comment: {comment: 'Has description'},
+                category: '',
+                tag: 'Project A',
+                reportID: reportID2,
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                [`reportActions_${reportID2}`]: searchResults.data[`reportActions_${reportID2}`],
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
+            const nonStrictColumns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false, undefined, undefined, false, false, false, false);
+            expect(nonStrictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+            expect(nonStrictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+            expect(nonStrictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
+
+            const strictColumns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false, undefined, undefined, false, false, false, true);
+            expect(strictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+            expect(strictColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+            expect(strictColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
         });
 
         test('Should only show columns when at least one transaction has a value for them', () => {
