@@ -7908,10 +7908,11 @@ const translations = {
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
+            const postMessage = 'Please review receipt to confirm.';
             if (types.length === 0) {
-                return preMessage;
+                return `${preMessage} ${postMessage}`;
             }
-            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}. ${postMessage}`;
         },
         customRules: (message: string) => message,
         reviewRequired: 'Review required',

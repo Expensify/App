@@ -7899,10 +7899,11 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
+            const postMessage = 'Controleer de bon ter bevestiging.';
             if (types.length === 0) {
-                return preMessage;
+                return `${preMessage} ${postMessage}`;
             }
-            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}. ${postMessage}`;
         },
         customRules: (message: string) => message,
         reviewRequired: 'Beoordeling vereist',

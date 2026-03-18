@@ -7887,10 +7887,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
+            const postMessage = 'Prosimy o sprawdzenie paragonu w celu potwierdzenia.';
             if (types.length === 0) {
-                return preMessage;
+                return `${preMessage} ${postMessage}`;
             }
-            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}. ${postMessage}`;
         },
         customRules: (message: string) => message,
         reviewRequired: 'Wymagana weryfikacja',

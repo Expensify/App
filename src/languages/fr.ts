@@ -7958,10 +7958,11 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
+            const postMessage = 'Veuillez vérifier le reçu pour confirmer.';
             if (types.length === 0) {
-                return preMessage;
+                return `${preMessage} ${postMessage}`;
             }
-            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}. ${postMessage}`;
         },
         customRules: (message: string) => message,
         reviewRequired: 'Examen requis',

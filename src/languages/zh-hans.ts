@@ -7696,10 +7696,11 @@ ${reportName}
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
+            const postMessage = '请查看收据以确认。';
             if (types.length === 0) {
-                return preMessage;
+                return `${preMessage} ${postMessage}`;
             }
-            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join('、')}。${postMessage}`;
         },
         customRules: (message: string) => message,
         reviewRequired: '需要审核',

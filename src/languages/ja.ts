@@ -7836,10 +7836,11 @@ ${reportName}
             } else if (prohibitedExpenseTypes) {
                 types = [prohibitedExpenseTypes];
             }
+            const postMessage = '確認のため、領収書をご確認ください。';
             if (types.length === 0) {
-                return preMessage;
+                return `${preMessage} ${postMessage}`;
             }
-            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
+            return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join('、')}。${postMessage}`;
         },
         customRules: (message: string) => message,
         reviewRequired: '要レビュー',
