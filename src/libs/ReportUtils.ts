@@ -8993,7 +8993,7 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived: bool
  * @param accountID - The current user account ID (to exclude own actions)
  * @returns The latest report action from other users
  */
-function getLatestReportActionFromOtherUsers(reportActions: ReportActions | null, accountID: number | undefined): ReportAction | null {
+function getLatestReportActionFromOtherUsers(reportActions: ReportActions | undefined, accountID: number | undefined): ReportAction | null {
     if (!accountID) {
         return null;
     }
@@ -9012,7 +9012,7 @@ function getLatestReportActionFromOtherUsers(reportActions: ReportActions | null
 }
 
 // We need oneTransactionThreadReport to get the correct last visible action created
-function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined, reportActions?: ReportActions): boolean {
+function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined, reportActions: ReportActions | undefined): boolean {
     if (!report) {
         return false;
     }
@@ -9020,7 +9020,7 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     if (isEmptyReport(report, isReportArchived)) {
         return false;
     }
-    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions ?? null, currentUserAccountID);
+    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions, currentUserAccountID);
 
     if (!report.lastReadTime) {
         return true;

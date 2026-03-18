@@ -2368,7 +2368,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     }
 
     // Find the latest report actions from other users
-    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions ?? null, currentUserAccountID);
+    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions, currentUserAccountID);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
