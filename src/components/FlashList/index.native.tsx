@@ -28,7 +28,7 @@ function FlashList<T>({onScroll: onScrollProp, inverted, shouldHideContent = fal
             {...restProps}
             inverted={inverted}
             onScroll={handleScroll}
-            contentContainerStyle={shouldHideContent ? [contentContainerStyle, styles.visibilityHidden] : contentContainerStyle}
+            contentContainerStyle={shouldHideContent ? [contentContainerStyle, shouldHideContent && styles.opacity0] : contentContainerStyle}
         />
     );
 }

@@ -904,6 +904,7 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
+                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
                 <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
@@ -915,13 +916,14 @@ function ReportActionsList({
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
+                    shouldHideContent={shouldScrollToEndAfterLayout}
+                    showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
-                    maintainVisibleContentPosition={{startRenderingFromBottom: shouldFocusToTopOnMount && !linkedReportActionID}}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}

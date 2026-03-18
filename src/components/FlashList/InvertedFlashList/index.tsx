@@ -8,6 +8,7 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
     initialScrollKey?: string | null;
     data: T[];
     keyExtractor: (item: T, index: number) => string;
+    shouldHideContent?: boolean;
 };
 
 function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, ...restProps}: InvertedFlashListProps<T>) {
