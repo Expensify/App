@@ -15,7 +15,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import blurActiveInputElement from '@libs/Accessibility/blurActiveInputElement';
 import {
     setCustomUnitRateID,
     setMoneyRequestAmount,
@@ -709,14 +709,13 @@ function MoneyRequestConfirmationList({
             !isPolicyExpenseChat ||
             !transactionID ||
             !lastSelectedRate ||
-            isMovingTransactionFromTrackExpense ||
             !selectedParticipants.some((participant) => participant.policyID === policy?.id)
         ) {
             return;
         }
 
         setCustomUnitRateID(transactionID, lastSelectedRate, transaction, policy);
-    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants]);
+    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, transaction, policy, selectedParticipants]);
 
     const splitParticipants = useMemo(() => {
         if (!isTypeSplit) {
@@ -1154,7 +1153,9 @@ function MoneyRequestConfirmationList({
             focusTimeoutRef.current = setTimeout(() => {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    blurActiveElement();
+                    // Only blur input elements to dismiss keyboard.
+                    // Don't blur other elements to preserve focus restoration on back navigation.
+                    blurActiveInputElement();
                 });
             }, CONST.ANIMATED_TRANSITION);
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);

@@ -5,7 +5,7 @@ import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.p
 import * as AppUpdate from '@libs/actions/AppUpdate';
 // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
 import {translateLocal} from '@libs/Localize';
-import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -144,7 +144,7 @@ export default {
         currentUserLogin,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const bodyWithHTML = getForReportActionTemp({
+        const bodyWithHTML = getForReportAction({
             // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
             translate: translateLocal,
             reportAction,
