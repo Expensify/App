@@ -322,12 +322,21 @@ function processNextRequest(): AnyRequest | null {
     // Persist both the updated queue and the ongoing request to disk atomically.
     // This ensures that if the app crashes mid-flight, the ongoing request is not
     // lost (Bug #80759 Issue 3a) and the queue on disk matches memory (Issue 3c).
+    // Skip persisting ongoingRequest when it contains non-serializable values
+    // (e.g. File objects in data.file or data.receipt). IndexedDB cannot clone
+    // native File objects (DataCloneError). These requests cannot survive a crash
+    // anyway since File references are lost on restart.
+    const hasNonSerializableData = ongoingRequest?.data && Object.values(ongoingRequest.data).some((v) => v instanceof File || v instanceof Blob);
     Onyx.multiSet({
         [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
-        ...(ongoingRequest ? {[ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest} : {}),
+        ...(ongoingRequest && !hasNonSerializableData ? {[ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest} : {}),
     });
 
-    return ongoingRequest;
+    // Return the local reference, not `ongoingRequest`. The Onyx.multiSet above
+    // triggers a synchronous callback (Onyx 3.0.46+) that overwrites `ongoingRequest`
+    // with a JSON-serialized copy — which destroys non-serializable values like File
+    // objects. The local `nextRequest` still holds the original object.
+    return nextRequest;
 }
 
 function rollbackOngoingRequest() {
