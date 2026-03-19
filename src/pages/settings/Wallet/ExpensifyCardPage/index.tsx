@@ -344,7 +344,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 )}
                             </React.Fragment>
                         ))}
-                        {isTravelCard &&
+                        {isTravelCard(cardList?.[cardID]) &&
                             travelCards.map((card) => (
                                 <React.Fragment key={card.cardID}>
                                     {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (

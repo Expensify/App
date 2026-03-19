@@ -1405,7 +1405,7 @@ function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, en
     return `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
 }
 
-function isTravelCard(card: Card): boolean {
+function isTravelCard(card: Card | undefined): boolean {
     return card?.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US;
 }
 
@@ -1429,7 +1429,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
 
     return sortedCards.filter((card) => {
         const isAdminIssuedVirtualCard = !!card.nameValuePairs?.issuedBy && !!card.nameValuePairs?.isVirtual;
-        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard && !(isTravelCard(card));
+        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard && !isTravelCard(card);
 
         // Always show non-combo cards (admin-issued virtual, travel cards, or cards without domain)
         if (!isComboCard) {
