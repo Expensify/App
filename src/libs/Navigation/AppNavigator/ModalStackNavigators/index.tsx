@@ -280,7 +280,7 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
     [SCREENS.REPORT_SETTINGS.NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Report/NamePage').default,
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require<ReactComponentModule>('../../../../pages/settings/Report/NotificationPreferencePage').default,
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/WriteCapabilityPage').default,
-    [SCREENS.REPORT_SETTINGS.VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/VisibilityPage').default,
+    [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicVisibilityPage').default,
     [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportLayoutPage').default,
     [SCREENS.REPORT_SETTINGS.COLUMNS]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportDetailsColumnsPage').default,
 });
@@ -421,9 +421,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditNamePage').default,
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditTransactionStartDatePage').default,
-    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardMissingDetailsPage').default,
-    [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE]: () =>
-        require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardMissingDetailsMagicCodePage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudVerifyAccountPage').default,
@@ -793,6 +790,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsWebsite').default,
     [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesVerifyAccountPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BrokenCardFeedConnectionPage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/RefreshCardFeedConnectionPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssigneeStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardSelectionStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE]: () =>
@@ -930,6 +928,8 @@ const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePay
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisabledPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisablePage').default,
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyOldPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_NEW]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyNewPage').default,
 });
 
 const SearchRouterModalStackNavigator = createModalStackNavigator({

@@ -109,6 +109,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                         const route = ROUTES.REPORT_ATTACHMENTS?.getRoute({
                             attachmentID,
                             reportID,
+                            reportActionID: action?.reportActionID,
                             type,
                             source,
                             accountID,
