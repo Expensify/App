@@ -1,23 +1,21 @@
 import type {NavigationAction} from '@react-navigation/native';
-import {useNavigation, usePreventRemove} from '@react-navigation/native';
+import {usePreventRemove} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStackForWebBack}: DiscardChangesConfirmationProps) {
-    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
+function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChangesConfirmationProps) {
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
     const isConfirmed = useRef(false);
     const [discardConfirmed, setDiscardConfirmed] = useState(false);
+    const isGuardActive = useRef(false);
 
     usePreventRemove(
         (hasUnsavedChanges || shouldNavigateBack) && !discardConfirmed,
@@ -28,36 +26,44 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStack
     );
 
     /**
-     * We cannot programmatically stop the browser's back navigation like react-navigation's beforeRemove
-     * Events like popstate and transitionStart are triggered AFTER the back navigation has already completed
-     * So we need to go forward to get back to the current page
-     *
-     * When useParentStackForWebBack is true, the component is rendered inside a MaterialTopTabNavigator
-     * which does not emit transitionStart events. In that case, we listen on the parent stack navigator
-     * (via navigation.getParent()) which does emit these events when the screen is being removed.
+     * Proactive browser history guard for handling browser back navigation without URL flicker.
+     * When there are unsaved changes, a guard entry is pushed onto the browser history stack.
+     * Pressing browser back pops the guard entry (not the real navigation entry), so the URL stays stable.
+     * A popstate listener detects when the guard is popped and shows the discard confirmation modal.
      */
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        const targetNavigation = useParentStackForWebBack ? (navigation.getParent() as typeof navigation | undefined) : navigation;
-        if (!targetNavigation) {
+        if (!hasUnsavedChanges) {
             return;
         }
-        const unsubscribe = targetNavigation.addListener('transitionStart', ({data: {closing}}: {data: {closing: boolean}}) => {
-            if (!hasUnsavedChanges || isConfirmed.current) {
-                return;
-            }
-            setShouldNavigateBack(true);
-            if (closing) {
-                window.history.go(1);
-                return;
-            }
-            // Navigation.navigate() rerenders the current page and resets its states
-            window.history.go(1);
-            navigateAfterInteraction(() => setIsVisible(true));
-        });
 
-        return unsubscribe;
-    }, [hasUnsavedChanges, navigation, useParentStackForWebBack]);
+        const currentState = window.history.state as Record<string, unknown> | null;
+        window.history.pushState({...currentState, isDiscardGuard: true}, '', null);
+        isGuardActive.current = true;
+
+        const handlePopState = () => {
+            if (!isGuardActive.current) {
+                return;
+            }
+            // If the current state still has isDiscardGuard, another entry above the guard was popped (e.g. a modal),
+            // not our guard itself — do nothing.
+            if ((window.history.state as Record<string, unknown> | null)?.isDiscardGuard) {
+                return;
+            }
+            isGuardActive.current = false;
+            setShouldNavigateBack(true);
+            navigateAfterInteraction(() => setIsVisible(true));
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+            if (isGuardActive.current) {
+                isGuardActive.current = false;
+                window.history.back();
+            }
+        };
+    }, [hasUnsavedChanges]);
 
     const navigateBack = useCallback(() => {
         if (blockedNavigationAction.current) {
@@ -87,6 +93,12 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStack
                 setIsVisible(false);
                 blockedNavigationAction.current = undefined;
                 setShouldNavigateBack(false);
+                // Re-push the guard entry so subsequent browser back presses are still intercepted
+                if (!isGuardActive.current && hasUnsavedChanges) {
+                    const currentState = window.history.state as Record<string, unknown> | null;
+                    window.history.pushState({...currentState, isDiscardGuard: true}, '', null);
+                    isGuardActive.current = true;
+                }
             }}
             onModalHide={() => {
                 if (isConfirmed.current) {
