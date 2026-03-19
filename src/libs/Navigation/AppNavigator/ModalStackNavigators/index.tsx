@@ -88,15 +88,6 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         animationTypeForReplace: 'push',
     },
-    [SCREENS.MISSING_PERSONAL_DETAILS]: {
-        animationTypeForReplace: 'push',
-    },
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_ADD]: {
-        animationTypeForReplace: 'push',
-    },
-    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
-        animationTypeForReplace: 'push',
-    },
     [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: {
         animationTypeForReplace: 'push',
     },
@@ -280,7 +271,7 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
     [SCREENS.REPORT_SETTINGS.NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Report/NamePage').default,
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require<ReactComponentModule>('../../../../pages/settings/Report/NotificationPreferencePage').default,
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/WriteCapabilityPage').default,
-    [SCREENS.REPORT_SETTINGS.VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/VisibilityPage').default,
+    [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicVisibilityPage').default,
     [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportLayoutPage').default,
     [SCREENS.REPORT_SETTINGS.COLUMNS]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportDetailsColumnsPage').default,
 });
@@ -790,7 +781,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsWebsite').default,
     [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesVerifyAccountPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BrokenCardFeedConnectionPage').default,
-    [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/RefreshCardFeedConnectionPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssigneeStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardSelectionStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE]: () =>

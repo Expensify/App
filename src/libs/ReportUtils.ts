@@ -106,7 +106,7 @@ import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {openUnreportedExpense} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
-import {removeDraftTransactions} from './actions/TransactionEdit';
+import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
@@ -9205,6 +9205,42 @@ function hasViolations(
     return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview));
 }
 
+function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportViolations?: OnyxEntry<ReportViolations>): boolean {
+    if (!report || !policy?.fieldList || !policy?.areReportFieldsEnabled) {
+        return false;
+    }
+
+    const isPaidGroupPolicyReport = isExpenseReport(report) && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
+    if (!isPaidGroupPolicyReport && !isInvoiceReport(report)) {
+        return false;
+    }
+
+    // We only show the RBR to the submitter for expense reports
+    if (isPaidGroupPolicyReport && !isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    // Allow both open and processing reports to show RBR for field violations (expense reports only)
+    if (isPaidGroupPolicyReport && !isOpenOrProcessingReport(report)) {
+        return false;
+    }
+
+    const {fieldsByName} = getReportFieldMaps(report, policy.fieldList);
+
+    return Object.values(fieldsByName).some((field) => {
+        if (field.target !== report.type) {
+            return false;
+        }
+        if (shouldHideSingleReportField(field)) {
+            return false;
+        }
+        if (isReportFieldDisabledForUser(report, field, policy)) {
+            return false;
+        }
+        return !!getFieldViolation(reportViolations, field);
+    });
+}
+
 /**
  * Checks to see if a report contains a violation of type `warning`
  */
@@ -9440,6 +9476,8 @@ type ShouldReportBeInOptionListParams = {
     includeDomainEmail?: boolean;
     isReportArchived: boolean | undefined;
     draftComment: string | undefined;
+    /** Pre-computed value from reportAttributes derived value. When provided, skips the expensive requiresAttentionFromCurrentUser recomputation. */
+    requiresAttention?: boolean;
 };
 
 function reasonForReportToBeInOptionList({
@@ -9455,6 +9493,7 @@ function reasonForReportToBeInOptionList({
     login,
     includeDomainEmail = false,
     isReportArchived,
+    requiresAttention,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
 
@@ -9535,7 +9574,7 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
-    if (requiresAttentionFromCurrentUser(report, undefined, isReportArchived)) {
+    if (requiresAttention ?? requiresAttentionFromCurrentUser(report, undefined, isReportArchived)) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
 
@@ -11284,7 +11323,7 @@ type CreateDraftTransactionParams = {
     actionName: IOUAction;
     reportActionID: string | undefined;
     introSelected: OnyxEntry<IntroSelected>;
-    allTransactionDrafts: OnyxCollection<Transaction>;
+    draftTransactionIDs: string[] | undefined;
     activePolicy: OnyxEntry<Policy>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
@@ -11298,7 +11337,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     actionName,
     reportActionID,
     introSelected,
-    allTransactionDrafts,
+    draftTransactionIDs,
     activePolicy,
     userBillingGraceEndPeriods,
     amountOwed,
@@ -11328,7 +11367,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         attendees: transaction?.modifiedAttendees ?? baseComment.attendees,
     };
 
-    removeDraftTransactions(false, allTransactionDrafts);
+    removeDraftTransactionsByIDs(draftTransactionIDs);
 
     createDraftTransaction({
         ...transaction,
@@ -13332,6 +13371,7 @@ export {
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,
+    hasVisibleReportFieldViolations,
     hasWarningTypeViolations,
     hasNoticeTypeViolations,
     hasAnyViolations,
