@@ -173,7 +173,7 @@ function useSearchSelectorBase({
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const [sortedReportActionsData] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
+    const [{sortedActions} = {}] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -234,7 +234,7 @@ function useSearchSelectorBase({
                     countryCode,
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
-                    sortedReportActionsData,
+                    sortedActions,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
@@ -251,7 +251,7 @@ function useSearchSelectorBase({
                     countryCode,
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
-                    sortedReportActionsData,
+                    sortedActions,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
@@ -275,7 +275,7 @@ function useSearchSelectorBase({
                     countryCode,
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
-                    sortedReportActionsData,
+                    sortedActions,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
@@ -298,7 +298,7 @@ function useSearchSelectorBase({
                     countryCode,
                     reportAttributesDerived: reportAttributesDerived?.reports,
                     allPolicyTags,
-                    sortedReportActionsData,
+                    sortedActions,
                 });
             default:
                 return getEmptyOptions();
@@ -330,7 +330,7 @@ function useSearchSelectorBase({
         reportAttributesDerived?.reports,
         trimmedSearchInput,
         allPolicyTags,
-        sortedReportActionsData,
+        sortedActions,
     ]);
 
     const isOptionSelected = useMemo(() => {

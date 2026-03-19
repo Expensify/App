@@ -176,7 +176,6 @@ import type {
     ReportActions,
     ReportAttributesDerivedValue,
     ReportMetadata,
-    SortedReportActionsDerivedValue,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -2239,8 +2238,8 @@ function prepareReportOptionsForDisplay(
     config: GetValidReportsConfig,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    sortedActions: Record<string, ReportAction[]> = deprecatedAllSortedReportActions,
     policyTags?: OnyxCollection<PolicyTagLists>,
-    sortedReportActionsData?: SortedReportActionsDerivedValue,
 ): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
@@ -2292,10 +2291,9 @@ function prepareReportOptionsForDisplay(
         if (shouldUnreadBeBold) {
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const resolvedSortedActions = sortedReportActionsData?.sortedActions ?? deprecatedAllSortedReportActions;
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
-                    ? getOneTransactionThreadReportID(report, chatReport, resolvedSortedActions[report.reportID])
+                    ? getOneTransactionThreadReportID(report, chatReport, sortedActions[report.reportID])
                     : undefined;
             const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
 
@@ -2306,12 +2304,11 @@ function prepareReportOptionsForDisplay(
         // Add a field to sort the recent reports by the time of last IOU request for create actions
         if (preferRecentExpenseReports) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const sortedActionsForLookup = sortedReportActionsData?.sortedActions ?? deprecatedAllSortedReportActions;
-            const reportPreviewAction = sortedActionsForLookup[option.reportID]?.find((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
+            const reportPreviewAction = sortedActions[option.reportID]?.find((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
 
             if (reportPreviewAction) {
                 const iouReportID = getIOUReportIDFromReportActionPreview(reportPreviewAction);
-                const iouReportActions = iouReportID ? (sortedActionsForLookup[iouReportID] ?? []) : [];
+                const iouReportActions = iouReportID ? (sortedActions[iouReportID] ?? []) : [];
                 const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                 if (lastIOUAction) {
                     lastIOUCreationDate = lastIOUAction.lastModified;
@@ -2433,7 +2430,7 @@ function getValidOptions(
         countryCode = CONST.DEFAULT_COUNTRY_CODE,
         visibleReportActionsData = {},
         reportAttributesDerived,
-        sortedReportActionsData,
+        sortedActions,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -2539,8 +2536,8 @@ function getValidOptions(
                 },
                 visibleReportActionsData,
                 reportAttributesDerived,
+                sortedActions,
                 allPolicyTags,
-                sortedReportActionsData,
             ).at(0);
         }
 
@@ -2562,8 +2559,8 @@ function getValidOptions(
             },
             visibleReportActionsData,
             reportAttributesDerived,
+            sortedActions,
             allPolicyTags,
-            sortedReportActionsData,
         );
 
         workspaceChats = prepareReportOptionsForDisplay(
@@ -2581,8 +2578,8 @@ function getValidOptions(
             },
             visibleReportActionsData,
             reportAttributesDerived,
+            sortedActions,
             allPolicyTags,
-            sortedReportActionsData,
         );
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {

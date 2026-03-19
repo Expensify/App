@@ -97,7 +97,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
-    const [sortedReportActionsData] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
+    const [{sortedActions} = {}] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
@@ -131,7 +131,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                 includeRecentReports: !shouldAllowNameOnlyOptions,
                 personalDetails,
                 countryCode,
-                sortedReportActionsData,
+                sortedActions,
             },
         );
     }, [
@@ -148,7 +148,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         personalDetails,
         currentUserAccountID,
         currentUserEmail,
-        sortedReportActionsData,
+        sortedActions,
     ]);
 
     const unselectedOptions = useMemo(() => {

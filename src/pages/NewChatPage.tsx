@@ -74,7 +74,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [sortedReportActionsData] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
+    const [{sortedActions} = {}] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS);
 
     const {
         options: listOptions,
@@ -116,7 +116,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             allPolicyTags,
             countryCode,
             reportAttributesDerived,
-            sortedReportActionsData,
+            sortedActions,
         },
     );
 

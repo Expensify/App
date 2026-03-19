@@ -10,9 +10,9 @@ import type {
     PersonalDetailsList,
     PolicyTagLists,
     Report,
+    ReportAction,
     ReportActions,
     ReportAttributesDerivedValue,
-    SortedReportActionsDerivedValue,
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
@@ -222,7 +222,7 @@ type GetOptionsConfig = {
     countryCode?: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    sortedReportActionsData?: SortedReportActionsDerivedValue;
+    sortedActions?: Record<string, ReportAction[]>;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {

@@ -6953,8 +6953,8 @@ describe('OptionsListUtils', () => {
         });
     });
 
-    describe('prepareReportOptionsForDisplay with sortedReportActionsData', () => {
-        it('should use sortedReportActionsData to compute lastIOUCreationDate for expense report sorting', async () => {
+    describe('prepareReportOptionsForDisplay with sortedActions', () => {
+        it('should use sortedActions to compute lastIOUCreationDate for expense report sorting', async () => {
             const reportID = 'sorted-test-1';
             const iouReportID = 'sorted-iou-1';
             const iouActionModified = '2025-06-15 10:30:00.000';
@@ -7008,13 +7008,9 @@ describe('OptionsListUtils', () => {
                 isBold: false,
             };
 
-            const sortedReportActionsData = {
-                sortedActions: {
-                    [reportID]: [reportPreviewAction],
-                    [iouReportID]: [iouAction],
-                },
-                lastActions: {},
-                transactionThreadIDs: {},
+            const sortedActions = {
+                [reportID]: [reportPreviewAction],
+                [iouReportID]: [iouAction],
             };
 
             const results = getValidOptions(
@@ -7029,7 +7025,7 @@ describe('OptionsListUtils', () => {
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
                     action: CONST.IOU.ACTION.CREATE,
-                    sortedReportActionsData,
+                    sortedActions,
                 },
             );
 
@@ -7038,7 +7034,7 @@ describe('OptionsListUtils', () => {
             expect(resultOption?.lastIOUCreationDate).toBe(iouActionModified);
         });
 
-        it('should not have lastIOUCreationDate when sortedReportActionsData is empty', async () => {
+        it('should not have lastIOUCreationDate when sortedActions is empty', async () => {
             const reportID = 'sorted-test-2';
 
             const report: Report = {
@@ -7078,11 +7074,7 @@ describe('OptionsListUtils', () => {
                 isBold: false,
             };
 
-            const sortedReportActionsData = {
-                sortedActions: {},
-                lastActions: {},
-                transactionThreadIDs: {},
-            };
+            const sortedActions = {};
 
             const results = getValidOptions(
                 {reports: [inputOption], personalDetails: []},
@@ -7095,7 +7087,7 @@ describe('OptionsListUtils', () => {
                 {
                     includeRecentReports: true,
                     action: CONST.IOU.ACTION.CREATE,
-                    sortedReportActionsData,
+                    sortedActions,
                 },
             );
 
