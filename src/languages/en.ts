@@ -1021,6 +1021,11 @@ const translations = {
                 subtitle: 'Expensify Card',
                 cta: 'Review',
             },
+            validateAccount: {
+                title: 'Validate your account to continue using Expensify',
+                subtitle: 'Account',
+                cta: 'Validate',
+            },
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
