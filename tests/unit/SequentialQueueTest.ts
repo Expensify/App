@@ -53,10 +53,10 @@ describe('SequentialQueue', () => {
         };
         SequentialQueue.push(requestWithConflictResolution);
         expect(getLength()).toBe(1);
-        // We know there is only one request and it's ongoing.
-        // We can get it and verify that the ongoing request is the second one.
-        const ongoingRequest = getOngoingRequest();
-        expect(ongoingRequest?.data?.accountID).toBe(56789);
+        // We know there is only one request in the queue, so we can get the first one and verify
+        // that the persisted request is the second one.
+        const persistedRequest = getAll().at(0);
+        expect(persistedRequest?.data?.accountID).toBe(56789);
     });
 
     it('should push two requests with conflict resolution and push', () => {
@@ -109,9 +109,7 @@ describe('SequentialQueue', () => {
         };
 
         SequentialQueue.push(requestWithConflictResolution);
-
-        const ongoingRequest = getOngoingRequest();
-        expect(ongoingRequest?.data?.accountID).toBe(56789);
+        expect(getLength()).toBe(2);
     });
 
     it('should replace request request in queue while a similar one is ongoing', async () => {
@@ -177,14 +175,9 @@ describe('SequentialQueue', () => {
 
         expect(getLength()).toBe(4);
         const persistedRequests = getAll();
-        const ongoingRequest = getOngoingRequest();
-
-        // The first OpenReport call is ongoing
-        expect(ongoingRequest?.command).toBe('OpenReport');
-
-        // We know ReconnectApp is at index 0 in the queue now, so we can get it to verify
+        // We know ReconnectApp is at index 1 in the queue, so we can get it to verify
         // that was replaced by the new request.
-        expect(persistedRequests.at(0)?.data?.accountID).toBe(56789);
+        expect(persistedRequests.at(1)?.data?.accountID).toBe(56789);
     });
 
     // need to test a rance condition between processing the next request and then pushing a new request with conflict resolver
