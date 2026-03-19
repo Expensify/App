@@ -1,5 +1,5 @@
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
@@ -167,24 +167,28 @@ function ScreenWrapperContainer({
         [isUsingEdgeToEdgeMode, edgeToEdgeBottomContentStyle, legacyBottomContentStyle, bottomContentStyleProp],
     );
 
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
-            onPanResponderRelease: toggleTestToolsModal,
-        }),
-    ).current;
+    const panResponder = useMemo(
+        () =>
+            PanResponder.create({
+                onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
+                onPanResponderRelease: toggleTestToolsModal,
+            }),
+        [],
+    );
 
-    const keyboardDismissPanResponder = useRef(
-        PanResponder.create({
-            onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
-                const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && isMobile();
+    const keyboardDismissPanResponder = useMemo(
+        () =>
+            PanResponder.create({
+                onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
+                    const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+                    const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && isMobile();
 
-                return isHorizontalSwipe && shouldDismissKeyboard;
-            },
-            onPanResponderGrant: Keyboard.dismiss,
-        }),
-    ).current;
+                    return isHorizontalSwipe && shouldDismissKeyboard;
+                },
+                onPanResponderGrant: Keyboard.dismiss,
+            }),
+        [shouldDismissKeyboardBeforeClose],
+    );
 
     useEffect(() => {
         /**
