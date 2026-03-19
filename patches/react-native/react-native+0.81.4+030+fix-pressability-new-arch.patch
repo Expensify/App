@@ -396,7 +396,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Sche
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
-@@ -106,6 +106,9 @@ class Scheduler final : public UIManagerDelegate {
+@@ -106,5 +106,9 @@ class Scheduler final : public UIManagerDelegate {
    void uiManagerDidStartSurface(const ShadowTree& shadowTree) override;
  
 +  void uiManagerMeasureAsync(
@@ -474,7 +474,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIMa
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
 --- a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
-@@ -90,6 +90,14 @@ class UIManagerDelegate {
+@@ -90,5 +90,13 @@ class UIManagerDelegate {
    virtual void uiManagerDidStartSurface(const ShadowTree& shadowTree) = 0;
  
 +  /*
@@ -518,7 +518,7 @@ diff --git a/node_modules/react-native/jest/mockNativeComponent.js b/node_module
 diff --git a/node_modules/react-native/src/private/types/HostInstance.js b/node_modules/react-native/src/private/types/HostInstance.js
 --- a/node_modules/react-native/src/private/types/HostInstance.js
 +++ b/node_modules/react-native/src/private/types/HostInstance.js
-@@ -71,6 +71,11 @@ export interface LegacyHostInstanceMethods {
+@@ -71,4 +71,9 @@ export interface LegacyHostInstanceMethods {
    measure(callback: MeasureOnSuccessCallback): void;
 +  /**
 +   * Same as `measure()`, but instead of using the shadow nodes layout information,
