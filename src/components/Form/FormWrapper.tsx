@@ -231,7 +231,7 @@ function FormWrapper({
             }}
         >
             {children}
-            {isWeb && !!fallbackAnnouncementMessage && errorAnnouncementKey > 0 && (
+            {isWeb && !!fallbackAnnouncementMessage && errorAnnouncementKey > 1 && (
                 <Text
                     key={`fallback-announce-${errorAnnouncementKey}`}
                     style={styles.hiddenElementOutsideOfWindow}

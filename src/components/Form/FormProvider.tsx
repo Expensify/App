@@ -156,7 +156,7 @@ function FormProvider({
         return '';
     }, [errors]);
 
-    useAccessibilityAnnouncement(firstFieldErrorMessage, !isGeneralAlertVisible && !!firstFieldErrorMessage && errorAnnouncementKey > 0, {
+    useAccessibilityAnnouncement(firstFieldErrorMessage, !isGeneralAlertVisible && !!firstFieldErrorMessage && errorAnnouncementKey > 1, {
         shouldAnnounceOnNative: true,
         announcementKey: errorAnnouncementKey,
     });
@@ -486,11 +486,11 @@ function FormProvider({
     const value = useMemo(() => ({registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage}), [registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage]);
 
     const submitAndAnnounce = useCallback(() => {
-        if (!isEmptyObject(errors)) {
+        if (hasServerError) {
             setErrorAnnouncementKey((prev) => prev + 1);
         }
         submit();
-    }, [errors, submit]);
+    }, [hasServerError, submit]);
 
     return (
         <FormContext.Provider value={value}>
