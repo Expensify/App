@@ -179,7 +179,7 @@ function TransactionListItem<TItem extends ListItem>({
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
-                onLongPress={isDeletedTransaction ? undefined : () => onLongPressRow?.(item)}
+                onLongPress={() => onLongPressRow?.(item)}
                 onPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
@@ -200,7 +200,7 @@ function TransactionListItem<TItem extends ListItem>({
             >
                 {({hovered}) => (
                     <>
-                        {!isLargeScreenWidth && (
+                        {!isLargeScreenWidth && !isDeletedTransaction && (
                             <UserInfoAndActionButtonRow
                                 item={transactionItem}
                                 handleActionButtonPress={handleActionButtonPress}
