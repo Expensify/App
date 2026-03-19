@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {Card} from '.';
+import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
 import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
@@ -260,6 +260,15 @@ type TodosDerivedValue = {
 };
 
 /**
+ * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
+ */
+type SortedReportActionsDerivedValue = {
+    sortedActions: Record<string, ReportAction[]>;
+    lastActions: Record<string, ReportAction>;
+    transactionThreadIDs: Record<string, string | undefined>;
+};
+
+/**
  * The derived value for merged personal and workspace card feeds.
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
@@ -272,6 +281,7 @@ export type {
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,

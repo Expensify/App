@@ -52,6 +52,7 @@ import type {
     TodoMetadata,
     TodosDerivedValue,
     VisibleReportActionsDerivedValue,
+    SortedReportActionsDerivedValue,
 } from './DerivedValues';
 import type DeviceBiometrics from './DeviceBiometrics';
 import type DismissedProductTraining from './DismissedProductTraining';
@@ -362,6 +363,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,

@@ -176,6 +176,7 @@ import type {
     ReportActions,
     ReportAttributesDerivedValue,
     ReportMetadata,
+    SortedReportActionsDerivedValue,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -2227,6 +2228,7 @@ function prepareReportOptionsForDisplay(
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxCollection<PolicyTagLists>,
+    sortedReportActionsData?: SortedReportActionsDerivedValue,
 ): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
@@ -2277,9 +2279,10 @@ function prepareReportOptionsForDisplay(
         let isOptionUnread = option.isUnread;
         if (shouldUnreadBeBold) {
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+            const resolvedSortedActions = sortedReportActionsData?.sortedActions ?? allSortedReportActions;
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
-                    ? getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[report.reportID])
+                    ? getOneTransactionThreadReportID(report, chatReport, resolvedSortedActions[report.reportID])
                     : undefined;
             const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
 
@@ -2289,11 +2292,12 @@ function prepareReportOptionsForDisplay(
         let lastIOUCreationDate;
         // Add a field to sort the recent reports by the time of last IOU request for create actions
         if (preferRecentExpenseReports) {
-            const reportPreviewAction = allSortedReportActions[option.reportID]?.find((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
+            const sortedActionsForLookup = sortedReportActionsData?.sortedActions ?? allSortedReportActions;
+            const reportPreviewAction = sortedActionsForLookup[option.reportID]?.find((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
 
             if (reportPreviewAction) {
                 const iouReportID = getIOUReportIDFromReportActionPreview(reportPreviewAction);
-                const iouReportActions = iouReportID ? (allSortedReportActions[iouReportID] ?? []) : [];
+                const iouReportActions = iouReportID ? (sortedActionsForLookup[iouReportID] ?? []) : [];
                 const lastIOUAction = iouReportActions.find((iouAction) => iouAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                 if (lastIOUAction) {
                     lastIOUCreationDate = lastIOUAction.lastModified;
@@ -2415,6 +2419,7 @@ function getValidOptions(
         countryCode = CONST.DEFAULT_COUNTRY_CODE,
         visibleReportActionsData = {},
         reportAttributesDerived,
+        sortedReportActionsData,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -2521,6 +2526,7 @@ function getValidOptions(
                 visibleReportActionsData,
                 reportAttributesDerived,
                 allPolicyTags,
+                sortedReportActionsData,
             ).at(0);
         }
 
@@ -2543,6 +2549,7 @@ function getValidOptions(
             visibleReportActionsData,
             reportAttributesDerived,
             allPolicyTags,
+            sortedReportActionsData,
         );
 
         workspaceChats = prepareReportOptionsForDisplay(
@@ -2561,6 +2568,7 @@ function getValidOptions(
             visibleReportActionsData,
             reportAttributesDerived,
             allPolicyTags,
+            sortedReportActionsData,
         );
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {

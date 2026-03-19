@@ -12,6 +12,7 @@ import type {
     Report,
     ReportActions,
     ReportAttributesDerivedValue,
+    SortedReportActionsDerivedValue,
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
@@ -221,6 +222,7 @@ type GetOptionsConfig = {
     countryCode?: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    sortedReportActionsData?: SortedReportActionsDerivedValue;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
