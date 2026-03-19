@@ -544,7 +544,7 @@ diff --git a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNative
 +  measureAsyncOnUI(callback: MeasureOnSuccessCallback) {
 +    const node = getNativeElementReference(this);
 +    if (node != null) {
-+      const {getFabricUIManager} = require('../../../Libraries/ReactNative/FabricUIManager');
++      const {getFabricUIManager} = require('../../../../../Libraries/ReactNative/FabricUIManager');
 +      const ui = getFabricUIManager();
 +      if (ui != null && typeof ui.measureAsyncOnUI === 'function') {
 +        ui.measureAsyncOnUI(node, callback);
