@@ -5,6 +5,7 @@ import type AccountData from './AccountData';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
+import type Attachment from './Attachment';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
@@ -181,6 +182,7 @@ import type WalletTransfer from './WalletTransfer';
 export type {
     FileObject,
     TryNewDot,
+    Attachment,
     Account,
     AccountData,
     AssignCard,

@@ -68,7 +68,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.subtitle')}</Text>
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
 
-                    <RenderHTML html={translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity', {workspacesListRoute})} />
+                    <RenderHTML html={translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity', workspacesListRoute)} />
                 </View>
                 <FixedFooter style={styles.ph0}>
                     <Button
