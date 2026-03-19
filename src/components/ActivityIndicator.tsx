@@ -20,7 +20,7 @@ type ActivityIndicatorProps = RNActivityIndicatorProps & {
     extraLoadingContext?: ExtraLoadingContext;
 
     /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, extraLoadingContext, reasonAttributes, ...rest}: ActivityIndicatorProps) {

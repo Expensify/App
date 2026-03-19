@@ -245,6 +245,8 @@ export default {
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
     sectionIllustrationHeight: 220,
+    tripsIllustrationW: 168,
+    tripsIllustrationH: 150,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     featureTrainingModalWidth: 500,
@@ -296,6 +298,8 @@ export default {
     cardNameWidth: 156,
     updateAnimationW: 390,
     updateAnimationH: 240,
+    updateRocketW: 292,
+    updateRocketH: 180,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
 

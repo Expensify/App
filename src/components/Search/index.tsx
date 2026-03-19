@@ -4,7 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -36,11 +36,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
@@ -50,6 +51,7 @@ import {
     getListItem,
     getSections,
     getSortedSections,
+    getValidGroupBy,
     getWideAmountIndicators,
     isGroupedItemArray,
     isReportActionListItemType,
@@ -98,6 +100,8 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
+
+const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
@@ -230,7 +234,6 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useWideRHPActions();
-
     const {
         currentSearchHash,
         currentSearchKey,
@@ -307,7 +310,7 @@ function Search({
         }
     }, [onDEWModalOpen, showConfirmModal, translate]);
 
-    const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
+    const validGroupBy = getValidGroupBy(groupBy);
     const prevValidGroupBy = usePrevious(validGroupBy);
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
 
@@ -354,17 +357,6 @@ function Search({
         // We only want this effect to handle the switching of mobile selection mode state when screen size changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
-
-    useEffect(() => {
-        openSearch({includePartiallySetupBankAccounts: true});
-    }, []);
-
-    useEffect(() => {
-        if (!prevIsOffline || isOffline) {
-            return;
-        }
-        openSearch({includePartiallySetupBankAccounts: true});
-    }, [isOffline, prevIsOffline]);
 
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
@@ -450,21 +442,6 @@ function Search({
 
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
 
-    const loadingSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
-        () => ({
-            context: 'Search',
-            isOffline,
-            isDataLoaded,
-            isCardFeedsLoading,
-            isSearchLoading: !!searchResults?.search?.isLoading,
-            hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
-            hasErrors,
-            hasPendingResponse: searchRequestResponseStatusCode === null,
-            shouldUseLiveData,
-        }),
-        [isOffline, isDataLoaded, isCardFeedsLoading, searchResults?.search?.isLoading, searchResults?.data, hasErrors, searchRequestResponseStatusCode, shouldUseLiveData],
-    );
-
     const loadMoreSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
         () => ({
             context: 'Search.ListFooter',
@@ -544,9 +521,7 @@ function Search({
         if (!validGroupBy) {
             return [];
         }
-        return (baseFilteredData as TransactionGroupListItemType[])
-            .map((item) => (item.transactionsQueryJSON?.hash ? String(item.transactionsQueryJSON.hash) : undefined))
-            .filter((hashValue): hashValue is string => !!hashValue);
+        return (baseFilteredData as TransactionGroupListItemType[]).map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue);
     }, [validGroupBy, baseFilteredData]);
 
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
@@ -557,7 +532,7 @@ function Search({
         }
 
         const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
-            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            const snapshot = groupByTransactionSnapshots[hashToString(item.transactionsQueryJSON?.hash) ?? ''];
             if (!snapshot?.data) {
                 return item;
             }
@@ -1115,7 +1090,12 @@ function Search({
             }
 
             if (isReportActionListItemType(item)) {
-                const reportActionID = reportActionItem.reportActionID;
+                // Keep deep-linking for persisted actions, but avoid anchoring to optimistic created-task actions that may not be resolvable offline.
+                const isOptimisticCreatedTaskAction = reportActionItem.isOptimisticAction ?? false;
+                const shouldSkipReportActionID =
+                    isCreatedTaskReportAction(reportActionItem) && (isOptimisticCreatedTaskAction || reportActionItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+                const reportActionID = shouldSkipReportActionID ? undefined : reportActionItem.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
                 return;
             }
@@ -1329,11 +1309,6 @@ function Search({
         spanExistedOnMount.current = false;
     }, []);
 
-    const onLayoutSkeleton = useCallback(() => {
-        hasHadFirstLayout.current = true;
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
-    }, []);
-
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
@@ -1357,23 +1332,6 @@ function Search({
             spanExistedOnMount.current = false;
         }, [shouldShowLoadingState]),
     );
-
-    if (shouldShowLoadingState) {
-        return (
-            <Animated.View
-                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                style={[styles.flex1]}
-                onLayout={onLayoutSkeleton}
-            >
-                <SearchRowSkeleton
-                    shouldAnimate
-                    containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(isSearchInputVisible) : styles.mt3}
-                    reasonAttributes={loadingSkeletonReasonAttributes}
-                />
-            </Animated.View>
-        );
-    }
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
