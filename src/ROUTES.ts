@@ -1415,7 +1415,7 @@ const ROUTES = {
     MONEY_REQUEST_CREATE_TAB_MANUAL: {
         route: 'manual',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `create/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/manual` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/manual` as const,
     },
     MONEY_REQUEST_CREATE_TAB_SCAN: {
         route: 'scan',
@@ -1425,7 +1425,7 @@ const ROUTES = {
     MONEY_REQUEST_CREATE_TAB_PER_DIEM: {
         route: 'per-diem',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `create/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/per-diem/` as const,
+            `create/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/per-diem` as const,
     },
     MONEY_REQUEST_CREATE_TAB_TIME: {
         route: 'time',
