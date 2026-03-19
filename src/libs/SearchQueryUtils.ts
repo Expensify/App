@@ -1108,8 +1108,8 @@ type GetFilterDisplayValueParams = {
     policies: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     translate: LocalizedTranslate;
-    feedKeysWithCards?: FeedKeysWithAssignedCards;
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
+    feedKeysWithCards?: FeedKeysWithAssignedCards;
 };
 
 /**
@@ -1125,8 +1125,8 @@ function getFilterDisplayValue({
     policies,
     currentUserAccountID,
     translate,
-    feedKeysWithCards,
     reportAttributes,
+    feedKeysWithCards,
 }: GetFilterDisplayValueParams) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -1186,8 +1186,8 @@ function getDisplayQueryFiltersForKey(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
-    feedKeysWithCards?: FeedKeysWithAssignedCards,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+    feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
@@ -1252,8 +1252,8 @@ function getDisplayQueryFiltersForKey(
             policies,
             currentUserAccountID,
             translate,
-            feedKeysWithCards,
             reportAttributes,
+            feedKeysWithCards,
         }),
     }));
 }
@@ -1389,8 +1389,8 @@ function buildUserReadableQueryString({
                 policies,
                 currentUserAccountID,
                 translate,
-                feedKeysWithCards,
                 reportAttributes,
+                feedKeysWithCards,
             );
 
             if (!displayQueryFilters.length) {
@@ -1439,8 +1439,8 @@ function buildUserReadableQueryString({
             policies,
             currentUserAccountID,
             translate,
-            feedKeysWithCards,
             reportAttributes,
+            feedKeysWithCards,
         );
 
         if (!displayQueryFilters.length) {
@@ -1717,6 +1717,7 @@ export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getPolicyNameWithFallback,
     buildQueryStringFromFilterFormValues,

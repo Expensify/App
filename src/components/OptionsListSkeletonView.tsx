@@ -26,7 +26,7 @@ type OptionsListSkeletonViewProps = {
     shouldStyleAsTable?: boolean;
     fixedNumItems?: number;
     speed?: number;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 

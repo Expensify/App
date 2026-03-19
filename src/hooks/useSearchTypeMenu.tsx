@@ -167,10 +167,11 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         taxRates,
         personalAndWorkspaceCards,
         allFeeds,
-        feedKeysWithCards,
         allPolicies,
         currentUserAccountID,
         translate,
+        feedKeysWithCards,
+        reportAttributes,
     ]);
 
     const activeItemIndex = useMemo(() => {

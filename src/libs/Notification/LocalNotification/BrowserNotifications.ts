@@ -3,6 +3,8 @@ import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
+import {translateLocal} from '@libs/Localize';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -142,18 +144,25 @@ export default {
         movedToReport,
         onClick,
         usesIcon = false,
+        policyTags,
+        policy,
         currentUserLogin,
         reportAttributes,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = getForReportAction({
+        const bodyWithHTML = getForReportAction({
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
+            translate: translateLocal,
             reportAction,
-            policyID: report.policyID,
+            policy,
             movedFromReport,
             movedToReport,
+            policyTags,
             currentUserLogin,
             reportAttributes,
         });
+        // Strip HTML tags for plain text notification body
+        const body = getTextFromHtml(bodyWithHTML);
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,
