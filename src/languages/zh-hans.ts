@@ -966,6 +966,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
+            validateAccount: {title: '验证您的账户以继续使用 Expensify', subtitle: '账户', cta: '验证'},
         },
         assignedCards: '你的 Expensify 卡',
         assignedCardsRemaining: ({amount}: {amount: string}) => `剩余 ${amount}`,
@@ -5236,10 +5237,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 removeCardFeed: '移除卡片流水',
                 removeCardFeedTitle: (feedName: string) => `移除 ${feedName} 数据源`,
                 removeCardFeedDescription: '确定要移除此卡片数据源吗？这将取消分配所有卡片。',
-                assignNewCards: '分配新卡片',
-                assignNewCardsDescription: '从银行获取最新的卡片进行分配',
-                refreshConnectionSuccess: '连接已刷新',
-                refreshConnectionSuccessDescription: '您的银行连接已成功重新验证。您现在可以分配新卡片。',
                 error: {
                     feedNameRequired: '必须填写卡片流水名称',
                     statementCloseDateRequired: '请选择账单结算日期。',
@@ -7600,11 +7597,13 @@ ${reportName}
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: '开始聊天，<success><strong>推荐好友</strong></success>。',
             header: '开始聊天，推荐好友',
+            closeAccessibilityLabel: '关闭、开始聊天、推荐朋友、横幅',
             body: '也想让你的朋友使用 Expensify 吗？只需与他们开始一个聊天，剩下的交给我们。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: '提交报销，<success><strong>推荐你的团队</strong></success>。',
             header: '报销一笔费用，推荐你的团队',
+            closeAccessibilityLabel: '关闭、提交费用、邀请团队、横幅',
             body: '也想让你的团队使用 Expensify 吗？只需向他们提交一笔报销，我们会帮你处理剩下的一切。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {

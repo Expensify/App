@@ -186,7 +186,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
 
     const fetchPolicyData = () => {
-        if (policyDraft?.id) {
+        if (policyDraft?.id || !isFocused) {
             return;
         }
         openPolicyInitialPage(route.params.policyID);
