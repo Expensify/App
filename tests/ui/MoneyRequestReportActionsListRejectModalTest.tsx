@@ -29,6 +29,8 @@ jest.mock('@react-navigation/native', () => ({
     }),
 }));
 
+jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
+
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
     MarkerView: jest.fn(),
@@ -43,6 +45,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         getState: jest.fn(() => ({})),
     },
     getActiveRoute: jest.fn(() => 'activeRoute'),
+    getDeepestFocusedScreen: jest.fn(() => undefined),
 }));
 
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {
