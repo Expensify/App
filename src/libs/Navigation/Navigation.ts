@@ -4,6 +4,7 @@ import {CommonActions, StackActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
+import {nanoid} from 'nanoid/non-secure';
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -26,6 +27,7 @@ import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import findMatchingDynamicSuffix from './helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
@@ -248,7 +250,7 @@ function getActiveRoute(): string {
 function getReportRHPActiveRoute(): string {
     // Safe handling when navigation is not yet initialized
     if (!navigationRef.isReady()) {
-        Log.warn('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
+        Log.hmmm('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
         return '';
     }
     if (isReportOpenInRHP(navigationRef.getRootState())) {
@@ -442,6 +444,22 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
 
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
     if (indexOfBackToRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
+        const actionPayload = minimalAction.payload as NavigationRoute;
+
+        // StackRouter's REPLACE drops `path`, use a targeted RESET for dynamic routes to preserve it.
+        if (actionPayload?.path && findMatchingDynamicSuffix(backToRoute)) {
+            const routes = targetState.routes.with(targetState.index ?? targetState.routes.length - 1, {
+                key: `${actionPayload.name}-${nanoid()}`,
+                name: actionPayload.name,
+                params: actionPayload.params,
+                path: actionPayload.path,
+            });
+
+            const resetAction = {type: CONST.NAVIGATION_ACTIONS.RESET, payload: {index: targetState.index, routes}, target: targetState.key} as NavigationAction;
+            navigationRef.current.dispatch(resetAction);
+            return;
+        }
+
         const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
         navigationRef.current.dispatch(replaceAction);
         return;

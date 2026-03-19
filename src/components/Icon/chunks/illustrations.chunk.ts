@@ -86,6 +86,7 @@ import TiltedCoinExpensify from '@assets/images/product-illustrations/tilted-coi
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
@@ -276,6 +277,7 @@ const Illustrations = {
     ToddInCar,
     ToddWithPhones,
     WorkspaceScene,
+    UpgradeRocket,
 
     // Educational Illustrations
     MultiScan,
