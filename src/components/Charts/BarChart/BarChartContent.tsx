@@ -12,14 +12,14 @@ import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import MyParagraph from '@components/Charts/ParagraphAPI';
+import ChartYAxisLabels from '../components/ChartYAxisLabels';
 
 /** Inner padding between bars (0.3 = 30% of bar width) */
 const BAR_INNER_PADDING = 0.3;
@@ -42,6 +42,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
+    const fontMgr = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
     const [barAreaWidth, setBarAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
@@ -163,16 +164,28 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
             return null;
         }
         return (
-            <ChartXAxisLabels
-                labels={truncatedLabels}
-                labelRotation={labelRotation}
-                labelSkipInterval={labelSkipInterval}
-                font={font}
-                labelColor={theme.textSupporting}
-                xScale={args.xScale}
-                chartBoundsBottom={args.chartBounds.bottom}
-                centerRotatedLabels
-            />
+            <>
+                <ChartXAxisLabels
+                    labels={truncatedLabels}
+                    labelRotation={labelRotation}
+                    labelSkipInterval={labelSkipInterval}
+                    fontSize={variables.iconSizeExtraSmall}
+                    fontMgr={fontMgr}
+                    labelColor={theme.textSupporting}
+                    xScale={args.xScale}
+                    chartBoundsBottom={args.chartBounds.bottom}
+                    centerRotatedLabels
+                />
+                <ChartYAxisLabels
+                    yTicks={args.yTicks}
+                    yScale={args.yScale}
+                    chartBounds={args.chartBounds}
+                    fontSize={variables.iconSizeExtraSmall}
+                    fontMgr={fontMgr}
+                    labelColor={theme.textSupporting}
+                    formatValue={formatValue}
+                />
+            </>
         );
     };
 
@@ -193,62 +206,59 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     }
 
     return (
-        <View style={{borderWidth: 1, borderColor: 'red'}}>
-            <MyParagraph />
+        <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8]}>
+            <ChartHeader
+                title={title}
+                titleIcon={titleIcon}
+            />
+            <View
+                style={[styles.barChartChartContainer, dynamicChartStyle]}
+                onLayout={handleLayout}
+            >
+                {chartWidth > 0 && (
+                    <CartesianChart
+                        xKey="x"
+                        padding={chartPadding}
+                        yKeys={['y']}
+                        domainPadding={domainPadding}
+                        actionsRef={actionsRef}
+                        customGestures={customGestures}
+                        onChartBoundsChange={handleChartBoundsChange}
+                        onScaleChange={handleScaleChange}
+                        renderOutside={renderOutside}
+                        xAxis={{
+                            tickCount: data.length,
+                            lineWidth: X_AXIS_LINE_WIDTH,
+                        }}
+                        yAxis={[
+                            {
+                                font,
+                                labelColor: theme.transparent,
+                                formatYLabel: formatValue,
+                                tickCount: Y_AXIS_TICK_COUNT,
+                                lineWidth: Y_AXIS_LINE_WIDTH,
+                                lineColor: theme.border,
+                                labelOffset: AXIS_LABEL_GAP,
+                                domain: yAxisDomain,
+                            },
+                        ]}
+                        frame={{lineWidth: 0}}
+                        data={chartData}
+                    >
+                        {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
+                    </CartesianChart>
+                )}
+                {isTooltipActive && !!tooltipData && (
+                    <ChartTooltip
+                        label={tooltipData.label}
+                        amount={tooltipData.amount}
+                        percentage={tooltipData.percentage}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
+                )}
+            </View>
         </View>
-        // <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8]}>
-        //     <ChartHeader
-        //         title={title}
-        //         titleIcon={titleIcon}
-        //     />
-        //     <View
-        //         style={[styles.barChartChartContainer, dynamicChartStyle]}
-        //         onLayout={handleLayout}
-        //     >
-        //         {chartWidth > 0 && (
-        //             <CartesianChart
-        //                 xKey="x"
-        //                 padding={chartPadding}
-        //                 yKeys={['y']}
-        //                 domainPadding={domainPadding}
-        //                 actionsRef={actionsRef}
-        //                 customGestures={customGestures}
-        //                 onChartBoundsChange={handleChartBoundsChange}
-        //                 onScaleChange={handleScaleChange}
-        //                 renderOutside={renderOutside}
-        //                 xAxis={{
-        //                     tickCount: data.length,
-        //                     lineWidth: X_AXIS_LINE_WIDTH,
-        //                 }}
-        //                 yAxis={[
-        //                     {
-        //                         font,
-        //                         labelColor: theme.textSupporting,
-        //                         formatYLabel: formatValue,
-        //                         tickCount: Y_AXIS_TICK_COUNT,
-        //                         lineWidth: Y_AXIS_LINE_WIDTH,
-        //                         lineColor: theme.border,
-        //                         labelOffset: AXIS_LABEL_GAP,
-        //                         domain: yAxisDomain,
-        //                     },
-        //                 ]}
-        //                 frame={{lineWidth: 0}}
-        //                 data={chartData}
-        //             >
-        //                 {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
-        //             </CartesianChart>
-        //         )}
-        //         {isTooltipActive && !!tooltipData && (
-        //             <ChartTooltip
-        //                 label={tooltipData.label}
-        //                 amount={tooltipData.amount}
-        //                 percentage={tooltipData.percentage}
-        //                 chartWidth={chartWidth}
-        //                 initialTooltipPosition={initialTooltipPosition}
-        //             />
-        //         )}
-        //     </View>
-        // </View>
     );
 }
 

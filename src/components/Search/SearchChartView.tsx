@@ -18,6 +18,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -177,10 +178,10 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, o
     const firstItem = data.at(0);
     const currency = firstItem?.currency ?? 'USD';
     const parts = formatToParts(preferredLocale, 0, {style: 'currency', currency});
-    const currencyPart = parts.find((p) => p.type === 'currency');
     const currencyIndex = parts.findIndex((p) => p.type === 'currency');
     const integerIndex = parts.findIndex((p) => p.type === 'integer');
-    const unit = {value: currencyPart?.value ?? currency, fallback: currency};
+    const intlSymbol = parts.find((p) => p.type === 'currency')?.value;
+    const unit = {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency};
     const unitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
     return (

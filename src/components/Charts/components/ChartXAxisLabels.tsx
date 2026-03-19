@@ -1,9 +1,13 @@
-import {Group, Text as SkiaText, vec} from '@shopify/react-native-skia';
-import type {SkFont} from '@shopify/react-native-skia';
+import {FontWeight, Group, Paragraph, Skia, vec} from '@shopify/react-native-skia';
+import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React, {useMemo} from 'react';
 import {AXIS_LABEL_GAP} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
-import {measureTextWidth, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
+import {rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
+
+type ParagraphWithWidth = {para: SkParagraph; width: number};
+
+const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols'];
 
 type ChartXAxisLabelsProps = {
     /** Processed label strings (already truncated by the layout hook). */
@@ -15,8 +19,11 @@ type ChartXAxisLabelsProps = {
     /** Show every Nth label (1 = all, 2 = every other, etc.). */
     labelSkipInterval: number;
 
-    /** Skia font used for measuring and rendering labels. */
-    font: SkFont;
+    /** Font size used for rendering labels. */
+    fontSize: number;
+
+    /** Font manager for Paragraph API rendering with multi-font fallback. */
+    fontMgr?: SkTypefaceFontProvider | null;
 
     /** Fill color for the label text. */
     labelColor: string;
@@ -31,20 +38,47 @@ type ChartXAxisLabelsProps = {
     centerRotatedLabels?: boolean;
 };
 
-function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, font, labelColor, xScale, chartBoundsBottom, centerRotatedLabels = false}: ChartXAxisLabelsProps) {
+function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, fontMgr, labelColor, xScale, chartBoundsBottom, centerRotatedLabels = false}: ChartXAxisLabelsProps) {
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
-    const fontMetrics = font.getMetrics();
-    const ascent = Math.abs(fontMetrics.ascent);
-    const descent = Math.abs(fontMetrics.descent);
-    const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
+    const paragraphs = useMemo((): Array<ParagraphWithWidth | null> | null => {
+        if (!fontMgr) {
+            return null;
+        }
+        return labels.map((label) => {
+            if (label.length === 0) {
+                return null;
+            }
+            const para = Skia.ParagraphBuilder.Make({}, fontMgr)
+                .pushStyle({
+                    color: Skia.Color(labelColor),
+                    fontFamilies: CHART_FONT_FAMILIES,
+                    fontStyle: {weight: FontWeight.Normal},
+                    fontSize,
+                })
+                .addText(label)
+                .pop()
+                .build();
+            para.layout(9999);
+            return {para, width: para.getLongestLine()};
+        });
+    }, [fontMgr, labels, labelColor, fontSize]);
 
     const labelWidths = useMemo(() => {
-        return labels.map((label) => measureTextWidth(label, font));
-    }, [labels, font]);
+        return labels.map((_, i) => paragraphs?.at(i)?.width ?? 0);
+    }, [labels, paragraphs]);
 
-    // Centered labels extend upward by (maxWidth/2)*sin(angle) from the anchor;
-    // push the anchor down so the top of the bounding box clears chartBoundsBottom.
+    // Derive ascent/descent from the first available paragraph's line metrics.
+    const {ascent, descent} = useMemo(() => {
+        const firstPara = paragraphs?.find((p) => p !== null);
+        const metrics = firstPara?.para.getLineMetrics().at(0);
+        return {
+            ascent: Math.abs(metrics?.ascent ?? fontSize * 0.8),
+            descent: Math.abs(metrics?.descent ?? fontSize * 0.2),
+        };
+    }, [paragraphs, fontSize]);
+
+    const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
     const centeredUpwardOffset = centerRotatedLabels && angleRad > 0 ? (Math.max(...labelWidths) / 2) * Math.sin(angleRad) : 0;
     const labelY = chartBoundsBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset;
 
@@ -54,22 +88,26 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, font, label
         }
 
         const tickX = xScale(i);
-        const labelWidth = labelWidths.at(i) ?? 0;
+        const paraData = paragraphs?.at(i) ?? null;
+        if (!paraData) {
+            return null;
+        }
+
+        const renderWidth = paraData.width;
 
         if (angleRad === 0) {
             return (
-                <SkiaText
+                <Paragraph
                     key={`x-label-${label}`}
-                    x={tickX - labelWidth / 2}
-                    y={labelY}
-                    text={label}
-                    font={font}
-                    color={labelColor}
+                    paragraph={paraData.para}
+                    x={tickX - renderWidth / 2}
+                    y={labelY + ascent}
+                    width={renderWidth + 1}
                 />
             );
         }
 
-        const textX = centerRotatedLabels ? tickX - labelWidth / 2 : tickX - labelWidth;
+        const textX = centerRotatedLabels ? tickX - renderWidth / 2 : tickX - renderWidth;
         const origin = vec(tickX, labelY);
 
         return (
@@ -78,12 +116,11 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, font, label
                 origin={origin}
                 transform={[{translateX: correction}, {rotate: -angleRad}]}
             >
-                <SkiaText
+                <Paragraph
+                    paragraph={paraData.para}
                     x={textX}
-                    y={labelY}
-                    text={label}
-                    font={font}
-                    color={labelColor}
+                    y={labelY - ascent}
+                    width={renderWidth + 1}
                 />
             </Group>
         );

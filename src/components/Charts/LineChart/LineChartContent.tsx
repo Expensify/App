@@ -8,12 +8,13 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
+import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
 import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -43,6 +44,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
+    const fontMgr = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
     const [plotAreaWidth, setPlotAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
@@ -154,17 +156,27 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                     radius={DOT_RADIUS}
                     color={DEFAULT_CHART_COLOR}
                 />
-                {!!font && xAxisLabelHeight !== undefined && (
+                {xAxisLabelHeight !== undefined && (
                     <ChartXAxisLabels
                         labels={truncatedLabels}
                         labelRotation={labelRotation}
                         labelSkipInterval={labelSkipInterval}
-                        font={font}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontMgr={fontMgr}
                         labelColor={theme.textSupporting}
                         xScale={args.xScale}
                         chartBoundsBottom={args.chartBounds.bottom}
                     />
                 )}
+                <ChartYAxisLabels
+                    yTicks={args.yTicks}
+                    yScale={args.yScale}
+                    chartBounds={args.chartBounds}
+                    fontSize={variables.iconSizeExtraSmall}
+                    fontMgr={fontMgr}
+                    labelColor={theme.textSupporting}
+                    formatValue={formatValue}
+                />
             </>
         );
     };
@@ -212,8 +224,8 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                         yAxis={[
                             {
                                 font,
-                                labelColor: theme.textSupporting,
-                                formatYLabel: formatValue,
+                                // Built-in labels are hidden; ChartYAxisLabels in renderOutside renders them via Paragraph API
+                                labelColor: theme.transparent,
                                 tickCount: Y_AXIS_TICK_COUNT,
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,

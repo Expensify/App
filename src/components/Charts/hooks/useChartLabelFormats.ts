@@ -29,14 +29,18 @@ function canFontRenderText(font: SkFont, text: string): boolean {
  */
 function resolveDisplayUnit(font: SkFont | null | undefined, unit: UnitWithFallback | string | undefined): string | undefined {
     if (!unit) {
+        console.log('no unit');
         return undefined;
     }
 
     if (typeof unit === 'string') {
+        console.log('string unit', unit);
         return unit;
     }
 
-    return !font || canFontRenderText(font, unit.value) ? unit.value : unit.fallback;
+    console.log('object unit', unit);
+    return unit.value;
+    // return !font || canFontRenderText(font, unit.value) ? unit.value : unit.fallback;
 }
 
 export default function useChartLabelFormats({data, font, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels}: UseChartLabelFormatsProps) {
