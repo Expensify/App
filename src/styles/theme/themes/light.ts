@@ -193,8 +193,8 @@ const lightTheme = {
         },
         deleted: {
             backgroundColor: colors.productLight400,
-            textColor: colors.productLight900
-        }
+            textColor: colors.productLight900,
+        },
     },
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
