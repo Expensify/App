@@ -5807,6 +5807,32 @@ describe('actions/Report', () => {
             // Then verify navigation was called
             expect(Navigation.navigate).toHaveBeenCalled();
         });
+
+        it('should pass betas through to openReport when creating new chat', async () => {
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            const PARTICIPANT_LOGIN = 'participant@test.com';
+            const PARTICIPANT_ACCOUNT_ID = 2;
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [PARTICIPANT_ACCOUNT_ID]: {
+                    accountID: PARTICIPANT_ACCOUNT_ID,
+                    login: PARTICIPANT_LOGIN,
+                    displayName: 'Participant',
+                },
+            });
+
+            const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
+            const testBetas = [CONST.BETAS.ALL];
+
+            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], TEST_USER_ACCOUNT_ID, testIntroSelected, false, testBetas);
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            expect(Navigation.navigate).toHaveBeenCalled();
+        });
     });
 
     describe('navigateToAndOpenReportWithAccountIDs', () => {

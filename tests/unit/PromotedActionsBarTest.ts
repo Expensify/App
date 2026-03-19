@@ -116,4 +116,20 @@ describe('PromotedActions.message', () => {
 
         expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, betas);
     });
+
+    it('should pass betas to navigateToAndOpenReport when login is provided', () => {
+        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
+        const betas = [CONST.BETAS.ALL];
+        const action = PromotedActions.message({
+            login: 'test@example.com',
+            currentUserAccountID: 1,
+            introSelected,
+            isSelfTourViewed: false,
+            betas,
+        });
+
+        action.onSelected();
+
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], 1, introSelected, false, betas, false);
+    });
 });
