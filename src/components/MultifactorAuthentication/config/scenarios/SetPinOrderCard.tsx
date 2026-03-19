@@ -26,7 +26,7 @@ type Payload = {
     addressStreet2: string;
     addressZip: string;
     addressCountry: string;
-    addressState: string;
+    addressProvince: string;
     dob: string;
     pin: string;
     cardID: string;

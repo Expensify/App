@@ -534,10 +534,10 @@ function clearPersonalDetailsErrors() {
 }
 
 function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
-    const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
+    const parameters = {
         ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
         validateCode,
-    };
+    } as SetPersonalDetailsAndShipExpensifyCardsParams;
 
     API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
         optimisticData: [
