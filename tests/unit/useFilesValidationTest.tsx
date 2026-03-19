@@ -8,6 +8,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
 import validateAttachmentFile from '@libs/validateAttachmentFile';
+import type {ValidateAttachmentResult} from '@libs/validateAttachmentFile';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -214,9 +215,16 @@ describe('useFilesValidation', () => {
             setIsLoaderVisible: mockSetIsLoaderVisible,
         });
 
-        jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation((task: () => void) => {
-            task();
-            return {cancel: jest.fn()};
+        jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation((task?: unknown) => {
+            if (typeof task === 'function') {
+                (task as () => void)();
+            }
+
+            return {
+                then: jest.fn().mockResolvedValue(undefined),
+                done: jest.fn(),
+                cancel: jest.fn(),
+            } as unknown as ReturnType<typeof InteractionManager.runAfterInteractions>;
         });
     });
 
@@ -249,9 +257,14 @@ describe('useFilesValidation', () => {
         const convertedFile = createFile({name: 'receipt.jpg', uri: 'file://converted.jpg', size: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 10});
         const resizedFile = createFile({name: 'receipt-resized.jpg', uri: 'file://resized.jpg', size: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE - 1});
 
-        mockValidateAttachmentFile.mockResolvedValueOnce({isValid: false, error: CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE});
+        const heicInvalidResult: ValidateAttachmentResult = {
+            isValid: false,
+            error: CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE,
+        };
+
+        mockValidateAttachmentFile.mockResolvedValueOnce(heicInvalidResult);
         mockConvertHeicImage.mockImplementation((_file, callbacks) => {
-            callbacks.onSuccess(convertedFile);
+            callbacks?.onSuccess?.(convertedFile);
         });
         mockResizeImageIfNeeded.mockResolvedValueOnce(resizedFile);
 

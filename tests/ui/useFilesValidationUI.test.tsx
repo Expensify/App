@@ -187,9 +187,16 @@ describe('useFilesValidation UI behavior', () => {
         mockPDFValidationMode = 'success';
         mockCaptureConfirmModalProps.mockReset();
 
-        jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation((task: () => void) => {
-            task();
-            return {cancel: jest.fn()};
+        jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation((task?: unknown) => {
+            if (typeof task === 'function') {
+                (task as () => void)();
+            }
+
+            return {
+                then: jest.fn().mockResolvedValue(undefined),
+                done: jest.fn(),
+                cancel: jest.fn(),
+            } as unknown as ReturnType<typeof InteractionManager.runAfterInteractions>;
         });
     });
 
