@@ -37,7 +37,7 @@ function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID);
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const submit = useCallback(
         (isConfirmPage: boolean) => {
             updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID, isConfirmPage);

@@ -255,7 +255,7 @@ function getOnyxDataForConnectingVBBAAndLastPaymentMethod(
  */
 function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string) {
     const parameters: ConnectBankAccountParams = {
-        bankAccountID,
+        bankAccountID: Number.isFinite(bankAccountID) ? bankAccountID : CONST.DEFAULT_NUMBER_ID,
         routingNumber: selectedPlaidBankAccount.routingNumber,
         accountNumber: selectedPlaidBankAccount.accountNumber,
         bank: selectedPlaidBankAccount.bankName,
@@ -1161,7 +1161,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
  */
 function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBankAccount, policyID: string) {
     const parameters: ConnectBankAccountParams = {
-        bankAccountID,
+        bankAccountID: Number.isFinite(bankAccountID) ? bankAccountID : CONST.DEFAULT_NUMBER_ID,
         routingNumber: bankAccount.routingNumber,
         accountNumber: bankAccount.accountNumber,
         bank: bankAccount.bankName,

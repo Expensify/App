@@ -51,7 +51,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID);
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const submit = (submitData: unknown) => {
         const data = submitData as ReimbursementAccountForm;
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
