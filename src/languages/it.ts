@@ -491,6 +491,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Attenzione!',
         submitTo: 'Invia a',
         forwardTo: 'Inoltra a',
+        approvalLimit: 'Limite di approvazione',
+        overLimitForwardTo: 'Inoltra se supera il limite',
         merge: 'Unisci',
         none: 'Nessuno',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la rete e riprova.',
@@ -986,6 +988,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Correggi la connessione della carta personale ${cardName}` : 'Correggi connessione carta personale'),
                 subtitle: 'Portafoglio',
             },
+            validateAccount: {title: 'Conferma il tuo account per continuare a usare Expensify', subtitle: 'Account', cta: 'Conferma'},
         },
         assignedCards: 'Le tue Carte Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} rimanenti`,
@@ -1138,6 +1141,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Elimina ricevuta',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
         addReceipt: 'Aggiungi ricevuta',
+        addAdditionalReceipt: 'Aggiungi ricevuta aggiuntiva',
         scanFailed: 'La ricevuta non può essere acquisita perché manca il nome dell’esercente, la data o l’importo.',
         crop: 'Ritaglia',
         addAReceipt: {
@@ -2081,6 +2085,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'La tua azienda richiede l’autenticazione a due fattori.',
         twoFactorAuthCannotDisable: "Impossibile disabilitare l'autenticazione a due fattori",
         twoFactorAuthRequired: 'Per la connessione a Xero è richiesta l’autenticazione a due fattori (2FA) e non può essere disattivata.',
+        replaceDevice: 'Sostituisci dispositivo',
+        replaceDeviceTitle: 'Sostituisci dispositivo a due fattori',
+        verifyOldDeviceTitle: 'Verifica il vecchio dispositivo',
+        verifyOldDeviceDescription: 'Inserisci il codice a sei cifre dalla tua attuale app di autenticazione per confermare che hai accesso ad essa.',
+        verifyNewDeviceTitle: 'Configura nuovo dispositivo',
+        verifyNewDeviceDescription: 'Scansiona il codice QR con il tuo nuovo dispositivo, poi inserisci il codice per completare la configurazione.',
     },
     recoveryCodeForm: {
         error: {
@@ -5369,10 +5379,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 removeCardFeed: 'Rimuovi flusso carta',
                 removeCardFeedTitle: (feedName: string) => `Rimuovi feed ${feedName}`,
                 removeCardFeedDescription: 'Sei sicuro di voler rimuovere questo flusso di carte? Questo rimuoverà l’assegnazione di tutte le carte.',
-                assignNewCards: 'Assegna nuove carte',
-                assignNewCardsDescription: 'Ottieni le ultime carte da assegnare dalla tua banca',
-                refreshConnectionSuccess: 'Connessione aggiornata',
-                refreshConnectionSuccessDescription: 'La connessione bancaria è stata riautenticata con successo. Ora puoi assegnare nuove carte.',
                 error: {
                     feedNameRequired: 'Il nome del feed della carta è obbligatorio',
                     statementCloseDateRequired: 'Seleziona una data di chiusura dell’estratto conto.',
@@ -7816,11 +7822,13 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Avvia una chat, <success><strong>presenta un amico</strong></success>.',
             header: 'Avvia una chat, invita un amico',
+            closeAccessibilityLabel: 'Chiudi, avvia una chat, invita un amico, banner',
             body: 'Vuoi che anche i tuoi amici usino Expensify? Inizia una chat con loro e ci occuperemo noi del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Invia una nota spese, <success><strong>presenta il tuo team</strong></success>.',
             header: 'Invia una spesa, invita il tuo team',
+            closeAccessibilityLabel: 'Chiudi, invia una spesa, invita il tuo team, banner',
             body: 'Vuoi che anche il tuo team usi Expensify? Invia loro una spesa e noi ci occuperemo del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
