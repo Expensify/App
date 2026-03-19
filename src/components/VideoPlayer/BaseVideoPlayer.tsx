@@ -447,7 +447,10 @@ function BaseVideoPlayer({
 
         if (!shouldUseSharedVideoElement) {
             if (newParentRef && 'childNodes' in newParentRef && newParentRef.childNodes[0]) {
-                newParentRef.childNodes[0]?.remove();
+                const child = newParentRef.childNodes[0];
+                if (child && 'remove' in child) {
+                    child.remove();
+                }
             }
             return;
         }
@@ -480,7 +483,10 @@ function BaseVideoPlayer({
             if (mountedVideoPlayersCurrentRef.current.filter((u) => u === url).length > 0) {
                 return;
             }
-            newParentRef.childNodes[0]?.remove();
+            const child = newParentRef.childNodes[0];
+            if (child && 'remove' in child) {
+                child.remove();
+            }
         };
     }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreenRef, mountedVideoPlayersRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
@@ -554,8 +560,7 @@ function BaseVideoPlayer({
                                         }}
                                     >
                                         <VideoView
-                                            // has to be switched to fullscreenOptions={{enable: true}} when mobile Safari gets fixed
-                                            allowsFullscreen
+                                            fullscreenOptions={{enable: true}}
                                             player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}]}
                                             nativeControls={isFullScreenRef.current}
