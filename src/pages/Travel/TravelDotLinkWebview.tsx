@@ -3,6 +3,7 @@ import React, {useRef} from 'react';
 import WebView from 'react-native-webview';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {buildTravelDotURL} from '@libs/actions/Link';
@@ -16,6 +17,8 @@ function TravelDotLinkWebview({route}: TravelDotLinkWebviewProps) {
     const {token, isTestAccount, redirectUrl} = route.params;
     const webViewRef = useRef<WebView>(null);
     const styles = useThemeStyles();
+
+    useDiscardChangesConfirmation({getHasUnsavedChanges: () => true});
 
     const url = buildTravelDotURL(token, isTestAccount === 'true', redirectUrl);
 
