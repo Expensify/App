@@ -991,7 +991,6 @@ describe('PolicyUtils', () => {
             const currentUserAccountID = approverAccountID;
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
 
             const result = isCurrentUserMemberOfAnyPolicy();
 
@@ -1001,10 +1000,13 @@ describe('PolicyUtils', () => {
         it('should return true if user owns a workspace', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID: approverAccountID, isPolicyExpenseChatEnabled: true};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}0`, {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`),
+                ownerAccountID: approverAccountID,
+                isPolicyExpenseChatEnabled: true,
+            });
 
             const result = isCurrentUserMemberOfAnyPolicy();
 
@@ -1014,10 +1016,9 @@ describe('PolicyUtils', () => {
         it('should return false if expense chat is not enabled', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), isPolicyExpenseChatEnabled: false};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}0`, {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), isPolicyExpenseChatEnabled: false});
 
             const result = isCurrentUserMemberOfAnyPolicy();
 
@@ -1027,10 +1028,9 @@ describe('PolicyUtils', () => {
         it('should return false if its a fake policy id', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), id: CONST.POLICY.ID_FAKE};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}0`, {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), id: CONST.POLICY.ID_FAKE});
 
             const result = isCurrentUserMemberOfAnyPolicy();
 
@@ -1040,10 +1040,9 @@ describe('PolicyUtils', () => {
         it('should return true if user is invited to a workspace', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID, isPolicyExpenseChatEnabled: true};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}0`, {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID, isPolicyExpenseChatEnabled: true});
 
             const result = isCurrentUserMemberOfAnyPolicy();
 
