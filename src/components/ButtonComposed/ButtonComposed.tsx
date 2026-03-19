@@ -13,6 +13,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import ButtonComposedContext from './ButtonComposedContext';
@@ -210,6 +211,9 @@ function ButtonComposed({
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
+    const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'Button',
+    };
 
     const contextValue = useMemo(
         () => ({
@@ -280,7 +284,7 @@ function ButtonComposed({
                 disabled={isLoading || isDisabled}
                 disabledStyle={!shouldStayNormalOnDisable ? disabledStyle : undefined}
                 shouldBlendOpacity={shouldBlendOpacity}
-                style={buttonStyles}
+                style={[buttonStyles, {backgroundColor: 'red'}]}
                 wrapperStyle={[
                     isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
@@ -349,6 +353,7 @@ function ButtonComposed({
                         color={variant === 'success' || variant === 'danger' ? theme.textLight : theme.text}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
                         size={resolvedSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? 12 : undefined}
+                        reasonAttributes={buttonLoadingReasonAttributes}
                     />
                 )}
             </PressableWithFeedback>
