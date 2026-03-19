@@ -257,11 +257,11 @@ function TransactionItemRow({
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
 
     const cardName = useMemo(() => {
-        if (isCardFeedDeleted) {
-            return translate('workspace.companyCards.deletedCard');
-        }
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
+        }
+        if (isCardFeedDeleted && transactionItem.cardID) {
+            return translate('workspace.companyCards.deletedCard');
         }
         const cardID = transactionItem.cardID;
         if (cardID && customCardNames?.[cardID]) {

@@ -1739,7 +1739,7 @@ function getTransactionsSections({
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
             // Check if the card feed has been deleted. If cardFeeds is still loading (undefined), return undefined to avoid showing incorrect state.
-            const isCardFeedDeleted = cardFeeds === undefined ? undefined : !doesCardFeedExist(transactionItem.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
+            const isCardFeedDeleted = cardFeeds === undefined ? undefined : !!transactionItem.bank && !doesCardFeedExist(transactionItem.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
@@ -3359,8 +3359,8 @@ function getSortedReportData(
         // When sorting by total, apply the backend logic:
         // IOU reports have positive amounts, expense reports have negative amounts
         if (sortingProperty === 'total' && typeof aValue === 'number' && typeof bValue === 'number') {
-            aValue = a.type === CONST.REPORT.TYPE.IOU ? aValue : -aValue;
-            bValue = b.type === CONST.REPORT.TYPE.IOU ? bValue : -bValue;
+            aValue = a.type === CONST.REPORT.TYPE.IOU ? aValue : -(aValue as number);
+            bValue = b.type === CONST.REPORT.TYPE.IOU ? bValue : -(bValue as number);
         }
 
         return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
@@ -4478,10 +4478,9 @@ function getColumnsToShow({
         }
 
         if (isExpenseReportView) {
-            if (transaction.cardID) {
+            if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
-
             if (transaction.taxCode) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
             }

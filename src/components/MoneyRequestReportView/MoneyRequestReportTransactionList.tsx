@@ -255,7 +255,7 @@ function MoneyRequestReportTransactionList({
         return getColumnsToShow({
             currentAccountID: currentUserDetails?.accountID,
             data: transactions,
-            visibleColumns: (reportDetailsColumns ?? []) as SearchCustomColumnIds[],
+            visibleColumns: (isExpenseReportViewFromIOUReport ? [] : (reportDetailsColumns ?? [])) as SearchCustomColumnIds[],
             isExpenseReportView: true,
             isExpenseReportViewFromIOUReport,
             shouldShowBillableColumn,
@@ -555,7 +555,9 @@ function MoneyRequestReportTransactionList({
                                           taxAmountColumnSize={taxAmountColumnSize}
                                           scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                                           onArrowRightPress={handleArrowRightPress}
-                                          isCardFeedDeleted={cardFeeds === undefined ? undefined : !doesCardFeedExist(transaction.bank as OnyxTypes.CompanyCardFeed, cardFeeds)}
+                                          isCardFeedDeleted={
+                                              cardFeeds === undefined ? undefined : !!transaction.bank && !doesCardFeedExist(transaction.bank as OnyxTypes.CompanyCardFeed, cardFeeds)
+                                          }
                                       />
                                   );
                               })}
@@ -580,7 +582,7 @@ function MoneyRequestReportTransactionList({
                           taxAmountColumnSize={taxAmountColumnSize}
                           scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                           onArrowRightPress={handleArrowRightPress}
-                          isCardFeedDeleted={cardFeeds === undefined ? undefined : !doesCardFeedExist(transaction.bank as OnyxTypes.CompanyCardFeed, cardFeeds)}
+                          isCardFeedDeleted={cardFeeds === undefined ? undefined : !!transaction.bank && !doesCardFeedExist(transaction.bank as OnyxTypes.CompanyCardFeed, cardFeeds)}
                       />
                   ))}
         </View>
