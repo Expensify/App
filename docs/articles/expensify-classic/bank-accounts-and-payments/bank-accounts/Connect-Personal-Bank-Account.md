@@ -41,6 +41,10 @@ Check the following possible issues:
 - The bank account information is incorrect. If you believe you may have entered the wrong account, contact **Concierge (Expensify’s support team)** and provide the **Report ID** for the missing reimbursement.
 - Your bank account isn’t set up for **Direct Deposit/ACH** — please contact your bank to confirm.
 
+## Why is my Chase bank account number different after connecting?
+
+When you connect a Chase bank account, Chase replaces your real account and routing numbers with tokenized substitutes. This is a standard security measure by Chase and does not affect how your account works in Expensify. The tokenized numbers are fully functional for receiving reimbursements and payments.
+
 ## What happens if my bank requires an additional security check before adding it to a third party?
 
 If your bank account has **two-factor authentication (2FA)** or another security step enabled, you should be prompted to complete this authentication step when connecting the account to Expensify.
