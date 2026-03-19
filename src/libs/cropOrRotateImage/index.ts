@@ -1,3 +1,5 @@
+// eslint-disable-next-line no-restricted-imports, @typescript-eslint/no-deprecated -- The new ImageManipulator.manipulate() API produces empty/corrupted results
+// for blob URIs from the browser file picker on web, breaking avatar uploads (#85726, #85673). Using the deprecated manipulateAsync until the new API is fixed for web.
 import {manipulateAsync} from 'expo-image-manipulator';
 import getSaveFormat from './getSaveFormat';
 import type {CropOrRotateImage} from './types';
