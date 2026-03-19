@@ -901,6 +901,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        // When the screen regains focus (e.g., switching back from another tab) and the linked
+        // action is deleted, clear the stale reportActionID param from the route instead of
+        // showing "Not Found". NavigationTabBar may restore a cached route with a stale
+        // reportActionID that points to a now-deleted action.
+        // For fresh mounts, prevIsFocused is undefined (not false), so this won't trigger.
+        if (prevIsFocused === false && isFocused) {
+            Navigation.setParams({reportActionID: ''});
+            return;
+        }
+
         // we want to do this distinguish between normal navigation and delete behavior
         if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
             setIsNavigatingToDeletedAction(true);
@@ -911,7 +921,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!isNavigatingToDeletedAction && prevIsLinkedActionDeleted === false) {
             Navigation.setParams({reportActionID: ''});
         }
-    }, [isLinkedActionDeleted, prevIsLinkedActionDeleted, lastReportActionIDFromRoute, reportActionIDFromRoute, isNavigatingToDeletedAction]);
+    }, [isLinkedActionDeleted, prevIsLinkedActionDeleted, lastReportActionIDFromRoute, reportActionIDFromRoute, isNavigatingToDeletedAction, isFocused, prevIsFocused]);
 
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
