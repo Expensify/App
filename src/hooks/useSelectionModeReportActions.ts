@@ -1,0 +1,710 @@
+import {isUserValidatedSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import truncate from 'lodash/truncate';
+import {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest, submitReport} from '@libs/actions/IOU';
+import {openOldDotLink} from '@libs/actions/Link';
+import {search} from '@libs/actions/Search';
+import getPlatform from '@libs/getPlatform';
+import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
+import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
+import {hasDynamicExternalWorkflow, sortPoliciesByName} from '@libs/PolicyUtils';
+import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
+import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
+import {
+    getNextApproverAccountID,
+    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasUpdatedTotal,
+    hasViolations as hasViolationsReportUtils,
+    isAllowedToApproveExpenseReport,
+    isInvoiceReport as isInvoiceReportUtil,
+    isIOUReport as isIOUReportUtil,
+    isReportOwner,
+    shouldBlockSubmitDueToStrictPolicyRules,
+} from '@libs/ReportUtils';
+import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import useActiveAdminPolicies from './useActiveAdminPolicies';
+import useConfirmModal from './useConfirmModal';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useEnvironment from './useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
+import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
+import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
+import usePaymentOptions from './usePaymentOptions';
+import usePermissions from './usePermissions';
+import usePolicy from './usePolicy';
+import useReportIsArchived from './useReportIsArchived';
+import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useStrictPolicyRules from './useStrictPolicyRules';
+
+type UseSelectionModeReportActionsParams = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    reportActions: OnyxTypes.ReportAction[];
+    reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
+    transactions: OnyxTypes.Transaction[];
+    selectedTransactionIDs: string[];
+};
+
+function useSelectionModeReportActions({
+    report,
+    chatReport,
+    policy,
+    reportActions,
+    reportNameValuePairs,
+    reportMetadata,
+    transactions,
+    selectedTransactionIDs,
+}: UseSelectionModeReportActionsParams) {
+    const {translate, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const {isProduction} = useEnvironment();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
+    const kycWallRef = useContext(KYCWallContext);
+
+    const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [networkStatus] = useOnyx(ONYXKEYS.NETWORK);
+    const isOffline = networkStatus?.isOffline ?? false;
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const activePolicy = usePolicy(activePolicyID);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
+    );
+    const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const activeAdminPolicies = useActiveAdminPolicies();
+
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight', 'Building'] as const);
+
+    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+
+    const currentUserEmail = session?.email;
+    const hasViolations = hasViolationsReportUtils(report?.reportID, allTransactionViolations, currentUserAccountID, currentUserEmail ?? '');
+
+    const nextApproverAccountID = getNextApproverAccountID(report);
+    const isSubmitterSameAsNextApprover = isReportOwner(report) && (nextApproverAccountID === report?.ownerAccountID || report?.managerID === report?.ownerAccountID);
+    const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;
+    const isBlockSubmitDueToStrictPolicyRules = useMemo(
+        () => shouldBlockSubmitDueToStrictPolicyRules(report?.reportID, allTransactionViolations, areStrictPolicyRulesEnabled, currentUserAccountID, currentUserEmail ?? '', transactions),
+        [report?.reportID, allTransactionViolations, areStrictPolicyRulesEnabled, currentUserAccountID, currentUserEmail, transactions],
+    );
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
+
+    const canAllowSettlement = hasUpdatedTotal(report, policy);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(report?.reportID);
+    const isInvoiceReport = isInvoiceReportUtil(report);
+
+    const hasOnlyPendingTransactions = useMemo(() => {
+        return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    }, [transactions]);
+
+    const getCanIOUBePaid = useCallback(
+        (onlyShowPayElsewhere = false) => canIOUBePaidAction(report, chatReport, policy, bankAccountList, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy),
+        [report, chatReport, policy, bankAccountList, transactions, invoiceReceiverPolicy],
+    );
+
+    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
+    const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
+
+    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
+
+    const shouldShowApproveButton = useMemo(
+        () => canApproveIOU(report, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions,
+        [report, policy, reportMetadata, transactions, hasOnlyPendingTransactions],
+    );
+
+    const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(report);
+
+    const totalAmount = useMemo(() => getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY), [report, policy]);
+
+    // confirmPayment is declared below but used by usePaymentOptions; we use a ref to avoid a circular dependency.
+    const confirmPaymentRef = useRef<(params: PaymentActionParams) => void>(() => {});
+
+    const paymentButtonOptions = usePaymentOptions({
+        currency: report?.currency,
+        iouReport: report,
+        chatReportID: chatReport?.reportID,
+        formattedAmount: totalAmount,
+        policyID: report?.policyID,
+        onPress: useCallback((params: PaymentActionParams) => confirmPaymentRef.current(params), []),
+        shouldHidePaymentOptions: !shouldShowPayButton,
+        shouldShowApproveButton,
+        shouldDisableApproveButton,
+        onlyShowPayElsewhere,
+    });
+
+    const workspacePolicyOptions = useMemo(() => {
+        if (!isIOUReportUtil(report)) {
+            return [];
+        }
+
+        const hasPersonalPaymentOption = paymentButtonOptions.some((opt) => opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+        if (!hasPersonalPaymentOption || !activeAdminPolicies.length) {
+            return [];
+        }
+
+        const canUseBusinessBankAccount = report?.reportID && !hasRequestFromCurrentAccount(report.reportID, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        if (!canUseBusinessBankAccount) {
+            return [];
+        }
+
+        return sortPoliciesByName(activeAdminPolicies, localeCompare);
+    }, [report, paymentButtonOptions, activeAdminPolicies, currentUserAccountID, localeCompare]);
+
+    const buildPaymentSubMenuItems = useCallback(
+        (onWorkspaceSelected: (workspacePolicy: OnyxTypes.Policy) => void): PopoverMenuItem[] => {
+            if (!workspacePolicyOptions.length) {
+                return Object.values(paymentButtonOptions);
+            }
+
+            const result: PopoverMenuItem[] = [];
+            for (const opt of Object.values(paymentButtonOptions)) {
+                result.push(opt);
+                if (opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                    for (const wp of workspacePolicyOptions) {
+                        result.push({
+                            text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
+                            icon: expensifyIcons.Building,
+                            onSelected: () => onWorkspaceSelected(wp),
+                        });
+                    }
+                }
+            }
+
+            return result;
+        },
+        [workspacePolicyOptions, paymentButtonOptions, translate, expensifyIcons.Building],
+    );
+
+    const primaryAction = useMemo(
+        () =>
+            getReportPrimaryAction({
+                currentUserLogin: currentUserEmail ?? '',
+                currentUserAccountID,
+                report,
+                chatReport,
+                reportTransactions: transactions,
+                violations: allTransactionViolations,
+                bankAccountList,
+                policy,
+                reportNameValuePairs,
+                reportActions,
+                reportMetadata,
+                isChatReportArchived,
+            }),
+        [
+            report,
+            chatReport,
+            transactions,
+            allTransactionViolations,
+            bankAccountList,
+            policy,
+            reportNameValuePairs,
+            reportActions,
+            reportMetadata,
+            isChatReportArchived,
+            currentUserEmail,
+            currentUserAccountID,
+        ],
+    );
+
+    const secondaryActions = useMemo(() => {
+        if (!report) {
+            return [];
+        }
+        return getSecondaryReportActions({
+            currentUserLogin: currentUserEmail ?? '',
+            currentUserAccountID,
+            report,
+            chatReport,
+            reportTransactions: transactions,
+            originalTransaction: undefined,
+            violations: allTransactionViolations,
+            bankAccountList,
+            policy,
+            reportNameValuePairs,
+            reportActions,
+            reportMetadata,
+            policies,
+            outstandingReportsByPolicyID,
+            isChatReportArchived,
+        });
+    }, [
+        report,
+        currentUserEmail,
+        currentUserAccountID,
+        chatReport,
+        transactions,
+        allTransactionViolations,
+        bankAccountList,
+        policy,
+        reportNameValuePairs,
+        reportActions,
+        reportMetadata,
+        policies,
+        isChatReportArchived,
+        outstandingReportsByPolicyID,
+    ]);
+
+    const hasSubmitAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
+    const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
+    const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
+
+    const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactions.length;
+
+    // Hold menu state
+    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
+    const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [requestType, setRequestType] = useState<ActionHandledType>();
+    const [selectedVBBAToPayFromHoldMenu, setSelectedVBBAToPayFromHoldMenu] = useState<number | undefined>(undefined);
+    const isSelectionModePaymentRef = useRef(false);
+
+    useEffect(() => {
+        if (selectedTransactionIDs.length !== 0) {
+            return;
+        }
+        isSelectionModePaymentRef.current = false;
+    }, [selectedTransactionIDs.length]);
+
+    const showDWEModal = useCallback(async () => {
+        const result = await showConfirmModal({
+            confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
+            title: translate('customApprovalWorkflow.title'),
+            prompt: translate('customApprovalWorkflow.description'),
+            shouldShowCancelButton: false,
+        });
+        if (result.action === ModalActions.CONFIRM) {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        }
+    }, [showConfirmModal, translate]);
+
+    const checkForNecessaryAction = useCallback(() => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return true;
+        }
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return true;
+        }
+        if (!isUserValidated) {
+            handleUnvalidatedAccount(report);
+            return true;
+        }
+        return false;
+    }, [isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, isUserValidated, report]);
+
+    const handleSubmitReport = useCallback(() => {
+        if (!report || shouldBlockSubmit) {
+            return;
+        }
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+            showDWEModal();
+            return;
+        }
+        submitReport({
+            expenseReport: report,
+            policy,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserEmail ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            expenseReportCurrentNextStepDeprecated: nextStep,
+            userBillingGraceEndPeriods,
+            amountOwed,
+        });
+        if (currentSearchQueryJSON && !isOffline) {
+            search({
+                searchKey: currentSearchKey,
+                shouldCalculateTotals,
+                offset: 0,
+                queryJSON: currentSearchQueryJSON,
+                isOffline,
+                isLoading: !!currentSearchResults?.search?.isLoading,
+            });
+        }
+        clearSelectedTransactions(true);
+    }, [
+        report,
+        shouldBlockSubmit,
+        policy,
+        isDEWBetaEnabled,
+        showDWEModal,
+        currentUserAccountID,
+        currentUserEmail,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        nextStep,
+        userBillingGraceEndPeriods,
+        amountOwed,
+        currentSearchQueryJSON,
+        isOffline,
+        currentSearchKey,
+        shouldCalculateTotals,
+        currentSearchResults?.search?.isLoading,
+        clearSelectedTransactions,
+    ]);
+
+    const confirmApproval = useCallback(() => {
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+            showDWEModal();
+            return;
+        }
+        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+        } else if (isAnyTransactionOnHold) {
+            setIsHoldMenuVisible(true);
+        } else {
+            approveMoneyRequest({
+                expenseReport: report,
+                policy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                full: true,
+            });
+            clearSelectedTransactions(true);
+        }
+    }, [
+        policy,
+        isDEWBetaEnabled,
+        showDWEModal,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        isAnyTransactionOnHold,
+        report,
+        betas,
+        currentUserAccountID,
+        currentUserEmail,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        nextStep,
+        userBillingGraceEndPeriods,
+        amountOwed,
+        clearSelectedTransactions,
+    ]);
+
+    const confirmPayment = useCallback(
+        ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
+            if (!type || !chatReport) {
+                return;
+            }
+            setPaymentType(type);
+            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+            if (isDelegateAccessRestricted) {
+                showDelegateNoAccessModal();
+            } else if (isAnyTransactionOnHold) {
+                setSelectedVBBAToPayFromHoldMenu(type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
+                if (getPlatform() === CONST.PLATFORM.IOS) {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+                } else {
+                    setIsHoldMenuVisible(true);
+                }
+            } else if (isInvoiceReport) {
+                payInvoice({
+                    paymentMethodType: type,
+                    chatReport,
+                    invoiceReport: report,
+                    invoiceReportCurrentNextStepDeprecated: nextStep,
+                    introSelected,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail ?? '',
+                    payAsBusiness,
+                    existingB2BInvoiceReport,
+                    methodID,
+                    paymentMethod,
+                    activePolicy,
+                    betas,
+                    isSelfTourViewed,
+                });
+                clearSelectedTransactions(true);
+            } else {
+                payMoneyRequest({
+                    paymentType: type,
+                    chatReport,
+                    iouReport: report,
+                    introSelected,
+                    iouReportCurrentNextStepDeprecated: nextStep,
+                    currentUserAccountID,
+                    activePolicy,
+                    policy,
+                    betas,
+                    isSelfTourViewed,
+                    userBillingGraceEndPeriods,
+                    amountOwed,
+                    methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                });
+                if (currentSearchQueryJSON && !isOffline) {
+                    search({
+                        searchKey: currentSearchKey,
+                        shouldCalculateTotals,
+                        offset: 0,
+                        queryJSON: currentSearchQueryJSON,
+                        isOffline,
+                        isLoading: !!currentSearchResults?.search?.isLoading,
+                    });
+                }
+                clearSelectedTransactions(true);
+            }
+        },
+        [
+            chatReport,
+            isDelegateAccessRestricted,
+            isAnyTransactionOnHold,
+            isInvoiceReport,
+            showDelegateNoAccessModal,
+            report,
+            nextStep,
+            currentUserAccountID,
+            currentUserEmail,
+            activePolicy,
+            existingB2BInvoiceReport,
+            policy,
+            currentSearchQueryJSON,
+            isOffline,
+            currentSearchKey,
+            shouldCalculateTotals,
+            currentSearchResults?.search?.isLoading,
+            betas,
+            introSelected,
+            isSelfTourViewed,
+            userBillingGraceEndPeriods,
+            clearSelectedTransactions,
+            amountOwed,
+        ],
+    );
+
+    // Keep confirmPaymentRef in sync so usePaymentOptions always calls the latest version.
+    useEffect(() => {
+        confirmPaymentRef.current = confirmPayment;
+    }, [confirmPayment]);
+
+    const handleApproveSelected = useCallback(() => {
+        isSelectionModePaymentRef.current = true;
+        confirmApproval();
+    }, [confirmApproval]);
+
+    const handlePaySelected = useCallback(() => {
+        isSelectionModePaymentRef.current = true;
+    }, []);
+
+    const onSelectionModePaymentSelect = useCallback(
+        (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+            isSelectionModePaymentRef.current = true;
+            if (checkForNecessaryAction()) {
+                return;
+            }
+            selectPaymentType({
+                event,
+                iouPaymentType,
+                triggerKYCFlow,
+                policy,
+                onPress: confirmPayment,
+                currentAccountID: currentUserAccountID,
+                currentEmail: currentUserEmail ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                isUserValidated,
+                confirmApproval: () => confirmApproval(),
+                iouReport: report,
+                iouReportNextStep: nextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+            });
+        },
+        [
+            checkForNecessaryAction,
+            policy,
+            confirmPayment,
+            currentUserAccountID,
+            currentUserEmail,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            isUserValidated,
+            confirmApproval,
+            report,
+            nextStep,
+            betas,
+            userBillingGraceEndPeriods,
+            amountOwed,
+        ],
+    );
+
+    const selectionModeKYCSuccess = useCallback(
+        (type?: PaymentMethodType) => {
+            isSelectionModePaymentRef.current = true;
+            confirmPayment({paymentType: type});
+        },
+        [confirmPayment],
+    );
+
+    const hasPayInSelectionMode = allExpensesSelected && hasPayAction;
+
+    /* eslint-disable react-hooks/refs -- onSelected callbacks are event handlers, not invoked during render */
+    const selectionModeReportLevelActions = useMemo(() => {
+        if (isProduction) {
+            return [];
+        }
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
+        if (hasSubmitAction && !shouldBlockSubmit) {
+            actions.push({
+                text: translate('common.submit'),
+                icon: expensifyIcons.Send,
+                value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
+                onSelected: handleSubmitReport,
+            });
+        }
+        if (hasApproveAction && !isBlockSubmitDueToPreventSelfApproval) {
+            actions.push({
+                text: translate('iou.approve'),
+                icon: expensifyIcons.ThumbsUp,
+                value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
+                onSelected: handleApproveSelected,
+            });
+        }
+        if (hasPayAction && !(isOffline && !canAllowSettlement)) {
+            actions.push({
+                text: translate('iou.settlePayment', totalAmount),
+                icon: expensifyIcons.Cash,
+                value: CONST.REPORT.PRIMARY_ACTIONS.PAY,
+                rightIcon: expensifyIcons.ArrowRight,
+                backButtonText: translate('iou.settlePayment', totalAmount),
+                subMenuItems: buildPaymentSubMenuItems((wp) => {
+                    isSelectionModePaymentRef.current = true;
+                    if (checkForNecessaryAction()) {
+                        return;
+                    }
+                    kycWallRef.current?.continueAction?.({policy: wp});
+                }),
+                onSelected: handlePaySelected,
+            });
+        }
+        return actions;
+    }, [
+        isProduction,
+        hasSubmitAction,
+        shouldBlockSubmit,
+        hasApproveAction,
+        isBlockSubmitDueToPreventSelfApproval,
+        hasPayAction,
+        isOffline,
+        canAllowSettlement,
+        translate,
+        handleSubmitReport,
+        handleApproveSelected,
+        handlePaySelected,
+        totalAmount,
+        buildPaymentSubMenuItems,
+        checkForNecessaryAction,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.Cash,
+        expensifyIcons.Send,
+        expensifyIcons.ThumbsUp,
+        kycWallRef,
+    ]);
+    /* eslint-enable react-hooks/refs */
+
+    const handleHoldMenuClose = useCallback(() => {
+        setSelectedVBBAToPayFromHoldMenu(undefined);
+        setIsHoldMenuVisible(false);
+        isSelectionModePaymentRef.current = false;
+    }, []);
+
+    const handleHoldMenuConfirm = useCallback(() => {
+        clearSelectedTransactions(true);
+    }, [clearSelectedTransactions]);
+
+    return {
+        selectionModeReportLevelActions,
+        allExpensesSelected,
+        shouldBlockSubmit,
+        isBlockSubmitDueToPreventSelfApproval,
+
+        // Hold menu state
+        isHoldMenuVisible,
+        requestType,
+        paymentType,
+        selectedVBBAToPayFromHoldMenu,
+        handleHoldMenuClose,
+        handleHoldMenuConfirm,
+        confirmPayment,
+        confirmApproval,
+        isSelectionModePaymentRef,
+        checkForNecessaryAction,
+
+        // Pay-related
+        hasPayAction,
+        hasPayInSelectionMode,
+        hasSubmitAction,
+        hasApproveAction,
+        totalAmount,
+        canAllowSettlement,
+        isAnyTransactionOnHold,
+        isInvoiceReport,
+        hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(report?.reportID),
+
+        // KYC dropdown integration
+        onSelectionModePaymentSelect,
+        selectionModeKYCSuccess,
+
+        // Data for external use
+        primaryAction,
+        kycWallRef,
+    };
+}
+
+export default useSelectionModeReportActions;
+export type {UseSelectionModeReportActionsParams};

@@ -16,6 +16,7 @@ import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -36,6 +37,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
+import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {dismissRejectUseExplanation} from '@libs/actions/IOU';
@@ -211,6 +213,19 @@ function MoneyRequestReportActionsList({
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
+
+    const {selectionModeReportLevelActions, allExpensesSelected, hasPayInSelectionMode, onSelectionModePaymentSelect, selectionModeKYCSuccess, primaryAction, kycWallRef} =
+        useSelectionModeReportActions({
+            report,
+            chatReport,
+            policy,
+            reportActions,
+            reportNameValuePairs,
+            reportMetadata,
+            transactions: transactionsWithoutPendingDelete,
+            selectedTransactionIDs,
+        });
+
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[]) => {
             if (isOffline) {
@@ -291,7 +306,7 @@ function MoneyRequestReportActionsList({
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
 
     const selectedTransactionsOptions = useMemo(() => {
-        return originalSelectedTransactionsOptions.map((option) => {
+        const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
             if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
                 return {
                     ...option,
@@ -311,7 +326,12 @@ function MoneyRequestReportActionsList({
             }
             return option;
         });
-    }, [originalSelectedTransactionsOptions, dismissedRejectUseExplanation, isDelegateAccessRestricted, showDelegateNoAccessModal]);
+
+        if (allExpensesSelected && selectionModeReportLevelActions.length) {
+            return [...selectionModeReportLevelActions, ...mappedOptions];
+        }
+        return mappedOptions;
+    }, [originalSelectedTransactionsOptions, dismissedRejectUseExplanation, isDelegateAccessRestricted, showDelegateNoAccessModal, allExpensesSelected, selectionModeReportLevelActions]);
 
     const dismissRejectModalBasedOnAction = useCallback(() => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
@@ -731,6 +751,7 @@ function MoneyRequestReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
+            isOffline,
         ],
     );
 
@@ -800,16 +821,30 @@ function MoneyRequestReportActionsList({
         >
             {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
                 <OfflineWithFeedback pendingAction={reportPendingAction}>
-                    <ButtonWithDropdownMenu
-                        onPress={() => null}
-                        options={selectedTransactionsOptions}
-                        customText={translate('workspace.common.selected', {
-                            count: selectedTransactionIDs.length,
-                        })}
-                        isSplitButton={false}
-                        shouldAlwaysShowDropdownMenu
-                        wrapperStyle={[styles.w100, styles.ph5]}
-                    />
+                    {hasPayInSelectionMode ? (
+                        <MoneyReportHeaderKYCDropdown
+                            chatReportID={chatReport?.reportID}
+                            iouReport={report}
+                            onPaymentSelect={onSelectionModePaymentSelect}
+                            onSuccessfulKYC={selectionModeKYCSuccess}
+                            primaryAction={primaryAction}
+                            applicableSecondaryActions={selectedTransactionsOptions}
+                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                            shouldShowSuccessStyle
+                            ref={kycWallRef}
+                        />
+                    ) : (
+                        <ButtonWithDropdownMenu
+                            onPress={() => null}
+                            options={selectedTransactionsOptions}
+                            customText={translate('workspace.common.selected', {
+                                count: selectedTransactionIDs.length,
+                            })}
+                            isSplitButton={false}
+                            shouldAlwaysShowDropdownMenu
+                            wrapperStyle={[styles.w100, styles.ph5]}
+                        />
+                    )}
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
