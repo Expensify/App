@@ -198,6 +198,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         iconRightHoverFill={hasError ? theme.icon : undefined}
                         sentryLabel={sentryLabel}
                         accessibilityLabel={!isSplitButton ? accessibilityLabel : undefined}
+                        accessibilityHint=""
                     />
 
                     {isSplitButton && (
@@ -217,6 +218,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             sentryLabel={sentryLabel}
                             accessibilityLabel={accessibilityLabel}
+                            accessibilityHint=""
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                                 <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
