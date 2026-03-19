@@ -52,8 +52,6 @@ type DropdownButtonProps = WithSentryLabel & {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-const PADDING_MODAL = 8;
-
 const ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
