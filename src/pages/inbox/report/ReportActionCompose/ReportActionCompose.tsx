@@ -48,6 +48,7 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
+    isAdminRoom,
     isChatRoom,
     isConciergeChatReport,
     isGroupChat,
@@ -220,6 +221,7 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
+    const shouldShowConciergeIndicator = isConciergeChat || isAdminRoom(report);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
@@ -334,7 +336,7 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
-            if (isConciergeChat && kickoffWaitingIndicator) {
+            if (shouldShowConciergeIndicator && kickoffWaitingIndicator) {
                 kickoffWaitingIndicator();
             }
 
@@ -371,7 +373,7 @@ function ReportActionCompose({
             }
         },
         [
-            isConciergeChat,
+            shouldShowConciergeIndicator,
             kickoffWaitingIndicator,
             transactionThreadReport,
             report,
