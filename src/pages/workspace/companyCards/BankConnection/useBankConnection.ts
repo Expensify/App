@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
@@ -51,7 +51,7 @@ export default function useBankConnection({
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const shouldBlockWindowOpen = useRef(false);
-    const refreshSuccessHandled = useRef(false);
+    const [refreshSuccessHandled, setRefreshSuccessHandled] = useState(false);
 
     const addNewCardData = addNewCard?.data;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCardData?.plaidConnectedFeed ?? addNewCardData?.selectedBank);
@@ -73,8 +73,8 @@ export default function useBankConnection({
         if (!isRefreshConnectionFlow || !feed || !hasConnectionSource || shouldWaitForData) {
             return false;
         }
-        return !!prevIsFeedExpired && !isFeedExpired && !isFeedConnectionBroken;
-    }, [isRefreshConnectionFlow, feed, hasConnectionSource, shouldWaitForData, prevIsFeedExpired, isFeedExpired, isFeedConnectionBroken]);
+        return !isFeedExpired && !isFeedConnectionBroken && (!!prevIsFeedExpired || refreshSuccessHandled);
+    }, [isRefreshConnectionFlow, feed, hasConnectionSource, shouldWaitForData, prevIsFeedExpired, isFeedExpired, isFeedConnectionBroken, refreshSuccessHandled]);
 
     const fallbackNavigation = useCallback(() => {
         Navigation.goBack(policyID ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID) : undefined);
@@ -114,12 +114,12 @@ export default function useBankConnection({
     }, [shouldOpenWindow, onBackButtonPress]);
 
     useEffect(() => {
-        if (!isRefreshComplete || refreshSuccessHandled.current) {
+        if (!isRefreshComplete || refreshSuccessHandled) {
             return;
         }
-        refreshSuccessHandled.current = true;
+        setRefreshSuccessHandled(true);
         onSuccess?.();
-    }, [isRefreshComplete, onSuccess]);
+    }, [isRefreshComplete, onSuccess, refreshSuccessHandled]);
 
     useEffect(() => {
         if (!policyID || !isBlockedToAddNewFeeds || feed) {
@@ -147,6 +147,11 @@ export default function useBankConnection({
                 }
                 if (!isRefreshConnectionFlow) {
                     handleSuccess();
+                    return;
+                }
+
+                if (!refreshSuccessHandled) {
+                    setRefreshSuccessHandled(true);
                 }
                 return;
             }
@@ -191,6 +196,7 @@ export default function useBankConnection({
         handleFailure,
         shouldOpenWindow,
         isRefreshConnectionFlow,
+        refreshSuccessHandled,
     ]);
 
     return {
