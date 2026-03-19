@@ -32,11 +32,6 @@ type ProductTrainingContextType = {
 
 type ProductTrainingContextConfig = {
     /**
-     * Callback to be called when the tooltip is shown
-     */
-    onShown?: () => void;
-
-    /**
      * Callback to be called when the tooltip is dismissed
      */
     onDismiss?: () => void;
@@ -45,6 +40,11 @@ type ProductTrainingContextConfig = {
      * Callback to be called when the tooltip is confirmed
      */
     onConfirm?: () => void;
+
+    /**
+     * Callback to be called when the tooltip is shown
+     */
+    onShown?: () => void;
 };
 
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
@@ -258,14 +258,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
     }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
-    useEffect(() => {
-        if (!shouldShowProductTrainingTooltip) {
-            return;
-        }
-        config.onShown?.();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldShowProductTrainingTooltip]);
-
     const hideTooltip = useCallback(
         (isDismissedUsingCloseButton = false) => {
             if (!shouldShowProductTrainingTooltip) {
@@ -280,8 +272,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
 
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
+
         return (
-            <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>
+            <View
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                onLayout={config.onShown}
+            >
                 <View
                     style={[
                         styles.alignItemsCenter,
@@ -354,6 +350,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         theme.tooltipHighlightText,
         theme.icon,
         translate,
+        config.onShown,
         config.onConfirm,
         config.onDismiss,
         hideTooltip,
