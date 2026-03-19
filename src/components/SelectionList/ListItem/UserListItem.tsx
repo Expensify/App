@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
+import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -66,9 +67,11 @@ function UserListItem<TItem extends ListItem>({
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
-    const shouldDisableAccessibleGrouping = !!rightHandSideComponent && !canSelectMultiple;
+    // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
+    const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
+    const shouldDisableAccessibleGrouping = !!renderedRightComponent && !canSelectMultiple;
 
-    const contactAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
+    const contactAccessibilityLabel = getAccessibilityLabel(item);
     return (
         <BaseListItem
             item={item}
