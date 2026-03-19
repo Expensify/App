@@ -13,7 +13,7 @@ let connection: Connection;
 /**
  * Makes a backup copy of a transaction object that can be restored when the user cancels editing a transaction.
  */
-function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: boolean) {
+function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: boolean, shouldAlwaysCreateFreshBackup = false) {
     if (!transaction) {
         return;
     }
@@ -25,6 +25,15 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
     const newTransaction = {
         ...transaction,
     };
+
+    // When shouldAlwaysCreateFreshBackup is true, skip reading the existing backup entirely and directly overwrite it.
+    // This avoids a race condition where connectWithoutView would fall back to reading from AsyncStorage (which may still
+    // contain a stale backup from a previous session even if the cache entry was dropped), restoring corrupted data.
+    if (shouldAlwaysCreateFreshBackup) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`, newTransaction);
+        return;
+    }
+
     // We need to read the old transaction backup first before writing a new one, otherwise we might overwrite an existing backup. It does not update impact UI rendering since this function is called on page mount.
     const conn = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`,

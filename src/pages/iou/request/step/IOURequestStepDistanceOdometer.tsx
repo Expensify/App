@@ -232,7 +232,7 @@ function IOURequestStepDistanceOdometer({
         if (!isEditingConfirmation) {
             return;
         }
-        createBackupTransaction(currentTransaction, isTransactionDraft);
+        createBackupTransaction(currentTransaction, isTransactionDraft, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
