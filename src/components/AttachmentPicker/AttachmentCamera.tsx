@@ -169,6 +169,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 style={styles.flex1}
                                 color={theme.textSupporting}
+                                reasonAttributes={{context: 'AttachmentCamera.deviceLoading'}}
                             />
                         </View>
                     )}
