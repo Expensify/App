@@ -8,7 +8,7 @@ import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {
     ListItem,
@@ -77,13 +77,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     onDEWModalOpen,
     isDEWBetaEnabled,
+    lastPaymentMethod,
+    personalPolicyID,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {selectedTransactions} = useSearchContext();
+    const {selectedTransactions} = useSearchStateContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -114,6 +116,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     let transactions: TransactionListItemType[];
     if (isExpenseReportType) {
@@ -133,6 +136,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             allReportMetadata,
             cardFeeds,
             cardList,
+            conciergeReportID,
         }) as [TransactionListItemType[], number];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -385,6 +389,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isHovered={hovered}
                     onDEWModalOpen={onDEWModalOpen}
                     isDEWBetaEnabled={isDEWBetaEnabled}
+                    lastPaymentMethod={lastPaymentMethod}
+                    personalPolicyID={personalPolicyID}
                     onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
                 />
@@ -480,6 +486,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 showTooltip={showTooltip}
                                 canSelectMultiple={canSelectMultiple}
                                 onCheckboxPress={onCheckboxPress}
+                                onSelectRow={onSelectRow}
                                 columns={columns}
                                 groupBy={groupBy}
                                 accountID={currentUserDetails.accountID}

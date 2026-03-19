@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
+import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 
 function setSpreadsheetData(
     data: string[][],
@@ -103,4 +104,53 @@ function setImportTransactionSettings(cardDisplayName: string, currency: string,
     });
 }
 
-export {setSpreadsheetData, setColumnName, closeImportPage, setContainsHeader, setImportTransactionCardName, setImportTransactionCurrency, setImportTransactionSettings};
+/**
+ * Applies saved column mappings to the spreadsheet data if the column headers match.
+ * This is used when importing transactions to an existing card that has a saved layout.
+ *
+ * @param spreadsheetData - The spreadsheet data in column-major format
+ * @param savedLayout - The saved column layout for this card
+ */
+function applySavedColumnMappings(spreadsheetData: string[][], savedLayout: SavedCSVColumnLayoutData): void {
+    const columnMapping = savedLayout?.columnMapping;
+    if (!columnMapping?.names) {
+        return;
+    }
+    const savedNames = columnMapping.names;
+
+    const headerToIndex: Record<string, number> = {};
+    for (const [index, column] of spreadsheetData.entries()) {
+        const headerName = column.at(0)?.trim();
+        if (headerName) {
+            headerToIndex[headerName] = index;
+        }
+    }
+
+    const columnUpdates: Record<number, string> = {};
+
+    for (const role of CONST.CSV_IMPORT_COLUMNS.TRANSACTION_FIELDS) {
+        const savedColumnName = savedNames[role];
+        if (typeof savedColumnName !== 'string') {
+            continue;
+        }
+        const trimmedName = savedColumnName.trim();
+        if (trimmedName && headerToIndex[trimmedName] !== undefined) {
+            columnUpdates[headerToIndex[trimmedName]] = role;
+        }
+    }
+
+    if (Object.keys(columnUpdates).length > 0) {
+        Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {columns: columnUpdates});
+    }
+}
+
+export {
+    setSpreadsheetData,
+    setColumnName,
+    closeImportPage,
+    setContainsHeader,
+    setImportTransactionCardName,
+    setImportTransactionCurrency,
+    setImportTransactionSettings,
+    applySavedColumnMappings,
+};

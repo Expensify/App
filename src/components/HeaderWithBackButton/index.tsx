@@ -38,6 +38,7 @@ function HeaderWithBackButton({
     onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
+    policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
@@ -69,7 +70,7 @@ function HeaderWithBackButton({
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
-    shouldDisplayHelpButton = true,
+    shouldDisplayHelpButton = false,
     shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
@@ -120,6 +121,7 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
+                    policy={policy}
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
@@ -142,6 +144,7 @@ function HeaderWithBackButton({
         shouldUseHeadlineHeader,
         progressBarPercentage,
         report,
+        policy,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,
@@ -344,8 +347,8 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
-                {shouldDisplayHelpButton && <SidePanelButton />}
                 {shouldDisplaySearchRouter && <SearchButton />}
+                {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
         </View>
     );

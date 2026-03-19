@@ -13,6 +13,7 @@ const {
     ACCOUNT_SWITCHER,
     SCAN_TEST_DRIVE_CONFIRMATION,
     GPS_TOOLTIP,
+    HAS_FILTER_NEGATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL>;
@@ -99,6 +100,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GPS_TOOLTIP, isDismissedUsingCloseButton),
         name: GPS_TOOLTIP,
         priority: 800,
+        shouldShow: () => true,
+    },
+    [HAS_FILTER_NEGATION]: {
+        content: 'productTrainingTooltip.hasFilterNegation',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(HAS_FILTER_NEGATION, isDismissedUsingCloseButton),
+        name: HAS_FILTER_NEGATION,
+        priority: 1000,
         shouldShow: () => true,
     },
 };

@@ -1,5 +1,5 @@
 import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -38,8 +38,8 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     const [adminPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         selector: adminPendingActionSelector,
     });
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+    const adminsPersonalDetailsSelector = useCallback(
+        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
             if (!personalDetailsList) {
                 return undefined;
             }
@@ -51,6 +51,10 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
 
             return adminsPersonalDetails;
         },
+        [adminAccountIDs],
+    );
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: adminsPersonalDetailsSelector,
     });
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);

@@ -35,6 +35,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     activePolicyID={policyID}
                     shouldShowVerifyAccountModal={false}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
+                    large
                 />
             }
         />

@@ -1,4 +1,4 @@
-import type {RefObject} from 'react';
+import type {RefCallback} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
@@ -16,9 +16,11 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
+import NavigationFocusManager from '@libs/NavigationFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
+import viewRef from '@src/types/utils/viewRef';
 import type {ButtonWithDropdownMenuProps} from './types';
 
 const defaultAnchorAlignment = {
@@ -26,6 +28,8 @@ const defaultAnchorAlignment = {
     // we assume that popover menu opens below the button, anchor is at TOP
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
+
+type DropdownAnchor = View | HTMLDivElement | null;
 
 function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
     const {
@@ -62,10 +66,12 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
         shouldStayNormalOnDisable = false,
+        brickRoadIndicator,
         sentryLabel,
     } = props;
 
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
+    const hasError = brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -74,18 +80,22 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     // In tests, skip the popover anchor position calculation. The default values are needed for popover menu to be rendered in tests.
     const defaultPopoverAnchorPosition = process.env.NODE_ENV === 'test' ? {horizontal: 100, vertical: 100} : null;
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
-    const dropdownAnchor = useRef<View | null>(null);
+    const dropdownAnchor = useRef<DropdownAnchor>(null);
+    const [wasOpenedViaKeyboard, setWasOpenedViaKeyboard] = useState(false);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
+    const setDropdownAnchor: RefCallback<View> = useCallback((node: DropdownAnchor) => {
+        dropdownAnchor.current = node;
+    }, []);
+    // eslint-disable-next-line react-hooks/refs -- mergeRefs creates a ref callback and does not read ref.current during render
+    const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, setDropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const isButtonSizeSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL;
     const isButtonSizeExtraSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
-    const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
 
     useEffect(() => {
@@ -101,7 +111,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
             return;
         }
 
-        calculatePopoverPosition(dropdownAnchor, anchorAlignment).then(setPopoverAnchorPosition);
+        calculatePopoverPosition(viewRef(dropdownAnchor), anchorAlignment).then(setPopoverAnchorPosition);
     }, [isMenuVisible, calculatePopoverPosition, anchorAlignment]);
 
     const handleSingleOptionPress = useCallback(
@@ -123,12 +133,27 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         [options, onPress, onOptionSelected, onSubItemSelected],
     );
 
+    /** Opens or closes the menu with keyboard tracking */
+    const toggleMenu = useCallback(() => {
+        if (!isMenuVisible) {
+            // Capture keyboard state BEFORE menu opens
+            const wasKeyboardInteraction = NavigationFocusManager.wasRecentKeyboardInteraction();
+            setWasOpenedViaKeyboard(wasKeyboardInteraction);
+            if (wasKeyboardInteraction) {
+                NavigationFocusManager.clearKeyboardInteractionFlag();
+            }
+        } else {
+            setWasOpenedViaKeyboard(false);
+        }
+        setIsMenuVisible(!isMenuVisible);
+    }, [isMenuVisible]);
+
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
             if (shouldAlwaysShowDropdownMenu || options.length) {
                 if (!isSplitButton) {
-                    setIsMenuVisible(!isMenuVisible);
+                    toggleMenu();
                     return;
                 }
                 if (selectedItem?.value) {
@@ -150,19 +175,36 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const handlePress = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
             if (!isSplitButton) {
-                setIsMenuVisible(!isMenuVisible);
+                toggleMenu();
             } else if (selectedItem?.value) {
                 onPress(event, selectedItem.value);
             }
         },
-        [isMenuVisible, isSplitButton, onPress, selectedItem?.value],
+        [isSplitButton, onPress, selectedItem?.value, toggleMenu],
     );
 
     useImperativeHandle(ref, () => ({
         setIsMenuVisible,
     }));
 
-    const iconLeft = !!icon && <ButtonComposed.IconLeft src={icon} />;
+    const iconLeft = hasError ? (
+        <ButtonComposed.IconLeft
+            src={icons.DotIndicator}
+            fill={theme.danger}
+            hoverFill={theme.danger}
+        />
+    ) : (
+        !!icon && <ButtonComposed.IconLeft src={icon} />
+    );
+    const focusDropdownAnchor = useCallback(() => {
+        const anchor = dropdownAnchor.current;
+
+        if (!anchor || !('focus' in anchor) || typeof anchor.focus !== 'function') {
+            return;
+        }
+
+        anchor.focus();
+    }, []);
 
     return (
         <View style={wrapperStyle}>
@@ -202,17 +244,24 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                 {customText ?? selectedItem?.text ?? ''}
                             </ButtonComposed.Text>
                         )}
-                        {!isSplitButton && !isLoading && options?.length > 0 && <ButtonComposed.IconRight src={icons.DownArrow} />}
+                        {!isSplitButton && !isLoading && options?.length > 0 && (
+                            <ButtonComposed.IconRight
+                                src={icons.DownArrow}
+                                style={isMenuVisible ? styles.flipUpsideDown : undefined}
+                                fill={hasError ? theme.icon : undefined}
+                                hoverFill={hasError ? theme.icon : undefined}
+                            />
+                        )}
                     </ButtonComposed>
 
                     {isSplitButton && (
                         <Button
-                            ref={dropdownAnchor}
+                            ref={setDropdownAnchor}
                             success={success}
                             isDisabled={isDisabled}
                             shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                             style={[styles.pl0]}
-                            onPress={() => setIsMenuVisible(!isMenuVisible)}
+                            onPress={toggleMenu}
                             shouldRemoveLeftBorderRadius
                             extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                             large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
@@ -238,8 +287,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                         width={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         src={icons.DownArrow}
-                                        additionalStyles={shouldUseShortForm ? [styles.pRelative, styles.t0] : undefined}
+                                        additionalStyles={[...(shouldUseShortForm ? [styles.pRelative, styles.t0] : []), isMenuVisible ? styles.flipUpsideDown : undefined]}
                                         fill={success ? theme.buttonSuccessText : theme.icon}
+                                        testID="dropdown-arrow-icon"
                                     />
                                 </View>
                             </View>
@@ -278,9 +328,12 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     isVisible={isMenuVisible}
                     onClose={() => {
                         setIsMenuVisible(false);
+                        setWasOpenedViaKeyboard(false);
                         onOptionsMenuHide?.();
                     }}
+                    wasOpenedViaKeyboard={wasOpenedViaKeyboard}
                     onModalShow={onOptionsMenuShow}
+                    onModalHide={focusDropdownAnchor}
                     onItemSelected={(selectedSubitem, index, event) => {
                         onSubItemSelected?.(selectedSubitem, index, event);
                         if (selectedSubitem.shouldCloseModalOnSelect !== false) {
@@ -289,7 +342,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     }}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
-                    anchorRef={nullCheckRef(dropdownAnchor)}
+                    anchorRef={dropdownAnchor}
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
                     anchorAlignment={anchorAlignment}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}

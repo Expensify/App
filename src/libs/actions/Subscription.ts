@@ -13,7 +13,29 @@ import type {OnyxData} from '@src/types/onyx/Request';
  * Fetches data when the user opens the SubscriptionSettingsPage
  */
 function openSubscriptionPage() {
-    API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+            value: false,
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null, {optimisticData, successData, failureData});
 }
 
 function updateSubscriptionType(type: SubscriptionType) {

@@ -107,7 +107,7 @@ function CurrencySelectionList({
             shouldShowTextInput={!!searchInputLabel}
             shouldSingleExecuteRowSelect
             initiallyFocusedItemKey={initiallySelectedCurrencyCode}
-            showLoadingPlaceholder={!didScreenTransitionEnd}
+            shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
         />
     );
 }

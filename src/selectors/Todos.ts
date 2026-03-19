@@ -4,7 +4,7 @@ import type {TodosDerivedValue} from '@src/types/onyx';
 
 const todosReportCountsSelector = (todos: OnyxEntry<TodosDerivedValue>) => {
     if (!todos) {
-        return CONST.EMPTY_TODOS_REPORT_COUNTS;
+        return undefined;
     }
 
     return {

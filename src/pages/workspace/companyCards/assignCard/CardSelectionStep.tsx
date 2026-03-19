@@ -53,7 +53,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.cardToAssign?.email ?? '')?.displayName ?? '');
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds, feed);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -180,7 +180,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                     textInputOptions={textInputOptions}
                     customListHeaderContent={customListHeader}
                     shouldScrollToFocusedIndex={false}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex
                     footerContent={

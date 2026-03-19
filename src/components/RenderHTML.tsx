@@ -4,6 +4,8 @@ import type {RenderersProps} from 'react-native-render-html';
 import useHasTextAncestor from '@hooks/useHasTextAncestor';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Parser from '@libs/Parser';
+import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
+import SparklesIconRenderer from './HTMLEngineProvider/HTMLRenderers/SparklesIconRenderer';
 
 type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 
@@ -49,6 +51,12 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
         };
     }, [onLinkPress]);
 
+    const renderers = {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        'bullet-item': BulletItemRenderer,
+        'sparkles-icon': SparklesIconRenderer,
+    };
+
     const htmlSource = (
         <RenderHTMLSource
             contentWidth={windowWidth * 0.8}
@@ -60,6 +68,7 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
         <RenderHTMLConfigProvider
             defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
             renderersProps={renderersProps}
+            renderers={renderers}
         >
             {htmlSource}
         </RenderHTMLConfigProvider>
