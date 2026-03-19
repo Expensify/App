@@ -204,6 +204,7 @@ type BuildPolicyDataOptions = {
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
 type CreateWorkspaceDataOptions = Omit<BuildPolicyDataOptions, 'isSelfTourViewed'> & {
     isSelfTourViewed: boolean | undefined;
+    hasActiveAdminPolicies: boolean;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -2904,7 +2905,7 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     // Publish a workspace created event if this is their first policy
-    if (getAdminPolicies().length === 0) {
+    if (!options.hasActiveAdminPolicies) {
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, options.currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID);
     }
 
@@ -7155,7 +7156,6 @@ export {
     updateMemberCustomField,
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
-    getAdminPolicies,
     hasInvoicingDetails,
     clearAllPolicies,
     enablePolicyRules,
