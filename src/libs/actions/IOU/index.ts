@@ -13285,10 +13285,6 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
             transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
         }
 
-        console.log('supportsExpenseFields', supportsExpenseFields);
-        console.log('changes.billable', changes.billable);
-        console.log('reimbursable', changes.reimbursable);
-
         if (changes.billable !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.BILLABLE)) {
             transactionChanges.billable = changes.billable;
         }
@@ -13568,7 +13564,7 @@ function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, 
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                 value: {
                     [modifiedExpenseReportActionID]: {
-                        pendingAction: null,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
                     },
                 },
