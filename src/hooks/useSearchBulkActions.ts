@@ -32,6 +32,7 @@ import {
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
+import {changeTransactionsReport} from '@libs/actions/Transaction';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -120,6 +121,7 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -145,6 +147,7 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
         'Exclamation',
         'MoneyBag',
         'ArrowSplit',
+        'RotateLeft',
         'QBOSquare',
         'XeroSquare',
         'NetSuiteSquare',
@@ -717,6 +720,32 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
+        const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => selectedTransactions[id]?.reportID === CONST.REPORT.TRASH_REPORT_ID);
+
+        if (allSelectedAreDeleted) {
+            return [
+                {
+                    icon: expensifyIcons.RotateLeft,
+                    text: translate('search.bulkActions.undelete'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: () => {
+                        changeTransactionsReport({
+                            transactionIDs: selectedTransactionsKeys,
+                            isASAPSubmitBetaEnabled,
+                            accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                            email: currentUserPersonalDetails?.email ?? '',
+                            policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
+                            allTransactions,
+                            translate,
+                            toLocaleDigit,
+                        });
+                        clearSelectedTransactions();
+                    },
+                },
+            ];
+        }
+
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
@@ -1180,6 +1209,7 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
         expensifyIcons.DocumentMerge,
         expensifyIcons.ArrowSplit,
         expensifyIcons.Trashcan,
+        expensifyIcons.RotateLeft,
         expensifyIcons.Exclamation,
         translate,
         areAllMatchingItemsSelected,
@@ -1221,6 +1251,10 @@ function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearch
         firstTransaction,
         firstTransactionPolicy,
         handleDeleteSelectedTransactions,
+        isASAPSubmitBetaEnabled,
+        allTransactions,
+        toLocaleDigit,
+        currentUserPersonalDetails?.email,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,

@@ -54,6 +54,7 @@ function TransactionListItem<TItem extends ListItem>({
     personalPolicyID,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
+    const isDeletedTransaction = transactionItem.reportID === CONST.REPORT.TRASH_REPORT_ID;
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -178,8 +179,8 @@ function TransactionListItem<TItem extends ListItem>({
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
-                onLongPress={() => onLongPressRow?.(item)}
-                onPress={() => onSelectRow(item, transactionPreviewData)}
+                onLongPress={isDeletedTransaction ? undefined : () => onLongPressRow?.(item)}
+                onPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
@@ -192,6 +193,7 @@ function TransactionListItem<TItem extends ListItem>({
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
@@ -231,6 +233,7 @@ function TransactionListItem<TItem extends ListItem>({
                             style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
                             violations={transactionViolations}
                             onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
+                            shouldHideArrowRight={isDeletedTransaction}
                             isHover={hovered}
                             customCardNames={customCardNames}
                             reportActions={exportedReportActions}
