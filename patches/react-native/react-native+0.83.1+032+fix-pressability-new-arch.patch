@@ -318,7 +318,7 @@ index 16ab55a..bc3e7ba 100644
  #include <react/renderer/components/scrollview/ScrollViewProps.h>
  #include <react/renderer/core/DynamicPropsUtilities.h>
  #include <react/renderer/core/conversions.h>
-@@ -1082,4 +1083,16 @@ void FabricMountingManager::synchronouslyUpdateViewOnUIThread(
+@@ -1111,4 +1112,16 @@ void FabricMountingManager::synchronouslyUpdateViewOnUIThread(
    synchronouslyUpdateViewOnUIThreadJNI(javaUIManager_, viewTag, propsMap);
  }
  
