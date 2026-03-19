@@ -1,11 +1,11 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -109,10 +109,12 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
                     onBackButtonPress={onBackButtonPress ?? (() => Navigation.goBack())}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator
-                        style={[styles.flex1, styles.pRelative]}
-                        reasonAttributes={{context: 'BaseLegalNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
-                    />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={{context: 'BaseLegalNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
+                        />
+                    </View>
                 ) : (
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}

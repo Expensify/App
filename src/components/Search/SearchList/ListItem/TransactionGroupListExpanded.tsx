@@ -17,11 +17,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportAction} from '@libs/ReportActionsUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getTransactionViolations} from '@libs/TransactionUtils';
+import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +38,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     showTooltip,
     canSelectMultiple,
     onCheckboxPress,
+    onSelectRow,
     columns,
     groupBy,
     accountID,
@@ -58,6 +63,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
 
     const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 
@@ -91,6 +97,21 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
     const {markReportIDAsExpense} = useWideRHPActions();
+    const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
+    const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
+        const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
+        const parentReport = getReportOrDraftReport(transactionItem?.reportID);
+        const transactionThreadReport = getReportOrDraftReport(transactionItem?.reportAction?.childReportID);
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem?.transactionID)}`];
+
+        return {
+            hasParentReport: !!parentReport,
+            hasTransaction: !!transaction,
+            hasParentReportAction: !!parentReportAction,
+            hasTransactionThreadReport: !!transactionThreadReport,
+        };
+    };
+
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
         const reportID = getReportIDForTransaction(transactionItem, transactionItem?.reportAction?.childReportID);
@@ -113,7 +134,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         // The arrow navigation in RHP is only allowed for group-by:reports
         if (!isExpenseReportType) {
-            navigateToTransactionThread();
+            selectRow(transactionItem as unknown as TItem, getTransactionPreviewData(transactionItem));
             return;
         }
 

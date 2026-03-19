@@ -2,7 +2,16 @@ import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {Ref, RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
+import type {
+    BlurEvent,
+    LayoutChangeEvent,
+    MeasureInWindowOnSuccessCallback,
+    NativeMethods,
+    TextInput,
+    TextInputContentSizeChangeEvent,
+    TextInputKeyPressEvent,
+    TextInputScrollEvent,
+} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -33,6 +42,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
+import NavigationFocusManager from '@libs/NavigationFocusManager';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
@@ -308,7 +318,7 @@ function ComposerWithSuggestions({
         isTransitioningToPreExistingReport.current = false;
     }, []);
 
-    const animatedRef = useAnimatedRef();
+    const animatedRef = useAnimatedRef<NativeMethods>();
     /**
      * Set the TextInput Ref
      */
@@ -800,10 +810,24 @@ function ComposerWithSuggestions({
             return;
         }
 
+        // Skip auto-focus for keyboard navigation returns
+        // This allows FocusTrapForScreen to restore focus to the original element
+        // Must check BOTH scenarios:
+        //   - Screen focus change (!prevIsFocused) - e.g., navigating between screens
+        //   - Modal/RHP close (!!prevIsModalVisible) - e.g., closing RHP overlay
+        // Note: RHP doesn't change isFocused, it triggers prevIsModalVisible change
+        const isScreenFocusChange = !prevIsFocused;
+        const isModalClose = !!prevIsModalVisible;
+        if ((isScreenFocusChange || isModalClose) && NavigationFocusManager.wasRecentKeyboardInteraction()) {
+            NavigationFocusManager.clearKeyboardInteractionFlag();
+            return;
+        }
+
         if (editFocused) {
             inputFocusChange(false);
             return;
         }
+
         focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
 
