@@ -396,6 +396,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: '¡Atención!',
         submitTo: 'Enviar a',
         forwardTo: 'Reenviar a',
+        approvalLimit: 'Límite de aprobación',
+        overLimitForwardTo: 'Reenviar si excede el límite',
         merge: 'Fusionar',
         none: 'Ninguno',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
@@ -1049,6 +1051,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Eliminar recibo',
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
+        addAdditionalReceipt: 'Añadir recibo adicional',
         scanFailed: 'El recibo no pudo ser escaneado, ya que falta el comerciante, la fecha o el monto.',
         crop: 'Recortar',
         addAReceipt: {
@@ -1994,6 +1997,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Tu empresa requiere el uso de autenticación de dos factores. Por favor, habilítala para seguir usando Expensify.',
         twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
         twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
+        replaceDevice: 'Reemplazar dispositivo',
+        replaceDeviceTitle: 'Reemplazar dispositivo de autenticación de dos factores',
+        verifyOldDeviceTitle: 'Verificar dispositivo anterior',
+        verifyOldDeviceDescription: 'Introduce el código de seis dígitos de tu aplicación de autenticación actual para confirmar que tienes acceso a ella.',
+        verifyNewDeviceTitle: 'Configurar nuevo dispositivo',
+        verifyNewDeviceDescription: 'Escanea el código QR con tu nuevo dispositivo y luego introduce el código para completar la configuración.',
     },
     recoveryCodeForm: {
         error: {
