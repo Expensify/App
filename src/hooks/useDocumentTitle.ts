@@ -1,15 +1,14 @@
-import {useEffect} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback} from 'react';
 import {setPageTitle} from '@libs/UnreadIndicatorUpdater/updateUnread';
 
 function useDocumentTitle(title: string) {
-    useEffect(() => {
-        setPageTitle(title);
-
-        // Reset to default title when component unmounts
-        return () => {
-            setPageTitle('');
-        };
-    }, [title]);
+    useFocusEffect(
+        useCallback(() => {
+            setPageTitle(title);
+            return () => setPageTitle('');
+        }, [title]),
+    );
 }
 
 export default useDocumentTitle;

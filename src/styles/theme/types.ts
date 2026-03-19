@@ -88,6 +88,11 @@ type ThemeColors = {
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
     reactionActiveText: Color;
+    badgeDefaultBG: Color;
+    badgeSuccessBG: Color;
+    badgeDangerBG: Color;
+    badgeSuccessText: Color;
+    badgeDangerText: Color;
     badgeAdHoc: Color;
     badgeAdHocHover: Color;
     mentionText: Color;
@@ -109,9 +114,6 @@ type ThemeColors = {
     white: Color;
     videoPlayerBG: Color;
     transparentWhite: Color;
-    emptyFolderBG: Color;
-    travelBG: Color;
-    todoBG: Color;
     trialTimer: Color;
 
     reportStatusBadge: Record<

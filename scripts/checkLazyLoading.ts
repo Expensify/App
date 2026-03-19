@@ -93,6 +93,13 @@ async function main() {
         '**/*.config.js',
         '**/*.config.mjs',
         '**/eslint.config.mjs', // ESLint config itself might reference these for the rule
+        // Non-component .ts files that can't use hooks — icons are passed in as parameters from callers
+        'src/libs/ReportUtils.ts',
+        'src/libs/HeaderUtils.ts',
+        'src/libs/actions/Task.ts',
+        'src/libs/OptionsListUtils/index.ts',
+        'src/hooks/useAvatarMenu.ts',
+        'src/libs/PersonalDetailOptionsListUtils/index.ts',
     ];
 
     // Find all TypeScript files in src directory

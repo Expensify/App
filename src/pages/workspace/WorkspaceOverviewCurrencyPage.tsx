@@ -44,7 +44,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             return;
         }
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        updateGeneralSettings(policy.id, policy?.name ?? '', item.currencyCode);
+        updateGeneralSettings(policy, policy?.name ?? '', item.currencyCode);
         clearCorpayBankAccountFields();
 
         if (isForcedToChangeCurrency) {

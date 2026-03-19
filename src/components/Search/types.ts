@@ -17,7 +17,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -119,6 +119,11 @@ type PaymentData = {
     ownerEmail?: string;
     policyName?: string;
 };
+type BulkPaySelectionData = {
+    bankAccountID?: number;
+    payAsBusiness?: boolean;
+    paymentMethod?: string;
+};
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
@@ -154,24 +159,30 @@ type SearchCustomColumnIds =
 
 type SearchContextData = {
     currentSearchHash: number;
-    currentRecentSearchHash: number;
+    currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
     currentSearchResults: SearchResults | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
+    suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
 };
 
-type SearchContextProps = SearchContextData & {
+type SearchStateContextValue = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
-    setCurrentSearchHashAndKey: (hash: number, recentHash: number, key: SearchKey | undefined) => void;
-    setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
+    shouldShowFiltersBarLoading: boolean;
+    lastSearchType: string | undefined;
+    shouldShowSelectAllMatchingItems: boolean;
+    areAllMatchingItemsSelected: boolean;
+};
+
+type SearchActionsContextValue = {
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
@@ -183,13 +194,9 @@ type SearchContextProps = SearchContextData & {
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    shouldShowFiltersBarLoading: boolean;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
-    lastSearchType: string | undefined;
-    showSelectAllMatchingItems: boolean;
-    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
-    areAllMatchingItemsSelected: boolean;
+    setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
@@ -381,7 +388,8 @@ export type {
     ReportFieldDateKey,
     ReportFieldNegatedKey,
     SortOrder,
-    SearchContextProps,
+    SearchStateContextValue,
+    SearchActionsContextValue,
     SearchContextData,
     ASTNode,
     QueryFilter,
@@ -396,6 +404,7 @@ export type {
     TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
+    BulkPaySelectionData,
     SearchAutocompleteQueryRange,
     SearchParams,
     TableColumnSize,

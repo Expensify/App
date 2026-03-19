@@ -2,7 +2,7 @@ import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -31,10 +31,11 @@ import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {
     getTagForDisplay,
     getTaxAmount,
-    getTaxName,
+    getTaxRateTitle,
     isAmountMissing,
     isCreatedMissing,
     isFetchingWaypointsFromServer,
@@ -68,7 +69,7 @@ import PDFThumbnail from './PDFThumbnail';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
-import {ShowContextMenuContext} from './ShowContextMenuContext';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from './ShowContextMenuContext';
 import Text from './Text';
 
 type MoneyRequestConfirmationListFooterProps = {
@@ -176,6 +177,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The rate of the transaction */
     rate: number | undefined;
+
+    /** The name of the distance rate */
+    distanceRateName: string | undefined;
 
     /** The filename of the receipt */
     receiptFilename: string;
@@ -290,6 +294,7 @@ function MoneyRequestConfirmationListFooter({
     policyTags,
     policyTagLists,
     rate,
+    distanceRateName,
     receiptFilename,
     receiptPath,
     reportActionID,
@@ -418,14 +423,8 @@ function MoneyRequestConfirmationListFooter({
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
     // Get the tax rate title based on the policy and transaction
-    let taxRateTitle;
-    if (getTaxName(policy, transaction)) {
-        taxRateTitle = getTaxName(policy, transaction);
-    } else if (isMovingCurrentTransactionFromTrackExpense) {
-        taxRateTitle = getTaxName(policyForMovingExpenses, transaction);
-    } else {
-        taxRateTitle = '';
-    }
+    const taxRateTitle = getTaxRateTitle(policy, transaction, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
+
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
@@ -451,16 +450,22 @@ function MoneyRequestConfirmationListFooter({
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
     const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
 
-    const contextMenuContextValue = useMemo(
+    const contextMenuStateValue = useMemo(
         () => ({
             anchor: null,
             report: undefined,
             isReportArchived: false,
             action: undefined,
-            checkIfContextMenuActive: () => {},
-            onShowContextMenu: () => {},
             isDisabled: true,
             shouldDisplayContextMenu: false,
+        }),
+        [],
+    );
+
+    const contextMenuActionsValue = useMemo(
+        () => ({
+            checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
         }),
         [],
     );
@@ -479,6 +484,8 @@ function MoneyRequestConfirmationListFooter({
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
+
+    const isRateInteractive = !!rate && !isReadOnly && (!isUnreported || isTrackExpense) && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const getCategoryRightLabelIcon = useCallback(() => (willFieldBeAutomaticallyFilled(transaction, 'category') ? icons.Sparkles : undefined), [transaction, icons.Sparkles]);
     const getCategoryRightLabel = useCallback(() => {
@@ -523,33 +530,35 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <View key={translate('common.description')}>
-                    <ShowContextMenuContext.Provider value={contextMenuContextValue}>
-                        <MentionReportContext.Provider value={mentionReportContextValue}>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={!isReadOnly}
-                                shouldParseTitle
-                                excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                                title={iouComment}
-                                description={translate('common.description')}
-                                onPress={() => {
-                                    if (!transactionID) {
-                                        return;
-                                    }
+                    <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
+                        <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
+                            <MentionReportContext.Provider value={mentionReportContextValue}>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon={!isReadOnly}
+                                    shouldParseTitle
+                                    excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                                    title={iouComment}
+                                    description={translate('common.description')}
+                                    onPress={() => {
+                                        if (!transactionID) {
+                                            return;
+                                        }
 
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                                    );
-                                }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                                disabled={didConfirm}
-                                interactive={!isReadOnly}
-                                numberOfLinesTitle={2}
-                                rightLabel={isDescriptionRequired ? translate('common.required') : ''}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-                            />
-                        </MentionReportContext.Provider>
-                    </ShowContextMenuContext.Provider>
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                        );
+                                    }}
+                                    style={[styles.moneyRequestMenuItem]}
+                                    titleStyle={styles.flex1}
+                                    disabled={didConfirm}
+                                    interactive={!isReadOnly}
+                                    numberOfLinesTitle={2}
+                                    rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+                                />
+                            </MentionReportContext.Provider>
+                        </ShowContextMenuActionsContext.Provider>
+                    </ShowContextMenuStateContext.Provider>
                 </View>
             ),
             shouldShow: true,
@@ -593,8 +602,10 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
-                    title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
+                    shouldShowRightIcon={isRateInteractive}
+                    // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
+                    // confirmation screen where a rate violation is not applicable yet.
+                    title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -621,7 +632,7 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    interactive={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
+                    interactive={isRateInteractive}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
                 />
             ),
@@ -1016,7 +1027,12 @@ function MoneyRequestConfirmationListFooter({
     const isCompactMode = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
     const [receiptAspectRatio, setReceiptAspectRatio] = useState<number | null>(null);
     const [compactReceiptContainerWidth, setCompactReceiptContainerWidth] = useState(0);
+    const hasEndedReceiptLoadSpan = useRef(false);
     const handleReceiptLoad = useCallback((event?: {nativeEvent: {width: number; height: number}}) => {
+        if (!hasEndedReceiptLoadSpan.current) {
+            hasEndedReceiptLoadSpan.current = true;
+            endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
+        }
         const width = event?.nativeEvent.width ?? 0;
         const height = event?.nativeEvent.height ?? 0;
         if (!width || !height) {
@@ -1137,6 +1153,7 @@ function MoneyRequestConfirmationListFooter({
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             shouldUseFullHeight={isCompactMode}
                             onLoad={handleReceiptLoad}
+                            resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
                         />
                     </PressableWithoutFocus>
                 )}
@@ -1167,6 +1184,7 @@ function MoneyRequestConfirmationListFooter({
         receiptThumbnail,
         fileExtension,
         isDistanceRequest,
+        isOdometerDistanceRequest,
         handleReceiptLoad,
         handleCompactReceiptContainerLayout,
     ]);

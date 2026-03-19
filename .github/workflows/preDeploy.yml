@@ -50,9 +50,9 @@ jobs:
         with:
           github_token: ${{ github.token }}
 
-      - name: Check if StagingDeployCash is locked
-        id: isStagingDeployLocked
-        uses: ./.github/actions/javascript/isStagingDeployLocked
+      - name: Check if deploy checklist is locked
+        id: isDeployChecklistLocked
+        uses: ./.github/actions/javascript/isDeployChecklistLocked
         with:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -60,7 +60,7 @@ jobs:
         id: shouldDeploy
         run: |
           if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
-            echo "SHOULD_DEPLOY=${{ (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && github.actor != 'OSBotify') }}" >> "$GITHUB_OUTPUT"
+            echo "SHOULD_DEPLOY=${{ (!fromJSON(steps.isDeployChecklistLocked.outputs.IS_LOCKED) && github.actor != 'OSBotify') }}" >> "$GITHUB_OUTPUT"
           else
             echo "SHOULD_DEPLOY=false" >> "$GITHUB_OUTPUT"
           fi

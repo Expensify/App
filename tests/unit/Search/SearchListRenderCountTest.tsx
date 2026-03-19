@@ -11,7 +11,7 @@ import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import type {SearchListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as TestHelper from '../../utils/TestHelper';

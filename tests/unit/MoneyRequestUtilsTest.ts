@@ -1,4 +1,4 @@
-import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU';
+import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {handleNegativeAmountFlipping, validateAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
@@ -128,10 +128,10 @@ describe('ReportActionsUtils', () => {
             expect(result).toBe('123.45');
         });
 
-        it('should work without toggleNegative function', () => {
+        it('should not strip minus sign without toggleNegative function', () => {
             const result = handleNegativeAmountFlipping('-123.45', true);
 
-            expect(result).toBe('123.45');
+            expect(result).toBe('-123.45');
         });
 
         it('should return original amount when allowFlippingAmount is false and no dash', () => {

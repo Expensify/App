@@ -79,6 +79,7 @@ All PR titles should follow a consistent format to improve clarity, searchabilit
 | `docs` | Documentation changes | `docs: add TypeScript migration guide` |
 | `test` | Test additions or changes | `test: add unit tests for ViolationsUtils` |
 | `perf` | Performance improvements | `perf: optimize LHN rendering performance` |
+| `ci` | CI/CD configuration changes | `ci: Separate build and upload steps of Android deploys` |
 
 ### Why This Matters
 

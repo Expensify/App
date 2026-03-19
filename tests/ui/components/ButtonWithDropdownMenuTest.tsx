@@ -1,7 +1,7 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 import React from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
 
 describe('ButtonWithDropdownMenu (single option)', () => {
@@ -9,10 +9,11 @@ describe('ButtonWithDropdownMenu (single option)', () => {
     const mockOnOptionSelected = jest.fn();
     const mockOnSubItemSelected = jest.fn();
     const mockOnPress = jest.fn();
+    const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Checkbox']));
     const option = {
         value: 'test',
         text: 'Test Option',
-        icon: Expensicons.Checkbox,
+        icon: icons.current.Checkbox,
         onSelected: mockOnSelected,
     };
 
@@ -64,5 +65,61 @@ describe('ButtonWithDropdownMenu (single option)', () => {
         const iconNodes = screen.getAllByTestId(CONST.ICON_TEST_ID);
         expect(iconNodes.length).toBeGreaterThan(0);
         expect(screen.getByText('Test Option')).toBeTruthy();
+    });
+});
+
+describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
+    const mockOnPress = jest.fn();
+    const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Checkbox']));
+    const options = [
+        {value: 'one', text: 'Option One', icon: icons.current.Checkbox},
+        {value: 'two', text: 'Option Two', icon: icons.current.Checkbox},
+    ];
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('flips the arrow icon when the dropdown menu is opened in split button mode', () => {
+        render(
+            <ButtonWithDropdownMenu
+                options={options}
+                onPress={mockOnPress}
+                isSplitButton
+            />,
+        );
+
+        const arrowIcon = screen.getByTestId('dropdown-arrow-icon', {includeHiddenElements: true});
+        expect(arrowIcon).not.toHaveStyle({transform: 'rotate(180deg)'});
+
+        const buttons = screen.getAllByRole('button');
+        const buttonToPress = buttons?.at(1);
+        if (buttonToPress) {
+            fireEvent.press(buttonToPress);
+        }
+        expect(arrowIcon).toHaveStyle({transform: 'rotate(180deg)'});
+    });
+
+    it('reverts the arrow icon when the dropdown menu is closed', () => {
+        render(
+            <ButtonWithDropdownMenu
+                options={options}
+                onPress={mockOnPress}
+                isSplitButton
+            />,
+        );
+
+        const arrowIcon = screen.getByTestId('dropdown-arrow-icon', {includeHiddenElements: true});
+        const buttons = screen.getAllByRole('button');
+        const buttonToPress = buttons?.at(1);
+        if (buttonToPress) {
+            fireEvent.press(buttonToPress);
+        }
+        expect(arrowIcon).toHaveStyle({transform: 'rotate(180deg)'});
+
+        if (buttonToPress) {
+            fireEvent.press(buttonToPress);
+        }
+        expect(arrowIcon).not.toHaveStyle({transform: 'rotate(180deg)'});
     });
 });

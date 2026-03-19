@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
@@ -16,7 +17,10 @@ type WorkspaceConfirmationForTravelPageProps = StackScreenProps<TravelNavigatorP
 
 function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTravelPageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const goBack = () => {
@@ -26,8 +30,6 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         createDraftWorkspace(introSelected, '', false, params.name, params.policyID, params.currency, params.avatarFile as File);
         createWorkspace({
-            policyOwnerEmail: '',
-            makeMeAdmin: false,
             policyName: params.name,
             policyID: params.policyID,
             engagementChoice: undefined,
@@ -37,6 +39,8 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            betas,
+            isSelfTourViewed,
         });
         goBack();
     };

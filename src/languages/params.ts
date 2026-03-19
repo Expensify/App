@@ -3,18 +3,6 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
-// type MultifactorAuthenticationTranslationParams = {
-//     authType?: string;
-//     registered?: boolean;
-// };
-
-type ZipCodeExampleFormatParams = {
-    zipSampleFormat: string;
-};
-
-type WelcomeEnterMagicCodeParams = {
-    login: string;
-};
 
 type EditActionParams = {
     action: OnyxInputOrEntry<ReportAction>;
@@ -28,18 +16,6 @@ type DeleteConfirmationParams = {
     action: OnyxInputOrEntry<ReportAction>;
 };
 
-type BeginningOfChatHistoryAnnounceRoomPartTwo = {
-    workspaceName: string;
-};
-
-type WelcomeToRoomParams = {
-    roomName: string;
-};
-
-type UsePlusButtonParams = {
-    additionalText: string;
-};
-
 type ReportArchiveReasonsClosedParams = {
     displayName: string;
 };
@@ -49,40 +25,30 @@ type ReportArchiveReasonsMergedParams = {
     oldDisplayName: string;
 };
 
+type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
+    policyName: string;
+};
+
 type ReportArchiveReasonsRemovedFromPolicyParams = {
     displayName: string;
     policyName: string;
     shouldUseYou?: boolean;
 };
 
-type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
-    policyName: string;
-};
-
 type CreatedReportForUnapprovedTransactionsParams = {
     reportUrl: string;
     reportName: string;
+    reportID: string;
+    isReportDeleted: boolean;
 };
-
-type WorkspacesListRouteParams = {
-    workspacesListRoute: string;
-};
-
-type WorkspaceRouteParams = {
-    workspaceRoute: string;
-};
-
-type UserSplitParams = {amount: string};
 
 type PaidElsewhereParams = {payer?: string; comment?: string};
 
-type WaitingOnBankAccountParams = {submitterDisplayName: string};
-
 type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
 
-type SizeExceededParams = {maxUploadSizeInMB: number};
-
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
+
+type SizeExceededParams = {maxUploadSizeInMB: number};
 
 type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
@@ -98,43 +64,9 @@ type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; ol
 
 type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; oldMerchant: string; newAmountToDisplay: string; oldAmountToDisplay: string};
 
-type WalletProgramParams = {walletProgram: string};
-
-type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string} | undefined;
-
-type ViolationsConversionSurchargeParams = {surcharge: number};
-
-type ViolationsInvoiceMarkupParams = {invoiceMarkup: number};
-
-type ViolationsMaxAgeParams = {maxAge: number};
-
 type ViolationsMissingTagParams = {tagName?: string} | undefined;
 
 type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
-
-type ViolationsOverAutoApprovalLimitParams = {formattedLimit: string};
-
-type ViolationsOverCategoryLimitParams = {formattedLimit: string};
-
-type ViolationsOverLimitParams = {formattedLimit: string};
-
-type ViolationsPerDayLimitParams = {formattedLimit: string};
-
-// type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
-
-type ViolationsCustomRulesParams = {message: string};
-
-// type ViolationsRterParams = {
-//     brokenBankConnection: boolean;
-//     isAdmin: boolean;
-//     isTransactionOlderThan7Days: boolean;
-//     member?: string;
-//     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
-//     companyCardPageURL?: string;
-//     connectionLink?: string;
-//     isPersonalCard?: boolean;
-//     isMarkAsCash?: boolean;
-// };
 
 // type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
@@ -158,13 +90,8 @@ type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldV
 
 // type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName: string; tagListName: string; updatedField: string};
 
-type UpdatedPolicyTagListParams = {tagListName: string};
 
 // type UpdatedPolicyTagListRequiredParams = {tagListsName: string; isRequired: boolean};
-
-type UpdatePolicyCustomUnitTaxEnabledParams = {newValue: boolean};
-
-type ImportPolicyCustomUnitRatesParams = {customUnitName: string};
 
 type UpdatePolicyCustomUnitDefaultCategoryParams = {customUnitName: string; newValue?: string; oldValue?: string};
 
@@ -184,11 +111,11 @@ type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverNam
 
 // type UpdatedPolicyOwnershipParams = {oldOwnerEmail: string; oldOwnerName: string; policyName: string};
 
-type UpdatedPolicyTimeEnabledParams = {enabled?: boolean};
+// type UpdatedPolicyTimeEnabledParams = {enabled?: boolean};
 
 // type UpdatedPolicyTimeRateParams = {newRate?: string; oldRate?: string};
 
-type UpdatedPolicyAutoHarvestingParams = {enabled: boolean};
+// type UpdatedPolicyAutoHarvestingParams = {enabled: boolean};
 
 // type UpdatedPolicyBudgetNotificationParams = {
 //     budgetAmount: string;
@@ -209,8 +136,6 @@ type UpdatedPolicyAutoHarvestingParams = {enabled: boolean};
 // type UpdatedPolicyDefaultTitleParams = {newDefaultTitle: string; oldDefaultTitle: string};
 
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
-
-type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
 
 type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
 
@@ -286,19 +211,9 @@ type DisconnectPromptParams = {currentIntegration?: ConnectionName} | undefined;
 
 type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
 
-type AmountWithCurrencyParams = {amountWithCurrency: string};
-
 type LowerUpperParams = {lower: string; upper: string};
 
-type UpdatedPolicyCategoriesParams = {count: number};
-
-type WorkspaceMembersCountParams = {count: number};
-
-type WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams = {workspaceOwnerName: string};
-
 type YourPlanPriceParams = {lower: string; upper: string};
-
-type YourPlanPriceValueParams = {price: string};
 
 type ExportIntegrationSelectedParams = {connectionName: ConnectionName};
 
@@ -307,8 +222,6 @@ type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
 type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
 
 type DelegateRoleParams = {role: DelegateRole};
-
-type VacationDelegateParams = {nameOrEmail: string};
 
 type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
@@ -332,13 +245,13 @@ type InvalidValueParams = {
 //     email: string;
 // };
 
-type WorkEmailResendCodeParams = {
-    workEmail: string | undefined;
-};
+// type WorkEmailResendCodeParams = {
+//     workEmail: string | undefined;
+// };
 
-type WorkEmailMergingBlockedParams = {
-    workEmail: string | undefined;
-};
+// type WorkEmailMergingBlockedParams = {
+//     workEmail: string | undefined;
+// };
 
 // type WorkspaceMemberList = {
 //     employeeCount: number;
@@ -350,13 +263,13 @@ type WorkspaceLockedPlanTypeParams = {
     annualSubscriptionEndDate: string;
 };
 
-type CustomUnitRateParams = {
-    rate: number;
-};
+// type CustomUnitRateParams = {
+//     rate: number;
+// };
 
-type WorkspaceUpgradeNoteParams = {
-    subscriptionLink: string;
-};
+// type WorkspaceUpgradeNoteParams = {
+//     subscriptionLink: string;
+// };
 
 // type WorkflowSettingsParam = {workflowSettingLink: string};
 
@@ -391,17 +304,12 @@ export type {
     InvalidValueParams,
     RemovedFromApprovalWorkflowParams,
     DelegateRoleParams,
-    VacationDelegateParams,
     SyncStageNameConnectionsParams,
     IntacctMappingTitleParams,
     ExportIntegrationSelectedParams,
     YourPlanPriceParams,
-    WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
-    UpdatedPolicyCategoriesParams,
-    AmountWithCurrencyParams,
     LowerUpperParams,
     LogSizeAndDateParams,
-    BeginningOfChatHistoryAnnounceRoomPartTwo,
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
@@ -420,31 +328,25 @@ export type {
     StepCounterParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
-    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
-    UserSplitParams,
-    ViolationsCashExpenseWithNoReceiptParams,
-    ViolationsConversionSurchargeParams,
-    ViolationsInvoiceMarkupParams,
-    ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
-    ViolationsOverAutoApprovalLimitParams,
-    ViolationsOverCategoryLimitParams,
-    ViolationsOverLimitParams,
-    ViolationsPerDayLimitParams,
+    // ViolationsOverAutoApprovalLimitParams,
+    // ViolationsOverCategoryLimitParams,
+    // ViolationsOverLimitParams,
+    // ViolationsPerDayLimitParams,
     // ViolationsReceiptRequiredParams,
-    ViolationsCustomRulesParams,
+    // ViolationsCustomRulesParams,
     // ViolationsRterParams,
     // ViolationsTagOutOfPolicyParams,
     // ViolationsProhibitedExpenseParams,
     // ViolationsTaxOutOfPolicyParams,
-    WaitingOnBankAccountParams,
-    WalletProgramParams,
+    // WaitingOnBankAccountParams,
+    // WalletProgramParams,
     // WeSentYouMagicSignInLinkParams,
-    WelcomeEnterMagicCodeParams,
-    WelcomeToRoomParams,
-    ZipCodeExampleFormatParams,
+    // WelcomeEnterMagicCodeParams,
+    // WelcomeToRoomParams,
+    // ZipCodeExampleFormatParams,
     ChangeFieldParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,
@@ -462,14 +364,14 @@ export type {
     // WorkspaceYouMayJoin,
     // WorkspaceMemberList,
     WorkspaceLockedPlanTypeParams,
-    CustomUnitRateParams,
-    UpdatedPolicyTagListParams,
+    // CustomUnitRateParams,
+    // UpdatedPolicyTagListParams,
     // UpdatedPolicyTagListRequiredParams,
     // UpdatedPolicyPreventSelfApprovalParams,
-    UpdatedPolicyTimeEnabledParams,
+    // UpdatedPolicyTimeEnabledParams,
     // UpdatedPolicyTimeRateParams,
-    WorkEmailResendCodeParams,
-    WorkEmailMergingBlockedParams,
+    // WorkEmailResendCodeParams,
+    // WorkEmailMergingBlockedParams,
     // UpdatedPolicyTagParams,
     // UpdatedPolicyTaxParams,
     // UpdatedPolicyTagNameParams,
@@ -477,35 +379,29 @@ export type {
     // UpdatedPolicyReportFieldDefaultValueParams,
     // RemovedPolicyCustomUnitSubRateParams,
     // UpdatedPolicyCustomUnitSubRateParams,
-    YourPlanPriceValueParams,
+    // YourPlanPriceValueParams,
     AddedOrDeletedPolicyReportFieldParams,
     UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyReimburserParams,
-    UpdatePolicyCustomUnitTaxEnabledParams,
-    ImportPolicyCustomUnitRatesParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    WorkspaceMembersCountParams,
-    WorkspacesListRouteParams,
-    WorkspaceRouteParams,
     AddBudgetParams,
     UpdatedBudgetParams,
     DeleteBudgetParams,
     AddOrDeletePolicyCustomUnitRateParams,
-    WorkspaceUpgradeNoteParams,
+    // WorkspaceUpgradeNoteParams,
     // WorkflowSettingsParam,
     // WorkspaceShareNoteParams,
     // UpgradeSuccessMessageParams,
     // WalletAgreementParams,
     // NextStepParams,
     // UpdatedPolicyOwnershipParams,
-    UpdatedPolicyAutoHarvestingParams,
+    // UpdatedPolicyAutoHarvestingParams,
     // UpdatedPolicyBudgetNotificationParams,
     // UpdatedPolicyReimbursementChoiceParams,
     // UpdatedPolicyDefaultTitleParams,

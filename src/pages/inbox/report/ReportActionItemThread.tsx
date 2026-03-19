@@ -37,13 +37,27 @@ type ReportActionItemThreadProps = {
 
     /** The function that should be called when the thread is LongPressed or right-clicked */
     onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) => void;
+
+    /** The accountID of the current user, used for creating optimistic report if needed */
+    currentUserAccountID: number;
 };
 
-function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, report, reportAction, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
+function ReportActionItemThread({
+    numberOfReplies,
+    accountIDs,
+    mostRecentReply,
+    report,
+    reportAction,
+    isHovered,
+    onSecondaryInteraction,
+    isActive,
+    currentUserAccountID,
+}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
 
     const {translate, datetimeToCalendarTime} = useLocalize();
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
@@ -54,7 +68,7 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
         <View style={[styles.chatItemMessage]}>
             <PressableWithSecondaryInteraction
                 onPress={() => {
-                    navigateToAndOpenChildReport(childReport, reportAction, report);
+                    navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}
