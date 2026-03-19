@@ -78,22 +78,30 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
 
     const handleBankConnectionSuccess = useCallback(
         (newFeed?: CompanyCardFeedWithDomainID) => {
-            if (newFeed) {
-                updateSelectedFeed(newFeed, policyID);
-            }
-
             const isPlaid = !!addNewCardFeed?.data?.publicToken;
 
             // Direct feeds (except those added via Plaid) are created with default statement period end date.
             // Redirect the user to set a custom date.
             if (policyID && !isPlaid) {
+                if (newFeed) {
+                    updateSelectedFeed(newFeed, policyID);
+                }
                 setAddNewCompanyCardStepAndData({
                     step: CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE,
                 });
-            } else {
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+                return;
             }
+
+            Navigation.dismissModal({
+                afterTransition: () => {
+                    // This is to prevent WorkspaceCompanyCardsPage from refetching in the background with the new domainOrWorkspaceAccountID
+                    // which would toggle isLoading and falsely trigger isBlockedToAddNewFeeds.
+                    if (newFeed) {
+                        updateSelectedFeed(newFeed, policyID);
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+                },
+            });
         },
         [addNewCardFeed?.data?.publicToken, policyID],
     );
