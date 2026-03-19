@@ -70,7 +70,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
-import {getAccountIDsByLogins, getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     arePaymentsEnabled,
@@ -135,7 +135,6 @@ import {
     findSelfDMReportID,
     generateReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
-    getApprovalChain,
     getChatByParticipants,
     getDisplayedReportID,
     getMoneyRequestSpendBreakdown,
@@ -10814,8 +10813,7 @@ function submitReport({
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
           });
-    const approvalChain = getApprovalChain(policy, expenseReport);
-    const managerID = getAccountIDsByLogins(approvalChain).at(0);
+    const managerID = getSubmitToAccountID(policy, expenseReport) || expenseReport.managerID;
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
@@ -11021,7 +11019,7 @@ function submitReport({
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: getSubmitToAccountID(policy, expenseReport) ?? expenseReport.managerID,
+        managerAccountID: managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
