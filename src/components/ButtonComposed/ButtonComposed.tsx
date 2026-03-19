@@ -284,7 +284,7 @@ function ButtonComposed({
                 disabled={isLoading || isDisabled}
                 disabledStyle={!shouldStayNormalOnDisable ? disabledStyle : undefined}
                 shouldBlendOpacity={shouldBlendOpacity}
-                style={[buttonStyles, {backgroundColor: 'red'}]}
+                style={buttonStyles}
                 wrapperStyle={[
                     isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
