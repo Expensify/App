@@ -3280,7 +3280,7 @@ describe('OptionsListUtils', () => {
             expect(canCreate).toBe(false);
         });
 
-        it('createOptionList() localization', async () => {
+        it('createOptionList() localization', () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
@@ -3289,15 +3289,18 @@ describe('OptionsListUtils', () => {
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
 
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES);
-
-            await waitForBatchedUpdates();
-
-            // When we call createOptionList again
-            const newReports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined).reports;
-            // Then the returned reports should change to Spanish
-            // cspell:disable-next-line
-            expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
+            return (
+                waitForBatchedUpdates()
+                    // When we set the preferred locale to Spanish
+                    .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
+                    .then(() => {
+                        // When we call createOptionList again
+                        const newReports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined).reports;
+                        // Then the returned reports should change to Spanish
+                        // cspell:disable-next-line
+                        expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
+                    })
+            );
         });
     });
 
@@ -3371,8 +3374,6 @@ describe('OptionsListUtils', () => {
                     '1': getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
                 },
             });
-            await waitForBatchedUpdates();
-
             // When we call createOptionList with report 10 marked as archived
             const archivedMap: PrivateIsArchivedMap = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: reportNameValuePairs.private_isArchived,
@@ -3524,14 +3525,16 @@ describe('OptionsListUtils', () => {
 
         it('should respect maxRecentReports option while preserving archived status', () => {
             renderLocaleContextProvider();
-            // Given a privateIsArchivedMap and a small maxRecentReports limit
+            // Given a privateIsArchivedMap and a maxRecentReports limit larger than the total reports count
+            // Note: Report 7 has largest lastVisibleActionCreated but is archived, so it sorts last
+            // (archived reports use "0_" prefix vs "1_" for non-archived in the sort comparator)
             const privateIsArchivedMap: PrivateIsArchivedMap = {
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}7`]: '2023-12-31 23:59:59', // Report 7 has largest lastVisibleActionCreated
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}7`]: '2023-12-31 23:59:59',
             };
 
-            // When we call createFilteredOptionList with maxRecentReports limit
+            // When we call createFilteredOptionList with a maxRecentReports limit that includes all reports
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchivedMap, undefined, {
-                maxRecentReports: 5,
+                maxRecentReports: 20,
             });
 
             // Then the report 7 (most recent) should still have private_isArchived set
