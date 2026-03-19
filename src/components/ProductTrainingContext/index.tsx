@@ -234,7 +234,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb'] as const);
 
     if (!context) {
-        throw new Error('useProductTourContext must be used within a ProductTourProvider');
+        throw new Error('useProductTrainingContext must be used within a ProductTrainingContextProvider');
     }
 
     const {shouldRenderTooltip, registerTooltip, unregisterTooltip} = context;
