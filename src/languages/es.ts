@@ -2568,6 +2568,8 @@ ${amount} para ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         requestNewCode: ({timeRemaining}) => `Pedir un código nuevo en <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',
+        timeRemainingAnnouncement: ({timeRemaining}) => `Tiempo restante: ${timeRemaining} ${timeRemaining === 1 ? 'segundo' : 'segundos'}`,
+        timeExpiredAnnouncement: 'El tiempo ha expirado',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico.',
             incorrectMagicCode: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',

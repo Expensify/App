@@ -1,5 +1,6 @@
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import RenderHTML from '@components/RenderHTML';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {ValidateCodeCountdownProps} from './types';
@@ -26,6 +27,15 @@ function ValidateCodeCountdown({onCountdownFinish, ref}: ValidateCodeCountdownPr
             clearTimeout(timerRef.current);
         };
     }, [onCountdownFinish, timeRemaining]);
+
+    // Announce countdown start/reset for screen readers
+    useAccessibilityAnnouncement(translate('validateCodeForm.timeRemainingAnnouncement', {timeRemaining: CONST.REQUEST_CODE_DELAY}), timeRemaining === CONST.REQUEST_CODE_DELAY, {
+        shouldAnnounceOnNative: true,
+        shouldAnnounceOnWeb: true,
+    });
+
+    // Announce expiration for screen readers
+    useAccessibilityAnnouncement(translate('validateCodeForm.timeExpiredAnnouncement'), timeRemaining === 0, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
 
     return (
         <RenderHTML
