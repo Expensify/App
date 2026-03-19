@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -17,13 +17,14 @@ import type SetPersonalDetailsAndShipExpensifyCardsParams from '@libs/API/parame
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {findPageIndex} from '@libs/SubPageUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isExpensifyCardUkEuSupportedSelector} from '@src/selectors/Card';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
-import {usePIN} from './PINContext';
+import {usePINActions, usePINState} from './PINContext';
 import Address from './subPages/Address';
 import Confirmation from './subPages/Confirmation';
 import DateOfBirth from './subPages/DateOfBirth';
@@ -45,9 +46,6 @@ type MissingPersonalDetailsContentProps = {
 
     /** Card ID for the card that the user is adding personal details to */
     cardID: string;
-
-    /** Whether this is the card-ordering flow */
-    isCardOrderFlow?: boolean;
 };
 
 const baseFormPages = [
@@ -60,16 +58,19 @@ const baseFormPages = [
 const PINPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN, component: PINStep};
 const confirmPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation};
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID, isCardOrderFlow = false}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {executeScenario} = useMultifactorAuthentication();
     const {translate} = useLocalize();
-    const isUKEUCardSelector = useCallback((cardList: OnyxEntry<CardList>) => isExpensifyCardUkEuSupportedSelector(cardList, cardID), [cardID]);
-    const [isUKEUCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: isUKEUCardSelector});
+    const shouldCollectPINSelector = (cardList: OnyxEntry<CardList>) =>
+        !!cardID &&
+        isExpensifyCardUkEuSupportedSelector(cardList, cardID) &&
+        Object.values(cardList ?? {}).some((card) => card?.cardID === Number(cardID) && !card?.nameValuePairs?.isVirtual);
+    const [shouldCollectPIN] = useOnyx(ONYXKEYS.CARD_LIST, {selector: shouldCollectPINSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const {PIN, isConfirmStep, setIsConfirmStep} = usePIN();
-    const shouldCollectPIN = isCardOrderFlow && !!isUKEUCard;
+    const {PIN, isConfirmStep} = usePINState();
+    const {setIsConfirmStep} = usePINActions();
 
     // Build form pages dynamically based on whether this is a UK/EU card
     const formPages = useMemo(() => {
@@ -118,7 +119,8 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     });
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MissingPersonalDetailsContent', isRedirecting};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     const handleBackButtonPress = () => {
@@ -165,7 +167,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 onMove={moveTo}
                 currentPageName={currentPageName}
                 personalDetailsValues={values}
-                shouldCollectPin={shouldCollectPIN}
+                shouldCollectPin={!!shouldCollectPIN}
             />
         </ScreenWrapper>
     );

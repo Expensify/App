@@ -30,7 +30,6 @@ import {
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
-    getMemberInviteOptions,
     getPersonalDetailSearchTerms,
     getPolicyExpenseReportOption,
     getReportDisplayOption,
@@ -1926,214 +1925,6 @@ describe('OptionsListUtils', () => {
         });
     });
 
-    describe('getMemberInviteOptions()', () => {
-        it('should sort personal details alphabetically and return expected structure', () => {
-            // Given a set of personalDetails
-            // When we call getMemberInviteOptions
-            const results = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                PERSONAL_DETAILS,
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
-            );
-
-            // Then personal details should be sorted alphabetically
-            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-            expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
-            expect(results.personalDetails.at(2)?.text).toBe('Captain America');
-            expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
-
-            // Then the results should contain expected structure
-            expect(results.personalDetails.length).toBeGreaterThan(0);
-            expect(results.recentReports).toEqual([]);
-            expect(results.currentUserOption).toBeUndefined();
-        });
-
-        it('should exclude logins when excludeLogins is provided', () => {
-            // Given a set of personalDetails and excludeLogins
-            const excludeLogins = {'reedrichards@expensify.com': true};
-
-            // When we call getMemberInviteOptions with excludeLogins
-            const results = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                PERSONAL_DETAILS,
-                [],
-                excludeLogins,
-                false,
-                COUNTRY_CODE,
-            );
-
-            // Then the excluded login should not be in the results
-            const excludedUser = results.personalDetails.find((detail) => detail.login === 'reedrichards@expensify.com');
-            expect(excludedUser).toBeUndefined();
-        });
-
-        it('should handle undefined personalDetailsCollection gracefully', () => {
-            // Given a set of personalDetails and undefined personalDetailsCollection
-            // When we call getMemberInviteOptions with undefined personalDetailsCollection
-            const results = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                undefined,
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
-            );
-
-            // Then personal details should still be returned and sorted alphabetically
-            expect(results.personalDetails.length).toBeGreaterThan(0);
-            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-        });
-
-        it('should handle empty personalDetailsCollection gracefully', () => {
-            // Given a set of personalDetails and empty personalDetailsCollection
-            // When we call getMemberInviteOptions with empty personalDetailsCollection
-            const results = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
-            );
-
-            // Then personal details should still be returned and sorted alphabetically
-            expect(results.personalDetails.length).toBeGreaterThan(0);
-            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-        });
-
-        it('should handle null personalDetailsCollection gracefully', () => {
-            // Given a set of personalDetails and null personalDetailsCollection
-            // When we call getMemberInviteOptions with null personalDetailsCollection
-            const results = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
-            );
-
-            // Then personal details should still be returned and sorted alphabetically
-            expect(results.personalDetails.length).toBeGreaterThan(0);
-            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-        });
-
-        it('should use personalDetailsCollection when provided with partial data', () => {
-            // Given a subset of personalDetailsCollection with only some users
-            const partialPersonalDetails: PersonalDetailsList = {
-                '4': {
-                    accountID: 4,
-                    displayName: 'Black Panther',
-                    login: 'tchalla@expensify.com',
-                    keyForList: 'tchalla@expensify.com',
-                    reportID: '1',
-                },
-                '9': {
-                    accountID: 9,
-                    displayName: 'Black Widow',
-                    login: 'natasharomanoff@expensify.com',
-                    keyForList: 'natasharomanoff@expensify.com',
-                    reportID: '',
-                },
-            };
-
-            // When we call getMemberInviteOptions with a partial personalDetailsCollection
-            const results = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                partialPersonalDetails,
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
-            );
-
-            // Then results should still include all personal details from OPTIONS.personalDetails
-            // (personalDetailsCollection is used for lookup purposes, not filtering)
-            expect(results.personalDetails.length).toBeGreaterThan(0);
-            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-        });
-
-        it('should handle personalDetailsCollection with different display names', () => {
-            // Given a personalDetailsCollection with modified display names
-            const modifiedPersonalDetails: PersonalDetailsList = {
-                ...PERSONAL_DETAILS,
-                '4': {
-                    ...PERSONAL_DETAILS['4'],
-                    displayName: 'Black Panther Updated', // Modified display name
-                },
-            };
-
-            // When we call getMemberInviteOptions with modified personalDetailsCollection
-            const results = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                modifiedPersonalDetails,
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
-            );
-
-            // Then personal details should still be returned
-            expect(results.personalDetails.length).toBeGreaterThan(0);
-            // The personalDetails in results come from OPTIONS.personalDetails, not personalDetailsCollection
-            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-        });
-
-        it('should exclude specified logins', () => {
-            // Given a set of personalDetails and logins to exclude
-            const excludeLogins = {'tchalla@expensify.com': true};
-
-            // When we call getMemberInviteOptions with excludeLogins
-            const results = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                PERSONAL_DETAILS,
-                [],
-                excludeLogins,
-                false,
-                COUNTRY_CODE,
-            );
-
-            // Then Black Panther should not be in the results
-            const blackPanther = results.personalDetails.find((detail) => detail.text === 'Black Panther');
-            expect(blackPanther).toBeUndefined();
-        });
-    });
-
     describe('getLastActorDisplayName()', () => {
         it('should return correct display name', () => {
             renderLocaleContextProvider();
@@ -2674,50 +2465,6 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.personalDetails.length).toBe(1);
             // Then the user to invite should be null
             expect(filteredOptions.userToInvite).toBe(null);
-        });
-
-        it('should not return any options if search value does not match any personal details (getMemberInviteOptions)', () => {
-            // Given a set of options
-            const options = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                PERSONAL_DETAILS,
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
-            );
-            // When we call filterAndOrderOptions with a search value that does not match any personal details
-            const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
-
-            // Then no personal details should be returned
-            expect(filteredOptions.personalDetails.length).toBe(0);
-        });
-
-        it('should return one personal detail if search value matches an email (getMemberInviteOptions)', () => {
-            // Given a set of options
-            const options = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                PERSONAL_DETAILS,
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
-            );
-            // When we call filterAndOrderOptions with a search value that matches an email
-            const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
-
-            // Then one personal detail should be returned
-            expect(filteredOptions.personalDetails.length).toBe(1);
-            // Then the returned personal detail should match the search text
-            expect(filteredOptions.personalDetails.at(0)?.text).toBe('Spider-Man');
         });
 
         it('should not show any recent reports if a search value does not match the group chat name (getShareDestinationsOptions)', () => {
@@ -3533,7 +3280,7 @@ describe('OptionsListUtils', () => {
             expect(canCreate).toBe(false);
         });
 
-        it('createOptionList() localization', () => {
+        it('createOptionList() localization', async () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
@@ -3542,18 +3289,15 @@ describe('OptionsListUtils', () => {
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
 
-            return (
-                waitForBatchedUpdates()
-                    // When we set the preferred locale to Spanish
-                    .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
-                    .then(() => {
-                        // When we call createOptionList again
-                        const newReports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined).reports;
-                        // Then the returned reports should change to Spanish
-                        // cspell:disable-next-line
-                        expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
-                    })
-            );
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES);
+
+            await waitForBatchedUpdates();
+
+            // When we call createOptionList again
+            const newReports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, undefined).reports;
+            // Then the returned reports should change to Spanish
+            // cspell:disable-next-line
+            expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
         });
     });
 
@@ -3627,6 +3371,8 @@ describe('OptionsListUtils', () => {
                     '1': getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
                 },
             });
+            await waitForBatchedUpdates();
+
             // When we call createOptionList with report 10 marked as archived
             const archivedMap: PrivateIsArchivedMap = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: reportNameValuePairs.private_isArchived,
@@ -6714,27 +6460,6 @@ describe('OptionsListUtils', () => {
             expect(options.personalDetails).toBeDefined();
         });
 
-        it('getMemberInviteOptions should use reports parameter correctly', () => {
-            // When we call getMemberInviteOptions with the reports parameter
-            const results = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                PERSONAL_DETAILS,
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
-            );
-
-            // Then the function should complete without errors and return valid results
-            expect(results).toBeDefined();
-            expect(results.personalDetails).toBeDefined();
-            expect(results.recentReports).toEqual([]);
-        });
-
         it('getUserToInviteOption should use reports parameter correctly', () => {
             // Given a valid email search value and reports collection
             const result = getUserToInviteOption({
@@ -7089,6 +6814,25 @@ describe('OptionsListUtils', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, undefined, {searchTerm: 'Spider'});
 
             expect(result).toBeDefined();
+            expect(result.reports.length).toBe(Object.keys(REPORTS).length);
+        });
+
+        it('should return all reports when searchTerm is provided (isSearching is true)', () => {
+            const result = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                REPORTS,
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                {},
+                {},
+                {
+                    searchTerm: 'Report',
+                    maxRecentReports: 2,
+                },
+            );
+
+            expect(result).toBeDefined();
+            expect(result.reports.length).toBe(Object.keys(REPORTS).length);
         });
 
         it('should return both reports and personal details', () => {
