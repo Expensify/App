@@ -1,10 +1,12 @@
 import React, {useEffect, useMemo, useRef} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
+import type {TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
 import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import type {EditableProps} from '@components/Table/EditableCell/types';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
@@ -18,6 +20,7 @@ type MerchantOrDescriptionCellProps = {
 
 function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, shouldUseNarrowLayout, isDescription, canEdit, onSave}: MerchantOrDescriptionCellProps) {
     const styles = useThemeStyles();
+    const inputRef = useRef<RNTextInput | null>(null);
 
     const text = useMemo(() => {
         if (!isDescription) {
@@ -37,6 +40,23 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
             return;
         }
         setLocalValue(value);
+    };
+
+    const handleRef = (element: BaseTextInputRef | null) => {
+        inputRef.current = element as RNTextInput | null;
+    };
+
+    // Multiline TextInputs with autoFocus default cursor to the beginning; manually position it at the end on focus
+    const handleFocus = () => {
+        requestAnimationFrame(() => {
+            const input = inputRef.current;
+            if (!input) {
+                return;
+            }
+
+            scrollToBottom(input);
+            moveSelectionToEnd(input);
+        });
     };
 
     // Prevent double-save: pressing Enter can fires onSubmitEditing (on single-line inputs) then
@@ -83,12 +103,14 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
             onStartEditing={startEditing}
             editContent={
                 <TextInput
+                    ref={handleRef}
                     accessibilityLabel={isDescription ? 'Description input' : 'Merchant input'}
                     value={localValue}
                     onChangeText={handleChangeText}
                     onKeyPress={handleKeyPress}
                     onBlur={handleBlur}
                     onSubmitEditing={handleSubmitEditing}
+                    onFocus={handleFocus}
                     autoFocus
                     // We use a multiline TextInput for both merchant and description to keep editing behavior consistent.
                     // Since merchants are single-line, we sanitize line breaks before storing.
