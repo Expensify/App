@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import CategorySelectorModal from '@components/CategorySelector/CategorySelectorModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,7 +25,6 @@ import {clearPolicyErrorField, setWorkspaceDefaultSpendCategory} from '@userActi
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import KeyboardUtils from '@src/utils/keyboard';
 
 type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps &
     (
@@ -80,8 +79,10 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
             setWorkspaceDefaultSpendCategory(policyID, currentGroupID, selectedCategory.keyForList);
         }
 
-        KeyboardUtils.dismiss({
-            afterTransition: () => setIsSelectorModalVisible(false),
+        Keyboard.dismiss();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            setIsSelectorModalVisible(false);
         });
     };
 

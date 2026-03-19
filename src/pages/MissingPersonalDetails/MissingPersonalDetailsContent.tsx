@@ -85,6 +85,9 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => {
+        if (shouldCollectPIN === undefined) {
+            return -1;
+        }
         const initialPage = getInitialSubPage(values, shouldCollectPIN, PIN);
         return findPageIndex<CustomSubPageProps>(formPages, initialPage);
     }, [formPages, values, shouldCollectPIN, PIN]);

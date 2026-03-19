@@ -112,6 +112,7 @@ function CreateReportMenuItem() {
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
+        shouldHandleNavigationBack: false,
     });
 
     return (
