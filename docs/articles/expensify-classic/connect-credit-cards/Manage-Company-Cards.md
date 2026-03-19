@@ -94,7 +94,7 @@ A CSV upload is a manual method for importing credit card transactions into Expe
 # Assign Cards: How do I assign cards to employees?
 1. Go to **Settings > Domains > [Domain Name] > Company Cards**.
 2. Select the card feed from the dropdown list.
-3. Click **Assign New Cards** and select the employee’s email and card number.
+3. Click **Assign New Cards** and enter the employee’s email address and select the card number. You can enter any email address — the assignee does not need to be a member of your domain.
 4. (Optional) Set a transaction start date.
 5. Click **Assign** to complete the process.
 
