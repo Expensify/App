@@ -97,7 +97,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
      */
     const calculatePopoverPositionAndToggleOverlay = useCallback(() => {
         calculatePopoverPosition(anchorRef, ANCHOR_ORIGIN).then((pos) => {
-            setPopoverTriggerPosition({...pos, vertical: pos.vertical + PADDING_MODAL});
+            setPopoverTriggerPosition({...pos, vertical: pos.vertical});
             toggleOverlay();
         });
     }, [calculatePopoverPosition, toggleOverlay]);
@@ -124,6 +124,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     const popoverContent = useMemo(() => {
         return PopoverComponent({closeOverlay: toggleOverlay});
     }, [PopoverComponent, toggleOverlay]);
+
+    console.log('position', popoverTriggerPosition)
 
     return (
         <View
