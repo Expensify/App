@@ -59,13 +59,22 @@ describe('useExportedToFilterOptions', () => {
         expect(result.current.connectedIntegrationNames).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
     });
 
-    it('excludes custom template name from options when getExportTemplates returns custom template', () => {
+    it('includes integration custom template name from options when getExportTemplates returns integration template', () => {
         const customName = 'Export Layout';
-        mockGetExportTemplates.mockReturnValue([{templateName: customName, name: customName} as ExportTemplate]);
+        mockGetExportTemplates.mockReturnValue([{templateName: customName, name: customName, type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS} as ExportTemplate]);
 
         const {result} = renderHook(() => useExportedToFilterOptions());
 
-        expect(result.current.exportedToFilterOptions).not.toContain(customName);
+        expect(result.current.exportedToFilterOptions).toContain(customName);
+    });
+
+    it('excludes in-app custom templates from options', () => {
+        const templateName = 'Custom Export Format from OD';
+        mockGetExportTemplates.mockReturnValue([{templateName, name: templateName, type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP} as ExportTemplate]);
+
+        const {result} = renderHook(() => useExportedToFilterOptions());
+
+        expect(result.current.exportedToFilterOptions).not.toContain(templateName);
     });
 
     it('includes standard export label in options when getExportTemplates returns standard template', () => {
