@@ -1,4 +1,3 @@
-import {useNavigationState} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -10,6 +9,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
@@ -37,7 +37,7 @@ const is2FARequiredBecauseOfXeroSelector = (email?: string) => {
 
 function RequireTwoFactorAuthenticationOverlay() {
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
-    const isIn2FASetupFlow = useNavigationState((state) => {
+    const isIn2FASetupFlow = useRootNavigationState((state) => {
         const focusedScreen = getDeepestFocusedScreen(state);
         return isTwoFactorSetupScreen(focusedScreen?.name);
     });
