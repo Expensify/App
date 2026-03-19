@@ -164,7 +164,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
     const backTo = route.params.backTo;
 
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
@@ -224,7 +224,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, conciergeReportID, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
@@ -461,7 +461,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         introSelected,
                         allTransactionDrafts,
                         activePolicy,
-                        userBillingGraceEndPeriodCollection,
+                        userBillingGraceEndPeriods,
                         amountOwed,
                         ownerBillingGraceEndPeriod,
                         isRestrictedToPreferredPolicy,
@@ -485,7 +485,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            userBillingGraceEndPeriodCollection,
+                            userBillingGraceEndPeriods,
                             amountOwed,
                             ownerBillingGraceEndPeriod,
                         });
@@ -506,7 +506,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            userBillingGraceEndPeriodCollection,
+                            userBillingGraceEndPeriods,
                             amountOwed,
                             ownerBillingGraceEndPeriod,
                         });
@@ -635,7 +635,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         activePolicy,
         parentReport,
         reportActionsForOriginalReportID,
-        userBillingGraceEndPeriodCollection,
+        userBillingGraceEndPeriods,
         amountOwed,
         ownerBillingGraceEndPeriod,
     ]);

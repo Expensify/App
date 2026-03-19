@@ -165,6 +165,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, recalculateUnreportedTransactionDetails, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
+import {cacheAttachment, removeCachedAttachment} from '@userActions/Attachment';
 import {clearByKey} from '@userActions/CachedPDFPaths';
 import {setDownload} from '@userActions/Download';
 import {close} from '@userActions/Modal';
@@ -191,6 +192,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     AnyRequest,
+    Attachment,
     BankAccountList,
     Beta,
     IntroSelected,
@@ -317,6 +319,9 @@ type OpenReportActionParams = {
     /** The current user's account ID */
     currentUserAccountID?: number;
 
+    /** Whether the user has seen the self tour */
+    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
+    isSelfTourViewed?: boolean;
     /** Beta features list. TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417) */
     betas?: OnyxEntry<Beta[]>;
 };
@@ -415,6 +420,14 @@ Onyx.connect({
         }
         onboarding = val;
     },
+});
+
+// We use connectWithoutView because `allAttachments` doesn't affect the UI rendering, it's only used to retrieve attachment local source when deleting a comment
+let allAttachments: OnyxCollection<Attachment> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.ATTACHMENT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allAttachments = value),
 });
 
 let environment: EnvironmentType;
@@ -705,8 +718,9 @@ function addActions({
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
+    const attachmentID = rand64();
     if (text && !file) {
-        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, reportID, reportActionID);
+        const reportComment = buildOptimisticAddCommentReportAction({text, reportID, reportActionID});
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -715,8 +729,9 @@ function addActions({
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, reportID);
+        const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID});
         attachmentAction = attachment.reportAction;
+        cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
     }
 
     if (text && file) {
@@ -725,6 +740,31 @@ function addActions({
 
         // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
         commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
+    }
+
+    // Store all markdown text attachments i.e `![](https://images.unsplash.com/...)`
+    const resolvedReportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
+    const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
+
+    const attachments = attachmentTags.flatMap((htmlTag, index) => {
+        const tag = htmlTag[0];
+
+        // [2] means the exact value, in this case source url and attachment id of the attachment tag
+        const source = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE)?.[2];
+        const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2];
+
+        if (!source) {
+            return [];
+        }
+
+        return {
+            uri: source,
+            attachmentID: dataAttachmentID ?? `${resolvedReportActionID}_${index + 1}`,
+        };
+    });
+
+    for (const attachment of attachments) {
+        cacheAttachment({attachmentID: attachment.attachmentID, uri: attachment.uri ?? ''});
     }
 
     // Always prefer the file as the last action over text
@@ -771,7 +811,7 @@ function addActions({
 
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
-        reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
+        reportActionID: resolvedReportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
@@ -781,6 +821,10 @@ function addActions({
 
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChatReport(report)) {
         parameters.isOldDotConciergeChat = true;
+    }
+
+    if (file) {
+        parameters.attachmentID = attachmentID;
     }
 
     if (isInSidePanel && (isConciergeChatReport(report) || isAdminRoom(report))) {
@@ -871,7 +915,7 @@ function addActions({
         failureReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = null;
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1168,7 +1212,12 @@ type GuidedSetupDataForOpenReport = {
  * Returns the onyx data arrays and guidedSetupData string to include in the API parameters,
  * or undefined if no guided setup is needed.
  */
-function getGuidedSetupDataForOpenReport(introSelected: OnyxEntry<IntroSelected>, betas: OnyxEntry<Beta[]>): GuidedSetupDataForOpenReport | undefined {
+function getGuidedSetupDataForOpenReport(
+    introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
+    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
+    isSelfTourViewed?: boolean,
+): GuidedSetupDataForOpenReport | undefined {
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
 
@@ -1202,6 +1251,7 @@ function getGuidedSetupDataForOpenReport(introSelected: OnyxEntry<IntroSelected>
         engagementChoice: choice,
         onboardingMessage,
         companySize: introSelected?.companySize as OnboardingCompanySize,
+        isSelfTourViewed,
         betas,
     });
 
@@ -1248,6 +1298,7 @@ function openReport(params: OpenReportActionParams) {
         optimisticSelfDMReport,
         currentUserLogin,
         currentUserAccountID,
+        isSelfTourViewed,
         betas,
     } = params;
     if (!reportID) {
@@ -1470,7 +1521,7 @@ function openReport(params: OpenReportActionParams) {
         });
     }
 
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, betas, isSelfTourViewed);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -1932,7 +1983,7 @@ function createTransactionThreadReport(
 function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
-            callback: () => {
+            afterTransition: () => {
                 if (!reportID) {
                     return;
                 }
@@ -1956,7 +2007,13 @@ function navigateToReport(reportID: string | undefined, shouldDismissModal = tru
  * @param currentUserAccountID the account ID of the current user.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins: string[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>, shouldDismissModal = true) {
+function navigateToAndOpenReport(
+    userLogins: string[],
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
+    shouldDismissModal = true,
+) {
     let newChat: OptimisticChatReport | undefined;
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
@@ -1967,7 +2024,7 @@ function navigateToAndOpenReport(userLogins: string[], currentUserAccountID: num
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         });
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport({reportID: newChat?.reportID, introSelected, reportActionID: '', participantLoginList: userLogins, newReportObject: newChat});
+        openReport({reportID: newChat?.reportID, introSelected, reportActionID: '', participantLoginList: userLogins, newReportObject: newChat, isSelfTourViewed});
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -2431,6 +2488,27 @@ function deleteReportComment(
 
     if (!reportActionID || !originalReportID || !reportID) {
         return;
+    }
+    const reportActionMessage = ReportActionsUtils.getReportActionMessage(reportAction);
+    const reportCommentText = reportActionMessage?.html ?? '';
+
+    const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
+
+    const attachments = attachmentTags.flatMap((htmlTag, index) => {
+        const tag = htmlTag[0];
+
+        const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
+        const attachmentID = dataAttachmentID ?? `${reportActionID}_${index + 1}`;
+        const attachment = allAttachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+
+        return {
+            attachmentID,
+            localSource: attachment?.source,
+        };
+    });
+
+    for (const attachment of attachments) {
+        removeCachedAttachment({attachmentID: attachment.attachmentID, localSource: attachment.localSource});
     }
 
     const isDeletedParentAction = ReportActionsUtils.isThreadParentMessage(reportAction, reportID);
@@ -3343,7 +3421,8 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], currentUserAccountID, introSelected, shouldDismissModal);
+            // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], currentUserAccountID, introSelected, undefined, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});

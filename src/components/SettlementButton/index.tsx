@@ -192,7 +192,18 @@ function SettlementButton({
         }
 
         return false;
-    }, [isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, isUserValidated, chatReportID, reportID, policy, userBillingGraceEndPeriods]);
+    }, [
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        isAccountLocked,
+        showLockedAccountModal,
+        isUserValidated,
+        chatReportID,
+        reportID,
+        policy,
+        userBillingGraceEndPeriods,
+        ownerBillingGraceEndPeriod,
+    ]);
 
     const shortFormPayElsewhereButton = {
         text: translate('iou.pay'),
@@ -357,6 +368,7 @@ function SettlementButton({
                     activePolicyID,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                    betas,
                     isSelfTourViewed,
                 }).policyID;
             };

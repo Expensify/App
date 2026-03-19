@@ -101,9 +101,6 @@ function ProcessMoneyReportHoldMenu({
         }
 
         if (isApprove) {
-            if (startAnimation) {
-                startAnimation();
-            }
             approveMoneyRequest({
                 expenseReport: moneyRequestReport,
                 policy: activePolicy,
@@ -117,11 +114,9 @@ function ProcessMoneyReportHoldMenu({
                 amountOwed,
                 ownerBillingGraceEndPeriod,
                 full,
+                onApproved: startAnimation,
             });
         } else if (chatReport && paymentType) {
-            if (startAnimation) {
-                startAnimation();
-            }
             payMoneyRequest({
                 paymentType,
                 chatReport,
@@ -138,6 +133,7 @@ function ProcessMoneyReportHoldMenu({
                 amountOwed,
                 ownerBillingGraceEndPeriod,
                 methodID,
+                onPaid: startAnimation,
             });
         }
         onClose();
