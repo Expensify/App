@@ -28,6 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistance, setMoneyRequestOdometerReading, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
+import {createBackupTransaction, removeBackupTransactionWithImageCleanup, restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -227,6 +228,14 @@ function IOURequestStepDistanceOdometer({
         }
     }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing]);
 
+    useEffect(() => {
+        if (!isEditingConfirmation) {
+            return;
+        }
+        createBackupTransaction(currentTransaction, isTransactionDraft);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
@@ -342,11 +351,14 @@ function IOURequestStepDistanceOdometer({
 
     const navigateBack = useCallback(() => {
         if (isEditingConfirmation) {
-            Navigation.goBack(confirmationRoute);
+            // User didn't saved - we restore original from backup and cleanup blob urls of new images
+            restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft, () => {
+                Navigation.goBack(confirmationRoute);
+            });
             return;
         }
         Navigation.goBack();
-    }, [isEditingConfirmation, confirmationRoute]);
+    }, [isEditingConfirmation, confirmationRoute, transactionID, isTransactionDraft]);
 
     const handlePressStartImage = useCallback(() => {
         if (odometerStartImage) {
@@ -424,7 +436,10 @@ function IOURequestStepDistanceOdometer({
         }
 
         if (isEditingConfirmation) {
-            Navigation.goBack(confirmationRoute);
+            // User saved - we cleanup blob urls of original images from backup
+            removeBackupTransactionWithImageCleanup(transactionID, isTransactionDraft, () => {
+                Navigation.goBack(confirmationRoute);
+            });
             return;
         }
 
