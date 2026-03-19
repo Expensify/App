@@ -463,6 +463,16 @@ function createTransactionPreviewConditionals({
     };
 }
 
+function transactionHasRBR(transaction: OnyxEntry<OnyxTypes.Transaction>, transactionReport: OnyxEntry<OnyxTypes.Report>, violations: OnyxTypes.TransactionViolations): boolean {
+    if (!transaction) {
+        return false;
+    }
+    const isTransactionOnHold = isOnHold(transaction);
+    const hasErrors = hasMissingSmartscanFields(transaction, transactionReport) || hasReceiptError(transaction);
+    const hasViolations = !!violations && violations.some((violation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION);
+    return isTransactionOnHold || hasErrors || hasViolations;
+}
+
 export {
     getReviewNavigationRoute,
     getIOUPayerAndReceiver,
@@ -471,5 +481,6 @@ export {
     getViolationTranslatePath,
     getUniqueActionErrorsForTransaction,
     formatLastFourPAN,
+    transactionHasRBR,
 };
 export type {TranslationPathOrText};

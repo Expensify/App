@@ -79,6 +79,7 @@ import {
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -504,7 +505,20 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    const carouselTransactions = useMemo(() => (shouldShowAccessPlaceHolder ? [] : transactions.slice(0, 11)), [shouldShowAccessPlaceHolder, transactions]);
+    const carouselTransactions = useMemo(() => {
+        if (shouldShowAccessPlaceHolder) {
+            return [];
+        }
+        const sorted = [...transactions].sort((a, b) => {
+            const aHasRBR = transactionHasRBR(a, iouReport, transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${a.transactionID}`] ?? []);
+            const bHasRBR = transactionHasRBR(b, iouReport, transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${b.transactionID}`] ?? []);
+            if (aHasRBR === bHasRBR) {
+                return 0;
+            }
+            return aHasRBR ? -1 : 1;
+        });
+        return sorted.slice(0, 11);
+    }, [shouldShowAccessPlaceHolder, transactions, iouReport, transactionViolations]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
