@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getUAForWebView from '@libs/getUAForWebView';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards/PersonalCardsErrorConfirmation';
@@ -45,8 +46,17 @@ function BankConnection({route}: BankConnectionProps) {
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
     const isNewCardError = newCard?.errors;
+    const fullscreenReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'PersonalCardBankConnection',
+    };
+    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'PersonalCardBankConnection',
+        isConnectionCompleted,
+        isPlaid,
+        isNewCardError: !!isNewCardError,
+    };
 
-    const renderLoading = () => <FullScreenLoadingIndicator />;
+    const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={fullscreenReasonAttributes} />;
 
     const handleBackButtonPress = () => {
         setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_BANK});
@@ -106,6 +116,7 @@ function BankConnection({route}: BankConnectionProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
+                        reasonAttributes={activityReasonAttributes}
                     />
                 )}
                 {!!isNewCardError && <PersonalCardsErrorConfirmation cardID={newCard?.cardID} />}
