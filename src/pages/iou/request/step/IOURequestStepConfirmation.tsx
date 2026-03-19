@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/core';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -259,6 +260,7 @@ function IOURequestStepConfirmation({
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
+    const isFocused = useIsFocused();
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
@@ -391,7 +393,7 @@ function IOURequestStepConfirmation({
     const odometerEndImage = transaction?.comment?.odometerEndImage;
 
     useEffect(() => {
-        if (!isOdometerDistanceRequest) {
+        if (!isOdometerDistanceRequest || !isFocused) {
             return;
         }
 
@@ -437,7 +439,7 @@ function IOURequestStepConfirmation({
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, currentTransactionID, odometerStartImage, odometerEndImage, action, translate]);
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, odometerStartImage, odometerEndImage, action, translate]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
