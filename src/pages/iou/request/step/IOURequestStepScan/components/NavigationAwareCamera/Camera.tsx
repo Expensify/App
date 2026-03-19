@@ -11,7 +11,11 @@ function Camera({cameraTabIndex, ref, forceInactive = false, ...props}: Navigati
     return (
         <VisionCamera
             ref={ref}
+            // "balanced" is only ~15ms slower than "speed" but applies noise reduction
+            // that produces better quality photos with smaller file sizes.
             photoQualityBalance="balanced"
+            // Disable features that slow down photo capture per VisionCamera perf tips:
+            // https://react-native-vision-camera.com/docs/guides/performance
             photoHdr={false}
             videoStabilizationMode="off"
             // eslint-disable-next-line react/jsx-props-no-spreading
