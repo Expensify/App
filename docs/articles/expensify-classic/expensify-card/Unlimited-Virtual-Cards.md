@@ -48,7 +48,7 @@ Domain Admins can edit the details of any virtual card on the [Company Cards](ht
 
 ---
 
-# How to terminate a cirtual card
+# How to terminate a virtual card
 
 Admins can terminate a virtual card by setting the limit to **$0**.
 
