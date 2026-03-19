@@ -9,8 +9,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Policy, Report, Transaction} from '../../src/types/onyx';
-import type {CardList} from '../../src/types/onyx/Card';
+import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -453,6 +452,47 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('isScanning', () => {
+        it('returns true for a scan-eligible transaction without a manual amount override', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(true);
+        });
+
+        it('returns false when a scan-eligible transaction has a manual amount override', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: 1234,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(false);
+        });
+
+        it('returns false when the receipt is not in a scanning state', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.OPEN,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(false);
+        });
+    });
+
     describe('getTransactionType', () => {
         it('returns card when the transaction is null', () => {
             expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
@@ -485,18 +525,15 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM);
         });
 
-        it('returns cash when the transaction cardID maps to a cash card in the card list', () => {
-            const cardID = 101;
-            const cardList = {
-                [cardID]: {
-                    cardName: '__CASH__',
-                },
-            } as unknown as CardList;
+        it('returns cash when the card has a cash card name', () => {
+            const card = {
+                cardName: CONST.COMPANY_CARDS.CARD_NAME.CASH,
+            } as Card;
             const transaction = generateTransaction({
-                cardID,
+                cardID: 101,
             });
 
-            expect(TransactionUtils.getTransactionType(transaction, cardList)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+            expect(TransactionUtils.getTransactionType(transaction, card)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
 
         it('returns cash when the transaction card name includes the cash card name substring', () => {

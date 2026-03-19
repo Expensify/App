@@ -21,7 +21,6 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
     const {orderedReports, currentReportID} = useSidebarOrderedReportsState('SidebarLinksData');
@@ -62,7 +61,6 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
                 priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
                 // Data props:
                 isActiveReport={isActiveReport}
-                isLoading={isLoadingApp ?? false}
                 optionListItems={orderedReports}
             />
         </View>
