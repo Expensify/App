@@ -146,6 +146,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
 
     const {userToInviteExpenseReport} = useUserToInviteReports(chatOptions?.userToInvite);
+    const userToInviteExpenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${userToInviteExpenseReport?.policyID}`];
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -166,7 +167,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             chatOptions.personalDetails,
             privateIsArchivedMap,
             currentUserAccountID,
-            policy,
+            allPolicies,
             personalDetails,
             true,
             undefined,
@@ -199,7 +200,15 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, userToInviteExpenseReport, policy, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              currentUserAccountID,
+                              personalDetails,
+                              userToInviteExpenseReport,
+                              userToInviteExpenseReportPolicy,
+                              reportAttributesDerived,
+                          )
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 3,
@@ -231,7 +240,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
-        policy,
+        allPolicies,
     ]);
 
     const selectAccountant = useCallback(

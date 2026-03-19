@@ -241,6 +241,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -281,7 +282,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         privateIsArchivedMap,
         currentUserAccountID,
-        undefined,
+        allPolicies,
         allPersonalDetails,
         undefined,
         undefined,

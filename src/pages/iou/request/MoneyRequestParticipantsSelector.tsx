@@ -250,6 +250,7 @@ function MoneyRequestParticipantsSelector({
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
 
     const {userToInviteExpenseReport} = useUserToInviteReports(availableOptions?.userToInvite);
+    const userToInviteExpenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${userToInviteExpenseReport?.policyID}`];
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
@@ -303,7 +304,7 @@ function MoneyRequestParticipantsSelector({
             [],
             privateIsArchivedMap,
             currentUserAccountID,
-            policy,
+            allPolicies,
             personalDetails,
             true,
             undefined,
@@ -369,7 +370,15 @@ function MoneyRequestParticipantsSelector({
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, userToInviteExpenseReport, policy, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              currentUserAccountID,
+                              personalDetails,
+                              userToInviteExpenseReport,
+                              userToInviteExpenseReportPolicy,
+                              reportAttributesDerived,
+                          )
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 5,
@@ -405,7 +414,7 @@ function MoneyRequestParticipantsSelector({
         privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
-        policy,
+        allPolicies,
     ]);
 
     /**

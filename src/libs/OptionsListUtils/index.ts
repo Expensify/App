@@ -2935,7 +2935,7 @@ function formatSectionsFromSearchTerm(
     filteredPersonalDetails: SearchOptionData[],
     privateIsArchivedMap: Record<string, string | undefined>,
     currentUserAccountID: number,
-    policy: OnyxEntry<Policy>,
+    allPolicies: OnyxCollection<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
@@ -2956,7 +2956,16 @@ function formatSectionsFromSearchTerm(
                               // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
                               const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
-                              return getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, expenseReport, policy, reportAttributesDerived);
+                              const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
+                              return getPolicyExpenseReportOption(
+                                  participant,
+                                  privateIsArchived,
+                                  currentUserAccountID,
+                                  personalDetails,
+                                  expenseReport,
+                                  expenseReportPolicy,
+                                  reportAttributesDerived,
+                              );
                           }
                           return getParticipantsOption(participant, personalDetails);
                       })
@@ -2988,7 +2997,16 @@ function formatSectionsFromSearchTerm(
                           // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
                           const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
-                          return getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, expenseReport, policy, reportAttributesDerived);
+                          const expenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expenseReport?.policyID}`];
+                          return getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              currentUserAccountID,
+                              personalDetails,
+                              expenseReport,
+                              expenseReportPolicy,
+                              reportAttributesDerived,
+                          );
                       }
                       return getParticipantsOption(participant, personalDetails);
                   })

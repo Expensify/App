@@ -113,7 +113,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             chatOptions.personalDetails,
             privateIsArchivedMap,
             currentUserAccountID,
-            undefined,
+            allPolicies,
             personalDetails,
             false,
             undefined,
