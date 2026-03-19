@@ -43,8 +43,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const taxesLength = Object.keys(policy?.taxRates?.taxes ?? {}).length ?? 0;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const categoriesCount = Object.keys(policyCategories ?? {}).length;
-    const codingRulesCount = Object.keys(policy?.rules?.codingRules ?? {}).length;
+    const categoriesCount = Object.values(policyCategories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const codingRulesCount = Object.values(policy?.rules?.codingRules ?? {}).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const reportFields = Object.keys(getReportFieldsByPolicyID(policyID)).length ?? 0;
     const customUnits = getPerDiemCustomUnit(policy);

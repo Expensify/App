@@ -3087,6 +3087,11 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const optimisticCategoriesData =
         policyCategories && isCategoriesOptionSelected ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories) : defaultOptimisticCategoriesData;
 
+    const visibleCodingRules = Object.fromEntries(Object.entries(policy?.rules?.codingRules ?? {}).filter(([, rule]) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
+    const visibleEmployeeList = Object.fromEntries(
+        Object.entries(policy?.employeeList ?? {}).filter(([, employee]) => employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    );
+
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: Array<
@@ -3119,14 +3124,14 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 travelSettings: undefined,
                 workspaceAccountID: undefined,
                 tax: isTaxesOptionSelected ? policy?.tax : undefined,
-                employeeList: isMemberOptionSelected ? policy.employeeList : {[policy.owner]: policy?.employeeList?.[policy.owner]},
+                employeeList: isMemberOptionSelected ? visibleEmployeeList : {[policy.owner]: policy?.employeeList?.[policy.owner]},
                 id: targetPolicyID,
                 name: policyName,
                 fieldList: isReportsOptionSelected ? policy?.fieldList : undefined,
                 connections: isConnectionsOptionSelected ? policy?.connections : undefined,
                 customUnits: getCustomUnitsForDuplication(policy, isDistanceRatesOptionSelected, isPerDiemOptionSelected, {distanceCustomUnitID, perDiemCustomUnitID}),
                 taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
-                rules: isCodingRulesOptionSelected ? {codingRules: policy?.rules?.codingRules} : undefined,
+                rules: isCodingRulesOptionSelected ? {codingRules: visibleCodingRules} : undefined,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
