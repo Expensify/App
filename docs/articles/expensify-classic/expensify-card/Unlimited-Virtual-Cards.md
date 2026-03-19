@@ -2,6 +2,7 @@
 title: Unlimited Virtual Cards
 description: Learn about virtual cards and how they help businesses improve efficiency and gain better control over company spending.
 keywords: [Expensify Classic, Expensify Card, virtual card]
+internalScope: Audience is Domain Admins. Covers issuing, editing, and terminating unlimited virtual cards. Does not cover physical Expensify Card setup or smart limit cards.
 ---
 
 Domain Admins can issue an unlimited number of virtual cards with either a fixed or monthly limit for specific purchases or recurring subscriptions (e.g., Marketing, Advertising, Travel, AWS, etc.). 
