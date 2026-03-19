@@ -175,7 +175,15 @@ jobs:
           echo "Version: ${{ env.PATCHED_VERSION }}"
           echo "Patches hash: ${{ env.PATCHES_HASH }}"
           export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
-          ./gradlew buildReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true -x lint -x test -x check -x ktfmtCheck
+
+          # Exclude ktfmt tasks from the included react-native build
+          EXCLUDE_KTFMT_TASKS=(
+            -x :react-native:packages:react-native:ReactAndroid:ktfmtCheck
+            -x :react-native:packages:react-native:ReactAndroid:ktfmtCheckMain
+            -x :react-native:packages:react-native:ReactAndroid:ktfmtCheckScripts
+          )
+
+          ./gradlew buildReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true -x lint -x test -x check "${EXCLUDE_KTFMT_TASKS[@]}"
           ./gradlew publishReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true
         env:
           GH_PUBLISH_ACTOR: ${{ github.actor }}
