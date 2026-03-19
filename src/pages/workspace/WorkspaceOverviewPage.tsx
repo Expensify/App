@@ -197,7 +197,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined, exactlyMatch: true};
 
     const fetchPolicyData = () => {
-        if (policyDraft?.id) {
+        if (policyDraft?.id || !isFocused) {
             return;
         }
         openPolicyProfilePage(route.params.policyID);
