@@ -335,6 +335,7 @@ function ReportActionsList({
                     unreadMarkerTime,
                     scrollingVerticalOffset: scrollOffsetRef.current,
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+                    isOffline,
                 });
             if (shouldDisplayNewMarker) {
                 return [reportAction.reportActionID, index];

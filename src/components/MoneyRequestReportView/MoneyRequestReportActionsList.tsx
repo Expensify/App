@@ -539,6 +539,7 @@ function MoneyRequestReportActionsList({
                     unreadMarkerTime,
                     scrollingVerticalOffset: scrollingVerticalBottomOffset.current,
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+                    isOffline,
                 });
 
             if (shouldDisplayNewMarker) {

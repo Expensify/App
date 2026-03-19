@@ -26,6 +26,9 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
 
     /** The id of reportAction that was last marked as read */
     prevUnreadMarkerReportActionID: string | null;
+
+    /** Whether the network is offline */
+    isOffline: boolean;
 };
 
 /**
@@ -41,6 +44,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     prevSortedVisibleReportActionsObjects,
     prevUnreadMarkerReportActionID,
     scrollingVerticalOffset,
+    isOffline,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
 
@@ -50,7 +54,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     }
 
     // If the unread marker should be hidden or is not within the visible area, don't show the unread marker.
-    if (shouldHideNewMarker(message)) {
+    if (shouldHideNewMarker(message, isOffline)) {
         return false;
     }
 

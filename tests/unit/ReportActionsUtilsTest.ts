@@ -39,9 +39,11 @@ import {
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
     isReportActionVisibleAsLastAction,
+    shouldHideNewMarker,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import shouldDisplayNewMarkerOnReportAction from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
@@ -4270,6 +4272,126 @@ describe('ReportActionsUtils', () => {
         it('includes pending-delete timer action as previous when offline', () => {
             const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
             expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(true);
+        });
+    });
+
+    describe('shouldHideNewMarker', () => {
+        it('returns true when reportAction is undefined', () => {
+            expect(shouldHideNewMarker(undefined, false)).toBe(true);
+        });
+
+        it('returns true when online and reportAction has pendingAction DELETE', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(shouldHideNewMarker(reportAction, false)).toBe(true);
+        });
+
+        it('returns false when offline and reportAction has pendingAction DELETE', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(shouldHideNewMarker(reportAction, true)).toBe(false);
+        });
+
+        it('returns false when online and reportAction has no pendingAction', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: null});
+            expect(shouldHideNewMarker(reportAction, false)).toBe(false);
+        });
+
+        it('returns false when offline and reportAction has no pendingAction', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: null});
+            expect(shouldHideNewMarker(reportAction, true)).toBe(false);
+        });
+    });
+
+    describe('shouldDisplayNewMarkerOnReportAction', () => {
+        const unreadMarkerTime = '2023-01-01 10:00:00.000';
+        const currentUserAccountID = 1;
+
+        function makeAction(overrides: Partial<ReportAction> = {}): ReportAction {
+            return getFakeReportAction(2, {
+                actorAccountID: 99,
+                created: '2023-01-01 11:00:00.000',
+                ...overrides,
+            });
+        }
+
+        const baseParams = {
+            nextMessage: undefined,
+            isEarliestReceivedOfflineMessage: false,
+            unreadMarkerTime,
+            currentUserAccountID,
+            prevSortedVisibleReportActionsObjects: {},
+            scrollingVerticalOffset: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 1,
+            prevUnreadMarkerReportActionID: 'some-id',
+        };
+
+        it('returns true when isEarliestReceivedOfflineMessage is true and next message is not unread', () => {
+            const message = makeAction();
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isEarliestReceivedOfflineMessage: true,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when online and message has pendingAction DELETE (shouldHideNewMarker = true)', () => {
+            const message = makeAction({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true when offline and message has pendingAction DELETE (shouldHideNewMarker = false)', () => {
+            const message = makeAction({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isOffline: true,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when message created time is before unreadMarkerTime (message is read)', () => {
+            const message = makeAction({created: '2023-01-01 09:00:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns false when nextMessage is also unread', () => {
+            const message = makeAction({created: '2023-01-01 11:00:00.000'});
+            const nextMessage = makeAction({created: '2023-01-01 11:30:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    nextMessage,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns false when message is from current user, is new, and no prevUnreadMarkerReportActionID', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'new-action-id'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevUnreadMarkerReportActionID: null,
+                    prevSortedVisibleReportActionsObjects: {},
+                    isOffline: false,
+                }),
+            ).toBe(false);
         });
     });
 });
