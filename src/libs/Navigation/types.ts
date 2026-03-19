@@ -2889,8 +2889,7 @@ type AttachmentModalScreensParamList = {
         accountID?: number;
         attachmentID?: string;
         source?: AvatarSource;
-        file?: FileObject | FileObject[];
-        dataTransferItems?: DataTransferItem[];
+        file: FileObject | FileObject[];
         type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
         isAuthTokenRequired?: boolean;
         originalFileName?: string;
