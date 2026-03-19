@@ -1,5 +1,9 @@
 import type {FileObject} from '@src/types/utils/Attachment';
 
+function getOdometerImageUri(image: FileObject | string | null | undefined): string | undefined {
+    return typeof image === 'string' ? image : image?.uri;
+}
+
 /**
  * Revokes a blob URL previously associated with an odometer image, but only when
  * the image has actually changed (i.e. the old URL differs from the new one).
@@ -14,15 +18,16 @@ function revokeOdometerImageUri(image: FileObject | string | null | undefined, n
         return;
     }
 
-    const currentUri = typeof image === 'string' ? image : image?.uri;
+    const currentUri = getOdometerImageUri(image);
     if (!currentUri?.startsWith('blob:')) {
         return;
     }
-    const nextUri = typeof nextImage === 'string' ? nextImage : nextImage?.uri;
+    const nextUri = getOdometerImageUri(nextImage);
     if (currentUri === nextUri) {
         return;
     }
     URL.revokeObjectURL(currentUri);
 }
 
+export {getOdometerImageUri};
 export default revokeOdometerImageUri;

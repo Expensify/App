@@ -55,6 +55,7 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
@@ -317,6 +318,10 @@ function IOURequestStepConfirmation({
     const [isConfirming, setIsConfirming] = useState(false);
     const [isStitchingReceipt, setIsStitchingReceipt] = useState(false);
     const [stitchError, setStitchError] = useState('');
+    const lastStitchedImages = useRef<{
+        startImage: FileObject | string | undefined;
+        endImage: FileObject | string | undefined;
+    } | null>(null);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -423,6 +428,18 @@ function IOURequestStepConfirmation({
             return;
         }
 
+        // Skip stitching when source images haven't changed (compare by URI not reference
+        // because Onyx may create new object instances when restoring a backup transaction)
+        const startUri = getOdometerImageUri(odometerStartImage);
+        const endUri = getOdometerImageUri(odometerEndImage);
+        if (
+            lastStitchedImages.current !== null &&
+            getOdometerImageUri(lastStitchedImages.current.startImage) === startUri &&
+            getOdometerImageUri(lastStitchedImages.current.endImage) === endUri
+        ) {
+            return;
+        }
+
         if (!odometerStartImage || !odometerEndImage) {
             const singleImage = odometerStartImage ?? odometerEndImage;
 
@@ -430,10 +447,10 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            const getImageUri = (img: typeof singleImage): string => (typeof img === 'string' ? img : (img.uri ?? ''));
             const getImageName = (img: typeof singleImage): string => (typeof img === 'string' ? (img.split('/').pop() ?? '') : (img.name ?? ''));
 
-            setMoneyRequestReceipt(currentTransactionID, getImageUri(singleImage), getImageName(singleImage), shouldUseTransactionDraft(action));
+            setMoneyRequestReceipt(currentTransactionID, getOdometerImageUri(singleImage) ?? '', getImageName(singleImage), shouldUseTransactionDraft(action));
+            lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             return;
         }
 
@@ -447,6 +464,7 @@ function IOURequestStepConfirmation({
                     return;
                 }
                 setMoneyRequestReceipt(currentTransactionID, stitchedImage.uri ?? '', stitchedImage.name ?? '', shouldUseTransactionDraft(action));
+                lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             })
             .catch((error: unknown) => {
                 if (ignore) {
