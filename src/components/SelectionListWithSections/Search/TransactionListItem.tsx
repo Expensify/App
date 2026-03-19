@@ -233,7 +233,6 @@ function TransactionListItem<TItem extends ListItem>({
                             style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
                             violations={transactionViolations}
                             onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
-                            shouldHideArrowRight={isDeletedTransaction}
                             isHover={hovered}
                             customCardNames={customCardNames}
                             reportActions={exportedReportActions}

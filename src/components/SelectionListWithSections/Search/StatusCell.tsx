@@ -15,15 +15,18 @@ type StatusCellProps = {
 
     /** Whether the report's state/status is pending */
     isPending?: boolean;
+
+    /** Wheter the transaction was deleted */
+    isDeleted?: boolean;
 };
 
-function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
+function StatusCell({stateNum, statusNum, isPending, isDeleted}: StatusCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, translate}), [stateNum, statusNum, translate]);
-    const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum), [theme, stateNum, statusNum]);
+    const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}), [stateNum, statusNum, translate]);
+    const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted), [theme, stateNum, statusNum]);
 
     if (!statusText || !reportStatusColorStyle) {
         return null;

@@ -135,7 +135,6 @@ type TransactionItemRowProps = {
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
-    shouldHideArrowRight?: boolean;
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
     customCardNames?: Record<number, string>;
@@ -188,7 +187,6 @@ function TransactionItemRow({
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
-    shouldHideArrowRight = false,
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
     customCardNames,
@@ -204,6 +202,7 @@ function TransactionItemRow({
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const isDeletedTransaction = transactionItem.reportID === CONST.REPORT.TRASH_REPORT_ID;
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -616,6 +615,7 @@ function TransactionItemRow({
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
+                            isDeleted={isDeletedTransaction}
                         />
                     </View>
                 );
@@ -801,7 +801,7 @@ function TransactionItemRow({
                     )}
                     {!!isLargeScreenWidth &&
                         !!onArrowRightPress &&
-                        (shouldHideArrowRight ? (
+                        (isDeletedTransaction ? (
                             <View style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd, styles.opacity0]}>
                                 <Icon
                                     src={expensicons.ArrowRight}

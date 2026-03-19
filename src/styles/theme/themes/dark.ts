@@ -191,6 +191,10 @@ const darkTheme = {
             backgroundColor: colors.pink700,
             textColor: colors.pink200,
         },
+        deleted: {
+            backgroundColor: colors.productDark400,
+            textColor: colors.productDark900
+        }
     },
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
