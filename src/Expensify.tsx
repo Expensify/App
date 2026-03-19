@@ -213,8 +213,8 @@ function Expensify() {
             if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
                 const propsToLog = {
                     isCheckingPublicRoom,
-                    updateAvailable,
                     updateRequired,
+                    updateAvailable,
                     isAuthenticated,
                     lastVisitedPath,
                 };
