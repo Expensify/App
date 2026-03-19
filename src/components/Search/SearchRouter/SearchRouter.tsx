@@ -336,7 +336,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     }}
                     caretHidden={shouldHideInputCaret}
                     shouldShowOfflineMessage
-                    wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
+                    wrapperStyle={{...styles.searchRouterBorder, ...styles.alignItemsCenter}}
                     wrapperFocusedStyle={styles.borderColorFocus}
                     isSearchingForReports={!!isSearchingForReports}
                     selection={selection}

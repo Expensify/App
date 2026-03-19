@@ -1096,6 +1096,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadius,
             borderColor: theme.border,
         },
+        searchRouterBorder: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: theme.bordersBold,
+        },
 
         borderColorFocus: {
             borderColor: theme.borderFocus,
