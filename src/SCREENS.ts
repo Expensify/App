@@ -252,6 +252,8 @@ const SCREENS = {
         SUCCESS: 'Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
         DISABLE: 'Settings_TwoFactorAuth_Disable',
+        REPLACE_VERIFY_OLD: 'Settings_TwoFactorAuth_Replace_VerifyOld',
+        REPLACE_VERIFY_NEW: 'Settings_TwoFactorAuth_Replace_VerifyNew',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -444,7 +446,7 @@ const SCREENS = {
         NAME: 'Report_Settings_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
-        VISIBILITY: 'Report_Settings_Visibility',
+        DYNAMIC_SETTINGS_VISIBILITY: 'Dynamic_Report_Settings_Visibility',
         REPORT_LAYOUT: 'Report_Settings_Report_Layout',
         COLUMNS: 'Report_Settings_Columns',
     },
