@@ -793,7 +793,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, betas, false);
             });
             return;
         }
@@ -845,9 +845,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID);
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, betas]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {

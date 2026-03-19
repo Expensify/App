@@ -323,7 +323,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, TEST_USER_ACCOUNT_ID);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, TEST_USER_ACCOUNT_ID, undefined);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -356,7 +356,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -388,7 +388,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -3948,7 +3948,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, false);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, false);
 
             await waitForBatchedUpdates();
 
@@ -3959,7 +3959,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, true);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, true);
 
             await waitForBatchedUpdates();
 
@@ -3974,7 +3974,7 @@ describe('actions/Report', () => {
             // When conciergeReportID is undefined, the function uses onServerDataReady()
             // which is async. We're testing that it doesn't throw and handles the case properly.
             expect(() => {
-                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, false);
+                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, false);
             }).not.toThrow();
         });
 
@@ -3983,7 +3983,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, true, undefined, undefined, reportActionID);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, true, undefined, undefined, reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -3998,7 +3998,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, false, undefined, linkToOptions);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, false, undefined, linkToOptions);
 
             await waitForBatchedUpdates();
 
@@ -4012,7 +4012,7 @@ describe('actions/Report', () => {
             // Don't set CONCIERGE_REPORT_ID to simulate undefined state
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, false, checkIfCurrentPageActive);
+            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, false, checkIfCurrentPageActive);
 
             await waitForBatchedUpdates();
 
@@ -4027,7 +4027,7 @@ describe('actions/Report', () => {
             // When conciergeReportID is undefined (or null passed as undefined),
             // it should handle it gracefully
             expect(() => {
-                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, false);
+                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, false);
             }).not.toThrow();
         });
 
@@ -4037,7 +4037,7 @@ describe('actions/Report', () => {
 
             // Empty string is falsy in JavaScript, so it should trigger the undefined path
             expect(() => {
-                Report.navigateToConciergeChat('', testIntroSelected, TEST_USER_ACCOUNT_ID, false);
+                Report.navigateToConciergeChat('', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, false);
             }).not.toThrow();
         });
 
@@ -4049,7 +4049,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, true, checkIfCurrentPageActive, linkToOptions, reportActionID);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, true, checkIfCurrentPageActive, linkToOptions, reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -4066,7 +4066,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, onyxConciergeReportID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(providedConciergeReportID, testIntroSelected, TEST_USER_ACCOUNT_ID, false);
+            Report.navigateToConciergeChat(providedConciergeReportID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, false);
 
             await waitForBatchedUpdates();
 
@@ -4098,7 +4098,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
 
             await waitForBatchedUpdates();
 
@@ -4112,7 +4112,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, true);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, true);
 
             await waitForBatchedUpdates();
 
@@ -4125,7 +4125,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.navigateToConciergeChatAndDeleteReport(undefined, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED);
+                Report.navigateToConciergeChatAndDeleteReport(undefined, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
             }).not.toThrow();
         });
 
@@ -4134,7 +4134,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, undefined, TEST_USER_ACCOUNT_ID, INTRO_SELECTED);
+                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, undefined, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -4148,7 +4148,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, false, true);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, false, true);
 
             await waitForBatchedUpdates();
 
@@ -4161,7 +4161,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, true, true);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, true, true);
 
             await waitForBatchedUpdates();
 
@@ -4175,7 +4175,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
 
             await waitForBatchedUpdates();
 
@@ -4190,7 +4190,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, undefined);
+                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -4834,7 +4834,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, TEST_CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_GROUP_CHAT, 1);
@@ -4853,7 +4853,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`, groupChatReport);
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             // After success, the report should be removed from Onyx (set to null)
@@ -4878,7 +4878,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, true, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED);
+            Report.leaveGroupChat(groupChatReport, true, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -4905,7 +4905,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, quickActionValue);
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -4927,7 +4927,7 @@ describe('actions/Report', () => {
 
             // Should not throw an error with undefined conciergeReportID
             expect(() => {
-                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED);
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -4959,7 +4959,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, TEST_CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, false);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_ROOM, 1);
@@ -4978,7 +4978,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, true);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, true);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
@@ -5002,7 +5002,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, false);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
             await waitForBatchedUpdates();
 
             // After success, the report should only have reportName (all other fields removed)
@@ -5036,7 +5036,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, false);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
             await waitForBatchedUpdates();
 
             const updatedParentReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}` as const);
@@ -5058,7 +5058,7 @@ describe('actions/Report', () => {
 
             // Should not throw an error with undefined conciergeReportID
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, undefined, TEST_INTRO_SELECTED, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -5083,7 +5083,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, threadReport);
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, false);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
@@ -5106,7 +5106,7 @@ describe('actions/Report', () => {
 
             // Should not throw when introSelected is provided
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -5137,7 +5137,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Should not throw and should call the API
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_GROUP_CHAT, 1);
@@ -5160,7 +5160,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected);
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -5182,7 +5182,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined);
+                Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -5214,7 +5214,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, customIntroSelected, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -5235,7 +5235,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, undefined, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -5256,7 +5256,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, {}, false);
+                Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, {}, undefined, false);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -5301,7 +5301,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_CURRENT_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, false);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
             await waitForBatchedUpdates();
 
             // Should navigate via goBack since there's another report to navigate to
@@ -5330,7 +5330,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Chat thread with no other report → navigateToMostRecentReport calls navigateToConciergeChat without goBack
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, false);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, false);
             await waitForBatchedUpdates();
 
             // For chat threads, goBack should NOT be called before navigating to concierge (the isChatThread branch)
@@ -5373,7 +5373,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_CURRENT_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -5394,7 +5394,7 @@ describe('actions/Report', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_CURRENT_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
-            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED);
+            Report.leaveGroupChat(groupChatReport, false, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined);
             await waitForBatchedUpdates();
 
             // With no other reports, navigateToMostRecentReport calls goBack (not a chat thread) then navigateToConciergeChat
@@ -5428,7 +5428,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // isWorkspaceMemberLeavingWorkspaceRoom=true and report is NOT a chat thread → should dismissModal
-            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, true);
+            Report.leaveRoom(roomReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, true);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.dismissModal).toHaveBeenCalled();
@@ -5459,7 +5459,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // isWorkspaceMemberLeavingWorkspaceRoom=true but report IS a chat thread → should NOT dismissModal, should navigateToMostRecentReport instead
-            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, true);
+            Report.leaveRoom(threadReport, TEST_CURRENT_USER_ACCOUNT_ID, TEST_CONCIERGE_REPORT_ID, TEST_INTRO_SELECTED, undefined, true);
             await waitForBatchedUpdates();
 
             expect(mockNavigation.dismissModal).not.toHaveBeenCalled();
@@ -5552,7 +5552,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             // No error should be thrown, function should return early
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, undefined, undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, undefined, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -5560,7 +5560,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, 'invalidType', undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, 'invalidType', undefined);
             }).not.toThrow();
         });
 
@@ -5571,7 +5571,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
 
-            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
 
             await waitForBatchedUpdates();
 
@@ -5582,7 +5582,7 @@ describe('actions/Report', () => {
         it('should not throw with undefined introSelected', () => {
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
     });

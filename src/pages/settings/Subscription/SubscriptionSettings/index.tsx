@@ -67,6 +67,7 @@ function SubscriptionSettings() {
     const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const isExpensifyCodeApplied = !!privateSubscription?.expensifyCode;
     const shouldShowExpensifyCodeSection = !privateSubscription?.isSecretPromoCode;
@@ -290,7 +291,7 @@ function SubscriptionSettings() {
                     shouldShowRightIcon
                     onPress={() => {
                         requestTaxExempt();
-                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, betas, false);
                     }}
                     icon={icons.Coins}
                     wrapperStyle={styles.sectionMenuItemTopDescription}

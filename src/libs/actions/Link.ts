@@ -342,7 +342,7 @@ function openReportFromDeepLink(
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, betas, false, () => true);
                                     return;
                                 }
 

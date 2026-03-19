@@ -65,6 +65,7 @@ function AboutPage() {
     const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const menuItems = useMemo(() => {
@@ -107,7 +108,7 @@ function AboutPage() {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: icons.Bug,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
-                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false)),
+                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, betas, false)),
             },
         ];
 
