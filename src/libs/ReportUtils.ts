@@ -6273,7 +6273,7 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, b
     Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
 }
 
-function navigateOnDeleteExpense(backToRoute?: Route) {
+function navigateOnDeleteExpense(backToRoute: Route) {
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.dismissModal();
         return;
