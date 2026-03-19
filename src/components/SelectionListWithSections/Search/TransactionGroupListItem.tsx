@@ -496,6 +496,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 showTooltip={showTooltip}
                                 canSelectMultiple={canSelectMultiple}
                                 onCheckboxPress={onCheckboxPress}
+                                onSelectRow={onSelectRow}
                                 columns={columns}
                                 groupBy={groupBy}
                                 accountID={currentUserDetails.accountID}

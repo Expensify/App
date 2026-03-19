@@ -33,6 +33,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {OnboardingRHPVariant} from '@src/types/onyx';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
 function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
@@ -213,7 +214,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 setOnboardingPolicyID(policyID);
             }
 
-            await completeOnboarding({
+            const response = await completeOnboarding({
                 engagementChoice: onboardingPurposeSelected,
                 onboardingMessage: onboardingMessages[onboardingPurposeSelected],
                 adminsChatReportID,
@@ -228,6 +229,11 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 isSelfTourViewed,
                 betas,
             });
+
+            // Extract the RHP variant directly from the API response to avoid a race condition
+            // where the Onyx callback hasn't fired yet when navigateAfterOnboarding is called.
+            const rhpVariantUpdate = (response?.onyxData as Array<{key: string; value: unknown}> | undefined)?.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT);
+            const rhpVariant = rhpVariantUpdate?.value as OnboardingRHPVariant | undefined;
 
             // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -247,6 +253,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
                 // See https://github.com/Expensify/App/issues/57167 for more details
                 (session?.email ?? '').includes('+'),
+                rhpVariant,
             );
         } catch (error) {
             Log.warn('[BaseOnboardingInterestedFeatures] Error completing onboarding', {error});
