@@ -231,7 +231,6 @@ const CONST = {
     ANIMATED_PROGRESS_BAR_DURATION: 750,
     ANIMATION_IN_TIMING: 100,
     COMPOSER_FOCUS_DELAY: 150,
-    MAX_TRANSITION_DURATION_MS: 1000,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -2199,6 +2198,12 @@ const CONST = {
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
         NUMBERS_AND_PUNCTUATION: 'numbers-and-punctuation',
+    },
+
+    KEYBOARD_SUBMIT_BEHAVIOR: {
+        DISMISS_THEN_SUBMIT: 'dismiss-then-submit',
+        SUBMIT_AND_DISMISS: 'submit-and-dismiss',
+        SUBMIT_ONLY: 'submit-only',
     },
 
     INPUT_MODE: {
@@ -7822,6 +7827,11 @@ const CONST = {
             AFTER: 'After',
             BEFORE: 'Before',
         },
+        DATE_FILTER_SUB_PAGE: {
+            ON: 'on',
+            AFTER: 'after',
+            BEFORE: 'before',
+        },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
             GREATER_THAN: 'GreaterThan',
@@ -8175,7 +8185,7 @@ const CONST = {
         CUSTOM_FIELD_1: 'customField1',
         CUSTOM_FIELD_2: 'customField2',
         ROLE: 'role',
-        REPORT_THRESHHOLD: 'reportThreshold',
+        REPORT_THRESHOLD: 'reportThreshold',
         APPROVE_TO_ALTERNATE: 'approveToAlternate',
         SUBRATE: 'subRate',
         AMOUNT: 'amount',
@@ -8465,6 +8475,10 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
+    },
+
+    MODAL_EVENTS: {
+        CLOSED: 'modalClosed',
     },
 
     LIST_BEHAVIOR: {

@@ -1,6 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {generateIsEmptyReport, generateReportAttributes, isArchivedReport, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
@@ -19,7 +19,8 @@ const prepareReportKeys = (keys: string[]) => {
                 key
                     .replace(ONYXKEYS.COLLECTION.REPORT_METADATA, ONYXKEYS.COLLECTION.REPORT)
                     .replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT)
-                    .replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT),
+                    .replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT)
+                    .replace(ONYXKEYS.COLLECTION.REPORT_VIOLATIONS, ONYXKEYS.COLLECTION.REPORT),
             ),
         ),
     ];
@@ -70,10 +71,11 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.POLICY_TAGS,
+        ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, reportViolations],
         {currentValue, sourceValues},
     ) => {
         // Check if display names changed when personal details are updated
@@ -115,8 +117,11 @@ export default createOnyxDerivedValueConfig({
         const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA] ?? {};
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS] ?? {};
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
+        const reportViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_VIOLATIONS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
+        const policyTagsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY_TAGS];
+
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
 
@@ -139,12 +144,13 @@ export default createOnyxDerivedValueConfig({
             ...Object.keys(reportMetadataUpdates),
             ...Object.keys(reportActionsUpdates),
             ...Object.keys(reportNameValuePairsUpdates),
+            ...Object.keys(reportViolationsUpdates),
             ...Array.from(reportUpdatesRelatedToReportActions),
         ];
 
         if (useIncrementalUpdates) {
             // if there are report-related updates, iterate over the updates
-            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates) {
+            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates || !!policyTagsUpdates) {
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
 
@@ -183,6 +189,13 @@ export default createOnyxDerivedValueConfig({
                     }
                     dataToIterate.push(...prepareReportKeys(transactionReportIDs));
                 }
+                if (policyTagsUpdates) {
+                    const changedPolicyIDs = new Set(Object.keys(policyTagsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY_TAGS, '')));
+                    const affectedReportKeys = Object.values(reports)
+                        .filter((report) => !!report?.policyID && changedPolicyIDs.has(report.policyID))
+                        .map((report) => `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`);
+                    dataToIterate.push(...prepareReportKeys(affectedReportKeys));
+                }
             } else {
                 // No updates to process, return current value to prevent unnecessary computation
                 return currentValue ?? {reports: {}, locale: null};
@@ -220,6 +233,9 @@ export default createOnyxDerivedValueConfig({
                 isReportArchived,
             });
 
+            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+            const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, reportViolations?.[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report.reportID}`]);
+
             let brickRoadStatus;
             let actionBadge;
             let actionTargetReportActionID;
@@ -227,7 +243,7 @@ export default createOnyxDerivedValueConfig({
                 report,
                 chatReport,
                 reportActionsList,
-                hasAnyViolations,
+                hasAnyViolations || hasFieldViolations,
                 reportErrors,
                 transactions,
                 transactionViolations,
