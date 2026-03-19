@@ -216,10 +216,14 @@ Onyx.connect({
     },
 });
 
-const lastReportActions: ReportActions = {};
-const allSortedReportActions: Record<string, ReportAction[]> = {};
-const cachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
-let allReportActions: OnyxCollection<ReportActions>;
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+const deprecatedLastReportActions: ReportActions = {};
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+const deprecatedAllSortedReportActions: Record<string, ReportAction[]> = {};
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -228,10 +232,10 @@ Onyx.connect({
             return;
         }
 
-        allReportActions = actions ?? {};
+        deprecatedAllReportActions = actions ?? {};
 
         // Iterate over the report actions to build the sorted report actions objects
-        for (const reportActions of Object.entries(allReportActions)) {
+        for (const reportActions of Object.entries(deprecatedAllReportActions)) {
             const reportID = reportActions[0].split('_').at(1);
             if (!reportID) {
                 continue;
@@ -239,7 +243,7 @@ Onyx.connect({
 
             const reportActionsArray = Object.values(reportActions[1] ?? {});
             let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
-            allSortedReportActions[reportID] = sortedReportActions;
+            deprecatedAllSortedReportActions[reportID] = sortedReportActions;
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
@@ -247,7 +251,7 @@ Onyx.connect({
             // to the transaction thread or the report itself.
             // Cache the result for O(1) lookup in renderItem.
             const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]]);
-            cachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
+            deprecatedCachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
 
             if (transactionThreadReportID) {
                 const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
@@ -256,9 +260,9 @@ Onyx.connect({
 
             const firstReportAction = sortedReportActions.at(0);
             if (!firstReportAction) {
-                delete lastReportActions[reportID];
+                delete deprecatedLastReportActions[reportID];
             } else {
-                lastReportActions[reportID] = firstReportAction;
+                deprecatedLastReportActions[reportID] = firstReportAction;
             }
         }
     },
@@ -619,7 +623,8 @@ function getLastMessageTextForReport({
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     let lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam);
 
-    const transactionThreadReportID = reportID ? cachedOneTransactionThreadReportIDs[reportID] : undefined;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const transactionThreadReportID = reportID ? deprecatedCachedOneTransactionThreadReportIDs[reportID] : undefined;
 
     if (reportID && !lastAction && transactionThreadReportID) {
         lastReportAction =
@@ -649,7 +654,8 @@ function getLastMessageTextForReport({
     }
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
-    const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const lastOriginalReportAction = reportID ? deprecatedLastReportActions[reportID] : undefined;
     let lastMessageTextFromReport = '';
 
     if (isArchivedNonExpenseReport(report, isReportArchived)) {
@@ -682,7 +688,8 @@ function getLastMessageTextForReport({
         const iouReportID = iouReport?.reportID;
         const reportCache = iouReportID ? visibleReportActionsDataParam?.[iouReportID] : undefined;
         const visibleReportActionsForIOUReport = reportCache && Object.keys(reportCache).length > 0 ? visibleReportActionsDataParam : undefined;
-        const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] : undefined;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const iouReportActions = iouReportID ? deprecatedAllSortedReportActions[iouReportID] : undefined;
         const canPerformWrite = canUserPerformWriteAction(report, isReportArchived);
         const lastIOUMoneyReportAction =
             iouReportID && iouReportActions
@@ -2279,7 +2286,8 @@ function prepareReportOptionsForDisplay(
         let isOptionUnread = option.isUnread;
         if (shouldUnreadBeBold) {
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
-            const resolvedSortedActions = sortedReportActionsData?.sortedActions ?? allSortedReportActions;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const resolvedSortedActions = sortedReportActionsData?.sortedActions ?? deprecatedAllSortedReportActions;
             const oneTransactionThreadReportID =
                 report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
                     ? getOneTransactionThreadReportID(report, chatReport, resolvedSortedActions[report.reportID])
@@ -2292,7 +2300,8 @@ function prepareReportOptionsForDisplay(
         let lastIOUCreationDate;
         // Add a field to sort the recent reports by the time of last IOU request for create actions
         if (preferRecentExpenseReports) {
-            const sortedActionsForLookup = sortedReportActionsData?.sortedActions ?? allSortedReportActions;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const sortedActionsForLookup = sortedReportActionsData?.sortedActions ?? deprecatedAllSortedReportActions;
             const reportPreviewAction = sortedActionsForLookup[option.reportID]?.find((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
 
             if (reportPreviewAction) {
