@@ -239,7 +239,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             return;
         }
 
-        if (policyIDParam) {
+        if (policyIDParam && !isLoadingOnyxValue(reimbursementAccountMetadata)) {
             setReimbursementAccountLoading(true);
             clearReimbursementAccountDraft();
         }
