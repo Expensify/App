@@ -387,6 +387,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
     const optimisticHoldActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureHoldActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const reportActionIDList: string[] = [];
+    const resolvedTransactionIDList: string[] = [];
     const optimisticHoldTransactionActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     const failureHoldTransactionActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     const allReportActions = getAllReportActionsFromIOU();
@@ -417,6 +418,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         const transactionThreadReportID = iouAction.childReportID;
         const createdReportAction = buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
+        resolvedTransactionIDList.push(transactionID);
         optimisticHoldTransactionActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -486,7 +488,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         ...otherParams,
         transactionID: params.transactionID,
         reportActionIDList,
-        transactionIDList: params.transactionIDList,
+        transactionIDList: resolvedTransactionIDList,
         dismissedViolationReportActionID: optimisticReportAction.reportActionID,
     };
 
