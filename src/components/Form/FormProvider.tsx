@@ -4,12 +4,12 @@ import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import {isSafari} from '@libs/Browser';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -25,6 +25,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
+import isNumericKeyboard from './isNumericKeyboard';
 import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
@@ -100,6 +101,14 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Prevents the submit button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
+    /**
+     * Controls how keyboard dismissal interacts with form submission.
+     * - `DISMISS_THEN_SUBMIT` (default): waits for the keyboard to fully dismiss before calling `onSubmit`.
+     * - `SUBMIT_AND_DISMISS`: calls `onSubmit` immediately while dismissing the keyboard in parallel via `dismissKeyboardAndExecute`.
+     * - `SUBMIT_ONLY`: calls `onSubmit` immediately without any keyboard dismissal (navigation handles keyboard cleanup).
+     */
+    keyboardSubmitBehavior?: ValueOf<typeof CONST.KEYBOARD_SUBMIT_BEHAVIOR>;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -118,6 +127,7 @@ function FormProvider({
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
+    keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -130,14 +140,13 @@ function FormProvider({
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const isLoadingDraftValues = isLoadingOnyxValue(draftValuesMetadata);
-    const prevIsLoadingDraftValues = usePrevious(isLoadingDraftValues);
+    const previousDraftValues = useRef(draftValues);
 
-    useEffect(() => {
-        if (isLoadingDraftValues || !prevIsLoadingDraftValues) {
-            return;
-        }
-        setInputValues({...draftValues});
-    }, [isLoadingDraftValues, draftValues, prevIsLoadingDraftValues]);
+    if (!isLoadingDraftValues && draftValues !== previousDraftValues.current) {
+        previousDraftValues.current = draftValues;
+        setInputValues({...inputValues, ...draftValues});
+    }
+
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurActions();
@@ -262,8 +271,14 @@ function FormProvider({
                 return;
             }
 
-            KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError]),
+            if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
+                KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+            } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
+            } else {
+                onSubmit(trimmedStringValues);
+            }
+        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior]),
         1000,
         {leading: true, trailing: false},
     );
@@ -353,6 +368,8 @@ function FormProvider({
 
             const inputRef = inputProps.ref;
 
+            const hasNumericKeyboard = isNumericKeyboard(inputProps);
+
             return {
                 ...inputProps,
                 ...(shouldSubmitForm && {
@@ -361,7 +378,7 @@ function FormProvider({
 
                         inputProps.onSubmitEditing?.(event);
                     },
-                    returnKeyType: 'go',
+                    ...(!hasNumericKeyboard && {returnKeyType: 'go' as const}),
                 }),
                 ref:
                     typeof inputRef === 'function'

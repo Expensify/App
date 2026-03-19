@@ -10,6 +10,8 @@ const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAcco
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
+const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => !!activeAdminPoliciesSelector(policies, currentUserAccountLogin).length;
+
 /**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,
  * sorted alphabetically by field key using the provided locale compare function
@@ -87,6 +89,7 @@ const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollectio
 
 const shouldRedirectToExpensifyClassicSelector = (policies: OnyxCollection<Policy>) => areAllGroupPoliciesExpenseChatDisabled(policies);
 
+// deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
 const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
     if (!policies) {
         return {};
@@ -121,15 +124,30 @@ const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): O
     return result;
 };
 
+const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
+
+const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
+
+const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length;
+
+const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
+
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     activeAdminPoliciesSelector,
+    hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
     hasMultipleOutputCurrenciesSelector,
     groupPaidPoliciesWithExpenseChatEnabledSelector,
     iouRequestPolicyCollectionSelector,
     shouldRedirectToExpensifyClassicSelector,
+    adminPoliciesConnectedToSageIntacctSelector,
+    adminPoliciesConnectedToNetSuiteSelector,
+    hasPoliciesConnectedToSageIntacctSelector,
+    hasPoliciesConnectedToNetSuiteSelector,
 };

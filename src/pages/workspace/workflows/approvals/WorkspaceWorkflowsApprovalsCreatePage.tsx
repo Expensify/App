@@ -94,7 +94,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                             />
                         </>
                     )}
-                    {!approvalWorkflow && <FullScreenLoadingIndicator />}
+                    {!approvalWorkflow && <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsCreatePage'}} />}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

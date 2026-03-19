@@ -511,7 +511,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 platform,
                 isOffline,
                 hasAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
-                serverHasAnyCredentials: biometrics.serverHasAnyCredentials,
+                serverHasAnyCredentials: biometrics.serverKnownCredentialIDs.length > 0,
             });
             dispatch({
                 type: 'INIT',
@@ -521,7 +521,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 },
             });
         },
-        [biometrics.serverHasAnyCredentials, dispatch, isOffline, platform],
+        [biometrics.serverKnownCredentialIDs, dispatch, isOffline, platform],
     );
 
     /**
