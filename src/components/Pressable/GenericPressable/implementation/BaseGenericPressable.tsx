@@ -65,6 +65,9 @@ function GenericPressable({
     }, [isScreenReaderActive, enableInScreenReaderStates, disabled, isExecuting]);
 
     const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
+    // Avoid passing disabled={false} to RN Pressable, since that overrides accessibilityState.disabled on native.
+    const nativeDisabled = fullDisabled ? true : undefined;
+    const mergedAccessibilityState = {...accessibilityState, disabled: isDisabled};
 
     /**
      * Returns the cursor style based on the state of Pressable
@@ -141,6 +144,13 @@ function GenericPressable({
         [onPressHandler],
     );
 
+    const onSingleExecutionPressHandler = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            return singleExecution(onPressHandler)(event);
+        },
+        [onPressHandler, singleExecution],
+    );
+
     useEffect(() => {
         if (!keyboardShortcut) {
             return () => {};
@@ -177,8 +187,8 @@ function GenericPressable({
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref as ForwardedRef<View>}
-            disabled={fullDisabled}
-            onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
+            disabled={nativeDisabled}
+            onPress={!isDisabled ? onSingleExecutionPressHandler : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
@@ -195,10 +205,7 @@ function GenericPressable({
                 isRoleButton && styles.userSelectNone,
             ]}
             // accessibility props
-            accessibilityState={{
-                disabled: isDisabled,
-                ...accessibilityState,
-            }}
+            accessibilityState={mergedAccessibilityState}
             aria-disabled={isDisabled}
             aria-checked={accessibilityState?.checked}
             aria-selected={accessibilityState?.selected}

@@ -38,9 +38,25 @@ function getLastPressableProps(): PressableWithFeedbackProps {
     return lastCall[0];
 }
 
-describe('Button native disabled semantics on web', () => {
+describe('Button native disabled semantics', () => {
     beforeEach(() => {
         mockPressableWithFeedback.mockClear();
+    });
+
+    it('maps disabled state to fullDisabled by default on native', () => {
+        render(
+            <Button
+                text="Next"
+                isDisabled
+            />,
+        );
+
+        expect(getLastPressableProps()).toEqual(
+            expect.objectContaining({
+                disabled: true,
+                fullDisabled: true,
+            }),
+        );
     });
 
     it('maps disabled state to fullDisabled when web native semantics are enabled', () => {

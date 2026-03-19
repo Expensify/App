@@ -1,3 +1,3 @@
-const enableNativeDisabled = false;
+const enableNativeDisabled = true;
 
 export default enableNativeDisabled;
