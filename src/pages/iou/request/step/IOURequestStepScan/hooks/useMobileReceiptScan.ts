@@ -33,7 +33,6 @@ function useMobileReceiptScan({
 
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
 
     const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
