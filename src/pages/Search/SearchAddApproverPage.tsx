@@ -176,7 +176,7 @@ function SearchAddApproverPage() {
     }, [selectedReports.length]);
 
     if (isSaving) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'SearchAddApproverPage'}} />;
     }
 
     return (

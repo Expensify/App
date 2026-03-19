@@ -193,18 +193,19 @@ function SearchChangeApproverPage() {
     const listHeader =
         selectedPolicies.length === 1 ? (
             <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                <RenderHTML
-                    html={translate('iou.changeApprover.header', {
-                        workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`,
-                    })}
-                />
+                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`)} />
             </View>
         ) : (
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
         );
 
     if ((!isOffline && isLoadingBulkChangeApproverPage) || isSaving) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return (
+            <FullScreenLoadingIndicator
+                shouldUseGoBackButton
+                reasonAttributes={{context: 'SearchChangeApproverPage'}}
+            />
+        );
     }
 
     return (
