@@ -31,10 +31,11 @@ describe('IOU Utils', () => {
                 },
                 targetAccountPersonalDetails: createPersonalDetails(1),
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs: [],
             });
 
             // Then we should start manual submit request flow
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.MANUAL, true, undefined, undefined, undefined);
+            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, [], CONST.IOU.REQUEST_TYPE.MANUAL, true, undefined, undefined);
         });
 
         it('should be navigated to Scan receipt Split Expense', () => {
@@ -47,13 +48,15 @@ describe('IOU Utils', () => {
                 },
                 targetAccountPersonalDetails: createPersonalDetails(1),
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs: [],
             });
 
             // Then we should start scan split request flow
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SPLIT, reportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, undefined, undefined);
+            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SPLIT, reportID, [], CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, undefined);
         });
 
         it('should be navigated to Track distance Expense', () => {
+            const draftTransactionIDs: string[] = [];
             // When the quick action is TRACK_DISTANCE
             navigateToQuickAction({
                 isValidReport: true,
@@ -63,13 +66,15 @@ describe('IOU Utils', () => {
                 },
                 targetAccountPersonalDetails: createPersonalDetails(1),
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs,
             });
 
             // Then we should start distance track request flow
-            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true, undefined, undefined);
+            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true, undefined, undefined);
         });
 
         it('should be navigated to Map distance Expense by default', () => {
+            const draftTransactionIDs: string[] = [];
             // When the quick action is REQUEST_DISTANCE
             navigateToQuickAction({
                 isValidReport: true,
@@ -79,13 +84,15 @@ describe('IOU Utils', () => {
                 },
                 targetAccountPersonalDetails: createPersonalDetails(1),
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs,
             });
 
             // Then we should start map distance request flow
-            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true, undefined, undefined);
+            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true, undefined, undefined);
         });
 
         it('should be navigated to request distance Expense depending on lastDistanceExpenseType', () => {
+            const draftTransactionIDs: string[] = [];
             // When the quick action is REQUEST_DISTANCE
             navigateToQuickAction({
                 isValidReport: true,
@@ -96,10 +103,49 @@ describe('IOU Utils', () => {
                 targetAccountPersonalDetails: createPersonalDetails(1),
                 lastDistanceExpenseType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs,
             });
 
             // Then we should start manual distance request flow
-            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, true, undefined, undefined);
+            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, true, undefined, undefined);
+        });
+
+        it('should pass draftTransactionIDs with existing drafts to startDistanceRequest for TRACK_DISTANCE', () => {
+            // Given draftTransactionIDs with some existing draft IDs
+            const draftTransactionIDs = ['123'];
+            // When the quick action is TRACK_DISTANCE
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.TRACK_DISTANCE, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
+                targetAccountPersonalDetails: createPersonalDetails(1),
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs,
+            });
+
+            // Then startDistanceRequest should be called with the draftTransactionIDs
+            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true, undefined, undefined);
+        });
+
+        it('should pass draftTransactionIDs with existing drafts to startDistanceRequest for REQUEST_DISTANCE', () => {
+            // Given draftTransactionIDs with some existing draft IDs
+            const draftTransactionIDs = ['456'];
+            // When the quick action is REQUEST_DISTANCE
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.REQUEST_DISTANCE, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
+                targetAccountPersonalDetails: createPersonalDetails(1),
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs,
+            });
+
+            // Then startDistanceRequest should be called with the draftTransactionIDs
+            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, true, undefined, undefined);
         });
 
         it('should be navigated to Per Diem Expense', () => {
@@ -112,10 +158,11 @@ describe('IOU Utils', () => {
                 },
                 targetAccountPersonalDetails: createPersonalDetails(1),
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs: [],
             });
 
             // Then we should start per diem request flow
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.PER_DIEM, true, undefined, undefined, undefined);
+            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, [], CONST.IOU.REQUEST_TYPE.PER_DIEM, true, undefined, undefined);
         });
 
         it('should be navigated to Time Expense', () => {
@@ -128,10 +175,11 @@ describe('IOU Utils', () => {
                 },
                 targetAccountPersonalDetails: createPersonalDetails(1),
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs: [],
             });
 
             // Then we should start time request flow
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.TIME, false, undefined, undefined, undefined);
+            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, [], CONST.IOU.REQUEST_TYPE.TIME, false, undefined, undefined);
         });
     });
 });
@@ -147,6 +195,7 @@ describe('Non IOU quickActions test:', () => {
                 },
                 targetAccountPersonalDetails: createPersonalDetails(123),
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs: [],
             });
             expect(startOutCreateTaskQuickAction).toHaveBeenCalled();
         });

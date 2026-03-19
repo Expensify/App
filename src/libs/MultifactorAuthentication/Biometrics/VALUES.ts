@@ -181,6 +181,13 @@ const API_RESPONSE_MAP = {
             [BACKEND_MESSAGE.TRANSACTION_NOT_FOUND]: REASON.BACKEND.TRANSACTION_NOT_FOUND,
         },
     },
+
+    SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN: {
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
+        },
+    },
 } as const;
 
 /**
@@ -329,6 +336,13 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     /**
      * Used to determine the action for a particular transaction under LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS Onyx key.
      */
+    REGISTRATION_STATUS: {
+        NEVER_REGISTERED: 'never',
+        NOT_REGISTERED: 'not_registered',
+        REGISTERED_OTHER_DEVICE: 'other_device',
+        REGISTERED_THIS_DEVICE: 'this_device',
+    },
+
     LOCALLY_PROCESSED_TRANSACTION_ACTION: {
         APPROVE: 'Approve',
         DENY: 'Deny',

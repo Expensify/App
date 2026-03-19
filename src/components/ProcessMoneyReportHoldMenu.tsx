@@ -41,6 +41,9 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Type of payment */
     paymentType?: PaymentMethodType;
 
+    /** Selected VBBA ID for payment */
+    methodID?: number;
+
     /** Type of action handled */
     requestType?: ActionHandledType;
 
@@ -61,6 +64,7 @@ function ProcessMoneyReportHoldMenu({
     onClose,
     isVisible,
     paymentType,
+    methodID,
     chatReport,
     moneyRequestReport,
     transactionCount,
@@ -96,9 +100,6 @@ function ProcessMoneyReportHoldMenu({
         }
 
         if (isApprove) {
-            if (startAnimation) {
-                startAnimation();
-            }
             approveMoneyRequest({
                 expenseReport: moneyRequestReport,
                 policy: activePolicy,
@@ -111,11 +112,9 @@ function ProcessMoneyReportHoldMenu({
                 userBillingGraceEndPeriods,
                 amountOwed,
                 full,
+                onApproved: startAnimation,
             });
         } else if (chatReport && paymentType) {
-            if (startAnimation) {
-                startAnimation();
-            }
             payMoneyRequest({
                 paymentType,
                 chatReport,
@@ -129,6 +128,9 @@ function ProcessMoneyReportHoldMenu({
                 betas,
                 isSelfTourViewed,
                 userBillingGraceEndPeriods,
+                amountOwed,
+                methodID,
+                onPaid: startAnimation,
             });
         }
         onClose();

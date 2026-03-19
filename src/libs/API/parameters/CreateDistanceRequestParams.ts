@@ -12,6 +12,7 @@ type CreateDistanceRequestParams = {
     iouReportID?: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
+    amount?: number;
     category?: string;
     receipt?: Receipt;
     tag?: string;

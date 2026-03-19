@@ -1,4 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -24,6 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -66,6 +68,7 @@ import {
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getAttendees,
     getDefaultTaxCode,
@@ -90,11 +93,10 @@ import {
     setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
     startMoneyRequest,
-    submitPerDiemExpenseForSelfDM,
-    submitPerDiemExpense as submitPerDiemExpenseIOUActions,
     trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
+import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
@@ -104,7 +106,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyTagLists, RecentlyUsedCategories, Report} from '@src/types/onyx';
+import type {RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
@@ -119,6 +121,32 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
+
+// Ends the submit expense span, starts a geolocation child span, then calls getCurrentPosition.
+// The expense callback receives GPS coordinates on success or undefined on error.
+// Extracted to avoid duplicating this identical telemetry block across trackExpense and requestMoney paths.
+function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
+    const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
+    markSubmitExpenseEnd();
+
+    startSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT, {
+        name: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
+        op: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
+        parentSpan,
+    });
+
+    getCurrentPosition(
+        (successData) => {
+            onPosition({lat: successData.coords.latitude, long: successData.coords.longitude});
+            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
+        },
+        (errorData) => {
+            Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
+            onPosition();
+            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
+        },
+    );
+}
 
 function IOURequestStepConfirmation({
     report: reportReal,
@@ -207,7 +235,6 @@ function IOURequestStepConfirmation({
 
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -217,6 +244,7 @@ function IOURequestStepConfirmation({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const reportAttributesDerived = useReportAttributes();
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
@@ -280,7 +308,7 @@ function IOURequestStepConfirmation({
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const isTestTransaction = transaction?.participants?.some((participant) => isSelectedManagerMcTest(participant.login));
 
-    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction;
+    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction && isScanRequest(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
@@ -317,6 +345,7 @@ function IOURequestStepConfirmation({
             }) ?? [],
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, currentUserPersonalDetails.accountID],
     );
+    const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const formHasBeenSubmitted = useRef(false);
@@ -411,6 +440,7 @@ function IOURequestStepConfirmation({
             // When starting to create an expense from the global FAB, If there is not an existing report yet, a random optimistic reportID is generated and used
             // for all of the routes in the creation flow.
             reportID ?? generateReportID(),
+            draftTransactionIDs,
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoadingTransaction]);
@@ -688,7 +718,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     existingTransactionDraft,
-                    draftTransactionIDs: transactionIDs,
+                    draftTransactionIDs,
                     isSelfTourViewed,
                     betas,
                     personalDetails,
@@ -733,6 +763,7 @@ function IOURequestStepConfirmation({
             betas,
             personalDetails,
             isGPSDistanceRequest,
+            draftTransactionIDs,
         ],
     );
 
@@ -897,6 +928,8 @@ function IOURequestStepConfirmation({
                     quickAction,
                     recentWaypoints,
                     betas,
+                    draftTransactionIDs,
+                    isSelfTourViewed,
                 });
             }
         },
@@ -925,6 +958,8 @@ function IOURequestStepConfirmation({
             quickAction,
             recentWaypoints,
             betas,
+            draftTransactionIDs,
+            isSelfTourViewed,
         ],
     );
 
@@ -1096,13 +1131,6 @@ function IOURequestStepConfirmation({
                         }
                         const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
 
-                        const participantsPolicyTags = selectedParticipants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
-                            if (participant.policyID) {
-                                acc[participant.policyID] = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
-                            }
-                            return acc;
-                        }, {});
-
                         // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
                         startSplitBill({
                             participants: selectedParticipants,
@@ -1236,21 +1264,7 @@ function IOURequestStepConfirmation({
                             return;
                         }
 
-                        getCurrentPosition(
-                            (successData) => {
-                                trackExpense(selectedParticipants, {
-                                    lat: successData.coords.latitude,
-                                    long: successData.coords.longitude,
-                                });
-                                markSubmitExpenseEnd();
-                            },
-                            (errorData) => {
-                                Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                                // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                trackExpense(selectedParticipants);
-                                markSubmitExpenseEnd();
-                            },
-                        );
+                        getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(selectedParticipants, gpsCoords));
                         return;
                     }
 
@@ -1288,21 +1302,7 @@ function IOURequestStepConfirmation({
                         return;
                     }
 
-                    getCurrentPosition(
-                        (successData) => {
-                            requestMoney(selectedParticipants, {
-                                lat: successData.coords.latitude,
-                                long: successData.coords.longitude,
-                            });
-                            markSubmitExpenseEnd();
-                        },
-                        (errorData) => {
-                            Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            requestMoney(selectedParticipants);
-                            markSubmitExpenseEnd();
-                        },
-                    );
+                    getCurrentPositionWithGeolocationSpan((gpsCoords) => requestMoney(selectedParticipants, gpsCoords));
                     return;
                 }
 
@@ -1349,7 +1349,7 @@ function IOURequestStepConfirmation({
             reportID,
             requestType,
             betas,
-            allPolicyTags,
+            participantsPolicyTags,
             personalDetails,
         ],
     );
@@ -1449,8 +1449,13 @@ function IOURequestStepConfirmation({
             }
         }
 
-        createTransaction(listOfParticipants);
-        setIsConfirming(false);
+        requestAnimationFrame(() => {
+            createTransaction(listOfParticipants);
+            // Keep the pre-submit loading state visible for one more paint so the spinner appears before navigation work starts.
+            requestAnimationFrame(() => {
+                setIsConfirming(false);
+            });
+        });
     };
 
     /**
@@ -1476,7 +1481,11 @@ function IOURequestStepConfirmation({
     };
 
     if (isLoadingTransaction) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'IOURequestStepConfirmation',
+            isLoadingTransaction,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     const showNextTransaction = () => {
@@ -1526,7 +1535,7 @@ function IOURequestStepConfirmation({
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID="IOURequestStepConfirmation"
         >
-            <DragAndDropProvider isDisabled={!showReceiptEmptyState}>
+            <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
@@ -1542,7 +1551,15 @@ function IOURequestStepConfirmation({
                             />
                         ) : null}
                     </HeaderWithBackButton>
-                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
+                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
+                        <FullScreenLoadingIndicator
+                            reasonAttributes={{
+                                context: 'IOURequestStepConfirmation',
+                                isLoading,
+                                isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
+                            }}
+                        />
+                    )}
                     {PDFValidationComponent}
                     <DragAndDropConsumer onDrop={handleDroppingReceipt}>
                         <DropZoneUI

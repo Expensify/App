@@ -91,8 +91,6 @@ function SubmitDetailsPage({
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
-
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
             return;
@@ -113,9 +111,9 @@ function SubmitDetailsPage({
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
-            draftTransactions,
+            draftTransactionIDs,
         });
-        // The draftTransactions can be changed if users update the expense, so we don't want to re-init the money request
+        // initMoneyRequest is an imported action, intentionally excluded to avoid re-initializing on every render
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
@@ -172,6 +170,8 @@ function SubmitDetailsPage({
                 quickAction,
                 recentWaypoints,
                 betas,
+                draftTransactionIDs,
+                isSelfTourViewed,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);

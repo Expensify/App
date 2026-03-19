@@ -1,0 +1,20 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.java
+index cdcd812..03e09d4 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.java
+@@ -685,7 +685,14 @@ public class SurfaceMountingManager {
+       return;
+     }
+ 
+-    ViewState viewState = getViewState(reactTag);
++    ViewState viewState = getNullableViewState(reactTag);
++    if (viewState == null) {
++      ReactSoftExceptionLogger.logSoftException(
++        ReactSoftExceptionLogger.Categories.SURFACE_MOUNTING_MANAGER_MISSING_VIEWSTATE,
++        new ReactNoCrashSoftException(
++          "Unable to find viewState for tag: " + reactTag + " for updateProps"));
++      return;
++    }
+     viewState.mCurrentProps = new ReactStylesDiffMap(props);
+     View view = viewState.mView;
+ 

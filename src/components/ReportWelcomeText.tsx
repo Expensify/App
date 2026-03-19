@@ -96,13 +96,13 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     } else if (isInvoiceRoom) {
         welcomeHeroText = translate('reportActionsView.sayHello');
     } else if (isChatRoom) {
-        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: reportName});
+        welcomeHeroText = translate('reportActionsView.welcomeToRoom', reportName);
     } else if (isSelfDM) {
         welcomeHeroText = translate('reportActionsView.yourSpace');
     } else if (isSystemChat) {
         welcomeHeroText = reportName;
     } else if (isPolicyExpenseChat) {
-        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: policyName});
+        welcomeHeroText = translate('reportActionsView.welcomeToRoom', policyName);
     }
 
     // If we are the only participant (e.g. solo group chat) then keep the current user personal details so the welcome message does not show up empty.
@@ -111,18 +111,19 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantPersonalDetailListExcludeCurrentUser = Object.values(
         getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
     );
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(
+    const welcomeMessage = SidebarUtils.getWelcomeMessage({
         report,
         policy,
         invoiceReceiverPolicy,
-        participantPersonalDetailListExcludeCurrentUser,
+        participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
         translate,
         localeCompare,
+        conciergeReportID,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
-    );
+    });
 
     return (
         <>
@@ -138,7 +139,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 {isSelfDM && (
                     <Text>
                         <Text>{welcomeMessage.messageText}</Text>
-                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
+                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', additionalText)}</Text>}
                     </Text>
                 )}
                 {isSystemChat && (

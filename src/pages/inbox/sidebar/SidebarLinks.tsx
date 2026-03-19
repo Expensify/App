@@ -6,13 +6,16 @@ import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
+import type {OptionData} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +37,7 @@ type SidebarLinksProps = {
 };
 
 function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+    const {isProduction} = useEnvironment();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -50,7 +54,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
      * Show Report page with selected report id
      */
     const showReportPage = useCallback(
-        (option: Report) => {
+        (option: Report & Pick<OptionData, 'actionTargetReportActionID'>) => {
             // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
             // or when clicking the active LHN row on large screens
             // or when continuously clicking different LHNs, only apply to small screen
@@ -69,12 +73,18 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, isProduction ? undefined : option.actionTargetReportActionID));
         },
-        [shouldUseNarrowLayout, isActiveReport],
+        [shouldUseNarrowLayout, isActiveReport, isProduction],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
+
+    const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SidebarLinks',
+        isLoadingReportData,
+        optionListItemsCount: optionListItems?.length,
+    };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
@@ -91,9 +101,12 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                     optionMode={viewMode}
                     onFirstItemRendered={setSidebarLoaded}
                 />
-                {!!isLoadingReportData && optionListItems?.length === 0 && (
+                {isLoadingReportData && optionListItems?.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
-                        <OptionsListSkeletonView shouldAnimate />
+                        <OptionsListSkeletonView
+                            shouldAnimate
+                            reasonAttributes={sidebarSkeletonReasonAttributes}
+                        />
                     </View>
                 )}
             </View>

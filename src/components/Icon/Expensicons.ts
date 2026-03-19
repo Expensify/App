@@ -41,6 +41,7 @@ import CreditCardLock from '@assets/images/credit-card-lock.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
+import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -99,6 +100,7 @@ import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
+import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
 import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
@@ -206,6 +208,7 @@ export {
     CircleSlash,
     Document,
     DocumentMerge,
+    DocumentPlus,
     DotIndicator,
     DotIndicatorUnfilled,
     Download,
@@ -336,6 +339,7 @@ export {
     SageIntacctExport,
     XeroExport,
     LuggageWithLines,
+    LuggageWithLinesPlus,
     PlusCircle,
     BillComSquare,
     CertiniaSquare,
