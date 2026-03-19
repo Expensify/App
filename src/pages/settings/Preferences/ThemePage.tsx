@@ -64,27 +64,31 @@ function ThemePage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
-            <View>
+            <View style={styles.flex1}>
                 <SelectionList
                     data={localesToThemes}
                     ListItem={RadioListItem}
                     onSelectRow={updateTheme}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
+                    listFooterContent={
+                        <>
+                            <View style={[styles.mh5, styles.borderTop]} />
+                            <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                                <View style={styles.flex4}>
+                                    <Text>{translate('themePage.highContrastMode')}</Text>
+                                </View>
+                                <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                    <Switch
+                                        accessibilityLabel={translate('themePage.highContrastMode')}
+                                        isOn={isHighContrast}
+                                        onToggle={onToggleHighContrast}
+                                    />
+                                </View>
+                            </View>
+                        </>
+                    }
                 />
-            </View>
-            <View style={[styles.mh5, styles.borderTop]} />
-            <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <View style={styles.flex4}>
-                    <Text>{translate('themePage.highContrastMode')}</Text>
-                </View>
-                <View style={[styles.flex1, styles.alignItemsEnd]}>
-                    <Switch
-                        accessibilityLabel={translate('themePage.highContrastMode')}
-                        isOn={isHighContrast}
-                        onToggle={onToggleHighContrast}
-                    />
-                </View>
             </View>
         </ScreenWrapper>
     );
