@@ -955,7 +955,6 @@ describe('actions/Domain', () => {
             expect(pendingUpdate?.value).toMatchObject({member: {[EMPLOYEE_EMAIL]: null}});
 
             const errorsUpdate = failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${DOMAIN_ACCOUNT_ID}`);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             expect((errorsUpdate?.value as Record<string, Record<string, unknown>>).memberErrors?.[EMPLOYEE_EMAIL]).toHaveProperty('changeDomainSecurityGroupErrors');
             apiWriteSpy.mockRestore();
         });
