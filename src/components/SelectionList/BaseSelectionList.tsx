@@ -10,8 +10,10 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -95,12 +97,17 @@ function BaseSelectionList<TItem extends ListItem>({
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const isFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
+
+    const searchValue = textInputOptions?.value ?? '';
+    const resultsMessage = shouldShowTextInput && data.length > 0 ? translate('common.resultsAvailable', data.length) : '';
+    useDebouncedAccessibilityAnnouncement(resultsMessage, shouldShowTextInput && data.length > 0, searchValue);
 
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
