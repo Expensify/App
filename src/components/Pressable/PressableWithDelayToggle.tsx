@@ -70,6 +70,8 @@ type PressableWithDelayToggleProps = PressableProps & {
 
     /** Custom accessibility label that overrides the tooltipText-based label for both states */
     accessibilityLabel?: string;
+
+    onReset?: () => void;
 };
 
 function PressableWithDelayToggle({
@@ -92,10 +94,11 @@ function PressableWithDelayToggle({
     iconHeight = variables.iconSizeSmall,
     shouldUseButtonBackground = false,
     accessibilityLabel: accessibilityLabelProp,
+    onReset,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
+    const [isActive, temporarilyDisableInteractions] = useThrottledButtonState(onReset);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const resolvedIconChecked = iconChecked ?? lazyIcons.Checkmark;
 

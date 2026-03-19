@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
-import {AccessibilityInfo, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -11,6 +11,7 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -39,12 +40,15 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
+    const [nativeAnnouncement, setNativeAnnouncement] = useState('');
     const isFocused = useIsFocused();
+
+    useAccessibilityAnnouncement(nativeAnnouncement, !!nativeAnnouncement, {shouldAnnounceOnNative: true});
 
     const announceStatus = (message: string, shouldAnnounceOnNative = false) => {
         setStatusAnnouncement((prev) => ({id: prev.id + 1, text: message}));
         if (shouldAnnounceOnNative) {
-            AccessibilityInfo.announceForAccessibility(message);
+            setNativeAnnouncement(message);
         }
     };
 
@@ -138,6 +142,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             tooltipTextChecked=""
                                             accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
+                                            onReset={() => setNativeAnnouncement('')}
                                         />
                                         <PressableWithDelayToggle
                                             text={translate('common.download')}
