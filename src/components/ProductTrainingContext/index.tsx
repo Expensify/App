@@ -32,6 +32,11 @@ type ProductTrainingContextType = {
 
 type ProductTrainingContextConfig = {
     /**
+     * Callback to be called when the tooltip is shown
+     */
+    onShown?: () => void;
+
+    /**
      * Callback to be called when the tooltip is dismissed
      */
     onDismiss?: () => void;
@@ -252,6 +257,13 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const shouldShowProductTrainingTooltip = useMemo(() => {
         return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
     }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
+
+    useEffect(() => {
+        if (shouldShowProductTrainingTooltip) {
+            config.onShown?.();
+        }
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [shouldShowProductTrainingTooltip]);
 
     const hideTooltip = useCallback(
         (isDismissedUsingCloseButton = false) => {

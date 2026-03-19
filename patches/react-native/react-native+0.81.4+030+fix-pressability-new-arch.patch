@@ -1,12 +1,16 @@
 diff --git a/node_modules/react-native/Libraries/Pressability/Pressability.js b/node_modules/react-native/Libraries/Pressability/Pressability.js
 --- a/node_modules/react-native/Libraries/Pressability/Pressability.js
 +++ b/node_modules/react-native/Libraries/Pressability/Pressability.js
-@@ -805,7 +805,7 @@ export default class Pressability {
+@@ -805,7 +805,11 @@ export default class Pressability {
      if (typeof this._responderID === 'number') {
        UIManager.measure(this._responderID, this._measureCallback);
      } else {
 -      this._responderID.measure(this._measureCallback);
-+      this._responderID.measureAsyncOnUI(this._measureCallback);
++      if (typeof this._responderID.measureAsyncOnUI === 'function') {
++        this._responderID.measureAsyncOnUI(this._measureCallback);
++      } else {
++        this._responderID.measure(this._measureCallback);
++      }
      }
    }
  
