@@ -103,12 +103,19 @@ import type {BuildOnyxDataForMoneyRequestKeys, ReplaceReceipt, RequestMoneyInfor
 import {
     buildMinimalTransactionForFormula,
     deleteMoneyRequest,
+    getAllReportActionsFromIOU,
+    getAllReports,
+    getAllTransactionDrafts,
+    getAllTransactions,
+    getAllTransactionViolations,
     getCleanUpTransactionThreadReportOnyxData,
+    getCurrentUserEmail,
     getMoneyRequestInformation,
     getNavigationUrlOnMoneyRequestDelete,
     getReceiptError,
     getReportPreviewAction,
     getSearchOnyxUpdate,
+    getUserAccountID,
     handleNavigateAfterExpenseCreate,
 } from './index';
 import type BasePolicyParams from './types/BasePolicyParams';
@@ -120,74 +127,6 @@ import type {
     TrackedExpenseReportInformation,
     TrackedExpenseTransactionParams,
 } from './types/TrackedExpenseParams';
-
-let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allTransactionDrafts = value ?? {};
-    },
-});
-
-let allReports: OnyxCollection<OnyxTypes.Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
-
-let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allTransactions = {};
-            return;
-        }
-
-        allTransactions = value;
-    },
-});
-
-let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        if (!actions) {
-            return;
-        }
-        allReportActions = actions;
-    },
-});
-
-let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allTransactionViolations = {};
-            return;
-        }
-
-        allTransactionViolations = value;
-    },
-});
-
-let userAccountID = -1;
-let currentUserEmail = '';
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserEmail = value?.email ?? '';
-        userAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
 
 type TrackExpenseInformation = {
     createdWorkspaceParams?: CreateWorkspaceParams;
@@ -334,6 +273,7 @@ function buildOnyxDataForTrackExpense({
     const {transaction, threadReport: transactionThreadReport, threadCreatedReportAction: transactionThreadCreatedReportAction} = transactionParams;
     const {policy, tagList: policyTagList, categories: policyCategories} = policyParams;
 
+    const allReports = getAllReports();
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
@@ -756,6 +696,8 @@ function getDeleteTrackExpenseInformation(
     shouldRemoveIOUTransaction = true,
 ) {
     // STEP 1: Get all collections we're updating
+    const allTransactionViolations = getAllTransactionViolations();
+    const allTransactions = getAllTransactions();
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
@@ -956,6 +898,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         betas,
         isSelfTourViewed,
     } = params;
+    const userAccountID = getUserAccountID();
+    const currentUserEmail = getCurrentUserEmail();
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -978,6 +922,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         odometerEnd,
         gpsCoordinates,
     } = transactionParams;
+
+    const allReports = getAllReports();
 
     const onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID> = {
         optimisticData: [],
@@ -1158,6 +1104,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // If shouldUseMoneyReport is true, the iouReport was defined.
     // But we'll use the `shouldUseMoneyReport && iouReport` check further instead of `shouldUseMoneyReport` to avoid TS errors.
 
+    const allTransactionDrafts = getAllTransactionDrafts();
     // STEP 3: Build optimistic receipt and transaction
     const existingTransactionData = existingTransaction ?? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     const isDistanceRequest = existingTransactionData && isDistanceRequestTransactionUtils(existingTransactionData);
@@ -1299,6 +1246,8 @@ const getConvertTrackedExpenseInformation = (
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
     > = [];
 
+    const allReports = getAllReports();
+
     // Delete the transaction from the track expense report
     const {
         optimisticData: deleteOptimisticData,
@@ -1376,6 +1325,7 @@ function getConvertTrackedExpenseWorkspaceFailureData({
     transactionThreadReportID,
     modifiedExpenseReportActionID,
 }: GetConvertTrackedExpenseWorkspaceFailureDataParams): Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> {
+    const allReports = getAllReports();
     const additionalFailureData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
     const previousIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const shouldClearOptimisticIOUReport = !previousIOUReport || previousIOUReport.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -1406,6 +1356,7 @@ function getConvertTrackedExpenseWorkspaceFailureData({
         });
     }
 
+    const allReportActions = getAllReportActionsFromIOU();
     const previousReportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]?.[chatPreviewReportActionID];
     additionalFailureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1567,6 +1518,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
+    const allTransactions = getAllTransactions();
     transactionParams.comment = parsedComment;
     const {
         amount,
@@ -1992,6 +1944,7 @@ function convertBulkTrackedExpensesToIOU({
         return;
     }
 
+    const userAccountID = getUserAccountID();
     const participantAccountIDs = getReportRecipientAccountIDs(iouReport, userAccountID);
     const payerAccountID = participantAccountIDs.at(0);
 
@@ -2009,6 +1962,7 @@ function convertBulkTrackedExpensesToIOU({
     }
 
     const selfDMReportActions = getAllReportActions(selfDMReportID);
+    const currentUserEmail = getCurrentUserEmail();
 
     for (const transaction of transactions) {
         const transactionID = transaction.transactionID;
@@ -2200,6 +2154,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     // If a draft policy was used, then the CategorizeTrackedExpense command will create a real one
     // so let's track that conversion here
     if (isDraftPolicy) {
+        const userAccountID = getUserAccountID();
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, userAccountID);
     }
 }
@@ -2279,6 +2234,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         onyxData.failureData?.push(...addAccountantToWorkspaceFailureData);
     }
 
+    const allReports = getAllReports();
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const chatReportParticipants = chatReport?.participants;
     if (chatReport && !chatReportParticipants?.[accountantAccountID]) {

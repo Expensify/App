@@ -787,6 +787,10 @@ function getAllReportActionsFromIOU(): OnyxCollection<OnyxTypes.ReportActions> {
     return allReportActions;
 }
 
+function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
+    return allTransactionDrafts;
+}
+
 function getCurrentUserEmail(): string {
     return currentUserEmail;
 }
@@ -10444,6 +10448,7 @@ export {
     getAllTransactionViolations,
     getAllReports,
     getAllReportActionsFromIOU,
+    getAllTransactionDrafts,
     getCurrentUserEmail,
     getUserAccountID,
     getReceiptError,
