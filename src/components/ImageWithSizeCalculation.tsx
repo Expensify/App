@@ -53,6 +53,9 @@ type ImageWithSizeCalculationProps = {
 
     /** Reason attributes for skeleton span telemetry */
     reasonAttributes?: SkeletonSpanReasonAttributes;
+
+    /** Whether wide images should keep their natural aspect ratio instead of being forced to square */
+    shouldCalculateAspectRatioForWideImage?: boolean;
 };
 
 /**
@@ -74,6 +77,7 @@ function ImageWithSizeCalculation({
     onLoad,
     resizeMode,
     reasonAttributes,
+    shouldCalculateAspectRatioForWideImage = false,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
@@ -104,6 +108,7 @@ function ImageWithSizeCalculation({
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
             reasonAttributes={reasonAttributes}
+            shouldCalculateAspectRatioForWideImage={shouldCalculateAspectRatioForWideImage}
         />
     );
 }

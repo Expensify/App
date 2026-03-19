@@ -36,7 +36,7 @@ import StringUtils from '@libs/StringUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
+import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -271,7 +271,7 @@ function TransactionPreviewContent({
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isHovered={isHovered || isTransactionScanning}
                         size={1}
-                        shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
+                        shouldUseAspectRatio={!isGPSDistanceRequest(transaction)}
                     />
                     {shouldShowSkeleton ? (
                         <TransactionPreviewSkeletonView

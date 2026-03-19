@@ -83,6 +83,9 @@ type ThumbnailImageProps = {
 
     /** Reason attributes for skeleton span telemetry */
     reasonAttributes?: SkeletonSpanReasonAttributes;
+
+    /** Whether wide images should keep their natural aspect ratio instead of being forced to square */
+    shouldCalculateAspectRatioForWideImage?: boolean;
 };
 
 function ThumbnailImage({
@@ -106,6 +109,7 @@ function ThumbnailImage({
     onLoad,
     resizeMode,
     reasonAttributes,
+    shouldCalculateAspectRatioForWideImage = false,
 }: ThumbnailImageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud']);
     const styles = useThemeStyles();
@@ -172,6 +176,7 @@ function ThumbnailImage({
                     onLoad={onLoad}
                     resizeMode={resizeMode}
                     reasonAttributes={reasonAttributes}
+                    shouldCalculateAspectRatioForWideImage={shouldCalculateAspectRatioForWideImage}
                 />
             </View>
         </View>

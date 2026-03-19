@@ -155,8 +155,6 @@ function ReportActionItemImage({
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
 
-            // If the image is full height, use initial position to make sure it will grow properly to fill the container
-            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
         };
     } else if (isLocalFile && isPDF && typeof originalImageSource === 'string') {
         propsObj = {isPDFThumbnail: true, source: originalImageSource};
@@ -167,15 +165,13 @@ function ReportActionItemImage({
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
             isAuthTokenRequired: false,
             source: shouldUseThumbnailImage ? (thumbnail ?? image ?? '') : originalImageSource,
-
-            // If the image is full height, use initial position to make sure it will grow properly to fill the container
-            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
             isEmptyReceipt,
             onPress,
         };
     }
 
     propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
+    propsObj.shouldCalculateAspectRatioForWideImage = isMapDistanceRequest;
 
     if (enablePreviewModal) {
         return (

@@ -73,6 +73,9 @@ type ReceiptImageProps = (
     /** Whether we should display the receipt with initial object position */
     shouldUseInitialObjectPosition?: boolean;
 
+    /** Whether wide images should keep their natural aspect ratio instead of being forced to square */
+    shouldCalculateAspectRatioForWideImage?: boolean;
+
     /** Whether the receipt image requires an authToken */
     isAuthTokenRequired?: boolean;
 
@@ -147,6 +150,7 @@ function ReceiptImage({
     fallbackIcon,
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
+    shouldCalculateAspectRatioForWideImage = false,
     fallbackIconColor,
     fallbackIconBackground,
     isEmptyReceipt = false,
@@ -227,6 +231,7 @@ function ReceiptImage({
                 fallbackIconColor={fallbackIconColor}
                 fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
+                shouldCalculateAspectRatioForWideImage={shouldCalculateAspectRatioForWideImage}
                 onLoad={onLoad}
                 onLoadFailure={onLoadFailure}
                 resizeMode={resizeMode}
@@ -251,7 +256,7 @@ function ReceiptImage({
             shouldShowOfflineIndicator={false}
             objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
             onLoad={onLoad}
-            shouldCalculateAspectRatioForWideImage={shouldUseFullHeight}
+            shouldCalculateAspectRatioForWideImage={shouldUseFullHeight || shouldCalculateAspectRatioForWideImage}
             imageWidthToCalculateHeight={receiptImageWidth}
             onError={onLoadFailure}
             resizeMode={resizeMode}
