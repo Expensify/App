@@ -451,6 +451,42 @@ function createTransactionPreviewConditionals({
     };
 }
 
+/**
+ * Lightweight check for whether a transaction has any RBR (Red Brick Road) indicator.
+ * Evaluates transaction-level signals only (violations, hold, missing fields, receipt errors)
+ * without requiring heavy report/policy context.
+ */
+function transactionHasRBR(transaction: OnyxEntry<OnyxTypes.Transaction>, violations: OnyxTypes.TransactionViolations): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    // Check for violation-type or warning-type violations
+    const hasViolationOrWarning = violations?.some(
+        (v) => v.type === CONST.VIOLATION_TYPES.VIOLATION || v.type === CONST.VIOLATION_TYPES.WARNING,
+    );
+    if (hasViolationOrWarning) {
+        return true;
+    }
+
+    // Check if transaction is on hold
+    if (isOnHold(transaction)) {
+        return true;
+    }
+
+    // Check if transaction has missing required fields (missing merchant/amount)
+    if (isMerchantMissing(transaction) || isAmountMissing(transaction)) {
+        return true;
+    }
+
+    // Check if transaction has receipt error
+    if (hasReceiptError(transaction)) {
+        return true;
+    }
+
+    return false;
+}
+
 export {
     getReviewNavigationRoute,
     getIOUPayerAndReceiver,
@@ -459,5 +495,6 @@ export {
     getViolationTranslatePath,
     getUniqueActionErrorsForTransaction,
     formatLastFourPAN,
+    transactionHasRBR,
 };
 export type {TranslationPathOrText};
