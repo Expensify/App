@@ -5,6 +5,7 @@ import type {Camera, PhotoFile} from 'react-native-vision-camera';
 import {useCameraDevice, useCameraFormat, Camera as VisionCamera} from 'react-native-vision-camera';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -138,9 +139,10 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
             statusBarTranslucent
             onRequestClose={onClose}
         >
-            <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+            <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(theme.appBG), {paddingTop: insets.top}]}>
+                <HeaderWithBackButton onBackButtonPress={onClose} />
                 {/* Camera viewfinder area */}
-                <View style={[styles.flex1, {paddingTop: insets.top}]}>
+                <View style={styles.flex1}>
                     {cameraPermissionStatus !== RESULTS.GRANTED && (
                         <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                             <ImageSVG
