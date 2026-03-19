@@ -3,7 +3,6 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
-
 type EditActionParams = {
     action: OnyxInputOrEntry<ReportAction>;
 };
@@ -89,7 +88,6 @@ type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldV
 // type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
 
 // type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName: string; tagListName: string; updatedField: string};
-
 
 // type UpdatedPolicyTagListRequiredParams = {tagListsName: string; isRequired: boolean};
 

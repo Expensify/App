@@ -654,7 +654,7 @@ const translations = {
             biometricsTest: 'Biometrics test',
             authenticationSuccessful: 'Authentication successful',
             successfullyAuthenticatedUsing: (authType?: string) => `You’ve successfully authenticated using ${authType}.`,
-            troubleshootBiometricsStatus: (status?: boolean) => `Biometrics (${status})`,
+            troubleshootBiometricsStatus: (status?: string) => `Biometrics (${status})`,
             statusNeverRegistered: 'Never registered',
             statusNotRegistered: 'Not registered',
             statusRegisteredOtherDevice: () => ({one: 'Another device registered', other: 'Other devices registered'}),
@@ -707,7 +707,7 @@ const translations = {
             dismiss: 'Got it',
             error: 'Request failed. Try again later.',
             thisDevice: 'This device',
-            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: (otherDeviceCount?: number) => {
                 const numberWords = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} other ${otherDeviceCount === 1 ? 'device' : 'devices'}`;
@@ -7115,7 +7115,7 @@ const translations = {
             oldValue ? `changed the invoice company name to "${newValue}" (previously "${oldValue}")` : `set the invoice company name to "${newValue}"`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `changed the invoice company website to "${newValue}" (previously "${oldValue}")` : `set the invoice company website to "${newValue}"`,
-        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+        changedReimburser: (newReimburser: string, previousReimburser?: string) =>
             previousReimburser ? `changed the authorized payer to "${newReimburser}" (previously "${previousReimburser}")` : `changed the authorized payer to "${newReimburser}"`,
         updateReimbursementEnabled: (enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `changed the custom tax name to "${newName}" (previously "${oldName}")`,

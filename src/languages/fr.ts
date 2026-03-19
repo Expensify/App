@@ -64,13 +64,11 @@ import type {
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyReimburserParams,
-
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdateRoleParams,
-
     UserIsAlreadyMemberParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
@@ -632,7 +630,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: 'Test biométrique',
             authenticationSuccessful: 'Authentification réussie',
             successfullyAuthenticatedUsing: (authType?: string) => `Vous vous êtes authentifié avec succès à l’aide de ${authType}.`,
-            troubleshootBiometricsStatus: (status?: boolean) => `Données biométriques (${status})`,
+            troubleshootBiometricsStatus: (status?: string) => `Données biométriques (${status})`,
             yourAttemptWasUnsuccessful: 'Votre tentative d’authentification a échoué.',
             youCouldNotBeAuthenticated: 'Vous n’avez pas pu être authentifié',
             areYouSureToReject: 'Voulez-vous vraiment continuer ? La tentative d’authentification sera rejetée si vous fermez cet écran.',
@@ -684,7 +682,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil.',
             ctaAll: 'Tout révoquer',
             thisDevice: 'Cet appareil',
-            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: (otherDeviceCount?: number) => {
                 const numberWords = ['Un', 'Deux', 'Trois', 'Quatre', 'Cinq', 'Six', 'Sept', 'Huit', 'Neuf'];
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} autre(s) ${otherDeviceCount === 1 ? 'appareil' : 'appareils'}`;
@@ -7041,7 +7039,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             oldValue
                 ? `a modifié le site web de l'entreprise de facturation en « ${newValue} » (précédemment « ${oldValue} »)`
                 : `définir le site web de l’entreprise de la facture sur « ${newValue} »`,
-        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+        changedReimburser: (newReimburser: string, previousReimburser?: string) =>
             previousReimburser ? `a modifié le payeur autorisé en « ${newReimburser} » (auparavant « ${previousReimburser} »)` : `a modifié le payeur autorisé en « ${newReimburser} »`,
         updateReimbursementEnabled: (enabled: boolean) => `Remboursements ${enabled ? 'Activé' : 'Désactivé'}`,
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `a modifié le nom de taxe personnalisé en « ${newName} » (auparavant « ${oldName} »)`,
