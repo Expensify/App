@@ -39,7 +39,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     canShowProductTrainingTooltip = true,
     index = 0,
     sectionIndex = 0,
-    shouldShowRadioButton = false,
+    shouldShowRadioButton = true,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -99,7 +99,6 @@ function InviteMemberListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             shouldDisplayRBR={!shouldShowCheckBox}
-            shouldDisableHoverStyle
             testID={item.text}
         >
             {(hovered?: boolean) => (

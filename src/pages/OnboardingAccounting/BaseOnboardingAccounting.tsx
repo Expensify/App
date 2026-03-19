@@ -193,8 +193,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         setError('');
     }, []);
 
-    const renderOption = useCallback(
-        (item: OnboardingListItem) => (
+    function renderOption(item: OnboardingListItem) {
+        return (
             <PressableWithoutFeedback
                 key={item.keyForList}
                 onPress={() => handleIntegrationSelect(item.keyForList)}
@@ -219,19 +219,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                     shouldBlendOpacity
                 />
             </PressableWithoutFeedback>
-        ),
-        [
-            handleIntegrationSelect,
-            isSmallScreenWidth,
-            styles.alignItemsCenter,
-            styles.flexBasis100,
-            styles.flexRow,
-            styles.ml0,
-            styles.onboardingAccountingItem,
-            styles.textStrong,
-            styles.hoveredComponentBG,
-        ],
-    );
+        );
+    }
 
     return (
         <ScreenWrapper

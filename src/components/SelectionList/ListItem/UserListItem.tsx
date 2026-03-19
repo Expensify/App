@@ -41,6 +41,7 @@ function UserListItem<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     forwardedFSClass,
     shouldDisableHoverStyle,
+    shouldShowRadioButton,
 }: UserListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark'] as const);
     const styles = useThemeStyles();
@@ -161,13 +162,14 @@ function UserListItem<TItem extends ListItem>({
                                 />
                             </View>
                         )}
-                        {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                        {((!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple) || !!shouldShowRadioButton) && (
                             <SelectionCheckbox
                                 item={item}
                                 onSelectRow={onCheckboxPress ?? onSelectRow}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 disabled={isDisabled || item.isDisabledCheckbox}
                                 style={styles.ml3}
+                                isCircular={!canSelectMultiple}
                             />
                         )}
                     </View>

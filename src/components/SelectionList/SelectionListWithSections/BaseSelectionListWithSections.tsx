@@ -76,7 +76,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     isRowMultilineSupported = false,
     titleNumberOfLines,
     shouldUseDefaultRightHandSideComponent,
-    shouldDisableHoverStyle = false,
+    shouldDisableHoverStyle,
+    shouldShowRadioButton,
     setShouldDisableHoverStyle = () => {},
     canShowProductTrainingTooltip,
 }: SelectionListWithSectionsProps<TItem>) {
@@ -361,6 +362,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         titleNumberOfLines={titleNumberOfLines}
                         shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
+                        shouldShowRadioButton={shouldShowRadioButton}
                     />
                 );
             }
