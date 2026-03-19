@@ -149,13 +149,13 @@ For businesses using accounting integrations like QuickBooks or NetSuite, connec
 
 # FAQ
 
-## Why are some transactions missing? 
+## Why are some transactions missing?
 Transactions may take up to 24 hours to post. Update the card feed or check the Reconciliation Dashboard to review transaction data.
 
 - **Reconciliation Dashboard**: Navigate to **Settings > Domains > [Domain Name] > Company Cards > Reconciliation** to identify missing or unapproved expenses within a specific timeframe.
 - **Common Issues**: Ensure the transaction date range is correct. If gaps persist, contact Concierge to request a historical data update.
 
-## Which is better, a direct bank connection or commercial card feed? 
+## Which is better, a direct bank connection or commercial card feed?
 Commercial feeds are more stable and reliable but require setup by your bank. Direct connections are easier to set up but may experience occasional disruptions.
 
 ## What should I do if my CSV upload fails or results in an error?
