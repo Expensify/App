@@ -28,13 +28,13 @@ You can create an expense by scanning a receipt, entering details manually, or t
 ## How to use SmartScan to create an expense
 
 **On mobile:**
-1. Tap the green **camera** icon and snap a photo of a receipt or upload one from your device's gallery.
+1. Tap the **camera** icon and snap a photo of a receipt or upload one from your device's gallery.
 2. Enter the workspace or recipient’s email/phone number.
 3. Add details like description, category, tags, and tax.
 4. Tap **Create expense**.
 
 **On web:**
-1. Click the green **scan** button.
+1. In the navigation tabs on the left, click the green **Scan** icon. 
 2. Drag and drop the receipt file to the page or click **Choose files** to upload.
 3. Enter the workspace or recipient’s email/phone number.
 4. Add details like description, category, tags, and tax.
@@ -44,7 +44,6 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 - Forward your digital receipts to [receipts@expensify.com](mailto:receipts@expensify.com).
 - Text a receipt photo to 47777 (US numbers only). Make sure you [add your phone number as a contact method to Expensify](https://new.expensify.com/settings/profile/contact-methods).
-- Drag receipts to the **Home** page (web only)/.
 
 **Note:** Having trouble forwarding receipts? See [Why can't I forward receipts to receipts@expensify.com?](#why-cant-i-forward-receipts-to-receiptsexpensifycom) in the FAQ below.
 
@@ -117,7 +116,7 @@ The total amount will be calculated automatically using the hourly rate set for 
 
 You can upload receipts using any of the following methods:
 
-1. On the web, go to the **Reports** page.
+1. On the web, go to the **Reports** page or the **Home** page. 
 2. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 3. Follow the prompts to assign workspaces, recipients, and coding.
 4. Once the expenses are ready, click **Create expenses**. 
