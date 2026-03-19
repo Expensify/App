@@ -78,11 +78,12 @@ index 0000000..0000000 100644
  import { getDistanceForDirection } from "../../utils/getDistanceForDirection.js";
  import { getInvertedMultiplier } from "../../utils/getInvertedMultiplier.js";
  import { getShadowStyle } from "../../utils/getShadowStyle.js";
-@@ -134,7 +135,8 @@ export function Card({
+@@ -134,7 +135,9 @@ export function Card({
      if (animated) {
        onStartInteraction();
        animation(gesture, {
          ...spec.config,
++        // Detecting if the user used swipe gesture on iOS safari to trigger navigation in the browser history.
 +        duration: getIsEdgeDragGesture() ? 0 : spec.config && 'duration' in spec.config ? spec.config.duration : undefined,
          velocity,
          toValue,
