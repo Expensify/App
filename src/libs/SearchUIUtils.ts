@@ -64,6 +64,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -90,7 +91,7 @@ import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {doesCardFeedExist, getCardDescription, getFeedNameForDisplay} from './CardUtils';
+import {doesCardFeedExist, getCardDescription, getFeedNameForDisplay, getPlaidInstitutionId} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -2530,6 +2531,10 @@ function getMemberSections(
     return [memberSectionsValues, memberSectionsValues.length];
 }
 
+function formattedCardNameWithDotAndLastFour(formattedCardName: string, lastFour: string): string {
+    return `${formattedCardName} ${CONST.DOT_SEPARATOR} ${lastFour}`;
+}
+
 /**
  * @private
  * Organizes data into List Sections grouped by card for display, for the TransactionGroupListItemType of Search Results.
@@ -2562,9 +2567,9 @@ function getCardSections(
             if (formattedCardName === undefined) {
                 const cached = cardDescriptionByCardID.get(cardGroup.cardID);
                 if (cached !== undefined) {
-                    formattedCardName = cached;
+                    formattedCardName = cardGroup.lastFourPAN ? formattedCardNameWithDotAndLastFour(cached, cardGroup.lastFourPAN) : cached;
                 } else {
-                    formattedCardName = getCardDescription(
+                    const cardFormattedName = getCardDescription(
                         {
                             cardID: cardGroup.cardID,
                             bank: cardGroup.bank,
@@ -2573,9 +2578,14 @@ function getCardSections(
                             lastFourPAN: cardGroup.lastFourPAN,
                         } as OnyxTypes.Card,
                         translate,
+                        true,
                     );
-                    cardDescriptionByCardID.set(cardGroup.cardID, formattedCardName);
+                    const isPlaid = cardGroup?.bank ? !!getPlaidInstitutionId(cardGroup.bank as CardFeedWithNumber) : false;
+                    formattedCardName = isPlaid && cardGroup.lastFourPAN ? formattedCardNameWithDotAndLastFour(cardFormattedName, cardGroup.lastFourPAN) : cardFormattedName;
+                    cardDescriptionByCardID.set(cardGroup.cardID, cardFormattedName);
                 }
+            } else if (cardGroup.lastFourPAN) {
+                formattedCardName = formattedCardNameWithDotAndLastFour(formattedCardName, cardGroup.lastFourPAN);
             }
 
             cardSections[key] = {
