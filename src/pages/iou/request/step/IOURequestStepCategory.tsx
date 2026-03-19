@@ -6,8 +6,12 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
+import Tooltip from '@components/Tooltip';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -19,6 +23,7 @@ import usePolicyData from '@hooks/usePolicyData';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
@@ -27,7 +32,7 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
@@ -53,6 +58,7 @@ function IOURequestStepCategory({
     transaction,
 }: IOURequestStepCategoryProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const requestType = getRequestType(transaction);
@@ -123,6 +129,20 @@ function IOURequestStepCategory({
         Navigation.goBack(backTo);
     };
 
+    const navigateToCreateCategory = () => {
+        if (!policyID || !report?.reportID) {
+            return;
+        }
+        Navigation.navigate(
+            ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(
+                policyID,
+                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report.reportID, backTo, reportActionID),
+            ),
+        );
+    };
+
+    const canAddCategory = isPolicyAdmin(policy) && !getValidConnectedIntegration(policy);
+
     const updateCategory = (category: ListItem) => {
         const categorySearchText = category.searchText ?? '';
         const isSelectedCategory = categorySearchText === categoryForDisplay;
@@ -178,6 +198,23 @@ function IOURequestStepCategory({
             shouldShowOfflineIndicator={policyCategories !== undefined}
             testID="IOURequestStepCategory"
             shouldEnableKeyboardAvoidingView={false}
+            headerChildren={
+                canAddCategory ? (
+                    <Tooltip text={translate('workspace.categories.addCategory')}>
+                        <PressableWithoutFeedback
+                            onPress={navigateToCreateCategory}
+                            style={[styles.touchableButtonImage]}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('workspace.categories.addCategory')}
+                        >
+                            <Icon
+                                src={Expensicons.Plus}
+                                fill={theme.icon}
+                            />
+                        </PressableWithoutFeedback>
+                    </Tooltip>
+                ) : null
+            }
         >
             {isLoading && (
                 <ActivityIndicator
