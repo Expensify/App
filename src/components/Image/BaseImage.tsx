@@ -7,8 +7,8 @@ import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {BaseImageProps} from './types';
 
-function BaseImage({onLoad, onLoadStart, source, ...props}: BaseImageProps) {
-    const cachedSource = useCachedImageSource(typeof source === 'object' && !Array.isArray(source) ? source : undefined);
+function BaseImage({onLoad, onLoadStart, source, shouldForceCache, ...props}: BaseImageProps) {
+    const cachedSource = useCachedImageSource(typeof source === 'object' && !Array.isArray(source) ? source : undefined, shouldForceCache);
     const resolvedSource = cachedSource !== undefined ? cachedSource : source;
 
     const {setAttachmentLoaded, isAttachmentLoaded} = useContext(AttachmentStateContext);

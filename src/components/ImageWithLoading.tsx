@@ -16,6 +16,9 @@ type ImageWithSizeLoadingProps = {
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
 
+    /** Whether to store the image in Cache API even when no auth headers are required */
+    shouldForceCache?: boolean;
+
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
 

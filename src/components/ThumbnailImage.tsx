@@ -69,6 +69,9 @@ type ThumbnailImageProps = {
     /** Whether the image is deleted */
     isDeleted?: boolean;
 
+    /** Whether to store the image in Cache API even when no auth headers are required */
+    shouldForceCache?: boolean;
+
     /** Callback fired when the image fails to load */
     onLoadFailure?: () => void;
 
@@ -100,6 +103,7 @@ function ThumbnailImage({
     fallbackIconBackground,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
     isDeleted,
+    shouldForceCache,
     onLoadFailure,
     onMeasure,
     loadingIndicatorStyles,
@@ -166,6 +170,7 @@ function ThumbnailImage({
                         onLoadFailure?.();
                     }}
                     isAuthTokenRequired={isAuthTokenRequired}
+                    shouldForceCache={shouldForceCache}
                     objectPosition={objectPosition}
                     loadingIconSize={loadingIconSize}
                     loadingIndicatorStyles={loadingIndicatorStyles}

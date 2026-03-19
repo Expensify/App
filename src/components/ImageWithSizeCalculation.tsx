@@ -36,6 +36,9 @@ type ImageWithSizeCalculationProps = {
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
 
+    /** Whether to store the image in Cache API even when no auth headers are required */
+    shouldForceCache?: boolean;
+
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
 
@@ -68,6 +71,7 @@ function ImageWithSizeCalculation({
     onMeasure,
     onLoadFailure,
     isAuthTokenRequired,
+    shouldForceCache,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
     loadingIconSize,
     loadingIndicatorStyles,
@@ -91,6 +95,7 @@ function ImageWithSizeCalculation({
             source={source}
             aria-label={altText}
             isAuthTokenRequired={isAuthTokenRequired}
+            shouldForceCache={shouldForceCache}
             resizeMode={resizeMode ?? RESIZE_MODES.cover}
             onError={onError}
             onLoad={(event: OnLoadNativeEvent) => {

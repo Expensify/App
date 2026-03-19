@@ -9301,6 +9301,7 @@ const CONST = {
 
     CACHE_NAME: {
         AUTH_IMAGES: 'auth-images',
+        MARKDOWN_IMAGES: 'markdown-images',
     },
 } as const;
 

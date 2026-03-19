@@ -15,9 +15,10 @@ const clearAuthImagesCache = async () => {
     }
 };
 
-function useCachedImageSource(source: ImageSource | undefined): ImageSource | null | undefined {
+function useCachedImageSource(source: ImageSource | undefined, shouldForceCache = false): ImageSource | null | undefined {
     const uri = typeof source === 'object' ? source.uri : undefined;
     const hasHeaders = typeof source === 'object' && !!source.headers;
+    const shouldCache = hasHeaders || shouldForceCache;
     const [cachedUri, setCachedUri] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
 
@@ -25,7 +26,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
         setCachedUri(null);
         setHasError(false);
 
-        if (!hasHeaders || !uri) {
+        if (!shouldCache || !uri) {
             return;
         }
 
@@ -34,7 +35,8 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
 
         (async () => {
             try {
-                const cache = await caches.open(CONST.CACHE_NAME.AUTH_IMAGES);
+                const cacheName = hasHeaders ? CONST.CACHE_NAME.AUTH_IMAGES : CONST.CACHE_NAME.MARKDOWN_IMAGES;
+                const cache = await caches.open(cacheName);
                 const cachedResponse = await cache.match(uri);
 
                 if (cachedResponse) {
@@ -48,7 +50,8 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                     return;
                 }
 
-                const response = await fetch(uri, {headers: source.headers});
+                const fetchOptions: RequestInit = hasHeaders ? {headers: source?.headers as HeadersInit} : {};
+                const response = await fetch(uri, fetchOptions);
 
                 if (!response.ok) {
                     if (!revoked) {
@@ -83,11 +86,11 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                 URL.revokeObjectURL(objectURL);
             }
         };
-    }, [uri, hasHeaders, source?.headers]);
+    }, [uri, shouldCache, hasHeaders, source?.headers]);
 
-    // Images without headers are cached natively by the browser,
+    // Images without headers and not force-cached are cached natively by the browser,
     // so pass them through as-is — no Cache API needed
-    if (!hasHeaders) {
+    if (!shouldCache) {
         return source;
     }
 

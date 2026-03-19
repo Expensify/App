@@ -36,6 +36,10 @@ type BaseImageProps = {
      *  the load with the higher priority will be started first.
      *  Maps to SDWebImageHighPriority (iOS) and Glide.Priority.IMMEDIATE (Android). */
     priority?: ValueOf<typeof CONST.IMAGE_LOADING_PRIORITY> | null;
+
+    /** Whether to store the image in Cache API even when no auth headers are required.
+     *  Used for markdown image URLs so they are available offline consistently. */
+    shouldForceCache?: boolean;
 };
 
 type ImageOwnProps = BaseImageProps & {
