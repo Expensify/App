@@ -1371,6 +1371,10 @@ function MoneyReportHeader({
             showDWEModal();
             return;
         }
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
         startApprovedAnimation();
         approveMoneyRequest({
             expenseReport: moneyRequestReport,
