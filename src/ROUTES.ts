@@ -116,6 +116,23 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    KEYBOARD_SHORTCUTS: {
+        path: 'keyboard-shortcuts',
+        entryScreens: [
+            SCREENS.HOME,
+            SCREENS.REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.SETTINGS.ROOT,
+            SCREENS.SETTINGS.ABOUT,
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.PREFERENCES.ROOT,
+            SCREENS.SETTINGS.PROFILE.ROOT,
+            SCREENS.SETTINGS.SECURITY,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -630,13 +647,6 @@ const ROUTES = {
     },
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
-
-    KEYBOARD_SHORTCUTS: {
-        route: 'keyboard-shortcuts',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('keyboard-shortcuts', backTo),
-    },
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
