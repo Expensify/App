@@ -4,10 +4,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
+import {validateAttachmentFile} from '@libs/AttachmentUtils';
+import type {AttachmentValidationResult} from '@libs/AttachmentUtils';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canUserPerformWriteAction, isReportNotFound} from '@libs/ReportUtils';
-import validateAttachmentFile from '@libs/validateAttachmentFile';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
@@ -83,27 +84,39 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
     const [validFiles, setValidFiles] = useState<FileObject | FileObject[] | undefined>(fileParam);
     useEffect(() => {
-        async function validateFiles() {
-            if (!fileParam) {
-                return;
-            }
-
-            const files = Array.isArray(fileParam) ? fileParam : [fileParam];
-            const results = await Promise.all(files.map(async (file) => validateAttachmentFile(file)));
-
-            const validResults = results.filter((r) => r.isValid);
-            if (validResults.length === 0) {
-                return;
-            }
-
-            const validatedFiles = validResults.map((r) => r.file);
-            const firstValidSource = validResults.at(0)?.file.uri;
-
-            setSource(firstValidSource);
-            setValidFiles(validatedFiles);
+        if (!fileParam) {
+            return;
         }
 
-        validateFiles();
+        function updateState(result: AttachmentValidationResult | AttachmentValidationResult[]) {
+            if (Array.isArray(result)) {
+                const validResults = result.filter((r) => r.isValid);
+                if (validResults.length === 0) {
+                    return;
+                }
+
+                const validatedFiles = validResults.map((r) => r.file);
+                const firstValidSource = validResults.at(0)?.source;
+
+                setSource(firstValidSource);
+                setValidFiles(validatedFiles);
+                return;
+            }
+
+            if (!result.isValid) {
+                return;
+            }
+
+            setSource(result.source);
+            setValidFiles(result.file);
+        }
+
+        if (Array.isArray(fileParam)) {
+            Promise.all(fileParam.map((f) => validateAttachmentFile(f))).then(updateState);
+            return;
+        }
+
+        validateAttachmentFile(fileParam).then(updateState);
     }, [fileParam]);
 
     const modalType = useReportAttachmentModalType(source, validFiles);

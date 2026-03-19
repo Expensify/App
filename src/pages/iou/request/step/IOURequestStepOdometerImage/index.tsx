@@ -94,6 +94,9 @@ function IOURequestStepOdometerImage({
     };
 
     const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+        if (files.length === 0) {
+            return;
+        }
         const file = files.at(0);
         if (!file) {
             return;
