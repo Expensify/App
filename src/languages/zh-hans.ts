@@ -519,12 +519,6 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: '你好，我能帮你做什么？', showHistory: '显示历史'},
         duplicateReport: '重复报销单',
         approver: '审批人',
-        resultsAvailable: () => ({
-            other: (count: number) => `${count}个结果可用`,
-        }),
-        suggestionsAvailable: () => ({
-            other: (count: number) => `${count}个建议可用`,
-        }),
     },
     socials: {
         podcast: '在播客上关注我们',

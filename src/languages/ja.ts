@@ -523,12 +523,6 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'こんにちは、どのようにお手伝いできますか？', showHistory: '履歴を表示'},
         duplicateReport: 'レポートを複製',
         approver: '承認者',
-        resultsAvailable: () => ({
-            other: (count: number) => `${count}件の結果が利用可能`,
-        }),
-        suggestionsAvailable: () => ({
-            other: (count: number) => `${count}件の候補が利用可能`,
-        }),
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',

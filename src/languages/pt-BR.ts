@@ -522,14 +522,6 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Oi, como posso ajudar?', showHistory: 'Mostrar histórico'},
         duplicateReport: 'Duplicar relatório',
         approver: 'Aprovador',
-        resultsAvailable: () => ({
-            one: '1 resultado disponível',
-            other: (count: number) => `${count} resultados disponíveis`,
-        }),
-        suggestionsAvailable: () => ({
-            one: '1 sugestão disponível',
-            other: (count: number) => `${count} sugestões disponíveis`,
-        }),
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
