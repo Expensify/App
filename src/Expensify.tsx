@@ -7,12 +7,12 @@ import Onyx from 'react-native-onyx';
 import {useInitialURLActions} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
-import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
 import DelegateAccessHandler from './DelegateAccessHandler';
 import FullstoryInitHandler from './FullstoryInitHandler';
+import GlobalModals from './GlobalModals';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
@@ -273,7 +273,7 @@ function Expensify() {
 
     return (
         <>
-            {shouldInit && !!updateAvailable && <UpdateAppModal />}
+            {shouldInit && <GlobalModals updateAvailable={updateAvailable} />}
             <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
