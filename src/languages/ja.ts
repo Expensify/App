@@ -7052,6 +7052,8 @@ ${reportName}
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `お知らせです！このワークスペースには、${budgetTypeForNotificationMessage}「${budgetName}」に対して、${budgetFrequency}の予算額「${budgetAmount}」が設定されています。現在の金額は${approvedReimbursedClosedSpend}で、予算の${thresholdPercentage}%を超えています。さらに承認待ちの金額が${awaitingApprovalSpend}あり、まだ提出されていない金額が${unsubmittedSpend}あるため、合計は${totalSpend}になります。${summaryLink ? `<a href="${summaryLink}">こちらがレポートです</a>。これらすべての経費が記録用にまとめられています！` : ''}`,
+        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+            `${fieldType}レポートフィールド「${fieldName}」を追加しました${defaultValue ? `デフォルト値「${defaultValue}」付き` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',

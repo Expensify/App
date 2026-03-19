@@ -7098,6 +7098,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Atenção! Este workspace tem um orçamento ${budgetFrequency} de "${budgetAmount}" para o(a) ${budgetTypeForNotificationMessage} "${budgetName}". No momento você está em ${approvedReimbursedClosedSpend}, o que está acima de ${thresholdPercentage}% do orçamento. Há também ${awaitingApprovalSpend} aguardando aprovação e ${unsubmittedSpend} que ainda não foi enviado, totalizando ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Aqui está um relatório</a> com todas essas despesas para o seu controle!` : ''}`,
+        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+            `adicionou o campo de relatório ${fieldType} "${fieldName}"${defaultValue ? `com valor padrão "${defaultValue}"` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
