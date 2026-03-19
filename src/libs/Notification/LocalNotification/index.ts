@@ -39,7 +39,18 @@ function showModifiedExpenseNotification({report, reportAction, movedFromReport,
     const policyID = report.policyID;
     const policyTags = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined;
     const policy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
-    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, usesIcon: true, policyTags, policy, currentUserLogin, conciergeReportID});
+    BrowserNotifications.pushModifiedExpenseNotification({
+        report,
+        reportAction,
+        movedFromReport,
+        movedToReport,
+        onClick,
+        usesIcon: true,
+        policyTags,
+        policy,
+        currentUserLogin,
+        conciergeReportID,
+    });
 }
 
 function clearReportNotifications(reportID: string | undefined) {
