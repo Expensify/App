@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
 import {isPaidGroupPolicy} from './PolicyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -81,7 +81,14 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType, IOU
 }
 
 /**
- * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
+ * Filters transactions to only include valid, non-deleted ones.
+ *
+ * Transaction visibility is determined by the transaction's own existence and state,
+ * not by the deleted flag on its associated IOU report action. The backend's transactions
+ * table is the authoritative source — if a transaction exists there, it is a live expense.
+ * This matches how Expensify Classic renders expense lists and avoids false negatives
+ * caused by backend inconsistencies where markDeleted is applied to IOU actions without
+ * actually removing the underlying transaction.
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
@@ -100,7 +107,7 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
             return true;
         }
-        return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
+        return !!action || reportActions.length === 0;
     });
 }
 
