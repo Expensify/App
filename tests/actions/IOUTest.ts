@@ -11616,7 +11616,6 @@ describe('actions/IOU', () => {
                         currentDate,
                         currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
-                        draftTransactions: undefined,
                     });
                 })
                 .then(async () => {
@@ -11639,7 +11638,6 @@ describe('actions/IOU', () => {
                         currentDate,
                         currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
-                        draftTransactions: undefined,
                     });
                 })
                 .then(async () => {
@@ -11663,7 +11661,6 @@ describe('actions/IOU', () => {
                         currentDate,
                         currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
-                        draftTransactions: undefined,
                     });
                 })
                 .then(async () => {
@@ -11684,10 +11681,6 @@ describe('actions/IOU', () => {
             // Set up an additional draft transaction
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${otherDraftTransactionID}`, otherDraftTransaction);
 
-            const draftTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${otherDraftTransactionID}`]: otherDraftTransaction,
-            };
-
             await waitForBatchedUpdates()
                 .then(() => {
                     initMoneyRequest({
@@ -11701,7 +11694,6 @@ describe('actions/IOU', () => {
                         currentDate,
                         currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
-                        draftTransactions,
                     });
                 })
                 .then(async () => {
@@ -11727,11 +11719,6 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${otherDraftTransactionID}`, otherDraftTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, existingOptimisticTransaction);
 
-            const draftTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${otherDraftTransactionID}`]: otherDraftTransaction,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`]: existingOptimisticTransaction,
-            };
-
             await waitForBatchedUpdates()
                 .then(() => {
                     initMoneyRequest({
@@ -11745,7 +11732,6 @@ describe('actions/IOU', () => {
                         currentDate,
                         currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
-                        draftTransactions,
                     });
                 })
                 .then(async () => {
@@ -11772,11 +11758,6 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID1}`, draftTransaction1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID2}`, draftTransaction2);
 
-            const draftTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID1}`]: draftTransaction1,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransactionID2}`]: draftTransaction2,
-            };
-
             await waitForBatchedUpdates()
                 .then(() => {
                     initMoneyRequest({
@@ -11790,7 +11771,6 @@ describe('actions/IOU', () => {
                         currentDate,
                         currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
-                        draftTransactions,
                     });
                 })
                 .then(async () => {
