@@ -17,10 +17,6 @@ type ValidateAttachmentInvalidResult = {
 type ValidateAttachmentResult = ValidateAttachmentValidResult | ValidateAttachmentInvalidResult;
 
 async function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isValidatingReceipts = false): Promise<ValidateAttachmentResult> {
-    if (!file.name || file.size == null) {
-        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
-    }
-
     if (isValidatingReceipts && !isValidReceiptExtension(file)) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
     }
@@ -29,13 +25,16 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE};
     }
 
-    const isImage = Str.isImage(file.name);
+    const fileName = file.name ?? '';
+    const fileSize = file.size ?? 0;
+    const isImage = Str.isImage(fileName);
+
     const maxFileSize = isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!isImage && !hasHeicOrHeifExtension(file) && file.size > maxFileSize) {
+    if (!isImage && fileSize > maxFileSize) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE};
     }
 
-    if (isValidatingReceipts && file.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+    if (isValidatingReceipts && fileSize < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL};
     }
 
