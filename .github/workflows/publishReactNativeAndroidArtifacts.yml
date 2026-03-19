@@ -176,9 +176,6 @@ jobs:
           echo "Android SDK CMake installations:"
           ls -la ${ANDROID_HOME}/cmake/ 2>/dev/null || echo "No cmake dir in ANDROID_HOME"
 
-      - name: Remove stale CMake cache
-        run: rm -rf ${ANDROID_HOME}/cmake/3.30.5
-
       - name: Build and publish React Native artifacts
         working-directory: ${{ matrix.is_hybrid == 'true' && 'Mobile-Expensify/Android' || 'android' }}
         run: |
@@ -205,6 +202,7 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
           PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
           PATCHES_HASH: ${{ matrix.is_hybrid == 'true' && needs.verifyPatches.outputs.hybrid_app_patches_hash || needs.verifyPatches.outputs.standalone_patches_hash }}
+          CMAKE_VERSION: 3.31.6
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
