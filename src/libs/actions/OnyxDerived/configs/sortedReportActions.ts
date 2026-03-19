@@ -17,6 +17,7 @@ export default createOnyxDerivedValueConfig({
         const lastActions: SortedReportActionsDerivedValue['lastActions'] = {};
         const transactionThreadIDs: SortedReportActionsDerivedValue['transactionThreadIDs'] = {};
 
+        // Iterate over the report actions to build the sorted report actions objects
         for (const [key, actions] of Object.entries(allReportActions)) {
             if (!actions) {
                 continue;
@@ -34,6 +35,9 @@ export default createOnyxDerivedValueConfig({
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
+            // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
+            // to the transaction thread or the report itself.
+            // Cache the result for O(1) lookup in renderItem.
             const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions);
             transactionThreadIDs[reportID] = transactionThreadReportID;
 
