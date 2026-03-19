@@ -2,6 +2,7 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -69,6 +70,7 @@ function HomePage() {
                         contentContainerStyle={styles.homePageContentContainer}
                         addBottomSafeAreaPadding
                     >
+                        {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
                         <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
                             {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
                             <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
