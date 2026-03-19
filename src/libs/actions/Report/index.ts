@@ -345,7 +345,7 @@ type AddCommentParams = {
 
 type AddActionsParams = {
     report: OnyxEntry<Report>;
-    notifyReportID: string;
+    notifyReportID: string | string[];
     ancestors: Ancestor[];
     timezoneParam: Timezone;
     currentUserAccountID: number;
@@ -358,7 +358,7 @@ type AddActionsParams = {
 
 type AddAttachmentWithCommentParams = {
     report: OnyxEntry<Report>;
-    notifyReportID: string;
+    notifyReportID: string | string[];
     ancestors: Ancestor[];
     attachments: FileObject | FileObject[];
     currentUserAccountID: number;
@@ -595,12 +595,17 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
 }
 
 /** Notify the ReportActionsView that a new comment has arrived */
-function notifyNewAction(reportID: string | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
-    const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === reportID);
-    if (!actionSubscriber) {
+function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
+    if (!reportID) {
         return;
     }
-    actionSubscriber.callback(isFromCurrentUser, reportAction);
+    const ids = Array.isArray(reportID) ? reportID : [reportID];
+    for (const id of ids) {
+        const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === id);
+        if (actionSubscriber) {
+            actionSubscriber.callback(isFromCurrentUser, reportAction);
+        }
+    }
 }
 
 /**
@@ -1935,7 +1940,7 @@ function createTransactionThreadReport(
 function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
-            afterTransition: () => {
+            callback: () => {
                 if (!reportID) {
                     return;
                 }
@@ -2008,7 +2013,7 @@ function navigateToAndCreateGroupChat(
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>) {
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>, betas: OnyxEntry<Beta[]>) {
     let newChat: OptimisticChatReport | undefined;
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
@@ -2022,6 +2027,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
             newReportObject: newChat,
             parentReportActionID: '0',
             participantAccountIDList: participantAccountIDs,
+            betas,
         });
     }
     const report = chat ?? newChat;

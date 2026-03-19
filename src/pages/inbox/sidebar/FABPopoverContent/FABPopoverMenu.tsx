@@ -74,6 +74,11 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
         isActive: isVisible,
     });
 
+    const handleClose = () => {
+        setFocusedIndex(-1);
+        onClose();
+    };
+
     const onItemPress = (onSelected: () => void, options?: {shouldCallAfterModalHide?: boolean}) => {
         onItemSelected();
         if (options?.shouldCallAfterModalHide && !isSafari()) {
@@ -105,7 +110,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
-                onClose={onClose}
+                onClose={handleClose}
                 isVisible={isVisible}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 animationIn="fadeIn"
