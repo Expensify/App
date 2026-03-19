@@ -49,10 +49,10 @@ import type {
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
+    SortedReportActionsDerivedValue,
     TodoMetadata,
     TodosDerivedValue,
     VisibleReportActionsDerivedValue,
-    SortedReportActionsDerivedValue,
 } from './DerivedValues';
 import type DeviceBiometrics from './DeviceBiometrics';
 import type DismissedProductTraining from './DismissedProductTraining';
