@@ -22,12 +22,14 @@ type LocalNotificationModifiedExpenseParams = {
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     currentUserLogin: string;
+    conciergeReportID: string | undefined;
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {
     usesIcon?: boolean;
     policyTags: OnyxEntry<PolicyTagLists>;
     policy?: OnyxEntry<Policy>;
+    conciergeReportID: string | undefined;
 };
 
 export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpenseParams, LocalNotificationModifiedExpensePushParams};

@@ -165,6 +165,7 @@ function getMovedFromOrToReportMessage(
     movedFromReport: OnyxEntry<Report> | undefined,
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserLogin: string,
+    conciergeReportID?: string,
 ): string | undefined {
     if (movedToReport) {
         return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin);
@@ -172,7 +173,7 @@ function getMovedFromOrToReportMessage(
 
     if (movedFromReport) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const originReportName = getReportName({report: movedFromReport});
+        const originReportName = getReportName({report: movedFromReport, conciergeReportID});
         return translate('iou.movedFromReport', originReportName ?? '');
     }
 }
@@ -251,6 +252,7 @@ function getForReportAction({
     movedToReport,
     policyTags,
     currentUserLogin,
+    conciergeReportID,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -262,12 +264,13 @@ function getForReportAction({
     // See https://github.com/Expensify/App/pull/75562
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
+    conciergeReportID?: string;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, conciergeReportID);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
