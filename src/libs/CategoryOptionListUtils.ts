@@ -120,14 +120,42 @@ function getCategoryListSections({
     }
 
     if (searchValue) {
+        // Step 1: Combine selected and enabled categories for searching
         const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
 
-        const searchCategories: Category[] = tokenizedSearch(categoriesForSearch, searchValue, (category) => [category.name]).map((category) => ({
+        // Step 2: Get search results using tokenizedSearch
+        let searchCategories: Category[] = tokenizedSearch(categoriesForSearch, searchValue, (category) => [category.name]).map((category) => ({
+            ...category,
+            // Temporarily store if it was selected
+            wasSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+        }));
+
+        // Step 3: Deduplicate by name (keep first occurrence, which is likely the selected one if present)
+        const seen = new Set<string>();
+        searchCategories = searchCategories.filter((category) => {
+            if (seen.has(category.name)) {
+                return false;
+            }
+            seen.add(category.name);
+            return true;
+        });
+
+        // Step 4: Re-sort to restore hierarchical grouping
+        // Convert back to Record format expected by sortCategories
+        const categoriesRecord: Record<string, Category> = {};
+        searchCategories.forEach((category) => {
+            categoriesRecord[category.name] = category;
+        });
+        const sortedCategories = sortCategories(categoriesRecord, localeCompare);
+
+        // Step 5: Re-apply the isSelected flag (lost during sortCategories)
+        const finalSearchCategories: Category[] = sortedCategories.map((category) => ({
             ...category,
             isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
         }));
 
-        const data = getCategoryOptionTree(searchCategories);
+        // Step 6: Generate the option tree and push the section
+        const data = getCategoryOptionTree(finalSearchCategories);
         categorySections.push({
             // "Search" section
             title: '',
