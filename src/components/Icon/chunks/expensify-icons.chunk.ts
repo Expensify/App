@@ -36,6 +36,7 @@ import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
 import CarPlus from '@assets/images/car-plus.svg';
+import CarPlusOutlined from '@assets/images/car-plus-outlined.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
 import CaretUpDown from '@assets/images/caret-up-down.svg';
@@ -70,6 +71,7 @@ import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
+import DocumentPlusOutlined from '@assets/images/document-plus-outlined.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -148,6 +150,7 @@ import Link from '@assets/images/link.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
 import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
+import LuggageWithLinesPlusOutlined from '@assets/images/luggage-with-lines-plus-outlined.svg';
 import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-mouth-closed.svg';
@@ -192,6 +195,7 @@ import ReceiptBody from '@assets/images/receipt-body.svg';
 import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
+import ReceiptPlusOutlined from '@assets/images/receipt-plus-outlined.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
@@ -285,6 +289,7 @@ const Expensicons = {
     Camera,
     Car,
     CarPlus,
+    CarPlusOutlined,
     Cash,
     CertiniaSquare,
     ChatBubble,
@@ -312,6 +317,7 @@ const Expensicons = {
     Document,
     DocumentMerge,
     DocumentPlus,
+    DocumentPlusOutlined,
     DotIndicator,
     DotIndicatorUnfilled,
     DownArrow,
@@ -413,6 +419,7 @@ const Expensicons = {
     Receipt,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
+    ReceiptPlusOutlined,
     ReceiptScan,
     ReceiptSlash,
     RemoveMembers,
@@ -503,6 +510,7 @@ const Expensicons = {
     ArrowCircleClockwise,
     LuggageWithLines,
     LuggageWithLinesPlus,
+    LuggageWithLinesPlusOutlined,
     TreasureChestGreenWithSparkle,
     UserShield,
 };

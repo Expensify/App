@@ -2,7 +2,7 @@ import {emailSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -37,7 +37,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLinesPlus']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'ReceiptPlusOutlined', 'DocumentPlus', 'DocumentPlusOutlined', 'CarPlus', 'CarPlusOutlined', 'LuggageWithLinesPlus', 'LuggageWithLinesPlusOutlined']);
+    const isIOS = Platform.OS === 'ios';
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -232,7 +233,7 @@ function QuickCreationActionsBar() {
         <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
             <Button
                 small
-                icon={icons.ReceiptPlus}
+                icon={isIOS ? icons.ReceiptPlusOutlined : icons.ReceiptPlus}
                 text={translate('common.expense')}
                 onPress={handleExpense}
                 style={styles.quickCreationActionsBarButton}
@@ -240,7 +241,7 @@ function QuickCreationActionsBar() {
             />
             <Button
                 small
-                icon={icons.DocumentPlus}
+                icon={isIOS ? icons.DocumentPlusOutlined : icons.DocumentPlus}
                 text={translate('common.report')}
                 onPress={handleReport}
                 style={styles.quickCreationActionsBarButton}
@@ -248,7 +249,7 @@ function QuickCreationActionsBar() {
             />
             <Button
                 small
-                icon={icons.CarPlus}
+                icon={isIOS ? icons.CarPlusOutlined : icons.CarPlus}
                 text={translate('common.distance')}
                 onPress={handleDistance}
                 style={styles.quickCreationActionsBarButton}
@@ -257,7 +258,7 @@ function QuickCreationActionsBar() {
             {shouldShowBookTravel && (
                 <Button
                     small
-                    icon={icons.LuggageWithLinesPlus}
+                    icon={isIOS ? icons.LuggageWithLinesPlusOutlined : icons.LuggageWithLinesPlus}
                     text={translate('workspace.common.travel')}
                     onPress={handleBookTravel}
                     style={styles.quickCreationActionsBarButton}
