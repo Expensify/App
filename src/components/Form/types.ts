@@ -1,5 +1,5 @@
 import type {ComponentRef, ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, HostComponent, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, HostComponent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
@@ -125,6 +125,8 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     submitBehavior?: SubmitBehavior;
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
+    inputMode?: InputModeOptions;
+    keyboardType?: KeyboardTypeOptions;
     getNativeRef?: () => ComponentRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>;
 };
 
