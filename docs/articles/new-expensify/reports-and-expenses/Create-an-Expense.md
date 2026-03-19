@@ -114,8 +114,6 @@ The total amount will be calculated automatically using the hourly rate set for 
 
 ## How to bulk upload multiple receipts (web only)
 
-You can upload receipts using any of the following methods:
-
 1. On the web, go to the **Reports** page or the **Home** page. 
 2. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 3. Follow the prompts to assign workspaces, recipients, and coding.
