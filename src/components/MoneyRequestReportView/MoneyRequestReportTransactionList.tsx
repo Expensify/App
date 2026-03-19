@@ -55,6 +55,7 @@ import {
     isIOUReport,
 } from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
@@ -197,6 +198,17 @@ function MoneyRequestReportTransactionList({
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const transactionIDs = useMemo(() => new Set(transactions.map((t) => t.transactionID)), [transactions]);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (allViolations) => {
+            if (!allViolations) {
+                return {};
+            }
+            return Object.fromEntries(
+                Object.entries(allViolations).filter(([key]) => transactionIDs.has(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ''))),
+            );
+        },
+    });
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -267,8 +279,19 @@ function MoneyRequestReportTransactionList({
     const {sortBy, sortOrder} = sortConfig;
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions].sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true));
-    }, [sortBy, sortOrder, transactions, localeCompare, report]);
+        const sorted = [...transactions].sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true));
+        if (sortBy !== CONST.SEARCH.TABLE_COLUMNS.DATE || sortOrder !== CONST.SEARCH.SORT_ORDER.ASC) {
+            return sorted;
+        }
+        return sorted.sort((a, b) => {
+            const aHasRBR = transactionHasRBR(a, report, transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${a.transactionID}`] ?? []);
+            const bHasRBR = transactionHasRBR(b, report, transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${b.transactionID}`] ?? []);
+            if (aHasRBR === bHasRBR) {
+                return 0;
+            }
+            return aHasRBR ? -1 : 1;
+        });
+    }, [sortBy, sortOrder, transactions, localeCompare, report, transactionViolations]);
 
     const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 
