@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setNewRoomFormLoading} from '@libs/actions/Report';
@@ -22,7 +23,7 @@ function NewChatSelectorPage() {
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
     const chatPageInputRef = useRef<AnimatedTextInputRef | null>(null);
     const roomPageInputRef = useRef<AnimatedTextInputRef | null>(null);
-
+    const isInLandscapeMode = useIsInLandscapeMode();
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
     const containerElements = useMemo(() => {
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
@@ -35,6 +36,10 @@ function NewChatSelectorPage() {
     // We're focusing the input using internal onPageSelected to fix input focus inconsistencies.
     // More info: https://github.com/Expensify/App/issues/59388
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
+        if (isInLandscapeMode) {
+            return;
+        }
+
         // We requestAnimationFrame since the function is called in the animate block in the web implementation
         // which fixes a locked animation glitch when swiping between tabs, and aligns with the native implementation internal delay
         requestAnimationFrame(() => {
