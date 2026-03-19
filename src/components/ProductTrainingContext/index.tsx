@@ -41,6 +41,11 @@ type ProductTrainingContextConfig = {
      * Callback to be called when the tooltip is confirmed
      */
     onConfirm?: () => void;
+
+    /**
+     * Callback to be called when the tooltip is shown
+     */
+    onShown?: () => void;
 };
 
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
@@ -152,6 +157,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION &&
                 isModalVisible
             ) {
                 return false;
@@ -267,8 +273,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
 
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
+
         return (
-            <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>
+            <View
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                onLayout={config.onShown}
+            >
                 <View
                     style={[
                         styles.alignItemsCenter,
@@ -344,6 +354,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         theme.tooltipHighlightText,
         theme.icon,
         translate,
+        config.onShown,
         config.onConfirm,
         config.onDismiss,
         hideTooltip,

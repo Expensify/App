@@ -179,7 +179,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
                     textInputValue={searchTerm}
                     headerMessage={headerMessage}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    showLoadingPlaceholder={!areOptionsInitialized}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
                     onEndReached={onListEndReached}
                 />

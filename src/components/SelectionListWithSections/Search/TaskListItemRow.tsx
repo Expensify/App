@@ -70,7 +70,6 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
 }
 
 function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -87,20 +86,15 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
         return (
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
                 <Badge
-                    success
+                    isCondensed
                     text={translate('task.completed')}
-                    icon={icons.Checkmark}
-                    iconStyles={styles.mr0}
-                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                     badgeStyles={[
                         styles.ml0,
-                        styles.ph2,
-                        styles.gap1,
+                        styles.borderNone,
                         isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
-                        StyleUtils.getHeight(variables.h20),
-                        StyleUtils.getMinimumHeight(variables.h20),
-                        StyleUtils.getBorderColorStyle(theme.border),
+                        StyleUtils.getBackgroundColorStyle(theme.reportStatusBadge.paid.backgroundColor),
                     ]}
+                    textStyles={StyleUtils.getColorStyle(theme.reportStatusBadge.paid.textColor)}
                 />
             </View>
         );

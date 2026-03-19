@@ -1,4 +1,5 @@
 import {defineConfig} from 'eslint/config';
+import reportNameUtilsPlugin from './eslint-plugin-report-name-utils/index.mjs';
 import mainConfig from './eslint.config.mjs';
 
 const restrictedIconImportPaths = [
@@ -105,6 +106,12 @@ const config = defineConfig([
                 },
             ],
         },
+    },
+
+    {
+        files: ['src/libs/ReportNameUtils.ts'],
+        plugins: {'report-name-utils': reportNameUtilsPlugin},
+        rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
     },
 ]);
 

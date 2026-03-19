@@ -147,7 +147,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             shouldShowSearchInput
                 ? {
                       value: searchTerm,
-                      label: translate('selectionList.searchForSomeone'),
+                      label: translate('common.search'),
                       onChangeText: setSearchTerm,
                       headerMessage,
                       disableAutoFocus: !shouldFocusInputOnScreenFocus,

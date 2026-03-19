@@ -98,7 +98,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             return;
         }
         hasCalledOnLayout.current = true;
-
         onFirstItemRendered();
     }, [onFirstItemRendered]);
 
@@ -201,7 +200,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 itemOneTransactionThreadReport?.reportID,
             );
 
-            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, visibleReportActionsData, lastAction);
+            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, itemReportNameValuePairs?.private_isArchived, visibleReportActionsData, lastAction);
             const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
 
             const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
@@ -215,7 +214,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     lastMessageTextFromReport = '';
                 }
             }
-
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
             let lastActionReport: OnyxEntry<Report> | undefined;
@@ -276,6 +274,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             draftComments,
             personalDetails,
             firstReportIDWithGBRorRBR,
+            isFullscreenVisible,
             optionMode,
             shouldDisableFocusOptions,
             onSelectRow,
@@ -285,7 +284,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             activePolicyID,
             introSelected?.choice,
             onboarding,
-            isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
             localeCompare,

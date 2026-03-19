@@ -5,6 +5,7 @@ type CreateDigitalAppleWalletParams = {
     certificates: string;
     nonce: string;
     nonceSignature: string;
+    cardID: number;
 };
 
 type CreateDigitalGoogleWalletParams = {

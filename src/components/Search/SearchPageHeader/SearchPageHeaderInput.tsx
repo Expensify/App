@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
@@ -69,6 +70,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const queryText = buildUserReadableQueryString({
         queryJSON,
         PersonalDetails: personalDetails,
@@ -81,6 +85,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         autoCompleteWithSpace: true,
         translate,
         feedKeysWithCards,
+        conciergeReportID,
     });
 
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
@@ -138,9 +143,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             policies,
             currentUserAccountID,
             translate,
+            conciergeReportID,
         );
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate]);
+    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate, conciergeReportID]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
@@ -236,15 +242,15 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         setAutocompleteSubstitutions(substitutions);
                     }
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
-                    submitSearch(item.searchQuery, item.keyForList !== 'findItem');
+                    submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
                 }
             } else if (item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, false);
+                navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, false);
             }
         },
-        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, currentUserAccountID],
+        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, currentUserAccountID, introSelected, isSelfTourViewed],
     );
 
     const searchQueryItem = useMemo(
@@ -255,7 +261,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                       singleIcon: expensifyIcons.MagnifyingGlass,
                       searchQuery: textInputValue,
                       itemStyle: styles.activeComponentBG,
-                      keyForList: 'findItem',
+                      keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
                       searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
                   }
                 : undefined,

@@ -122,7 +122,7 @@ function TaskShareDestinationSelectorModal() {
                         data={areOptionsInitialized ? data : []}
                         onSelectRow={selectReportHandler}
                         textInputOptions={textInputOptions}
-                        showLoadingPlaceholder={areOptionsInitialized && searchTerm.trim() === '' ? false : !didScreenTransitionEnd}
+                        shouldShowLoadingPlaceholder={areOptionsInitialized && searchTerm.trim() === '' ? false : !didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
                         onEndReached={onListEndReached}
                         shouldSingleExecuteRowSelect

@@ -1,5 +1,3 @@
-import type {Span} from '@sentry/core';
-import * as Sentry from '@sentry/react-native';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
@@ -57,13 +55,6 @@ let currentRequestPromise: Promise<void> | null = null;
 let isQueuePaused = false;
 const sequentialQueueRequestThrottle = new RequestThrottle('SequentialQueue');
 
-let currentFlushSpan: Span | undefined;
-let currentProcessSpan: Span | undefined;
-
-function getFlushSpan(): Span | undefined {
-    return currentFlushSpan;
-}
-
 /**
  * Puts the queue into a paused state so that no requests will be processed
  */
@@ -87,22 +78,7 @@ function flushOnyxUpdatesQueue() {
         Log.info('[SequentialQueue] Queue already paused');
         return;
     }
-    const span = Sentry.startInactiveSpan({
-        name: CONST.TELEMETRY.SPAN_FLUSH_ONYX_UPDATES_QUEUE,
-        op: CONST.TELEMETRY.SPAN_FLUSH_ONYX_UPDATES_QUEUE,
-        parentSpan: currentFlushSpan,
-    });
-    return flushQueue()
-        ?.then((result) => {
-            span.setStatus({code: 1});
-            span.end();
-            return result;
-        })
-        .catch((error: unknown) => {
-            span.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
-            span.end();
-            throw error;
-        });
+    return flushQueue();
 }
 
 let queueFlushedDataToStore: AnyOnyxUpdate[] = [];
@@ -180,15 +156,6 @@ function process(): Promise<void> {
         persistWhenOngoing: requestToProcess.persistWhenOngoing ?? false,
     });
 
-    currentProcessSpan = Sentry.startInactiveSpan({
-        name: CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_PROCESS,
-        op: CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_PROCESS,
-        parentSpan: currentFlushSpan,
-        attributes: {
-            [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: requestToProcess.command,
-        },
-    });
-
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
@@ -220,17 +187,10 @@ function process(): Promise<void> {
             }
 
             sequentialQueueRequestThrottle.clear();
-            currentProcessSpan?.setStatus({code: 1});
-            currentProcessSpan?.end();
-            currentProcessSpan = undefined;
             Log.info('[SequentialQueue] Continuing to process next request');
             return process();
         })
         .catch((error: RequestError) => {
-            currentProcessSpan?.setStatus({code: 2, message: error.message});
-            currentProcessSpan?.end();
-            currentProcessSpan = undefined;
-
             Log.info('[SequentialQueue] Request failed with error', false, {
                 command: requestToProcess.command,
                 errorName: error.name ?? 'unknown',
@@ -355,14 +315,6 @@ function flush(shouldResetPromise = true) {
         persistedCommands: getCommands(currentPersistedRequests),
     });
 
-    currentFlushSpan = Sentry.startInactiveSpan({
-        name: CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_FLUSH,
-        op: CONST.TELEMETRY.SPAN_SEQUENTIAL_QUEUE_FLUSH,
-        attributes: {
-            [CONST.TELEMETRY.ATTRIBUTE_QUEUE_LENGTH]: persistedRequestsLength,
-        },
-    });
-
     isSequentialQueueRunning = true;
 
     if (shouldResetPromise) {
@@ -401,21 +353,10 @@ function flush(shouldResetPromise = true) {
                 }
                 currentRequestPromise = null;
 
-                const endFlushSpanOk = () => {
-                    currentFlushSpan?.setStatus({code: 1});
-                    currentFlushSpan?.end();
-                    currentFlushSpan = undefined;
-                };
-                const endFlushSpanErr = (error: unknown) => {
-                    currentFlushSpan?.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
-                    currentFlushSpan?.end();
-                    currentFlushSpan = undefined;
-                };
-
                 // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
                 if (remainingRequests === 0) {
                     Log.info('[SequentialQueue] Queue is empty, flushing Onyx updates');
-                    const flushPromise = flushOnyxUpdatesQueue()?.then(() => {
+                    flushOnyxUpdatesQueue()?.then(() => {
                         const queueFlushedData = getQueueFlushedData();
                         if (queueFlushedData.length === 0) {
                             Log.info('[SequentialQueue] No queueFlushedData to apply');
@@ -424,23 +365,17 @@ function flush(shouldResetPromise = true) {
                         Log.info('[SequentialQueue] Applying queueFlushedData', false, {
                             queueFlushedDataLength: queueFlushedData.length,
                         });
-                        return Onyx.update(queueFlushedData).then(() => {
+                        Onyx.update(queueFlushedData).then(() => {
                             Log.info('[SequentialQueue] QueueFlushedData has been applied and stored', false, {
                                 queueFlushedDataLength: queueFlushedData.length,
                             });
                             clearQueueFlushedData();
                         });
                     });
-                    if (flushPromise) {
-                        flushPromise.then(endFlushSpanOk).catch(endFlushSpanErr);
-                    } else {
-                        endFlushSpanOk();
-                    }
                 } else {
                     Log.info('[SequentialQueue] Queue still has requests, NOT flushing Onyx updates', false, {
                         remainingRequests,
                     });
-                    endFlushSpanOk();
                 }
             });
         },
@@ -501,7 +436,7 @@ onReconnection(flush);
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
 
-function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>) {
+async function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
     Log.info('[SequentialQueue] handleConflictActions', false, {
         conflictType: conflictAction.type,
         newCommand: newRequest.command,
@@ -512,14 +447,14 @@ function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictDat
         Log.info('[SequentialQueue] Conflict resolution: PUSH', false, {
             command: newRequest.command,
         });
-        savePersistedRequest(newRequest);
+        await savePersistedRequest(newRequest);
     } else if (conflictAction.type === 'replace') {
         Log.info('[SequentialQueue] Conflict resolution: REPLACE', false, {
             command: newRequest.command,
             replaceIndex: conflictAction.index,
             replacementRequest: conflictAction.request?.command ?? newRequest.command,
         });
-        updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
+        await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
     } else if (conflictAction.type === 'delete') {
         Log.info('[SequentialQueue] Conflict resolution: DELETE', false, {
             command: newRequest.command,
@@ -527,19 +462,19 @@ function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictDat
             willPushNewRequest: conflictAction.pushNewRequest ?? false,
             hasNextAction: !!conflictAction.nextAction,
         });
-        deletePersistedRequestsByIndices(conflictAction.indices);
+        await deletePersistedRequestsByIndices(conflictAction.indices);
         if (conflictAction.pushNewRequest) {
             Log.info('[SequentialQueue] Pushing new request after delete', false, {
                 command: newRequest.command,
             });
-            savePersistedRequest(newRequest);
+            await savePersistedRequest(newRequest);
         }
         if (conflictAction.nextAction) {
             Log.info('[SequentialQueue] Processing next conflict action', false, {
                 command: newRequest.command,
                 nextActionType: conflictAction.nextAction.type,
             });
-            handleConflictActions(conflictAction.nextAction, newRequest);
+            await handleConflictActions(conflictAction.nextAction, newRequest);
         }
     } else {
         Log.info('[SequentialQueue] No action performed, request ignored', false, {
@@ -549,7 +484,7 @@ function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictDat
     }
 }
 
-function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
+function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void> {
     const currentRequests = getAllPersistedRequests();
     Log.info('[SequentialQueue] push() called', false, {
         command: newRequest.command,
@@ -558,6 +493,11 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
         isOffline: isOffline(),
         isSequentialQueueRunning,
     });
+
+    // Save the request to the persisted queue. The in-memory update inside save()
+    // happens synchronously, so flush() below will see the new request immediately.
+    // The returned promise resolves when disk persistence completes.
+    let persistencePromise: Promise<void>;
 
     if (newRequest.checkAndFixConflictingRequest) {
         const requests = currentRequests;
@@ -575,13 +515,13 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
         // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
         delete newRequest.checkAndFixConflictingRequest;
-        handleConflictActions(conflictAction, newRequest);
+        persistencePromise = handleConflictActions(conflictAction, newRequest);
     } else {
         Log.info('[SequentialQueue] No conflict action. Adding request to Persisted Requests', false, {
             command: newRequest.command,
         });
         // Add request to Persisted Requests so that it can be retried if it fails
-        savePersistedRequest(newRequest);
+        persistencePromise = savePersistedRequest(newRequest);
     }
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
@@ -590,7 +530,7 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
             command: newRequest.command,
             queueLength: getAllPersistedRequests().length,
         });
-        return;
+        return persistencePromise;
     }
 
     // If the queue is running this request will run once it has finished processing the current batch
@@ -604,13 +544,14 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
             });
             flush(true);
         });
-        return;
+        return persistencePromise;
     }
 
     Log.info('[SequentialQueue] Queue is not running. Flushing the queue.', false, {
         command: newRequest.command,
     });
     flush(true);
+    return persistencePromise;
 }
 
 function getCurrentRequest(): Promise<void> {
@@ -641,15 +582,9 @@ function resetQueue(): void {
     resolveIsReadyPromise?.();
 }
 
-function getProcessSpan(): Span | undefined {
-    return currentProcessSpan;
-}
-
 export {
     flush,
     getCurrentRequest,
-    getFlushSpan,
-    getProcessSpan,
     getShouldFailAllRequests,
     isPaused,
     isRunning,

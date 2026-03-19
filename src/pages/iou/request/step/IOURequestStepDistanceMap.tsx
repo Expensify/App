@@ -48,6 +48,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -92,6 +94,7 @@ function IOURequestStepDistanceMap({
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -99,6 +102,7 @@ function IOURequestStepDistanceMap({
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !isEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
@@ -166,6 +170,8 @@ function IOURequestStepDistanceMap({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
@@ -276,7 +282,7 @@ function IOURequestStepDistanceMap({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport(transaction?.reportID, introSelected);
+            openReport({reportID: transaction?.reportID, introSelected, betas});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -303,13 +309,13 @@ function IOURequestStepDistanceMap({
             iouType,
             report,
             policy,
-            policyForMovingExpenses,
             transaction,
             reportID,
             transactionID,
             reportAttributesDerived,
             personalDetails,
             waypoints,
+            customUnitRateID,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
             backTo,
@@ -329,8 +335,12 @@ function IOURequestStepDistanceMap({
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             selfDMReport,
+            policyForMovingExpenses,
             betas,
             recentWaypoints,
+            draftTransactionIDs,
+            isSelfTourViewed: !!isSelfTourViewed,
+            amountOwed,
         });
     }, [
         iouType,
@@ -342,6 +352,7 @@ function IOURequestStepDistanceMap({
         reportAttributesDerived,
         personalDetails,
         waypoints,
+        customUnitRateID,
         currentUserEmailParam,
         currentUserAccountIDParam,
         backTo,
@@ -364,6 +375,9 @@ function IOURequestStepDistanceMap({
         selfDMReport,
         betas,
         recentWaypoints,
+        draftTransactionIDs,
+        isSelfTourViewed,
+        amountOwed,
     ]);
 
     const getError = () => {
