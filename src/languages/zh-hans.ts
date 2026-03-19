@@ -486,6 +486,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: '注意！',
         submitTo: '提交给',
         forwardTo: '转发至',
+        approvalLimit: '审批限额',
+        overLimitForwardTo: '超出限额时转发至',
         merge: '合并',
         none: '无',
         unstableInternetConnection: '网络连接不稳定。请检查您的网络后重试。',
@@ -1113,6 +1115,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: '删除收据',
         deleteConfirmation: '确定要删除这张收据吗？',
         addReceipt: '添加收据',
+        addAdditionalReceipt: '添加额外收据',
         scanFailed: '无法扫描此收据，因为缺少商家、日期或金额。',
         crop: '裁剪',
         addAReceipt: {
@@ -2035,6 +2038,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
         twoFactorAuthCannotDisable: '无法禁用双重验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证（2FA），且无法将其禁用。',
+        replaceDevice: '更换设备',
+        replaceDeviceTitle: '更换双重验证设备',
+        verifyOldDeviceTitle: '验证旧设备',
+        verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您仍可访问该应用。',
+        verifyNewDeviceTitle: '设置新设备',
+        verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
     },
     recoveryCodeForm: {
         error: {

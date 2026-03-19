@@ -3631,6 +3631,8 @@ const staticStyles = (theme: ThemeColors) =>
             height: 40,
             alignItems: 'center',
             justifyContent: 'center',
+            backgroundColor: theme.buttonDefaultBG,
+            borderRadius: 20,
         },
 
         bgGreenSuccess: {
@@ -5697,6 +5699,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 28,
             borderRadius: 16,
             marginTop: 32,
+        },
+        twoFactorAuthSecretBox: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: 16,
         },
         anonymousRoomFooter: {
             padding: 20,

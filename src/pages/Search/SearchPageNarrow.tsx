@@ -12,8 +12,9 @@ import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import DeferredSearch from '@components/Search/DeferredSearch';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import Search from '@components/Search';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -24,6 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
+import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -56,12 +58,14 @@ type SearchPageNarrowProps = {
 };
 
 function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata, footerData, shouldShowFooter}: SearchPageNarrowProps) {
+    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const {shouldUseLiveData} = useSearchStateContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
@@ -162,7 +166,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
         );
     }
 
-    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
 
     return (
@@ -244,15 +248,32 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                     )}
                     {!searchRouterListVisible && (
                         <View style={[styles.flex1]}>
-                            <DeferredSearch
-                                searchResults={searchResults}
-                                queryJSON={queryJSON}
-                                onSearchListScroll={scrollHandler}
-                                contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
-                                handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                            />
+                            {shouldShowLoadingSkeleton ? (
+                                <SearchLoadingSkeleton
+                                    containerStyle={styles.searchListContentContainerStyles}
+                                    reasonAttributes={{
+                                        context: 'SearchPage',
+                                        isOffline,
+                                        isDataLoaded,
+                                        isSearchLoading: !!searchResults?.search?.isLoading,
+                                        hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                        hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
+                                        hasPendingResponse: searchRequestResponseStatusCode === null,
+                                        shouldUseLiveData,
+                                    }}
+                                />
+                            ) : (
+                                <Search
+                                    searchResults={searchResults}
+                                    key={queryJSON.hash}
+                                    queryJSON={queryJSON}
+                                    onSearchListScroll={scrollHandler}
+                                    contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
+                                    handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                />
+                            )}
                         </View>
                     )}
                     {shouldShowFooter && !searchRouterListVisible && (
