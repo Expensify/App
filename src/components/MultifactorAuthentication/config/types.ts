@@ -90,7 +90,7 @@ type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknow
 type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = EmptyObject> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
     allowedAuthenticationMethods: Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>;
-    screen: MultifactorAuthenticationScreen;
+    screen?: MultifactorAuthenticationScreen;
 
     /**
      * Whether the scenario does not require any additional parameters except for the native biometrics data.
@@ -195,6 +195,15 @@ type MultifactorAuthenticationScenarioParameters = {
  */
 type MultifactorAuthenticationScenario = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO>;
 
+/**
+ * Converts a scenario's parameters for API use by replacing signedChallenge with its stringified form.
+ * The signedChallenge is validated as a structured object in the action layer, but needs to
+ * JSON.stringify when sent to the API.
+ */
+type MultifactorAuthenticationAPIParams<T extends MultifactorAuthenticationScenario> = Omit<MultifactorAuthenticationScenarioParameters[T], 'signedChallenge'> & {
+    signedChallenge: string;
+};
+
 export type {
     MultifactorAuthenticationPrompt,
     MultifactorAuthenticationModal,
@@ -211,5 +220,6 @@ export type {
     MultifactorAuthenticationDefaultUIConfig,
     MultifactorAuthenticationCancelConfirm,
     MultifactorAuthenticationScenarioCustomConfig,
+    MultifactorAuthenticationAPIParams,
     FailureScreenOverrides,
 };

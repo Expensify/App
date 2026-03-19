@@ -6,11 +6,11 @@ import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import findMatchingDynamicSuffix from './findMatchingDynamicSuffix';
+import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
+import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import getStateForDynamicRoute from './dynamicRoutesUtils/getStateForDynamicRoute';
 import getMatchingNewRoute from './getMatchingNewRoute';
-import getPathWithoutDynamicSuffix from './getPathWithoutDynamicSuffix';
 import getRedirectedPath from './getRedirectedPath';
-import getStateForDynamicRoute from './getStateForDynamicRoute';
 
 /**
  * @param path - The path to parse
@@ -39,7 +39,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
         if (focusedRoute?.name) {
             if (entryScreens.includes(focusedRoute.name as Screen)) {
                 // Generate navigation state for the dynamic route
-                const dynamicRouteState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey);
+                const dynamicRouteState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey, focusedRoute?.params as Record<string, unknown> | undefined);
                 return dynamicRouteState;
             }
 

@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 const SUGGESTED_SEARCH_SKELETON_TEST_ID = 'SuggestedSearchSkeleton';
-const NAV_ITEM_HEIGHT = 52;
+const NAV_ITEM_HEIGHT = variables.sectionMenuItemHeightCompact;
 const SECTION_MENU_ITEM_HORIZONTAL_PADDING = 16;
 const SECTION_HEADER_HEIGHT = 32;
 const SECTION_HEADER_RECT_HEIGHT = 4;

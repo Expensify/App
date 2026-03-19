@@ -179,16 +179,20 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
+        const skipOnboardingConfig = CONFIG.SKIP_ONBOARDING;
+        const isLoading = context.isLoading;
+        const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
+
         const shouldSkipOnboarding =
-            CONFIG.SKIP_ONBOARDING ||
-            context.isLoading ||
+            skipOnboardingConfig ||
+            isLoading ||
             isTransitioning ||
             isOnboardingCompleted ||
             isMigratedUser ||
             isSingleEntry ||
             needsExplanationModal ||
             isInvitedOrGroupMember ||
-            isNavigatingToOnboardingFlowWithReplaceAction(action);
+            isNavigatingWithReplace;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
@@ -197,7 +201,18 @@ const OnboardingGuard: NavigationGuard = {
         // User needs onboarding - calculate the correct step and redirect
         const onboardingRoute = getOnboardingRoute();
 
-        Log.info('[OnboardingGuard] Redirecting to onboarding route', false, {onboardingRoute});
+        Log.info('[OnboardingGuard] Redirecting to onboarding route', false, {
+            onboardingRoute,
+            skipOnboardingConfig,
+            isLoading,
+            isTransitioning,
+            isOnboardingCompleted,
+            isMigratedUser,
+            isSingleEntry,
+            needsExplanationModal,
+            isInvitedOrGroupMember,
+            isNavigatingWithReplace,
+        });
 
         return {
             type: 'REDIRECT',

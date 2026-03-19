@@ -189,7 +189,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, o
             contentContainerStyle={styles.flexGrow1}
             onScroll={onScroll}
             onLayout={onLayout}
-            scrollEventThrottle={16}
+            scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
                 <ChartComponent
