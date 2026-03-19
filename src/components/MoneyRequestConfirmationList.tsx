@@ -24,7 +24,7 @@ import {
     setMoneyRequestPendingFields,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
-    setMoneyRequestTaxRate,
+    setMoneyRequestTaxRateValues,
 } from '@libs/actions/IOU';
 import {computePerDiemExpenseAmount, isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {adjustRemainingSplitShares, resetSplitShares, setIndividualShare, setSplitShares} from '@libs/actions/IOU/Split';
@@ -380,14 +380,25 @@ function MoneyRequestConfirmationList({
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
+    const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
 
     useEffect(() => {
         if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
             return;
         }
-        setMoneyRequestTaxRate(transactionID, defaultTaxCode);
+
+        // Keep the user's current selection when it's still valid for the active policy.
+        if (hasTaxRateWithMatchingValue(policy, transaction)) {
+            return;
+        }
+
+        setMoneyRequestTaxRateValues(transactionID, {
+            taxCode: defaultTaxCode,
+            taxValue: defaultTaxValue,
+            taxAmount: transaction?.taxAmount ?? null,
+        });
         // trigger this useEffect also when policyID changes - the defaultTaxCode may stay the same
-    }, [defaultTaxCode, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID, shouldShowTax]);
+    }, [defaultTaxCode, defaultTaxValue, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID, shouldShowTax, policy, transaction]);
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
