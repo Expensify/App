@@ -630,6 +630,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {
             didNotShipCard: 'No enviamos tu tarjeta. Por favor, inténtalo de nuevo.',
         },
+        unblockCardPIN: {
+            cardUnlocked: '¡Tarjeta desbloqueada!',
+            cardUnlockedSubtitle: 'Tu tarjeta ha sido desbloqueada y está lista para usar.',
+            didNotUnlockCard: 'No pudimos desbloquear tu tarjeta. Por favor, inténtalo de nuevo.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -2251,6 +2256,16 @@ ${amount} para ${merchant} - ${date}`,
         unfreezeCard: 'Descongelar tarjeta',
         freezeDescription: 'Una tarjeta congelada no se puede usar para compras ni transacciones. Puedes descongelarla en cualquier momento.',
         unfreezeDescription: 'Al descongelar esta tarjeta se volverán a permitir compras y transacciones. Continúa solo si estás seguro de que la tarjeta es segura para usar.',
+        pinBlocked: {
+            suspendedError: 'Tu tarjeta está bloqueada debido a demasiados intentos incorrectos de PIN. Toca Desbloquear tarjeta para recuperar el acceso.',
+            openError: 'Necesitas cambiar tu PIN en cualquier cajero automático para terminar de desbloquear tu tarjeta.',
+            unlockCard: 'Desbloquear tarjeta',
+        },
+        changePINRequirement: {
+            title: 'Cambiar PIN',
+            heading: 'Cambia tu PIN en cualquier cajero automático',
+            description: 'Tu tarjeta ha sido desbloqueada, pero necesitas cambiar tu PIN en cualquier cajero automático para completar el proceso.',
+        },
         frozen: 'Congelada',
         youFroze: ({date}: {date: string}) => `Congelaste esta tarjeta el ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} congeló esta tarjeta el ${date}.`,

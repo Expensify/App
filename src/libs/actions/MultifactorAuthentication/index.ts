@@ -273,6 +273,25 @@ async function authorizeTransaction({transactionID, signedChallenge, authenticat
     }
 }
 
+async function unblockCardPIN(params: MultifactorAuthenticationScenarioParameters['UNBLOCK-CARD-PIN']) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.UNBLOCK_CARD_PIN,
+            {
+                ...params,
+                signedChallenge: JSON.stringify(params.signedChallenge),
+            },
+            {},
+        );
+
+        const {jsonCode, message} = response ?? {};
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.UNBLOCK_CARD_PIN, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to unblock card PIN', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.UNBLOCK_CARD_PIN, undefined);
+    }
+}
+
 async function denyTransaction({transactionID}: DenyTransactionParams) {
     try {
         const response = await makeRequestWithSideEffects(
@@ -330,4 +349,5 @@ export {
     denyTransaction,
     authorizeTransaction,
     fireAndForgetDenyTransaction,
+    unblockCardPIN,
 };

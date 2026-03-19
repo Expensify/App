@@ -198,6 +198,12 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Possible fraud information */
         possibleFraud?: PossibleFraudData;
+
+        /** Whether the card PIN is blocked due to too many incorrect attempts */
+        isPINBlocked?: boolean;
+
+        /** Whether the card is in an offline PIN market (requires ATM visit to change PIN) */
+        isOfflinePINMarket?: boolean;
     }> &
         OnyxCommon.OnyxValueWithOfflineFeedback<
             /** Type of export card */

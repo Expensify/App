@@ -7,6 +7,8 @@ import BiometricsTest from './BiometricsTest';
 import {customConfig} from './DefaultUserInterface';
 import type {Payload as SetPinOrderCardPayload} from './SetPinOrderCard';
 import SetPinOrderCard from './SetPinOrderCard';
+import type {Payload as UnblockCardPINPayload} from './UnblockCardPIN';
+import UnblockCardPIN from './UnblockCardPIN';
 
 /**
  * Payload types for multifactor authentication scenarios.
@@ -16,6 +18,7 @@ type Payloads = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: EmptyObject;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: SetPinOrderCardPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: AuthorizeTransactionPayload;
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.UNBLOCK_CARD_PIN]: UnblockCardPINPayload;
 };
 
 /**
@@ -25,6 +28,7 @@ const Configs = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: customConfig(BiometricsTest),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: customConfig(SetPinOrderCard),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: customConfig(AuthorizeTransaction),
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.UNBLOCK_CARD_PIN]: customConfig(UnblockCardPIN),
 } as const satisfies MultifactorAuthenticationScenarioConfigRecord;
 
 export default Configs;

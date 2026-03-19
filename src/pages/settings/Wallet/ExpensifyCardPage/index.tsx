@@ -14,6 +14,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -27,7 +28,17 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
-import {formatCardExpiration, getCardCurrency, getCardHintText, getDomainCards, getTranslationKeyForLimitType, isCardFrozen, maskCard, maskPin} from '@libs/CardUtils';
+import {
+    formatCardExpiration,
+    getCardCurrency,
+    getCardHintText,
+    getDomainCards,
+    getTranslationKeyForLimitType,
+    isCardFrozen,
+    maskCard,
+    maskPin,
+    supportsPINManagementFeatures,
+} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -130,6 +141,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
 
+    const {executeScenario} = useMultifactorAuthentication();
+
+    const isPINBlocked = !!currentCard?.nameValuePairs?.isPINBlocked;
+    const isUkEuCard = supportsPINManagementFeatures(currentCard);
+    const isCardSuspendedAndPINBlocked = isUkEuCard && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && isPINBlocked;
+    const isCardOpenAndPINBlocked = isUkEuCard && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && isPINBlocked;
+
     const session = useSession();
     const isCardHolder = currentCard?.accountID === session?.accountID;
 
@@ -145,6 +163,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         }),
         [],
     );
+
+    const handleUnlockCardPress = useCallback(() => {
+        executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.UNBLOCK_CARD_PIN, {
+            cardID,
+            isOfflinePINMarket: !!currentCard?.nameValuePairs?.isOfflinePINMarket,
+        });
+    }, [executeScenario, cardID, currentCard?.nameValuePairs?.isOfflinePINMarket]);
 
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
@@ -214,6 +239,33 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         style={styles.pageWrapper}
                         textStyles={styles.walletLockedMessage}
                         messages={{error: translate('cardPage.cardLocked')}}
+                        type="error"
+                    />
+                )}
+
+                {isCardSuspendedAndPINBlocked && (
+                    <>
+                        <DotIndicatorMessage
+                            style={styles.pageWrapper}
+                            textStyles={styles.walletLockedMessage}
+                            messages={{error: translate('cardPage.pinBlocked.suspendedError')}}
+                            type="error"
+                        />
+                        <Button
+                            success
+                            large
+                            style={[styles.mh5, styles.mb5]}
+                            text={translate('cardPage.pinBlocked.unlockCard')}
+                            onPress={handleUnlockCardPress}
+                        />
+                    </>
+                )}
+
+                {isCardOpenAndPINBlocked && (
+                    <DotIndicatorMessage
+                        style={styles.pageWrapper}
+                        textStyles={styles.walletLockedMessage}
+                        messages={{error: translate('cardPage.pinBlocked.openError')}}
                         type="error"
                     />
                 )}
@@ -396,12 +448,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     interactive={false}
                                     titleStyle={styles.walletCardNumber}
                                 />
-                                {shouldShowPIN && (
+                                {shouldShowPIN && !isCardSuspendedAndPINBlocked && (
                                     <MenuItemWithTopDescription
                                         description={translate('cardPage.physicalCardPin')}
                                         title={maskPin()}
-                                        interactive={false}
+                                        interactive={isCardOpenAndPINBlocked}
                                         titleStyle={styles.walletCardNumber}
+                                        brickRoadIndicator={isCardOpenAndPINBlocked ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                        shouldShowRightIcon={isCardOpenAndPINBlocked}
+                                        onPress={isCardOpenAndPINBlocked ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_REQUIREMENT.getRoute(cardID)) : undefined}
                                     />
                                 )}
                                 <MenuItem

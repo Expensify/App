@@ -742,6 +742,11 @@ const translations = {
         setPin: {
             didNotShipCard: "We didn't ship your card. Please try again.",
         },
+        unblockCardPIN: {
+            cardUnlocked: 'Card unlocked!',
+            cardUnlockedSubtitle: 'Your card has been unlocked and is ready to use.',
+            didNotUnlockCard: "We didn't unlock your card. Please try again.",
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2390,6 +2395,16 @@ const translations = {
         unfreezeCard: 'Unfreeze card',
         freezeDescription: 'A frozen card cannot be used for purchases and transactions. You can unfreeze it at any time.',
         unfreezeDescription: "Unfreezing this card will start allowing purchases and transactions again. Only proceed if you're sure the card is safe to use.",
+        pinBlocked: {
+            suspendedError: 'Your card is locked due to too many incorrect PIN attempts. Tap Unlock Card to regain access.',
+            openError: 'You need to change your PIN at any ATM to finish unlocking your card.',
+            unlockCard: 'Unlock card',
+        },
+        changePINRequirement: {
+            title: 'Change PIN',
+            heading: 'Change your PIN at any ATM',
+            description: 'Your card has been unlocked, but you need to change your PIN at any ATM to finish the process.',
+        },
         frozen: 'Frozen',
         youFroze: ({date}: {date: string}) => `You froze this card on ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} froze this card on ${date}.`,
