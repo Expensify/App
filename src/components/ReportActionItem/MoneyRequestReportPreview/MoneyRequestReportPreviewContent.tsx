@@ -28,6 +28,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -270,26 +271,7 @@ function MoneyRequestReportPreviewContent({
         markPendingRTERTransactionsAsCash(transactions, transactionViolations, Object.values(reportActions ?? {}));
     }, [transactions, transactionViolations, reportActions]);
 
-    const confirmPendingRTERAndProceed = useCallback(
-        (onProceed: () => void) => {
-            if (!hasAnyPendingRTERViolation) {
-                onProceed();
-                return;
-            }
-            showConfirmModal({
-                title: translate('iou.pendingMatchSubmitTitle'),
-                prompt: translate('iou.pendingMatchSubmitDescription'),
-                confirmText: translate('common.yes'),
-                cancelText: translate('common.no'),
-            }).then((result) => {
-                if (result.action === ModalActions.CONFIRM) {
-                    handleMarkPendingRTERTransactionsAsCash();
-                }
-                onProceed();
-            });
-        },
-        [hasAnyPendingRTERViolation, showConfirmModal, translate, handleMarkPendingRTERTransactionsAsCash],
-    );
+    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted

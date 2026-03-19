@@ -12,6 +12,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -875,26 +876,7 @@ function MoneyReportHeader({
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
     }, [transactions, allTransactionViolations, reportActions]);
 
-    const confirmPendingRTERAndProceed = useCallback(
-        (onProceed: () => void) => {
-            if (!hasAnyPendingRTERViolation) {
-                onProceed();
-                return;
-            }
-            showConfirmModal({
-                title: translate('iou.pendingMatchSubmitTitle'),
-                prompt: translate('iou.pendingMatchSubmitDescription'),
-                confirmText: translate('common.yes'),
-                cancelText: translate('common.no'),
-            }).then((result) => {
-                if (result.action === ModalActions.CONFIRM) {
-                    handleMarkPendingRTERTransactionsAsCash();
-                }
-                onProceed();
-            });
-        },
-        [hasAnyPendingRTERViolation, showConfirmModal, translate, handleMarkPendingRTERTransactionsAsCash],
-    );
+    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
     const handleSubmitReport = useCallback(
         (skipAnimation = false) => {
