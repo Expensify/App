@@ -23,7 +23,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
@@ -673,7 +672,6 @@ function MoneyReportHeader({
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const isChatReportDM = isDM(chatReport);
 
-    const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const isSelectionModePaymentRef = useRef(false);
     const confirmPayment = useCallback(
         ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
@@ -706,7 +704,6 @@ function MoneyReportHeader({
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',
                     payAsBusiness,
-                    existingB2BInvoiceReport,
                     methodID,
                     paymentMethod,
                     activePolicy,
@@ -768,7 +765,6 @@ function MoneyReportHeader({
             introSelected,
             accountID,
             email,
-            existingB2BInvoiceReport,
             activePolicy,
             policy,
             currentSearchQueryJSON,

@@ -152,6 +152,7 @@ import {
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOutstandingChildRequest,
     hasViolations as hasViolationsReportUtils,
+    isArchivedNonExpenseReport,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDeprecatedGroupDM,
@@ -326,7 +327,6 @@ type PayInvoiceArgs = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     payAsBusiness?: boolean;
-    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     methodID?: number;
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
@@ -1024,6 +1024,25 @@ function getAllTransactionViolations(): NonNullable<OnyxCollection<OnyxTypes.Tra
 
 function getAllReports(): OnyxCollection<OnyxTypes.Report> {
     return allReports;
+}
+
+function getExistingB2BInvoiceReport(receiverID: string | number | undefined, policyID?: string): OnyxEntry<OnyxTypes.Report> {
+    return Object.values(allReports ?? {}).find((report) => {
+        if (!report || !isInvoiceRoom(report)) {
+            return false;
+        }
+        const rnvp = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+        if (isArchivedNonExpenseReport(report, isArchivedReport(rnvp))) {
+            return false;
+        }
+        const isSameReceiver =
+            report.invoiceReceiver &&
+            report.invoiceReceiver.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS &&
+            'policyID' in report.invoiceReceiver &&
+            report.invoiceReceiver.policyID === receiverID;
+
+        return report.policyID === policyID && isSameReceiver;
+    });
 }
 
 function getAllReportActionsFromIOU(): OnyxCollection<OnyxTypes.ReportActions> {
@@ -9301,7 +9320,6 @@ function getPayMoneyRequestParams({
     introSelected,
     paymentPolicyID,
     lastUsedPaymentMethod,
-    existingB2BInvoiceReport,
     activePolicy,
     iouReportCurrentNextStepDeprecated,
     betas,
@@ -9317,7 +9335,6 @@ function getPayMoneyRequestParams({
     bankAccountID?: number;
     paymentPolicyID?: string | undefined;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
-    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam: number;
     currentUserEmailParam?: string;
@@ -9384,8 +9401,12 @@ function getPayMoneyRequestParams({
         onyxData.failureData?.push(...(policyFailureData ?? []), {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicy?.id ?? null});
     }
 
-    if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && existingB2BInvoiceReport) {
-        chatReport = existingB2BInvoiceReport;
+    if (isIndividualInvoiceRoom(chatReport) && payAsBusiness) {
+        const existingB2B = getExistingB2BInvoiceReport(activePolicy?.id, chatReport.policyID);
+
+        if (existingB2B) {
+            chatReport = existingB2B;
+        }
     }
 
     let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
@@ -11353,7 +11374,6 @@ function payInvoice({
     currentUserAccountIDParam,
     currentUserEmailParam,
     payAsBusiness = false,
-    existingB2BInvoiceReport,
     methodID,
     paymentMethod,
     activePolicy,
@@ -11385,7 +11405,6 @@ function payInvoice({
         full: true,
         payAsBusiness,
         bankAccountID: methodID,
-        existingB2BInvoiceReport,
         activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
