@@ -165,7 +165,7 @@ function TransactionPreviewContent({
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
     const isDescriptionHTML = !!requestComment && Parser.isHTML(requestComment);
     const requestDescription = truncate(requestComment ?? '', {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const description = isDescriptionHTML ? Parser.truncateHTML(requestComment ?? '', CONST.REQUEST_PREVIEW.MAX_LENGTH) : requestDescription;
+    const description = Parser.truncateHTML(requestComment ?? '', CONST.REQUEST_PREVIEW.MAX_LENGTH);
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;
@@ -331,13 +331,13 @@ function TransactionPreviewContent({
                                                 ]}
                                             >
                                                 {shouldShowMerchantOrDescription &&
-                                                    (shouldShowMerchant ? (
+                                                    (shouldShowMerchant || !isDescriptionHTML ? (
                                                         <Text
                                                             fontSize={variables.fontSizeNormal}
                                                             style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
                                                             numberOfLines={1}
                                                         >
-                                                            {requestMerchant}
+                                                            {shouldShowMerchant ? requestMerchant : requestDescription}
                                                         </Text>
                                                     ) : (
                                                         <View style={[styles.flexShrink1, styles.renderHTML]}>
