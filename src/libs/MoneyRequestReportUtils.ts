@@ -82,11 +82,6 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType, IOU
 
 /**
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
- *
- * For IOU actions specifically, the transaction object is treated as the primary source of truth.
- * If a transaction still exists in Onyx without pendingAction DELETE, it should be displayed even
- * if its IOU action was marked as deleted server-side (which can happen due to data inconsistencies
- * from operations like ScrapeCard merges).
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
