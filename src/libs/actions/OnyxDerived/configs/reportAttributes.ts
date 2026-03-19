@@ -38,7 +38,7 @@ const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Po
         prev.reimbursementChoice !== next.reimbursementChoice ||
         prev.autoReimbursementLimit !== next.autoReimbursementLimit ||
         prev.role !== next.role ||
-        JSON.stringify(prev.autoReimbursement) !== JSON.stringify(next.autoReimbursement)
+        prev.autoReimbursement?.limit !== next.autoReimbursement?.limit
     );
 };
 
