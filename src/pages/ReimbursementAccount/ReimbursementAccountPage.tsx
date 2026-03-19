@@ -234,12 +234,26 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep});
     }
 
+    const isMetadataLoading = isLoadingOnyxValue(reimbursementAccountMetadata);
+
     useEffect(() => {
-        if (isPreviousPolicy && !!reimbursementAccount) {
+        // Wait until Onyx metadata is ready so fetchData() can actually fire the API call.
+        // Calling setReimbursementAccountLoading(true) before fetchData() is ready would leave
+        // isLoading stuck at true if fetchData() returns early due to metadata not being loaded.
+        if (isMetadataLoading) {
             return;
         }
 
-        if (policyIDParam && !isLoadingOnyxValue(reimbursementAccountMetadata)) {
+        if (isPreviousPolicy && !!reimbursementAccount) {
+            // If isLoading is persisted as true from a prior offline submission, fetchData() to
+            // get fresh state from the server and clear the stale loading flag.
+            if (reimbursementAccount.isLoading) {
+                fetchData();
+            }
+            return;
+        }
+
+        if (policyIDParam) {
             setReimbursementAccountLoading(true);
             clearReimbursementAccountDraft();
         }
@@ -252,7 +266,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         }
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isPreviousPolicy]); // Only re-run this effect when isPreviousPolicy changes, which happens once when the component first loads
+    }, [isPreviousPolicy, isMetadataLoading]);
 
     useEffect(() => {
         if (policyIDParam && !isPreviousPolicy) {

@@ -45,7 +45,8 @@ function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
         [values, bankAccountID, policyID],
     );
     const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
-    const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForPersonalInfo(values)), [values, isBankAccountVerifying]);
+    const initialSubStep = useMemo(() => getInitialSubStepForPersonalInfo(values), [values]);
+    const startFrom = useMemo(() => (isBankAccountVerifying && initialSubStep === 0 ? 0 : initialSubStep), [isBankAccountVerifying, initialSubStep]);
 
     const {
         componentToRender: SubStep,
