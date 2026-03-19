@@ -12,8 +12,7 @@ const meta = {
     },
     schema: [],
     messages: {
-        missingIssueAndRationale:
-            'react-native-a11y eslint-disable comments must include a rationale and a tracking issue link.',
+        missingIssueAndRationale: 'react-native-a11y eslint-disable comments must include a rationale and a tracking issue link.',
         missingIssue: 'react-native-a11y eslint-disable comments must include a tracking issue link.',
         missingRationale: 'react-native-a11y eslint-disable comments must include a rationale describing why the disable is needed.',
     },
