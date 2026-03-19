@@ -3478,6 +3478,14 @@ describe('SearchUIUtils', () => {
                 // The constraint end should be used (earlier date)
                 expect(result.end).toBe('2026-01-15');
             });
+
+            it('should resolve LAST_12_MONTHS preset to span the current month and 11 preceding months', () => {
+                const range = SearchUIUtils.getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS);
+
+                // Clock is frozen at 2026-02-15, so last 12 months = March 2025 through February 2026
+                expect(range.start).toBe('2025-03-01');
+                expect(range.end).toBe('2026-02-28');
+            });
         });
 
         it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
