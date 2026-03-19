@@ -2611,6 +2611,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
+                conciergeReportID: undefined,
             }) as [TransactionReportGroupListItemType[], number];
 
             expect(resultWithoutOnyx.at(0)?.primaryAvatar?.source).not.toBe(customAvatarUrl);
@@ -2625,6 +2626,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
+                conciergeReportID: undefined,
                 onyxPersonalDetailsList,
             }) as [TransactionReportGroupListItemType[], number];
 
@@ -2664,6 +2666,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
+                conciergeReportID: undefined,
                 onyxPersonalDetailsList,
             }) as [TransactionReportGroupListItemType[], number];
 
@@ -2706,6 +2709,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
+                conciergeReportID: undefined,
             }) as [TransactionReportGroupListItemType[], number];
 
             const reportWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID2);
@@ -2720,6 +2724,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
+                conciergeReportID: undefined,
                 onyxPersonalDetailsList,
             }) as [TransactionReportGroupListItemType[], number];
 
@@ -2753,6 +2758,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
+                conciergeReportID: undefined,
             }) as [TransactionReportGroupListItemType[], number];
 
             const reportGroupWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID);
@@ -2768,6 +2774,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 allReportMetadata: {},
+                conciergeReportID: undefined,
                 onyxPersonalDetailsList,
             }) as [TransactionReportGroupListItemType[], number];
 
@@ -2807,6 +2814,7 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
+                conciergeReportID: undefined,
                 allReportMetadata: {},
                 onyxPersonalDetailsList,
             }) as [TransactionReportGroupListItemType[], number];
