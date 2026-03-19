@@ -63,14 +63,16 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
 
     const combinedUniqueExportTemplates = Array.from(uniqueExportTemplatesByName.values());
 
-    const standardExportTemplates: string[] = [];
+    const standardAndCustomExportTemplates: string[] = [];
     for (const template of combinedUniqueExportTemplates) {
-        const displayName = getStandardExportTemplateDisplayName(template.templateName);
-        const isStandardTemplate = displayName !== template.templateName;
-
-        if (isStandardTemplate) {
-            standardExportTemplates.push(displayName);
+        // Classic export formats map to in-app templates and cannot be identified in exported-to filter.
+        if (template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP) {
+            continue;
         }
+
+        const standardExportTemplateDisplayName = getStandardExportTemplateDisplayName(template.templateName);
+        const filterValue = standardExportTemplateDisplayName !== template.templateName ? standardExportTemplateDisplayName : (template.name ?? template.templateName);
+        standardAndCustomExportTemplates.push(filterValue);
     }
 
     const connectedIntegrationNames = policyIDs && policyIDs.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
@@ -84,7 +86,7 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
         return connectionName && connectedIntegrationNames.has(connectionName);
     });
 
-    const exportedToFilterOptions = [...connectedIntegrationDisplayNames, ...standardExportTemplates];
+    const exportedToFilterOptions = [...new Set([...connectedIntegrationDisplayNames, ...standardAndCustomExportTemplates])];
 
     return {
         exportedToFilterOptions,

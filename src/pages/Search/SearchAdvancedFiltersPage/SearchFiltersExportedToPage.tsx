@@ -96,27 +96,23 @@ function SearchFiltersExportedToPage() {
         }
         const deduplicatedExportTemplates = Array.from(exportTemplatesByTemplateId.values());
 
-        const standardExportTemplatePickerItems: SearchMultipleSelectionPickerItem[] = [];
+        const standardAndIntegrationCustomTemplatePickerItems: SearchMultipleSelectionPickerItem[] = [];
 
         for (const template of deduplicatedExportTemplates) {
-            if (!template.templateName || integrationConnectionNamesSet.has(template.templateName)) {
-                continue;
-            }
-
-            if (!STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName]) {
+            if (!template.templateName || integrationConnectionNamesSet.has(template.templateName) || template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP) {
                 continue;
             }
 
             const displayName = template.name ?? template.templateName ?? '';
-            const filterValue = STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName] ?? template.templateName;
-            standardExportTemplatePickerItems.push({
+            const filterValue = STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName] ?? displayName;
+            standardAndIntegrationCustomTemplatePickerItems.push({
                 name: displayName,
                 value: filterValue,
                 leftElement: tableIconForExportOption,
             });
         }
 
-        return [...connectedIntegrationPickerItems, ...standardExportTemplatePickerItems];
+        return [...connectedIntegrationPickerItems, ...standardAndIntegrationCustomTemplatePickerItems];
     })();
 
     const initiallySelectedPickerItems: SearchMultipleSelectionPickerItem[] | undefined = (() => {
