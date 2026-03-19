@@ -1,5 +1,5 @@
 import React from 'react';
-import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import type {SearchDateFilterKeys} from '@components/Search/types';

@@ -4,7 +4,7 @@ import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import GroupByPopup from '@components/Search/FilterDropdowns/GroupByPopup';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';

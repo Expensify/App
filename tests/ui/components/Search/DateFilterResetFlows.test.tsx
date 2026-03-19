@@ -4,8 +4,8 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import type * as ReactNativeModule from 'react-native';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
-import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
+import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import CONST from '@src/CONST';
 
 const createEmptyDateValues = (): SearchDateValues => ({
