@@ -30,7 +30,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
 import {clearRevealedPIN, useRevealedPIN} from '@libs/CardPINStore';
-import {formatCardExpiration, getCardCurrency, getCardHintText, getDomainCards, getTranslationKeyForLimitType, isCardFrozen, maskCard, maskPin, supportsPINManagementFeatures} from '@libs/CardUtils';
+import {
+    formatCardExpiration,
+    getCardCurrency,
+    getCardHintText,
+    getDomainCards,
+    getTranslationKeyForLimitType,
+    isCardFrozen,
+    maskCard,
+    maskPin,
+    supportsPINManagementFeatures,
+} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
