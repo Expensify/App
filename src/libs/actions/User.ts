@@ -74,13 +74,6 @@ Onyx.connect({
     },
 });
 
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
-
 type DomainOnyxUpdate =
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`>
@@ -1056,6 +1049,7 @@ function generateStatementPDF(period: string) {
  */
 function setContactMethodAsDefault(
     currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
+    policies: OnyxCollection<Policy>,
     newDefaultContactMethod: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     backTo?: string,
@@ -1156,7 +1150,7 @@ function setContactMethodAsDefault(
         },
     ];
 
-    for (const policy of Object.values(allPolicies ?? {})) {
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy) {
             continue;
         }
@@ -1540,7 +1534,7 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
     // For positive/negative responses, create an optimistic Concierge message
     if (message && conciergeChatReportID && response !== 'skip') {
         const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
-        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message, undefined, conciergeAccountID, undefined, conciergeChatReportID);
+        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction({text: message, actorAccountID: conciergeAccountID, reportID: conciergeChatReportID});
         const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
         const currentTime = DateUtils.getDBTime();
 

@@ -73,6 +73,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldScrollToFocusedIndex = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    isRowMultilineSupported = false,
+    titleNumberOfLines,
+    shouldUseDefaultRightHandSideComponent,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
     canShowProductTrainingTooltip,
@@ -85,6 +88,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const hasKeyBeenPressed = useRef(false);
+    const suppressNextFocusScrollRef = useRef(false);
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
@@ -126,6 +130,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         disabledIndexes,
         isActive: isScreenFocused && itemsCount > 0,
         onFocusedIndexChange: (index: number) => {
+            if (suppressNextFocusScrollRef.current) {
+                suppressNextFocusScrollRef.current = false;
+                return;
+            }
             if (!shouldScrollToFocusedIndex) {
                 return;
             }
@@ -184,6 +192,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     };
 
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
+        if (!shouldScroll) {
+            suppressNextFocusScrollRef.current = true;
+        }
         setFocusedIndex(index);
         if (shouldScroll) {
             scrollToIndex(index);
@@ -338,6 +349,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
+                        isMultilineSupported={isRowMultilineSupported}
+                        titleNumberOfLines={titleNumberOfLines}
+                        shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
                     />
                 );

@@ -797,6 +797,7 @@ function MenuItem({
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 accessible={shouldBeAccessible}
+                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}

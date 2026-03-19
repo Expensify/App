@@ -234,14 +234,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
                             path: ROUTES.SETTINGS_REPORT_FRAUD.route,
                             exact: true,
@@ -876,6 +868,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.route,
                         },
@@ -1359,6 +1354,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.TWO_FACTOR_AUTH.DISABLE]: {
                             path: ROUTES.SETTINGS_2FA_DISABLE,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD]: {
+                            path: ROUTES.SETTINGS_2FA_REPLACE_VERIFY_OLD,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_NEW]: {
+                            path: ROUTES.SETTINGS_2FA_REPLACE_VERIFY_NEW,
                             exact: true,
                         },
                     },
