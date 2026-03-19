@@ -263,6 +263,7 @@ const translations = {
         conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         percentage: 'Percentage',
+        progressBarLabel: 'Onboarding progress',
         converted: 'Converted',
         error: {
             invalidAmount: 'Invalid amount',
@@ -509,6 +510,8 @@ const translations = {
         headsUp: 'Heads up!',
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
+        approvalLimit: 'Approval limit',
+        overLimitForwardTo: 'Over limit forward to',
         merge: 'Merge',
         none: 'None',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
@@ -1018,6 +1021,11 @@ const translations = {
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Review ${amount} in potential fraud at ${merchant}`,
                 subtitle: 'Expensify Card',
                 cta: 'Review',
+            },
+            validateAccount: {
+                title: 'Validate your account to continue using Expensify',
+                subtitle: 'Account',
+                cta: 'Validate',
             },
         },
         assignedCards: 'Your Expensify Cards',
@@ -5370,10 +5378,6 @@ const translations = {
                 removeCardFeed: 'Remove card feed',
                 removeCardFeedTitle: (feedName: string) => `Remove ${feedName} feed`,
                 removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards.',
-                assignNewCards: 'Assign new cards',
-                assignNewCardsDescription: 'Get the latest cards to assign from your bank',
-                refreshConnectionSuccess: 'Connection refreshed',
-                refreshConnectionSuccessDescription: 'Your bank connection has been re-authenticated successfully. You can now assign new cards.',
                 error: {
                     feedNameRequired: 'Card feed name is required',
                     statementCloseDateRequired: 'Please select a statement close date.',
@@ -7806,11 +7810,13 @@ const translations = {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Start a chat, <success><strong>refer a friend</strong></success>.',
             header: 'Start a chat, refer a friend',
+            closeAccessibilityLabel: 'Close, start a chat, refer a friend, banner',
             body: "Want your friends to use Expensify, too? Just start a chat with them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Submit an expense, <success><strong>refer your team</strong></success>.',
             header: 'Submit an expense, refer your team',
+            closeAccessibilityLabel: 'Close, submit an expense, refer your team, banner',
             body: "Want your team to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {

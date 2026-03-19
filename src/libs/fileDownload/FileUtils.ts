@@ -171,6 +171,27 @@ function getMimeType(fileExtension: string): string {
 }
 
 /**
+ * Derives an image MIME type from a file URI or filename.
+ * Returns undefined for unrecognized extensions so callers can apply their own fallback.
+ */
+function getMimeTypeFromUri(uri: string): string | undefined {
+    const {fileExtension} = splitExtensionFromFileName(uri.split('/').pop() ?? uri);
+    const ext = fileExtension.toLowerCase();
+    const IMAGE_EXTENSION_TO_MIME: Record<string, string> = {
+        jpg: CONST.SHARE_FILE_MIMETYPE.JPEG,
+        jpeg: CONST.SHARE_FILE_MIMETYPE.JPEG,
+        png: CONST.SHARE_FILE_MIMETYPE.PNG,
+        heic: CONST.SHARE_FILE_MIMETYPE.HEIC,
+        heif: CONST.SHARE_FILE_MIMETYPE.HEIF,
+        webp: CONST.SHARE_FILE_MIMETYPE.WEBP,
+        gif: CONST.SHARE_FILE_MIMETYPE.GIF,
+        tif: CONST.SHARE_FILE_MIMETYPE.TIF,
+        tiff: CONST.SHARE_FILE_MIMETYPE.TIFF,
+    };
+    return ext ? IMAGE_EXTENSION_TO_MIME[ext] : undefined;
+}
+
+/**
  * Returns the filename replacing special characters with underscore
  */
 function cleanFileName(fileName: string): string {
@@ -874,6 +895,7 @@ export {
     createFile,
     validateReceipt,
     normalizeFileObject,
+    getMimeTypeFromUri,
     isValidReceiptExtension,
     getFileValidationErrorText,
     hasHeicOrHeifExtension,
