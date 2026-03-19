@@ -102,6 +102,7 @@ import {
 } from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
 import {
+    chatIncludesChronos,
     formatReportLastMessageText,
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -915,6 +916,8 @@ function computeReportName({
 
     if (isConciergeChatReport(report)) {
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
+    } else if (chatIncludesChronos(report)) {
+        formattedName = CONST.CHRONOS_DISPLAY_NAME;
     }
 
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!privateIsArchivedValue);

@@ -2452,6 +2452,7 @@ const CONST = {
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
+    CHRONOS_DISPLAY_NAME: 'Chronos',
     CONCIERGE_GREETING_ACTION_ID: 'concierge-side-panel-greeting',
 
     INTEGRATION_ENTITY_MAP_TYPES: {
