@@ -19,6 +19,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -34,6 +35,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {OnboardingRHPVariant} from '@src/types/onyx';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
@@ -47,6 +49,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.INTERESTED_FEATURES);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -389,7 +392,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={90}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
                 shouldDisplayHelpButton={false}
             />
