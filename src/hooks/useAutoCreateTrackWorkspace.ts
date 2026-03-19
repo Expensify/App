@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
 import useOnboardingMessages from './useOnboardingMessages';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -37,6 +38,7 @@ function useAutoCreateTrackWorkspace() {
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {isBetaEnabled} = usePermissions();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const {onboardingMessages} = useOnboardingMessages();
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -67,6 +69,7 @@ function useAutoCreateTrackWorkspace() {
                       onboardingPurposeSelected,
                       betas,
                       isSelfTourViewed,
+                      hasActiveAdminPolicies,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -108,6 +111,7 @@ function useAutoCreateTrackWorkspace() {
             isSelfTourViewed,
             onboardingMessages,
             betas,
+            hasActiveAdminPolicies,
             isSmallScreenWidth,
             isBetaEnabled,
             conciergeChatReportID,
