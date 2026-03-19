@@ -1928,6 +1928,7 @@ describe('actions/IOU', () => {
         it('should not create draft transaction when transactionID is undefined', async () => {
             // Given a selfDM report
             const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: 'test-transaction'};
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined transactionID
@@ -1941,6 +1942,7 @@ describe('actions/IOU', () => {
                 activePolicy: undefined,
                 userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
+                transaction,
             });
             await waitForBatchedUpdates();
 
