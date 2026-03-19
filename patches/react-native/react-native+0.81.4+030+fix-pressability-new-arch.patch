@@ -388,7 +388,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Sche
  }
  
 +void Scheduler::uiManagerMeasureAsync(
-+    const ShadowNode::Shared& shadowNode,
++    const std::shared_ptr<const ShadowNode>& shadowNode,
 +    const std::function<void(folly::dynamic)>& callback) {
 +    if (delegate_ != nullptr) {
 +      auto shadowView = ShadowView(*shadowNode);
@@ -406,7 +406,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Sche
    void uiManagerDidStartSurface(const ShadowTree& shadowTree) override;
  
 +  void uiManagerMeasureAsync(
-+      const ShadowNode::Shared& shadowNode,
++      const std::shared_ptr<const ShadowNode>& shadowNode,
 +      const std::function<void(folly::dynamic)>& callback) override;
 +
  #pragma mark - ContextContainer
@@ -488,7 +488,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIMa
 +   * As this has to schedule a call on the UI thread its async.
 +   */
 +  virtual void uiManagerMeasureAsync(
-+      const ShadowNode::Shared& shadowNode,
++      const std::shared_ptr<const ShadowNode>& shadowNode,
 +      const std::function<void(folly::dynamic)>& callback) = 0;
 +
    using OnSurfaceStartCallback =
