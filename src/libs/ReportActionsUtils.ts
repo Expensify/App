@@ -2523,10 +2523,18 @@ function getIOUActionForReportID(reportID: string | undefined, transactionID: st
  * Get the IOU action for a transactionID from given reportActions
  */
 function getIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
-    return reportActions.find((reportAction) => {
+    let deletedMatch: ReportAction | undefined;
+    for (const reportAction of reportActions) {
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
-        return IOUTransactionID === transactionID;
-    });
+        if (IOUTransactionID !== transactionID) {
+            continue;
+        }
+        if (!isDeletedAction(reportAction)) {
+            return reportAction;
+        }
+        deletedMatch ??= reportAction;
+    }
+    return deletedMatch;
 }
 
 /**

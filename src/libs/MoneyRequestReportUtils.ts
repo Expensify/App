@@ -105,20 +105,7 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
             return true;
         }
-
-        if (isDeletedParentAction(action)) {
-            return false;
-        }
-
-        // For IOU actions, trust the transaction object over the action's deleted flag.
-        // Server-side operations (e.g. ScrapeCard merges) can mark an IOU action as deleted
-        // without removing the transaction from Onyx, causing a data inconsistency where the
-        // transaction is invisible but still counted in the report total.
-        if (reportActions.length > 0 && isDeletedAction(action) && isMoneyRequestAction(action)) {
-            return true;
-        }
-
-        return reportActions.length === 0 || !isDeletedAction(action);
+        return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
 }
 
