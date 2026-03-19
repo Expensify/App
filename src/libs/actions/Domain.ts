@@ -1769,7 +1769,11 @@ function changeDomainSecurityGroup(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
-                [currentSecurityGroupKey]: currentSecurityGroup,
+                [currentSecurityGroupKey]: {
+                    shared: {
+                        [accountIDStr]: currentSecurityGroup.shared?.[accountIDStr],
+                    },
+                },
                 [targetSecurityGroupKey]: {
                     shared: {
                         [accountIDStr]: null,
