@@ -125,8 +125,6 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
         return PopoverComponent({closeOverlay: toggleOverlay});
     }, [PopoverComponent, toggleOverlay]);
 
-    console.log('position', popoverTriggerPosition)
-
     return (
         <View
             ref={anchorRef}
