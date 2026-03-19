@@ -221,21 +221,37 @@ function ButtonComposed({
         [isHovered, isLoading, variant, resolvedSize],
     );
 
-    const buttonStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [
+    const buttonVariantStyles = useMemo(() => {
+        const shouldUseDisabledStyles = isDisabled && !shouldStayNormalOnDisable;
+        if (!variant) {
+            return shouldUseDisabledStyles ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined;
+        }
+
+        const defaultButtonVariantStyles = {
+            success: styles.buttonSuccess,
+            danger: styles.buttonDanger,
+            link: styles.bgTransparent,
+        };
+
+        const disabledButtonVariantStyles = {
+            success: [styles.buttonOpacityDisabled],
+            danger: [styles.buttonOpacityDisabled],
+            link: [styles.buttonOpacityDisabled, styles.buttonDisabled],
+        };
+
+        return [defaultButtonVariantStyles[variant], shouldUseDisabledStyles && disabledButtonVariantStyles[variant]];
+    }, [isDisabled, shouldStayNormalOnDisable, styles, variant]);
+
+    const buttonStyles = useMemo<StyleProp<ViewStyle>>(() => {
+        return [
             styles.button,
             styles.buttonMedium,
-            variant === 'success' ? styles.buttonSuccess : undefined,
-            variant === 'danger' ? styles.buttonDanger : undefined,
-            isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
-            isDisabled && variant !== 'danger' && variant !== 'success' && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
+            buttonVariantStyles,
             shouldRemoveBorderRadius === 'right' || shouldRemoveBorderRadius === 'all' ? styles.noRightBorderRadius : undefined,
             shouldRemoveBorderRadius === 'left' || shouldRemoveBorderRadius === 'all' ? styles.noLeftBorderRadius : undefined,
             innerStyles,
-            variant === 'link' && styles.bgTransparent,
-        ],
-        [variant, innerStyles, isDisabled, shouldRemoveBorderRadius, styles, shouldStayNormalOnDisable],
-    );
+        ];
+    }, [styles, shouldRemoveBorderRadius, innerStyles, buttonVariantStyles]);
 
     return (
         <>
