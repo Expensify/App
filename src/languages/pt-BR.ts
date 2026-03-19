@@ -489,6 +489,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
+        approvalLimit: 'Limite de aprovação',
+        overLimitForwardTo: 'Encaminhar se exceder o limite',
         merge: 'Mesclar',
         none: 'Nenhum',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
@@ -1136,6 +1138,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Excluir recibo',
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
         addReceipt: 'Adicionar recibo',
+        addAdditionalReceipt: 'Adicionar recibo adicional',
         scanFailed: 'O recibo não pôde ser digitalizado porque está faltando o comerciante, a data ou o valor.',
         crop: 'Cortar',
         addAReceipt: {
@@ -2073,6 +2076,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Sua empresa exige autenticação em duas etapas.',
         twoFactorAuthCannotDisable: 'Não é possível desativar a 2FA',
         twoFactorAuthRequired: 'A autenticação em duas etapas (2FA) é obrigatória para sua conexão com o Xero e não pode ser desativada.',
+        replaceDevice: 'Substituir dispositivo',
+        replaceDeviceTitle: 'Substituir dispositivo de dois fatores',
+        verifyOldDeviceTitle: 'Verificar dispositivo antigo',
+        verifyOldDeviceDescription: 'Digite o código de seis dígitos do seu aplicativo autenticador atual para confirmar que você tem acesso a ele.',
+        verifyNewDeviceTitle: 'Configurar novo dispositivo',
+        verifyNewDeviceDescription: 'Escaneie o código QR com seu novo dispositivo e depois insira o código para concluir a configuração.',
     },
     recoveryCodeForm: {
         error: {
