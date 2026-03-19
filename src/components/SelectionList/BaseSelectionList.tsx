@@ -106,7 +106,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
 
     const searchValue = textInputOptions?.value ?? '';
-    const resultsMessage = shouldShowTextInput && data.length > 0 ? translate('common.resultsAvailable', data.length) : '';
+    const resultsMessage = shouldShowTextInput && data.length > 0 ? translate('common.resultsAvailable', {count: data.length}) : '';
     useDebouncedAccessibilityAnnouncement(resultsMessage, shouldShowTextInput && data.length > 0, searchValue);
 
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);

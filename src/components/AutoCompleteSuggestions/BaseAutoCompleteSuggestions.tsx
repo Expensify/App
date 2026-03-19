@@ -32,7 +32,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     const fadeInOpacity = useSharedValue(0);
     const scrollRef = useRef<FlatList<TSuggestion>>(null);
 
-    useAccessibilityAnnouncement(translate('common.suggestionsAvailable', suggestions.length), suggestions.length > 0, {
+    useAccessibilityAnnouncement(translate('common.suggestionsAvailable', {count: suggestions.length}), suggestions.length > 0, {
         shouldAnnounceOnNative: true,
         shouldAnnounceOnWeb: true,
     });
