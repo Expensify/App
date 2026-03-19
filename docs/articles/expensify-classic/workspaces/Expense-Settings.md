@@ -4,7 +4,7 @@ description: Customize and manage expense settings at the workspace level, inclu
 keywords: [Expensify Classic, expenses, violations, reimbursable, billable, mileage, eReceipts, taxes, Concierge Receipt Audit, expense rules]
 ---
 
-Expensify offers multiple ways to customize how expenses are created and managed at the workspace level. Whether you’re using an individual workspace or managing expenses in a group workspace, you can configure various settings to suit your needs.
+Expensify offers multiple ways to customize how expenses are created and managed at the workspace level. You can configure various settings to suit your needs.
 
 You can manage expense rules and distance rates at the workspace level. The following expense-level settings are customizable:
 

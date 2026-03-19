@@ -325,6 +325,7 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
+            userBillingGraceEndPeriods: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
@@ -339,6 +340,7 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
+            userBillingGraceEndPeriods: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -360,6 +362,7 @@ describe('handleBulkPayItemSelected', () => {
         showDelegateNoAccessModal: jest.fn(),
         confirmPayment: jest.fn(),
         userBillingGraceEndPeriods: undefined,
+        businessBankAccountOptions: undefined,
     };
 
     beforeEach(async () => {
