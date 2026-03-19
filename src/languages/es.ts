@@ -432,6 +432,8 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Delegado de vacaciones',
         expensifyLogo: 'Logo de Expensify',
         approver: 'Aprobador',
+        resultsAvailable: ({count}: {count: number}) => `${count} resultados disponibles`,
+        suggestionsAvailable: ({count}: {count: number}) => `${count} sugerencias disponibles`,
     },
     socials: {
         podcast: 'Síguenos en Podcast',

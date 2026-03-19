@@ -523,6 +523,8 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {sidePanelGreeting: 'Cześć, w czym mogę pomóc?', showHistory: 'Pokaż historię'},
         duplicateReport: 'Zduplikowany raport',
         approver: 'Osoba zatwierdzająca',
+        resultsAvailable: ({count}: {count: number}) => `Dostępnych wyników: ${count}`,
+        suggestionsAvailable: ({count}: {count: number}) => `Dostępnych podpowiedzi: ${count}`,
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
