@@ -18,7 +18,7 @@ type Payload = {
 const ClientFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
     {
-        subtitle: 'multifactorAuthentication.changePin.authenticationCanceled',
+        subtitle: 'multifactorAuthentication.changePin.didNotChange',
     },
     'ClientFailureScreen',
 );
@@ -26,7 +26,7 @@ const ClientFailureScreen = createScreenWithDefaults(
 const ServerFailureScreen = createScreenWithDefaults(
     DefaultServerFailureScreen,
     {
-        subtitle: 'multifactorAuthentication.changePin.authenticationCanceled',
+        subtitle: 'multifactorAuthentication.changePin.didNotChange',
     },
     'ServerFailureScreen',
 );

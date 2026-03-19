@@ -39,7 +39,7 @@ function getSnapshot() {
 
 function useRevealedPIN(cardID: string): string | undefined {
     const pins = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-    return pins[cardID];
+    return cardID ? pins[cardID] : undefined;
 }
 
 export {setRevealedPIN, clearRevealedPIN, useRevealedPIN};

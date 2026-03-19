@@ -142,7 +142,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const currency = getCardCurrency(currentCard, cardSettings);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
     const canChangePIN = supportsPINManagementFeatures(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
-    const canRevealPIN = canChangePIN && !revealedPIN;
+    const canRevealPIN = canChangePIN && revealedPIN === undefined;
     const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
 

@@ -30,7 +30,7 @@ function isRevealPINPayload(payload: MultifactorAuthenticationScenarioAdditional
 const ClientFailureScreen = createScreenWithDefaults(
     DefaultClientFailureScreen,
     {
-        subtitle: 'multifactorAuthentication.revealPin.authenticationCanceled',
+        subtitle: 'multifactorAuthentication.revealPin.couldNotReveal',
     },
     'ClientFailureScreen',
 );
@@ -38,7 +38,7 @@ const ClientFailureScreen = createScreenWithDefaults(
 const ServerFailureScreen = createScreenWithDefaults(
     DefaultServerFailureScreen,
     {
-        subtitle: 'multifactorAuthentication.revealPin.authenticationCanceled',
+        subtitle: 'multifactorAuthentication.revealPin.couldNotReveal',
     },
     'ServerFailureScreen',
 );
@@ -56,10 +56,8 @@ export default {
     action: revealPINForCard,
     callback: async (isSuccessful, callbackInput, payload) => {
         if (isSuccessful && isRevealPINPayload(payload)) {
-            const pin = typeof callbackInput.body?.pin === 'string' ? callbackInput.body.pin : undefined;
-            if (pin) {
-                setRevealedPIN(payload.cardID, pin);
-            }
+            const pin = typeof callbackInput.body?.pin === 'string' ? callbackInput.body.pin : '';
+            setRevealedPIN(payload.cardID, pin);
             Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;
