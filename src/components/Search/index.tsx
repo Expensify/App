@@ -263,6 +263,7 @@ function Search({
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
@@ -486,6 +487,7 @@ function Search({
             customCardNames,
             allReportMetadata,
             cardList,
+            conciergeReportID,
             onyxPersonalDetailsList,
         });
         return [filteredData1, filteredData1.length, allLength];
@@ -512,6 +514,7 @@ function Search({
         customCardNames,
         allReportMetadata,
         cardList,
+        conciergeReportID,
         onyxPersonalDetailsList,
     ]);
 
@@ -549,6 +552,7 @@ function Search({
                 cardFeeds,
                 allReportMetadata,
                 cardList,
+                conciergeReportID,
             });
             return {
                 ...item,
@@ -572,6 +576,7 @@ function Search({
         bankAccountList,
         allReportMetadata,
         cardList,
+        conciergeReportID,
     ]);
 
     const hasLoadedAllTransactions = useMemo(() => {
