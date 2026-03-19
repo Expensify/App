@@ -719,8 +719,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: 'Verificatie mislukt',
         setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
-        revealPin: {authenticationCanceled: 'We konden je pincode niet tonen. Probeer het opnieuw.'},
-        changePin: {authenticationCanceled: 'We hebben je pincode niet gewijzigd. Probeer het opnieuw.'},
+        revealPin: {couldNotReveal: 'We konden je pincode niet tonen. Probeer het opnieuw.'},
+        changePin: {didNotChange: 'We hebben je pincode niet gewijzigd. Probeer het opnieuw.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

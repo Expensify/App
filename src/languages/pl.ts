@@ -720,8 +720,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: 'Weryfikacja nie powiodła się',
         setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
-        revealPin: {authenticationCanceled: 'Nie udało się wyświetlić twojego PIN-u. Spróbuj ponownie.'},
-        changePin: {authenticationCanceled: 'Nie zmieniliśmy twojego PIN-u. Spróbuj ponownie.'},
+        revealPin: {couldNotReveal: 'Nie udało się wyświetlić twojego PIN-u. Spróbuj ponownie.'},
+        changePin: {didNotChange: 'Nie zmieniliśmy twojego PIN-u. Spróbuj ponownie.'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

@@ -718,8 +718,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: '認証に失敗しました',
         setPin: {didNotShipCard: 'カードを発送できませんでした。もう一度お試しください。'},
-        revealPin: {authenticationCanceled: 'PIN を表示できませんでした。もう一度お試しください。'},
-        changePin: {authenticationCanceled: 'お客様の暗証番号は変更されていません。もう一度お試しください。'},
+        revealPin: {couldNotReveal: 'PIN を表示できませんでした。もう一度お試しください。'},
+        changePin: {didNotChange: 'お客様の暗証番号は変更されていません。もう一度お試しください。'},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

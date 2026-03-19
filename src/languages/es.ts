@@ -631,10 +631,10 @@ const translations: TranslationDeepObject<typeof en> = {
             didNotShipCard: 'No enviamos tu tarjeta. Por favor, inténtalo de nuevo.',
         },
         revealPin: {
-            authenticationCanceled: 'No pudimos revelar tu PIN. Por favor, inténtalo de nuevo.',
+            couldNotReveal: 'No pudimos revelar tu PIN. Por favor, inténtalo de nuevo.',
         },
         changePin: {
-            authenticationCanceled: 'No pudimos cambiar tu PIN. Por favor, inténtalo de nuevo.',
+            didNotChange: 'No pudimos cambiar tu PIN. Por favor, inténtalo de nuevo.',
         },
     },
     validateCodeModal: {
