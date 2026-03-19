@@ -7781,7 +7781,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
         switchAccountWarningTripInProgress: {
             title: 'Rastreamento por GPS em andamento',
-            prompt: 'Tem certeza de que quer parar o rastreamento por GPS e trocar de conta?',
+            prompt: 'Tem certeza de que quer parar o rastreamento por GPS e mudar de conta?',
             confirm: 'Parar e trocar',
         },
         locationServicesRequiredModal: {

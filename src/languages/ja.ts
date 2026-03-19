@@ -7721,7 +7721,7 @@ ${reportName}
             prompt: 'GPS追跡を停止して、Expensify Classic に切り替えてもよろしいですか？',
             confirm: '停止して切り替える',
         },
-        switchAccountWarningTripInProgress: {title: 'GPS トラッキングを実行中です', prompt: 'GPS の追跡を停止してアカウントを切り替えてもよろしいですか？', confirm: '停止して切り替え'},
+        switchAccountWarningTripInProgress: {title: 'GPS トラッキングを実行中です', prompt: 'GPS 追跡を停止してアカウントを切り替えてもよろしいですか？', confirm: '停止して切り替える'},
         locationServicesRequiredModal: {
             title: '位置情報へのアクセスが必要です',
             confirm: '設定を開く',
