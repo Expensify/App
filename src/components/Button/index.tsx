@@ -149,9 +149,6 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Accessibility label for the component */
         accessibilityLabel?: string;
 
-        /** Accessibility hint for the component */
-        accessibilityHint?: string;
-
         /** The text for the button label */
         text?: string;
 
@@ -287,7 +284,6 @@ function Button({
     id = '',
     testID = undefined,
     accessibilityLabel = '',
-    accessibilityHint,
     link = false,
     isContentCentered = false,
     isPressOnEnterActive,
@@ -531,7 +527,7 @@ function Button({
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
-                accessibilityHint={accessibilityHint}
+                accessibilityHint=""
                 role={getButtonRole(isNested)}
                 hoverDimmingValue={1}
                 onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}

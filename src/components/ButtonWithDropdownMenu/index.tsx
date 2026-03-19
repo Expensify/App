@@ -146,7 +146,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     );
     const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
     const isTextTooLong = customText && customText?.length > 6;
-    const dropdownAccessibilityHint = isMenuVisible ? CONST.ACCESSIBILITY_LABELS.EXPAND : CONST.ACCESSIBILITY_LABELS.COLLAPSE;
+    const accessibilityExpandState = isMenuVisible ? CONST.ACCESSIBILITY_LABELS.EXPAND : CONST.ACCESSIBILITY_LABELS.COLLAPSE;
+    const accessibilityLabel = `${accessibilityExpandState}, ${customText}`;
 
     const handlePress = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -196,7 +197,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         iconRightFill={hasError ? theme.icon : undefined}
                         iconRightHoverFill={hasError ? theme.icon : undefined}
                         sentryLabel={sentryLabel}
-                        accessibilityHint={!isSplitButton ? dropdownAccessibilityHint : undefined}
+                        accessibilityLabel={!isSplitButton ? accessibilityLabel : undefined}
                     />
 
                     {isSplitButton && (
@@ -215,7 +216,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             sentryLabel={sentryLabel}
-                            accessibilityHint={dropdownAccessibilityHint}
+                            accessibilityLabel={accessibilityLabel}
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                                 <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
