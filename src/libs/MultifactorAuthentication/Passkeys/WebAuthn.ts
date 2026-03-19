@@ -43,10 +43,12 @@ function buildPublicKeyCredentialCreationOptions(challenge: RegistrationChalleng
             name: challenge.user.displayName,
             displayName: challenge.user.displayName,
         },
-        pubKeyCredParams: challenge.pubKeyCredParams.map((param) => ({
-            type: param.type,
-            alg: param.alg,
-        })),
+        pubKeyCredParams: challenge.pubKeyCredParams
+            .filter((param) => param.type === CONST.PASSKEY_CREDENTIAL_TYPE)
+            .map((param) => ({
+                type: param.type,
+                alg: param.alg,
+            })),
         authenticatorSelection: {
             userVerification: 'required',
             residentKey: 'required',
