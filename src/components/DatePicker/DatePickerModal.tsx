@@ -14,10 +14,17 @@ const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
-const popoverDimensions = {
-    height: CONST.POPOVER_DATE_MIN_HEIGHT,
-    width: CONST.POPOVER_DATE_WIDTH,
-};
+
+/**
+ * Returns popover dimensions based on whether confirm buttons are shown.
+ * Uses taller height with buttons, otherwise they could get cut off at screen bottom.
+ */
+function getPopoverDimensions(shouldShowConfirmButtons?: boolean) {
+    return {
+        height: shouldShowConfirmButtons ? CONST.POPOVER_DROPDOWN_MAX_HEIGHT : CONST.POPOVER_DATE_MIN_HEIGHT,
+        width: CONST.POPOVER_DATE_WIDTH,
+    };
+}
 
 function DatePickerModal({
     value,
@@ -89,7 +96,7 @@ function DatePickerModal({
             isVisible={isVisible}
             onClose={onClose}
             anchorPosition={anchorPosition}
-            popoverDimensions={popoverDimensions}
+            popoverDimensions={getPopoverDimensions(shouldShowConfirmButtons)}
             shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
             anchorAlignment={anchorAlignment}
