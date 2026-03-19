@@ -35,6 +35,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -45,7 +46,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         localeCompare,
         formatPhoneNumber,
     );
-    const shareDestination = task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined;
+    const shareDestination = task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare, conciergeReportID) : undefined;
     const parentReport = task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined;
     const ancestors = useAncestors(parentReport);
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;

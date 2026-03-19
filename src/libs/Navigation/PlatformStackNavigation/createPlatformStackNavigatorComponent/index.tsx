@@ -5,6 +5,7 @@ import {StackView} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {addCustomHistoryRouterExtension} from '@libs/Navigation/AppNavigator/customHistory';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
+import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,
@@ -13,7 +14,6 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
-import ScreenFreezeWrapper from './ScreenFreezeWrapper';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
@@ -25,7 +25,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
     const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
-    const freezeNonTopScreens = options?.freezeNonTopScreens;
 
     function PlatformNavigator({
         id,
@@ -64,6 +63,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 sidebarScreen,
                 parentRoute,
                 persistentScreens,
+                screenLayout,
             },
             convertToWebNavigationOptions,
         );
@@ -102,25 +102,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             };
         }, [persistentScreens, state]);
 
-        // Wrap each screen's render function with ScreenFreezeWrapper to freeze non-top screens.
-        // This prevents off-screen components from re-rendering.
-        // Persistent screens (e.g. sidebar) are excluded from freezing so they stay interactive.
-        let wrappedDescriptors = descriptors;
-        if (freezeNonTopScreens) {
-            const topRouteKey = state.routes[state.index]?.key;
-            const result: typeof descriptors = {};
-            for (const [key, descriptor] of Object.entries(descriptors)) {
-                const isOnTop = key === topRouteKey;
-                const isPersistent = persistentScreens?.includes(descriptor.route.name);
-                const isScreenBlurred = !isOnTop && !isPersistent;
-                result[key] = {
-                    ...descriptor,
-                    render: () => <ScreenFreezeWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</ScreenFreezeWrapper>,
-                };
-            }
-            wrappedDescriptors = result;
-        }
-
         const Content = useMemo(
             () => (
                 <NavigationContent>
@@ -129,7 +110,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                         {...props}
                         direction="ltr"
                         state={mappedState}
-                        descriptors={wrappedDescriptors}
+                        descriptors={descriptors}
                         navigation={navigation}
                         describe={describe}
                     />
@@ -140,7 +121,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, describe, wrappedDescriptors, mappedState, navigation, props],
+            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, mappedState, navigation, props],
         );
 
         // eslint-disable-next-line react/jsx-props-no-spreading

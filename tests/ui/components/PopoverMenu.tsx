@@ -23,6 +23,7 @@ jest.mock('@libs/focusUtils', () => {
 });
 
 const mockRegisteredKeyboardShortcuts = new Map<string, (event?: KeyboardEvent) => void>();
+let latestPopoverWithMeasuredContentProps: Record<string, unknown> | undefined;
 
 jest.mock('@hooks/useKeyboardShortcut', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -319,7 +320,10 @@ jest.mock('@components/PopoverWithMeasuredContent', () => {
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        default: (props: PropsWithChildren<Record<string, unknown>>) => props.children,
+        default: (props: PropsWithChildren<Record<string, unknown>>) => {
+            latestPopoverWithMeasuredContentProps = props;
+            return props.children;
+        },
     };
 });
 
@@ -346,6 +350,7 @@ jest.mock('@components/FocusableMenuItem', () => {
 
 afterEach(() => {
     mockRegisteredKeyboardShortcuts.clear();
+    latestPopoverWithMeasuredContentProps = undefined;
 });
 
 describe('PopoverMenu integration — submenu open/close behaviors', () => {
@@ -508,6 +513,30 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
         await waitFor(() => {
             expect(screen.getByTestId('PopoverMenuItem-Sub B3')).toBeTruthy();
         });
+    });
+});
+
+describe('PopoverMenu prop forwarding', () => {
+    const anchorRef = React.createRef<View>();
+    const anchorPosition = {horizontal: 0, vertical: 0};
+
+    it('forwards shouldHandleNavigationBack to PopoverWithMeasuredContent', () => {
+        // Given a visible PopoverMenu configured to handle navigation back
+        render(
+            <PopoverMenu
+                isVisible
+                menuItems={[{text: 'Action'}]}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+                shouldHandleNavigationBack
+            />,
+        );
+
+        // When the PopoverMenu renders
+
+        // Then PopoverWithMeasuredContent should receive the back-navigation flag
+        expect(latestPopoverWithMeasuredContentProps?.shouldHandleNavigationBack).toBe(true);
     });
 });
 

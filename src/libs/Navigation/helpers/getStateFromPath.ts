@@ -39,7 +39,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
         if (focusedRoute?.name) {
             if (entryScreens.includes(focusedRoute.name as Screen)) {
                 // Generate navigation state for the dynamic route
-                const dynamicRouteState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey);
+                const dynamicRouteState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey, focusedRoute?.params as Record<string, unknown> | undefined);
                 return dynamicRouteState;
             }
 

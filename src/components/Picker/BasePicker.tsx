@@ -9,6 +9,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +43,7 @@ function BasePicker<TPickerValue>({
     ref,
 }: BasePickerProps<TPickerValue>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -213,6 +215,7 @@ function BasePicker<TPickerValue>({
                     }}
                     touchableDoneProps={{
                         accessibilityRole: CONST.ROLE.BUTTON,
+                        accessibilityLabel: translate('common.dismiss'),
                     }}
                     touchableWrapperProps={{
                         accessible: true,

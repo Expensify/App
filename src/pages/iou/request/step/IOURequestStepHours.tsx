@@ -12,7 +12,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {navigateToConfirmationPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -120,14 +120,12 @@ function IOURequestStepHours({
                 setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
 
-                return Navigation.setNavigationActionToMicrotaskQueue(() =>
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, policyExpenseChat.reportID)),
-                );
+                return Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, undefined));
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        navigateToConfirmationPage(iouType, transactionID, reportID, undefined);
     };
 
     return (
@@ -141,6 +139,7 @@ function IOURequestStepHours({
         >
             <NumberWithSymbolForm
                 symbol={translate('iou.timeTracking.hrs')}
+                shouldUseDynamicFontSize
                 symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
                 isSymbolPressable={false}
                 decimals={CONST.HOURS_DECIMAL_PLACES}
