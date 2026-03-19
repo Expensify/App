@@ -90,9 +90,10 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldClearInputOnSelect = false,
-    shouldHighlightSelectedItem = true,
+    shouldHighlightSelectedItem,
     shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
+    shouldShowRadioButton,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -370,6 +371,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                shouldShowRadioButton={shouldShowRadioButton}
             />
         );
     };

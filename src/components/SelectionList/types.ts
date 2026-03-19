@@ -180,6 +180,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Whether to show the default right hand side checkmark */
         shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+        /** Whether to show the radio button */
+        shouldShowRadioButton?: boolean;
     };
 
 type SelectionListStyle = {

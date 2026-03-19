@@ -39,6 +39,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     canShowProductTrainingTooltip = true,
     index = 0,
     sectionIndex = 0,
+    shouldShowRadioButton = false,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -60,7 +61,8 @@ function InviteMemberListItem<TItem extends ListItem>({
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- we need to check if the item is disabled and if the checkbox or radio button should be shown
+    const shouldShowCheckBox = !item.isDisabled && (canSelectMultiple || shouldShowRadioButton);
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -161,6 +163,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 onSelectRow={handleCheckboxPress}
                                 disabled={!!isDisabled}
                                 style={[styles.ml2, styles.optionSelectCircle]}
+                                isCircular={!canSelectMultiple}
                             />
                         )}
                     </View>

@@ -25,7 +25,7 @@ function RadioListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
-    shouldHighlightSelectedItem = true,
+    shouldHighlightSelectedItem = false,
     accessibilityRole,
     shouldUseDefaultRightHandSideComponent,
 }: RadioListItemProps<TItem>) {

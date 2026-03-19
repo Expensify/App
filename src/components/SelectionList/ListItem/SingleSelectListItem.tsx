@@ -25,6 +25,7 @@ function SingleSelectListItem<TItem extends ListItem>({
     titleStyles,
     shouldHighlightSelectedItem = false,
     rightHandSideComponent = undefined,
+    shouldShowRadioButton = true,
     accessibilityState,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -59,6 +60,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             wrapperStyle={[styles.optionRow, wrapperStyle]}
             titleStyles={titleStyles}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            shouldShowRadioButton={shouldShowRadioButton}
             accessibilityState={accessibilityState}
         />
     );
