@@ -250,6 +250,14 @@ const translations: TranslationDeepObject<typeof en> = {
         na: 'ND dotyczy',
         noResultsFound: 'Nie znaleziono wyników',
         noResultsFoundMatching: (searchString: string) => `Nie znaleziono wyników pasujących do „${searchString}”`,
+        resultsAvailable: () => ({
+            one: '1 wynik dostępny',
+            other: (count: number) => `${count} wyników dostępnych`,
+        }),
+        suggestionsAvailable: () => ({
+            one: '1 sugestia dostępna',
+            other: (count: number) => `${count} sugestii dostępnych`,
+        }),
         recentDestinations: 'Ostatnie miejsca docelowe',
         timePrefix: 'To jest',
         conjunctionFor: 'dla',
