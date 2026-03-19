@@ -580,6 +580,19 @@ function ReportActionsList({
                         setTimeout(() => {
                             reportScrollManager.scrollToIndex(index);
                         }, 100);
+                    } else if (index === -1) {
+                        // The ref hasn't reflected the new action yet. Defer the scroll to the next
+                        // animation frame so the FlatList can incorporate the new item into its
+                        // layout before we scroll. This prevents the welcome header from appearing
+                        // below the expense report preview in workspace chats.
+                        requestAnimationFrame(() => {
+                            setIsFloatingMessageCounterVisible(false);
+                            reportScrollManager.scrollToBottom();
+                        });
+                        if (action?.reportActionID) {
+                            setActionIdToHighlight(action.reportActionID);
+                        }
+                        return;
                     } else {
                         setIsFloatingMessageCounterVisible(false);
                         reportScrollManager.scrollToBottom();
