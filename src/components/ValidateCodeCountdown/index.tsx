@@ -28,7 +28,9 @@ function ValidateCodeCountdown({onCountdownFinish, ref}: ValidateCodeCountdownPr
         };
     }, [onCountdownFinish, timeRemaining]);
 
-    // Announce countdown start/reset/expiration for screen readers
+    // Announce countdown start/reset/expiration for screen readers.
+    // We check timeRemaining === 1 (not 0) because the component unmounts immediately at 0s, so the expired announcement wouldn't be spoken.
+    // We use timeRemaining % 10 === 1 to announce every 10 seconds (at 21s, 11s, 1s) to avoid overwhelming screen reader users.
     useAccessibilityAnnouncement(
         timeRemaining === 1 ? translate('validateCodeForm.timeExpiredAnnouncement') : translate('validateCodeForm.timeRemainingAnnouncement', {timeRemaining: timeRemaining - 1}),
         timeRemaining % 10 === 1,
