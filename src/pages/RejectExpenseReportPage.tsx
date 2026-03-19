@@ -23,6 +23,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getLoginsByAccountIDs, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getApprovalChain} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import {rejectExpenseReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -174,7 +175,8 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                         label={translate('iou.rejectReport.rejectReason')}
                         accessibilityLabel={translate('iou.rejectReport.rejectReason')}
                         ref={inputCallbackRef}
-                        multiline
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     />
                 </View>
                 {hasPreviousApprover && (
