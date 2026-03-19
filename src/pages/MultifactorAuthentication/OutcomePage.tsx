@@ -2,6 +2,7 @@ import React from 'react';
 import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import type {ErrorState} from '@components/MultifactorAuthentication/Context/State';
+import CONST from '@src/CONST';
 
 /** Server failure screen generally represents "unknown error" so also show when status is unknown (e.g. network/parse error). */
 function isServerError(error: ErrorState): boolean {
@@ -19,24 +20,18 @@ function MultifactorAuthenticationOutcomePage() {
         return scenario.successScreen;
     }
 
-    if (scenario.defaultClientFailureScreen && !isServerError(error)) {
-        return scenario.defaultClientFailureScreen;
-    }
-
-    if (scenario.defaultServerFailureScreen && isServerError(error)) {
-        return scenario.defaultServerFailureScreen;
-    }
-
     const reasonScreen = scenario.failureScreens?.[error.reason];
-    if (reasonScreen) {
+
+    const isPriorityReason =
+        error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS || error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE;
+
+    if (reasonScreen && isPriorityReason) {
         return reasonScreen;
     }
 
-    if (isServerError(error)) {
-        return scenario.defaultServerFailureScreen;
-    }
+    const defaultScreen = isServerError(error) ? scenario.defaultServerFailureScreen : scenario.defaultClientFailureScreen;
 
-    return scenario.defaultClientFailureScreen;
+    return defaultScreen ?? reasonScreen;
 }
 
 MultifactorAuthenticationOutcomePage.displayName = 'MultifactorAuthenticationOutcomePage';
