@@ -1,7 +1,18 @@
-const rule = require('../../eslint-plugin-local-rules/require-a11y-disable-justification.js');
-
 type Report = {
     messageId?: string;
+};
+
+type RuleContext = {
+    getSourceCode: () => {
+        getAllComments: () => Comment[];
+    };
+    report: (report: Report) => void;
+};
+
+type RuleModule = {
+    create: (context: RuleContext) => {
+        Program: () => void;
+    };
 };
 
 type Comment = {
@@ -11,6 +22,8 @@ type Comment = {
         end: {line: number; column: number};
     };
 };
+
+const rule = require('../../eslint-plugin-local-rules/require-a11y-disable-justification') as RuleModule;
 
 function createComment(value: string): Comment {
     return {
