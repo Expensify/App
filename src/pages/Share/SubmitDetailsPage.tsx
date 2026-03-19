@@ -114,7 +114,7 @@ function SubmitDetailsPage({
             hasOnlyPersonalPolicies,
             draftTransactionIDs,
         });
-        // The draftTransactionIDs can be changed if users update the expense, so we don't want to re-init the money request
+        // initMoneyRequest is an imported action, intentionally excluded to avoid re-initializing on every render
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
