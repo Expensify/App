@@ -29,6 +29,7 @@ import {setMoneyRequestDistance, setMoneyRequestOdometerReading, setMoneyRequest
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -396,8 +397,8 @@ function IOURequestStepDistanceOdometer({
                 '';
             const type =
                 stitchedImage?.type ??
-                (typeof odometerStartImage !== 'string' ? odometerStartImage?.type : undefined) ??
-                (typeof odometerEndImage !== 'string' ? odometerEndImage?.type : undefined) ??
+                (typeof odometerStartImage !== 'string' ? odometerStartImage?.type : getMimeTypeFromUri(odometerStartImage)) ??
+                (typeof odometerEndImage !== 'string' ? odometerEndImage?.type : getMimeTypeFromUri(odometerEndImage)) ??
                 'image/jpeg';
             setMoneyRequestReceipt(transactionID, uri, name, isTransactionDraft, type);
         }
