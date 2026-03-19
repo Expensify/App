@@ -237,7 +237,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI, stringifyWaypointsForAPI} from '@userActions/Transaction';
-import {removeDraftTransaction, removeDraftTransactions, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction, IOUActionParams, IOUType, OdometerImageType} from '@src/CONST';
@@ -1271,12 +1271,7 @@ function initMoneyRequest({
     const created = currentDate ?? format(new Date(), 'yyyy-MM-dd');
 
     // We remove draft transactions created during multi scanning if there are some
-    if (draftTransactionIDs) {
-        const idsToRemove = draftTransactionIDs.filter((id) => id !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-        removeDraftTransactionsByIDs(idsToRemove);
-    } else {
-        removeDraftTransactions(true);
-    }
+    removeDraftTransactionsByIDs(draftTransactionIDs, true);
 
     // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
     // we should keep most of the existing data by using the ONYX MERGE operation
