@@ -63,10 +63,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseOptionIcon = false,
         shouldStayNormalOnDisable = false,
         sentryLabel,
-        brickRoadIndicator,
     } = props;
 
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -163,16 +162,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         setIsMenuVisible,
     }));
 
-    const iconLeft =
-        brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? (
-            <ButtonComposed.IconLeft
-                src={icons.DotIndicator}
-                fill={theme.danger}
-                hoverFill={theme.danger}
-            />
-        ) : (
-            !!icon && <ButtonComposed.IconLeft src={icon} />
-        );
+    const iconLeft = !!icon && <ButtonComposed.IconLeft src={icon} />;
 
     return (
         <View style={wrapperStyle}>
