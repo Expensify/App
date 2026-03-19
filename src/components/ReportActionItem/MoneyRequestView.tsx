@@ -310,8 +310,8 @@ function MoneyRequestView({
     const baseTransaction = updatedTransaction ?? transaction;
     const {taxCode, taxValue} = baseTransaction ?? {};
 
-    const taxRateTitle = taxCode ? getTaxName(policy, baseTransaction, isExpenseUnreported) : '';
-    const hasTaxValueChanged = taxCode ? getTaxValue(policy, baseTransaction, taxCode) !== baseTransaction?.taxValue : false;
+    const taxRateTitle = getTaxName(policy, baseTransaction, isExpenseUnreported);
+    const hasTaxValueChanged = taxCode && taxValue !== undefined ? getTaxValue(policy, baseTransaction, taxCode) !== taxValue : false;
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
