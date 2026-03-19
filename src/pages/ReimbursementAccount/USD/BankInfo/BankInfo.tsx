@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -41,7 +41,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
     const {translate} = useLocalize();
 
-    const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
+    const redirectedFromPlaidToManualRef = useRef(false);
     const values = getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {});
 
     let setupType = reimbursementAccount?.achData?.subStep ?? '';
@@ -93,14 +93,13 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
     // In this case we need to redirect user to manual flow to enter real account number and routing number
     // and we need to do it only once so redirectedFromPlaidToManual flag is used
     useEffect(() => {
-        if (redirectedFromPlaidToManual) {
+        if (redirectedFromPlaidToManualRef.current) {
             return;
         }
-        if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '' && !redirectedFromPlaidToManual) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setRedirectedFromPlaidToManual(true);
+        if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '') {
+            redirectedFromPlaidToManualRef.current = true;
         }
-    }, [redirectedFromPlaidToManual, setupType, values.bankName]);
+    }, [setupType, values.bankName]);
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
