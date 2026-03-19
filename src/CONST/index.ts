@@ -9131,6 +9131,11 @@ const CONST = {
         PROFILE_PAGE: {
             AVATAR: 'ProfilePage-Avatar',
         },
+        DOMAIN: {
+            GROUPS: {
+                CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
+            }
+        }
     },
 
     DOMAIN: {

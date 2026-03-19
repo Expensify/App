@@ -20,6 +20,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -77,7 +78,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
         <Button
             accessibilityLabel={translate('domain.groups.createNewGroupButton')}
             text={translate('domain.groups.createNewGroupButton')}
-            // sentryLabel={}
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON}
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
             icon={icons.Plus}
             innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
