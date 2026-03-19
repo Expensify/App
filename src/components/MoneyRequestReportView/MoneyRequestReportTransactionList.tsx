@@ -196,6 +196,7 @@ function MoneyRequestReportTransactionList({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
@@ -267,8 +268,19 @@ function MoneyRequestReportTransactionList({
     const {sortBy, sortOrder} = sortConfig;
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions].sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true));
-    }, [sortBy, sortOrder, transactions, localeCompare, report]);
+        const isDefaultSort = sortBy === CONST.SEARCH.TABLE_COLUMNS.DATE && sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
+        return [...transactions].sort((a, b) => {
+            // When using default sort, prioritize RBR-actionable transactions
+            if (isDefaultSort) {
+                const aHasViolations = (transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + a.transactionID]?.length ?? 0) > 0;
+                const bHasViolations = (transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + b.transactionID]?.length ?? 0) > 0;
+                if (aHasViolations !== bHasViolations) {
+                    return aHasViolations ? -1 : 1;
+                }
+            }
+            return compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true);
+        });
+    }, [sortBy, sortOrder, transactions, localeCompare, report, transactionViolations]);
 
     const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 
