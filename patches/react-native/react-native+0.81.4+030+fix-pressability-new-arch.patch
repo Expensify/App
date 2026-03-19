@@ -78,7 +78,7 @@ diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.
 diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
 --- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
-@@ -8,6 +8,7 @@
+@@ -8,5 +8,6 @@
  #import "RCTMountingManager.h"
  
 +#import "UIView+React.h"
@@ -224,7 +224,7 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/r
  import com.facebook.react.bridge.ReadableArray
  import com.facebook.react.bridge.ReadableMap
  import com.facebook.react.bridge.RetryableMountingLayerException
-@@ -343,6 +348,55 @@ internal class MountingManager(
+@@ -343,5 +348,66 @@ internal class MountingManager(
    }
  
 +  @UiThread
@@ -368,7 +368,7 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Fa
 diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
 --- a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
 +++ b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
-@@ -13,6 +13,7 @@
+@@ -13,4 +13,5 @@
  #include <react/renderer/uimanager/UIManagerBinding.h>
 +#include <utility>
  
@@ -423,7 +423,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Sche
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
 --- a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
-@@ -663,6 +663,46 @@ jsi::Value UIManagerBinding::get(
+@@ -663,6 +663,47 @@ jsi::Value UIManagerBinding::get(
          });
    }
  
@@ -474,7 +474,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIMa
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
 --- a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
-@@ -90,6 +90,14 @@ class UIManagerDelegate {
+@@ -90,5 +90,13 @@ class UIManagerDelegate {
    virtual void uiManagerDidStartSurface(const ShadowTree& shadowTree) = 0;
  
 +  /*
@@ -509,7 +509,7 @@ diff --git a/node_modules/react-native/jest/MockNativeMethods.js b/node_modules/
 diff --git a/node_modules/react-native/jest/mockNativeComponent.js b/node_modules/react-native/jest/mockNativeComponent.js
 --- a/node_modules/react-native/jest/mockNativeComponent.js
 +++ b/node_modules/react-native/jest/mockNativeComponent.js
-@@ -38,6 +38,7 @@ export default function mockNativeComponent<TProps: {...}>(
+@@ -38,4 +38,5 @@ export default function mockNativeComponent<TProps: {...}>(
      measure: () => void = jest.fn();
 +    measureAsyncOnUI: () => void = jest.fn();
      measureInWindow: () => void = jest.fn();
@@ -518,7 +518,7 @@ diff --git a/node_modules/react-native/jest/mockNativeComponent.js b/node_module
 diff --git a/node_modules/react-native/src/private/types/HostInstance.js b/node_modules/react-native/src/private/types/HostInstance.js
 --- a/node_modules/react-native/src/private/types/HostInstance.js
 +++ b/node_modules/react-native/src/private/types/HostInstance.js
-@@ -71,6 +71,11 @@ export interface LegacyHostInstanceMethods {
+@@ -71,4 +71,9 @@ export interface LegacyHostInstanceMethods {
    measure(callback: MeasureOnSuccessCallback): void;
 +  /**
 +   * Same as `measure()`, but instead of using the shadow nodes layout information,
@@ -531,7 +531,7 @@ diff --git a/node_modules/react-native/src/private/types/HostInstance.js b/node_
 diff --git a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
 --- a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
 +++ b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
-@@ -155,6 +155,16 @@ class ReactNativeElement
+@@ -155,6 +155,17 @@ class ReactNativeElement
      }
    }
  
