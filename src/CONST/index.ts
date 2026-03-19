@@ -2301,6 +2301,7 @@ const CONST = {
         TIF: 'image/tif',
         TIFF: 'image/tiff',
         HEIC: 'image/heic',
+        HEIF: 'image/heif',
         IMG: 'image/*',
         PDF: 'application/pdf',
         MSWORD: 'application/msword',
