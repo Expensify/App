@@ -11253,7 +11253,7 @@ type CreateDraftTransactionParams = {
     actionName: IOUAction;
     reportActionID: string | undefined;
     introSelected: OnyxEntry<IntroSelected>;
-    allTransactionDrafts: OnyxCollection<Transaction>;
+    draftTransactionIDs: string[] | undefined;
     activePolicy: OnyxEntry<Policy>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
@@ -11267,7 +11267,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     actionName,
     reportActionID,
     introSelected,
-    allTransactionDrafts,
+    draftTransactionIDs,
     activePolicy,
     userBillingGraceEndPeriods,
     amountOwed,
@@ -11297,14 +11297,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         attendees: transaction?.modifiedAttendees ?? baseComment.attendees,
     };
 
-    removeDraftTransactionsByIDs(
-        Object.values(allTransactionDrafts ?? {}).reduce<string[]>((acc, t) => {
-            if (t) {
-                acc.push(t.transactionID);
-            }
-            return acc;
-        }, []),
-    );
+    removeDraftTransactionsByIDs(draftTransactionIDs);
 
     createDraftTransaction({
         ...transaction,

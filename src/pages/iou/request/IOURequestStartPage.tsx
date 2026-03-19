@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {iouRequestPolicyCollectionSelector} from '@selectors/Policy';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -95,7 +96,7 @@ function IOURequestStartPage({
     });
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const {isOffline} = useNetwork();
@@ -199,7 +200,7 @@ function IOURequestStartPage({
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
                 hasOnlyPersonalPolicies,
-                draftTransactions,
+                draftTransactionIDs,
             });
         },
         [
@@ -216,7 +217,7 @@ function IOURequestStartPage({
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
-            draftTransactions,
+            draftTransactionIDs,
         ],
     );
 
