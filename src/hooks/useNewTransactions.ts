@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useRef} from 'react';
+import {deletePendingNewTransactionIDs} from '@libs/actions/IOU';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import usePrevious from './usePrevious';
@@ -33,7 +34,16 @@ function useNewTransactions(
             // identify these transactions on first load.
             if (isFocused && reportID && pendingNewTransactionIDs && transactions?.length) {
                 const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
-                return transactions.filter((transaction) => pendingSet.has(transaction.transactionID) && pendingNewTransactionIDs[transaction.transactionID]);
+                const pendingTransactions = transactions.filter((transaction) => pendingSet.has(transaction.transactionID) && pendingNewTransactionIDs[transaction.transactionID]);
+                if (pendingTransactions.length) {
+                    setTimeout(() => {
+                        deletePendingNewTransactionIDs(
+                            reportID,
+                            pendingTransactions.map((transaction) => transaction.transactionID),
+                        );
+                    }, CONST.PENDING_TRANSACTION_DELETION_AFTER_HIGHLIGHT_TIMEOUT);
+                }
+                return pendingTransactions;
             }
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }

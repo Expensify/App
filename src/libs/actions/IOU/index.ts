@@ -5843,10 +5843,18 @@ function addPendingNewTransactionIDs(reportID: string | undefined, transactionID
         {pendingNewTransactionIDs: {[transactionID]: true}},
     );
 
-    // Delete after scroll and highlight is triggered.
+    // In case useNewTransactions hasn't triggered the deletion we delete it after a long delay here.
     setTimeout(() => {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: {[transactionID]: null}});
     }, CONST.PENDING_TRANSACTION_DELETION_TIMEOUT);
+}
+
+function deletePendingNewTransactionIDs(reportID: string | undefined, transactionIDs: string[]) {
+    const pendingNewTransactionIDs = {};
+    for (const transactionID of transactionIDs) {
+        Object.assign(pendingNewTransactionIDs, {[transactionID]: null});
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs});
 }
 
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
@@ -6599,7 +6607,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       }
                     : {}),
             };
-
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
         }
@@ -13268,6 +13275,7 @@ export {
     getTrackExpenseInformation,
     getMoneyRequestInformation,
     getOrCreateOptimisticSplitChatReport,
+    deletePendingNewTransactionIDs,
 };
 export type {
     GPSPoint as GpsPoint,
