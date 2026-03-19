@@ -304,7 +304,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const rotatedFilename = file.name ?? receiptFilename;
 
                 if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction);
+                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction, !isEditingConfirmation);
                 } else if (isDraftTransaction) {
                     setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, fileType);
                 } else {
@@ -391,7 +391,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const croppedFilename = file.name ?? receiptFilename;
 
                 if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction);
+                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction, !isEditingConfirmation);
                 } else if (isDraftTransaction) {
                     setMoneyRequestReceipt(transaction.transactionID, imageUriResult, croppedFilename, isDraftTransaction, fileType);
                 } else {
