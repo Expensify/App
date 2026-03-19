@@ -668,6 +668,8 @@
         "setuptools",
         "shareeEmail",
         "Sharees",
+        "sharee",
+        "sharees",
         "Sharons",
         "shellcheck",
         "shellenv",

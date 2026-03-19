@@ -72,13 +72,14 @@ import useThemeStyles from './useThemeStyles';
 
 type UseSearchBulkActionsParams = {
     queryJSON: SearchQueryJSON | undefined;
+    deleteTransactionsOnSearch?: (hash: number, transactionIDs: string[], transactions?: OnyxCollection<Transaction>) => void;
 };
 
 function getRestrictedPolicyID(items: Array<{policyID?: string}>, billingGracePeriods: OnyxCollection<BillingGraceEndPeriod>): string | undefined {
     return items.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, billingGracePeriods));
 }
 
-function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
+function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearchBulkActionsParams) {
     const {translate, localeCompare, formatPhoneNumber, toLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -511,6 +512,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         translate,
                         toLocaleDigit,
                         transactions,
+                        deleteTransactionsOnSearch,
                     });
                 }
                 clearSelectedTransactions();
@@ -537,6 +539,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         toLocaleDigit,
         isExpenseReportType,
         selectedReportIDs,
+        deleteTransactionsOnSearch,
     ]);
 
     const onBulkPaySelected = useCallback(
