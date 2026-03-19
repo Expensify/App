@@ -29,11 +29,11 @@ function Day({disabled, selected, pressed, hovered, children}: DayProps) {
         <View
             style={[
                 themeStyles.calendarDayContainer,
-                selected ? themeStyles.buttonSuccess : {},
-                !disabled && !selected ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed), true) : {},
+                selected ? themeStyles.buttonDefaultBG : {},
+                !disabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
             ]}
         >
-            <Text style={[disabled ? themeStyles.buttonOpacityDisabled : {}, selected ? themeStyles.buttonSuccessText : {}]}>{children}</Text>
+            <Text style={disabled ? themeStyles.buttonOpacityDisabled : {}}>{children}</Text>
         </View>
     );
 }
