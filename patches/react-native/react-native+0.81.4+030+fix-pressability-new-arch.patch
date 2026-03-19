@@ -413,7 +413,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Sche
 index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
-@@ -106,6 +106,9 @@ class Scheduler final : public UIManagerDelegate {
+@@ -106,5 +106,9 @@ class Scheduler final : public UIManagerDelegate {
    void uiManagerDidStartSurface(const ShadowTree& shadowTree) override;
  
 +  void uiManagerMeasureAsync(
