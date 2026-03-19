@@ -40,6 +40,7 @@ function getWrapper(): HTMLDivElement {
 
 function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, options?: UseAccessibilityAnnouncementOptions) {
     const shouldAnnounceOnWeb = options?.shouldAnnounceOnWeb ?? false;
+    const shouldAnnouncePolite = options?.shouldAnnouncePolite ?? false;
     const prevShouldAnnounceRef = useRef(false);
 
     useEffect(() => {
@@ -63,6 +64,10 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
         const timer = setTimeout(() => {
             const node = document.createElement('div');
             node.setAttribute('role', 'alert');
+            if (shouldAnnouncePolite) {
+                node.setAttribute('aria-live', 'polite');
+            }
+
             node.textContent = message;
             container.appendChild(node);
         }, ANNOUNCEMENT_DELAY_MS);
@@ -71,7 +76,7 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
             clearTimeout(timer);
             prevShouldAnnounceRef.current = false;
         };
-    }, [message, shouldAnnounceMessage, shouldAnnounceOnWeb]);
+    }, [message, shouldAnnounceMessage, shouldAnnounceOnWeb, shouldAnnouncePolite]);
 }
 
 export default useAccessibilityAnnouncement;

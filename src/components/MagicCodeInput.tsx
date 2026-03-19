@@ -171,7 +171,6 @@ function MagicCodeInput({
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(autoFocus ? 0 : undefined);
     const editIndex = useRef(0);
     const [wasSubmitted, setWasSubmitted] = useState(false);
-    const [announcement, setAnnouncement] = useState('');
     const shouldFocusLast = useRef(false);
     const inputWidth = useRef(0);
     const lastFocusedIndex = useRef(0);
@@ -215,15 +214,8 @@ function MagicCodeInput({
         editIndex.current = index;
     };
 
-    useEffect(() => {
-        if (focusedIndex === undefined) {
-            setAnnouncement('');
-            return;
-        }
-        setAnnouncement(translate('common.enterDigitLabel', {digitIndex: focusedIndex + 1, totalDigits: maxLength}));
-    }, [focusedIndex, maxLength, translate]);
-
-    useAccessibilityAnnouncement(announcement, announcement.length > 0, {shouldAnnounceOnNative: true});
+    const announcement = focusedIndex !== undefined ? translate('common.enterDigitLabel', {digitIndex: focusedIndex + 1, totalDigits: maxLength}) : undefined;
+    useAccessibilityAnnouncement(announcement, !!announcement, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true, shouldAnnouncePolite: true});
 
     useImperativeHandle(ref, () => ({
         focus() {
@@ -559,13 +551,6 @@ function MagicCodeInput({
                         </View>
                     );
                 })}
-                <Text
-                    style={styles.hiddenElementOutsideOfWindow}
-                    role={CONST.ROLE.ALERT}
-                    accessibilityLiveRegion="assertive"
-                >
-                    {announcement}
-                </Text>
             </View>
             {!!errorText && (
                 <FormHelpMessage
