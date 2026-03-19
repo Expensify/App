@@ -172,6 +172,7 @@ function TransactionListItem<TItem extends ListItem>({
         parentReportAction,
         hash: currentSearchHash,
         queryJSON: currentSearchQueryJSON,
+        fallbackReport: snapshotReport,
     });
 
     const handleOnPress = () => {

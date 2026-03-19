@@ -19,7 +19,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isExpenseUnreported} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 
@@ -55,6 +55,13 @@ type UseTransactionInlineEditParams = {
      * Omit when editing from the Expense Report page (always editable by permissions alone).
      */
     queryJSON?: SearchQueryJSON;
+
+    /**
+     * Fallback report from the search snapshot.
+     * Used when the Onyx report cache is empty (e.g. after cache clear) so that
+     * permission checks like isSettled still have a report object with statusNum.
+     */
+    fallbackReport?: OnyxEntry<Report>;
 };
 
 type UseTransactionInlineEditReturn = {
@@ -85,6 +92,7 @@ function useTransactionInlineEdit({
     parentReportAction: externalParentReportAction,
     hash,
     queryJSON,
+    fallbackReport,
 }: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
     // Look up the parent IOU report action from live Onyx. If the caller already
     // knows the action ID we can select it directly; otherwise we scan all actions.
@@ -124,7 +132,7 @@ function useTransactionInlineEdit({
     const permissions = getTransactionEditPermissions({
         transaction,
         parentReportAction,
-        parentReport,
+        parentReport: parentReport ?? fallbackReport,
         policyForMovingExpenses: policyForPermissions,
         parentPolicy: policy,
         transactionThreadReport,
