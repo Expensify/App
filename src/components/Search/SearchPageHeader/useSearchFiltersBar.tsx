@@ -4,7 +4,6 @@ import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import GroupByPopup from '@components/Search/FilterDropdowns/GroupByPopup';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
@@ -30,6 +29,7 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {buildFilterQueryWithSortDefaults, getDateRangeDisplayValueFromFormValue, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
