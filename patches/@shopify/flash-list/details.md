@@ -23,3 +23,10 @@
 - Upstream PR/issue: TBD
 - E/App issue: TBD
 - PR introducing patch: TBD
+
+### [@shopify+flash-list+2.3.0+004+fix-pending-children-blocking-measurements.patch](@shopify+flash-list+2.3.0+004+fix-pending-children-blocking-measurements.patch)
+
+- Reason: Fixes items overlapping on initial load when a list contains nested FlashLists (e.g. a horizontal list inside a chat message). The `RecyclerView` layout measurement `useLayoutEffect` had an early return when `pendingChildIds.size > 0` — while any nested FlashList was still doing its progressive first layout, the parent list skipped ALL measurement processing. This meant newly added items stayed at estimated positions (wrong heights/y-offsets) while being visible (`opacity: 1`), causing overlap. The fix moves the `pendingChildIds` check so that measurements are always collected and processed by the layout manager, but when children are pending, `commitLayout()` is called instead of `setRenderId()`. This updates item positions in `ViewHolderCollection` without triggering a full `RecyclerView` re-render, avoiding the cascading `setState` calls that the original guard was meant to prevent.
+- Upstream PR/issue: TBD
+- E/App issue: TBD
+- PR introducing patch: TBD
