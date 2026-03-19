@@ -43,6 +43,35 @@ jest.mock('expo-task-manager', () => ({
     // Add other methods here if you use them
 }));
 
+// Mock expo-location — the jest-expo preset replaces all native module methods with jest.fn(async () => {}),
+// which returns undefined instead of a proper PermissionResponse. This causes crashes when code reads .status
+// from the result of requestForegroundPermissionsAsync().
+jest.mock('expo-location', () => ({
+    requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    requestBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getCurrentPositionAsync: jest.fn(() => Promise.resolve({coords: {latitude: 0, longitude: 0, altitude: 0, accuracy: 0, altitudeAccuracy: 0, heading: 0, speed: 0}, timestamp: 0})),
+    hasStartedLocationUpdatesAsync: jest.fn(() => Promise.resolve(false)),
+    startLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
+    stopLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
+    reverseGeocodeAsync: jest.fn(() => Promise.resolve([])),
+    hasServicesEnabledAsync: jest.fn(() => Promise.resolve(true)),
+    PermissionStatus: {
+        GRANTED: 'granted',
+        DENIED: 'denied',
+        UNDETERMINED: 'undetermined',
+    },
+    Accuracy: {
+        Lowest: 1,
+        Low: 2,
+        Balanced: 3,
+        High: 4,
+        Highest: 5,
+        BestForNavigation: 6,
+    },
+}));
+
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
