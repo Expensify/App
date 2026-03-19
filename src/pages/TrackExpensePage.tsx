@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -12,6 +13,7 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {findSelfDMReportID, generateReportID} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,6 +30,7 @@ function TrackExpensePage() {
     const {isOffline} = useNetwork();
     const [hasSeenTrackTraining, hasSeenTrackTrainingResult] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
     const isLoadingHasSeenTrackTraining = isLoadingOnyxValue(hasSeenTrackTrainingResult);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
@@ -41,6 +44,7 @@ function TrackExpensePage() {
                     CONST.IOU.TYPE.TRACK,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     findSelfDMReportID() || generateReportID(),
+                    draftTransactionIDs,
                 );
 
                 if (!hasSeenTrackTraining && !isOffline) {
@@ -59,10 +63,18 @@ function TrackExpensePage() {
         [],
     );
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TrackExpensePage',
+        isLoadingHasSeenTrackTraining,
+    };
+
     return (
         <ScreenWrapper testID="TrackExpensePage">
             <View style={[styles.borderBottom]}>
-                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+                <ReportHeaderSkeletonView
+                    onBackButtonPress={Navigation.goBack}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>

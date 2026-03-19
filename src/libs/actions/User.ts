@@ -49,7 +49,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, LoginList, Policy} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -57,6 +57,7 @@ import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
@@ -73,12 +74,19 @@ Onyx.connect({
     },
 });
 
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
+type DomainOnyxUpdate =
+    | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>
+    | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`>
+    | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`>;
+
+type AccountOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.ACCOUNT>;
+
+type LockAccountOnyxUpdate = DomainOnyxUpdate | AccountOnyxUpdate;
+type LockAccountOnyxKey =
+    | typeof ONYXKEYS.ACCOUNT
+    | `${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`
+    | `${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`
+    | `${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`;
 
 /**
  * Attempt to close the user's account
@@ -444,6 +452,7 @@ function requestValidateCodeAction() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
+                validateCodeSent: false,
                 isLoading: true,
                 pendingFields: {
                     actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -495,14 +504,7 @@ function requestValidateCodeAction() {
 /**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(
-    currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
-    loginList: OnyxEntry<LoginList>,
-    contactMethod: string,
-    validateCode: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    shouldResetActionCode?: boolean,
-) {
+function validateSecondaryLogin(contactMethod: string, validateCode: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], shouldResetActionCode?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -528,16 +530,7 @@ function validateSecondaryLogin(
             },
         },
     ];
-    const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.LOGIN_LIST
-            | typeof ONYXKEYS.ACCOUNT
-            | typeof ONYXKEYS.SESSION
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.VALIDATE_ACTION_CODE
-        >
-    > = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -562,70 +555,6 @@ function validateSecondaryLogin(
             },
         },
     ];
-    // If the primary login isn't validated yet, set the secondary login as the primary login
-    if (!loginList?.[currentEmail].validatedDate) {
-        successData.push(
-            ...[
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {
-                        primaryLogin: contactMethod,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.SESSION,
-                    value: {
-                        email: contactMethod,
-                    },
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            login: contactMethod,
-                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, currentUserPersonalDetails, formatPhoneNumber),
-                        },
-                    },
-                },
-            ],
-        );
-
-        for (const policy of Object.values(allPolicies ?? {})) {
-            if (!policy) {
-                continue;
-            }
-
-            let optimisticPolicyDataValue;
-
-            if (policy.employeeList) {
-                const currentEmployee = policy.employeeList[currentEmail];
-                optimisticPolicyDataValue = {
-                    employeeList: {
-                        [currentEmail]: null,
-                        [contactMethod]: currentEmployee,
-                    },
-                };
-            }
-
-            if (policy.ownerAccountID === currentUserAccountID) {
-                optimisticPolicyDataValue = {
-                    ...optimisticPolicyDataValue,
-                    owner: contactMethod,
-                };
-            }
-
-            if (optimisticPolicyDataValue) {
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                    value: optimisticPolicyDataValue,
-                });
-            }
-        }
-    }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
@@ -685,7 +614,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
-function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number) {
+function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number, conciergeReportID: string | undefined) {
     for (const update of onyxUpdates) {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             continue;
@@ -696,7 +625,8 @@ function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServe
 
         for (const action of reportActions) {
             if (action) {
-                showReportActionNotification(reportID, action, currentUserAccountIDParam);
+                // They aren't connected to a UI anywhere, it's OK to use currentEmail
+                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail, conciergeReportID);
             }
         }
     }
@@ -923,7 +853,7 @@ function initializePusherPingPong() {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountIDParam: number) {
+function subscribeToUserEvents(currentUserAccountIDParam: number, conciergeReportID: string | undefined) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (!currentUserAccountIDParam) {
         return;
@@ -978,7 +908,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number) {
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountIDParam);
+                triggerNotifications(pushJSON, currentUserAccountIDParam, conciergeReportID);
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1100,45 +1030,18 @@ function joinScreenShare(accessToken: string, roomName: string) {
 }
 
 /**
- * Downloads the statement PDF for the provided period
+ * Downloads the statement PDF for the provided period.
+ *
  * @param period YYYYMM format
  */
 function generateStatementPDF(period: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_STATEMENT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_STATEMENT,
-            value: {
-                isGenerating: true,
-            },
-        },
-    ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_STATEMENT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_STATEMENT,
-            value: {
-                isGenerating: false,
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_STATEMENT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_STATEMENT,
-            value: {
-                isGenerating: false,
-            },
-        },
-    ];
-
     const parameters: GetStatementPDFParams = {period};
 
-    API.read(READ_COMMANDS.GET_STATEMENT_PDF, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    // makeRequestWithSideEffects is used here because this function is only ever used to prepare another network request to download the prepared statement, and there's no optimistic data to show in the UI.
+    // There's a loading spinner that stays visible not only until the statement is generated, but also until the statement is downloaded.
+    // Therefore, it doesn't make sense to rely on the UI layer and unnecessary re-renders to trigger the subsequent network request.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF, parameters);
 }
 
 /**
@@ -1146,6 +1049,7 @@ function generateStatementPDF(period: string) {
  */
 function setContactMethodAsDefault(
     currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
+    policies: OnyxCollection<Policy>,
     newDefaultContactMethod: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     backTo?: string,
@@ -1246,7 +1150,7 @@ function setContactMethodAsDefault(
         },
     ];
 
-    for (const policy of Object.values(allPolicies ?? {})) {
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy) {
             continue;
         }
@@ -1458,46 +1362,142 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
 }
 
-function lockAccount() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                lockAccount: {
-                    errors: null,
+function lockAccount(accountID?: number, domainAccountID?: number, domainName?: string) {
+    let domainOptimisticData: DomainOnyxUpdate[] = [];
+    let domainFailureData: DomainOnyxUpdate[] = [];
+    let domainSuccessData: DomainOnyxUpdate[] = [];
+    if (accountID && domainAccountID) {
+        const userLockKey = `${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`;
+
+        domainOptimisticData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                value: {
+                    [userLockKey]: true,
+                } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, boolean>,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                value: {
+                    member: {
+                        [accountID]: {
+                            lockAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                    },
                 },
             },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                lockAccount: {
-                    errors: null,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                value: {
+                    memberErrors: {
+                        [accountID]: {
+                            lockAccountErrors: null,
+                        },
+                    },
                 },
             },
-        },
-    ];
+        ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('failedToLockAccountPage.failedToLockAccountDescription'),
+        domainFailureData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                value: {
+                    [userLockKey]: false,
+                } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, boolean>,
             },
-        },
-    ];
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                value: {
+                    member: {
+                        [accountID]: {
+                            lockAccount: null,
+                        },
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                value: {
+                    memberErrors: {
+                        [accountID]: {
+                            lockAccountErrors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('failedToLockAccountPage.failedToLockAccount'),
+                        },
+                    },
+                },
+            },
+        ];
+
+        domainSuccessData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                value: {
+                    member: {
+                        [accountID]: {
+                            lockAccount: null,
+                        },
+                    },
+                },
+            },
+        ];
+    }
+
+    let currentUserOptimisticData: AccountOnyxUpdate[] = [];
+    let currentUserFailureData: AccountOnyxUpdate[] = [];
+    let currentUserSuccessData: AccountOnyxUpdate[] = [];
+    if (!accountID || accountID === currentUserAccountID) {
+        currentUserOptimisticData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: true,
+                    lockAccount: {
+                        errors: null,
+                    },
+                },
+            },
+        ];
+        currentUserFailureData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('failedToLockAccountPage.failedToLockAccountDescription'),
+                },
+            },
+        ];
+        currentUserSuccessData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    lockAccount: {
+                        errors: null,
+                    },
+                },
+            },
+        ];
+    }
+
+    const optimisticData: LockAccountOnyxUpdate[] = [...domainOptimisticData, ...currentUserOptimisticData];
+
+    const successData: LockAccountOnyxUpdate[] = [...domainSuccessData, ...currentUserSuccessData];
+
+    const failureData: LockAccountOnyxUpdate[] = [...domainFailureData, ...currentUserFailureData];
 
     const params: LockAccountParams = {
-        accountID: currentUserAccountID,
+        accountID: accountID ?? currentUserAccountID,
+        domainAccountID,
+        domainName,
     };
 
     // We need to know if this command fails so that we can navigate the user to a failure page.
@@ -1505,9 +1505,9 @@ function lockAccount() {
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
 
-function requestUnlockAccount() {
+function requestUnlockAccount(accountID?: number) {
     const params: LockAccountParams = {
-        accountID: currentUserAccountID,
+        accountID: accountID ?? currentUserAccountID,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
@@ -1534,7 +1534,7 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
     // For positive/negative responses, create an optimistic Concierge message
     if (message && conciergeChatReportID && response !== 'skip') {
         const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
-        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message, undefined, conciergeAccountID, undefined, conciergeChatReportID);
+        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction({text: message, actorAccountID: conciergeAccountID, reportID: conciergeChatReportID});
         const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
         const currentTime = DateUtils.getDBTime();
 
@@ -1830,6 +1830,10 @@ function openTroubleshootSettingsPage() {
     API.read(READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE, null);
 }
 
+function openMultifactorAuthenticationRevokePage() {
+    API.read(READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE, null);
+}
+
 function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.merge(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
 }
@@ -1902,4 +1906,7 @@ export {
     updateDraftMerchantRule,
     clearDraftMerchantRule,
     openTroubleshootSettingsPage,
+    openMultifactorAuthenticationRevokePage,
 };
+
+export {type LockAccountOnyxKey};

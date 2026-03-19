@@ -1,16 +1,12 @@
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
-import {useEffect, useMemo} from 'react';
+import {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
-import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -25,23 +21,17 @@ function useOnboardingFlowRouter() {
     const currentUrl = getCurrentUrl();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
     });
-    const {isHybridAppOnboardingCompleted, hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
+    const {isHybridAppOnboardingCompleted} = tryNewDot ?? {};
     const isOnboardingLoading = isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata);
 
-    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
-    const shouldShowRequire2FAPage = useMemo(
-        () => (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) || (!!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlowSelector(onboardingValues)),
-        [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, account?.twoFactorAuthSetupInProgress, onboardingValues],
-    );
 
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
@@ -69,17 +59,6 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
-                const navigationState = navigationRef.getRootState();
-                const lastRoute = navigationState.routes.at(-1);
-                // Prevent duplicate navigation if the migrated user modal is already shown.
-                if (lastRoute?.name !== NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR) {
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
-                    Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
-                }
-                return;
-            }
-
             if (CONFIG.IS_HYBRID_APP) {
                 // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
                 if (isSingleNewDotEntry) {
@@ -103,10 +82,7 @@ function useOnboardingFlowRouter() {
         tryNewDotMetadata,
         isSingleNewDotEntryMetadata,
         isSingleNewDotEntry,
-        hasBeenAddedToNudgeMigration,
         dismissedProductTrainingMetadata,
-        dismissedProductTraining?.migratedUserWelcomeModal,
-        dismissedProductTraining,
         currentUrl,
         isLoggingInAsNewSessionUser,
         isOnboardingLoading,
@@ -116,7 +92,6 @@ function useOnboardingFlowRouter() {
     return {
         isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues),
         isHybridAppOnboardingCompleted,
-        shouldShowRequire2FAPage,
         isOnboardingLoading: !!onboardingValues?.isLoading,
     };
 }

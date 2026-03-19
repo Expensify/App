@@ -11,6 +11,7 @@ import SafeString from '@src/utils/SafeString';
 import {convertToBackendAmount, convertToDisplayString, getCurrencyDecimals} from './CurrencyUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
+import {constructReceiptSourceFromFilename} from './ReceiptUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
 import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
@@ -34,8 +35,6 @@ import {
     isTimeRequest,
     isTransactionPendingDelete,
 } from './TransactionUtils';
-
-const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
 // Define the specific merge fields we want to handle
 const MERGE_FIELDS = ['amount', 'merchant', 'created', 'category', 'tag', 'description', 'taxValue', 'reimbursable', 'billable', 'attendees', 'reportID'] as const;
@@ -95,7 +94,7 @@ function fillMissingReceiptSource(transaction: Transaction) {
         ...transaction,
         receipt: {
             ...transaction.receipt,
-            source: `${RECEIPT_SOURCE_URL}${transaction.receipt.filename}`,
+            source: constructReceiptSourceFromFilename(transaction.receipt.filename),
         },
     };
 }
@@ -168,8 +167,9 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
     const excludeFields: MergeFieldKey[] = [];
 
     // Distance request's amount/currency/receipt depend on merchant selection
+    // Distance request's tax depends on distance rate
     if (isDistanceRequest(targetTransaction)) {
-        excludeFields.push('amount');
+        excludeFields.push('amount', 'taxValue');
     }
 
     return MERGE_FIELDS.filter((field) => !excludeFields.includes(field));
@@ -227,6 +227,11 @@ function getMergeableDataAndConflictFields(
 
         const isTargetValueEmpty = isEmptyMergeValue(targetValue);
         const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
+
+        // Temporarily skip merging tax value if either policy has tax tracking disabled until we handle in https://github.com/Expensify/App/issues/83157
+        if (field === 'taxValue' && (!targetTransactionPolicy?.tax?.trackingEnabled || !sourceTransactionPolicy?.tax?.trackingEnabled)) {
+            continue;
+        }
 
         if (field === 'amount') {
             // If target transaction is a card or split expense, always preserve the target transaction's amount and currency
@@ -294,9 +299,6 @@ function getMergeableDataAndConflictFields(
         }
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
-            if (field === 'taxValue' && isTargetValueEmpty) {
-                continue;
-            }
             const selectedTransaction = isTargetValueEmpty ? sourceTransaction : targetTransaction;
             const selectedFieldValue = isTargetValueEmpty ? sourceValue : targetValue;
             const selectedPolicy = isTargetValueEmpty ? sourceTransactionPolicy : targetTransactionPolicy;
@@ -575,6 +577,7 @@ function buildMergeFieldsData(
         };
     });
 }
+
 type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
     transaction: OnyxEntry<Transaction>;
     field: K;
@@ -622,6 +625,12 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         updatedValues.receipt = transaction?.receipt ?? null;
         updatedValues.waypoints = getWaypoints(transaction) ?? null;
         updatedValues.routes = transaction?.routes ?? null;
+        // Distance expense tax rate is fixed to the distance rate, so just carry it over
+        updatedValues.taxValue = transaction?.taxValue;
+        updatedValues.taxCode = transaction?.taxCode;
+        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue ?? '';
+        updatedValues.taxAmount = transaction?.taxAmount;
+        updatedValues.taxPolicyID = policy?.id;
     }
 
     if (field === 'taxValue') {

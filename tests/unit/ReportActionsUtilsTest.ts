@@ -32,9 +32,13 @@ import {
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getUpdateACHAccountMessage,
+    hasNextActionMadeBySameActor,
+    hasReasoning,
+    isConsecutiveActionMadeByPreviousActor,
+    isConsecutiveChronosAutomaticTimerAction,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
-    shouldReportActionBeVisibleAsLastAction,
+    isReportActionVisibleAsLastAction,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -43,6 +47,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {getFakeReportAction} from '../utils/ReportTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -588,6 +593,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -604,6 +610,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     originalMessage: {
                         html: 'Hello world',
@@ -620,6 +627,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         amount: 0,
@@ -637,6 +645,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-10 22:27:01.825',
                     reportActionID: '1609646094152486',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
                     originalMessage: {
                         html: 'Hello world',
@@ -655,6 +664,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
                     originalMessage: {},
                     message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"', type: 'Action type', text: 'Action text'}],
@@ -662,6 +672,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-08 22:27:06.825',
                     reportActionID: '1661970171066216',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
                     originalMessage: {
                         paymentType: 'ACH',
@@ -671,6 +682,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-06 22:27:08.825',
                     reportActionID: '1661970171066220',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
                     originalMessage: {
                         html: 'Hello world',
@@ -692,6 +704,7 @@ describe('ReportActionsUtils', () => {
             const movedTransactionAction: ReportAction = {
                 created: '2022-11-13 22:27:01.825',
                 reportActionID: '8401445780099177',
+                reportID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 originalMessage: {
                     fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
@@ -702,6 +715,7 @@ describe('ReportActionsUtils', () => {
             const addCommentAction: ReportAction = {
                 created: '2022-11-12 22:27:01.825',
                 reportActionID: '6401435781022176',
+                reportID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 originalMessage: {
                     html: 'Hello world',
@@ -727,6 +741,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -743,6 +758,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     originalMessage: {
                         html: 'Hello world',
@@ -759,6 +775,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         amount: 0,
@@ -776,6 +793,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-10 22:27:01.825',
                     reportActionID: '1609646094152486',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
                     originalMessage: {
                         html: 'Hello world',
@@ -794,6 +812,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '1661970171066218',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
                     originalMessage: {
                         policyName: 'default', // change to const
@@ -822,6 +841,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -838,6 +858,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '8401445780099175',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -849,6 +870,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '8401445780099174',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -871,6 +893,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:04:13.728',
                     reportActionID: '1607371725956675966',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '<mention-user accountID="18414674"/>',
@@ -890,6 +913,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:00:14.352',
                     reportActionID: '4655978522337302598',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '#join',
@@ -908,6 +932,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
                     originalMessage: {
                         lastModified: '2024-11-19 08:00:14.353',
@@ -925,6 +950,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
                     originalMessage: {
                         inviteeAccountIDs: [18414674],
@@ -1061,6 +1087,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
                 created: '2023-08-01 16:00:00',
                 reportActionID: 'action1',
+                reportID: '1',
                 actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
@@ -1071,6 +1098,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
                 created: '2023-08-01 18:00:00',
                 reportActionID: 'action2',
+                reportID: '1',
                 actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
@@ -1152,6 +1180,7 @@ describe('ReportActionsUtils', () => {
                 message: [],
                 originalMessage: {
                     to: 'example@gmail.com',
+                    message: '',
                 },
             };
 
@@ -1161,6 +1190,110 @@ describe('ReportActionsUtils', () => {
 
             // Then it should return the correct message fragments
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_SUBMIT_FAILED with harvesting', () => {
+            const errorMessage = 'All expenses must be categorized before submitting';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    harvesting: true,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToAutoSubmitViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_SUBMIT_FAILED without harvesting', () => {
+            const errorMessage = 'All expenses must be categorized before submitting';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToSubmitViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_APPROVE_FAILED with automaticAction', () => {
+            const errorMessage = 'This report cannot be approved';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    automaticAction: true,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToAutoApproveViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_APPROVE_FAILED without automaticAction', () => {
+            const errorMessage = 'This report cannot be approved';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    automaticAction: false,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToApproveViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+    });
+
+    describe('getMessageOfOldDotReportAction', () => {
+        it('should return the ACH bounce message with return reason when provided', () => {
+            const returnReason = 'R03 - No Account/Unable to Locate Account';
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+                originalMessage: {returnReason},
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceWithReason', {returnReason}));
+        });
+
+        it('should return the default ACH bounce message when return reason is missing', () => {
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+                originalMessage: {},
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceDefault'));
         });
     });
 
@@ -1537,6 +1670,72 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [] as number[],
+                    automaticAction: true,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is true but mentionedAccountIDs has values', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [123],
+                    automaticAction: true,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is false', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [] as number[],
+                    automaticAction: false,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is not set', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [456],
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
@@ -1661,18 +1860,35 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
-        it('should return the correct message with a valid report ID and report name', () => {
+        it('should return the correct message with a valid report ID and report name when report is not deleted', () => {
             const reportID = '67890';
             const reportName = 'Original Report';
+            const isReportDeleted = false;
             const reportUrl = getReportURLForCurrentContext(reportID);
             const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
                 reportUrl,
                 reportName,
+                reportID,
+                isReportDeleted,
             });
 
-            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
+            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, isReportDeleted, translateLocal);
 
             expect(result).toBe(expectedMessage);
+        });
+
+        it('should return a message with plain reportID when report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage('123456', 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('created this report for any held expenses from deleted report #123456');
+        });
+
+        it('should handle undefined reportID and report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage(undefined, 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('');
         });
     });
 
@@ -2526,7 +2742,7 @@ describe('ReportActionsUtils', () => {
                     reportActionID: '2',
                     originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example@gmail.com'},
                 },
-                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '2DEW', originalMessage: {to: 'example@gmail.com'}},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '2DEW', originalMessage: {to: 'example@gmail.com', message: ''}},
                 {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
                 {
                     actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
@@ -2534,7 +2750,7 @@ describe('ReportActionsUtils', () => {
                     reportActionID: '4',
                     originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example2@gmail.com'},
                 },
-                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '4DEW', originalMessage: {to: 'example2@gmail.com'}},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '4DEW', originalMessage: {to: 'example2@gmail.com', message: ''}},
             ];
             const actual = ReportActionsUtils.withDEWRoutedActionsArray(reportActions);
 
@@ -2595,12 +2811,12 @@ describe('ReportActionsUtils', () => {
             const secondDEWAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 reportActionID: '2DEW',
-                originalMessage: {to: 'example@gmail.com'},
+                originalMessage: {to: 'example@gmail.com', message: ''},
             } as ReportAction;
             const fourthDEWAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 reportActionID: '4DEW',
-                originalMessage: {to: 'example2@gmail.com'},
+                originalMessage: {to: 'example2@gmail.com', message: ''},
             } as ReportAction;
             const expected: ReportActions = {
                 [firstAction.reportActionID]: firstAction,
@@ -2651,14 +2867,33 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 created: '',
-                originalMessage: {to},
+                originalMessage: {to, message: ''},
             };
 
             // When getting the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action message
             const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
 
             // Then it should return the routed due to DEW message with the correct "to" value
-            const expected = translateLocal('iou.routedDueToDEW', to);
+            const expected = translateLocal('iou.routedDueToDEW', to, '');
+            expect(actual).toBe(expected);
+        });
+
+        it('should return the routed message with reason', () => {
+            // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action with a reason message
+            const to = 'example@gmail.com';
+            const reason = 'the report total exceeds the auto-approval limit';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                created: '',
+                originalMessage: {to, message: reason},
+            };
+
+            // When getting the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action message
+            const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
+
+            // Then it should return the routed due to DEW message with the correct "to" value and reason
+            const expected = translateLocal('iou.routedDueToDEW', to, reason);
             expect(actual).toBe(expected);
         });
     });
@@ -2869,6 +3104,72 @@ describe('ReportActionsUtils', () => {
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
 
             // The new line should be replaced with a comma
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should handle address with separate addressStreet2 field', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St',
+                        addressStreet2: 'Suite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should prefer addressStreet2 over newline-split second line when both are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nOld Unit',
+                        addressStreet2: 'Suite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should fallback to newline-split second line when addressStreet2 is empty', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nSuite 500',
+                        addressStreet2: '   ',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
     });
@@ -3563,6 +3864,7 @@ describe('ReportActionsUtils', () => {
             ({
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 reportActionID: '1',
+                reportID: 'testReportID',
                 created: '2024-01-01 00:00:00.000',
                 person: [{type: 'TEXT', style: 'strong', text: 'Actor'}],
                 message: [{html: 'hello', text: 'hello', type: 'COMMENT'}],
@@ -3662,7 +3964,7 @@ describe('ReportActionsUtils', () => {
             const actions: ReportActions = {actionA, actionB, actionC};
             const {lastActionForDisplay} = findLastReportActions(actions);
             const fromOldApproach = getSortedReportActions(Object.values(actions)).findLast(
-                (a) => shouldReportActionBeVisibleAsLastAction(a) && a.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+                (a) => isReportActionVisibleAsLastAction(a) && a.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
             );
             expect(lastActionForDisplay?.reportActionID).toBe(fromOldApproach?.reportActionID);
         });
@@ -3683,6 +3985,291 @@ describe('ReportActionsUtils', () => {
             expect(withWrite.lastVisibleAction?.reportActionID).toBe(joinRequestAction.reportActionID);
             // Without write permission: join request hidden, so only the normal action remains
             expect(withoutWrite.lastVisibleAction?.reportActionID).toBe(normalAction.reportActionID);
+        });
+    });
+
+    describe('isOriginalReportDeleted', () => {
+        it('should return true when action.isOriginalReportDeleted is true', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: true,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return true when originalReport.pendingFields.preview is DELETE', () => {
+            const action = createRandomReportAction(1);
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return false when both conditions are not met', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+
+        it('should return false when originalReport.pendingFields.preview is not DELETE', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+    });
+
+    describe('isRejectedAction', () => {
+        it('should return true for REJECTED action type', () => {
+            // Given a report action with REJECTED action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REJECTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for REJECTED_TO_SUBMITTER action type', () => {
+            // Given a report action with REJECTED_TO_SUBMITTER action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return true because REJECTED_TO_SUBMITTER is also a rejected action
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-rejected action type', () => {
+            // Given a report action with SUBMITTED action type (not rejected)
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for null action', () => {
+            // Given a null action
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(null);
+
+            // Then it should return false because the action is null
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('hasReasoning', () => {
+        it('should return true when the action has a non-empty reasoning field', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                    reasoning: 'This expense was moved because it violated the max amount rule.',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(true);
+        });
+
+        it('should return false when the action has no reasoning field', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(false);
+        });
+
+        it('should return false when reasoning is an empty string', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                    reasoning: '',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(false);
+        });
+
+        it('should return false when the action is null or undefined', () => {
+            expect(hasReasoning(null)).toBe(false);
+            expect(hasReasoning(undefined)).toBe(false);
+        });
+    });
+
+    describe('isConsecutiveActionMadeByPreviousActor', () => {
+        const accountID = 1;
+
+        it('returns false if current action is missing', () => {
+            expect(isConsecutiveActionMadeByPreviousActor([getFakeReportAction(accountID)], 0, false)).toBe(false);
+        });
+
+        it('returns false if actions are more than 5 minutes apart', () => {
+            const actions = [getFakeReportAction(accountID, {created: '2025-01-01T02:00:00Z'}), getFakeReportAction(accountID, {created: '2025-01-01T01:01:00Z'})];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(false);
+        });
+
+        it('returns true when same actor and within 5 minutes', () => {
+            const actions = [
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+            ];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(true);
+        });
+
+        it('skips pending-delete actions when online', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(accountID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete actions when offline', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(2, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, true)).toBe(false);
+        });
+    });
+
+    describe('hasNextActionMadeBySameActor', () => {
+        const accountID = 1;
+
+        it('returns false if inspecting first item on the list', () => {
+            expect(hasNextActionMadeBySameActor([], 0, false)).toBe(false);
+        });
+
+        it('returns false if actions are more than 5 minutes apart', () => {
+            const actions = [getFakeReportAction(accountID, {created: '2025-01-01T01:01:00Z'}), getFakeReportAction(accountID, {created: '2025-01-01T02:00:00Z'})];
+            expect(hasNextActionMadeBySameActor(actions, 1, false)).toBe(false);
+        });
+
+        it('returns true when same actor and within 5 minutes', () => {
+            const actions = [
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+            ];
+            expect(hasNextActionMadeBySameActor(actions, 1, false)).toBe(true);
+        });
+
+        it('skips pending-delete actions when online', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(accountID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(hasNextActionMadeBySameActor(actions, 2, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete actions when offline', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(2, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(hasNextActionMadeBySameActor(actions, 2, true)).toBe(false);
+        });
+    });
+
+    describe('isConsecutiveChronosAutomaticTimerAction', () => {
+        const accountID = 1;
+
+        function makeChronosAction(text: string, overrides: Parameters<typeof getFakeReportAction>[1] = {}) {
+            return getFakeReportAction(accountID, {
+                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
+                ...overrides,
+            });
+        }
+
+        it('returns false when isChronosReport is false', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, false, false)).toBe(false);
+        });
+
+        it('returns false when current action is not a timer action', () => {
+            const actions = [makeChronosAction('hello'), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('returns false when previous action is not a timer action', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('hello')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('returns true when both current and previous are timer actions', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(true);
+        });
+
+        it('returns false when there is no previous action', () => {
+            const actions = [makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('skips pending-delete previous action when online', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete previous action when offline', () => {
+            const actions = [makeChronosAction('hello'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(false);
+        });
+
+        it('includes pending-delete timer action as previous when offline', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(true);
         });
     });
 });

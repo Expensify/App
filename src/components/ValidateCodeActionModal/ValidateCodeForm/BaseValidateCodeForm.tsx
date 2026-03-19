@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, AccessibilityInfo, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -221,6 +221,14 @@ function BaseValidateCodeForm({
         countdownRef.current?.resetCountdown();
     }, [isCountdownRunning]);
 
+    // ✅ Accessibility announce (added from Code 2)
+    useEffect(() => {
+        if (!validateCodeSent) {
+            return;
+        }
+        AccessibilityInfo.announceForAccessibility(translate('validateCodeModal.successfulNewCodeRequest'));
+    }, [validateCodeSent, translate]);
+
     useEffect(() => {
         if (!validateCodeSent) {
             return;
@@ -236,9 +244,6 @@ function BaseValidateCodeForm({
         }
     }, [validateCodeSent, wideRHPRouteKeys.length, isInPageModal]);
 
-    /**
-     * Request a validate code / magic code be sent to verify this contact method
-     */
     const resendValidateCode = () => {
         sendValidateCode();
         inputValidateCodeRef.current?.clear();
@@ -246,37 +251,25 @@ function BaseValidateCodeForm({
         setIsCountdownRunning(true);
     };
 
-    /**
-     * Handle text input and clear formError upon text change
-     */
     const onTextInput = useCallback(
         (text: string) => {
             setValidateCode(text);
             setFormError({});
 
             if (!isEmptyObject(validateError) || !isEmptyObject(latestValidateCodeError)) {
-                // Clear flow specific error
                 clearError();
-
-                // Clear "incorrect magic code" error
                 clearValidateCodeActionError(validateCodeActionErrorField);
             }
         },
         [validateError, clearError, latestValidateCodeError, validateCodeActionErrorField],
     );
 
-    /**
-     * Check that all the form fields are valid, then trigger the submit callback
-     */
     const validateAndSubmitForm = useCallback(() => {
-        // Clear flow specific error
         clearError();
-
-        // Clear "incorrect magic" code error
         clearValidateCodeActionError(validateCodeActionErrorField);
-
         clearDefaultValidationCodeError();
         setCanShowError(true);
+
         if (!validateCode.trim()) {
             setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
             return;
@@ -307,9 +300,8 @@ function BaseValidateCodeForm({
         setIsCountdownRunning(false);
     }, []);
 
-    // latestValidateCodeError only holds an error related to bad magic code
-    // while validateError holds flow-specific errors
     const finalValidateError = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
+
     return (
         <>
             <MagicCodeInput
@@ -333,6 +325,7 @@ function BaseValidateCodeForm({
                     />
                 </View>
             )}
+
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
                 errorRowStyles={[styles.mt2]}
@@ -356,14 +349,17 @@ function BaseValidateCodeForm({
                     </View>
                 )}
             </OfflineWithFeedback>
-            {!!validateCodeSent && (
-                <DotIndicatorMessage
-                    type="success"
-                    style={[styles.mt6, styles.flex0]}
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
-                />
-            )}
+
+            {/* ✅ accessibility wrapper added (from Code 2) */}
+            <View accessibilityLiveRegion="polite">
+                {!!validateCodeSent && (
+                    <DotIndicatorMessage
+                        type="success"
+                        style={[styles.mt6, styles.flex0]}
+                        messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
+                    />
+                )}
+            </View>
 
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
@@ -396,7 +392,6 @@ function BaseValidateCodeForm({
                         style={[shouldShowSkipButton ? styles.mt3 : styles.mt4]}
                         success
                         large
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isLoading={account?.isLoading || isLoading}
                     />
                 )}

@@ -100,7 +100,7 @@ function createCardFilterItem(
     const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
-    const isCSVImportCard = card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
+    const isCSVImportCard = card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
 
     return {
         lastFourPAN: isCSVImportCard ? card?.cardName : card.lastFourPAN,
@@ -436,6 +436,36 @@ const generateSelectedCards = (
 };
 
 /**
+ * Given a card list, return a map of Expensify Card feeds keyed by "${fundID}_${BANK}".
+ * This is extracted from getCardFeedsForDisplay so it can be called independently
+ * (e.g. from selectors that only need Expensify Card feeds).
+ */
+function getExpensifyCardFeedsForDisplay(allCards: CardList | undefined): CardFeedsForDisplay {
+    const result = {} as CardFeedsForDisplay;
+
+    for (const card of Object.values(allCards ?? {})) {
+        if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
+            continue;
+        }
+
+        const id = `${card.fundID}_${CONST.EXPENSIFY_CARD.BANK}`;
+
+        if (result[id]) {
+            continue;
+        }
+
+        result[id] = {
+            id,
+            feed: CONST.EXPENSIFY_CARD.BANK,
+            fundID: card.fundID,
+            name: CONST.EXPENSIFY_CARD.BANK,
+        };
+    }
+
+    return result;
+}
+
+/**
  * Given a collection of card feeds, return formatted card feeds.
  *
  * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feeds.
@@ -472,24 +502,7 @@ function getCardFeedsForDisplay(
         }
     }
 
-    for (const card of Object.values(allCards ?? {})) {
-        if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
-            continue;
-        }
-
-        const id = `${card.fundID}_${CONST.EXPENSIFY_CARD.BANK}`;
-
-        if (cardFeedsForDisplay[id]) {
-            continue;
-        }
-
-        cardFeedsForDisplay[id] = {
-            id,
-            feed: CONST.EXPENSIFY_CARD.BANK,
-            fundID: card.fundID,
-            name: CONST.EXPENSIFY_CARD.BANK,
-        };
-    }
+    Object.assign(cardFeedsForDisplay, getExpensifyCardFeedsForDisplay(allCards));
 
     return cardFeedsForDisplay;
 }
@@ -618,6 +631,7 @@ export {
     generateDomainFeedData,
     getDomainFeedData,
     getCardFeedsForDisplay,
+    getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
     getCombinedCardFeedsFromAllFeeds,
     getCardFeedStatus,

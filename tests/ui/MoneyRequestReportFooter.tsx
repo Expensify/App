@@ -98,6 +98,7 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         policyTags: {},
         policyTagLists: [],
         rate: undefined,
+        distanceRateName: undefined,
         receiptFilename: '',
         receiptPath: '',
         reportActionID: '',
@@ -123,6 +124,8 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         iouTimeCount: undefined,
         iouTimeRate: undefined,
         isTimeRequest: false,
+        showMoreFields: false,
+        setShowMoreFields: jest.fn(),
     };
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>

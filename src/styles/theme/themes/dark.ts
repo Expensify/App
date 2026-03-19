@@ -83,6 +83,11 @@ const darkTheme = {
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green600,
     reactionActiveText: colors.green100,
+    badgeDefaultBG: colors.productDark400,
+    badgeSuccessBG: colors.green700,
+    badgeDangerBG: colors.tangerine700,
+    badgeSuccessText: colors.green200,
+    badgeDangerText: colors.tangerine200,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
     mentionText: colors.blue100,
@@ -104,9 +109,6 @@ const darkTheme = {
     white: colors.white,
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
-    emptyFolderBG: colors.yellow600,
-    travelBG: colors.blue600,
-    todoBG: colors.blue800,
     trialTimer: colors.green500,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.

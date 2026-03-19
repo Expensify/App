@@ -1,19 +1,15 @@
 import React, {memo, useMemo} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
 type ReportActionsListItemRendererProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<Report>;
-
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
-
     /** All the data of the action item */
     reportAction: ReportAction;
 
@@ -59,11 +55,8 @@ type ReportActionsListItemRendererProps = {
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
 
-    /** Draft messages for the report */
-    draftMessage?: string;
-
-    /** Emoji reactions for the report action */
-    emojiReactions?: OnyxEntry<ReportActionReactions>;
+    /** The original report ID for draft message lookups */
+    originalReportID: string | undefined;
 
     /** User wallet tierName */
     userWalletTierName: string | undefined;
@@ -76,12 +69,6 @@ type ReportActionsListItemRendererProps = {
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
-
-    /** All draft messages collection */
-    allDraftMessages?: OnyxCollection<ReportActionsDrafts>;
-
-    /** All emoji reactions collection */
-    allEmojiReactions?: OnyxCollection<ReportActionReactions>;
 
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed: boolean | undefined;
@@ -96,8 +83,6 @@ type ReportActionsListItemRendererProps = {
 };
 
 function ReportActionsListItemRenderer({
-    allReports,
-    policies,
     reportAction,
     parentReportAction,
     index,
@@ -113,20 +98,21 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
-    draftMessage,
-    emojiReactions,
+    originalReportID,
     userWalletTierName,
     isUserValidated,
     userBillingFundID,
     personalDetails,
-    allDraftMessages,
-    allEmojiReactions,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
+
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`);
+    const [reportDraftMessages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
+    const draftMessage = reportDraftMessages?.[reportAction.reportActionID]?.message;
 
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
@@ -157,6 +143,7 @@ function ReportActionsListItemRenderer({
                 delegateAccountID: reportAction.delegateAccountID,
                 previousMessage: reportAction.previousMessage,
                 isAttachmentWithText: reportAction.isAttachmentWithText,
+                isOriginalReportDeleted: reportAction.isOriginalReportDeleted,
                 childStateNum: reportAction.childStateNum,
                 childStatusNum: reportAction.childStatusNum,
                 childReportName: reportAction.childReportName,
@@ -186,6 +173,7 @@ function ReportActionsListItemRenderer({
             reportAction.delegateAccountID,
             reportAction.previousMessage,
             reportAction.isAttachmentWithText,
+            reportAction.isOriginalReportDeleted,
             reportAction.childStateNum,
             reportAction.childStatusNum,
             reportAction.childReportName,
@@ -202,8 +190,6 @@ function ReportActionsListItemRenderer({
     if (shouldDisplayParentAction && isChatThread(report)) {
         return (
             <ReportActionItemParentAction
-                allReports={allReports}
-                policies={policies}
                 shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
                 shouldDisplayReplyDivider={shouldDisplayReplyDivider}
                 parentReportAction={parentReportAction}
@@ -217,8 +203,6 @@ function ReportActionsListItemRenderer({
                 userWalletTierName={userWalletTierName}
                 isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
-                allDraftMessages={allDraftMessages}
-                allEmojiReactions={allEmojiReactions}
                 userBillingFundID={userBillingFundID}
                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 isReportArchived={isReportArchived}
@@ -228,8 +212,6 @@ function ReportActionsListItemRenderer({
 
     return (
         <ReportActionItem
-            allReports={allReports}
-            policies={policies}
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}

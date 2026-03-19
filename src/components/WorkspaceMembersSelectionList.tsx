@@ -91,7 +91,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             ListItem={InviteMemberListItem}
             onSelectRow={(approver) => setApprover(approver.login)}
             textInputOptions={textInputOptions}
-            showLoadingPlaceholder={!didScreenTransitionEnd}
+            shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             disableMaintainingScrollPosition
             addBottomSafeAreaPadding

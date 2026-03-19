@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import importTransactionsFromCSV from '@libs/actions/ImportTransactions';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,20 +27,47 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const {cardID: existingCardID} = route.params ?? {};
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
+    const hasAppliedSavedMappings = useRef(false);
+    const lastProcessedDataRef = useRef(spreadsheet?.data);
 
     const {setIsClosing} = useCloseImportPage();
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
+    useEffect(() => {
+        // Reset the flag when new spreadsheet data is loaded
+        if (spreadsheet?.data !== lastProcessedDataRef.current) {
+            hasAppliedSavedMappings.current = false;
+            lastProcessedDataRef.current = spreadsheet?.data;
+        }
+
+        if (hasAppliedSavedMappings.current) {
+            return;
+        }
+
+        if (!existingCardID || !spreadsheet?.data || !savedColumnLayouts) {
+            return;
+        }
+
+        const savedLayout = savedColumnLayouts[String(existingCardID)];
+        if (!savedLayout) {
+            return;
+        }
+
+        hasAppliedSavedMappings.current = true;
+        applySavedColumnMappings(spreadsheet.data, savedLayout);
+    }, [existingCardID, spreadsheet?.data, savedColumnLayouts]);
+
     const columnRoles: ColumnRole[] = useMemo(
         () => [
             {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
-            {text: translate('common.date'), value: 'date', isRequired: true},
-            {text: translate('common.merchant'), value: 'merchant', isRequired: true},
-            {text: translate('common.category'), value: 'category'},
-            {text: translate('iou.amount'), value: 'amount', isRequired: true},
+            {text: translate('common.date'), value: CONST.CSV_IMPORT_COLUMNS.DATE, isRequired: true},
+            {text: translate('common.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
+            {text: translate('common.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
+            {text: translate('iou.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
         ],
         [translate],
     );
@@ -79,8 +107,10 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
 
         setIsImporting(true);
         // If existingCardID is provided, add transactions to that card instead of creating a new one
-        importTransactionsFromCSV(spreadsheet, existingCardID ? Number(existingCardID) : undefined);
-    }, [validate, spreadsheet, existingCardID]);
+        const cardIDNumber = existingCardID ? Number(existingCardID) : undefined;
+        const previouslySavedLayout = cardIDNumber && savedColumnLayouts ? savedColumnLayouts[String(cardIDNumber)] : undefined;
+        importTransactionsFromCSV(spreadsheet, cardIDNumber, previouslySavedLayout);
+    }, [validate, spreadsheet, existingCardID, savedColumnLayouts]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return null;

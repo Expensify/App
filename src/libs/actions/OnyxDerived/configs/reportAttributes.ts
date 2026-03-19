@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -6,11 +6,11 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 
-let isFullyComputed = false;
 let previousDisplayNames: Record<string, string | undefined> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
+let previousPolicies: OnyxCollection<Policy>;
 
 const prepareReportKeys = (keys: string[]) => {
     return [
@@ -57,7 +57,6 @@ const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList
 /**
  * This derived value is used to get the report attributes for the report.
  */
-
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     dependencies: [
@@ -70,19 +69,13 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
+        ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies],
-        {currentValue, sourceValues, areAllConnectionsSet},
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
+        {currentValue, sourceValues},
     ) => {
-        if (!areAllConnectionsSet) {
-            return {
-                reports: {},
-                locale: null,
-            };
-        }
-
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -96,14 +89,25 @@ export default createOnyxDerivedValueConfig({
             previousPersonalDetails = undefined;
         }
 
-        // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
-        // we need to recompute all report attributes on locale change because the report names are locale dependent
-        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || displayNamesChanged) {
-            isFullyComputed = false;
+        // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
+        // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
+        // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
+        let needsFullRecompute = (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) || displayNamesChanged;
+
+        // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
+        if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
+            if (Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
+                needsFullRecompute = true;
+            }
+            previousPolicies = policies;
         }
 
+        // Use incremental updates when currentValue is already populated and no full recompute is required.
+        // If currentValue has no reports (fresh install or cleared storage), fall back to a full scan.
+        const useIncrementalUpdates = !!currentValue?.reports && Object.keys(currentValue.reports).length > 0 && !needsFullRecompute;
+
         // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((isFullyComputed && !sourceValues) || !reports) {
+        if ((useIncrementalUpdates && !sourceValues) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 
@@ -113,7 +117,6 @@ export default createOnyxDerivedValueConfig({
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
-
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
 
@@ -139,7 +142,7 @@ export default createOnyxDerivedValueConfig({
             ...Array.from(reportUpdatesRelatedToReportActions),
         ];
 
-        if (isFullyComputed) {
+        if (useIncrementalUpdates) {
             // if there are report-related updates, iterate over the updates
             if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates) {
                 if (updates.length > 0) {
@@ -185,6 +188,7 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
+
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
             // source value sends partial data, so we need an entire report object to do computations
             const report = reports[key];
@@ -201,7 +205,14 @@ export default createOnyxDerivedValueConfig({
             const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
             const isReportArchived = isArchivedReport(reportNameValuePair);
-            const {hasAnyViolations, requiresAttention, reportErrors, oneTransactionThreadReportID} = generateReportAttributes({
+            const {
+                hasAnyViolations,
+                requiresAttention,
+                reportErrors,
+                oneTransactionThreadReportID,
+                actionBadge: actionGreenBadge,
+                actionTargetReportActionID: actionGreenTargetReportActionID,
+            } = generateReportAttributes({
                 report,
                 chatReport,
                 reportActions,
@@ -210,22 +221,51 @@ export default createOnyxDerivedValueConfig({
             });
 
             let brickRoadStatus;
+            let actionBadge;
+            let actionTargetReportActionID;
+            const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                report,
+                chatReport,
+                reportActionsList,
+                hasAnyViolations,
+                reportErrors,
+                transactions,
+                transactionViolations,
+                !!isReportArchived,
+            );
             // if report has errors or violations, show red dot
-            if (SidebarUtils.shouldShowRedBrickRoad(report, chatReport, reportActionsList, hasAnyViolations, reportErrors, transactions, transactionViolations, !!isReportArchived)) {
+            if (reasonAndReportAction) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
+                actionTargetReportActionID = reasonAndReportAction.reportAction?.reportActionID;
             }
             // if report does not have error, check if it should show green dot
             if (brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttention) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+                actionBadge = actionGreenBadge;
+                actionTargetReportActionID = actionGreenTargetReportActionID;
             }
 
             acc[report.reportID] = {
                 reportName: report
-                    ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)
+                    ? computeReportName({
+                          report,
+                          reports,
+                          policies,
+                          transactions,
+                          allReportNameValuePairs: reportNameValuePairs,
+                          personalDetailsList: personalDetails,
+                          reportActions,
+                          currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                          currentUserLogin: session?.email ?? '',
+                          allPolicyTags: policyTags,
+                      })
                     : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,
+                actionBadge,
+                actionTargetReportActionID,
                 reportErrors,
                 oneTransactionThreadReportID,
             };
@@ -255,11 +295,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        }
-
-        // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
-        if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
-            isFullyComputed = true;
+            reportAttributes[chatReportID].actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
         }
 
         return {
