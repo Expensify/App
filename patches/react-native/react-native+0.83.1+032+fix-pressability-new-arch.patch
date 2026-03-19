@@ -15,22 +15,6 @@ index ff70d67..2c5d3b1 100644
      }
    }
  
-diff --git a/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js b/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js
-index aef54de..60210a3 100644
---- a/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js
-+++ b/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js
-@@ -118,6 +118,11 @@ export default class ReactFabricHostComponent implements NativeMethods {
-     }
-   }
- 
-+  measureAsyncOnUI(callback: MeasureOnSuccessCallback): void {
-+    // Note: this is only implemented in ReactNativeElement with NativeDOM + enableAccessToHostTreeInFabric
-+    this.measure(callback);
-+  }
-+
-   unstable_getBoundingClientRect(): DOMRect {
-     const node = getNodeFromInternalInstanceHandle(
-       this.__internalInstanceHandle,
 diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
 index ceac3ee..15dbff9 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
@@ -110,7 +94,7 @@ index 6cc4e5b..d5139ee 100644
 @@ -78,6 +78,11 @@ void schedulerDidUpdateShadowTree(const std::unordered_map<Tag, folly::dynamic>
      // This delegate method is not currently used on iOS.
    }
-   
+
 +  void schedulerMeasureAsyncOnUI(const ShadowView& shadowView, const std::function<void(folly::dynamic)> &callback) override {
 +    RCTScheduler *scheduler = (__bridge RCTScheduler *)scheduler_;
 +    [scheduler.delegate schedulerMeasureAsyncOnUI:shadowView callback:callback];
@@ -289,10 +273,10 @@ index 4b52ade..3fca2c6 100644
  import com.facebook.react.uimanager.RootViewManager
  import com.facebook.react.uimanager.ThemedReactContext
  import com.facebook.react.uimanager.ViewManagerRegistry
-@@ -342,6 +343,32 @@ internal class MountingManager(
-         .experimental_prefetchResource(reactContext, surfaceId, reactTag, params)
-   }
- 
+@@ -333,6 +334,32 @@ internal class MountingManager(
+               attachmentsPositions,
+           )
+
 +  @UiThread
 +  @ThreadConfined(ThreadConfined.UI)
 +  fun measureAsyncOnUI(
@@ -355,10 +339,9 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Fa
 index 6197831..8357c25 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
-@@ -64,6 +64,10 @@ class FabricMountingManager final {
-       Tag viewTag,
-       const folly::dynamic& props);
- 
+@@ -55,5 +55,9 @@ class FabricMountingManager final {
+   void synchronouslyUpdateViewOnUIThread(Tag viewTag, const folly::dynamic &props);
+
 +  void measureAsyncOnUI(
 +      const ShadowView& shadowView,
 +      const std::function<void(folly::dynamic)>& callback);
@@ -392,10 +375,9 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Fa
 index 39e7240..22a717b 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
-@@ -129,6 +129,10 @@ class FabricUIManagerBinding : public jni::HybridClass<FabricUIManagerBinding>,
-   void schedulerDidUpdateShadowTree(
-       const std::unordered_map<Tag, folly::dynamic>& tagToProps) override;
- 
+@@ -113,5 +113,9 @@ class FabricUIManagerBinding : public jni::HybridClass<FabricUIManagerBinding>,
+   void schedulerDidUpdateShadowTree(const std::unordered_map<Tag, folly::dynamic> &tagToProps) override;
+
 +  void schedulerMeasureAsyncOnUI(
 +      const ShadowView& shadowView,
 +      const std::function<void(folly::dynamic)>& callback) override;
@@ -407,10 +389,10 @@ diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/dom/Native
 index 75cbcff..43b0582 100644
 --- a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
 +++ b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
-@@ -460,6 +460,30 @@ void NativeDOM::measureLayout(
-        jsi::Value{rt, rect.height}});
+@@ -466,6 +466,30 @@ void NativeDOM::measureLayout(
+   onSuccess(rect.x, rect.y, rect.width, rect.height);
  }
- 
+
 +void NativeDOM::measureAsyncOnUI(
 +    jsi::Runtime& rt,
 +    std::shared_ptr<const ShadowNode> shadowNode,
@@ -442,10 +424,10 @@ diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/dom/Native
 index d902259..44813ac 100644
 --- a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.h
 +++ b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.h
-@@ -131,6 +131,14 @@ class NativeDOM : public NativeDOMCxxSpec<NativeDOM> {
+@@ -108,6 +108,14 @@ class NativeDOM : public NativeDOMCxxSpec<NativeDOM> {
        jsi::Function onFail,
-       jsi::Function onSuccess);
- 
+       const MeasureLayoutOnSuccessCallback &onSuccess);
+
 +  using MeasureAsyncOnUICallback =
 +      AsyncCallback<double, double, double, double, double, double>;
 +
@@ -455,8 +437,8 @@ index d902259..44813ac 100644
 +      const MeasureAsyncOnUICallback& callback);
 +
  #pragma mark - Legacy direct manipulation APIs (for `ReactNativeElement`).
- 
-   void setNativeProps(
+
+   void setNativeProps(jsi::Runtime &rt, std::shared_ptr<const ShadowNode> shadowNode, jsi::Value updatePayload);
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
 index 49cd7d5..0b60cf0 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
@@ -481,24 +463,22 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Sche
 index e25f755..754e7fa 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
-@@ -104,6 +104,9 @@ class Scheduler final : public UIManagerDelegate {
-   void uiManagerShouldRemoveEventListener(
-       const std::shared_ptr<const EventListener>& listener) final;
-   void uiManagerDidStartSurface(const ShadowTree& shadowTree) override;
+@@ -99,5 +99,8 @@ class Scheduler final : public UIManagerDelegate {
+   void uiManagerShouldRemoveEventListener(const std::shared_ptr<const EventListener> &listener) final;
+   void uiManagerDidStartSurface(const ShadowTree &shadowTree) override;
 +  void uiManagerMeasureAsyncOnUI(
 +      const std::shared_ptr<const ShadowNode>& shadowNode,
 +      const std::function<void(folly::dynamic)>& callback) override;
- 
+
  #pragma mark - ContextContainer
-   ContextContainer::Shared getContextContainer() const;
+   std::shared_ptr<const ContextContainer> getContextContainer() const;
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
 index 0a88e24..fdae7f7 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
-@@ -71,6 +71,10 @@ class SchedulerDelegate {
-   virtual void schedulerDidUpdateShadowTree(
-       const std::unordered_map<Tag, folly::dynamic>& tagToProps) = 0;
- 
+@@ -61,5 +61,9 @@ class SchedulerDelegate {
+   virtual void schedulerDidUpdateShadowTree(const std::unordered_map<Tag, folly::dynamic> &tagToProps) = 0;
+
 +  virtual void schedulerMeasureAsyncOnUI(
 +      const ShadowView& shadowView,
 +      const std::function<void(folly::dynamic)>& callback) = 0;
@@ -510,10 +490,9 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIMa
 index e649a27..2d9424a 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
-@@ -84,6 +84,14 @@ class UIManagerDelegate {
-   virtual void uiManagerShouldRemoveEventListener(
-       const std::shared_ptr<const EventListener>& listener) = 0;
- 
+@@ -80,5 +80,13 @@ class UIManagerDelegate {
+   virtual void uiManagerShouldRemoveEventListener(const std::shared_ptr<const EventListener> &listener) = 0;
+
 +  /*
 +   * Measures the layout of the shadow node async on the UI thread using the native layout hierarchy.
 +   * As this has to schedule a call on the UI thread its async.
