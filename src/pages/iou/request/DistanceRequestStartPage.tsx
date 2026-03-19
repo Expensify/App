@@ -13,6 +13,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {removeBackupTransaction} from '@libs/actions/TransactionEdit';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -141,6 +142,14 @@ function DistanceRequestStartPage({
         ],
     );
 
+    // When the tab creation view is focused, any existing backup for this transaction is stale -
+    // backups are only meaningful for the standalone odometer step (accessed from confirmation).
+    useFocusEffect(
+        useCallback(() => {
+            removeBackupTransaction(route.params.transactionID);
+        }, [route.params.transactionID]),
+    );
+
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
     useFocusEffect(
         useCallback(() => {
@@ -223,16 +232,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceOdometer
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {showOdometerTab && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceOdometer
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>
