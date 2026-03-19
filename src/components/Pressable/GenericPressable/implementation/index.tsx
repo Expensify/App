@@ -10,7 +10,6 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
         <GenericPressable
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            fullDisabled={!!props.fullDisabled || !!props.disabled}
             ref={ref}
             // change native accessibility props to web accessibility props
             focusable={focusable}
@@ -23,6 +22,8 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             aria-valuemin={props.accessibilityValue?.min}
             aria-valuemax={props.accessibilityValue?.max}
             aria-valuetext={props.accessibilityValue?.text}
+            // Note: data-tag="pressable" is also used by Sentry's INP instrumentation patch to detect pressable containers
+            // and shorten interaction selectors. See patches/sentry-core/ before removing or renaming it.
             dataSet={{tag: 'pressable', ...(props.noDragArea && {dragArea: false}), ...(sentryLabel && {sentryLabel}), ...props.dataSet}}
         />
     );

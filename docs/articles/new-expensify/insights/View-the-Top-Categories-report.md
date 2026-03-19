@@ -1,7 +1,7 @@
 ---
 title: View the Top Categories report
 description: Learn how to use the Top Categories report to understand category-level spending trends.
-keywords: [New Expensify, Top Categories, expense categories, category spending, monthly spending, Workspace Admin, Approver, Auditor, category insights, expense analytics, report by category]
+keywords: [New Expensify, Top Spenders, Top Categories, Top Merchants, Spend over time, expense categories, category spending, monthly spending, Workspace Admin, Approver, Auditor, category insights, expense analytics, report by category]
 internalScope: Audience is Workspace Admins, Approvers, and Auditors. Covers using the Top Categories suggested search to view expense totals by category. Does not cover employee-level analysis or merchant-level grouping.
 ---
 
@@ -74,16 +74,21 @@ To create and save a custom report:
 
 ---
 
-## How to switch the Top Categories report to table view
+## How to switch views in the Top Categories report
 
-By default, the Top Categories report displays a bar chart. The table view shows expense categories sorted in descending order by total spend.
+By default, the Top Categories report displays a **Bar** chart. You can also switch to **Line**, **Table** or **Pie** view depending on how you want to analyze your data.
+
+- **Line** shows spending trends over time.
+- **Table** displays merchants in rows sorted by total spend.
+- **Pie** shows how data is distributed.
 
 To change the view:
 
-1. Click **View** in the top navigation tabs.
-2. Select **Table**.
+1. Open the Top Categories report.
+2. Click **View** in the top navigation.
+3. Select **Line**, **Table** or **Pie**.
 
-The table view shows expense categories as rows sorted in descending order by total spend.
+The report will update instantly to reflect your selected view.
 
 ---
 
@@ -109,12 +114,14 @@ To export expenses:
 2. Use filters to group by category and apply the same timeframe.
 3. Expand the category group, select the expenses, and click **Export to CSV**.
 
-## What’s the difference between the Top Categories report and the Top Spenders report?
+## What’s the difference between the Top Categories report and other Insights reports? 
 
-The **Top Categories** report shows the highest-spending **expense categories**, while the **Top Spenders** report shows which **employees** submitted the most expenses. Both reports help identify trends, but from different perspectives:
+Each report provides a different view of your spending:
 
-- Use **Top Categories** to track spending by type (e.g., Travel, Meals).
-- Use **Top Spenders** to track who is submitting the most expenses.
+- **Spend over time** shows how total expenses change over a date range.
+- **Top Merchants** shows which vendors received the most payments.
+- **Top Categories** shows the highest-spending expense types (e.g., Travel, Meals).
+- **Top Spenders** shows which members submitted the most expenses.
 
 ## How is the Top Categories report calculated?
 

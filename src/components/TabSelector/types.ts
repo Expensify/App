@@ -66,6 +66,9 @@ type TabSelectorBaseProps = {
 };
 
 type TabSelectorItemProps = WithSentryLabel & {
+    /** Key of the tab */
+    tabKey: string;
+
     /** Function to call when onPress */
     onPress?: () => void;
 
@@ -90,7 +93,7 @@ type TabSelectorItemProps = WithSentryLabel & {
     /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
 
-    /** Test identifier used to find elements in unit and e2e tests */
+    /** Test identifier used to find elements in tests */
     testID?: string;
 
     /** Whether tabs should have equal width */

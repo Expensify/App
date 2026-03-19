@@ -146,12 +146,13 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             });
     };
 
-    const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
-        return new Promise((resolve, reject) => {
+    const convertHeicToProcessableImagePromise = (file: FileObject): Promise<FileObject> => {
+        return new Promise((resolve) => {
             convertHeicImage(file, {
                 onSuccess: (convertedFile) => resolve(convertedFile),
-                onError: (nonConvertedFile) => {
-                    reject(nonConvertedFile);
+                onError: (_error, originalFile) => {
+                    Log.warn('HEIC conversion failed, falling back to original file', {fileName: file.name});
+                    resolve(originalFile);
                 },
             });
         });
@@ -218,7 +219,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 if (otherFiles.some((file) => hasHeicOrHeifExtension(file))) {
                     setIsLoaderVisible(true);
 
-                    return Promise.all(otherFiles.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
+                    return Promise.all(otherFiles.map((file) => convertHeicToProcessableImagePromise(file))).then((convertedImages) => {
                         for (const [index, convertedFile] of convertedImages.entries()) {
                             updateFileOrderMapping(otherFiles.at(index), convertedFile);
                         }

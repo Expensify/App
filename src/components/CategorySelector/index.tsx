@@ -5,6 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import CONST from '@src/CONST';
 import CategorySelectorModal from './CategorySelectorModal';
 
 type CategorySelectorProps = {
@@ -57,6 +58,7 @@ function CategorySelector({defaultValue = '', wrapperStyle, label, setNewCategor
                 onPress={showPickerModal}
                 wrapperStyle={wrapperStyle}
                 focused={focused}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CATEGORY_SELECTOR}
             />
             <CategorySelectorModal
                 policyID={policyID}

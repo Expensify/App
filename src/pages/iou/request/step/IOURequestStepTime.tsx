@@ -17,6 +17,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +52,7 @@ function IOURequestStepTime({
     report,
 }: IOURequestStepTimeProps) {
     const styles = useThemeStyles();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const iouPolicyID = getIOURequestPolicyID(transaction, report);
     const {policy} = usePolicyForTransaction({
         transaction,
@@ -138,7 +139,16 @@ function IOURequestStepTime({
     };
 
     if (isLoadingTransaction) {
-        return <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'IOURequestStepTime',
+            isLoadingTransaction,
+        };
+        return (
+            <FullScreenLoadingIndicator
+                style={[styles.flex1, styles.pRelative]}
+                reasonAttributes={reasonAttributes}
+            />
+        );
     }
 
     return (

@@ -6,7 +6,6 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setDraftValues} from '@userActions/FormActions';
@@ -32,14 +31,12 @@ function DatePicker({
     formID,
     autoFocus = false,
     shouldHideClearButton = false,
+    autoComplete = 'off',
     forwardedFSClass,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    // shouldUseNarrowLayout returns true for RHP but goal here is to prevent autoFocus only on small devices.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -110,7 +107,7 @@ function DatePicker({
     }, [calculatePopoverPosition, windowWidth]);
 
     useEffect(() => {
-        if (!autoFocus || isAutoFocused.current || isSmallScreenWidth) {
+        if (!autoFocus || isAutoFocused.current) {
             return;
         }
         isAutoFocused.current = true;
@@ -118,7 +115,7 @@ function DatePicker({
         InteractionManager.runAfterInteractions(() => {
             handlePress();
         });
-    }, [handlePress, autoFocus, isSmallScreenWidth]);
+    }, [handlePress, autoFocus]);
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
@@ -153,6 +150,7 @@ function DatePicker({
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
+                    autoComplete={autoComplete}
                     disableKeyboard
                 />
             </View>

@@ -1,13 +1,8 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
-
-type PolicySelector<T> = (policy: OnyxEntry<Policy>) => T;
-
-const createPoliciesSelector = <T>(policies: OnyxCollection<Policy>, policySelector: PolicySelector<T>) => mapOnyxCollectionItems(policies, policySelector);
 
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
 
@@ -90,9 +85,55 @@ const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollectio
     );
 };
 
+const shouldRedirectToExpensifyClassicSelector = (policies: OnyxCollection<Policy>) => areAllGroupPoliciesExpenseChatDisabled(policies);
+
+// deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
+const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
+    if (!policies) {
+        return {};
+    }
+
+    const result: Record<string, Policy> = {};
+
+    for (const [id, policyItem] of Object.entries(policies)) {
+        if (!policyItem) {
+            continue;
+        }
+
+        result[id] = {
+            id: policyItem.id,
+            type: policyItem.type,
+            name: policyItem.name,
+            pendingAction: policyItem.pendingAction,
+            isPolicyExpenseChatEnabled: policyItem.isPolicyExpenseChatEnabled,
+            role: policyItem.role,
+            chatReportIDAdmins: policyItem.chatReportIDAdmins,
+            employeeList: policyItem.employeeList,
+            arePerDiemRatesEnabled: policyItem.arePerDiemRatesEnabled,
+            customUnits: policyItem.customUnits,
+            units: policyItem.units,
+            isJoinRequestPending: policyItem.isJoinRequestPending,
+            errors: policyItem.errors,
+            owner: policyItem.owner,
+            areInvoicesEnabled: policyItem.areInvoicesEnabled,
+        } as Policy;
+    }
+
+    return result;
+};
+
+const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
+
+const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
+
+const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length;
+
+const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
+
 export {
     activePolicySelector,
-    createPoliciesSelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     activeAdminPoliciesSelector,
@@ -100,4 +141,10 @@ export {
     policyTimeTrackingSelector,
     hasMultipleOutputCurrenciesSelector,
     groupPaidPoliciesWithExpenseChatEnabledSelector,
+    iouRequestPolicyCollectionSelector,
+    shouldRedirectToExpensifyClassicSelector,
+    adminPoliciesConnectedToSageIntacctSelector,
+    adminPoliciesConnectedToNetSuiteSelector,
+    hasPoliciesConnectedToSageIntacctSelector,
+    hasPoliciesConnectedToNetSuiteSelector,
 };

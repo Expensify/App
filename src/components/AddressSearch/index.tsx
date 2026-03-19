@@ -8,6 +8,7 @@ import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -18,6 +19,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -47,6 +49,23 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
+function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const noResultsFoundText = translate('common.noResultsFound');
+
+    useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue);
+
+    return (
+        <Text
+            style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
+            aria-hidden
+        >
+            {noResultsFoundText}
+        </Text>
+    );
+}
+
 function AddressSearch({
     canUseCurrentLocation = false,
     containerStyles,
@@ -72,6 +91,7 @@ function AddressSearch({
         lat: 'addressLat',
         lng: 'addressLng',
     },
+    autoComplete = 'off',
     resultTypes = 'address',
     shouldSaveDraft = false,
     value,
@@ -325,19 +345,21 @@ function AddressSearch({
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const listEmptyComponent = useMemo(
-        () => (!isTyping ? undefined : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
-        [isTyping, styles, translate],
-    );
+    const listEmptyComponent = isTyping ? <AddressSearchListEmptyComponent searchValue={searchValue} /> : undefined;
 
-    const listLoader = useMemo(
-        () => (
+    const listLoader = useMemo(() => {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
+        return (
             <View style={[styles.pv4]}>
-                <ActivityIndicator />
+                <ActivityIndicator reasonAttributes={reasonAttributes} />
             </View>
-        ),
-        [styles.pv4],
-    );
+        );
+    }, [styles.pv4]);
+
+    const fetchingLocationReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'AddressSearch.isFetchingCurrentLocation',
+        isFetchingCurrentLocation,
+    };
 
     return (
         /*
@@ -419,7 +441,7 @@ function AddressSearch({
                                 }
                                 onBlur?.();
                             },
-                            autoComplete: CONST.AUTO_COMPLETE_VARIANTS.OFF,
+                            autoComplete,
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
@@ -479,7 +501,10 @@ function AddressSearch({
             </ScrollView>
             {isFetchingCurrentLocation && (
                 <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={fetchingLocationReasonAttributes}
+                    />
                 </View>
             )}
         </>

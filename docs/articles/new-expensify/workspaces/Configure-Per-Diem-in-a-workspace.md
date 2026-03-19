@@ -1,7 +1,7 @@
 ---
 title: Configure Per Diem Expenses Within a Workspace
 description: Learn how to set up and manage per diem rates within a workspace in New Expensify.
-keywords: [New Expensify, per diem, expense settings, daily rate, import per diem, configure per diem, edit per diem rates]
+keywords: [New Expensify, per diem, expense settings, daily rate, import per diem, configure per diem, edit per diem rates, meal allowance, lodging allowance, travel allowance, per diem setup, business travel, per diem rates]
 ---
 
 

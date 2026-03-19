@@ -12,13 +12,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
-const renderLoading = () => <FullScreenLoadingIndicator />;
+const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={{context: 'ConnectToQuickbooksOnlineFlow'}} />;
 
 function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlowProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setIsWebViewOpen] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const authToken = session?.authToken ?? null;
 

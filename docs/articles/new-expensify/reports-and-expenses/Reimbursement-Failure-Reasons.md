@@ -1,24 +1,25 @@
 ---
 title: Reimbursement Failure Reasons in Expensify
-description: Learn why a reimbursement failed in Expensify, what each Corpay ACH return reason means, and how Workspace Admins and members can fix and retry the payment.
-keywords: reimbursement failed, reimbursement unsuccessful, ACH bounce, Corpay return code, payment bounced, report returned to Approved, bank account name mismatch, retry reimbursement, Workspace Admin, update bank account Expensify
-internalScope: Audience is Workspace Admins and members who submit reports. Covers Corpay ACH return reason messages, what each reimbursement failure means, and how to resolve and retry payment. Does not cover bank account setup steps in detail, accounting integrations, non-ACH payments, or non-Corpay failures.
+description: Learn why a reimbursement failed in Expensify, what each reimbursement failure reason means, and how Workspace Admins and members can fix and retry the payment.
+keywords: reimbursement failed, reimbursement unsuccessful, ACH bounce, return code, payment bounced, report returned to Approved, bank account name mismatch, retry reimbursement, Workspace Admin, update bank account Expensify, Canadian bank account format, Singapore bank account, institution code, SWIFT code, EFT
+internalScope: Audience is Workspace Admins and members who submit reports. Covers reimbursement failure (return reason) messages, what each reimbursement failure means, and how to resolve and retry payment. Does not cover bank account setup steps in detail, accounting integrations, non-ACH payments, or failures from other payment providers.
 ---
 
 When a reimbursement fails in Expensify, you’ll see a message in the report chat explaining why the payment was unsuccessful.
 
-The report automatically returns to **Approved** status so the issue can be fixed and the payment can be retried.
+The report automatically returns to **Approved** status so the issue can be fixed and the payment can be retried. The bank account is also removed from the submitter's Expensify Wallet to avoid further failures.
 
-This article explains the most common Corpay ACH return reasons, what they mean, and exactly what to do next.
+This article explains the most common reimbursement failure reasons, what they mean, and exactly what to do next.
 
 ---
 
 # What Happens When a Reimbursement Fails in Expensify
 
-If an ACH reimbursement fails:
+If a reimbursement fails:
 
 - A message appears in the report chat with the failure reason.
-- The report moves from **Processing** back to **Approved**.
+- The report moves from **Paid** back to **Approved**.
+- The report submitter must add their bank account to Expensify (either a different account, or the same one with corrected information). (Follow the instructions in [Connect a Personal Bank Account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account).)
 - A Workspace Admin must retry the payment after the issue is resolved.
 
 ---
@@ -40,7 +41,7 @@ Example:
 **How to fix it:** The member should:
 
 1. Confirm the exact account holder name with their bank.
-2. Update their bank account name in Expensify to match exactly.
+2. [Reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) using the exact name on file with the bank.
 
 Even small differences like nicknames, missing middle initials, or extra spaces can cause ACH rejection.
 
@@ -53,7 +54,7 @@ The account holder name provided in Expensify does not match the name on file wi
 **How to fix it:** The member should:
 
 1. Contact their bank to confirm the exact account holder name.
-2. Update their bank account details in Expensify so the name matches exactly.
+2. [Reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) using the exact name on file with the bank.
 3. Notify the Workspace Admin once updated so the payment can be retried.
 
 ---
@@ -67,7 +68,7 @@ The payment was sent as a personal reimbursement, but the bank account is regist
 - Personal bank account
 - Business bank account
 
-Then update the connected bank account in Expensify to match.
+Then [reconnect the correct bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) in Expensify.
 
 ---
 
@@ -75,7 +76,7 @@ Then update the connected bank account in Expensify to match.
 
 The payment was sent as a business reimbursement, but the connected account is a personal account.
 
-**How to fix it:** Confirm the intended account type and reconnect the correct bank account in Expensify.
+**How to fix it:** Confirm the intended account type and [reconnect the correct bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) in Expensify.
 
 ---
 
@@ -83,11 +84,12 @@ The payment was sent as a business reimbursement, but the connected account is a
 
 The account number or routing number does not correspond to a valid bank account.
 
+For Canadian banks, ensure the account number matches the format required for your bank and transfer type (see [Canadian bank account formats](#canadian-bank-account-formats)).
+
 **How to fix it:** The member should:
 
 1. Double-check their account and routing numbers.
-2. Remove the incorrect bank connection.
-3. Reconnect their bank account with the correct details.
+2. [Reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) with the correct details.
 
 ---
 
@@ -98,7 +100,7 @@ The bank account has been migrated, closed, or transferred to a new account numb
 **How to fix it:** The member should:
 
 1. Confirm their current bank account details.
-2. Reconnect their bank account in Expensify using the updated information.
+2. [Reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) in Expensify using the updated information.
 
 ---
 
@@ -108,7 +110,7 @@ The bank does not support account name verification for this account type.
 
 Expensify cannot automatically verify the account holder name through the bank.
 
-**What to do:** Manually confirm the account details with the member, then retry the payment once confirmed.
+**What to do:** Manually confirm the account details with the member. The member must [reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account), then the Workspace Admin can retry the payment.
 
 ---
 
@@ -116,8 +118,32 @@ Expensify cannot automatically verify the account holder name through the bank.
 
 The account holder opted out of name verification at their bank.
 
-**What to do:** Verify the bank details directly with the member, then retry the reimbursement once confirmed.
+**What to do:** Verify the bank details directly with the member. The member must [reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account), then the Workspace Admin can retry the reimbursement.
 
+---
+## Canadian bank account formats for Expensify reimbursements
+## Canadian bank account formats
+
+Reimbursements to Canadian banks can fail if the account number or institution details don't match the bank's required format. Formats differ by bank and by transfer type (e.g. CAD wires, USD wires, EFT). Use the table below as a reference for institution codes, SWIFT codes, and account number formats.
+
+
+| Bank name | Institution code | SWIFT code | A/C no. CAD wires | A/C no. USD wires | A/C no. CAD/USD EFT |
+| --------- | ---------------- | ---------- | ----------------- | ----------------- | ------------------- |
+| RBC (Royal Bank of Canada) | 0003 | ROYCCAT2 | 12 digits (5-digit transit + 7-digit account; must begin with 1 or 5) | 12 digits (must begin with 4) | 7 digits |
+| BMO (Bank of Montreal) | 0001 | BOFMCAM2 | 11 digits (first 4 digits transit + account; must begin with 1) | 7 or 11 digits (must begin with 4) | 7 digits |
+| CIBC (Canadian Imperial Bank of Commerce) | 0010 | CIBCCATT | 7 digits | 7 digits | 7 digits |
+| TD (Toronto-Dominion Bank) | 0004 | TDOMCATTTOR | 11 digits (first 4 digits transit; account begins with 5 or 6) | First 4 digits transit; account 7 or 11 digits (must begin with 7) | 11 digits |
+| HSBC (HSBC Bank Canada) | 0016 | HKBCCATT | 9–12 digits | 9–12 digits | 9 digits |
+| National Bank of Canada | 0006 | BNDCCAMM | 7 digits | 7 digits | 7 digits |
+| Scotiabank | 0002 | NOSCCATT | 12 digits (5-digit transit + 7-digit account) | 12 digits | 7 digits |
+| Desjardins | 0865 | CCDQCAMM | Contact bank / format may vary | Contact bank / format may vary | Contact bank / format may vary |
+
+---
+
+## Singaporean bank account formats
+
+Review the FAQ in [Connect a Personal Bank Account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-Bank-Account#i-cant-find-all-the-details-for-my-bank-in-singapore-that-you-require-where-can-i-find-them) to confirm your SGD account has been correctly entered.
+## Singaporean bank account formats for Expensify reimbursements
 ---
 
 # How Workspace Admins Retry a Failed Reimbursement in Expensify
@@ -175,13 +201,13 @@ No. The report returns to **Approved** status. A Workspace Admin must manually c
 
 ## How long does a retried reimbursement take to process?
 
-Retried payments follow the same ACH processing timeline as the original payment.
+Retried payments follow the same processing timeline as the original payment. Domestic payments follow local processing timelines, and cross-border payments follow wire transfer timelines.
 
 ---
 
 ## What if a reimbursement failure message not listed here appears?
 
-If the message appears as a raw return reason from Corpay and is unclear:
+If the message appears as a detailed return reason from the payment processor and is unclear:
 
 - Workspace Admins can review the full message in the report chat.
 - If additional help is needed, contact Concierge with the exact error message.
@@ -190,9 +216,4 @@ If the message appears as a raw return reason from Corpay and is unclear:
 
 ## Does this article apply to all reimbursement failures?
 
-No. This article covers ACH reimbursement failures processed through Corpay. It does not apply to:
-
-- International wire payments  
-- Non-ACH payment methods  
-- Accounting sync issues  
-- Bank connection setup errors  
+This article applies to all employee reimbursement failures. Invoice payment failures are not currently displayed in the report history.

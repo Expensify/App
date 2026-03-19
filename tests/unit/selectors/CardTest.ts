@@ -1,10 +1,47 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {areAllExpensifyCardsShipped, defaultExpensifyCardSelector, filterCardsHiddenFromSearch, filterOutPersonalCards, timeSensitiveCardsSelector} from '@selectors/Card';
+import {areAllExpensifyCardsShipped, defaultExpensifyCardSelector, filterCardsHiddenFromSearch, filterOutPersonalCards} from '@selectors/Card';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import type {Card, CardList} from '@src/types/onyx';
 import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} from '../../utils/collections/card';
-import {translateLocal} from '../../utils/TestHelper';
+
+/**
+ * Test helper replicating the logic that was moved inline into useTimeSensitiveCards hook.
+ */
+function timeSensitiveCardsSelector(cards: OnyxEntry<CardList>) {
+    const result: {cardsNeedingShippingAddress: Card[]; cardsNeedingActivation: Card[]; cardsWithFraud: Card[]} = {
+        cardsNeedingShippingAddress: [],
+        cardsNeedingActivation: [],
+        cardsWithFraud: [],
+    };
+
+    for (const card of Object.values(cards ?? {})) {
+        if (!isCard(card) || !isExpensifyCard(card)) {
+            continue;
+        }
+
+        if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
+            result.cardsWithFraud.push(card);
+        }
+
+        const isPhysicalCard = !card.nameValuePairs?.isVirtual;
+        if (!isPhysicalCard) {
+            continue;
+        }
+
+        if (isCardPendingIssue(card)) {
+            result.cardsNeedingShippingAddress.push(card);
+        }
+
+        if (isCardPendingActivate(card)) {
+            result.cardsNeedingActivation.push(card);
+        }
+    }
+
+    return result;
+}
 
 describe('filterCardsHiddenFromSearch', () => {
     it('returns empty object when cardList is undefined or empty', () => {
@@ -122,8 +159,8 @@ describe('filterCardsHiddenFromSearch', () => {
 
 describe('defaultExpensifyCardSelector', () => {
     it('Should return undefined if allCards is undefined or empty', () => {
-        expect(defaultExpensifyCardSelector(undefined, translateLocal)).toBeUndefined();
-        expect(defaultExpensifyCardSelector({}, translateLocal)).toBeUndefined();
+        expect(defaultExpensifyCardSelector(undefined)).toBeUndefined();
+        expect(defaultExpensifyCardSelector({})).toBeUndefined();
     });
 
     it('Should return undefined if cards do not have Expensify Card bank', () => {
@@ -132,7 +169,7 @@ describe('defaultExpensifyCardSelector', () => {
             '2': createRandomCompanyCard(2, {bank: 'stripe'}),
         };
 
-        expect(defaultExpensifyCardSelector(allCards, translateLocal)).toBeUndefined();
+        expect(defaultExpensifyCardSelector(allCards)).toBeUndefined();
     });
 
     it('Should return undefined if Expensify Card does not have fundID', () => {
@@ -141,7 +178,7 @@ describe('defaultExpensifyCardSelector', () => {
             '2': createRandomExpensifyCard(2, {fundID: ''}),
         };
 
-        expect(defaultExpensifyCardSelector(allCards, translateLocal)).toBeUndefined();
+        expect(defaultExpensifyCardSelector(allCards)).toBeUndefined();
     });
 
     it('Should return the first Expensify Card feed when multiple Expensify Cards exist', () => {
@@ -149,7 +186,7 @@ describe('defaultExpensifyCardSelector', () => {
             '1': createRandomExpensifyCard(1, {fundID: '5555'}),
             '2': createRandomExpensifyCard(2, {fundID: '6666'}),
         };
-        const result = defaultExpensifyCardSelector(allCards, translateLocal);
+        const result = defaultExpensifyCardSelector(allCards);
         expect(result).toEqual({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
@@ -165,7 +202,7 @@ describe('defaultExpensifyCardSelector', () => {
             '3': createRandomExpensifyCard(3, {fundID: '6666'}),
         };
 
-        const result = defaultExpensifyCardSelector(allCards, translateLocal);
+        const result = defaultExpensifyCardSelector(allCards);
         expect(result).toEqual({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
@@ -179,7 +216,7 @@ describe('defaultExpensifyCardSelector', () => {
             '1': createRandomExpensifyCard(1, {fundID: undefined}),
             '2': createRandomExpensifyCard(2, {fundID: '5555'}),
         };
-        const result = defaultExpensifyCardSelector(allCards, translateLocal);
+        const result = defaultExpensifyCardSelector(allCards);
         expect(result).toEqual({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
@@ -636,7 +673,7 @@ describe('areAllExpensifyCardsShipped', () => {
 
     // CRITICAL: This test ensures the personal cards should not affect the result
     it('returns true when Expensify cards are shipped even if user has personal cards', () => {
-        const personalCard = createRandomCard(1, {bank: CONST.PERSONAL_CARD.BANK_NAME.CSV});
+        const personalCard = createRandomCard(1, {bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV});
         const expensifyCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED});
 
         const cardList: CardList = {
@@ -672,7 +709,7 @@ describe('areAllExpensifyCardsShipped', () => {
     it('returns true when only non-Expensify cards exist', () => {
         const cardList: CardList = {
             '1': createRandomCompanyCard(1, {bank: 'vcf'}),
-            '2': createRandomCard(2, {bank: CONST.PERSONAL_CARD.BANK_NAME.CSV}),
+            '2': createRandomCard(2, {bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV}),
         };
         expect(areAllExpensifyCardsShipped(cardList)).toBe(true);
     });

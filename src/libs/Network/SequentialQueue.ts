@@ -21,7 +21,7 @@ import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {AnyRequest, ConflictData} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
@@ -81,7 +81,7 @@ function flushOnyxUpdatesQueue() {
     return flushQueue();
 }
 
-let queueFlushedDataToStore: Array<OnyxUpdate<OnyxKey>> = [];
+let queueFlushedDataToStore: AnyOnyxUpdate[] = [];
 
 // Use connectWithoutView since this is for network queue and don't affect to any UI
 Onyx.connectWithoutView({
@@ -94,8 +94,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function saveQueueFlushedData(...onyxUpdates: Array<OnyxUpdate<OnyxKey>>) {
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+function saveQueueFlushedData<TKey extends OnyxKey>(...onyxUpdates: Array<OnyxUpdate<TKey>>) {
     const newValue = [...queueFlushedDataToStore, ...onyxUpdates];
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     return Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, newValue).then(() => {
@@ -204,7 +203,7 @@ function process(): Promise<void> {
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
                 if (shouldFailAllRequests) {
-                    const onyxUpdates = [...((requestToProcess.failureData ?? []) as never), ...((requestToProcess.finallyData ?? []) as never)] as Array<OnyxUpdate<OnyxKey>>;
+                    const onyxUpdates = [...(requestToProcess.failureData ?? []), ...(requestToProcess.finallyData ?? [])] as AnyOnyxUpdate[];
                     Log.info('[SequentialQueue] Applying failure and finally data because shouldFailAllRequests', false, {
                         command: requestToProcess.command,
                         updatesCount: onyxUpdates.length,

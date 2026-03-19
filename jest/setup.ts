@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
@@ -11,6 +12,7 @@ import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
+import '@src/polyfills/PromiseWithResolvers';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
@@ -39,6 +41,35 @@ jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 jest.mock('expo-task-manager', () => ({
     defineTask: jest.fn(),
     // Add other methods here if you use them
+}));
+
+// Mock expo-location — the jest-expo preset replaces all native module methods with jest.fn(async () => {}),
+// which returns undefined instead of a proper PermissionResponse. This causes crashes when code reads .status
+// from the result of requestForegroundPermissionsAsync().
+jest.mock('expo-location', () => ({
+    requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    requestBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getCurrentPositionAsync: jest.fn(() => Promise.resolve({coords: {latitude: 0, longitude: 0, altitude: 0, accuracy: 0, altitudeAccuracy: 0, heading: 0, speed: 0}, timestamp: 0})),
+    hasStartedLocationUpdatesAsync: jest.fn(() => Promise.resolve(false)),
+    startLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
+    stopLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
+    reverseGeocodeAsync: jest.fn(() => Promise.resolve([])),
+    hasServicesEnabledAsync: jest.fn(() => Promise.resolve(true)),
+    PermissionStatus: {
+        GRANTED: 'granted',
+        DENIED: 'denied',
+        UNDETERMINED: 'undetermined',
+    },
+    Accuracy: {
+        Lowest: 1,
+        Low: 2,
+        Balanced: 3,
+        High: 4,
+        Highest: 5,
+        BestForNavigation: 6,
+    },
 }));
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
@@ -224,7 +255,7 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/InvertedFlatList/RenderTaskQueue',
+    '@components/FlatList/InvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
@@ -313,3 +344,23 @@ jest.mock('@components/ActionSheetAwareScrollView/index.android');
 jest.mock('@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext');
 
 jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext');
+
+// Mock document title hooks as no-ops in tests. The web implementation of setPageTitle uses
+// setTimeout(fn, 0) which accumulates in the fake timer queue. Combined with lodash debounce
+// in triggerUnreadUpdate (also timer-based), this creates excessive timer churn that causes
+// heavy integration tests like SessionTest to exceed their timeout.
+jest.mock('@src/hooks/useDocumentTitle', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@src/hooks/useWorkspaceDocumentTitle', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(),
+}));

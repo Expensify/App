@@ -113,7 +113,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 <HeaderWithBackButton title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
                     <View style={styles.flex1}>
-                        <FullScreenLoadingIndicator />
+                        <FullScreenLoadingIndicator reasonAttributes={{context: 'WorkspaceOverviewPlanTypePage'}} />
                     </View>
                 ) : (
                     <>

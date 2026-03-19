@@ -31,10 +31,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
 
 function NewTaskPage({route}: NewTaskPageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -48,7 +48,10 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const shareDestination = task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined;
     const parentReport = task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined;
     const ancestors = useAncestors(parentReport);
-    const [errorMessage, setErrorMessage] = useState('');
+    const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
+    const [error, setError] = useState<{message: string; taskKey: string}>({message: '', taskKey: ''});
+    const errorMessage = error.taskKey === taskKey ? error.message : '';
+
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = isEmptyObject(parentReport) || isAllowedToComment(parentReport);
 
@@ -68,31 +71,27 @@ function NewTaskPage({route}: NewTaskPageProps) {
     });
 
     useEffect(() => {
-        setErrorMessage('');
-
-        // We only set the parentReportID if we are creating a task from a report
-        // this allows us to go ahead and set that report as the share destination
-        // and disable the share destination selector
-        if (task?.parentReportID) {
-            setShareDestinationValue(task.parentReportID);
+        if (!task?.parentReportID) {
+            return;
         }
-    }, [task?.assignee, task?.assigneeAccountID, task?.description, task?.parentReportID, task?.shareDestination, task?.title]);
+        setShareDestinationValue(task.parentReportID);
+    }, [task?.parentReportID]);
 
     // On submit, we want to call the createTask function and wait to validate
     // the response
     const onSubmit = () => {
         if (!task?.title && !task?.shareDestination) {
-            setErrorMessage(translate('newTaskPage.confirmError'));
+            setError({message: translate('newTaskPage.confirmError'), taskKey});
             return;
         }
 
         if (!task.title) {
-            setErrorMessage(translate('newTaskPage.pleaseEnterTaskName'));
+            setError({message: translate('newTaskPage.pleaseEnterTaskName'), taskKey});
             return;
         }
 
         if (!task.shareDestination) {
-            setErrorMessage(translate('newTaskPage.pleaseEnterTaskDestination'));
+            setError({message: translate('newTaskPage.pleaseEnterTaskDestination'), taskKey});
             return;
         }
 
