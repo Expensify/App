@@ -461,7 +461,7 @@ describe('buildCardsData isPersonal with customCardNames', () => {
 
         const personalCard = result.unselected.find((card) => card.keyForList === '11111111') ?? result.selected.find((card) => card.keyForList === '11111111');
         expect(personalCard).toBeDefined();
-        expect(personalCard?.text).toBe('My Custom Card Label');
+        expect(personalCard?.cardName).toBe('My Custom Card Label');
     });
 
     it('Falls back to cardName for personal cards when customCardNames is not provided', () => {
@@ -476,7 +476,7 @@ describe('buildCardsData isPersonal with customCardNames', () => {
 
         const personalCard = result.unselected.find((card) => card.keyForList === '11111111') ?? result.selected.find((card) => card.keyForList === '11111111');
         expect(personalCard).toBeDefined();
-        expect(personalCard?.text).toBe('455594XXXXXX1138');
+        expect(personalCard?.cardName).toBe('455594XXXXXX1138');
     });
 });
 
