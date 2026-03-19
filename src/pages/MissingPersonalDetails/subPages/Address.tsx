@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CountryPicker from '@components/CountryPicker';
@@ -26,10 +26,25 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [currentCountry, setCurrentCountry] = useState(personalDetailsValues[INPUT_IDS.COUNTRY]);
-    const [state, setState] = useState(personalDetailsValues[INPUT_IDS.STATE]);
+    const currentCountryDraft = personalDetailsValues[INPUT_IDS.COUNTRY];
+    const currentStateDraft = personalDetailsValues[INPUT_IDS.STATE];
+    const [currentCountry, setCurrentCountry] = useState(currentCountryDraft);
+    const [state, setState] = useState(currentStateDraft);
     const [city, setCity] = useState(personalDetailsValues[INPUT_IDS.CITY]);
     const [zipcode, setZipcode] = useState(personalDetailsValues[INPUT_IDS.ZIP_POST_CODE]);
+
+    const prevCountryDraft = useRef(currentCountryDraft);
+    const prevStateDraft = useRef(currentStateDraft);
+
+    if (prevCountryDraft.current !== currentCountryDraft) {
+        prevCountryDraft.current = currentCountryDraft;
+        setCurrentCountry(currentCountryDraft);
+    }
+
+    if (prevStateDraft.current !== currentStateDraft) {
+        prevStateDraft.current = currentStateDraft;
+        setState(currentStateDraft);
+    }
 
     const handleSubmit = usePersonalDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -115,7 +130,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
 
     const zipSampleFormat = (currentCountry && (CONST.COUNTRY_ZIP_REGEX_DATA[currentCountry] as CountryZipRegex)?.samples) ?? '';
 
-    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
+    const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
 
     return (
         <FormProvider
