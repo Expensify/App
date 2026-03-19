@@ -168,6 +168,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
 
+      - name: Remove stale CMake cache
+        run: rm -rf ${ANDROID_HOME}/cmake/3.30.5
+
       - name: Build and publish React Native artifacts
         working-directory: ${{ matrix.is_hybrid == 'true' && 'Mobile-Expensify/Android' || 'android' }}
         run: |
