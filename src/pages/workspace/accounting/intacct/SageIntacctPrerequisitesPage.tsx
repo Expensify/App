@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -87,7 +88,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
-            <View style={styles.flex1}>
+            <ScrollView>
                 <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
                     <ImageSVG src={illustrations.Computer} />
                 </View>
@@ -110,7 +111,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                         large
                     />
                 </FixedFooter>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }
