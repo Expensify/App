@@ -1,4 +1,5 @@
 diff --git a/node_modules/react-native/Libraries/Pressability/Pressability.js b/node_modules/react-native/Libraries/Pressability/Pressability.js
+index 0000000..0000000 100644
 --- a/node_modules/react-native/Libraries/Pressability/Pressability.js
 +++ b/node_modules/react-native/Libraries/Pressability/Pressability.js
 @@ -805,7 +805,7 @@ export default class Pressability {
@@ -11,6 +12,7 @@ diff --git a/node_modules/react-native/Libraries/Pressability/Pressability.js b/
    }
  
 diff --git a/node_modules/react-native/Libraries/ReactNative/FabricUIManager.js b/node_modules/react-native/Libraries/ReactNative/FabricUIManager.js
+index 0000000..0000000 100644
 --- a/node_modules/react-native/Libraries/ReactNative/FabricUIManager.js
 +++ b/node_modules/react-native/Libraries/ReactNative/FabricUIManager.js
 @@ -46,6 +46,14 @@ export interface Spec {
@@ -37,6 +39,7 @@ diff --git a/node_modules/react-native/Libraries/ReactNative/FabricUIManager.js 
    'measureLayout',
    'configureNextLayoutAnimation',
 diff --git a/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js b/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js
+index 0000000..0000000 100644
 --- a/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js
 +++ b/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js
 @@ -30,6 +30,7 @@ import nullthrows from 'nullthrows';
@@ -64,6 +67,7 @@ diff --git a/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicIn
      const node = getNodeFromInternalInstanceHandle(
        this.__internalInstanceHandle,
 diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
+index 0000000..0000000 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
 +++ b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
 @@ -69,6 +69,8 @@
@@ -76,6 +80,7 @@ diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.
  
  NS_ASSUME_NONNULL_END
 diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
+index 0000000..0000000 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
 @@ -8,5 +8,6 @@
@@ -124,6 +129,7 @@ diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.
 +
  @end
 diff --git a/node_modules/react-native/React/Fabric/RCTScheduler.h b/node_modules/react-native/React/Fabric/RCTScheduler.h
+index 0000000..0000000 100644
 --- a/node_modules/react-native/React/Fabric/RCTScheduler.h
 +++ b/node_modules/react-native/React/Fabric/RCTScheduler.h
 @@ -43,6 +43,9 @@
@@ -137,6 +143,7 @@ diff --git a/node_modules/react-native/React/Fabric/RCTScheduler.h b/node_module
  - (void)schedulerDidSynchronouslyUpdateViewOnUIThread:(facebook::react::Tag)reactTag props:(folly::dynamic)props;
  @end
 diff --git a/node_modules/react-native/React/Fabric/RCTScheduler.mm b/node_modules/react-native/React/Fabric/RCTScheduler.mm
+index 0000000..0000000 100644
 --- a/node_modules/react-native/React/Fabric/RCTScheduler.mm
 +++ b/node_modules/react-native/React/Fabric/RCTScheduler.mm
 @@ -75,6 +75,11 @@ class SchedulerDelegateProxy : public SchedulerDelegate {
@@ -152,6 +159,7 @@ diff --git a/node_modules/react-native/React/Fabric/RCTScheduler.mm b/node_modul
    void *scheduler_;
  };
 diff --git a/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm b/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm
+index 0000000..0000000 100644
 --- a/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm
 +++ b/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm
 @@ -332,6 +332,11 @@
@@ -167,6 +175,7 @@ diff --git a/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm b/nod
  {
    std::unique_lock lock(_observerListMutex);
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
 @@ -27,6 +27,8 @@ import androidx.annotation.AnyThread;
@@ -207,6 +216,7 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/r
    public void profileNextBatch() {
      // TODO T31905686: Remove this method and add support for multi-threading performance counters
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.kt
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.kt
 @@ -10,9 +10,14 @@ import android.view.View
@@ -292,6 +302,7 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/r
        surfaceId: Int,
        reactTag: Int,
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
 @@ -14,6 +14,7 @@
@@ -320,6 +331,7 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Fa
 +
  } // namespace facebook::react
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
 @@ -63,6 +63,10 @@ class FabricMountingManager final {
@@ -334,6 +346,7 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Fa
    bool isOnMainThread();
  
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
 @@ -725,6 +725,14 @@ void FabricUIManagerBinding::schedulerDidUpdateShadowTree(
@@ -352,6 +365,7 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Fa
    auto mountingManager = getMountingManager("onAnimationStarted");
    if (!mountingManager) {
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
 @@ -129,6 +129,10 @@ class FabricUIManagerBinding : public jni::HybridClass<FabricUIManagerBinding>,
@@ -366,6 +380,7 @@ diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Fa
  
    void driveCxxAnimations();
 diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
 +++ b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
 @@ -13,4 +13,5 @@
@@ -375,6 +390,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/dom/Native
  #ifdef RN_DISABLE_OSS_PLUGIN_HEADER
  #include "Plugins.h"
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
 @@ -345,6 +345,15 @@ void Scheduler::uiManagerDidStartSurface(const ShadowTree& shadowTree) {
@@ -394,6 +410,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Sche
    uiManager_->reportMount(surfaceId);
  }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
 @@ -106,6 +106,9 @@ class Scheduler final : public UIManagerDelegate {
@@ -407,6 +424,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Sche
    ContextContainer::Shared getContextContainer() const;
  
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
 @@ -71,6 +71,10 @@ class SchedulerDelegate {
@@ -421,6 +439,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Sche
  };
  
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
 @@ -663,6 +663,47 @@ jsi::Value UIManagerBinding::get(
@@ -472,6 +491,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIMa
      auto paramCount = 2;
      return jsi::Function::createFromHostFunction(
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
+index 0000000..0000000 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
 @@ -90,5 +90,13 @@ class UIManagerDelegate {
@@ -489,6 +509,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIMa
        std::function<void(const ShadowTree& shadowTree)>;
    virtual void uiManagerShouldSetOnSurfaceStartCallback(
 diff --git a/node_modules/react-native/jest/MockNativeMethods.js b/node_modules/react-native/jest/MockNativeMethods.js
+index 0000000..0000000 100644
 --- a/node_modules/react-native/jest/MockNativeMethods.js
 +++ b/node_modules/react-native/jest/MockNativeMethods.js
 @@ -11,12 +11,14 @@
@@ -507,6 +528,7 @@ diff --git a/node_modules/react-native/jest/MockNativeMethods.js b/node_modules/
    measureLayout: () => void,
    setNativeProps: () => void,
 diff --git a/node_modules/react-native/jest/mockNativeComponent.js b/node_modules/react-native/jest/mockNativeComponent.js
+index 0000000..0000000 100644
 --- a/node_modules/react-native/jest/mockNativeComponent.js
 +++ b/node_modules/react-native/jest/mockNativeComponent.js
 @@ -38,4 +38,5 @@ export default function mockNativeComponent<TProps: {...}>(
@@ -516,6 +538,7 @@ diff --git a/node_modules/react-native/jest/mockNativeComponent.js b/node_module
      measureLayout: () => void = jest.fn();
      setNativeProps: () => void = jest.fn();
 diff --git a/node_modules/react-native/src/private/types/HostInstance.js b/node_modules/react-native/src/private/types/HostInstance.js
+index 0000000..0000000 100644
 --- a/node_modules/react-native/src/private/types/HostInstance.js
 +++ b/node_modules/react-native/src/private/types/HostInstance.js
 @@ -71,4 +71,9 @@ export interface LegacyHostInstanceMethods {
@@ -529,6 +552,7 @@ diff --git a/node_modules/react-native/src/private/types/HostInstance.js b/node_
     * Determines the location of the given view in the window and returns the
     * values via an async callback. If the React root view is embedded in
 diff --git a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
+index 0000000..0000000 100644
 --- a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
 +++ b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
 @@ -155,6 +155,17 @@ class ReactNativeElement
