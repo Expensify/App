@@ -111,8 +111,8 @@ describe('PureReportActionItem', () => {
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                allTransactionDrafts={undefined}
-                                userBillingGraceEndPeriodCollection={undefined}
+                                draftTransactionIDs={[]}
+                                userBillingGraceEndPeriods={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -336,8 +336,8 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -393,8 +393,8 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -462,8 +462,8 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -526,8 +526,8 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -576,9 +576,9 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    draftTransactionIDs={[]}
                                     modifiedExpenseMessage={modifiedExpenseMessage}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
