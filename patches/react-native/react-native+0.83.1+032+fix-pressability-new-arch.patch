@@ -19,15 +19,7 @@ diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.
 index ceac3ee..15dbff9 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
 +++ b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
-@@ -7,6 +7,7 @@
- 
- #import <UIKit/UIKit.h>
- 
-+#import <React/RCTFabricSurface.h>
- #import <React/RCTMountingManagerDelegate.h>
- #import <React/RCTPrimitives.h>
- #import <react/renderer/core/ComponentDescriptor.h>
-@@ -69,6 +70,10 @@ NS_ASSUME_NONNULL_BEGIN
+@@ -69,6 +69,10 @@ NS_ASSUME_NONNULL_BEGIN
  - (void)synchronouslyUpdateViewOnUIThread:(ReactTag)reactTag
                               changedProps:(folly::dynamic)props
                        componentDescriptor:(const facebook::react::ComponentDescriptor &)componentDescriptor;
