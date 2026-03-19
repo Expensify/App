@@ -166,7 +166,7 @@ function SearchAutocompleteList({
     const taxRates = getAllTaxRates(policies);
 
     const {options, areOptionsInitialized} = useOptionsList();
-    const debouncedAutocompleteQueryValue = useDebouncedValue(autocompleteQueryValue, 150);
+    const debouncedAutocompleteQueryValue = useDebouncedValue(autocompleteQueryValue, 150) ?? autocompleteQueryValue;
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
