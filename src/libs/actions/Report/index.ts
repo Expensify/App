@@ -2062,7 +2062,7 @@ function navigateToAndCreateGroupChat(
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>) {
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>, betas: OnyxEntry<Beta[]>) {
     let newChat: OptimisticChatReport | undefined;
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
@@ -2076,6 +2076,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
             newReportObject: newChat,
             parentReportActionID: '0',
             participantAccountIDList: participantAccountIDs,
+            betas,
         });
     }
     const report = chat ?? newChat;
