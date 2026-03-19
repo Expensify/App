@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -88,6 +88,17 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const hasSettlementAccount = hasTravelInvoicingSettlementAccount(travelSettings);
     const travelSpend = getTravelSpend(travelSettings);
 
+    // Preserve the last valid (non-zero) travelSpend to prevent momentary $0.00 flicker.
+    // When changing settlement frequency or bank account, the BE Pusher response can transiently
+    // overwrite card settings without currentBalance, causing travelSpend to briefly read as 0.
+    // NOTE: This could also be fixed on the BE side by ensuring currentBalance is always included
+    // in the Onyx Pusher updates for the card settings key.
+    const lastValidTravelSpendRef = useRef(travelSpend);
+    if (travelSpend > 0) {
+        lastValidTravelSpendRef.current = travelSpend;
+    }
+    const stableTravelSpend = travelSpend > 0 ? travelSpend : lastValidTravelSpendRef.current;
+
     // Derive the payment queued state from the manual billing Onyx key
     const isPaymentQueued = !!cardManualBilling;
     const travelLimit = getTravelLimit(travelSettings);
@@ -99,10 +110,10 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const shouldShowPayButton = travelSpend > 0 && isMonthlySettlementFrequency && !isPaymentQueued;
     // Format currency values (assuming USD for Travel Invoicing based on PROGRAM_TRAVEL_US)
     // Current spend resets to $0.00 once payment is queued, since the balance has been paid
-    const formattedSpend = convertToDisplayString(isPaymentQueued ? 0 : travelSpend, CONST.CURRENCY.USD);
+    const formattedSpend = convertToDisplayString(isPaymentQueued ? 0 : stableTravelSpend, CONST.CURRENCY.USD);
 
     // Queued amount preserves the original travelSpend value for the "payment queued" subtitle
-    const formattedQueuedAmount = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
+    const formattedQueuedAmount = convertToDisplayString(stableTravelSpend, CONST.CURRENCY.USD);
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
 
     // Settlement account display - show empty if no account is selected
@@ -137,13 +148,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
     const isOnWaitlist = !!cardOnWaitlist;
     const isLoading = !!cardSettings?.isLoading;
-
-    /**
-     * Opens the pay balance confirmation modal.
-     */
-    const handlePayBalance = () => {
-        setIsPayBalanceModalVisible(true);
-    };
 
     /**
      * Handles the confirmed payment of the outstanding travel balance.
@@ -273,78 +277,102 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         return <CentralInvoicingSubtitleWrapper />;
     };
 
-    const centralInvoicingSubMenuItems = (
-        <>
-            <View style={[styles.dFlex, styles.flexRow, styles.mt6, styles.gap4, styles.alignItemsCenter]}>
-                <View style={styles.flex1}>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendLabel')}
-                        title={formattedSpend}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, isPaymentQueued && styles.pb1]}
-                        titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
-                        descriptionTextStyle={styles.textLabelSupportingNormal}
-                        interactive={false}
-                    />
-                    {isPaymentQueued && (
-                        <Text style={[styles.textLabelSupporting, styles.pb3]}>
-                            {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
-                        </Text>
+    const centralInvoicingSubMenuItems = useMemo(
+        () => (
+            <>
+                <View style={[styles.dFlex, styles.flexRow, styles.mt6, styles.gap4, styles.alignItemsCenter]}>
+                    <View style={styles.flex1}>
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendLabel')}
+                            title={formattedSpend}
+                            wrapperStyle={[styles.sectionMenuItemTopDescription, isPaymentQueued && styles.pb1]}
+                            titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
+                            descriptionTextStyle={styles.textLabelSupportingNormal}
+                            interactive={false}
+                        />
+                        {isPaymentQueued && (
+                            <Text style={[styles.textLabelSupporting, styles.pb3]}>
+                                {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
+                            </Text>
+                        )}
+                    </View>
+                    {shouldShowPayButton && (
+                        <Button
+                            text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
+                            onPress={() => setIsPayBalanceModalVisible(true)}
+                            isDisabled={isOffline}
+                            success
+                        />
                     )}
                 </View>
-                {shouldShowPayButton && (
-                    <Button
-                        text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
-                        onPress={handlePayBalance}
-                        isDisabled={isOffline}
-                        success
-                    />
-                )}
-            </View>
-            <MenuItemWithTopDescription
-                description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelLimitLabel')}
-                title={formattedLimit}
-                wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                titleStyle={styles.textNormalThemeText}
-                descriptionTextStyle={styles.textLabelSupportingNormal}
-                interactive={false}
-            />
-            <OfflineWithFeedback
-                errors={settlementAccountErrors}
-                pendingAction={settlementAccountPendingAction}
-                onClose={() => clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, travelSettings?.previousPaymentBankAccountID ?? null)}
-                errorRowStyles={styles.mh2half}
-                errorRowTextStyles={styles.mr3}
-            >
                 <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementAccountLabel')}
-                    title={settlementAccountNumber}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    titleStyle={settlementAccountNumber ? styles.textNormalThemeText : styles.colorMuted}
-                    descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon
-                    brickRoadIndicator={hasSettlementAccountError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
-            <OfflineWithFeedback
-                errors={settlementFrequencyErrors}
-                pendingAction={cardSettings?.pendingFields?.monthlySettlementDate}
-                onClose={() => clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, travelSettings?.previousMonthlySettlementDate)}
-                errorRowStyles={styles.mh2half}
-                errorRowTextStyles={styles.mr3}
-            >
-                <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
-                    title={localizedFrequency}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))}
+                    description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelLimitLabel')}
+                    title={formattedLimit}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     titleStyle={styles.textNormalThemeText}
                     descriptionTextStyle={styles.textLabelSupportingNormal}
-                    shouldShowRightIcon
-                    brickRoadIndicator={hasSettlementFrequencyError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    interactive={false}
                 />
-            </OfflineWithFeedback>
-        </>
+                <OfflineWithFeedback
+                    errors={settlementAccountErrors}
+                    pendingAction={settlementAccountPendingAction}
+                    onClose={() => clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, travelSettings?.previousPaymentBankAccountID ?? null)}
+                    errorRowStyles={styles.mh2half}
+                    errorRowTextStyles={styles.mr3}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementAccountLabel')}
+                        title={settlementAccountNumber}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        titleStyle={settlementAccountNumber ? styles.textNormalThemeText : styles.colorMuted}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        shouldShowRightIcon
+                        brickRoadIndicator={hasSettlementAccountError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                </OfflineWithFeedback>
+                <OfflineWithFeedback
+                    errors={settlementFrequencyErrors}
+                    pendingAction={cardSettings?.pendingFields?.monthlySettlementDate}
+                    onClose={() => clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, travelSettings?.previousMonthlySettlementDate)}
+                    errorRowStyles={styles.mh2half}
+                    errorRowTextStyles={styles.mr3}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
+                        title={localizedFrequency}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        titleStyle={styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        shouldShowRightIcon
+                        brickRoadIndicator={hasSettlementFrequencyError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                </OfflineWithFeedback>
+            </>
+        ),
+        [
+            policyID,
+            travelSettings?.previousPaymentBankAccountID,
+            travelSettings?.previousMonthlySettlementDate,
+            cardSettings?.pendingFields?.monthlySettlementDate,
+            styles,
+            isOffline,
+            formattedSpend,
+            formattedLimit,
+            formattedQueuedAmount,
+            isPaymentQueued,
+            shouldShowPayButton,
+            settlementAccountNumber,
+            settlementAccountErrors,
+            settlementAccountPendingAction,
+            hasSettlementAccountError,
+            settlementFrequencyErrors,
+            localizedFrequency,
+            hasSettlementFrequencyError,
+            workspaceAccountID,
+            translate,
+        ],
     );
 
     return (
