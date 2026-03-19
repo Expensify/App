@@ -1,5 +1,4 @@
 import {useEffect, useMemo, useRef} from 'react';
-import {clearPendingNewTransactionIDs} from '@libs/actions/IOU';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import usePrevious from './usePrevious';
@@ -15,7 +14,7 @@ import usePrevious from './usePrevious';
 function useNewTransactions(
     hasOnceLoadedReportActions: boolean | undefined,
     transactions: Transaction[] | undefined,
-    pendingNewTransactionIDs?: Record<string, string | null>,
+    pendingNewTransactionIDs?: Record<string, boolean | null>,
     reportID?: string,
     isFocused = false,
 ) {
@@ -33,12 +32,8 @@ function useNewTransactions(
             // becomes equal to transactions. So we use pendingNewTransactionIDs from report metadata to
             // identify these transactions on first load.
             if (isFocused && reportID && pendingNewTransactionIDs && transactions?.length) {
-                const pendingSet = new Set(Object.values(pendingNewTransactionIDs));
-                // Clearing pending transactions immediately sometimes hinders the scroll and highlighting, hence the delay.
-                setTimeout(() => {
-                    clearPendingNewTransactionIDs(reportID);
-                }, CONST.PENDING_TRANSACTION_DELETION_TIMEOUT);
-                return transactions.filter((transaction) => pendingSet.has(transaction.transactionID));
+                const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
+                return transactions.filter((transaction) => pendingSet.has(transaction.transactionID) && pendingNewTransactionIDs[transaction.transactionID]);
             }
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }

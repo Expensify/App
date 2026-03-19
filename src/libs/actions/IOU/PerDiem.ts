@@ -48,7 +48,6 @@ import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {BasePolicyParams, MoneyRequestInformation, RequestMoneyParticipantParams} from '.';
 import {
-    addPendingNewTransactionIDs,
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
     dismissModalAndOpenReportInInboxTab,
@@ -978,14 +977,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         attendees: attendees ? JSON.stringify(attendees) : undefined,
         customUnitPolicyID,
     };
-
-    if (isFromGlobalCreate) {
-        const data = addPendingNewTransactionIDs(chatReport.reportID, transaction.transactionID);
-        if (data) {
-            onyxData.optimisticData?.push(data.optimisticData);
-            onyxData.failureData?.push(data.failureData);
-        }
-    }
 
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
