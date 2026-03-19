@@ -45,7 +45,10 @@ function getConstRoleValue(attribute) {
         return null;
     }
 
-    const expression = attribute.value.expression;
+    return getConstRoleValueFromExpression(attribute.value.expression);
+}
+
+function getConstRoleValueFromExpression(expression) {
     if (expression.type !== 'MemberExpression' || expression.computed || expression.property.type !== 'Identifier') {
         return null;
     }
@@ -64,6 +67,60 @@ function getConstRoleValue(attribute) {
     return expression.property.name.toLowerCase();
 }
 
+function getResolvedRolesFromExpression(expression) {
+    if (expression.type === 'Literal' && typeof expression.value === 'string') {
+        return new Set([expression.value.toLowerCase()]);
+    }
+
+    if (expression.type === 'Identifier' && expression.name === 'undefined') {
+        return new Set();
+    }
+
+    if (expression.type === 'MemberExpression') {
+        const constRoleValue = getConstRoleValueFromExpression(expression);
+        return constRoleValue ? new Set([constRoleValue]) : null;
+    }
+
+    if (expression.type === 'ConditionalExpression') {
+        const consequentRoles = getResolvedRolesFromExpression(expression.consequent);
+        const alternateRoles = getResolvedRolesFromExpression(expression.alternate);
+
+        if (!consequentRoles || !alternateRoles) {
+            return null;
+        }
+
+        return new Set([...consequentRoles, ...alternateRoles]);
+    }
+
+    if (expression.type === 'LogicalExpression' && expression.operator === '&&') {
+        const rightRoles = getResolvedRolesFromExpression(expression.right);
+
+        if (!rightRoles) {
+            return null;
+        }
+
+        return rightRoles;
+    }
+
+    return null;
+}
+
+function getResolvedRoles(attribute) {
+    if (!attribute?.value) {
+        return new Set();
+    }
+
+    if (attribute.value.type === 'Literal' && typeof attribute.value.value === 'string') {
+        return new Set([attribute.value.value.toLowerCase()]);
+    }
+
+    if (attribute.value.type !== 'JSXExpressionContainer') {
+        return null;
+    }
+
+    return getResolvedRolesFromExpression(attribute.value.expression);
+}
+
 function getResolvedRole(attribute) {
     return getAttributeStringValue(attribute)?.toLowerCase() ?? getConstRoleValue(attribute);
 }
@@ -75,12 +132,15 @@ function create(context) {
             const liveRegionAttribute = getJSXAttribute(node, ['accessibilityLiveRegion']);
 
             const resolvedRole = getResolvedRole(roleAttribute);
+            const resolvedRoles = getResolvedRoles(roleAttribute);
             const hasKnownStatusRole = STATUS_ROLES.has(resolvedRole);
             const hasRoleAttribute = !!roleAttribute;
             const hasLiveRegion = !!liveRegionAttribute;
             const liveRegionValue = getAttributeStringValue(liveRegionAttribute)?.toLowerCase();
+            const hasAnyResolvedStatusRole = !!resolvedRoles && [...resolvedRoles].some((role) => STATUS_ROLES.has(role));
+            const hasOnlyResolvedNonStatusRoles = !!resolvedRoles && resolvedRoles.size > 0 && !hasAnyResolvedStatusRole;
 
-            if (hasKnownStatusRole && !hasLiveRegion) {
+            if ((hasKnownStatusRole || hasAnyResolvedStatusRole) && !hasLiveRegion) {
                 context.report({
                     node,
                     messageId: 'missingLiveRegion',
@@ -88,7 +148,7 @@ function create(context) {
                 return;
             }
 
-            if (hasLiveRegion && !hasKnownStatusRole && !hasRoleAttribute) {
+            if (hasLiveRegion && (!hasRoleAttribute || hasOnlyResolvedNonStatusRoles)) {
                 context.report({
                     node,
                     messageId: 'missingStatusRole',
