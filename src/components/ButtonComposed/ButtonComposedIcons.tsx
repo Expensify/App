@@ -1,32 +1,42 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {ButtonComposedVariant} from './ButtonComposedContext';
 import {useButtonComposedContext} from './ButtonComposedContext';
 
-type ButtonIconBaseProps = {
+type ButtonComposedIconProps = {
+    /** The icon asset to display */
     src: IconAsset;
-    fill?: string;
+
+    /** Icon color used on hover. */
+    hoverFill?: string;
+
+    /** Additional style for the icon wrapper view. */
     style?: StyleProp<ViewStyle>;
-    marginStyle: StyleProp<ViewStyle>;
-    size: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE> | undefined;
-    variant?: ButtonComposedVariant;
+
+    /** Default icon color when the button is not hovered. */
+    fill?: string;
 };
 
-function ButtonIconBase({src, fill, style, marginStyle, size, variant}: ButtonIconBaseProps) {
+type ButtonIconBaseProps = ButtonComposedIconProps & {
+    marginStyle: StyleProp<ViewStyle>;
+};
+
+function ButtonIconBase({src, style, marginStyle, hoverFill, fill}: ButtonIconBaseProps) {
     const theme = useTheme();
+    const {isHovered, variant, size} = useButtonComposedContext();
+
     const defaultFill = variant === 'success' || variant === 'danger' ? theme.textLight : theme.icon;
+    const propsFill = isHovered ? hoverFill : fill;
     return (
         <View style={[marginStyle, style]}>
             <Icon
                 src={src}
-                fill={fill ?? defaultFill}
+                fill={propsFill ?? defaultFill}
                 extraSmall={size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                 small={size === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 medium={size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
@@ -37,65 +47,29 @@ function ButtonIconBase({src, fill, style, marginStyle, size, variant}: ButtonIc
     );
 }
 
-type ButtonComposedIconLeftProps = {
-    /** The icon asset to display */
-    src: IconAsset;
-
-    /** Override the iconFill from context */
-    fill?: string;
-
-    /** Override the iconHoverFill from context */
-    hoverFill?: string;
-
-    /** Additional styles for the icon container */
-    style?: StyleProp<ViewStyle>;
-};
-
-function ButtonComposedIconLeft({src, fill, hoverFill, style}: ButtonComposedIconLeftProps) {
-    const {isHovered, variant, size} = useButtonComposedContext();
+function ButtonComposedIconLeft({src, style, hoverFill, fill}: ButtonComposedIconProps) {
     const styles = useThemeStyles();
+    const {size} = useButtonComposedContext();
 
     return (
         <ButtonIconBase
-            src={src}
-            fill={isHovered ? hoverFill : fill}
-            style={style}
+            {...{src, style, hoverFill, fill}}
             marginStyle={size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? styles.mr1 : styles.mr2}
-            size={size}
-            variant={variant}
         />
     );
 }
 
-type ButtonComposedIconRightProps = {
-    /** The icon asset to display */
-    src: IconAsset;
-
-    /** Override the iconFill from context */
-    fill?: string;
-
-    /** Override the iconHoverFill from context */
-    hoverFill?: string;
-
-    /** Additional styles for the icon container */
-    style?: StyleProp<ViewStyle>;
-};
-
-function ButtonComposedIconRight({src, fill, hoverFill, style}: ButtonComposedIconRightProps) {
-    const {isHovered, variant, size} = useButtonComposedContext();
+function ButtonComposedIconRight({src, style, hoverFill, fill}: ButtonComposedIconProps) {
     const styles = useThemeStyles();
+    const {size} = useButtonComposedContext();
 
     return (
         <ButtonIconBase
-            src={src}
-            fill={isHovered ? hoverFill : fill}
-            style={style}
+            {...{src, style, hoverFill, fill}}
             marginStyle={[styles.justifyContentCenter, size === CONST.DROPDOWN_BUTTON_SIZE.LARGE ? styles.ml2 : styles.ml1]}
-            size={size}
-            variant={variant}
         />
     );
 }
 
 export {ButtonComposedIconLeft, ButtonComposedIconRight};
-export type {ButtonComposedIconLeftProps, ButtonComposedIconRightProps};
+export type {ButtonComposedIconProps};
