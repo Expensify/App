@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
-import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {getCardSettings, isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -74,13 +74,14 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    const paymentBankAccountID = fullySetUpCardSetting.cardSetting?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const resolvedCardSettings = getCardSettings(fullySetUpCardSetting.cardSetting);
+    const paymentBankAccountID = resolvedCardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
 
     const {connection} = route.params;
     const connectionName = getConnectionNameFromRouteParam(connection) as ConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
-    const shouldShow = !!fullySetUpCardSetting.cardSetting?.paymentBankAccountID;
+    const shouldShow = !!resolvedCardSettings?.paymentBankAccountID;
 
     const handleToggleContinuousReconciliation = (value: boolean) => {
         toggleContinuousReconciliation(effectiveDomainID, value, connectionName, currentConnectionName);

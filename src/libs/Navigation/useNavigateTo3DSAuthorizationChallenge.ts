@@ -108,7 +108,9 @@ function useNavigateTo3DSAuthorizationChallenge() {
         addBreadcrumb('Transaction detected in queue', {transactionID: transactionPending3DSReview.transactionID});
 
         if (isCurrentlyActingOn3DSChallenge) {
-            Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - user is still acting on a challenge');
+            Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - user is still acting on a challenge', undefined, {
+                transactionID: transactionPending3DSReview.transactionID,
+            });
             addBreadcrumb('Skipped - user in MFA flow', {transactionID: transactionPending3DSReview.transactionID});
             return;
         }
@@ -126,7 +128,9 @@ function useNavigateTo3DSAuthorizationChallenge() {
 
         // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
         if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
-            Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - device does not support an allowed authentication method');
+            Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - device does not support an allowed authentication method', undefined, {
+                transactionID: transactionPending3DSReview.transactionID,
+            });
             addBreadcrumb('Skipped - device unsupported', {transactionID: transactionPending3DSReview.transactionID}, 'warning');
             return;
         }
@@ -149,13 +153,17 @@ function useNavigateTo3DSAuthorizationChallenge() {
 
             // If we know that a challenge is no longer pending review, bail rather than showing the user the "already reviewed" outcome screen
             if (!challengeStillPendingReview) {
-                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - challenge is no longer pending review');
+                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - challenge is no longer pending review', undefined, {
+                    transactionID: transactionPending3DSReview.transactionID,
+                });
                 addBreadcrumb('Skipped - already reviewed on another device', {transactionID: transactionPending3DSReview.transactionID}, 'warning');
                 return;
             }
 
             if (cancel) {
-                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - effect was cleaned up while GetTransactionsPending3DSReview was in-flight');
+                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - effect was cleaned up while GetTransactionsPending3DSReview was in-flight', undefined, {
+                    transactionID: transactionPending3DSReview.transactionID,
+                });
                 addBreadcrumb('Skipped - effect cancelled', {transactionID: transactionPending3DSReview.transactionID});
                 return;
             }
