@@ -29,10 +29,30 @@ type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}
  * @param options - an initial object array
  * @param options[].enabled - a flag to enable/disable option in a list
  * @param options[].name - a name of an option
+ * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getCategoryOptionTree(options: Record<string, Category> | Category[], selectedOptions: Category[] = []): OptionTree[] {
+function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false, selectedOptions: Category[] = []): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
     for (const option of Object.values(options)) {
+        if (isOneLine) {
+            if (optionCollection.has(option.name)) {
+                continue;
+            }
+
+            const decodedCategoryName = getDecodedCategoryName(option.name);
+            optionCollection.set(option.name, {
+                text: decodedCategoryName,
+                keyForList: option.name,
+                searchText: option.name,
+                tooltipText: decodedCategoryName,
+                isDisabled: !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isSelected: !!option.isSelected,
+                pendingAction: option.pendingAction,
+            });
+
+            continue;
+        }
+
         const array = option.name.split(CONST.PARENT_CHILD_SEPARATOR);
 
         for (let index = 0; index < array.length; index++) {
@@ -50,14 +70,13 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
             if (optionCollection.has(searchText)) {
                 continue;
             }
-            const leafName = getDecodedCategoryName(optionName.trim());
-            const decodedCategoryName = getDecodedCategoryName(option.name);
-            const tooltipText = isChild ? decodedCategoryName : getDecodedCategoryName(searchText);
+
+            const decodedCategoryName = getDecodedCategoryName(optionName);
             optionCollection.set(searchText, {
-                text: `${indents}${leafName}`,
+                text: `${indents}${decodedCategoryName}`,
                 keyForList: searchText,
                 searchText,
-                tooltipText,
+                tooltipText: decodedCategoryName,
                 isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
                 isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
@@ -105,7 +124,7 @@ function getCategoryListSections({
     }
 
     if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptionsWithDisabledState);
+        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
         categorySections.push({
             // "Selected" section
             title: '',
@@ -124,7 +143,7 @@ function getCategoryListSections({
             isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
         }));
 
-        const data = getCategoryOptionTree(searchCategories);
+        const data = getCategoryOptionTree(searchCategories, true);
         categorySections.push({
             // "Search" section
             title: '',
@@ -136,7 +155,7 @@ function getCategoryListSections({
     }
 
     if (selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptionsWithDisabledState);
+        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
         categorySections.push({
             // "Selected" section
             title: '',
@@ -149,7 +168,7 @@ function getCategoryListSections({
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.has(category.name));
 
     if (numberOfEnabledCategories < CONST.STANDARD_LIST_ITEM_LIMIT) {
-        const data = getCategoryOptionTree(filteredCategories, selectedOptionsWithDisabledState);
+        const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
@@ -173,7 +192,7 @@ function getCategoryListSections({
     if (filteredRecentlyUsedCategories.length > 0) {
         const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
 
-        const data = getCategoryOptionTree(cutRecentlyUsedCategories);
+        const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
         categorySections.push({
             // "Recent" section
             title: translate('common.recent'),
@@ -182,7 +201,7 @@ function getCategoryListSections({
         });
     }
 
-    const data = getCategoryOptionTree(filteredCategories, selectedOptionsWithDisabledState);
+    const data = getCategoryOptionTree(filteredCategories, false, selectedOptionsWithDisabledState);
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
