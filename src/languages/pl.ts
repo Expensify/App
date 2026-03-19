@@ -490,6 +490,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Uwaga!',
         submitTo: 'Przekaż do',
         forwardTo: 'Przekaż do',
+        approvalLimit: 'Limit zatwierdzenia',
+        overLimitForwardTo: 'Przekaż przy przekroczeniu limitu',
         merge: 'Scal',
         none: 'Brak',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
@@ -5352,10 +5354,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 removeCardFeed: 'Usuń źródło karty',
                 removeCardFeedTitle: (feedName: string) => `Usuń strumień ${feedName}`,
                 removeCardFeedDescription: 'Na pewno chcesz usunąć ten kanał kart? Spowoduje to odłączenie wszystkich kart.',
-                assignNewCards: 'Przypisz nowe karty',
-                assignNewCardsDescription: 'Pobierz najnowsze karty z banku do przypisania',
-                refreshConnectionSuccess: 'Połączenie odświeżone',
-                refreshConnectionSuccessDescription: 'Połączenie z bankiem zostało pomyślnie ponownie uwierzytelnione. Możesz teraz przypisać nowe karty.',
                 error: {
                     feedNameRequired: 'Nazwa źródła karty jest wymagana',
                     statementCloseDateRequired: 'Wybierz datę zamknięcia wyciągu.',
@@ -7788,11 +7786,13 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Rozpocznij czat, <success><strong>poleć znajomego</strong></success>.',
             header: 'Rozpocznij czat, poleć znajomego',
+            closeAccessibilityLabel: 'Zamknij, rozpocznij czat, poleć znajomego, baner',
             body: 'Chcesz, aby Twoi znajomi też korzystali z Expensify? Po prostu rozpocznij z nimi czat, a my zajmiemy się resztą.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Złóż raport wydatków, <success><strong>poleć swój zespół</strong></success>.',
             header: 'Wyślij wydatek, poleć swój zespół',
+            closeAccessibilityLabel: 'Zamknij, prześlij wydatek, poleć swój zespół, baner',
             body: 'Chcesz, aby Twój zespół też korzystał z Expensify? Po prostu prześlij im wydatek, a my zajmiemy się resztą.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {

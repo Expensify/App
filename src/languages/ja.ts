@@ -490,6 +490,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'ご注意ください！',
         submitTo: '提出先',
         forwardTo: '転送先',
+        approvalLimit: '承認限度額',
+        overLimitForwardTo: '限度額超過時の転送先',
         merge: 'マージ',
         none: 'なし',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認して、もう一度お試しください。',
@@ -5320,10 +5322,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 removeCardFeed: 'カードフィードを削除',
                 removeCardFeedTitle: (feedName: string) => `${feedName}フィードを削除`,
                 removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？すべてのカードの割り当てが解除されます。',
-                assignNewCards: '新しいカードを割り当てる',
-                assignNewCardsDescription: '銀行から最新のカードを取得して割り当てます',
-                refreshConnectionSuccess: '接続が更新されました',
-                refreshConnectionSuccessDescription: '銀行接続の再認証が正常に完了しました。新しいカードを割り当てることができます。',
                 error: {
                     feedNameRequired: 'カードフィード名は必須です',
                     statementCloseDateRequired: '明細書の締め日を選択してください。',
@@ -7737,11 +7735,13 @@ ${reportName}
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'チャットを開始して、<success><strong>友達を紹介しましょう</strong></success>。',
             header: 'チャットを開始、友達を紹介',
+            closeAccessibilityLabel: '閉じる、チャットを開始、友達を紹介、バナー',
             body: '友だちにもExpensifyを使ってほしいですか？チャットを開始するだけで、あとはお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: '経費を申請し、<success><strong>チームを紹介しましょう</strong></success>。',
             header: '経費を提出し、チームを紹介する',
+            closeAccessibilityLabel: '閉じる、経費を提出、チームを紹介、バナー',
             body: 'あなたのチームにもExpensifyを使ってほしいですか？チームに経費精算を1件提出するだけで、あとは私たちにお任せください。',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
