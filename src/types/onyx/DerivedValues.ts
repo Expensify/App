@@ -263,8 +263,11 @@ type TodosDerivedValue = {
  * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
  */
 type SortedReportActionsDerivedValue = {
+    /** Sorted report actions keyed by report ID */
     sortedActions: Record<string, ReportAction[]>;
+    /** Last report action for each report, keyed by report ID */
     lastActions: Record<string, ReportAction>;
+    /** Transaction thread report IDs keyed by parent report action ID */
     transactionThreadIDs: Record<string, string | undefined>;
 };
 
