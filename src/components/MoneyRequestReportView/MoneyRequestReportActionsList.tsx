@@ -20,6 +20,7 @@ import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdo
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import ScrollView from '@components/ScrollView';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
@@ -214,17 +215,34 @@ function MoneyRequestReportActionsList({
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
 
-    const {selectionModeReportLevelActions, allExpensesSelected, hasPayInSelectionMode, onSelectionModePaymentSelect, selectionModeKYCSuccess, primaryAction, kycWallRef} =
-        useSelectionModeReportActions({
-            report,
-            chatReport,
-            policy,
-            reportActions,
-            reportNameValuePairs,
-            reportMetadata,
-            transactions: transactionsWithoutPendingDelete,
-            selectedTransactionIDs,
-        });
+    const {
+        selectionModeReportLevelActions,
+        allExpensesSelected,
+        hasPayInSelectionMode,
+        onSelectionModePaymentSelect,
+        selectionModeKYCSuccess,
+        primaryAction,
+        kycWallRef,
+        isHoldMenuVisible,
+        requestType,
+        paymentType,
+        selectedVBBAToPayFromHoldMenu,
+        handleHoldMenuClose,
+        handleHoldMenuConfirm,
+        hasOnlyHeldExpenses,
+        nonHeldAmount,
+        fullAmount,
+        hasValidNonHeldAmount,
+    } = useSelectionModeReportActions({
+        report,
+        chatReport,
+        policy,
+        reportActions,
+        reportNameValuePairs,
+        reportMetadata,
+        transactions: transactionsWithoutPendingDelete,
+        selectedTransactionIDs,
+    });
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[]) => {
@@ -965,6 +983,20 @@ function MoneyRequestReportActionsList({
                     onConfirm={dismissRejectModalBasedOnAction}
                 />
             )}
+            <ProcessMoneyReportHoldMenu
+                nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                requestType={requestType}
+                fullAmount={fullAmount}
+                onClose={handleHoldMenuClose}
+                isVisible={isHoldMenuVisible}
+                paymentType={paymentType}
+                methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
+                chatReport={chatReport}
+                moneyRequestReport={report}
+                hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                startAnimation={handleHoldMenuConfirm}
+                transactionCount={transactions.length}
+            />
         </View>
     );
 }

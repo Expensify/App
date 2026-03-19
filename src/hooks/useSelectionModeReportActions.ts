@@ -26,6 +26,7 @@ import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     getNextApproverAccountID,
+    getNonHeldAndFullAmount,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
@@ -152,6 +153,8 @@ function useSelectionModeReportActions({
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
+
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton);
 
     const shouldShowApproveButton = useMemo(
         () => canApproveIOU(report, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions,
@@ -695,6 +698,9 @@ function useSelectionModeReportActions({
         isAnyTransactionOnHold,
         isInvoiceReport,
         hasOnlyHeldExpenses: hasOnlyHeldExpensesReportUtils(report?.reportID),
+        nonHeldAmount,
+        fullAmount,
+        hasValidNonHeldAmount,
 
         // KYC dropdown integration
         onSelectionModePaymentSelect,
