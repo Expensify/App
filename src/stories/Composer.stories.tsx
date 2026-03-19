@@ -68,7 +68,6 @@ function Default(props: ComposerProps) {
                     {!!pastedFile && pastedFile instanceof File && (
                         <View style={defaultStyles.mv3}>
                             <Image
-                                accessibilityIgnoresInvertColors
                                 source={{uri: URL.createObjectURL(pastedFile)}}
                                 resizeMode="contain"
                                 style={StyleUtils.getWidthAndHeightStyle(250, 250)}
