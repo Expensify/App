@@ -64,7 +64,7 @@ class ModuleInitTimingPlugin {
                 if (id === null) {
                     continue;
                 }
-                const resource = (module as NormalModule).resource;
+                const resource = 'resource' in module ? (module as NormalModule).resource : undefined;
                 if (!resource || resource.includes('node_modules')) {
                     continue;
                 }

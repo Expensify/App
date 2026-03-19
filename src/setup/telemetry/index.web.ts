@@ -11,7 +11,9 @@ export default function (): void {
         op: CONST.TELEMETRY.SPAN_APP_STARTUP,
     });
 
-    requestIdleCallback(() => {
+    const scheduleIdle = typeof requestIdleCallback === 'function' ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 0);
+
+    scheduleIdle(() => {
         // webpack module timing path (ModuleInitTimingPlugin injected __moduleInitTimes).
         // Use typeof guard — bare identifier throws ReferenceError if ModuleInitTimingPlugin didn't run (e.g. Storybook, stale cache)
         const initTimes = typeof __moduleInitTimes !== 'undefined' ? (__moduleInitTimes as Record<string, number>) : undefined;
