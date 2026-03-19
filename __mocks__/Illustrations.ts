@@ -2,7 +2,6 @@ const Abracadabra = 'Abracadabra';
 const BrokenMagnifyingGlass = 'BrokenMagnifyingGlass';
 const ChatBubbles = 'ChatBubbles';
 const EmailAddress = 'EmailAddress';
-const EmptyCardState = 'EmptyCardState';
 const EmptyStateExpenses = 'EmptyStateExpenses';
 const EnvelopeReceipt = 'EnvelopeReceipt';
 const FolderOpen = 'FolderOpen';
@@ -88,8 +87,10 @@ const Tire = 'Tire';
 const Filters = 'Filters';
 const MagnifyingGlassMoney = 'MagnifyingGlassMoney';
 const Rules = 'Rules';
-const CompanyCardsEmptyState = 'CompanyCardsEmptyState';
 const CompanyCardsPendingState = 'CompanyCardsPendingState';
+const LaptopAssignCard = 'LaptopAssignCard';
+const LaptopReviewCard = 'LaptopReviewCard';
+const ExpensifyCardCoins = 'ExpensifyCardCoins';
 const VisaCompanyCardDetail = 'VisaCompanyCardDetail';
 const MasterCardCompanyCardDetail = 'MasterCardCompanyCardDetail';
 const AmexCardCompanyCardDetail = 'AmexCardCompanyCardDetail';
@@ -122,7 +123,6 @@ export {
     BrokenMagnifyingGlass,
     ChatBubbles,
     EmailAddress,
-    EmptyCardState,
     EmptyStateExpenses,
     EnvelopeReceipt,
     FolderOpen,
@@ -208,8 +208,10 @@ export {
     Filters,
     MagnifyingGlassMoney,
     Rules,
-    CompanyCardsEmptyState,
     CompanyCardsPendingState,
+    LaptopAssignCard,
+    LaptopReviewCard,
+    ExpensifyCardCoins,
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,

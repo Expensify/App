@@ -18,6 +18,7 @@ import {getMergeableDataAndConflictFields} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -34,7 +35,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
     const {transactionID, isOnSearch, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-    const {targetTransaction, sourceTransaction} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({mergeTransaction});
 
     const transactions = [targetTransaction, sourceTransaction].filter((transaction): transaction is Transaction => !!transaction);
 
@@ -47,7 +48,7 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
             return;
         }
 
-        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
+        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, [], targetTransactionPolicy, sourceTransactionPolicy);
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(transactionID, mergeableData);
@@ -58,7 +59,11 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'TransactionMerge.ReceiptReviewPage',
+            isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

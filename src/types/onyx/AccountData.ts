@@ -9,6 +9,9 @@ type AccountData = {
     /** The name of the institution (bank of america, etc */
     addressName?: string;
 
+    /** Date when the bank account was created */
+    created?: string;
+
     /** Can we use this account to pay other people? */
     allowDebit?: boolean;
 

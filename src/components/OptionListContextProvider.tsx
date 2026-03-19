@@ -7,6 +7,8 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxListItemProvider';
@@ -130,8 +132,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-                const {reportOption} = processReport(report, personalDetails, privateIsArchived, currentUserAccountID, chatReport, reportAttributes?.reports);
+                const {reportOption} = processReport(report, personalDetails, privateIsArchived, currentUserAccountID, reportAttributes?.reports);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -167,8 +168,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
                 const reportItem = updatedReportsMap.get(reportID)?.item;
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem?.chatReportID}`];
-                const {reportOption} = processReport(reportItem, personalDetails, privateIsArchived, currentUserAccountID, chatReport, reportAttributes?.reports);
+                const {reportOption} = processReport(reportItem, personalDetails, privateIsArchived, currentUserAccountID, reportAttributes?.reports);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -238,8 +238,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 }
 
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
-                const newReportOption = createOptionFromReport(report, personalDetails, currentUserAccountID, chatReport, privateIsArchived, reportAttributes?.reports, {
+                const newReportOption = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, reportAttributes?.reports, {
                     showPersonalDetails: true,
                 });
                 const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
@@ -267,8 +266,19 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [personalDetails]);
 
     const initializeOptions = useCallback(() => {
+        const isSearchRouterSpanActive = !!getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
+        if (isSearchRouterSpanActive) {
+            startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT, {
+                name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT,
+                op: 'function',
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
+            });
+        }
         loadOptions();
         areOptionsInitialized.current = true;
+        if (isSearchRouterSpanActive) {
+            endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT);
+        }
     }, [loadOptions]);
 
     const resetOptions = useCallback(() => {

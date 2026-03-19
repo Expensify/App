@@ -11,6 +11,7 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,6 +20,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -73,10 +75,18 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+
     const parentReportAction = useParentReportAction(report);
+
+    const handleSubmitToDestinationVisibleLayout = useSubmitToDestinationVisible(
+        [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
+        reportIDFromRoute,
+        CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT,
+    );
+
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
     const prevReport = usePrevious(report);
-
+    const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isFocused = useIsFocused();
 
     // Dismiss modal when the money request report is removed (e.g. deleted or merged).
@@ -148,6 +158,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportIDFromRoute);
     const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
@@ -233,11 +244,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
-            createTransactionThreadReport(introSelected, report, iouAction);
+            createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, report, iouAction);
             return;
         }
 
-        openReport(reportIDFromRoute, introSelected, '', [], undefined, undefined, false, []);
+        openReport({reportID: reportIDFromRoute, introSelected, betas});
         isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:
@@ -246,7 +257,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // For more details see https://github.com/Expensify/App/pull/80107
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportIDFromRoute, transactionThreadReportID, oneTransactionID]);
+    }, [reportIDFromRoute, transactionThreadReportID, oneTransactionID, betas]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
@@ -260,7 +271,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     // Create transaction thread for legacy transactions that don't have one yet.
     // Wait for all data to load to avoid duplicates or stale data when navigating between reports.
     useEffect(() => {
-        if (hasCreatedLegacyThreadRef.current || transactionThreadReportID || (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction)) {
+        if (
+            hasCreatedLegacyThreadRef.current ||
+            transactionThreadReportID ||
+            (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction) ||
+            !reportMetadata?.hasOnceLoadedReportActions ||
+            reportActions.length === 0
+        ) {
             return;
         }
 
@@ -295,14 +312,17 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         hasCreatedLegacyThreadRef.current = true;
 
         const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
-        createTransactionThreadReport(introSelected, report, undefined, transaction, violations);
+        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, report, undefined, transaction, violations);
     }, [
         allReportTransactions,
         allReportViolations,
         introSelected,
+        currentUserEmail,
+        currentUserAccountID,
         report,
         reportActions,
         reportIDFromRoute,
+        reportMetadata?.hasOnceLoadedReportActions,
         reportMetadata?.isLoadingInitialReportActions,
         snapshot,
         snapshotTransaction,
@@ -413,6 +433,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     key={report?.reportID}
+                                    onLayout={handleSubmitToDestinationVisibleLayout}
                                     backToRoute={route.params.backTo}
                                 />
                                 <PortalHost name="suggestions" />

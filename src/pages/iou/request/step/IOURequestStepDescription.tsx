@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -8,6 +8,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -30,7 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import DiscardChangesConfirmation from './DiscardChangesConfirmation';
+import KEYBOARD_SUBMIT_BEHAVIOR from './shouldDismissKeyboardBeforeDescriptionSubmit';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -73,7 +74,10 @@ function IOURequestStepDescription({
         return isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
     }, [isTransactionDraft, iouType, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
 
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [currentDescription, setCurrentDescription] = useState(currentDescriptionInMarkdown);
+    const [isSaved, setIsSaved] = useState(false);
+    const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
+    const shouldNavigateAfterSaveRef = useRef(false);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -119,31 +123,35 @@ function IOURequestStepDescription({
         Navigation.goBack(backTo);
     }, [backTo]);
 
-    const updateHasUnsavedChanges = useCallback(
-        (value: string) => {
-            if (value === currentDescriptionInMarkdown) {
-                setHasUnsavedChanges(false);
-                return;
-            }
-            setHasUnsavedChanges(true);
-        },
-        [currentDescriptionInMarkdown],
-    );
+    useEffect(() => {
+        if (!isSaved || !shouldNavigateAfterSaveRef.current) {
+            return;
+        }
+        shouldNavigateAfterSaveRef.current = false;
+        navigateBack();
+    }, [isSaved, navigateBack]);
+
+    const updateDescriptionRef = (value: string) => {
+        setCurrentDescription(value);
+    };
 
     const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
         if (!transaction?.transactionID) {
             return;
         }
 
-        setHasUnsavedChanges(false);
         const newComment = value.moneyRequestComment.trim();
 
         if (newComment === currentDescriptionInMarkdown) {
+            setIsSaved(true);
+            shouldNavigateAfterSaveRef.current = true;
             return;
         }
 
         if (isEditingSplit) {
             setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
+            setIsSaved(true);
+            shouldNavigateAfterSaveRef.current = true;
             return;
         }
 
@@ -164,6 +172,9 @@ function IOURequestStepDescription({
                 parentReportNextStep,
             });
         }
+
+        setIsSaved(true);
+        shouldNavigateAfterSaveRef.current = true;
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -173,6 +184,22 @@ function IOURequestStepDescription({
     const getDescriptionHint = () => {
         return transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
     };
+
+    useDiscardChangesConfirmation({
+        onCancel: () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                inputRef.current?.focus();
+            });
+        },
+        getHasUnsavedChanges: () => {
+            if (isSaved) {
+                return false;
+            }
+            return currentDescription !== currentDescriptionInMarkdown;
+        },
+        onVisibilityChange: setIsDiscardModalVisible,
+    });
 
     return (
         <StepScreenWrapper
@@ -190,6 +217,7 @@ function IOURequestStepDescription({
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
+                keyboardSubmitBehavior={KEYBOARD_SUBMIT_BEHAVIOR}
             >
                 <View style={styles.mb4}>
                     <InputWrapper
@@ -198,10 +226,11 @@ function IOURequestStepDescription({
                         inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         name={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         defaultValue={currentDescriptionInMarkdown}
-                        onValueChange={updateHasUnsavedChanges}
+                        onValueChange={updateDescriptionRef}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ROLE.PRESENTATION}
+                        editable={!isDiscardModalVisible}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
@@ -212,15 +241,6 @@ function IOURequestStepDescription({
                     />
                 </View>
             </FormProvider>
-            <DiscardChangesConfirmation
-                onCancel={() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => {
-                        inputRef.current?.focus();
-                    });
-                }}
-                hasUnsavedChanges={hasUnsavedChanges}
-            />
         </StepScreenWrapper>
     );
 }

@@ -88,6 +88,7 @@ export default {
         CONCIERGE_URL_PATHNAME: 'concierge/',
         DEVPORTAL_URL_PATHNAME: '_devportal/',
         CONCIERGE_URL: `${expensifyURL}concierge/`,
+        RECEIPTS_URL: `${expensifyURL}receipts/`,
         SAML_URL: `${expensifyURL}authentication/saml`,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,

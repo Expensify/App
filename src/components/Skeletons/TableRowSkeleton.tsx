@@ -11,7 +11,7 @@ type TableListItemSkeletonProps = {
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
     useCompanyCardsLayout?: boolean;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 const barHeight = '8';

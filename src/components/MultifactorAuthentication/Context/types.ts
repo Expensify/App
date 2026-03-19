@@ -33,6 +33,9 @@ type MultifactorAuthenticationState = {
     /** Whether user approved the soft prompt for biometric setup */
     softPromptApproved: boolean;
 
+    /** Scenario name identifier (e.g. 'AUTHORIZE-TRANSACTION') */
+    scenarioName: MultifactorAuthenticationScenario | undefined;
+
     /** Current scenario configuration being executed */
     scenario: MultifactorAuthenticationScenarioConfig | undefined;
 

@@ -18,6 +18,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -85,7 +86,13 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         badgeIcon?: IconAsset;
 
         /** Whether the badge should be shown as success */
-        badgeSuccess?: boolean;
+        isBadgeSuccess?: boolean;
+
+        /** Whether the badge should use strong (filled) variant */
+        isBadgeStrong?: boolean;
+
+        /** Whether the badge should use condensed (smaller) sizing */
+        isBadgeCondensed?: boolean;
 
         /** Callback to fire when the badge is pressed */
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
@@ -109,7 +116,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         titleStyle?: StyleProp<TextStyle>;
 
         /** Any additional styles to apply on the badge element */
-        badgeStyle?: ViewStyle;
+        badgeStyle?: StyleProp<ViewStyle>;
 
         /** Any additional styles to apply to the label */
         labelStyle?: StyleProp<ViewStyle>;
@@ -451,7 +458,9 @@ function MenuItem({
     onPress,
     badgeText,
     badgeIcon,
-    badgeSuccess,
+    isBadgeSuccess,
+    isBadgeStrong,
+    isBadgeCondensed,
     onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
@@ -589,6 +598,9 @@ function MenuItem({
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const menuItemLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MenuItem',
+    };
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
@@ -621,7 +633,10 @@ function MenuItem({
         if (!title || !shouldParseTitle) {
             return '';
         }
-        return Parser.replace(title, {shouldEscapeText, disabledRules: excludedMarkdownRules});
+        return Parser.replace(title, {
+            shouldEscapeText,
+            disabledRules: excludedMarkdownRules,
+        });
     }, [title, shouldParseTitle, shouldEscapeText, excludedMarkdownRules]);
 
     const helperHtml = useMemo(() => {
@@ -732,6 +747,20 @@ function MenuItem({
         enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
     }
 
+    // When interactive={false}, don't pass onPress to allow events to bubble to parent wrapper.
+    // This is critical for components like ApprovalWorkflowSection where outer PressableWithoutFeedback
+    // handles all clicks and inner MenuItems are display-only.
+    const getResolvedOnPress = () => {
+        if (!interactive) {
+            return undefined;
+        }
+        if (shouldCheckActionAllowedOnPress) {
+            return callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction);
+        }
+        return onPressAction;
+    };
+    const resolvedOnPress = getResolvedOnPress();
+
     return (
         <View
             style={rootWrapperStyle}
@@ -757,7 +786,7 @@ function MenuItem({
                     <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPress={resolvedOnPress}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -785,6 +814,7 @@ function MenuItem({
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 accessible={shouldBeAccessible}
+                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
@@ -861,7 +891,10 @@ function MenuItem({
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator color={theme.textSupporting} />
+                                                                    <ActivityIndicator
+                                                                        color={theme.textSupporting}
+                                                                        reasonAttributes={menuItemLoadingReasonAttributes}
+                                                                    />
                                                                 ))}
                                                             {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                                 <Avatar
@@ -931,7 +964,9 @@ function MenuItem({
                                                                     <Text
                                                                         style={combinedTitleTextStyle}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
-                                                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                        dataSet={{
+                                                                            [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
+                                                                        }}
                                                                         accessibilityRole={titleAccessibilityRole}
                                                                     >
                                                                         {renderTitleContent()}
@@ -980,8 +1015,16 @@ function MenuItem({
                                                             <Badge
                                                                 text={badgeText}
                                                                 icon={badgeIcon}
-                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2]}
-                                                                success={badgeSuccess}
+                                                                badgeStyles={[
+                                                                    badgeStyle,
+                                                                    styles.alignSelfStart,
+                                                                    styles.ml3,
+                                                                    styles.mt2,
+                                                                    focused && !isBadgeSuccess && styles.badgeDefaultActive,
+                                                                ]}
+                                                                success={isBadgeSuccess}
+                                                                isStrong={isBadgeStrong}
+                                                                isCondensed={isBadgeCondensed}
                                                                 onPress={onBadgePress}
                                                                 pressable={!!onBadgePress}
                                                             />
@@ -996,8 +1039,10 @@ function MenuItem({
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
-                                                        badgeStyles={badgeStyle}
-                                                        success={badgeSuccess}
+                                                        badgeStyles={[badgeStyle, focused && !isBadgeSuccess && styles.badgeDefaultActive]}
+                                                        success={isBadgeSuccess}
+                                                        isStrong={isBadgeStrong}
+                                                        isCondensed={isBadgeCondensed}
                                                         onPress={onBadgePress}
                                                         pressable={!!onBadgePress}
                                                     />
@@ -1094,8 +1139,10 @@ function MenuItem({
                                             <Badge
                                                 text={badgeText}
                                                 icon={badgeIcon}
-                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2]}
-                                                success={badgeSuccess}
+                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2, focused && !isBadgeSuccess && styles.badgeDefaultActive]}
+                                                success={isBadgeSuccess}
+                                                isStrong={isBadgeStrong}
+                                                isCondensed={isBadgeCondensed}
                                                 onPress={onBadgePress}
                                                 pressable={!!onBadgePress}
                                             />

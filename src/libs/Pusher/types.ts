@@ -68,6 +68,10 @@ type PusherEventName = LiteralUnion<DeepValueOf<typeof TYPE>, string>;
 
 type PusherSubscriptionErrorData = {type?: string; error?: string; status?: string};
 
+type PusherSubscription = Promise<void> & {
+    unsubscribe: () => void;
+};
+
 type PusherModule = {
     init: (args: Args) => Promise<void>;
     subscribe: <EventName extends PusherEventName>(
@@ -75,7 +79,7 @@ type PusherModule = {
         eventName?: EventName,
         eventCallback?: (data: EventData<EventName>) => void,
         onResubscribe?: () => void,
-    ) => Promise<void>;
+    ) => PusherSubscription;
     unsubscribe: (channelName: string, eventName?: PusherEventName) => void;
     getChannel: (channelName: string) => Channel | PusherChannel | undefined;
     isSubscribed: (channelName: string) => boolean;
@@ -105,5 +109,6 @@ export type {
     SocketEventCallback,
     PusherWithAuthParams,
     PusherEventName,
+    PusherSubscription,
     PusherSubscriptionErrorData,
 };

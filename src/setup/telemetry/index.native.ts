@@ -24,6 +24,9 @@ export default function (): void {
     });
 
     requestAnimationFrame(() => {
-        reportModuleInitTimes(__moduleInitTimes as Record<string, number> | undefined, __moduleNames as Record<string, string> | undefined, 100);
+        // Use typeof guard — bare identifier throws ReferenceError if moduleInitPolyfill didn't run
+        const initTimes = typeof __moduleInitTimes !== 'undefined' ? (__moduleInitTimes as Record<string, number>) : undefined;
+        const moduleNames = typeof __moduleNames !== 'undefined' ? (__moduleNames as Record<string, string>) : undefined;
+        reportModuleInitTimes(initTimes, moduleNames, 100);
     });
 }
