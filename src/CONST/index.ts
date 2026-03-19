@@ -2200,6 +2200,12 @@ const CONST = {
         NUMBERS_AND_PUNCTUATION: 'numbers-and-punctuation',
     },
 
+    KEYBOARD_SUBMIT_BEHAVIOR: {
+        DISMISS_THEN_SUBMIT: 'dismiss-then-submit',
+        SUBMIT_AND_DISMISS: 'submit-and-dismiss',
+        SUBMIT_ONLY: 'submit-only',
+    },
+
     INPUT_MODE: {
         NONE: 'none',
         TEXT: 'text',
