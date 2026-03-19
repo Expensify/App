@@ -215,7 +215,7 @@ function MagicCodeInput({
     };
 
     const announcement = focusedIndex !== undefined ? translate('common.enterDigitLabel', {digitIndex: focusedIndex + 1, totalDigits: maxLength}) : undefined;
-    useAccessibilityAnnouncement(announcement, !!announcement, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true, shouldAnnouncePolite: true});
+    useAccessibilityAnnouncement(announcement, !!announcement, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
 
     useImperativeHandle(ref, () => ({
         focus() {
